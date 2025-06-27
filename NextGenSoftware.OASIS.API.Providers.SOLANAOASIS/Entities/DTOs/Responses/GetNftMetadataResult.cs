@@ -9,7 +9,7 @@ public sealed class GetNftMetadataResult
     public string Symbol { get; set; }
     public string Url { get; set; }
     public uint SellerFeeBasisPoints { get; set; }
-    public IEnumerable<NftCreatorMedataResult> Creators { get; set; }
+    public IEnumerable<NftCreatorMetadataResult> Creators { get; set; }
 
     public GetNftMetadataResult(MetadataAccount metadataAccount)
     {
@@ -22,6 +22,6 @@ public sealed class GetNftMetadataResult
         Symbol = metadataAccount.metadata.symbol;
         Url = metadataAccount.metadata.uri;
         SellerFeeBasisPoints = metadataAccount.metadata.sellerFeeBasisPoints;
-        Creators = metadataAccount.metadata.creators.Select(creator => new NftCreatorMedataResult(creator));
+        Creators = metadataAccount.metadata.creators.Select(creator => new NftCreatorMetadataResult(creator));
     }
 }

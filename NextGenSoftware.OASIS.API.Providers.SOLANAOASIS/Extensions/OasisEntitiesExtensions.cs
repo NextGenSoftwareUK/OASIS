@@ -54,4 +54,18 @@ public static class OasisEntitiesExtensions
             PreviousVersionId = holon.PreviousVersionId,
         };
     }
+
+    public static IOASISNFT ToOasisNft(this GetNftMetadataResult nft) =>
+        new OASISNFT
+        {
+            Title = nft.Name,
+            MintedByAddress = nft.Owner,
+            Symbol = nft.Symbol,
+            SellerFeeBasisPoints = nft.SellerFeeBasisPoints,
+            UpdateAuthority = nft.UpdateAuthority,
+            MintAddress = nft.Mint,
+            URL = nft.Url,
+            OnChainProvider = new EnumValue<ProviderType>(ProviderType.SolanaOASIS),
+            OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS)
+        };
 }
