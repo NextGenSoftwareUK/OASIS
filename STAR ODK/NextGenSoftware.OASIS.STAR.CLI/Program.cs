@@ -24,6 +24,8 @@ using ConsoleTables;
 using BetterConsoleTables;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using System.Diagnostics;
+using static System.Net.WebRequestMethods;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 {
@@ -287,10 +289,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         OAPPTemplateType oappTemplateType = DEFAULT_OAPP_TEMPLATE_TYPE;
                                         OAPPType oappType = DEFAULT_OAPP_TYPE;
                                         Guid oappTemplateId = Guid.Empty;
+                                        int oappTemplateVersion = 1;
                                         GenesisType genesisType = GenesisType.Planet;
                                         OASISResult<CoronalEjection> lightResult = null;
                                         _inMainMenu = false;
 
+                                        //TODO: Need to re-write this so it uses named params that are parsed rather than relying on them being in the correct order!
+                                        //Also this will then allow OAPPTemplate to be optional (3 params are optional).
                                         if (inputArgs.Length > 1)
                                         {
                                             if (inputArgs[1].ToLower() == "wiz")
@@ -308,31 +313,42 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                         oappTemplateType = (OAPPTemplateType)oappTypeObj;
 
                                                         if (inputArgs.Length > 4 && Guid.TryParse(inputArgs[5], out oappTemplateId))
+                                                        {
                                                             oappTemplateId = oappTemplateId;
 
-                                                        if (inputArgs.Length > 8)
-                                                        {
-                                                            if (Enum.TryParse(typeof(GenesisType), inputArgs[9], true, out genesisTypeObj))
+                                                            if (inputArgs.Length > 5 && int.TryParse(inputArgs[6], out oappTemplateVersion))
                                                             {
-                                                                genesisType = (GenesisType)genesisTypeObj;
+                                                                oappTemplateVersion = oappTemplateVersion;
 
                                                                 if (inputArgs.Length > 9)
                                                                 {
-                                                                    Guid parentId = Guid.Empty;
+                                                                    if (Enum.TryParse(typeof(GenesisType), inputArgs[10], true, out genesisTypeObj))
+                                                                    {
+                                                                        genesisType = (GenesisType)genesisTypeObj;
 
-                                                                    if (Guid.TryParse(inputArgs[10], out parentId))
-                                                                        lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateType, oappTemplateId, genesisType, inputArgs[6], inputArgs[7], inputArgs[8], parentId);
+                                                                        if (inputArgs.Length > 10)
+                                                                        {
+                                                                            Guid parentId = Guid.Empty;
+
+                                                                            if (Guid.TryParse(inputArgs[11], out parentId))
+                                                                                lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateType, oappTemplateId, oappTemplateVersion, genesisType, inputArgs[7], inputArgs[8], inputArgs[9], parentId);
+                                                                            else
+                                                                                CLIEngine.ShowErrorMessage($"The ParentCelestialBodyId Passed In ({inputArgs[6]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                                        }
+                                                                        else
+                                                                            lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateType, oappTemplateId, oappTemplateVersion, genesisType, inputArgs[7], inputArgs[8], inputArgs[9], ProviderType.Default);
+                                                                    }
                                                                     else
-                                                                        CLIEngine.ShowErrorMessage($"The ParentCelestialBodyId Passed In ({inputArgs[6]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                                        CLIEngine.ShowErrorMessage($"The GenesisType Passed In ({inputArgs[7]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
                                                                 }
                                                                 else
-                                                                    lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateType, oappTemplateId, genesisType, inputArgs[6], inputArgs[7], inputArgs[8], ProviderType.Default);
+                                                                    lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateType, oappTemplateId, oappTemplateVersion, inputArgs[7], inputArgs[8], inputArgs[9]);
                                                             }
                                                             else
-                                                                CLIEngine.ShowErrorMessage($"The GenesisType Passed In ({inputArgs[7]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                                CLIEngine.ShowErrorMessage($"The OAPPTemplateVersion Passed In ({inputArgs[6]}) Is Not Valid. .");
                                                         }
                                                         else
-                                                            lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateType, oappTemplateId, inputArgs[6], inputArgs[7], inputArgs[8]);
+                                                            CLIEngine.ShowErrorMessage($"The OAPPTemplateId Passed In ({inputArgs[5]}) Is Not Valid. .");
                                                     }
                                                     else
                                                         CLIEngine.ShowErrorMessage($"The OAPPTemplateType Passed In ({inputArgs[4]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.");
@@ -538,6 +554,31 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     }
                                     break;
 
+                                case "gate":
+                                    {
+                                        Process.Start(new ProcessStartInfo
+                                        {
+                                            FileName = "https://oasisweb4.one/portal",
+                                            UseShellExecute = true
+                                        });
+                                    }
+                                    break;
+
+                                case "api":
+                                    {
+                                        //string url = "https://oasisweb4.one/star"; //TODO: When the new STAR API is deployed use this URL instead.
+                                        string url = "https://oasisweb4.one";
+                                        if (inputArgs.Length > 1 && inputArgs[1] == "oasis")
+                                            url = "https://oasisweb4.one";
+
+                                            Process.Start(new ProcessStartInfo
+                                            {
+                                                FileName = url,
+                                                UseShellExecute = true
+                                            });
+                                    }
+                                    break;
+
                                 case "oapp":
                                     {
                                         if (inputArgs.Length > 1)
@@ -714,7 +755,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         object oappTypeObj = null;
                                         OAPPType OAPPType = DEFAULT_OAPP_TYPE;
                                         OAPPTemplateType OAPPTemplateType = DEFAULT_OAPP_TEMPLATE_TYPE;
-                                        Guid OAPPTemplateId = Guid.NewGuid();
+                                        Guid OAPPTemplateId = Guid.NewGuid(); //TODO: Replace with an existing built-in OAPP Template Id (or allow user to specify one?).
+                                        int OAPPTemplateVersion = 1;
                                         string dnaFolder = DEFAULT_DNA_FOLDER;
                                         string genesisFolder = DEFAULT_GENESIS_FOLDER;
                                         //string genesisNameSpace = DEFAULT_GENESIS_NAMESPACE;
@@ -746,7 +788,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         else
                                             CLIEngine.ShowWorkingMessage($"GenesisFolder Specified: {genesisFolder}");
 
-                                        await STARCLI.STARTests.RunCOSMICTests(OAPPType, OAPPTemplateType, OAPPTemplateId, dnaFolder, genesisFolder);
+                                        await STARCLI.STARTests.RunCOSMICTests(OAPPType, OAPPTemplateType, OAPPTemplateId, OAPPTemplateVersion, dnaFolder, genesisFolder);
                                     }
                                     break;
 
@@ -782,7 +824,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static async Task ShowSubCommandAsync<T>(string[] inputArgs, 
             string subCommand = "",
             string subCommandPlural = "",
-            Func<object, T, ProviderType, Task> createPredicate = null, 
+            Func<object, T, bool, bool, ProviderType, Task> createPredicate = null, 
             Func<string, object, ProviderType, Task> updatePredicate = null, 
             Func<string, bool, ProviderType, Task> deletePredicate = null,
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
@@ -861,7 +903,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             if (showCreate)
                             {
                                 if (createPredicate != null)
-                                    await createPredicate(null, default, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                    await createPredicate(null, default, true, true, providerType); //TODO: Pass in params in a object or dynamic obj.
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -4538,7 +4580,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    super                                                                               Reserved For Future Use...");
                 //Console.WriteLine("    net = Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's, zomes, holons, celestial spaces, celestial bodies, geo-nft's, geo-hotspots, missions, chapters, quests & inventory items.");
                 Console.WriteLine("    net                                                                                 Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
-
+                Console.WriteLine("    gate                                                                                Opens the STARGATE to the OASIS Portal!");
+                Console.WriteLine("    api                                          [oasis]                                Opens the WEB5 STAR API (if oasis is included then it will open the WEB4 OASIS API instead).");
                 Console.WriteLine("    avatar beamin                                                                       Beam in (log in).");
                 Console.WriteLine("    avatar beamout                                                                      Beam out (Log out).");
                 Console.WriteLine("    avatar whoisbeamedin                                                                Display who is currently beamed in (if any) and the last time they beamed in and out.");
@@ -5022,6 +5065,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    super            Reserved For Future Use...");
                 //Console.WriteLine("    net = Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's, zomes, holons, celestial spaces, celestial bodies, geo-nft's, geo-hotspots, missions, chapters, quests & inventory items.");
                 Console.WriteLine("    net              Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
+                Console.WriteLine("    gate             Opens the STARGATE to the OASIS Portal!");
+                Console.WriteLine("    api [oasis]      Opens the WEB5 STAR API (if oasis is included then it will open the WEB4 OASIS API instead).");
                 Console.WriteLine("    avatar           Manage avatars.");
                 Console.WriteLine("    karma            Manage karma.");
                 Console.WriteLine("    keys             Manage keys.");

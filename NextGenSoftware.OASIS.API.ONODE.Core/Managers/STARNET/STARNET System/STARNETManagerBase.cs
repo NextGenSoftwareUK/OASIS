@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public string STARNETDNAJSONName { get; set; } = "STARNETDNAJSON";
         public Type STARNETHolonSubType { get; set; }
 
-        public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, T1 newHolon = default, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, T1 newHolon = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in STARManagerBase.CreateAsync, Reason:";
@@ -112,19 +112,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             try
             {
-                if (Directory.Exists(fullPathToT))
+                //TODO: Dont want UI in the backend!
+                if (Directory.Exists(fullPathToT) && checkIfSourcePathExists)
                 {
-                    if (CLIEngine.GetConfirmation($"The directory {fullPathToT} already exists! Would you like to delete it?"))
-                    {
-                        Console.WriteLine("");
-                        Directory.Delete(fullPathToT, true);
-                    }
-                    else
-                    {
-                        Console.WriteLine("");
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToT} already exists! Please either delete it or choose a different name.");
-                        return result;
-                    }
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToT} already exists! Please either delete it or choose a different name.");
+                    return result;
+
+                    //if (CLIEngine.GetConfirmation($"The directory {fullPathToT} already exists! Would you like to delete it?"))
+                    //{
+                    //    Console.WriteLine("");
+                    //    Directory.Delete(fullPathToT, true);
+                    //}
+                    //else
+                    //{
+                    //    Console.WriteLine("");
+                    //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToT} already exists! Please either delete it or choose a different name.");
+                    //    return result;
+                    //}
                 }
 
                 if (newHolon != null)
@@ -222,7 +226,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, T1 newHolon = default, ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, T1 newHolon = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in STARManagerBase.Create, Reason:";
@@ -230,19 +234,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             try
             {
-                if (Directory.Exists(fullPathToT))
+                //TODO: Dont want UI in the backend!
+                if (Directory.Exists(fullPathToT) && checkIfSourcePathExists)
                 {
-                    if (CLIEngine.GetConfirmation($"The directory {fullPathToT} already exists! Would you like to delete it?"))
-                    {
-                        Console.WriteLine("");
-                        Directory.Delete(fullPathToT, true);
-                    }
-                    else
-                    {
-                        Console.WriteLine("");
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToT} already exists! Please either delete it or choose a different name.");
-                        return result;
-                    }
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToT} already exists! Please either delete it or choose a different name.");
+                    return result;
+
+                    //if (CLIEngine.GetConfirmation($"The directory {fullPathToT} already exists! Would you like to delete it?"))
+                    //{
+                    //    Console.WriteLine("");
+                    //    Directory.Delete(fullPathToT, true);
+                    //}
+                    //else
+                    //{
+                    //    Console.WriteLine("");
+                    //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToT} already exists! Please either delete it or choose a different name.");
+                    //    return result;
+                    //}
                 }
 
                 if (newHolon != null)
@@ -3952,7 +3960,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARNETHolonId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARNETHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
@@ -3971,7 +3979,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T3> LoadInstalled(Guid avatarId, Guid STARNETHolonId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T3> LoadInstalled(Guid avatarId, Guid STARNETHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalled. Reason: ";
@@ -3990,7 +3998,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
@@ -4009,7 +4017,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T3> LoadInstalled(Guid avatarId, string name, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T3> LoadInstalled(Guid avatarId, string name, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalled. Reason: ";
@@ -4104,7 +4112,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARNETHolonId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARNETHolonId, bool active, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
@@ -4124,7 +4132,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T3> LoadInstalled(Guid avatarId, Guid STARNETHolonId, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T3> LoadInstalled(Guid avatarId, Guid STARNETHolonId, bool active, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalled. Reason: ";
@@ -4144,7 +4152,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, bool active, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
@@ -4163,7 +4171,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T3> LoadInstalled(Guid avatarId, string name, bool active, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T3> LoadInstalled(Guid avatarId, string name, bool active, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.LoadInstalled. Reason: ";

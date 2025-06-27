@@ -56,22 +56,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             //string runtimeName = string.Concat(Enum.GetName(typeof(RuntimeType), runtimeType), " ", version);
             //string runtimePath = Path.Combine(baseRuntimeInstalledPath, runtimeName);
 
-            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, "OASIS", version, baseRuntimeInstalledPath, providerType: providerType));
+            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, "OASIS Runtime", version, baseRuntimeInstalledPath, providerType: providerType));
         }
 
         public OASISResult<IInstalledRuntime> DownloadAndInstallOASISRuntime(Guid avatarId, string version, string baseRuntimeInstalledPath, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.DownloadAndInstall(avatarId, "OASIS", version, baseRuntimeInstalledPath, providerType: providerType));
+            return ProcessResult(base.DownloadAndInstall(avatarId, "OASIS Runtime", version, baseRuntimeInstalledPath, providerType: providerType));
         }
 
         public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallSTARRuntimeAsync(Guid avatarId, string version, string baseRuntimeInstalledPath, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, "STAR", version, baseRuntimeInstalledPath, providerType: providerType));
+            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, "STAR Runtime", version, baseRuntimeInstalledPath, providerType: providerType));
         }
 
         public OASISResult<IInstalledRuntime> DownloadAndInstallSTARRuntime(Guid avatarId, string version, string baseRuntimeInstalledPath, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.DownloadAndInstall(avatarId, "STAR", version, baseRuntimeInstalledPath, providerType: providerType));
+            return ProcessResult(base.DownloadAndInstall(avatarId, "STAR Runtime", version, baseRuntimeInstalledPath, providerType: providerType));
         }
 
         /*

@@ -52,6 +52,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToCelestialSpaceSource,
             CelestialSpaceType celestialSpaceType,
             ICelestialSpace celestialSpace,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialSpaceType, fullPathToCelestialSpaceSource, null,
@@ -59,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     CelestialSpaceType = celestialSpaceType,
                     CelestialSpace = celestialSpace
-                },
+                }, checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 
@@ -70,6 +71,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToCelestialSpaceSource,
             CelestialSpaceType celestialSpaceType,
             ICelestialSpace celestialSpace,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Create(avatarId, name, description, celestialSpaceType, fullPathToCelestialSpaceSource, null,
@@ -78,6 +80,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     CelestialSpaceType = celestialSpaceType,
                     CelestialSpace = celestialSpace
                 },
+                checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 
@@ -88,6 +91,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToCelestialSpaceSource,
             CelestialSpaceType celestialSpaceType,
             Guid celestialSpaceId,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialSpaceType, fullPathToCelestialSpaceSource, null,
@@ -96,6 +100,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     CelestialSpaceType = celestialSpaceType,
                     CelestialSpaceId = celestialSpaceId
                 },
+                checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 
@@ -106,6 +111,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToCelestialSpaceSource,
             CelestialSpaceType celestialSpaceType,
             Guid celestialSpaceId,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Create(avatarId, name, description, celestialSpaceType, fullPathToCelestialSpaceSource, null,
@@ -114,6 +120,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     CelestialSpaceType = celestialSpaceType,
                     CelestialSpaceId = celestialSpaceId
                 },
+                checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 

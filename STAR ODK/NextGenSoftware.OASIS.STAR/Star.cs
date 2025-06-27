@@ -567,9 +567,9 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
+        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
-            return Light(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null, providerType);
+            return Light(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null, providerType);
         }
 
         //public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IStar starToAddPlanetTo = null, ProviderType providerType = ProviderType.Default)
@@ -582,19 +582,19 @@ namespace NextGenSoftware.OASIS.STAR
         //    return Light(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)planetToAddMoonTo, providerType);
         //}
 
-        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
         {
-            return LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent, providerType).Result;
+            return LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent, providerType).Result;
         }
 
-        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
+        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
-            return LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId, providerType).Result;
+            return LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId, providerType).Result;
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
-            return await LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null, providerType);
+            return await LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)null, providerType);
         }
 
         //public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IStar starToAddPlanetTo = null, ProviderType providerType = ProviderType.Default)
@@ -607,22 +607,22 @@ namespace NextGenSoftware.OASIS.STAR
         //    return await LightAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)planetToAddMoonTo, providerType);
         //}
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
-            return await LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, GenesisType.ZomesAndHolonsOnly, zomeAndHolonDNAFolder, genesisFolder, genesisNameSpace, providerType);
+            return await LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, OAPPTemplateVersion, GenesisType.ZomesAndHolonsOnly, zomeAndHolonDNAFolder, genesisFolder, genesisNameSpace, providerType);
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
-            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId, providerType);
+            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, null, celestialBodyParentId, providerType);
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
         {
-            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent, Guid.Empty, providerType);
+            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, celestialBodyParent, Guid.Empty, providerType);
         }
 
-        private static async Task<OASISResult<CoronalEjection>> LightInternalAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "",  string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
+        private static async Task<OASISResult<CoronalEjection>> LightInternalAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "",  string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
             OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>(new CoronalEjection());
             ICelestialBody newBody = null;
@@ -676,7 +676,7 @@ namespace NextGenSoftware.OASIS.STAR
                 //genesisFolder = STARDNA.GenesisFolder;
 
             if (string.IsNullOrEmpty(genesisNameSpace))
-                genesisNameSpace = STARDNA.GenesisNamespace;
+                genesisNameSpace = STARDNA.DefaultGenesisNamespace;
 
             if (DefaultStar == null)
             {
@@ -692,15 +692,15 @@ namespace NextGenSoftware.OASIS.STAR
             //switch (STARDNA.HolochainVersion.ToUpper())
             //{
             //    case "REDUX":
-            //        rustcelestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNAReduxTemplateFolder}";
+            //        rustcelestialBodyDNAFolder = $"{STARDNA.BaseSTARPath}\\{STARDNA.RustDNAReduxTemplateFolder}";
             //        break;
 
             //    case "RSM":
-            //        rustcelestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNARSMTemplateFolder}";
+            //        rustcelestialBodyDNAFolder = $"{STARDNA.BaseSTARPath}\\{STARDNA.RustDNARSMTemplateFolder}";
             //        break;
             //}
 
-            rustcelestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.RustDNARSMTemplateFolder}";
+            rustcelestialBodyDNAFolder = $"{STARDNA.BaseSTARPath}\\{STARDNA.RustDNARSMTemplateFolder}";
 
             string libTemplate = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateLib)).OpenText().ReadToEnd();
             string createTemplate = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateCreate)).OpenText().ReadToEnd();
@@ -714,42 +714,47 @@ namespace NextGenSoftware.OASIS.STAR
             string stringTemplateRust = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateString)).OpenText().ReadToEnd();
             string boolTemplateRust = new FileInfo(string.Concat(rustcelestialBodyDNAFolder, "\\", STARDNA.RustTemplateBool)).OpenText().ReadToEnd();
 
-            string iHolonTemplate = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIHolonDNA)).OpenText().ReadToEnd();
-            string holonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateHolonDNA)).OpenText().ReadToEnd();
-            string iZomeTemplate = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIZomeDNA)).OpenText().ReadToEnd();
-            string zomeTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateZomeDNA)).OpenText().ReadToEnd();
-            string iCelestialBodyTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateICelestialBodyDNA)).OpenText().ReadToEnd();
-            string celestialBodyTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateCelestialBodyDNA)).OpenText().ReadToEnd();
-            string loadHolonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateLoadHolonDNA)).OpenText().ReadToEnd();
-            string saveHolonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateSaveHolonDNA)).OpenText().ReadToEnd();
-            string iloadHolonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateILoadHolonDNA)).OpenText().ReadToEnd();
-            string isaveHolonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateISaveHolonDNA)).OpenText().ReadToEnd();
+            string iHolonTemplate = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIHolonDNA)).OpenText().ReadToEnd();
+            string holonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateHolonDNA)).OpenText().ReadToEnd();
+            string iZomeTemplate = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateIZomeDNA)).OpenText().ReadToEnd();
+            string zomeTemplateCsharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateZomeDNA)).OpenText().ReadToEnd();
+            string iCelestialBodyTemplateCsharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateICelestialBodyDNA)).OpenText().ReadToEnd();
+            string celestialBodyTemplateCsharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateCelestialBodyDNA)).OpenText().ReadToEnd();
+            string loadHolonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateLoadHolonDNA)).OpenText().ReadToEnd();
+            string saveHolonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateSaveHolonDNA)).OpenText().ReadToEnd();
+            string iloadHolonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateILoadHolonDNA)).OpenText().ReadToEnd();
+            string isaveHolonTemplateCsharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateISaveHolonDNA)).OpenText().ReadToEnd();
 
-            string IntTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateInt)).OpenText().ReadToEnd();
-            string StringTemplateCSharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateString)).OpenText().ReadToEnd();
-            string BoolTemplateCsharp = new FileInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateBool)).OpenText().ReadToEnd();
+            string IntTemplateCsharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateInt)).OpenText().ReadToEnd();
+            string StringTemplateCSharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateString)).OpenText().ReadToEnd();
+            string BoolTemplateCsharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateBool)).OpenText().ReadToEnd();
 
             //If folder is not passed in via command line args then use default in config file.
             if (string.IsNullOrEmpty(celestialBodyDNAFolder))
-                celestialBodyDNAFolder = $"{STARDNA.BasePath}\\{STARDNA.CelestialBodyDNA}";
+                celestialBodyDNAFolder = $"{STARDNA.BaseSTARPath}\\{STARDNA.CelestialBodyDNA}";
 
             if (string.IsNullOrEmpty(genesisFolder))
-                genesisFolder = $"{STARDNA.BasePath}\\{STARDNA.DefaultOAPPsSourcePath}";
-                //genesisFolder = $"{STARDNA.BasePath}\\{STARDNA.GenesisFolder}";
+                genesisFolder = $"{STARDNA.BaseSTARNETPath}\\{STARDNA.DefaultOAPPsSourcePath}";
+                //genesisFolder = $"{STARDNA.BaseSTARPath}\\{STARDNA.GenesisFolder}";
 
             if (string.IsNullOrEmpty(genesisNameSpace))
-                genesisNameSpace = $"{STARDNA.BasePath}\\{STARDNA.GenesisNamespace}";
+                genesisNameSpace = $"{STARDNA.DefaultGenesisNamespace}";
+                //genesisNameSpace = $"{STARDNA.BaseSTARPath}\\{STARDNA.DefaultGenesisNamespace}";
 
             if (string.IsNullOrEmpty(genesisNameSpace))
                 genesisNameSpace = string.Concat(OAPPName, "OAPP");
 
-            OASISResult<bool> initOASISFolderResult = await InitOAPPFolderAsync(OAPPType, OAPPName, genesisFolder, genesisNameSpace, OAPPTemplateId, providerType);
+            OASISResult<string> initOASISFolderResult = await InitOAPPFolderAsync(OAPPType, OAPPName, genesisFolder, genesisNameSpace, OAPPTemplateId, OAPPTemplateVersion, providerType);
 
-            if (initOASISFolderResult.IsError || !initOASISFolderResult.Result)
+            if (initOASISFolderResult != null && !string.IsNullOrEmpty(initOASISFolderResult.Result) && !initOASISFolderResult.IsError)
+                OAPPFolder = initOASISFolderResult.Result;
+            else
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in InitOAPPFolderAsync. Reason: {initOASISFolderResult.Message}");
                 return result;
             }
+
+            genesisFolder = string.Concat(OAPPFolder, "\\", STARDNA.OAPPGeneratedCodeFolder);
 
             if (!Directory.Exists(string.Concat(genesisFolder, "\\CSharp")))
                 Directory.CreateDirectory(string.Concat(genesisFolder, "\\CSharp"));
@@ -917,10 +922,10 @@ namespace NextGenSoftware.OASIS.STAR
                             if (string.IsNullOrEmpty(genesisNameSpace))
                                 genesisNameSpace = parts[1];
 
-                            zomeBufferCsharp = zomeTemplateCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
-                            izomeBufferCsharp = iZomeTemplate.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
-                            holonBufferCsharp = holonTemplateCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
-                            iholonBufferCsharp = iHolonTemplate.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
+                            zomeBufferCsharp = zomeTemplateCsharp.Replace(STARDNA.CSharpDNATemplateNamespace, genesisNameSpace);
+                            izomeBufferCsharp = iZomeTemplate.Replace(STARDNA.CSharpDNATemplateNamespace, genesisNameSpace);
+                            holonBufferCsharp = holonTemplateCsharp.Replace(STARDNA.CSharpDNATemplateNamespace, genesisNameSpace);
+                            iholonBufferCsharp = iHolonTemplate.Replace(STARDNA.CSharpDNATemplateNamespace, genesisNameSpace);
                         }
 
                         if (buffer.Contains("ZomeDNA"))
@@ -1063,17 +1068,17 @@ namespace NextGenSoftware.OASIS.STAR
                             izomeBufferCsharp = izomeBufferCsharp.Replace("HOLON", holonName);
                             izomeBufferCsharp = izomeBufferCsharp.Replace("IHOLON", $"I{holonName}");
 
-                            zomeBufferCsharp = zomeBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
-                            izomeBufferCsharp = izomeBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
-                            holonBufferCsharp = holonBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
-                            iholonBufferCsharp = iholonBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
+                            zomeBufferCsharp = zomeBufferCsharp.Replace(STARDNA.CSharpDNATemplateNamespace, genesisNameSpace);
+                            izomeBufferCsharp = izomeBufferCsharp.Replace(STARDNA.CSharpDNATemplateNamespace, genesisNameSpace);
+                            holonBufferCsharp = holonBufferCsharp.Replace(STARDNA.CSharpDNATemplateNamespace, genesisNameSpace);
+                            iholonBufferCsharp = iholonBufferCsharp.Replace(STARDNA.CSharpDNATemplateNamespace, genesisNameSpace);
 
                             if (newBody != null)
                             {
                                 if (string.IsNullOrEmpty(celestialBodyBufferCsharp))
                                     celestialBodyBufferCsharp = celestialBodyTemplateCsharp;
 
-                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(STARDNA.TemplateNamespace, genesisNameSpace);
+                                celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace(STARDNA.CSharpDNATemplateNamespace, genesisNameSpace);
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("NAMESPACE", genesisNameSpace);
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("ID", newBody.Id.ToString());
                                 celestialBodyBufferCsharp = celestialBodyBufferCsharp.Replace("CelestialBodyDNATemplate", OAPPName.ToPascalCase());
@@ -1276,12 +1281,12 @@ namespace NextGenSoftware.OASIS.STAR
 
 
             //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
-            OASISResult<IOAPP> OAPPResult = await STARAPI.OAPPs.CreateOAPPAsync(BeamedInAvatar.AvatarId, OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, OAPPFolder, newBody, zomes);
+            //OASISResult<IOAPP> OAPPResult = await STARAPI.OAPPs.CreateOAPPAsync(BeamedInAvatar.AvatarId, OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, OAPPFolder, newBody, zomes);
 
-            if (OAPPResult != null && !OAPPResult.IsError && OAPPResult.Result != null)
-                result.Result.OAPP = OAPPResult.Result;
-            else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An Error Occured Calling OASISAPI.OAPPs.CreateOAPPAsync. Reason: {OAPPResult.Message}");
+            //if (OAPPResult != null && !OAPPResult.IsError && OAPPResult.Result != null)
+            //    result.Result.OAPP = OAPPResult.Result;
+            //else
+            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An Error Occured Calling OASISAPI.OAPPs.CreateOAPPAsync. Reason: {OAPPResult.Message}");
 
             return result;
         }
@@ -1571,48 +1576,48 @@ namespace NextGenSoftware.OASIS.STAR
         {
             if (starDNA != null)
             {
-                ValidateFolder("", starDNA.BasePath, "STARDNA.BasePath");
-                ValidateFolder(starDNA.BasePath, starDNA.CelestialBodyDNA, "STARDNA.CelestialBodyDNA", true);
-                //ValidateFolder(starDNA.BasePath, starDNA.GenesisFolder, "STARDNA.GenesisFolder", false, true);
-                //ValidateFolder(starDNA.BasePath, starDNA.GenesisRustFolder, "STARDNA.GenesisRustFolder", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, "STARDNA.CSharpDNATemplateFolder");
-                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateHolonDNA, "STARDNA.CSharpTemplateHolonDNA");
-                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateZomeDNA, "STARDNA.CSharpTemplateZomeDNA");
-                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateCelestialBodyDNA, "STARDNA.CSharpTemplateCelestialBodyDNA");
-                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateLoadHolonDNA, "STARDNA.CSharpTemplateLoadHolonDNA");
-                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateSaveHolonDNA, "STARDNA.CSharpTemplateSaveHolonDNA");
-                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateILoadHolonDNA, "STARDNA.CSharpTemplateILoadHolonDNA");
-                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateISaveHolonDNA, "STARDNA.CSharpTemplateISaveHolonDNA");
-                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateInt, "STARDNA.CSharpTemplateInt");
-                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateString, "STARDNA.CSharpTemplateString");
-                ValidateFile(starDNA.BasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateBool, "STARDNA.CSharpTemplateBool");
+                ValidateFolder("", starDNA.BaseSTARPath, "STARDNA.BaseSTARPath");
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.CelestialBodyDNA, "STARDNA.CelestialBodyDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.GenesisFolder, "STARDNA.GenesisFolder", false, true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.GenesisRustFolder, "STARDNA.GenesisRustFolder", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, "STARDNA.CSharpDNATemplateFolder");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateHolonDNA, "STARDNA.CSharpTemplateHolonDNA");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateZomeDNA, "STARDNA.CSharpTemplateZomeDNA");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateCelestialBodyDNA, "STARDNA.CSharpTemplateCelestialBodyDNA");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateLoadHolonDNA, "STARDNA.CSharpTemplateLoadHolonDNA");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateSaveHolonDNA, "STARDNA.CSharpTemplateSaveHolonDNA");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateILoadHolonDNA, "STARDNA.CSharpTemplateILoadHolonDNA");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateISaveHolonDNA, "STARDNA.CSharpTemplateISaveHolonDNA");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateInt, "STARDNA.CSharpTemplateInt");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateString, "STARDNA.CSharpTemplateString");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateBool, "STARDNA.CSharpTemplateBool");
 
-                //ValidateFolder(starDNA.BasePath, starDNA.OAPPBlazorTemplateDNA, "STARDNA.OAPPBlazorTemplateDNA", true);
-                //ValidateFolder(starDNA.BasePath, starDNA.OAPPConsoleTemplateDNA, "STARDNA.OAPPConsoleTemplateDNA", true);
-                //ValidateFolder(starDNA.BasePath, starDNA.OAPPCustomTemplateDNA, "STARDNA.OAPPCustomTemplateDNA", true);
-                //ValidateFolder(starDNA.BasePath, starDNA.OAPPGraphQLServiceTemplateDNA, "STARDNA.OAPPGraphQLServiceTemplateDNA", true);
-                //ValidateFolder(starDNA.BasePath, starDNA.OAPPgRPCServiceTemplateDNA, "STARDNA.OAPPgRPCServiceTemplateDNA", true);
-                //ValidateFolder(starDNA.BasePath, starDNA.OAPPMAUITemplateDNA, "STARDNA.OAPPMAUITemplateDNA", true);
-                //ValidateFolder(starDNA.BasePath, starDNA.OAPPRESTServiceTemplateDNA, "STARDNA.OAPPRESTServiceTemplateDNA", true);
-                //ValidateFolder(starDNA.BasePath, starDNA.OAPPUnityTemplateDNA, "STARDNA.OAPPUnityTemplateDNA", true);
-                //ValidateFolder(starDNA.BasePath, starDNA.OAPPWebMVCTemplateDNA, "STARDNA.OAPPWebMVCTemplateDNA", true);
-                //ValidateFolder(starDNA.BasePath, starDNA.OAPPWindowsServiceTemplateDNA, "STARDNA.OAPPWindowsServiceTemplateDNA", true);
-                //ValidateFolder(starDNA.BasePath, starDNA.OAPPWinFormsTemplateDNA, "STARDNA.OAPPWinFormsTemplateDNA", true);
-                //ValidateFolder(starDNA.BasePath, starDNA.OAPPWPFTemplateDNA, "STARDNA.OAPPWPFTemplateDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPBlazorTemplateDNA, "STARDNA.OAPPBlazorTemplateDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPConsoleTemplateDNA, "STARDNA.OAPPConsoleTemplateDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPCustomTemplateDNA, "STARDNA.OAPPCustomTemplateDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPGraphQLServiceTemplateDNA, "STARDNA.OAPPGraphQLServiceTemplateDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPgRPCServiceTemplateDNA, "STARDNA.OAPPgRPCServiceTemplateDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPMAUITemplateDNA, "STARDNA.OAPPMAUITemplateDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPRESTServiceTemplateDNA, "STARDNA.OAPPRESTServiceTemplateDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPUnityTemplateDNA, "STARDNA.OAPPUnityTemplateDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPWebMVCTemplateDNA, "STARDNA.OAPPWebMVCTemplateDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPWindowsServiceTemplateDNA, "STARDNA.OAPPWindowsServiceTemplateDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPWinFormsTemplateDNA, "STARDNA.OAPPWinFormsTemplateDNA", true);
+                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPWPFTemplateDNA, "STARDNA.OAPPWPFTemplateDNA", true);
 
 
-                ValidateFolder(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, "STARDNA.RustDNARSMTemplateFolder");
-                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
-                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
-                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
-                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
-                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
-                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
-                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
-                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateInt, "STARDNA.RustTemplateInt");
-                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateString, "STARDNA.RustTemplateString");
-                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
-                ValidateFile(starDNA.BasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, "STARDNA.RustDNARSMTemplateFolder");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateInt, "STARDNA.RustTemplateInt");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateString, "STARDNA.RustTemplateString");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
+                ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
 
                 if (string.IsNullOrEmpty(starDNA.DefaultOAPPsSourcePath))
                     starDNA.DefaultOAPPsSourcePath = "OAPPs\\Source";
@@ -1660,20 +1665,20 @@ namespace NextGenSoftware.OASIS.STAR
 
                 SaveDNA();
 
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPsSourcePath, "STARDNA.DefaultOAPPsSourcePath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPsPublishedPath, "STARDNA.DefaultOAPPsPublishedPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPsDownloadedPath, "STARDNA.DefaultOAPPsDownloadedPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPsInstalledPath, "STARDNA.DefaultOAPPsInstalledPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPTemplatesSourcePath, "STARDNA.DefaultOAPPTemplatesSourcePath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPTemplatesPublishedPath, "STARDNA.DefaultOAPPTemplatesPublishedPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPTemplatesDownloadedPath, "STARDNA.DefaultOAPPTemplatesDownloadedPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultOAPPTemplatesInstalledPath, "STARDNA.DefaultOAPPTemplatesInstalledPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultRuntimesSourcePath, "STARDNA.DefaultRuntimesSourcePath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultRuntimesPublishedPath, "STARDNA.DefaultRuntimesPublishedPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultRuntimesDownloadedPath, "STARDNA.DefaultRuntimesDownloadedPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultRuntimesInstalledPath, "STARDNA.DefaultRuntimesInstalledPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultRuntimesInstalledOASISPath, "STARDNA.DefaultRuntimesInstalledOASISPath", false, true);
-                ValidateFolder(starDNA.BasePath, starDNA.DefaultRuntimesInstalledSTARPath, "STARDNA.DefaultRuntimesInstalledSTARPath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPsSourcePath, "STARDNA.DefaultOAPPsSourcePath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPsPublishedPath, "STARDNA.DefaultOAPPsPublishedPath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPsDownloadedPath, "STARDNA.DefaultOAPPsDownloadedPath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPsInstalledPath, "STARDNA.DefaultOAPPsInstalledPath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPTemplatesSourcePath, "STARDNA.DefaultOAPPTemplatesSourcePath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPTemplatesPublishedPath, "STARDNA.DefaultOAPPTemplatesPublishedPath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPTemplatesDownloadedPath, "STARDNA.DefaultOAPPTemplatesDownloadedPath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPTemplatesInstalledPath, "STARDNA.DefaultOAPPTemplatesInstalledPath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultRuntimesSourcePath, "STARDNA.DefaultRuntimesSourcePath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultRuntimesPublishedPath, "STARDNA.DefaultRuntimesPublishedPath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultRuntimesDownloadedPath, "STARDNA.DefaultRuntimesDownloadedPath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultRuntimesInstalledPath, "STARDNA.DefaultRuntimesInstalledPath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultRuntimesInstalledOASISPath, "STARDNA.DefaultRuntimesInstalledOASISPath", false, true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultRuntimesInstalledSTARPath, "STARDNA.DefaultRuntimesInstalledSTARPath", false, true);
             }
             else
                 throw new ArgumentNullException("STARDNA is null, please check and try again.");
@@ -2640,9 +2645,9 @@ namespace NextGenSoftware.OASIS.STAR
         //    }
         //}
 
-        private static async Task<OASISResult<bool>> InitOAPPFolderAsync(OAPPType OAPPType, string OAPPName, string genesisFolder, string genesisNameSpace, Guid OAPPTemplateId, ProviderType providerType = ProviderType.Default)
+        private static async Task<OASISResult<string>> InitOAPPFolderAsync(OAPPType OAPPType, string OAPPName, string genesisFolder, string genesisNameSpace, Guid OAPPTemplateId, int OAPPTemplateVersion, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<string> result = new OASISResult<string>();
             string errorMessage = "An error occured in InitOAPPFolderAsync. Reason:";
 
             try
@@ -2658,31 +2663,31 @@ namespace NextGenSoftware.OASIS.STAR
 
                 Directory.CreateDirectory(OAPPFolder);
 
-                OASISResult<InstalledOAPPTemplate> installedOAPPTemplateResult = await STARAPI.OAPPTemplates.LoadInstalledAsync(BeamedInAvatar.Id, OAPPTemplateId, true, 0, providerType);
+                OASISResult<InstalledOAPPTemplate> installedOAPPTemplateResult = await STARAPI.OAPPTemplates.LoadInstalledAsync(BeamedInAvatar.Id, OAPPTemplateId, true, OAPPTemplateVersion, providerType);
 
                 if (installedOAPPTemplateResult != null && installedOAPPTemplateResult.Result != null && !installedOAPPTemplateResult.IsError)
                     CopyFolder(genesisNameSpace, new DirectoryInfo(installedOAPPTemplateResult.Result.InstalledPath), new DirectoryInfo(OAPPFolder));
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling OASISAPI.OAPPTemplates.LoadInstalledOAPPTemplateAsync. Reason: {installedOAPPTemplateResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling STARAPI.OAPPTemplates.LoadInstalledOAPPTemplateAsync. Reason: {installedOAPPTemplateResult.Message}");
                     return result;
                 }
 
                 string OASISRunTimePath = STARDNA.DefaultRuntimesInstalledOASISPath;
                 string STARRunTimePath = STARDNA.DefaultRuntimesInstalledSTARPath;
 
-                if (!string.IsNullOrEmpty(STARDNA.BasePath))
+                if (!string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
                 {
-                    OASISRunTimePath = Path.Combine(STARDNA.BasePath, STARDNA.DefaultRuntimesInstalledOASISPath);
-                    STARRunTimePath = Path.Combine(STARDNA.BasePath, STARDNA.DefaultRuntimesInstalledSTARPath);
+                    OASISRunTimePath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultRuntimesInstalledOASISPath);
+                    STARRunTimePath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultRuntimesInstalledSTARPath);
                 }
 
                 //Copy the correct runtimes to the OAPP folder.
-                if (Directory.Exists(Path.Combine(OASISRunTimePath, installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion)))
+                if (Directory.Exists(Path.Combine(OASISRunTimePath, string.Concat("OASIS Runtime ", installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion))))
                     DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
                 else
                 {
-                    CLIEngine.ShowWarningMessage($"The target OASIS Runtime v{installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion} is not installed!");
+                    CLIEngine.ShowWarningMessage($"The target OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion} is not installed!");
                     
                     if (CLIEngine.GetConfirmation("Do you wish to download & install now?"))
                     {
@@ -2693,13 +2698,13 @@ namespace NextGenSoftware.OASIS.STAR
                             DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
                         else
                         {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the OASIS Runtime v{installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion}. Reason: {installResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion}. Reason: {installResult.Message}");
                             return result;
                         }
                     }
                     else
                     {
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The target OASIS Runtime v{installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion} is not installed!");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The target OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion} is not installed!");
                         return result;
                     }
                 }
@@ -2707,10 +2712,10 @@ namespace NextGenSoftware.OASIS.STAR
                 //string OASISRunTimePath = STARDNA.OASISRunTimePath;
                 //string STARRunTimePath = STARDNA.STARRunTimePath;
 
-                //if (!string.IsNullOrEmpty(STARDNA.BasePath))
+                //if (!string.IsNullOrEmpty(STARDNA.BaseSTARPath))
                 //{
-                //    OASISRunTimePath = Path.Combine(STARDNA.BasePath, STARDNA.OASISRunTimePath);
-                //    STARRunTimePath = Path.Combine(STARDNA.BasePath, STARDNA.STARRunTimePath);
+                //    OASISRunTimePath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.OASISRunTimePath);
+                //    STARRunTimePath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.STARRunTimePath);
                 //}
 
                 //DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
@@ -2719,11 +2724,11 @@ namespace NextGenSoftware.OASIS.STAR
                 //switch (OAPPType)
                 //{
                 //    case OAPPType.Blazor:
-                //        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPBlazorTemplateDNA)), new DirectoryInfo(OAPPFolder));
+                //        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.OAPPBlazorTemplateDNA)), new DirectoryInfo(OAPPFolder));
                 //        break;
 
                 //    case OAPPType.Console:
-                //        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BasePath, "\\", STARDNA.OAPPConsoleTemplateDNA)), new DirectoryInfo(OAPPFolder));
+                //        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.OAPPConsoleTemplateDNA)), new DirectoryInfo(OAPPFolder));
                 //        break;
                 //}
 
@@ -2732,7 +2737,7 @@ namespace NextGenSoftware.OASIS.STAR
                 if (!Directory.Exists(genesisFolder))
                     Directory.CreateDirectory(genesisFolder);
 
-                result.Result = true;
+                result.Result = OAPPFolder;
             }
             catch (Exception ex)
             {

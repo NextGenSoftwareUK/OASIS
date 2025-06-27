@@ -10,9 +10,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
 {
     public interface ISTARNFTManager : ISTARNETManagerBase<STARNFT, DownloadedNFT, InstalledNFT>
     {
-        OASISResult<ISTARNFT> CreateNFT(Guid avatarId, string name, string description, string fullPathToNFTSource, NFTType nftType, Guid OASISNFTId, ProviderType providerType = ProviderType.Default);
-        OASISResult<ISTARNFT> CreateNFT(Guid avatarId, string name, string description, string fullPathToNFTSource, NFTType nftType, IOASISNFT OASISNFT, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<ISTARNFT>> CreateNFTAsync(Guid avatarId, string name, string description, string fullPathToNFTSource, NFTType nftType, Guid OASISNFTId, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<ISTARNFT>> CreateNFTAsync(Guid avatarId, string name, string description, string fullPathToNFTSource, NFTType nftType, IOASISNFT OASISNFT, ProviderType providerType = ProviderType.Default);
+        OASISResult<ISTARNFT> CreateNFT(Guid avatarId, string name, string description, string fullPathToNFTSource, NFTType nftType, Guid OASISNFTId, bool checkIfSourcePathExists = true,  ProviderType providerType = ProviderType.Default);
+        OASISResult<ISTARNFT> CreateNFT(Guid avatarId, string name, string description, string fullPathToNFTSource, NFTType nftType, IOASISNFT OASISNFT, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<ISTARNFT>> CreateNFTAsync(Guid avatarId, string name, string description, string fullPathToNFTSource, NFTType nftType, Guid OASISNFTId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<ISTARNFT>> CreateNFTAsync(Guid avatarId, string name, string description, string fullPathToNFTSource, NFTType nftType, IOASISNFT OASISNFT, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
     }
 }

@@ -10,9 +10,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
 {
     public interface ICelestialSpaceManager : ISTARNETManagerBase<STARCelestialSpace, DownloadedCelestialSpace, InstalledCelestialSpace>
     {
-        OASISResult<ISTARCelestialSpace> CreateCelestialSpace(Guid avatarId, string name, string description, string fullPathToCelestialSpaceSource, CelestialSpaceType celestialSpaceType, Guid celestialSpaceId, ProviderType providerType = ProviderType.Default);
-        OASISResult<ISTARCelestialSpace> CreateCelestialSpace(Guid avatarId, string name, string description, string fullPathToCelestialSpaceSource, CelestialSpaceType celestialSpaceType, ICelestialSpace celestialSpace, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<ISTARCelestialSpace>> CreateCelestialSpaceAsync(Guid avatarId, string name, string description, string fullPathToCelestialSpaceSource, CelestialSpaceType celestialSpaceType, Guid celestialSpaceId, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<ISTARCelestialSpace>> CreateCelestialSpaceAsync(Guid avatarId, string name, string description, string fullPathToCelestialSpaceSource, CelestialSpaceType celestialSpaceType, ICelestialSpace celestialSpace, ProviderType providerType = ProviderType.Default);
+        OASISResult<ISTARCelestialSpace> CreateCelestialSpace(Guid avatarId, string name, string description, string fullPathToCelestialSpaceSource, CelestialSpaceType celestialSpaceType, Guid celestialSpaceId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
+        OASISResult<ISTARCelestialSpace> CreateCelestialSpace(Guid avatarId, string name, string description, string fullPathToCelestialSpaceSource, CelestialSpaceType celestialSpaceType, ICelestialSpace celestialSpace, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<ISTARCelestialSpace>> CreateCelestialSpaceAsync(Guid avatarId, string name, string description, string fullPathToCelestialSpaceSource, CelestialSpaceType celestialSpaceType, Guid celestialSpaceId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<ISTARCelestialSpace>> CreateCelestialSpaceAsync(Guid avatarId, string name, string description, string fullPathToCelestialSpaceSource, CelestialSpaceType celestialSpaceType, ICelestialSpace celestialSpace, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
     }
 }

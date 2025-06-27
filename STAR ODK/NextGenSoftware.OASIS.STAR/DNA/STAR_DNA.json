@@ -1,135 +1,119 @@
 {
-    //TODO: If BasePath is blank then all other paths below are absolute otherwise they are relative.
-    "BasePath": "C:\\Source\\OASIS\\STAR ODK",
-    //"OASISBaseRuntimesPath": "Runtimes\\OASIS Runtimes",
-    //"STARBaseRuntimesPath": "Runtimes\\STAR Runtimes",
-    //"OASISRunTimePath": "Runtimes\\OASIS Runtime\\OASIS Runtime (With Holochain Conductors Embedded) v3.3.1",
-    //"STARRunTimePath": "Runtimes\\STAR Runtime\\STAR ODK Runtime v2.2.0",
-    //"STARRunTimePath": "Runtimes\\STAR Runtime\\STAR ODK Runtime v2.2.0 (With OASIS Runtime v3.3.1 HC Conductor Embedded)",
-    //"OAPPDNATemplatePath": "STAR OAPP DNA Templates",
-    "RustDNARSMTemplateFolder": "NextGenSoftware.OASIS.STAR\\DNATemplates\\RustDNATemplates\\RSM",
-    "CSharpDNATemplateFolder": "NextGenSoftware.OASIS.STAR\\DNATemplates\\CSharpDNATemplates",
-    "CelestialBodyDNA": "NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA",
-    "GenesisFolder": "NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net8.0\\Genesis",
-    "GenesisNamespace": "NextGenSoftware.OASIS.STAR.TestHarness.Genesis",
-    "TemplateNamespace": "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates",
-    "RustTemplateLib": "core\\lib.rs",
-    "RustTemplateHolon": "core\\holon.rs",
-    "RustTemplateValidation": "core\\validation.rs",
-    "RustTemplateCreate": "crud\\create.rs",
-    "RustTemplateRead": "crud\\read.rs",
-    "RustTemplateUpdate": "crud\\update.rs",
-    "RustTemplateDelete": "crud\\delete.rs",
-    "RustTemplateList": "crud\\list.rs",
-    "RustTemplateInt": "types\\int.rs",
-    "RustTemplateString": "types\\string.rs",
-    "RustTemplateBool": "types\\bool.rs",
-    "CSharpTemplateIHolonDNA": "Interfaces\\IHolonDNATemplate.cs",
-    "CSharpTemplateHolonDNA": "HolonDNATemplate.cs",
-    "CSharpTemplateIZomeDNA": "Interfaces\\IZomeDNATemplate.cs",
-    "CSharpTemplateZomeDNA": "ZomeDNATemplate.cs",
-    "CSharpTemplateICelestialBodyDNA": "Interfaces\\ICelestialBodyDNATemplate.cs",
-    "CSharpTemplateCelestialBodyDNA": "CelestialBodyDNATemplate.cs",
-    "CSharpTemplateLoadHolonDNA": "LoadHolonDNATemplate.cs",
-    "CSharpTemplateSaveHolonDNA": "SaveHolonDNATemplate.cs",
-    "CSharpTemplateILoadHolonDNA": "Interfaces\\ILoadHolonDNATemplate.cs",
-    "CSharpTemplateISaveHolonDNA": "Interfaces\\ISaveHolonDNATemplate.cs",
-    "CSharpTemplateInt": "types\\int.cs",
-    "CSharpTemplateString": "types\\string.cs",
-    "CSharpTemplateBool": "types\\bool.cs",
-    //"OAPPConsoleTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Console.DLL",
-    //"OAPPBlazorTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WebBlazor",
-    //"OAPPWebMVCTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WebMVC",
-    //"OAPPMAUITemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.MAUI",
-    //"OAPPUnityTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Unity",
-    //"OAPPWinFormsTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WinForms",
-    //"OAPPWPFTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WPF",
-    //"OAPPWindowsServiceTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WindowsService",
-    //"OAPPRESTServiceTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.RESTService",
-    //"OAPPgRPCServiceTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.gRPCService",
-    //"OAPPGraphQLServiceTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.GraphQLService",
-    //"OAPPCustomTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Custom",
-    "OAPPGeneratedCodeFolder": "Generated Code",
+    // If STARBasePath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
+    "STARBasePath": "C:\\Source\\OASIS\\STAR ODK\\Release\\STAR_ODK_v3.0.0",
+    "RustDNARSMTemplateFolder": "DNATemplates\\RustDNATemplates\\RSM", //Rust DNA Templates that hAPPs are built from (releative to STARBasePath above).
+    "CSharpDNATemplateFolder": "DNATemplates\\CSharpDNATemplates", //C# DNA Templates (CelestialBodies, Zomes & Holons) that are used to generate OAPPs from (releative to STARBasePath above).
+    "CSharpDNATemplateNamespace": "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates", //The default namespace for the C# DNA Templates above.
+    "CelestialBodyDNA": "OAPP_Example_MetaData_DNA\\CelestialBodyDNA", //Example Celestial Body DNA MetaData folder (that an OAPP is generated from and can contain zome and holon metadta), relative to the BaseSTARPath above.
+    //"GenesisFolder": "Genesis", //releative to STARBasePath above.
+    "DefaultGenesisNamespace": "NextGenSoftware.OASIS.STAR.Genesis", //The default namespace to be used when generating OAPPs (CelestialBodies).
+    "RustTemplateLib": "core\\lib.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateHolon": "core\\holon.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateValidation": "core\\validation.rs", //releative to RustDNARSMTemplateFolder above.     
+    "RustTemplateCreate": "crud\\create.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateRead": "crud\\read.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateUpdate": "crud\\update.rs", //releative to RustsDNARSMTemplateFolder above.
+    "RustTemplateDelete": "crud\\delete.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateList": "crud\\list.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateInt": "types\\int.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateString": "types\\string.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateBool": "types\\bool.rs", //releative to RustDNARSMTemplateFolder above.
+    "CSharpTemplateIHolonDNA": "Interfaces\\IHolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateHolonDNA": "HolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateIZomeDNA": "Interfaces\\IZomeDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateZomeDNA": "ZomeDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateICelestialBodyDNA": "Interfaces\\ICelestialBodyDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateCelestialBodyDNA": "CelestialBodyDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateLoadHolonDNA": "LoadHolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateSaveHolonDNA": "SaveHolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateILoadHolonDNA": "Interfaces\\ILoadHolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateISaveHolonDNA": "Interfaces\\ISaveHolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateInt": "types\\int.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateString": "types\\string.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateBool": "types\\bool.cs", //releative to CSharpDNATemplateFolder above.
+    "OAPPGeneratedCodeFolder": "Generated Code", //The folder where the generated code for OAPPs is placed (releative to the root of the generated OAPP).
     "StarProviderKey": "",
-    "DefaultGreatGrandSuperStarId": "",
-    "DefaultGrandSuperStarId": "",
-    "DefaultSuperStarId": "",
-    "DefaultStarId": "",
-    "DefaultPlanetId": "",
+    "DefaultGreatGrandSuperStarId": "", //The default Great Grand Super Star ID (at the centre of the Omniverse/God Head/Source) to use when creating new OAPPs and using COSMIC.
+    "DefaultGrandSuperStarId": "", //The default Grand Super Star ID (at the centre of the Universe/Prime Creator) to use when creating new OAPPs and using COSMIC.
+    "DefaultSuperStarId": "", //The default Super Star ID (Great Central Sun at the centre of the Milky Way) to use when creating new OAPPs and using COSMIC.
+    "DefaultStarId": "", //The default Star ID (The Sun) to use when creating new OAPPs and using COSMIC.
+    "DefaultPlanetId": "", //The default Planet ID (Our World) to use when creating new OAPPs and using COSMIC.
 
-    "DefaultOAPPsSourcePath": "OAPPs\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultOAPPsPublishedPath": "OAPPs\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultOAPPsDownloadedPath": "OAPPs\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultOAPPsInstalledPath": "OAPPs\\Installed", //Can be releative to BasePath above or absolute.
+    "STARNETBasePath": "C:\\Source\\OASIS\\STAR ODK\\Release\\STAR_ODK_v3.0.0\\STARNET", //If this is left blank then all STARNET paths below will be absolute otherwise they will be relative (NOTE: This is NOT STARBasePath above to allow the user data to be stored in a different location if needed).
 
-    "DefaultOAPPTemplatesSourcePath": "OAPPTemplates\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultOAPPTemplatesPublishedPath": "OAPPTemplates\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultOAPPTemplatesDownloadedPath": "OAPPTemplates\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultOAPPTemplatesInstalledPath": "OAPPTemplates\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultOAPPsSourcePath": "OAPPs\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultOAPPsPublishedPath": "OAPPs\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultOAPPsDownloadedPath": "OAPPs\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultOAPPsInstalledPath": "OAPPs\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DefaultRuntimesSourcePath": "Runtimes\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultRuntimePublishedPath": "Runtimes\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultRuntimeDownloadedPath": "Runtimes\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultRuntimeInstalledPath": "Runtimes\\Installed\\Other", //Can be releative to BasePath above or absolute.
-    "DefaultRuntimeInstalledOASISPath": "Runtimes\\Installed\\OASIS", //Can be releative to BasePath above or absolute.
-    "DefaultRuntimeInstalledSTARPath": "Runtimes\\Installed\\STAR", //Can be releative to BasePath above or absolute.
+    "DefaultOAPPTemplatesSourcePath": "OAPPTemplates\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultOAPPTemplatesPublishedPath": "OAPPTemplates\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultOAPPTemplatesDownloadedPath": "OAPPTemplates\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultOAPPTemplatesInstalledPath": "OAPPTemplates\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DefaultChaptersSourcePath": "Chapters\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultChaptersPublishedPath": "Chapters\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultChaptersDownloadedPath": "Chapters\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultChaptersInstalledPath": "Chapters\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultRuntimesSourcePath": "Runtimes\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultRuntimePublishedPath": "Runtimes\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultRuntimeDownloadedPath": "Runtimes\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultRuntimeInstalledPath": "Runtimes\\Installed\\Other", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultRuntimeInstalledOASISPath": "Runtimes\\Installed\\OASIS", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultRuntimeInstalledSTARPath": "Runtimes\\Installed\\STAR", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DefaultMissionsSourcePath": "Missions\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultMissionsPublishedPath": "Missions\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultMissionsDownloadedPath": "Missions\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultMissionsInstalledPath": "Missions\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultChaptersSourcePath": "Chapters\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultChaptersPublishedPath": "Chapters\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultChaptersDownloadedPath": "Chapters\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultChaptersInstalledPath": "Chapters\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DefaultQuestsSourcePath": "Quests\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultQuestsPublishedPath": "Quests\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultQuestsDownloadedPath": "Quests\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultQuestsInstalledPath": "Quests\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultMissionsSourcePath": "Missions\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultMissionsPublishedPath": "Missions\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultMissionsDownloadedPath": "Missions\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultMissionsInstalledPath": "Missions\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DefaultNFTsSourcePath": "NFTs\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultNFTsPublishedPath": "NFTs\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultNFTsDownloadedPath": "NFTs\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultNFTsInstalledPath": "NFTs\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultQuestsSourcePath": "Quests\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultQuestsPublishedPath": "Quests\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultQuestsDownloadedPath": "Quests\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultQuestsInstalledPath": "Quests\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DefaultGeoNFTsSourcePath": "GeoNFTs\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultGeoNFTsPublishedPath": "GeoNFTs\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultGeoNFTsDownloadedPath": "GeoNFTs\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultGeoNFTsInstalledPath": "GeoNFTs\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultNFTsSourcePath": "NFTs\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultNFTsPublishedPath": "NFTs\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultNFTsDownloadedPath": "NFTs\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultNFTsInstalledPath": "NFTs\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DefaultGeoHotSpotsSourcePath": "GeoHotSpots\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultGeoHotSpotsPublishedPath": "GeoHotSpots\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultGeoHotSpotsDownloadedPath": "GeoHotSpots\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultGeoHotSpotsInstalledPath": "GeoHotSpots\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultGeoNFTsSourcePath": "GeoNFTs\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultGeoNFTsPublishedPath": "GeoNFTs\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultGeoNFTsDownloadedPath": "GeoNFTs\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultGeoNFTsInstalledPath": "GeoNFTs\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DefaultInventoryItemsSourcePath": "InventoryItems\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultInventoryItemsPublishedPath": "InventoryItems\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultInventoryItemsDownloadedPath": "InventoryItems\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultInventoryItemsInstalledPath": "InventoryItems\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultGeoHotSpotsSourcePath": "GeoHotSpots\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultGeoHotSpotsPublishedPath": "GeoHotSpots\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultGeoHotSpotsDownloadedPath": "GeoHotSpots\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultGeoHotSpotsInstalledPath": "GeoHotSpots\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DefaultCelestialSpacesSourcePath": "CelestialSpaces\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultCelestialSpacesPublishedPath": "CelestialSpaces\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultCelestialSpacesDownloadedPath": "CelestialSpaces\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultCelestialSpacesInstalledPath": "CelestialSpaces\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultInventoryItemsSourcePath": "InventoryItems\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultInventoryItemsPublishedPath": "InventoryItems\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultInventoryItemsDownloadedPath": "InventoryItems\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultInventoryItemsInstalledPath": "InventoryItems\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DefaultCelestialBodiesSourcePath": "CelestialBodies\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultCelestialBodiesPublishedPath": "CelestialBodies\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultCelestialBodiesDownloadedPath": "CelestialBodies\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultCelestialBodiesInstalledPath": "CelestialBodies\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultCelestialSpacesSourcePath": "CelestialSpaces\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultCelestialSpacesPublishedPath": "CelestialSpaces\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultCelestialSpacesDownloadedPath": "CelestialSpaces\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultCelestialSpacesInstalledPath": "CelestialSpaces\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DefaultZomesSourcePath": "Zomes\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultZomesPublishedPath": "Zomes\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultZomesDownloadedPath": "Zomes\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultZomesInstalledPath": "Zomes\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultCelestialBodiesSourcePath": "CelestialBodies\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultCelestialBodiesPublishedPath": "CelestialBodies\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultCelestialBodiesDownloadedPath": "CelestialBodies\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultCelestialBodiesInstalledPath": "CelestialBodies\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DefaultHolonsSourcePath": "Holons\\Source", //Can be releative to BasePath above or absolute.
-    "DefaultHolonsPublishedPath": "Holons\\Published", //Can be releative to BasePath above or absolute.
-    "DefaultHolonsDownloadedPath": "Holons\\Downloaded", //Can be releative to BasePath above or absolute.
-    "DefaultHolonsInstalledPath": "Holons\\Installed", //Can be releative to BasePath above or absolute.
+    "DefaultZomesSourcePath": "Zomes\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultZomesPublishedPath": "Zomes\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultZomesDownloadedPath": "Zomes\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultZomesInstalledPath": "Zomes\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-    "DetailedCOSMICOutputEnabled": false,
-    "DetailedSTARStatusOutputEnabled": false,
-    "DetailedLoggingEnabled": false
+    "DefaultHolonsSourcePath": "Holons\\Source", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultHolonsPublishedPath": "Holons\\Published", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultHolonsDownloadedPath": "Holons\\Downloaded", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    "DefaultHolonsInstalledPath": "Holons\\Installed", //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+
+    "DetailedCOSMICOutputEnabled": false, //Turn on to get detailed output from COSMIC (the Cosmic Operating System for the Omniverse).
+    "DetailedSTARStatusOutputEnabled": false, //Turn on to get detailed output from STAR (the status of the STAR ODK).
+    "DetailedOASISHyperdriveLoggingEnabled": false //Turn on to get detailed logging output from the OASIS Hyperdrive (this will log to the OASIS log file as well as the screen/console).
 }
