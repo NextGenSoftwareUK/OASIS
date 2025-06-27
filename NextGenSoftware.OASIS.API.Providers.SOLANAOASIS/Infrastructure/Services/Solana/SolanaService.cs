@@ -1,21 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses;
-using NextGenSoftware.OASIS.Common;
-using Solnet.Extensions;
-using Solnet.Extensions.TokenMint;
-using Solnet.Metaplex.NFT;
-using Solnet.Metaplex.NFT.Library;
-using Solnet.Programs;
-using Solnet.Rpc;
-using Solnet.Rpc.Builders;
-using Solnet.Rpc.Core.Http;
-using Solnet.Wallet;
-
-namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
+﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
 public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : ISolanaService
 {
@@ -25,6 +8,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
 
     private readonly Account _oasisAccount = oasisAccount;
     private readonly IRpcClient _rpcClient = rpcClient;
+
     private readonly List<Creator> _creators =
     [
         new(oasisAccount.PublicKey, share: CreatorShare, verified: true)
@@ -44,26 +28,23 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 return response;
             }
 
-            RequestResult<Solnet.Rpc.Messages.ResponseValue<Solnet.Rpc.Models.LatestBlockHash>> blockHash = await _rpcClient.GetLatestBlockHashAsync();
+            RequestResult<ResponseValue<LatestBlockHash>> blockHash =
+                await _rpcClient.GetLatestBlockHashAsync();
 
             PublicKey mintAccount = new(exchangeTokenRequest.MintAccount.PublicKey);
             PublicKey fromAccount = new(exchangeTokenRequest.FromAccount.PublicKey);
             PublicKey toAccount = new(exchangeTokenRequest.ToAccount.PublicKey);
 
-            byte[] tx = new TransactionBuilder().
-                SetRecentBlockHash(blockHash.Result.Value.Blockhash).
-                SetFeePayer(fromAccount).
-                AddInstruction(TokenProgram.InitializeAccount(
+            byte[] tx = new TransactionBuilder().SetRecentBlockHash(blockHash.Result.Value.Blockhash)
+                .SetFeePayer(fromAccount).AddInstruction(TokenProgram.InitializeAccount(
                     toAccount,
                     mintAccount,
-                    fromAccount)).
-                AddInstruction(TokenProgram.Transfer(
+                    fromAccount)).AddInstruction(TokenProgram.Transfer(
                     fromAccount,
                     toAccount,
                     exchangeTokenRequest.Amount,
-                    fromAccount)).
-                AddInstruction(MemoProgram.NewMemo(fromAccount, exchangeTokenRequest.MemoText)).
-                Build(oasisAccount);
+                    fromAccount)).AddInstruction(MemoProgram.NewMemo(fromAccount, exchangeTokenRequest.MemoText))
+                .Build(oasisAccount);
 
             RequestResult<string> sendTransactionResult = await _rpcClient.SendTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
@@ -73,6 +54,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 OASISErrorHandling.HandleError(ref response, response.Message);
                 return response;
             }
+
             response.Result = new ExchangeTokenResult(sendTransactionResult.Result);
         }
         catch (Exception e)
@@ -82,6 +64,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             response.IsError = true;
             OASISErrorHandling.HandleError(ref response, e.Message);
         }
+
         return response;
     }
 
@@ -148,7 +131,8 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
 
             if (!mintNftResult.WasSuccessful &&
                 mintNftResult.ServerErrorCode != -32602 &&
-                mintNftResult.Reason != "invalid transaction: Transaction failed to sanitize accounts offsets correctly")
+                mintNftResult.Reason !=
+                "invalid transaction: Transaction failed to sanitize accounts offsets correctly")
             {
                 response.IsError = true;
                 response.Message = mintNftResult.Reason;
@@ -166,6 +150,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             response.Message = e.Message;
             OASISErrorHandling.HandleError(ref response, e.Message);
         }
+
         return response;
     }
 
@@ -185,14 +170,14 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
 
             PublicKey fromAccount = new(sendTransactionRequest.FromAccount.PublicKey);
             PublicKey toAccount = new(sendTransactionRequest.ToAccount.PublicKey);
-            RequestResult<Solnet.Rpc.Messages.ResponseValue<Solnet.Rpc.Models.LatestBlockHash>> blockHash = await _rpcClient.GetLatestBlockHashAsync();
+            RequestResult<Solnet.Rpc.Messages.ResponseValue<Solnet.Rpc.Models.LatestBlockHash>> blockHash =
+                await _rpcClient.GetLatestBlockHashAsync();
 
-            byte[] tx = new TransactionBuilder().
-                SetRecentBlockHash(blockHash.Result.Value.Blockhash).
-                SetFeePayer(fromAccount).
-                AddInstruction(MemoProgram.NewMemo(fromAccount, sendTransactionRequest.MemoText)).
-                AddInstruction(SystemProgram.Transfer(fromAccount, toAccount, sendTransactionRequest.Lampposts)).
-                Build(oasisAccount);
+            byte[] tx = new TransactionBuilder().SetRecentBlockHash(blockHash.Result.Value.Blockhash)
+                .SetFeePayer(fromAccount)
+                .AddInstruction(MemoProgram.NewMemo(fromAccount, sendTransactionRequest.MemoText))
+                .AddInstruction(SystemProgram.Transfer(fromAccount, toAccount, sendTransactionRequest.Lampposts))
+                .Build(oasisAccount);
 
             RequestResult<string> sendTransactionResult = await _rpcClient.SendTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
@@ -202,6 +187,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 OASISErrorHandling.HandleError(ref response, response.Message);
                 return response;
             }
+
             response.Result = new SendTransactionResult(sendTransactionResult.Result);
         }
         catch (Exception e)
@@ -211,6 +197,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             response.IsError = true;
             OASISErrorHandling.HandleError(ref response, e.Message);
         }
+
         return response;
     }
 
@@ -244,6 +231,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             response.Message = e.Message;
             OASISErrorHandling.HandleError(ref response, e.Message);
         }
+
         return response;
     }
 
@@ -255,11 +243,13 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             PublicKey ownerAccount = new(getNftWalletRequest.OwnerAccount.PublicKey);
 
             TokenMintResolver tokens = new();
-            tokens.Add(new TokenDef(getNftWalletRequest.MintToken, getNftWalletRequest.MintName, getNftWalletRequest.MintSymbol, getNftWalletRequest.MintDecimal));
+            tokens.Add(new TokenDef(getNftWalletRequest.MintToken, getNftWalletRequest.MintName,
+                getNftWalletRequest.MintSymbol, getNftWalletRequest.MintDecimal));
 
             TokenWallet tokenWallet = await TokenWallet.LoadAsync(_rpcClient, tokens, ownerAccount);
             TokenWalletBalance[] balances = tokenWallet.Balances();
-            Solnet.Extensions.Models.TokenWalletFilterList sublist = tokenWallet.TokenAccounts().WithSymbol(getNftWalletRequest.MintSymbol).WithMint(getNftWalletRequest.MintToken);
+            Solnet.Extensions.Models.TokenWalletFilterList sublist = tokenWallet.TokenAccounts()
+                .WithSymbol(getNftWalletRequest.MintSymbol).WithMint(getNftWalletRequest.MintToken);
             if (!string.IsNullOrEmpty(getNftWalletRequest.MintSymbol))
                 sublist = sublist.WithSymbol(getNftWalletRequest.MintSymbol);
             if (!string.IsNullOrEmpty(getNftWalletRequest.MintToken))
@@ -277,6 +267,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             response.Message = e.Message;
             OASISErrorHandling.HandleError(ref response, e.Message);
         }
+
         return response;
     }
 
@@ -288,14 +279,20 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             RequestResult<Solnet.Rpc.Messages.ResponseValue<Solnet.Rpc.Models.LatestBlockHash>> blockHash =
                 await rpcClient.GetLatestBlockHashAsync();
 
-            PublicKey receiverTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(new PublicKey(mintNftRequest.ToWalletAddress), new PublicKey(mintNftRequest.TokenAddress));
-            PublicKey senderTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(new PublicKey(mintNftRequest.FromWalletAddress), new PublicKey(mintNftRequest.TokenAddress));
+            PublicKey receiverTokenAccount =
+                AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(
+                    new PublicKey(mintNftRequest.ToWalletAddress), new PublicKey(mintNftRequest.TokenAddress));
+            PublicKey senderTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(
+                new PublicKey(mintNftRequest.FromWalletAddress), new PublicKey(mintNftRequest.TokenAddress));
 
-            RequestResult<Solnet.Rpc.Messages.ResponseValue<Solnet.Rpc.Models.AccountInfo>> accountInfo = await rpcClient.GetAccountInfoAsync(receiverTokenAccount);
+            RequestResult<Solnet.Rpc.Messages.ResponseValue<Solnet.Rpc.Models.AccountInfo>> accountInfo =
+                await rpcClient.GetAccountInfoAsync(receiverTokenAccount);
             if (accountInfo.Result == null)
             {
-                Solnet.Rpc.Models.TransactionInstruction createAccountTransaction = AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(
-                    new PublicKey(mintNftRequest.FromWalletAddress), new PublicKey(mintNftRequest.ToWalletAddress), new PublicKey(mintNftRequest.TokenAddress));
+                Solnet.Rpc.Models.TransactionInstruction createAccountTransaction =
+                    AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(
+                        new PublicKey(mintNftRequest.FromWalletAddress), new PublicKey(mintNftRequest.ToWalletAddress),
+                        new PublicKey(mintNftRequest.TokenAddress));
                 byte[] createAccountTransactionBytes = new TransactionBuilder()
                     .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
                     .SetFeePayer(new PublicKey(mintNftRequest.FromWalletAddress))

@@ -1,16 +1,15 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common
+﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
+
+public abstract class BaseTransactionResult
 {
-    public abstract class BaseTransactionResult
+    public string TransactionHash { get; set; }
+
+    public BaseTransactionResult(string transactionHash)
     {
-        public string TransactionHash { get; set; }
+        TransactionHash = transactionHash;
+    }
 
-        public BaseTransactionResult(string transactionHash)
-        {
-            TransactionHash = transactionHash;
-        }
-
-        public BaseTransactionResult()
-        {
-        }
+    public BaseTransactionResult()
+    {
     }
 }
