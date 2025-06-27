@@ -13,60 +13,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     [
         new(oasisAccount.PublicKey, share: CreatorShare, verified: true)
     ];
-
-    public async Task<OASISResult<ExchangeTokenResult>> ExchangeTokens(ExchangeTokenRequest exchangeTokenRequest)
-    {
-        OASISResult<ExchangeTokenResult> response = new();
-        try
-        {
-            (bool success, string res) = exchangeTokenRequest.IsRequestValid();
-            if (!success)
-            {
-                response.Message = res;
-                response.IsError = true;
-                OASISErrorHandling.HandleError(ref response, res);
-                return response;
-            }
-
-            RequestResult<ResponseValue<LatestBlockHash>> blockHash =
-                await _rpcClient.GetLatestBlockHashAsync();
-
-            PublicKey mintAccount = new(exchangeTokenRequest.MintAccount.PublicKey);
-            PublicKey fromAccount = new(exchangeTokenRequest.FromAccount.PublicKey);
-            PublicKey toAccount = new(exchangeTokenRequest.ToAccount.PublicKey);
-
-            byte[] tx = new TransactionBuilder().SetRecentBlockHash(blockHash.Result.Value.Blockhash)
-                .SetFeePayer(fromAccount).AddInstruction(TokenProgram.InitializeAccount(
-                    toAccount,
-                    mintAccount,
-                    fromAccount)).AddInstruction(TokenProgram.Transfer(
-                    fromAccount,
-                    toAccount,
-                    exchangeTokenRequest.Amount,
-                    fromAccount)).AddInstruction(MemoProgram.NewMemo(fromAccount, exchangeTokenRequest.MemoText))
-                .Build(oasisAccount);
-
-            RequestResult<string> sendTransactionResult = await _rpcClient.SendTransactionAsync(tx);
-            if (!sendTransactionResult.WasSuccessful)
-            {
-                response.IsError = true;
-                response.Message = sendTransactionResult.Reason;
-                OASISErrorHandling.HandleError(ref response, response.Message);
-                return response;
-            }
-
-            response.Result = new ExchangeTokenResult(sendTransactionResult.Result);
-        }
-        catch (Exception e)
-        {
-            response.Exception = e;
-            response.Message = e.Message;
-            response.IsError = true;
-            OASISErrorHandling.HandleError(ref response, e.Message);
-        }
-
-        return response;
-    }
+    
 
     public async Task<OASISResult<MintNftResult>> MintNftAsync(MintNFTTransactionRequestForProvider mintNftRequest)
     {
@@ -201,7 +148,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         return response;
     }
 
-    public async Task<OASISResult<GetNftMetadataResult>> GetNftMetadata(GetNftMetadataRequest getNftMetadataRequest)
+    public async Task<OASISResult<GetNftMetadataResult>> LoadNftMetadataAsync(GetNftMetadataRequest getNftMetadataRequest)
     {
         OASISResult<GetNftMetadataResult> response = new();
         try
@@ -234,42 +181,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
 
         return response;
     }
-
-    public async Task<OASISResult<GetNftWalletResult>> GetNftWallet(GetNftWalletRequest getNftWalletRequest)
-    {
-        OASISResult<GetNftWalletResult> response = new();
-        try
-        {
-            PublicKey ownerAccount = new(getNftWalletRequest.OwnerAccount.PublicKey);
-
-            TokenMintResolver tokens = new();
-            tokens.Add(new TokenDef(getNftWalletRequest.MintToken, getNftWalletRequest.MintName,
-                getNftWalletRequest.MintSymbol, getNftWalletRequest.MintDecimal));
-
-            TokenWallet tokenWallet = await TokenWallet.LoadAsync(_rpcClient, tokens, ownerAccount);
-            TokenWalletBalance[] balances = tokenWallet.Balances();
-            Solnet.Extensions.Models.TokenWalletFilterList sublist = tokenWallet.TokenAccounts()
-                .WithSymbol(getNftWalletRequest.MintSymbol).WithMint(getNftWalletRequest.MintToken);
-            if (!string.IsNullOrEmpty(getNftWalletRequest.MintSymbol))
-                sublist = sublist.WithSymbol(getNftWalletRequest.MintSymbol);
-            if (!string.IsNullOrEmpty(getNftWalletRequest.MintToken))
-                sublist = sublist.WithMint(getNftWalletRequest.MintToken);
-
-            response.Result = new GetNftWalletResult()
-            {
-                Accounts = sublist,
-                Balances = balances
-            };
-        }
-        catch (Exception e)
-        {
-            response.IsError = true;
-            response.Message = e.Message;
-            OASISErrorHandling.HandleError(ref response, e.Message);
-        }
-
-        return response;
-    }
+    
 
     public async Task<OASISResult<SendTransactionResult>> SendNftAsync(NFTWalletTransactionRequest mintNftRequest)
     {

@@ -1,6 +1,6 @@
 ﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 
-public sealed class GetNftMetadataRequest
+public sealed class GetNftMetadataRequest(string accountAddress)
 {
-    public string AccountAddress { get; set; }
+    public string AccountAddress { get; set; } = accountAddress;
 }
