@@ -52,6 +52,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToZomeSource,
             ZomeType zomeType,
             IZome zome,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, zomeType, fullPathToZomeSource, null,
@@ -59,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     ZomeType = zomeType,
                     Zome = zome
-                },
+                }, checkIfSourcePathExists,
             providerType));
         }
 
@@ -70,6 +71,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToZomeSource,
             ZomeType zomeType,
             IZome zome,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Create(avatarId, name, description, zomeType, fullPathToZomeSource, null,
@@ -77,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     ZomeType = zomeType,
                     Zome = zome
-                },
+                }, checkIfSourcePathExists,
             providerType));
         }
 
@@ -88,6 +90,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToZomeSource,
             ZomeType zomeType,
             Guid zomeId,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, zomeType, fullPathToZomeSource, null,
@@ -95,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     ZomeType = zomeType,
                     ZomeId = zomeId
-                },
+                }, checkIfSourcePathExists,
             providerType));
         }
 
@@ -106,6 +109,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToZomeSource,
             ZomeType zomeType,
             Guid zomeId,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Create(avatarId, name, description, zomeType, fullPathToZomeSource, null,
@@ -113,7 +117,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     ZomeType = zomeType,
                     ZomeId = zomeId
-                },
+                }, checkIfSourcePathExists,
             providerType));
         }
 

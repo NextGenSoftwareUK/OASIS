@@ -51,6 +51,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToHolonSource,
             HolonType holonType,
             IHolon holon,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, holonType, fullPathToHolonSource, null,
@@ -58,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     HolonType = holonType,
                     Holon = holon
-                },
+                }, checkIfSourcePathExists,
             providerType));
         }
 
@@ -69,6 +70,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToHolonSource,
             HolonType holonType,
             IHolon holon,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Create(avatarId, name, description, holonType, fullPathToHolonSource, null,
@@ -76,7 +78,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     HolonType = holonType,
                     Holon = holon
-                },
+                }, checkIfSourcePathExists,
             providerType));
         }
 
@@ -87,6 +89,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToHolonSource,
             HolonType holonType,
             Guid holonId,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, holonType, fullPathToHolonSource, null,
@@ -94,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     HolonType = holonType,
                     HolonId = holonId
-                },
+                }, checkIfSourcePathExists,
             providerType));
         }
 
@@ -105,6 +108,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToHolonSource,
             HolonType holonType,
             Guid holonId,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Create(avatarId, name, description, holonType, fullPathToHolonSource, null,
@@ -112,7 +116,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     HolonType = holonType,
                     HolonId = holonId
-                },
+                }, checkIfSourcePathExists,
             providerType));
         }
 

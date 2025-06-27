@@ -52,6 +52,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToNFTSource,
             NFTType nftType,
             IOASISNFT OASISNFT,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToNFTSource, null,
@@ -59,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     NFTType = nftType,
                     OASISNFT = OASISNFT
-                },
+                }, checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 
@@ -70,6 +71,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToNFTSource,
             NFTType nftType,
             IOASISNFT OASISNFT,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Create(avatarId, name, description, nftType, fullPathToNFTSource, null,
@@ -77,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     NFTType = nftType,
                     OASISNFT = OASISNFT
-                },
+                }, checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 
@@ -88,6 +90,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToNFTSource,
             NFTType nftType,
             Guid OASISNFTId,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToNFTSource, null,
@@ -95,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     NFTType = nftType,
                     OASISNFTId = OASISNFTId
-                },
+                }, checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 
@@ -106,6 +109,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToNFTSource,
             NFTType nftType,
             Guid OASISNFTId,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Create(avatarId, name, description, nftType, fullPathToNFTSource, null,
@@ -113,7 +117,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     NFTType = nftType,
                     OASISNFTId = OASISNFTId
-                },
+                }, checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 

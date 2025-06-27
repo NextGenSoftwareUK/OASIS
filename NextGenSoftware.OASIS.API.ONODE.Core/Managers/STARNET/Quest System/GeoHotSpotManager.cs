@@ -60,6 +60,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             int timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot = 3,
             IList<IInventoryItem> rewards = null,
             IList<string> rewardIds = null,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, triggerType, fullPathToGeoHotSpotSource, new Dictionary<string, object>()
@@ -88,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 TimeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot = timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot,
                 Rewards = rewards,
                 RewardIds = rewardIds
-            },
+            }, checkIfSourcePathExists,
             providerType));
         }
 
@@ -107,6 +108,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             int timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot = 3,
             IList<IInventoryItem> rewards = null,
             IList<string> rewardIds = null,
+            bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, triggerType, fullPathToGeoHotSpotSource, new Dictionary<string, object>()
@@ -135,7 +137,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 TimeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot = timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot,
                 Rewards = rewards,
                 RewardIds = rewardIds
-            },
+            }, checkIfSourcePathExists,
             providerType));
         }
 

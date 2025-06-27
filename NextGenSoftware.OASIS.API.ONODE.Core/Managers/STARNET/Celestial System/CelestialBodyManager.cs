@@ -52,6 +52,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToCelestialBodySource,
             CelestialBodyType celestialBodyType,
             ICelestialBody celestialBody,
+            bool checkIfSourcePathExists,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
@@ -60,7 +61,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     CelestialBodyType = celestialBodyType,
                     CelestialBody = celestialBody
                 },
-            providerType));
+            checkIfSourcePathExists, providerType));
         }
 
         public OASISResult<ISTARCelestialBody> CreateCelestialBody(
@@ -70,6 +71,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToCelestialBodySource,
             CelestialBodyType celestialBodyType,
             ICelestialBody celestialBody,
+            bool checkIfSourcePathExists,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Create(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
@@ -78,7 +80,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     CelestialBodyType = celestialBodyType,
                     CelestialBody = celestialBody
                 },
-            providerType));
+            checkIfSourcePathExists, providerType));
         }
 
         public async Task<OASISResult<ISTARCelestialBody>> CreateCelestialBodyAsync(
@@ -88,6 +90,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToCelestialBodySource,
             CelestialBodyType celestialBodyType,
             Guid celestialBodyId,
+            bool checkIfSourcePathExists,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
@@ -96,7 +99,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     CelestialBodyType = celestialBodyType,
                     CelestialBodyId = celestialBodyId
                 },
-            providerType));
+            checkIfSourcePathExists, providerType));
         }
 
         public OASISResult<ISTARCelestialBody> CreateCelestialBody(
@@ -106,6 +109,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string fullPathToCelestialBodySource,
             CelestialBodyType celestialBodyType,
             Guid celestialBodyId,
+            bool checkIfSourcePathExists,
             ProviderType providerType = ProviderType.Default)
         {
             return ProcessResult(base.Create(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
@@ -114,7 +118,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     CelestialBodyType = celestialBodyType,
                     CelestialBodyId = celestialBodyId
                 },
-            providerType));
+            checkIfSourcePathExists, providerType));
         }
 
         private OASISResult<ISTARCelestialBody> ProcessResult(OASISResult<STARCelestialBody> operationResult)

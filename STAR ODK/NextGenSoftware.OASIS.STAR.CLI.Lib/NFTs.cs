@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //        CLIEngine.ShowErrorMessage("No NFT Found For That Id!");
         //}
 
-        public override async Task<OASISResult<STARNFT>> CreateAsync(object createParams, STARNFT newHolon = null, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<STARNFT>> CreateAsync(object createParams, STARNFT newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARNFT> result = new OASISResult<STARNFT>();
 
@@ -54,7 +54,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IOASISNFT> mintResult = await MintNFTAsync(); //Mint WEB4 NFT
 
             if (mintResult != null && mintResult.Result != null && !mintResult.IsError)
-                result = await base.CreateAsync(createParams, new STARNFT() { OASISNFTId = mintResult.Result.Id }, providerType);
+                result = await base.CreateAsync(createParams, new STARNFT() { OASISNFTId = mintResult.Result.Id }, showHeaderAndInro, checkIfSourcePathExists, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured minting NFT in MintNFTAsync method. Reason: {mintResult.Message}");
 

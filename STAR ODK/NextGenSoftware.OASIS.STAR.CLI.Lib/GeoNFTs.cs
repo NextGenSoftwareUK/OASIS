@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //        CLIEngine.ShowErrorMessage("No GeoNFT Found For That Id!");
         //}
 
-        public override async Task<OASISResult<STARGeoNFT>> CreateAsync(object createParams, STARGeoNFT newHolon = null, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<STARGeoNFT>> CreateAsync(object createParams, STARGeoNFT newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARGeoNFT> result = new OASISResult<STARGeoNFT>();
 
@@ -56,7 +56,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IOASISGeoSpatialNFT> mintResult = await MintGeoNFTAsync(); //Mint WEB4 GeoNFT (mints and wraps around a WEB4 OASIS NFT).
 
             if (mintResult != null && mintResult.Result != null && !mintResult.IsError)
-                result = await base.CreateAsync(createParams, new STARGeoNFT() { GeoNFTId = mintResult.Result.Id }, providerType);
+                result = await base.CreateAsync(createParams, new STARGeoNFT() { GeoNFTId = mintResult.Result.Id }, showHeaderAndInro, checkIfSourcePathExists,  providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured minting GeoNFT in MintGeoNFTAsync method. Reason: {mintResult.Message}");
 
