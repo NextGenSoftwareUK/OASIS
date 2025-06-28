@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     HolonType = holonType,
                     Holon = holon
-                }, checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists,
             providerType));
         }
 
@@ -78,7 +78,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     HolonType = holonType,
                     Holon = holon
-                }, checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists,
             providerType));
         }
 
@@ -97,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     HolonType = holonType,
                     HolonId = holonId
-                }, checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists,
             providerType));
         }
 
@@ -116,7 +116,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     HolonType = holonType,
                     HolonId = holonId
-                }, checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists,
             providerType));
         }
 

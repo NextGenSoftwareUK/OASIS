@@ -11,6 +11,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
             this.HolonType = HolonType.OAPP;
         }
 
-        public OAPPType OAPPType { get; set; }
+        //public OAPPType OAPPType { get; set; }
     }
 }

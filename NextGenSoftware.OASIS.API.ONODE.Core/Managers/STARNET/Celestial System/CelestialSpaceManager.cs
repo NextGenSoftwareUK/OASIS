@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     CelestialSpaceType = celestialSpaceType,
                     CelestialSpace = celestialSpace
-                }, checkIfSourcePathExists: checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 
@@ -79,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     CelestialSpaceType = celestialSpaceType,
                     CelestialSpace = celestialSpace
-                },
+                }, null,
                 checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
@@ -100,7 +100,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     CelestialSpaceType = celestialSpaceType,
                     CelestialSpaceId = celestialSpaceId
                 },
-                checkIfSourcePathExists: checkIfSourcePathExists,
+                null, checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 
@@ -120,7 +120,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     CelestialSpaceType = celestialSpaceType,
                     CelestialSpaceId = celestialSpaceId
                 },
-                checkIfSourcePathExists: checkIfSourcePathExists,
+                null, checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 

@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public string STARNETDNAJSONName { get; set; } = "STARNETDNAJSON";
         public Type STARNETHolonSubType { get; set; }
 
-        public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, T1 newHolon = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, T1 newHolon = default, ISTARNETDNA STARNETDNA = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in STARManagerBase.CreateAsync, Reason:";
@@ -179,23 +179,45 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
                 {
-                    STARNETDNA STARNETDNA = new STARNETDNA()
-                    {
-                        Id = holon.Id,
-                        Name = name,
-                        Description = description,
-                        STARNETHolonType = Enum.GetName(holonSubTypeType, holonSubType),
-                        CreatedByAvatarId = avatarId,
-                        CreatedByAvatarUsername = avatarResult.Result.Username,
-                        CreatedOn = DateTime.Now,
-                        Version = "1.0.0",
-                        STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion,
-                        OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion,
-                        COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
-                        DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion,
-                        SourcePath = fullPathToT,
-                        MetaData = metaData //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
-                    };
+                    if (STARNETDNA == null)
+                        STARNETDNA = new STARNETDNA();
+
+                    STARNETDNA.Id = holon.Id;
+                    STARNETDNA.Name = name;
+                    STARNETDNA.Description = description;
+                    STARNETDNA.STARNETHolonType = Enum.GetName(holonSubTypeType, holonSubType);
+                    STARNETDNA.CreatedByAvatarId = avatarId;
+                    STARNETDNA.CreatedByAvatarUsername = avatarResult.Result.Username;
+                    STARNETDNA.CreatedOn = DateTime.Now;
+                    STARNETDNA.Version = "1.0.0";
+                    STARNETDNA.STARRuntimeVersion = OASISBootLoader.OASISBootLoader.STARRuntimeVersion;
+                    STARNETDNA.STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion;
+                    STARNETDNA.STARAPIVersion = OASISBootLoader.OASISBootLoader.STARAPIVersion;
+                    STARNETDNA.STARNETVersion = OASISBootLoader.OASISBootLoader.STARNETVersion;
+                    STARNETDNA.OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion;
+                    STARNETDNA.COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion;
+                    STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
+                    STARNETDNA.SourcePath = fullPathToT;
+                    STARNETDNA.MetaData = metaData; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
+                    
+
+                    //STARNETDNA STARNETDNA = new STARNETDNA()
+                    //{
+                    //    Id = holon.Id,
+                    //    Name = name,
+                    //    Description = description,
+                    //    STARNETHolonType = Enum.GetName(holonSubTypeType, holonSubType),
+                    //    CreatedByAvatarId = avatarId,
+                    //    CreatedByAvatarUsername = avatarResult.Result.Username,
+                    //    CreatedOn = DateTime.Now,
+                    //    Version = "1.0.0",
+                    //    STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion,
+                    //    OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion,
+                    //    COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
+                    //    DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion,
+                    //    SourcePath = fullPathToT,
+                    //    MetaData = metaData //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
+                    //};
 
                     OASISResult<bool> writeSTARNETDNAResult = await WriteDNAAsync(STARNETDNA, fullPathToT);
 
@@ -226,7 +248,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, T1 newHolon = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, T1 newHolon = default, ISTARNETDNA STARNETDNA = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in STARManagerBase.Create, Reason:";
@@ -301,23 +323,45 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
                 {
-                    ISTARNETDNA STARNETDNA = new STARNETDNA()
-                    {
-                        Id = holon.Id,
-                        Name = name,
-                        Description = description,
-                        //STARNETHolonType = STARNETHolonType,
-                        CreatedByAvatarId = avatarId,
-                        CreatedByAvatarUsername = avatarResult.Result.Username,
-                        CreatedOn = DateTime.Now,
-                        Version = "1.0.0",
-                        STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion,
-                        OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion,
-                        COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
-                        DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion,
-                        SourcePath = fullPathToT,
-                        MetaData = metaData //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
-                    };
+                    if (STARNETDNA == null)
+                        STARNETDNA = new STARNETDNA();
+
+                    STARNETDNA.Id = holon.Id;
+                    STARNETDNA.Name = name;
+                    STARNETDNA.Description = description;
+                    STARNETDNA.STARNETHolonType = Enum.GetName(holonSubTypeType, holonSubType);
+                    STARNETDNA.CreatedByAvatarId = avatarId;
+                    STARNETDNA.CreatedByAvatarUsername = avatarResult.Result.Username;
+                    STARNETDNA.CreatedOn = DateTime.Now;
+                    STARNETDNA.Version = "1.0.0";
+                    STARNETDNA.STARRuntimeVersion = OASISBootLoader.OASISBootLoader.STARRuntimeVersion;
+                    STARNETDNA.STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion;
+                    STARNETDNA.STARAPIVersion = OASISBootLoader.OASISBootLoader.STARAPIVersion;
+                    STARNETDNA.STARNETVersion = OASISBootLoader.OASISBootLoader.STARNETVersion;
+                    STARNETDNA.OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion;
+                    STARNETDNA.COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion;
+                    STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
+                    STARNETDNA.SourcePath = fullPathToT;
+                    STARNETDNA.MetaData = metaData; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
+
+
+                    //STARNETDNA STARNETDNA = new STARNETDNA()
+                    //{
+                    //    Id = holon.Id,
+                    //    Name = name,
+                    //    Description = description,
+                    //    STARNETHolonType = Enum.GetName(holonSubTypeType, holonSubType),
+                    //    CreatedByAvatarId = avatarId,
+                    //    CreatedByAvatarUsername = avatarResult.Result.Username,
+                    //    CreatedOn = DateTime.Now,
+                    //    Version = "1.0.0",
+                    //    STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion,
+                    //    OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion,
+                    //    COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
+                    //    DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion,
+                    //    SourcePath = fullPathToT,
+                    //    MetaData = metaData //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
+                    //};
 
                     OASISResult<bool> writeSTARNETDNAResult = WriteDNA(STARNETDNA, fullPathToT);
 
@@ -1801,15 +1845,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 saveSTARNETHolonResult = await UpdateNumberOfVersionCountsAsync(avatarId, saveSTARNETHolonResult, errorMessage, providerType);
                 result.IsSaved = true;
                 result.Result = saveSTARNETHolonResult.Result; //TODO:Check if this is needed?
-
-                if (holon.STARNETDNA.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
-                    OASISErrorHandling.HandleWarning(ref result, $" The STAR ODK Version {holon.STARNETDNA.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                if (holon.STARNETDNA.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
-                    OASISErrorHandling.HandleWarning(ref result, $" The OASIS Version {holon.STARNETDNA.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                if (holon.STARNETDNA.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
-                    OASISErrorHandling.HandleWarning(ref result, $" The COSMIC Version {holon.STARNETDNA.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                
+                CheckForVersionMismatches(holon.STARNETDNA, ref result);
 
                 if (result.IsWarning)
                     result.Message = $"{STARNETHolonUIName} successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
@@ -1858,14 +1895,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result.IsSaved = true;
                 result.Result = saveSTARNETHolonResult.Result; //TODO:Check if this is needed?
 
-                if (holon.STARNETDNA.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
-                    OASISErrorHandling.HandleWarning(ref result, $" The STAR ODK Version {holon.STARNETDNA.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                if (holon.STARNETDNA.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
-                    OASISErrorHandling.HandleWarning(ref result, $" The OASIS Version {holon.STARNETDNA.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                if (holon.STARNETDNA.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
-                    OASISErrorHandling.HandleWarning(ref result, $" The COSMIC Version {holon.STARNETDNA.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                CheckForVersionMismatches(holon.STARNETDNA, ref result);
 
                 if (result.IsWarning)
                     result.Message = $"{STARNETHolonUIName} successfully published but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
@@ -3212,14 +3242,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                                     if (oappSaveResult != null && !oappSaveResult.IsError && oappSaveResult.Result != null)
                                     {
-                                        if (STARNETDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
-                                            OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {STARNETDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                        if (STARNETDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
-                                            OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {STARNETDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                        if (STARNETDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
-                                            OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {STARNETDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                                        CheckForVersionMismatches(STARNETDNAResult.Result, ref result);
 
                                         if (result.InnerMessages.Count > 0)
                                             result.Message = $"{STARNETHolonUIName} successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
@@ -3392,14 +3415,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                                     if (oappSaveResult != null && !oappSaveResult.IsError && oappSaveResult.Result != null)
                                     {
-                                        if (STARNETDNAResult.Result.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
-                                            OASISErrorHandling.HandleWarning(ref result, $"The STAR ODK Version {STARNETDNAResult.Result.STARODKVersion} does not match the current version {OASISBootLoader.OASISBootLoader.STARODKVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                        if (STARNETDNAResult.Result.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
-                                            OASISErrorHandling.HandleWarning(ref result, $"The OASIS Version {STARNETDNAResult.Result.OASISVersion} does not match the current version {OASISBootLoader.OASISBootLoader.OASISVersion}. This may lead to issues, it is recommended to make sure the versions match.");
-
-                                        if (STARNETDNAResult.Result.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
-                                            OASISErrorHandling.HandleWarning(ref result, $"The COSMIC Version {STARNETDNAResult.Result.COSMICVersion} does not match the current version {OASISBootLoader.OASISBootLoader.COSMICVersion}. This may lead to issues, it is recommended to make sure the versions match.");
+                                        CheckForVersionMismatches(STARNETDNAResult.Result, ref result);
 
                                         if (result.InnerMessages.Count > 0)
                                             result.Message = $"{STARNETHolonUIName} successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
@@ -4966,6 +4982,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             }
             else
                 OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured updating the total installs for all Installed {STARNETHolonUIName} versions caused by an error in ListInstalledSTARNETHolonsAsync. Reason: {uninstalledholonVersionsResult.Message}");
+
+            return result;
+        }
+
+        private OASISResult<T> CheckForVersionMismatches<T>(ISTARNETDNA STARNETDNA, ref OASISResult<T> result)
+        {
+            string message = "The {0} Version ({1}) does not match the current version ({1}). This may lead to issues, it is recommended to make sure the versions match.";
+
+            if (STARNETDNA.STARODKVersion != OASISBootLoader.OASISBootLoader.STARODKVersion)
+                OASISErrorHandling.HandleWarning(ref result, string.Format(message, "STARODK", STARNETDNA.STARODKVersion, OASISBootLoader.OASISBootLoader.STARODKVersion));
+
+            if (STARNETDNA.STARRuntimeVersion != OASISBootLoader.OASISBootLoader.STARRuntimeVersion)
+                OASISErrorHandling.HandleWarning(ref result, string.Format(message, "STAR Runtime", STARNETDNA.STARRuntimeVersion, OASISBootLoader.OASISBootLoader.STARRuntimeVersion));
+
+            if (STARNETDNA.STARNETVersion != OASISBootLoader.OASISBootLoader.STARNETVersion)
+                OASISErrorHandling.HandleWarning(ref result, string.Format(message, "STARNET", STARNETDNA.STARNETVersion, OASISBootLoader.OASISBootLoader.STARNETVersion));
+
+            if (STARNETDNA.STARAPIVersion != OASISBootLoader.OASISBootLoader.STARAPIVersion)
+                OASISErrorHandling.HandleWarning(ref result, string.Format(message, "STAR API", STARNETDNA.STARAPIVersion, OASISBootLoader.OASISBootLoader.STARAPIVersion));
+
+            if (STARNETDNA.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
+                OASISErrorHandling.HandleWarning(ref result, string.Format(message, "OASIS", STARNETDNA.OASISVersion, OASISBootLoader.OASISBootLoader.OASISVersion));
+
+            if (STARNETDNA.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
+                OASISErrorHandling.HandleWarning(ref result, string.Format(message, "COSMIC", STARNETDNA.COSMICVersion, OASISBootLoader.OASISBootLoader.STARODKVersion));
+
+            if (STARNETDNA.DotNetVersion != OASISBootLoader.OASISBootLoader.DotNetVersion)
+                OASISErrorHandling.HandleWarning(ref result, string.Format(message, ".NET", STARNETDNA.DotNetVersion, OASISBootLoader.OASISBootLoader.DotNetVersion));
 
             return result;
         }

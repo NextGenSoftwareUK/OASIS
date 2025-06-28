@@ -89,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 TimeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot = timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot,
                 Rewards = rewards,
                 RewardIds = rewardIds
-            }, checkIfSourcePathExists,
+            }, null, checkIfSourcePathExists,
             providerType));
         }
 
@@ -137,7 +137,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 TimeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot = timeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot,
                 Rewards = rewards,
                 RewardIds = rewardIds
-            }, checkIfSourcePathExists,
+            }, null, checkIfSourcePathExists,
             providerType));
         }
 

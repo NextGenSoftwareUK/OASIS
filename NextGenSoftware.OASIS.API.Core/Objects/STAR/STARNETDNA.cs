@@ -31,9 +31,12 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public ProviderType PublishedProviderType { get; set; }
         public long FileSize { get; set; }
         public string Version { get; set; }
-        public string STARODKVersion { get; set; }
         public string OASISVersion { get; set; }
         public string COSMICVersion { get; set; }
+        public string STARRuntimeVersion { get; set; }
+        public string STARODKVersion { get; set; }
+        public string STARAPIVersion { get; set; }
+        public string STARNETVersion { get; set; }
         public string DotNetVersion { get; set; }
         public int VersionSequence { get; set; }
         public int Downloads { get; set; }

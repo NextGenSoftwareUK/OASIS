@@ -30,10 +30,13 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         string LaunchTarget { get; set; }
         long FileSize { get; set; }
         string Version { get; set; }
-        string STARODKVersion { get; set; }
-        string OASISVersion { get; set; }
-        string COSMICVersion { get; set; }
-        string DotNetVersion { get; set; }
+        public string OASISVersion { get; set; }
+        public string COSMICVersion { get; set; }
+        public string STARRuntimeVersion { get; set; }
+        public string STARODKVersion { get; set; }
+        public string STARAPIVersion { get; set; }
+        public string STARNETVersion { get; set; }
+        public string DotNetVersion { get; set; }
         public int VersionSequence { get; set; }
         public int Downloads { get; set; }
         public int Installs { get; set; }
