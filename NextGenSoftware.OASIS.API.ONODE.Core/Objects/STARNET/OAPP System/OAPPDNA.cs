@@ -9,6 +9,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects
     public class OAPPDNA : STARNETDNA, IOAPPDNA
     {
         public Guid OAPPTemplateId { get; set; }
+        public int OAPPTemplateVersionSequence { get; set; }
+        public string OAPPTemplateVersion { get; set; }
+        public long OurWorldLat { get; set; }
+        public long OurWorldLong { get; set; }
+        public long OneWorldLat { get; set; }
+        public long OneWorldLong { get; set; }
+        //public string OurWorld3dObjectPath { get; set; } //TODO: Not sure we need this?
+        public byte[] OurWorld3dObject { get; set; }
+        public Uri OurWorld3dObjectURI { get; set; }
+        //public string OurWorld2dSpritePath { get; set; } //TODO: Not sure we need this?
+        public byte[] OurWorld2dSprite { get; set; }
+        public Uri OurWorld2dSpriteURI { get; set; }
+        //public string OneWorld3dObjectPath { get; set; } //TODO: Not sure we need this?
+        public byte[] OneWorld3dObject { get; set; }
+        public Uri OneWorld3dObjectURI { get; set; }
+        //public string OneWorld2dSpritePath { get; set; } //TODO: Not sure we need this?
+        public byte[] OneWorld2dSprite { get; set; }
+        public Uri OneWorld2dSpriteURI { get; set; }
+
         public string SelfContainedPublishedPath { get; set; } //Contains the STAR & OASIS runtimes.
         public string SelfContainedFullPublishedPath { get; set; } //Contains the STAR, OASIS & .NET Runtimes.
         public bool SelfContainedPublishedToCloud { get; set; }

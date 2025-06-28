@@ -488,7 +488,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 QuestType = questType,
                 ParentMissionId = parentMissionId,
                 ParentQuestId = parentQuestId
-            }, checkIfSourcePathExists,
+            }, null, checkIfSourcePathExists,
             providerType);
 
             OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);
@@ -508,7 +508,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 QuestType = questType,
                 ParentMissionId = parentMissionId,
                 ParentQuestId = parentQuestId
-            }, checkIfSourcePathExists,
+            }, null, checkIfSourcePathExists,
            providerType);
 
             OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);

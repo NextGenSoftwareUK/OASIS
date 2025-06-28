@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     CelestialBodyType = celestialBodyType,
                     CelestialBody = celestialBody
-                },
+                }, null,
             checkIfSourcePathExists, providerType));
         }
 
@@ -79,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     CelestialBodyType = celestialBodyType,
                     CelestialBody = celestialBody
-                },
+                }, null,
             checkIfSourcePathExists, providerType));
         }
 
@@ -98,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     CelestialBodyType = celestialBodyType,
                     CelestialBodyId = celestialBodyId
-                },
+                }, null,
             checkIfSourcePathExists, providerType));
         }
 
@@ -118,7 +118,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     CelestialBodyType = celestialBodyType,
                     CelestialBodyId = celestialBodyId
                 },
-            checkIfSourcePathExists, providerType));
+            null, checkIfSourcePathExists, providerType));
         }
 
         private OASISResult<ISTARCelestialBody> ProcessResult(OASISResult<STARCelestialBody> operationResult)

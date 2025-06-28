@@ -74,39 +74,40 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         /// </summary>
         public event OAPPDownloadStatusChanged OnOAPPDownloadStatusChanged;
 
-        public async Task<OASISResult<IOAPP>> CreateOAPPAsync(Guid avatarId, string name, string description, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPId, GenesisType genesisType, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, OAPPType, fullPathToOAPP, new Dictionary<string, object>()
-            {
-                { "OAPPTemplateType", OAPPTemplateType },
-                { "OAPPId", OAPPId.ToString() },
-                { "GenesisType", genesisType.ToString() },
-                { "CelestialBody", celestialBody },
-                { "Zomes", zomes }
-            },
-            new OAPP()
-            {
-                OAPPType = OAPPType
-            }, checkIfSourcePathExists,
-            providerType));
-        }
+        //public async Task<OASISResult<IOAPP>> CreateOAPPAsync(Guid avatarId, string name, string description, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.CreateAsync(avatarId, name, description, OAPPType, fullPathToOAPP, new Dictionary<string, object>()
+        //    {
+        //        { "OAPPTemplateType", OAPPTemplateType },
+        //        { "OAPPTemplateId", OAPPTemplateId.ToString() },
+        //        { "OAPPTemplateVersion", OAPPTemplateVersion.ToString() },
+        //        { "GenesisType", genesisType.ToString() },
+        //        { "CelestialBody", celestialBody },
+        //        { "Zomes", zomes }
+        //    },
+        //    new OAPP()
+        //    {
+        //        OAPPType = OAPPType
+        //    }, checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        public OASISResult<IOAPP> CreateOAPP(Guid avatarId, string name, string description, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPId, GenesisType genesisType, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(base.Create(avatarId, name, description, OAPPType, fullPathToOAPP, new Dictionary<string, object>()
-            {
-                { "OAPPTemplateType", OAPPTemplateType },
-                { "OAPPId", OAPPId.ToString() },
-                { "GenesisType", genesisType.ToString() },
-                { "CelestialBody", celestialBody },
-                { "Zomes", zomes }
-            },
-            new OAPP()
-            {
-                OAPPType = OAPPType
-            }, checkIfSourcePathExists,
-            providerType));
-        }
+        //public OASISResult<IOAPP> CreateOAPP(Guid avatarId, string name, string description, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPId, GenesisType genesisType, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.Create(avatarId, name, description, OAPPType, fullPathToOAPP, new Dictionary<string, object>()
+        //    {
+        //        { "OAPPTemplateType", OAPPTemplateType },
+        //        { "OAPPId", OAPPId.ToString() },
+        //        { "GenesisType", genesisType.ToString() },
+        //        { "CelestialBody", celestialBody },
+        //        { "Zomes", zomes }
+        //    },
+        //    new OAPP()
+        //    {
+        //        OAPPType = OAPPType
+        //    }, checkIfSourcePathExists,
+        //    providerType));
+        //}
 
         /*
         #region COSMICManagerBase

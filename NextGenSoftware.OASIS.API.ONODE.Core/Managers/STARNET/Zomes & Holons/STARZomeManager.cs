@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     ZomeType = zomeType,
                     Zome = zome
-                }, checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists,
             providerType));
         }
 
@@ -79,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     ZomeType = zomeType,
                     Zome = zome
-                }, checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists,
             providerType));
         }
 
@@ -98,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     ZomeType = zomeType,
                     ZomeId = zomeId
-                }, checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists,
             providerType));
         }
 
@@ -117,7 +117,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     ZomeType = zomeType,
                     ZomeId = zomeId
-                }, checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists,
             providerType));
         }
 

@@ -8,6 +8,8 @@ using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using Nethereum.Contracts.Standards.ENS.ETHRegistrarController.ContractDefinition;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -94,7 +96,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //CLIEngine.ShowDivider();
 
             ShowHeader();
-    
+
             string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
 
             if (OAPPName == "exit")
@@ -441,134 +443,212 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 GenesisType genesisType = (GenesisType)enumValue;
                 string dnaFolder = "";
 
-                //if (CLIEngine.GetConfirmation("Do you wish to create the CelestialBody/Zomes/Holons DNA now? (Enter 'n' if you already have a folder containing the DNA)."))
-                //{
-                //    //string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
-                //    //string holonName = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
-                //    //string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
-                //    //object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(HolonPropType));
-
-                //    //TODO:Come back to this.
-                //}
-                //else
-                dnaFolder = CLIEngine.GetValidFolder("What is the path to the CelestialBody/Zomes/Holons MetaData DNA?", false);
-
-                if (dnaFolder == "exit")
+                bool validFolder = false;
+                do
                 {
-                    lightResult.Message = "User Exited";
-                    return lightResult;
-                }
+                    if (CLIEngine.GetConfirmation("Do you wish to create the CelestialBody/Zomes/Holons DNA now? (Enter 'n' if you already have a folder containing the DNA)."))
+                    {
+                        //string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
+                        //string holonName = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
+                        //string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
+                        //object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(HolonPropType));
 
-                if (Directory.Exists(dnaFolder) && Directory.GetFiles(dnaFolder).Length > 0)
-                {
-                    string oappPath = "";
-
-                    if (!string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
-                        oappPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultOAPPsSourcePath);
+                        //TODO:Come back to this.
+                    }
                     else
-                        oappPath = STAR.STARDNA.DefaultOAPPsSourcePath;
+                    {
+                        Console.WriteLine("");
+                        dnaFolder = CLIEngine.GetValidFolder("What is the path to the CelestialBody/Zomes/Holons MetaData DNA?", false);
+                    }
 
-                    if (!CLIEngine.GetConfirmation($"Do you wish to create the OAPP in the default path defined in the STARDNA as 'DefaultOAPPsSourcePath'? The current path points to: {oappPath}"))
-                        oappPath = CLIEngine.GetValidFolder("Where do you wish to create the OAPP?");
-
-                    if (oappPath == "exit")
+                    if (dnaFolder == "exit")
                     {
                         lightResult.Message = "User Exited";
                         return lightResult;
                     }
 
-                    //oappPath = Path.Combine(oappPath, OAPPTemplateName);
+                    if (Directory.Exists(dnaFolder) && Directory.GetFiles(dnaFolder).Length > 0)
+                        validFolder = true;
+                    else
+                        CLIEngine.ShowErrorMessage($"The DnaFolder {dnaFolder} is not valid, it does not contain any files! Please try again!");
 
-                    //string genesisFolder = CLIEngine.GetValidFolder("What is the path to the GenesisFolder (where the OAPP will be generated)?");
+                } while (!validFolder);
+
+                string oappPath = "";
+
+                if (!string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+                    oappPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultOAPPsSourcePath);
+                else
+                    oappPath = STAR.STARDNA.DefaultOAPPsSourcePath;
+
+                if (!CLIEngine.GetConfirmation($"Do you wish to create the OAPP in the default path defined in the STARDNA as 'DefaultOAPPsSourcePath'? The current path points to: {oappPath}"))
+                    oappPath = CLIEngine.GetValidFolder("Where do you wish to create the OAPP?");
+
+                if (oappPath == "exit")
+                {
+                    lightResult.Message = "User Exited";
+                    return lightResult;
+                }
+
+                //oappPath = Path.Combine(oappPath, OAPPTemplateName);
+
+                //string genesisFolder = CLIEngine.GetValidFolder("What is the path to the GenesisFolder (where the OAPP will be generated)?");
 
 
-                    string genesisNamespace = OAPPName;
+                string genesisNamespace = OAPPName;
 
-                    Console.WriteLine("");
-                    if (!CLIEngine.GetConfirmation("Do you wish to use the OAPP Name for the Genesis Namespace (the OAPP namespace)? (Recommended)"))
+                Console.WriteLine("");
+                if (!CLIEngine.GetConfirmation("Do you wish to use the OAPP Name for the Genesis Namespace (the OAPP namespace)? (Recommended)"))
+                {
+                    Console.WriteLine();
+                    genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace (the OAPP namespace)?");
+
+                    if (genesisNamespace == "exit")
                     {
-                        Console.WriteLine();
-                        genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace (the OAPP namespace)?");
+                        lightResult.Message = "User Exited";
+                        return lightResult;
+                    }
+                }
+                else
+                    Console.WriteLine();
 
-                        if (genesisNamespace == "exit")
+                Guid parentId = Guid.Empty;
+
+                //bool multipleHolonInstances = CLIEngine.GetConfirmation("Do you want holons to create multiple instances of themselves?");
+
+                if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody? (e.g. if it's a moon, what planet does it orbit or if it's a planet what star does it orbit? Only possible for avatars over level 33. Pressing N will add the OAPP (Moon) to the default planet (Our World))"))
+                {
+                    if (STAR.BeamedInAvatarDetail.Level > 33)
+                    {
+                        Console.WriteLine("");
+                        parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+
+                        if (parentId == Guid.Empty)
                         {
                             lightResult.Message = "User Exited";
                             return lightResult;
                         }
-                    }
-                    else
-                        Console.WriteLine();
 
-                    Guid parentId = Guid.Empty;
-
-                    //bool multipleHolonInstances = CLIEngine.GetConfirmation("Do you want holons to create multiple instances of themselves?");
-
-                    if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody? (e.g. if it's a moon, what planet does it orbit or if it's a planet what star does it orbit? Only possible for avatars over level 33. Pressing N will add the OAPP (Moon) to the default planet (Our World))"))
-                    {
-                        if (STAR.BeamedInAvatarDetail.Level > 33)
-                        {
-                            Console.WriteLine("");
-                            parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
-
-                            if (parentId == Guid.Empty)
-                            {
-                                lightResult.Message = "User Exited";
-                                return lightResult;
-                            }
-
-                            CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplate.STARNETDNA.Id, OAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, parentId, providerType);
-                        }
-                        else
-                        {
-                            Console.WriteLine("");
-                            CLIEngine.ShowErrorMessage($"You are only level {STAR.BeamedInAvatarDetail.Level}. You need to be at least level 33 to be able to change the parent celestialbody. Using the default of Our World.");
-                            Console.WriteLine("");
-                            CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplate.STARNETDNA.Id, OAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
-                        }
+                        CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplate.STARNETDNA.Id, OAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, parentId, providerType);
                     }
                     else
                     {
                         Console.WriteLine("");
+                        CLIEngine.ShowErrorMessage($"You are only level {STAR.BeamedInAvatarDetail.Level}. You need to be at least level 33 to be able to change the parent celestialbody. Using the default of Our World.");
+                        Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage("Generating OAPP...");
                         lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplate.STARNETDNA.Id, OAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
                     }
-
-                    if (lightResult != null)
-                    {
-                        if (!lightResult.IsError && lightResult.Result != null)
-                        {
-                            //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
-                            OASISResult<OAPP> createOAPPResult = await base.CreateAsync(createParams, new OAPP() { }, false, false, providerType);
-
-                            if (createOAPPResult != null && createOAPPResult.Result != null && !createOAPPResult.IsError)
-                            {
-                                lightResult.Result.OAPP = createOAPPResult.Result;
-
-                                CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
-                                ShowOAPP((IOAPPDNA)lightResult.Result.OAPP.STARNETDNA, lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
-                                Console.WriteLine("");
-
-                                if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
-                                    Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(OAPPName, " OAPP"), string.Concat(genesisNamespace, ".csproj")));
-
-                                Console.WriteLine("");
-
-                                if (CLIEngine.GetConfirmation("Do you wish to open the OAPP folder now?"))
-                                    Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(OAPPName, " OAPP")));
-
-                                Console.WriteLine("");
-                            }
-                            else
-                                CLIEngine.ShowErrorMessage($"Error Occured Creating The OAPP. Reason: {createOAPPResult.Message}");
-                        }
-                        else
-                            CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
-                    }
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"The DnaFolder {dnaFolder} Is Not Valid. It Does Mot Contain Any Files!");
+                {
+                    Console.WriteLine("");
+                    CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                    lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplate.STARNETDNA.Id, OAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
+                }
+
+                if (lightResult != null)
+                {
+                    if (!lightResult.IsError && lightResult.Result != null)
+                    {
+                        //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
+                        //OASISResult<OAPP> createOAPPResult = await base.CreateAsync(createParams, new OAPP() { }, false, false, providerType);
+                        //OASISResult<OAPP> createOAPPResult = STAR.STARAPI.OAPPs.CreateOAPPAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplate.STARNETDNA.Id, OAPPTemplate.STARNETDNA.VersionSequence, genesisType, oappPath, lightResult.Result.CelestialBody.CelestialBodyCore.Zomes, ourWorldLat, ourWorldLong, ourWorld3dObject, ourWorld3dObjectURI, ourWorld2dSprite, ourWorld2dSpriteURI, oneWorlddLat, oneWorldLong, oneWorld3dObject, oneWorld3dObjectURI, oneWorld2dSprite, oneWorld2dSpriteURI, parentId, providerType);
+                        //OASISResult<OAPP> createOAPPResult = STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, new Dictionary<string, object>
+                        //{
+                        //    { "OAPPTemplateId", OAPPTemplate.STARNETDNA.Id },
+                        //    { "OAPPTemplateVersionSequence", OAPPTemplate.STARNETDNA.VersionSequence },
+                        //    { "GenesisType", genesisType },
+                        //    { "Zomes", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes
+                        //    },
+                        //    {
+                        //        "OurWorldLat", ourWorldLat
+                        //    },
+                        //    {
+                        //        "OurWorldLong", ourWorldLong
+                        //    },
+                        //    {
+                        //        "OurWorld3dObject", ourWorld3dObject
+                        //    },
+                        //    {
+                        //        "OurWorld3dObjectURI", ourWorld3dObjectURI
+                        //    },
+                        //    {
+                        //        "OurWorld2dSprite", ourWorld2dSprite
+                        //    },
+                        //    {
+                        //        "OurWorld2dSpriteURI", ourWorld2dSpriteURI
+                        //    },
+                        //    {
+                        //        "OneWorldLat", oneWorlddLat
+                        //    },
+                        //    {
+                        //        "OneWorldLong", oneWorldLong
+                        //    },
+                        //    {
+                        //        "OneWorld3dObject", oneWorld3dObject
+                        //    },
+                        //    {
+                        //        "OneWorld3dObjectURI", oneWorld3dObjectURI
+                        //    },
+                        //    {
+                        //        "OneWorld2dSprite", oneWorld2dSprite
+                        //    },
+                        //    {
+                        //        "OneWorld2dSpriteURI", oneWorld2dSpriteURI
+                        //    },
+                        //}
+
+                        oappPath = Path.Combine(oappPath, OAPPName);
+
+                        OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, null, null, new OAPPDNA()
+                        {
+                            CelestialBodyId = lightResult.Result.CelestialBody.Id,
+                            CelestialBodyName = lightResult.Result.CelestialBody.Name,
+                            GenesisType = genesisType,
+                            OAPPTemplateId = OAPPTemplate.STARNETDNA.Id,
+                            OAPPTemplateVersionSequence = OAPPTemplate.STARNETDNA.VersionSequence,
+                            STARNETHolonType = OAPPType,
+                            OurWorldLat = ourWorldLat,
+                            OurWorldLong = ourWorldLong,
+                            OurWorld3dObject = ourWorld3dObject,
+                            OurWorld3dObjectURI = ourWorld3dObjectURI,
+                            OurWorld2dSprite = ourWorld2dSprite,
+                            OurWorld2dSpriteURI = ourWorld2dSpriteURI,
+                            OneWorldLat = oneWorlddLat,
+                            OneWorldLong = oneWorldLong,
+                            OneWorld3dObject = oneWorld3dObject,
+                            OneWorld3dObjectURI = oneWorld3dObjectURI,
+                            OneWorld2dSprite = oneWorld2dSprite,
+                            OneWorld2dSpriteURI = oneWorld2dSpriteURI,
+                            Zomes = lightResult.Result.CelestialBody.CelestialBodyCore.Zomes
+                        }, false, providerType);
+
+                        if (createOAPPResult != null && createOAPPResult.Result != null && !createOAPPResult.IsError)
+                        {
+                            lightResult.Result.OAPP = createOAPPResult.Result;
+
+                            CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                            ShowOAPP((IOAPPDNA)lightResult.Result.OAPP.STARNETDNA, lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
+                            Console.WriteLine("");
+
+                            if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
+                                Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(OAPPName, " OAPP"), string.Concat(genesisNamespace, ".csproj")));
+
+                            Console.WriteLine("");
+
+                            if (CLIEngine.GetConfirmation("Do you wish to open the OAPP folder now?"))
+                                Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(OAPPName, " OAPP")));
+
+                            Console.WriteLine("");
+                        }
+                        else
+                            CLIEngine.ShowErrorMessage($"Error Occured Creating The OAPP. Reason: {createOAPPResult.Message}");
+                    }
+                    else
+                        CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                }
             }
 
             return lightResult;

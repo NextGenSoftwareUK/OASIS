@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     NFTType = nftType,
                     OASISNFT = OASISNFT
-                }, checkIfSourcePathExists: checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 
@@ -79,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     NFTType = nftType,
                     OASISNFT = OASISNFT
-                }, checkIfSourcePathExists: checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 
@@ -98,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     NFTType = nftType,
                     OASISNFTId = OASISNFTId
-                }, checkIfSourcePathExists: checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 
@@ -117,7 +117,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     NFTType = nftType,
                     OASISNFTId = OASISNFTId
-                }, checkIfSourcePathExists: checkIfSourcePathExists,
+                }, null, checkIfSourcePathExists: checkIfSourcePathExists,
             providerType));
         }
 

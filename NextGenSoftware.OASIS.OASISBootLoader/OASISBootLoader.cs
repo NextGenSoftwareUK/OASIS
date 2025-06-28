@@ -40,16 +40,19 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public delegate void OASISBootLoaderError(object sender, OASISErrorEventArgs e);
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
-        public static string OASISVersion { get; set; } = "v3.4.0";
-        public static string COSMICVersion { get; set; } = "v2.0.1";
-        public static string STARODKVersion { get; set; } = "v3.0.0";
-        public static string STARNETVersion { get; set; } = "v1.1.1";
+        public static string OASISVersion { get; set; } = "4.0.0";
+        public static string COSMICVersion { get; set; } = "2.1.1";
+        public static string STARODKVersion { get; set; } = "3.0.0";
+        public static string STARRuntimeVersion { get; set; } = "3.0.0";
+        public static string STARNETVersion { get; set; } = "1.1.1";
+        public static string STARAPIVersion { get; set; } = "1.0.1";
 
         public static string DotNetVersion
         {
             get
             {
-                return string.Concat(Environment.Version.ToString(), "(", RuntimeInformation.FrameworkDescription, ")");
+                //return string.Concat(Environment.Version.ToString(), "(", RuntimeInformation.FrameworkDescription, ")");
+                return Environment.Version.ToString();
             }
         }
 
@@ -298,9 +301,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    LoggingManager.Log($"{result.Message}", LogType.Info);
 
                         LoggingManager.Log($"OASIS RUNTIME VERSION: {OASISVersion}.", LogType.Info);
-                        LoggingManager.Log($"COSMIC ORM RUNTIME VERSION: {COSMICVersion}.", LogType.Info);
-                        LoggingManager.Log($"STAR ODK VERSION: {STARODKVersion}.", LogType.Info);
-                        LoggingManager.Log($"STARNET VERSION: {STARNETVersion}.", LogType.Info);
+                        LoggingManager.Log($"COSMIC ORM VERSION:    {COSMICVersion}.", LogType.Info);
+                        LoggingManager.Log($"STAR RUNTIME VERSION:  {STARRuntimeVersion}.", LogType.Info);
+                        LoggingManager.Log($"STAR ODK VERSION:      {STARODKVersion}.", LogType.Info);
+                        LoggingManager.Log($"STARNET VERSION:       {STARNETVersion}.", LogType.Info);
+                        LoggingManager.Log($"STAR API VERSION:      {STARAPIVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (LIVE): {OASISDNA.OASIS.CurrentLiveVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (STAGING): {OASISDNA.OASIS.CurrentStagingVersion}.", LogType.Info);
                     }
