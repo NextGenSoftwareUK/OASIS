@@ -6,8 +6,8 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         String,
         Int,
         Bool,
-        List,
-        Link,
-        Set
+        //List,
+        //Link,
+        //Set
     }
 }

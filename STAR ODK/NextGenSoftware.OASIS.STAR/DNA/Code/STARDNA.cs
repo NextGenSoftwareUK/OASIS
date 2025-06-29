@@ -45,80 +45,131 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultStarId { get; set; } //The default Star ID (The Sun) to use when creating new OAPPs and using COSMIC.
         public string DefaultPlanetId { get; set; } //The default Planet ID (Our World) to use when creating new OAPPs and using COSMIC.
 
-        public string BaseSTARNETPath { get; set; } = @"C:\Source\OASIS\STAR ODK\Release\STAR_ODK_v3.0.0\STARNET"; //If this is left blank then all STARNET paths below will be absolute otherwise they will be relative (NOTE: This is NOT STARBasePath above to allow the user data to be stored in a different location if needed).
+        //If this is left blank then all STARNET paths below will be absolute otherwise they will be relative (NOTE: This is NOT STARBasePath above to allow the user data to be stored in a different location if needed).
+        public string BaseSTARNETPath { get; set; } = @"C:\Source\OASIS\STAR ODK\Release\STAR_ODK_v3.0.0\STARNET";
 
-        public string DefaultOAPPsSourcePath { get; set; } = "OAPPs\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultOAPPsPublishedPath { get; set; } = "OAPPs\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultOAPPsDownloadedPath { get; set; } = "OAPPs\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultOAPPsInstalledPath { get; set; } = "OAPPs\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+        //All paths below for STARNET can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+        //OAPP's are composed of Celestial Bodies, Zomes and Holons (which are all types of DNA) and can be used to create OAPPs (Omniverse/OASIS/Our World Applications) which are like Apps in the Omniverse/OASIS/Our World. OAPPs can be published, searched, downloaded, installed on the user's machine or downloaded from the OASIS/STARNET. They can also be published to the OASIS/STARNET for others to use and can be updated with new versions. The same applies for everything below here for STARNET.
+        public string DefaultOAPPsSourcePath { get; set; } = "OAPPs\\Source"; 
+        public string DefaultOAPPsPublishedPath { get; set; } = "OAPPs\\Published"; 
+        public string DefaultOAPPsDownloadedPath { get; set; } = "OAPPs\\Downloaded"; 
+        public string DefaultOAPPsInstalledPath { get; set; } = "OAPPs\\Installed";
 
-        public string DefaultOAPPTemplatesSourcePath { get; set; } = "OAPPTemplates\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultOAPPTemplatesPublishedPath { get; set; } = "OAPPTemplates\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultOAPPTemplatesDownloadedPath { get; set; } = "OAPPTemplates\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultOAPPTemplatesInstalledPath { get; set; } = "OAPPTemplates\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+        
+        //OAPP Templates are used to create OAPPs along with Runtimes.
+        public string DefaultOAPPTemplatesSourcePath { get; set; } = "OAPPTemplates\\Source"; 
+        public string DefaultOAPPTemplatesPublishedPath { get; set; } = "OAPPTemplates\\Published"; 
+        public string DefaultOAPPTemplatesDownloadedPath { get; set; } = "OAPPTemplates\\Downloaded"; 
+        public string DefaultOAPPTemplatesInstalledPath { get; set; } = "OAPPTemplates\\Installed";
 
-        public string DefaultRuntimesSourcePath { get; set; } = "Runtimes\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultRuntimesPublishedPath { get; set; } = "Runtimes\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultRuntimesDownloadedPath { get; set; } = "Runtimes\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultRuntimesInstalledPath { get; set; } = "Runtimes\\Installed\\Other"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultRuntimesInstalledOASISPath { get; set; } = "Runtimes\\Installed\\OASIS"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultRuntimesInstalledSTARPath { get; set; } = "Runtimes\\Installed\\STAR"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+        
+        //Runtimes are used to run OAPPs and can be installed on the user's machine or downloaded from the OASIS. Different runtimes can be combined with different OAPP Templates making unique combinations for OAPPs.
+        public string DefaultRuntimesSourcePath { get; set; } = "Runtimes\\Source"; 
+        public string DefaultRuntimesPublishedPath { get; set; } = "Runtimes\\Published"; 
+        public string DefaultRuntimesDownloadedPath { get; set; } = "Runtimes\\Downloaded"; 
+        public string DefaultRuntimesInstalledPath { get; set; } = "Runtimes\\Installed\\Other"; 
+        public string DefaultRuntimesInstalledOASISPath { get; set; } = "Runtimes\\Installed\\OASIS"; 
+        public string DefaultRuntimesInstalledSTARPath { get; set; } = "Runtimes\\Installed\\STAR";
 
-        public string DefaultChaptersSourcePath { get; set; } = "Chapters\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultChaptersPublishedPath { get; set; } = "Chapters\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultChaptersDownloadedPath { get; set; } = "Chapters\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultChaptersInstalledPath { get; set; } = "Chapters\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+        //Chapters contain Quests and are used to break down big quests into seperate Chapters.
+        public string DefaultChaptersSourcePath { get; set; } = "Chapters\\Source"; 
+        public string DefaultChaptersPublishedPath { get; set; } = "Chapters\\Published"; 
+        public string DefaultChaptersDownloadedPath { get; set; } = "Chapters\\Downloaded"; 
+        public string DefaultChaptersInstalledPath { get; set; } = "Chapters\\Installed";
 
-        public string DefaultMissionsSourcePath { get; set; } = "Missions\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultMissionsPublishedPath { get; set; } = "Missions\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultMissionsDownloadedPath { get; set; } = "Missions\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultMissionsInstalledPath { get; set; } = "Missions\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+        
+        //Missions contain Quests and optionally Chapters.
+        public string DefaultMissionsSourcePath { get; set; } = "Missions\\Source"; 
+        public string DefaultMissionsPublishedPath { get; set; } = "Missions\\Published"; 
+        public string DefaultMissionsDownloadedPath { get; set; } = "Missions\\Downloaded"; 
+        public string DefaultMissionsInstalledPath { get; set; } = "Missions\\Installed";
 
-        public string DefaultQuestsSourcePath { get; set; } = "Quests\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultQuestsPublishedPath { get; set; } = "Quests\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultQuestsDownloadedPath { get; set; } = "Quests\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultQuestsInstalledPath { get; set; } = "Quests\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+        
+        //Quests contain GeoNFTs, GeoHotSpots and InventoryItems (that are rewarded when you complete a quest).
+        public string DefaultQuestsSourcePath { get; set; } = "Quests\\Source"; 
+        public string DefaultQuestsPublishedPath { get; set; } = "Quests\\Published"; 
+        public string DefaultQuestsDownloadedPath { get; set; } = "Quests\\Downloaded"; 
+        public string DefaultQuestsInstalledPath { get; set; } = "Quests\\Installed";
 
-        public string DefaultNFTsSourcePath { get; set; } = "NFTs\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultNFTsPublishedPath { get; set; } = "NFTs\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultNFTsDownloadedPath { get; set; } = "NFTs\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultNFTsInstalledPath { get; set; } = "NFTs\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+        
+        //OASIS NFTs (wrap around all types of web3 NFTs and form an abstraction layer to convert between standards and chains) are Non-Fungible Tokens that can be used to represent unique items, assets or collectibles in the Omniverse/OASIS/Our World.
+        public string DefaultNFTsSourcePath { get; set; } = "NFTs\\Source"; 
+        public string DefaultNFTsPublishedPath { get; set; } = "NFTs\\Published"; 
+        public string DefaultNFTsDownloadedPath { get; set; } = "NFTs\\Downloaded"; 
+        public string DefaultNFTsInstalledPath { get; set; } = "NFTs\\Installed";
 
-        public string DefaultGeoNFTsSourcePath { get; set; } = "GeoNFTs\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultGeoNFTsPublishedPath { get; set; } = "GeoNFTs\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultGeoNFTsDownloadedPath { get; set; } = "GeoNFTs\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultGeoNFTsInstalledPath { get; set; } = "GeoNFTs\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+        
+        //GeoNFTs are Geographical Non-Fungible Tokens that can be used to represent unique geographical locations or assets in the Omniverse/OASIS/Our World. (GeoNFTs can be created from OASIS NFTs).
+        public string DefaultGeoNFTsSourcePath { get; set; } = "GeoNFTs\\Source"; 
+        public string DefaultGeoNFTsPublishedPath { get; set; } = "GeoNFTs\\Published"; 
+        public string DefaultGeoNFTsDownloadedPath { get; set; } = "GeoNFTs\\Downloaded"; 
+        public string DefaultGeoNFTsInstalledPath { get; set; } = "GeoNFTs\\Installed";
 
-        public string DefaultGeoHotSpotsSourcePath { get; set; } = "GeoHotSpots\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultGeoHotSpotsPublishedPath { get; set; } = "GeoHotSpots\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultGeoHotSpotsDownloadedPath { get; set; } = "GeoHotSpots\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).v
-        public string DefaultGeoHotSpotsInstalledPath { get; set; } = "GeoHotSpots\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).v
 
-        public string DefaultInventoryItemsSourcePath { get; set; } = "InventoryItems\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultInventoryItemsPublishedPath { get; set; } = "InventoryItems\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultInventoryItemsDownloadedPath { get; set; } = "InventoryItems\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).v
-        public string DefaultInventoryItemsInstalledPath { get; set; } = "InventoryItems\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+        //GeoHotSpots are special geolocations within Our World/Omniverse that can be triggered when you arrive at the location, when you activate AR mode or interact with a virtual object at that location.
+        public string DefaultGeoHotSpotsSourcePath { get; set; } = "GeoHotSpots\\Source"; 
+        public string DefaultGeoHotSpotsPublishedPath { get; set; } = "GeoHotSpots\\Published"; 
+        public string DefaultGeoHotSpotsDownloadedPath { get; set; } = "GeoHotSpots\\Downloaded"; 
+        public string DefaultGeoHotSpotsInstalledPath { get; set; } = "GeoHotSpots\\Installed";
 
-        public string DefaultCelestialSpacesSourcePath { get; set; } = "CelestialSpaces\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultCelestialSpacesPublishedPath { get; set; } = "CelestialSpaces\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultCelestialSpacesDownloadedPath { get; set; } = "CelestialSpaces\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultCelestialSpacesInstalledPath { get; set; } = "CelestialSpaces\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-        public string DefaultCelestialBodiesSourcePath { get; set; } = "CelestialBodies\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultCelestialBodiesPublishedPath { get; set; } = "CelestialBodies\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultCelestialBodiesDownloadedPath { get; set; } = "CelestialBodies\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultCelestialBodiesInstalledPath { get; set; } = "CelestialBodies\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+        //InventoryItems are items that can be collected/rewarded, traded or used within the Omniverse/OASIS/Our World such as weapons, shields, armor, potions, power ups etc for your Avatar and much much more! ;-)
+        public string DefaultInventoryItemsSourcePath { get; set; } = "InventoryItems\\Source"; 
+        public string DefaultInventoryItemsPublishedPath { get; set; } = "InventoryItems\\Published"; 
+        public string DefaultInventoryItemsDownloadedPath { get; set; } = "InventoryItems\\Downloaded"; 
+        public string DefaultInventoryItemsInstalledPath { get; set; } = "InventoryItems\\Installed";
 
-        public string DefaultZomesSourcePath { get; set; } = "Zomes\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultZomesPublishedPath { get; set; } = "Zomes\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultZomesDownloadedPath { get; set; } = "Zomes\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultZomesInstalledPath { get; set; } = "Zomes\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
 
-        public string DefaultHolonsSourcePath { get; set; } = "Holons\\Source"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultHolonsPublishedPath { get; set; } = "Holons\\Published"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultHolonsDownloadedPath { get; set; } = "Holons\\Downloaded"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
-        public string DefaultHolonsInstalledPath { get; set; } = "Holons\\Installed"; //Can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+        //CelestialSpaces (such as SolarSystem's, Galaxies, Universes etc) contain CelestialBodies.
+        public string DefaultCelestialSpacesSourcePath { get; set; } = "CelestialSpaces\\Source"; 
+        public string DefaultCelestialSpacesPublishedPath { get; set; } = "CelestialSpaces\\Published"; 
+        public string DefaultCelestialSpacesDownloadedPath { get; set; } = "CelestialSpaces\\Downloaded"; 
+        public string DefaultCelestialSpacesInstalledPath { get; set; } = "CelestialSpaces\\Installed";
 
+
+        //CelestialBodies are the planets, moons, stars, galaxies etc in the Omniverse and can contain Zomes and Holons. They also represet your OAPP in the Omniverse.
+        public string DefaultCelestialBodiesSourcePath { get; set; } = "CelestialBodies\\Source"; 
+        public string DefaultCelestialBodiesPublishedPath { get; set; } = "CelestialBodies\\Published"; 
+        public string DefaultCelestialBodiesDownloadedPath { get; set; } = "CelestialBodies\\Downloaded"; 
+        public string DefaultCelestialBodiesInstalledPath { get; set; } = "CelestialBodies\\Installed";
+
+
+        //Zomes are the building blocks of Celestial Bodies and can contain Holons. They are like modules that can be used to build Celestial Bodies.
+        public string DefaultZomesSourcePath { get; set; } = "Zomes\\Source"; 
+        public string DefaultZomesPublishedPath { get; set; } = "Zomes\\Published"; 
+        public string DefaultZomesDownloadedPath { get; set; } = "Zomes\\Downloaded"; 
+        public string DefaultZomesInstalledPath { get; set; } = "Zomes\\Installed";
+
+
+        //Holons are the individual components of Zomes and can contain data, logic and functionality. They are like the building blocks of Zomes.//Holons are the individual components of Zomes and can contain data, logic and functionality. They are like the building blocks of Zomes.
+        public string DefaultHolonsSourcePath { get; set; } = "Holons\\Source"; 
+        public string DefaultHolonsPublishedPath { get; set; } = "Holons\\Published"; 
+        public string DefaultHolonsDownloadedPath { get; set; } = "Holons\\Downloaded"; 
+        public string DefaultHolonsInstalledPath { get; set; } = "Holons\\Installed";
+
+
+        //CelestialBodiesMetaDataDNA is the DNA that contains the metadata for Celestial Bodies.
+        public string DefaultCelestialBodiesMetaDataDNASourcePath { get; set; } = "CelestialBodies\\Source"; 
+        public string DefaultCelestialBodiesMetaDataDNAPublishedPath { get; set; } = "CelestialBodies\\Published"; 
+        public string DefaultCelestialBodiesMetaDataDNADownloadedPath { get; set; } = "CelestialBodies\\Downloaded"; 
+        public string DefaultCelestialBodiesMetaDataDNAInstalledPath { get; set; } = "CelestialBodies\\Installed";
+
+
+        //ZomesMetaDataDNA is the DNA that contains the metadata for Zomes.
+        public string DefaultZomesMetaDataDNASourcePath { get; set; } = "Zomes\\Source"; 
+        public string DefaultZomesMetaDataDNAPublishedPath { get; set; } = "Zomes\\Published"; 
+        public string DefaultZomesMetaDataDNADownloadedPath { get; set; } = "Zomes\\Downloaded"; 
+        public string DefaultZomesMetaDataDNAInstalledPath { get; set; } = "Zomes\\Installed";
+
+        
+        //HolonsMetaDataDNA is the DNA that contains the metadata for Holons.
+        public string DefaultHolonsMetaDataDNASourcePath { get; set; } = "Holons\\Source"; 
+        public string DefaultHolonsMetaDataDNAPublishedPath { get; set; } = "Holons\\Published"; 
+        public string DefaultHolonsMetaDataDNADownloadedPath { get; set; } = "Holons\\Downloaded"; 
+        public string DefaultHolonsMetaDataDNAInstalledPath { get; set; } = "Holons\\Installed";
+
+        
+        //OASIS Settings
         public bool DetailedCOSMICOutputEnabled { get; set; } = false; //Turn on to get detailed output from COSMIC (the Cosmic Operating System for the Omniverse).
         public bool DetailedSTARStatusOutputEnabled { get; set; } = false; //Turn on to get detailed output from STAR (the status of the STAR ODK).
         public bool DetailedOASISHyperdriveLoggingEnabled { get; set; } = false; //Turn on to get detailed logging output from the OASIS Hyperdrive (this will log to the OASIS log file as well as the screen/console).

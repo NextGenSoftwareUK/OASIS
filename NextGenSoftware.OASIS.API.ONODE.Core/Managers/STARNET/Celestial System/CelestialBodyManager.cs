@@ -45,88 +45,88 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "CelestialBodyDNAJSON")
         { }
 
-        public async Task<OASISResult<ISTARCelestialBody>> CreateCelestialBodyAsync(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToCelestialBodySource,
-            CelestialBodyType celestialBodyType,
-            ICelestialBody celestialBody,
-            bool checkIfSourcePathExists,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
-                new STARCelestialBody()
-                {
-                    CelestialBodyType = celestialBodyType,
-                    CelestialBody = celestialBody
-                }, null,
-            checkIfSourcePathExists, providerType));
-        }
+        //public async Task<OASISResult<ISTARCelestialBody>> CreateCelestialBodyAsync(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToCelestialBodySource,
+        //    CelestialBodyType celestialBodyType,
+        //    ICelestialBody celestialBody,
+        //    bool checkIfSourcePathExists,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
+        //        new STARCelestialBody()
+        //        {
+        //            CelestialBodyType = celestialBodyType,
+        //            CelestialBody = celestialBody
+        //        }, null,
+        //    checkIfSourcePathExists, providerType));
+        //}
 
-        public OASISResult<ISTARCelestialBody> CreateCelestialBody(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToCelestialBodySource,
-            CelestialBodyType celestialBodyType,
-            ICelestialBody celestialBody,
-            bool checkIfSourcePathExists,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(base.Create(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
-                new STARCelestialBody()
-                {
-                    CelestialBodyType = celestialBodyType,
-                    CelestialBody = celestialBody
-                }, null,
-            checkIfSourcePathExists, providerType));
-        }
+        //public OASISResult<ISTARCelestialBody> CreateCelestialBody(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToCelestialBodySource,
+        //    CelestialBodyType celestialBodyType,
+        //    ICelestialBody celestialBody,
+        //    bool checkIfSourcePathExists,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.Create(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
+        //        new STARCelestialBody()
+        //        {
+        //            CelestialBodyType = celestialBodyType,
+        //            CelestialBody = celestialBody
+        //        }, null,
+        //    checkIfSourcePathExists, providerType));
+        //}
 
-        public async Task<OASISResult<ISTARCelestialBody>> CreateCelestialBodyAsync(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToCelestialBodySource,
-            CelestialBodyType celestialBodyType,
-            Guid celestialBodyId,
-            bool checkIfSourcePathExists,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
-                new STARCelestialBody()
-                {
-                    CelestialBodyType = celestialBodyType,
-                    CelestialBodyId = celestialBodyId
-                }, null,
-            checkIfSourcePathExists, providerType));
-        }
+        //public async Task<OASISResult<ISTARCelestialBody>> CreateCelestialBodyAsync(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToCelestialBodySource,
+        //    CelestialBodyType celestialBodyType,
+        //    Guid celestialBodyId,
+        //    bool checkIfSourcePathExists,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
+        //        new STARCelestialBody()
+        //        {
+        //            CelestialBodyType = celestialBodyType,
+        //            CelestialBodyId = celestialBodyId
+        //        }, null,
+        //    checkIfSourcePathExists, providerType));
+        //}
 
-        public OASISResult<ISTARCelestialBody> CreateCelestialBody(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToCelestialBodySource,
-            CelestialBodyType celestialBodyType,
-            Guid celestialBodyId,
-            bool checkIfSourcePathExists,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(base.Create(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
-                new STARCelestialBody()
-                {
-                    CelestialBodyType = celestialBodyType,
-                    CelestialBodyId = celestialBodyId
-                },
-            null, checkIfSourcePathExists, providerType));
-        }
+        //public OASISResult<ISTARCelestialBody> CreateCelestialBody(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToCelestialBodySource,
+        //    CelestialBodyType celestialBodyType,
+        //    Guid celestialBodyId,
+        //    bool checkIfSourcePathExists,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.Create(avatarId, name, description, celestialBodyType, fullPathToCelestialBodySource, null,
+        //        new STARCelestialBody()
+        //        {
+        //            CelestialBodyType = celestialBodyType,
+        //            CelestialBodyId = celestialBodyId
+        //        },
+        //    null, checkIfSourcePathExists, providerType));
+        //}
 
-        private OASISResult<ISTARCelestialBody> ProcessResult(OASISResult<STARCelestialBody> operationResult)
-        {
-            OASISResult<ISTARCelestialBody> result = new OASISResult<ISTARCelestialBody>();
-            result.Result = (ISTARCelestialBody)operationResult.Result;
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
-            return result;
-        }
+        //private OASISResult<ISTARCelestialBody> ProcessResult(OASISResult<STARCelestialBody> operationResult)
+        //{
+        //    OASISResult<ISTARCelestialBody> result = new OASISResult<ISTARCelestialBody>();
+        //    result.Result = (ISTARCelestialBody)operationResult.Result;
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+        //    return result;
+        //}
     }
 }

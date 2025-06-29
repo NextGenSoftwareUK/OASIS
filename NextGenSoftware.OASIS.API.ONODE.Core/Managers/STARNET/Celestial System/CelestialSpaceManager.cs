@@ -45,91 +45,91 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "CelestialSpaceDNAJSON")
         { }
 
-        public async Task<OASISResult<ISTARCelestialSpace>> CreateCelestialSpaceAsync(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToCelestialSpaceSource,
-            CelestialSpaceType celestialSpaceType,
-            ICelestialSpace celestialSpace,
-            bool checkIfSourcePathExists = true,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialSpaceType, fullPathToCelestialSpaceSource, null,
-                new STARCelestialSpace()
-                {
-                    CelestialSpaceType = celestialSpaceType,
-                    CelestialSpace = celestialSpace
-                }, null, checkIfSourcePathExists: checkIfSourcePathExists,
-            providerType));
-        }
+        //public async Task<OASISResult<ISTARCelestialSpace>> CreateCelestialSpaceAsync(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToCelestialSpaceSource,
+        //    CelestialSpaceType celestialSpaceType,
+        //    ICelestialSpace celestialSpace,
+        //    bool checkIfSourcePathExists = true,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialSpaceType, fullPathToCelestialSpaceSource, null,
+        //        new STARCelestialSpace()
+        //        {
+        //            CelestialSpaceType = celestialSpaceType,
+        //            CelestialSpace = celestialSpace
+        //        }, null, checkIfSourcePathExists: checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        public OASISResult<ISTARCelestialSpace> CreateCelestialSpace(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToCelestialSpaceSource,
-            CelestialSpaceType celestialSpaceType,
-            ICelestialSpace celestialSpace,
-            bool checkIfSourcePathExists = true,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(base.Create(avatarId, name, description, celestialSpaceType, fullPathToCelestialSpaceSource, null,
-                new STARCelestialSpace()
-                {
-                    CelestialSpaceType = celestialSpaceType,
-                    CelestialSpace = celestialSpace
-                }, null,
-                checkIfSourcePathExists: checkIfSourcePathExists,
-            providerType));
-        }
+        //public OASISResult<ISTARCelestialSpace> CreateCelestialSpace(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToCelestialSpaceSource,
+        //    CelestialSpaceType celestialSpaceType,
+        //    ICelestialSpace celestialSpace,
+        //    bool checkIfSourcePathExists = true,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.Create(avatarId, name, description, celestialSpaceType, fullPathToCelestialSpaceSource, null,
+        //        new STARCelestialSpace()
+        //        {
+        //            CelestialSpaceType = celestialSpaceType,
+        //            CelestialSpace = celestialSpace
+        //        }, null,
+        //        checkIfSourcePathExists: checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        public async Task<OASISResult<ISTARCelestialSpace>> CreateCelestialSpaceAsync(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToCelestialSpaceSource,
-            CelestialSpaceType celestialSpaceType,
-            Guid celestialSpaceId,
-            bool checkIfSourcePathExists = true,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialSpaceType, fullPathToCelestialSpaceSource, null,
-                new STARCelestialSpace()
-                {
-                    CelestialSpaceType = celestialSpaceType,
-                    CelestialSpaceId = celestialSpaceId
-                },
-                null, checkIfSourcePathExists: checkIfSourcePathExists,
-            providerType));
-        }
+        //public async Task<OASISResult<ISTARCelestialSpace>> CreateCelestialSpaceAsync(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToCelestialSpaceSource,
+        //    CelestialSpaceType celestialSpaceType,
+        //    Guid celestialSpaceId,
+        //    bool checkIfSourcePathExists = true,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.CreateAsync(avatarId, name, description, celestialSpaceType, fullPathToCelestialSpaceSource, null,
+        //        new STARCelestialSpace()
+        //        {
+        //            CelestialSpaceType = celestialSpaceType,
+        //            CelestialSpaceId = celestialSpaceId
+        //        },
+        //        null, checkIfSourcePathExists: checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        public OASISResult<ISTARCelestialSpace> CreateCelestialSpace(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToCelestialSpaceSource,
-            CelestialSpaceType celestialSpaceType,
-            Guid celestialSpaceId,
-            bool checkIfSourcePathExists = true,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(base.Create(avatarId, name, description, celestialSpaceType, fullPathToCelestialSpaceSource, null,
-                new STARCelestialSpace()
-                {
-                    CelestialSpaceType = celestialSpaceType,
-                    CelestialSpaceId = celestialSpaceId
-                },
-                null, checkIfSourcePathExists: checkIfSourcePathExists,
-            providerType));
-        }
+        //public OASISResult<ISTARCelestialSpace> CreateCelestialSpace(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToCelestialSpaceSource,
+        //    CelestialSpaceType celestialSpaceType,
+        //    Guid celestialSpaceId,
+        //    bool checkIfSourcePathExists = true,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.Create(avatarId, name, description, celestialSpaceType, fullPathToCelestialSpaceSource, null,
+        //        new STARCelestialSpace()
+        //        {
+        //            CelestialSpaceType = celestialSpaceType,
+        //            CelestialSpaceId = celestialSpaceId
+        //        },
+        //        null, checkIfSourcePathExists: checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        private OASISResult<ISTARCelestialSpace> ProcessResult(OASISResult<STARCelestialSpace> operationResult)
-        {
-            OASISResult<ISTARCelestialSpace> result = new OASISResult<ISTARCelestialSpace>();
-            result.Result = (ISTARCelestialSpace)operationResult.Result;
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
-            return result;
-        }
+        //private OASISResult<ISTARCelestialSpace> ProcessResult(OASISResult<STARCelestialSpace> operationResult)
+        //{
+        //    OASISResult<ISTARCelestialSpace> result = new OASISResult<ISTARCelestialSpace>();
+        //    result.Result = (ISTARCelestialSpace)operationResult.Result;
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+        //    return result;
+        //}
     }
 }
