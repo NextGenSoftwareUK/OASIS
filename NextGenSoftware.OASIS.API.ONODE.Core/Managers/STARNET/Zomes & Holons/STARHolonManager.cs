@@ -44,88 +44,88 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "HolonDNAJSON")
         { }
 
-        public async Task<OASISResult<ISTARHolon>> CreateHolonAsync(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToHolonSource,
-            HolonType holonType,
-            IHolon holon,
-            bool checkIfSourcePathExists = true,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, holonType, fullPathToHolonSource, null,
-                new STARHolon()
-                {
-                    HolonType = holonType,
-                    Holon = holon
-                }, null, checkIfSourcePathExists,
-            providerType));
-        }
+        //public async Task<OASISResult<ISTARHolon>> CreateHolonAsync(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToHolonSource,
+        //    HolonType holonType,
+        //    IHolon holon,
+        //    bool checkIfSourcePathExists = true,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.CreateAsync(avatarId, name, description, holonType, fullPathToHolonSource, null,
+        //        new STARHolon()
+        //        {
+        //            HolonType = holonType,
+        //            Holon = holon
+        //        }, null, checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        public OASISResult<ISTARHolon> CreateHolon(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToHolonSource,
-            HolonType holonType,
-            IHolon holon,
-            bool checkIfSourcePathExists = true,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(base.Create(avatarId, name, description, holonType, fullPathToHolonSource, null,
-                new STARHolon()
-                {
-                    HolonType = holonType,
-                    Holon = holon
-                }, null, checkIfSourcePathExists,
-            providerType));
-        }
+        //public OASISResult<ISTARHolon> CreateHolon(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToHolonSource,
+        //    HolonType holonType,
+        //    IHolon holon,
+        //    bool checkIfSourcePathExists = true,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.Create(avatarId, name, description, holonType, fullPathToHolonSource, null,
+        //        new STARHolon()
+        //        {
+        //            HolonType = holonType,
+        //            Holon = holon
+        //        }, null, checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        public async Task<OASISResult<ISTARHolon>> CreateHolonAsync(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToHolonSource,
-            HolonType holonType,
-            Guid holonId,
-            bool checkIfSourcePathExists = true,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, holonType, fullPathToHolonSource, null,
-                new STARHolon()
-                {
-                    HolonType = holonType,
-                    HolonId = holonId
-                }, null, checkIfSourcePathExists,
-            providerType));
-        }
+        //public async Task<OASISResult<ISTARHolon>> CreateHolonAsync(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToHolonSource,
+        //    HolonType holonType,
+        //    Guid holonId,
+        //    bool checkIfSourcePathExists = true,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.CreateAsync(avatarId, name, description, holonType, fullPathToHolonSource, null,
+        //        new STARHolon()
+        //        {
+        //            HolonType = holonType,
+        //            HolonId = holonId
+        //        }, null, checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        public OASISResult<ISTARHolon> CreateHolon(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToHolonSource,
-            HolonType holonType,
-            Guid holonId,
-            bool checkIfSourcePathExists = true,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(base.Create(avatarId, name, description, holonType, fullPathToHolonSource, null,
-                new STARHolon()
-                {
-                    HolonType = holonType,
-                    HolonId = holonId
-                }, null, checkIfSourcePathExists,
-            providerType));
-        }
+        //public OASISResult<ISTARHolon> CreateHolon(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToHolonSource,
+        //    HolonType holonType,
+        //    Guid holonId,
+        //    bool checkIfSourcePathExists = true,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.Create(avatarId, name, description, holonType, fullPathToHolonSource, null,
+        //        new STARHolon()
+        //        {
+        //            HolonType = holonType,
+        //            HolonId = holonId
+        //        }, null, checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        private OASISResult<ISTARHolon> ProcessResult(OASISResult<STARHolon> operationResult)
-        {
-            OASISResult<ISTARHolon> result = new OASISResult<ISTARHolon>();
-            result.Result = operationResult.Result;
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
-            return result;
-        }
+        //private OASISResult<ISTARHolon> ProcessResult(OASISResult<STARHolon> operationResult)
+        //{
+        //    OASISResult<ISTARHolon> result = new OASISResult<ISTARHolon>();
+        //    result.Result = operationResult.Result;
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+        //    return result;
+        //}
     }
 }

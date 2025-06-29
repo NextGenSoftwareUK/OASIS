@@ -4401,7 +4401,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    return STARNETDNA;
         //}
 
-        public virtual async Task<OASISResult<bool>> WriteDNAAsync<T>(T STARNETDNA, string fullPathToSTARNETHolon)
+        public virtual async Task<OASISResult<bool>> WriteDNAAsync<T>(T STARNETDNA, string fullPathToSTARNETHolon) //where T : ISTARNETDNA, new()
         {
             OASISResult<bool> result = new OASISResult<bool>();
 

@@ -4,10 +4,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
     public static class STARCLI
     {
         public static Avatars Avatars { get; } = new Avatars(STAR.BeamedInAvatar.Id);
-        //public static Data Data { get; } = new Data(STAR.BeamedInAvatar.Id);
         public static Zomes Zomes { get; } = new Zomes(STAR.BeamedInAvatar.Id);
+        public static ZomesMetaDataDNA ZomesMetaDataDNA { get; } = new ZomesMetaDataDNA(STAR.BeamedInAvatar.Id);
         public static Holons Holons { get; } = new Holons(STAR.BeamedInAvatar.Id);
+        public static HolonsMetaDataDNA HolonsMetaDataDNA { get; } = new HolonsMetaDataDNA(STAR.BeamedInAvatar.Id);
         public static CelestialBodies CelestialBodies { get; } = new CelestialBodies(STAR.BeamedInAvatar.Id);
+        public static CelestialBodiesMetaDataDNA CelestialBodiesMetaDataDNA { get; } = new CelestialBodiesMetaDataDNA(STAR.BeamedInAvatar.Id);
         public static CelestialSpaces CelestialSpaces { get; } = new CelestialSpaces(STAR.BeamedInAvatar.Id);
         public static OAPPs OAPPs { get; } = new OAPPs(STAR.BeamedInAvatar.Id);
         public static OAPPTemplates OAPPTemplates { get; } = new OAPPTemplates(STAR.BeamedInAvatar.Id);

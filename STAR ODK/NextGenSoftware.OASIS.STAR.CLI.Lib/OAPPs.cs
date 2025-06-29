@@ -10,6 +10,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using Nethereum.Contracts.Standards.ENS.ETHRegistrarController.ContractDefinition;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.STAR.Zomes;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -61,6 +64,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OAPPType OAPPType = OAPPType.OAPPTemplate;
             OAPPTemplateType OAPPTemplateType = OAPPTemplateType.Console;
             IOAPPTemplate OAPPTemplate = null;
+            ICelestialBody
             long ourWorldLat = 0;
             long ourWorldLong = 0;
             long oneWorlddLat = 0;
@@ -443,17 +447,71 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 GenesisType genesisType = (GenesisType)enumValue;
                 string dnaFolder = "";
 
+                List<IZome> zomes = new List<IZome>();
+                List<IHolon> holons = new List<IHolon>();
+                bool addMoreZomes = true;
+                bool addMoreHolons = true;
+                bool addMoreProps = true;
                 bool validFolder = false;
+
                 do
                 {
                     if (CLIEngine.GetConfirmation("Do you wish to create the CelestialBody/Zomes/Holons DNA now? (Enter 'n' if you already have a folder containing the DNA)."))
                     {
-                        //string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
-                        //string holonName = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
-                        //string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
-                        //object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(HolonPropType));
+                        do
+                        {
+                            string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
 
-                        //TODO:Come back to this.
+                            IZome zome = new Zome();
+                            zome.Name = zomeName;
+
+                            addMoreHolons = true;
+                            do
+                            {
+                                IHolon holon = new Holon();
+                                holon.Name = CLIEngine.GetValidInput("What is the name of the Holon (OASIS Data Object)?");
+                                addMoreProps = true;
+
+                                do
+                                {
+                                    string propName = CLIEngine.GetValidInput("What is the name of the Field/Property?");
+                                    object propType = CLIEngine.GetValidInputForEnum("What is the type of the Field/Property?", typeof(NodeType)); //typeof(HolonPropType));
+
+                                    if (propType != null)
+                                    {
+                                        if (propType.ToString() == "exit")
+                                        {
+                                            lightResult.Message = "User Exited";
+                                            return lightResult;
+                                        }
+                                        NodeType holonPropType = (NodeType)propType;
+
+                                        holon.Nodes.Add(new Node
+                                        {
+                                            NodeName = propName,
+                                            NodeType = holonPropType
+                                        });
+                                    }
+                                    else
+                                        CLIEngine.ShowErrorMessage("Invalid Field/Property Type! Please try again.");
+
+                                    addMoreProps = CLIEngine.GetConfirmation("Do you wish to add more fields/properties to the Holon?");
+                                
+                                } while (addMoreProps);
+
+                                zome.Children.Add(holon);
+                                addMoreHolons = CLIEngine.GetConfirmation("Do you wish to add more Holon's to the Zome?");
+
+                            } while (addMoreHolons);
+
+                            zomes.Add(zome);
+                            addMoreZomes = CLIEngine.GetConfirmation("Do you wish to add more Zome's to the Celestial Body/OAPP?");
+
+                        } while (addMoreZomes);
+
+                        //TODO: Now generate the CelestialBody/Zomes/Holons DNA and save it to a folder.
+                        CLIEngine.ShowWorkingMessage("Generating CelestialBody/Zomes/Holons DNA...");
+
                     }
                     else
                     {
@@ -553,53 +611,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (!lightResult.IsError && lightResult.Result != null)
                     {
                         //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
-                        //OASISResult<OAPP> createOAPPResult = await base.CreateAsync(createParams, new OAPP() { }, false, false, providerType);
-                        //OASISResult<OAPP> createOAPPResult = STAR.STARAPI.OAPPs.CreateOAPPAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplate.STARNETDNA.Id, OAPPTemplate.STARNETDNA.VersionSequence, genesisType, oappPath, lightResult.Result.CelestialBody.CelestialBodyCore.Zomes, ourWorldLat, ourWorldLong, ourWorld3dObject, ourWorld3dObjectURI, ourWorld2dSprite, ourWorld2dSpriteURI, oneWorlddLat, oneWorldLong, oneWorld3dObject, oneWorld3dObjectURI, oneWorld2dSprite, oneWorld2dSpriteURI, parentId, providerType);
-                        //OASISResult<OAPP> createOAPPResult = STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, new Dictionary<string, object>
-                        //{
-                        //    { "OAPPTemplateId", OAPPTemplate.STARNETDNA.Id },
-                        //    { "OAPPTemplateVersionSequence", OAPPTemplate.STARNETDNA.VersionSequence },
-                        //    { "GenesisType", genesisType },
-                        //    { "Zomes", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes
-                        //    },
-                        //    {
-                        //        "OurWorldLat", ourWorldLat
-                        //    },
-                        //    {
-                        //        "OurWorldLong", ourWorldLong
-                        //    },
-                        //    {
-                        //        "OurWorld3dObject", ourWorld3dObject
-                        //    },
-                        //    {
-                        //        "OurWorld3dObjectURI", ourWorld3dObjectURI
-                        //    },
-                        //    {
-                        //        "OurWorld2dSprite", ourWorld2dSprite
-                        //    },
-                        //    {
-                        //        "OurWorld2dSpriteURI", ourWorld2dSpriteURI
-                        //    },
-                        //    {
-                        //        "OneWorldLat", oneWorlddLat
-                        //    },
-                        //    {
-                        //        "OneWorldLong", oneWorldLong
-                        //    },
-                        //    {
-                        //        "OneWorld3dObject", oneWorld3dObject
-                        //    },
-                        //    {
-                        //        "OneWorld3dObjectURI", oneWorld3dObjectURI
-                        //    },
-                        //    {
-                        //        "OneWorld2dSprite", oneWorld2dSprite
-                        //    },
-                        //    {
-                        //        "OneWorld2dSpriteURI", oneWorld2dSpriteURI
-                        //    },
-                        //}
-
                         oappPath = Path.Combine(oappPath, OAPPName);
 
                         OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, null, null, new OAPPDNA()
