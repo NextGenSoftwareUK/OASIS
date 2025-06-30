@@ -1,6 +1,6 @@
 ﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness;
 
-file static class TestData
+internal static class TestData
 {
     public const string HostUri = "https://api.devnet.solana.com";
 
@@ -16,6 +16,27 @@ file static class TestData
 
 internal static class Program
 {
+    private static void WriteSuccess(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine(message);
+        Console.ResetColor();
+    }
+
+    private static void WriteError(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine(message);
+        Console.ResetColor();
+    }
+
+    private static void WriteInfo(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine(message);
+        Console.ResetColor();
+    }
+
     private static async Task Run_LoadNftAsync()
     {
         const string address = "HfNqg9TqctGiwfqYeDwKk6yRi1rUqhyBH6iWpsepnSqy";
@@ -23,37 +44,38 @@ internal static class Program
         SolanaOASIS solanaOasis = new(TestData.HostUri, TestData.PrivateKey.Key, TestData.PublicKey.Key);
         await solanaOasis.ActivateProviderAsync();
 
+        WriteInfo($"Loading NFT metadata for address: {address} ...");
         OASISResult<IOASISNFT> response = await solanaOasis.LoadNftAsync(address);
 
         if (response.IsError)
         {
-            Console.WriteLine(response.Message);
+            WriteError($"Error loading NFT: {response.Message}");
             return;
         }
 
         IOASISNFT result = response.Result;
 
-        Console.WriteLine($"Title: {result.Title}");
-        Console.WriteLine($"Description: {result.Description}");
-        Console.WriteLine($"MintedByAddress: {result.MintedByAddress}");
-        Console.WriteLine($"Hash (NFT Address): {result.Hash}");
-        Console.WriteLine($"Price: {result.Price}");
-        Console.WriteLine($"ImageUrl: {result.ImageUrl}");
-        Console.WriteLine($"ThumbnailUrl: {result.ThumbnailUrl}");
-        Console.WriteLine($"MemoText: {result.MemoText}");
-        Console.WriteLine($"OnChainProvider: {result.OnChainProvider?.Value}");
-        Console.WriteLine($"OffChainProvider: {result.OffChainProvider?.Value}");
+        WriteSuccess($"Title: {result.Title}");
+        WriteSuccess($"Description: {result.Description}");
+        WriteSuccess($"MintedByAddress: {result.MintedByAddress}");
+        WriteSuccess($"Hash (NFT Address): {result.Hash}");
+        WriteSuccess($"Price: {result.Price}");
+        WriteSuccess($"ImageUrl: {result.ImageUrl}");
+        WriteSuccess($"ThumbnailUrl: {result.ThumbnailUrl}");
+        WriteSuccess($"MemoText: {result.MemoText}");
+        WriteSuccess($"OnChainProvider: {result.OnChainProvider?.Value}");
+        WriteSuccess($"OffChainProvider: {result.OffChainProvider?.Value}");
 
-        await solanaOasis.ActivateProviderAsync();
+        await solanaOasis.DeActivateProviderAsync();
     }
 
     private static async Task Run_SaveAndLoadAvatar()
     {
         SolanaOASIS solanaOasis = new(TestData.HostUri, TestData.PrivateKey.Key, TestData.PublicKey.Key);
-        Console.WriteLine("Run_SaveAndLoadAvatar()->ActivateProvider()");
+        WriteInfo("Activating Solana provider...");
         await solanaOasis.ActivateProviderAsync();
 
-        Console.WriteLine("Run_SaveAndLoadAvatar()->SaveAvatarAsync()");
+        WriteInfo("Saving Avatar...");
         var saveAvatarResult = await solanaOasis.SaveAvatarAsync(new Avatar()
         {
             Username = "@bob",
@@ -65,29 +87,29 @@ internal static class Program
 
         if (saveAvatarResult.IsError)
         {
-            Console.WriteLine(saveAvatarResult.Message);
+            WriteError($"SaveAvatarAsync Error: {saveAvatarResult.Message}");
             return;
         }
 
-        await Task.Delay(5000);
+        WriteSuccess("Avatar saved successfully.");
+        await Task.Delay(5000); 
 
-        Console.WriteLine("Run_SaveAndLoadAvatar()->LoadAvatarAsync()");
+        WriteInfo("Loading Avatar by provider key...");
         var transactionHashProviderKey = saveAvatarResult.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS];
         var loadAvatarResult = await solanaOasis.LoadAvatarByProviderKeyAsync(transactionHashProviderKey);
 
         if (loadAvatarResult.IsError)
         {
-            Console.WriteLine(loadAvatarResult.Message);
+            WriteError($"LoadAvatarByProviderKeyAsync Error: {loadAvatarResult.Message}");
             return;
         }
 
-        Console.WriteLine("Avatar UserName: " + loadAvatarResult.Result.Username);
-        Console.WriteLine("Avatar Password: " + loadAvatarResult.Result.Password);
-        Console.WriteLine("Avatar Email: " + loadAvatarResult.Result.Email);
-        Console.WriteLine("Avatar Id: " + loadAvatarResult.Result.Id);
-        Console.WriteLine("Avatar AvatarId: " + loadAvatarResult.Result.AvatarId);
+        WriteSuccess($"Avatar Username: {loadAvatarResult.Result.Username}");
+        WriteSuccess($"Avatar Email: {loadAvatarResult.Result.Email}");
+        WriteSuccess($"Avatar Id: {loadAvatarResult.Result.Id}");
+        WriteSuccess($"Avatar AvatarId: {loadAvatarResult.Result.AvatarId}");
 
-        Console.WriteLine("Run_SaveAndLoadAvatar()->DeActivateProvider()");
+        WriteInfo("Deactivating Solana provider...");
         await solanaOasis.DeActivateProviderAsync();
     }
 
@@ -95,36 +117,39 @@ internal static class Program
     {
         SolanaOASIS solanaOasis = new(TestData.HostUri, TestData.PrivateKey.Key, TestData.PublicKey.Key);
 
+        WriteInfo("Activating Solana provider...");
         await solanaOasis.ActivateProviderAsync();
 
         IMintNFTTransactionRequestForProvider mintNftRequest = new MintNFTTransactionRequestForProvider()
         {
             JSONUrl = "https://example.com/metadata.json-lallalaall",
-            Title = "Fix bug NFT",
-            Symbol = "BUG",
+            Title = "Test for new Bug",
+            Symbol = "BUG!",
         };
 
+        WriteInfo($"Minting NFT: {mintNftRequest.Title}...");
         OASISResult<INFTTransactionRespone> mintNftResult = await solanaOasis.MintNFTAsync(mintNftRequest);
         if (mintNftResult.IsError)
         {
-            Console.WriteLine("Error: " + mintNftResult.Message);
+            WriteError($"MintNFTAsync Error: {mintNftResult.Message}");
             return;
         }
 
-        Console.WriteLine("Run_MintNFTAsync-->MintNFTAsync()-->Completed...");
-
-        Console.WriteLine("Run_MintNFTAsync()->DeActivateProvider()");
+        WriteSuccess($"Result:{mintNftResult.Result.TransactionResult}");
+        WriteSuccess("MintNFTAsync completed successfully.");
+        WriteInfo("Deactivating Solana provider...");
         await solanaOasis.DeActivateProviderAsync();
     }
 
     private static async Task Main()
     {
-        // Transferring Examples
+        WriteInfo("=== Starting SolanaOASIS Test Harness ===");
+
+
         await Run_MintNFTAsync();
-
-        //  await Run_LoadNftAsync();
-
-        // Solana Provider Examples
+        // await Run_LoadNftAsync();
         // await Run_SaveAndLoadAvatar();
+
+        WriteInfo("=== Test Harness finished ===");
     }
 }
