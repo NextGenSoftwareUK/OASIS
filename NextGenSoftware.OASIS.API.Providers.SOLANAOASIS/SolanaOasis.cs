@@ -1093,34 +1093,31 @@
             ArgumentNullException.ThrowIfNull(transaction);
 
             OASISResult<INFTTransactionRespone> result = new();
-            string errorMessageTemplate = "Error occured in MintNFTAsync in SolanaOASIS minting NFT. Reason: ";
 
             try
             {
-                OASISResult<Entities.DTOs.Responses.MintNftResult> solanaNftTransactionResult
+                OASISResult<MintNftResult> solanaNftTransactionResult
                     = await _solanaService.MintNftAsync(transaction as MintNFTTransactionRequestForProvider);
 
                 if (solanaNftTransactionResult.IsError ||
                     string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
                 {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(
-                            errorMessageTemplate, solanaNftTransactionResult.Message),
+                    OASISErrorHandling.HandleError(ref result,
+                        solanaNftTransactionResult.Message,
                         solanaNftTransactionResult.Exception);
                     return result;
                 }
-                else
+
+                result.IsError = false;
+                result.IsSaved = true;
+                result.Result = new NFTTransactionRespone
                 {
-                    result.IsError = false;
-                    result.IsSaved = true;
-                    result.Result = new NFTTransactionRespone()
-                    {
-                        TransactionResult = solanaNftTransactionResult.Result.TransactionHash
-                    };
-                }
+                    TransactionResult = solanaNftTransactionResult.Result.TransactionHash
+                };
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, e.Message), e);
+                OASISErrorHandling.HandleError(ref result, e.Message, e);
             }
 
             return result;
