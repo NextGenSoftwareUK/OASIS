@@ -5,5 +5,5 @@ public interface ISolanaService
     Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest);
     Task<OASISResult<MintNftResult>> MintNftAsync(MintNFTTransactionRequestForProvider mintNftRequest);
     Task<OASISResult<SendTransactionResult>> SendNftAsync(NFTWalletTransactionRequest mintNftRequest);
-    Task<OASISResult<GetNftMetadataResult>> LoadNftMetadataAsync(GetNftMetadataRequest getNftMetadataRequest);
+    Task<OASISResult<GetNftResult>> LoadNftAsync(string address);
 }

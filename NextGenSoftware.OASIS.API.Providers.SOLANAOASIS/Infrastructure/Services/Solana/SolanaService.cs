@@ -112,13 +112,13 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         return response;
     }
 
-    public async Task<OASISResult<GetNftMetadataResult>> LoadNftMetadataAsync(
-        GetNftMetadataRequest getNftMetadataRequest)
+    public async Task<OASISResult<GetNftResult>> LoadNftAsync(
+        string address)
     {
-        OASISResult<GetNftMetadataResult> response = new();
+        OASISResult<GetNftResult> response = new();
         try
         {
-            PublicKey nftAccount = new(getNftMetadataRequest.AccountAddress);
+            PublicKey nftAccount = new(address);
             MetadataAccount metadataAccount = await MetadataAccount.GetAccount(rpcClient, nftAccount);
 
             response.IsError = false;

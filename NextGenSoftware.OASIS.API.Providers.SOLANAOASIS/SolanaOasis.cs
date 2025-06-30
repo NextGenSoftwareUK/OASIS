@@ -1133,8 +1133,8 @@
 
             try
             {
-                OASISResult<GetNftMetadataResult> response =
-                    await _solanaService.LoadNftMetadataAsync(new(accountAddress));
+                OASISResult<GetNftResult> response =
+                    await _solanaService.LoadNftAsync(new(accountAddress));
 
                 result.IsLoaded = true;
                 result.IsError = false;

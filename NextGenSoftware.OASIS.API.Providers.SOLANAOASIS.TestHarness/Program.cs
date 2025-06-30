@@ -16,32 +16,33 @@ internal static class TestData
 
 internal static class Program
 {
-    private static void WriteSuccess(string message)
+    private static void WriteWithTime(ConsoleColor color, string message)
     {
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine(message);
+        Console.ForegroundColor = color;
+        Console.Write($"[{DateTime.Now:HH:mm:ss}] ");
         Console.ResetColor();
+        Console.WriteLine(message);
     }
 
-    private static void WriteError(string message)
+    private static void WriteSuccess(string message) => WriteWithTime(ConsoleColor.Green, message);
+    private static void WriteError(string message) => WriteWithTime(ConsoleColor.Red, message);
+    private static void WriteInfo(string message) => WriteWithTime(ConsoleColor.Cyan, message);
+
+    private static void WriteColored(string label, string value, ConsoleColor color)
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(message);
+        Console.ForegroundColor = color;
+        Console.Write($"[{DateTime.Now:HH:mm:ss}] {label}: ");
         Console.ResetColor();
+        Console.WriteLine(string.IsNullOrWhiteSpace(value) ? "<empty>" : value);
     }
 
-    private static void WriteInfo(string message)
-    {
-        Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine(message);
-        Console.ResetColor();
-    }
 
     private static async Task Run_LoadNftAsync()
     {
-        const string address = "HfNqg9TqctGiwfqYeDwKk6yRi1rUqhyBH6iWpsepnSqy";
+        const string address = "46SPSK3KbLUVmwPbqbx1PiC6hpqSpBqe5GUeUzsfmZVN";
 
         SolanaOASIS solanaOasis = new(TestData.HostUri, TestData.PrivateKey.Key, TestData.PublicKey.Key);
+        WriteInfo("Activating Solana provider...");
         await solanaOasis.ActivateProviderAsync();
 
         WriteInfo($"Loading NFT metadata for address: {address} ...");
@@ -55,17 +56,15 @@ internal static class Program
 
         IOASISNFT result = response.Result;
 
-        WriteSuccess($"Title: {result.Title}");
-        WriteSuccess($"Description: {result.Description}");
-        WriteSuccess($"MintedByAddress: {result.MintedByAddress}");
-        WriteSuccess($"Hash (NFT Address): {result.Hash}");
-        WriteSuccess($"Price: {result.Price}");
-        WriteSuccess($"ImageUrl: {result.ImageUrl}");
-        WriteSuccess($"ThumbnailUrl: {result.ThumbnailUrl}");
-        WriteSuccess($"MemoText: {result.MemoText}");
-        WriteSuccess($"OnChainProvider: {result.OnChainProvider?.Value}");
-        WriteSuccess($"OffChainProvider: {result.OffChainProvider?.Value}");
+        WriteColored("Title", result.Title, ConsoleColor.Green);
+        WriteColored("Symbol", result.Symbol, ConsoleColor.Cyan);
+        WriteColored("SellerFeeBasisPoints", result.SellerFeeBasisPoints.ToString(), ConsoleColor.Magenta);
+        WriteColored("URL", result.URL, ConsoleColor.Blue);
+        WriteColored("OnChainProvider", result.OnChainProvider?.Value.ToString(), ConsoleColor.DarkGreen);
+        WriteColored("OffChainProvider", result.OffChainProvider?.Value.ToString(), ConsoleColor.DarkYellow);
 
+        WriteSuccess("LoadNftAsync completed successfully.");
+        WriteInfo("Deactivating Solana provider...");
         await solanaOasis.DeActivateProviderAsync();
     }
 
@@ -92,7 +91,7 @@ internal static class Program
         }
 
         WriteSuccess("Avatar saved successfully.");
-        await Task.Delay(5000); 
+        await Task.Delay(5000);
 
         WriteInfo("Loading Avatar by provider key...");
         var transactionHashProviderKey = saveAvatarResult.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS];
@@ -122,9 +121,9 @@ internal static class Program
 
         IMintNFTTransactionRequestForProvider mintNftRequest = new MintNFTTransactionRequestForProvider()
         {
-            JSONUrl = "https://example.com/metadata.json-lallalaall",
-            Title = "Test for new Bug",
-            Symbol = "BUG!",
+            JSONUrl = "https://example.com/metadata.json-#1",
+            Title = "Test data for LoadNft #1",
+            Symbol = "LOADNFT!#1",
         };
 
         WriteInfo($"Minting NFT: {mintNftRequest.Title}...");
@@ -146,8 +145,8 @@ internal static class Program
         WriteInfo("=== Starting SolanaOASIS Test Harness ===");
 
 
-        await Run_MintNFTAsync();
-        // await Run_LoadNftAsync();
+        //ok// await Run_MintNFTAsync();
+       await Run_LoadNftAsync();
         // await Run_SaveAndLoadAvatar();
 
         WriteInfo("=== Test Harness finished ===");

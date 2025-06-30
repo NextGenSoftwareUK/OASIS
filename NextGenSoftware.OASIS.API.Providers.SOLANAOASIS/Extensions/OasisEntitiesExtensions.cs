@@ -68,4 +68,16 @@ public static class OasisEntitiesExtensions
             OnChainProvider = new EnumValue<ProviderType>(ProviderType.SolanaOASIS),
             OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS)
         };
+    
+    
+    public static IOASISNFT ToOasisNft(this GetNftResult nft) =>
+        new OASISNFT
+        {
+            Title = nft.Name,
+            Symbol = nft.Symbol,
+            SellerFeeBasisPoints = nft.SellerFeeBasisPoints,
+            URL = nft.Url,
+            OnChainProvider = new EnumValue<ProviderType>(ProviderType.SolanaOASIS),
+            OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS)
+        };
 }
