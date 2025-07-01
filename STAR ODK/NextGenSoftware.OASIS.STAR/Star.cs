@@ -31,6 +31,8 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
+using System.Text;
+using NextGenSoftware.OASIS.STAR.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -1287,6 +1289,221 @@ namespace NextGenSoftware.OASIS.STAR
             //    result.Result.OAPP = OAPPResult.Result;
             //else
             //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An Error Occured Calling OASISAPI.OAPPs.CreateOAPPAsync. Reason: {OAPPResult.Message}");
+
+            return result;
+        }
+
+        ////public static async Task<OASISResult<IGenerateMetaDataDNAResult>> GenerateMetaDataDNAAsync(List<IZome> zomes, string CelestialBodyMetaDataDNAName, string CelestialBodyMetaDataDNADesc, CelestialBodyType celestialBodyType, string ZomeMetaDataDNAName, string ZomeMetaDataDNADesc, ZomeType zomeType, string HolonMetaDataDNAName, string HolonMetaDataDNADesc, HolonType holonType, string fullPathToCelestialBodySourcePath = "", string fullPathToZomeSourcePath = "", string fullPathToHolonSourcePath = "", ProviderType providerType = ProviderType.Default)
+        ////public static async Task<OASISResult<IGenerateMetaDataDNAResult>> GenerateMetaDataDNAAsync(List<IZome> zomes, string CelestialBodyMetaDataDNAName, string CelestialBodyMetaDataDNADesc, CelestialBodyType celestialBodyType, string fullPathToCelestialBodySourcePath = "", string fullPathToZomeSourcePath = "", string fullPathToHolonSourcePath = "", ProviderType providerType = ProviderType.Default)
+        //public static async Task<OASISResult<IGenerateMetaDataDNAResult>> GenerateMetaDataDNAAsync(List<IZome> zomes, string OAPPName, string OAPPMetaDataDNAPath = "", ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<IGenerateMetaDataDNAResult> result = new OASISResult<IGenerateMetaDataDNAResult>();
+        //    string errorMessage = "Error occured in STAR.GenerateMetaDataDNAAsync. Reason:";
+
+        //    if (string.IsNullOrEmpty(OAPPMetaDataDNAPath))
+        //    {
+        //        if (Path.IsPathRooted(STARDNA.OAPPMetaDataDNA))
+        //            OAPPMetaDataDNAPath = STARDNA.OAPPMetaDataDNA;
+        //        else
+        //            OAPPMetaDataDNAPath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.OAPPMetaDataDNA);
+        //    }
+
+        //    //if (string.IsNullOrEmpty(OAPPMetaDataDNAPath))
+        //    //{
+        //    //    if (Path.IsPathRooted(STARDNA.DefaultCelestialBodiesMetaDataDNASourcePath))
+        //    //        fullPathToCelestialBodySourcePath = STARDNA.DefaultCelestialBodiesMetaDataDNASourcePath;
+
+        //    //    else if (Path.IsPathRooted(STARDNA.BaseSTARNETPath))
+        //    //        fullPathToCelestialBodySourcePath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultCelestialBodiesMetaDataDNASourcePath);
+
+        //    //    else
+        //    //        fullPathToCelestialBodySourcePath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.BaseSTARNETPath, STARDNA.DefaultCelestialBodiesMetaDataDNASourcePath);
+        //    //}
+
+        //    //if (string.IsNullOrEmpty(fullPathToZomeSourcePath))
+        //    //{
+        //    //    if (Path.IsPathRooted(STARDNA.DefaultZomesMetaDataDNASourcePath))
+        //    //        fullPathToZomeSourcePath = STARDNA.DefaultZomesMetaDataDNASourcePath;
+
+        //    //    else if (Path.IsPathRooted(STARDNA.BaseSTARNETPath))
+        //    //        fullPathToZomeSourcePath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultZomesMetaDataDNASourcePath);
+
+        //    //    else
+        //    //        fullPathToZomeSourcePath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.BaseSTARNETPath, STARDNA.DefaultZomesMetaDataDNASourcePath);
+        //    //}
+
+        //    //if (string.IsNullOrEmpty(fullPathToHolonSourcePath))
+        //    //{
+        //    //    if (Path.IsPathRooted(STARDNA.DefaultHolonsMetaDataDNASourcePath))
+        //    //        fullPathToHolonSourcePath = STARDNA.DefaultHolonsMetaDataDNASourcePath;
+
+        //    //    else if (Path.IsPathRooted(STARDNA.BaseSTARNETPath))
+        //    //        fullPathToHolonSourcePath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultHolonsMetaDataDNASourcePath);
+
+        //    //    else
+        //    //        fullPathToHolonSourcePath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.BaseSTARNETPath, STARDNA.DefaultHolonsMetaDataDNASourcePath);
+        //    //}
+
+
+        //OASISResult<STARNETHolon> createResult = await STARAPI.CelestialBodiesMetaDataDNA.CreateAsync(BeamedInAvatar.Id, CelestialBodyMetaDataDNAName, CelestialBodyMetaDataDNADesc, celestialBodyType, fullPathToCelestialBodySourcePath, providerType: providerType);
+
+        //if (createResult != null && createResult.Result != null && !createResult.IsError)
+        //    result.Result.CelestialBodyMetaDataDNA = createResult.Result;
+        //else
+        //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling STARAPI.CelestialBodiesMetaDataDNA.CreateAsync. Reason: {createResult.Message}");
+
+
+        //createResult = await STARAPI.ZomesMetaDataDNA.CreateAsync(BeamedInAvatar.Id, ZomeMetaDataDNAName, ZomeMetaDataDNADesc, zomeType, fullPathToZomeSourcePath, providerType: providerType);
+
+        //if (createResult != null && createResult.Result != null && !createResult.IsError)
+        //    result.Result.ZomeMetaDataDNA = createResult.Result;
+        //else
+        //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling STARAPI.ZomesMetaDataDNA.CreateAsync. Reason: {createResult.Message}");
+
+
+        //createResult = await STARAPI.HolonsMetaDataDNA.CreateAsync(BeamedInAvatar.Id, HolonMetaDataDNAName, HolonMetaDataDNADesc, holonType, fullPathToHolonSourcePath, providerType: providerType);
+
+        //if (createResult != null && createResult.Result != null && !createResult.IsError)
+        //    result.Result.HolonMetaDataDNA = createResult.Result;
+        //else
+        //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling STARAPI.HolonsMetaDataDNA.CreateAsync. Reason: {createResult.Message}");
+
+
+        //    OASISResult<bool> generateResult = GenerateMetaDataDNA(zomes, fullPathToCelestialBodySourcePath, fullPathToZomeSourcePath, fullPathToHolonSourcePath);
+
+        //    if (!(generateResult != null && generateResult.Result != null && !generateResult.IsError))
+        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling STAR.GenerateMetaDataDNA. Reason: {generateResult.Message}");
+
+        //    return result;
+        //}
+
+        //public static OASISResult<bool> GenerateMetaDataDNA(List<IZome> zomes, string generatedCelstialBodyMetaDataDNAPath, string generatedZomeMetaDataDNAPath, string generatedHolonMetaDataDNAPath, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<IGenerateMetaDataDNAResult> GenerateMetaDataDNA(List<IZome> zomes, string OAPPName, string OAPPMetaDataDNAPath = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IGenerateMetaDataDNAResult> result = new OASISResult<IGenerateMetaDataDNAResult>();
+            string propBuffer = "";
+            string holonBuffer = "";
+            string zomeBuffer = "";
+            string zomeDNAPath = "";
+            string holonDNAPath = "";
+            string propTemplate = "public {TYPE} {PROPERTYNAME} {get; set;}";
+
+            try
+            {
+                if (string.IsNullOrEmpty(OAPPMetaDataDNAPath))
+                {
+                    if (Path.IsPathRooted(STARDNA.OAPPMetaDataDNAFolder))
+                        OAPPMetaDataDNAPath = STARDNA.OAPPMetaDataDNAFolder;
+                    else
+                        OAPPMetaDataDNAPath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.OAPPMetaDataDNAFolder);
+                }
+
+                result.Result = new GenerateMetaDataDNAResult()
+                {
+                    CelestialBodyMetaDataDNAPath = Path.Combine(OAPPMetaDataDNAPath, OAPPName, "CelestialBodyDNA"),
+                    ZomeMetaDataDNAPath = Path.Combine(OAPPMetaDataDNAPath, OAPPName, "ZomeDNA"),
+                    HolonMetaDataDNAPath = Path.Combine(OAPPMetaDataDNAPath, OAPPName, "HolonDNA")
+                };
+
+                if (Directory.Exists(result.Result.CelestialBodyMetaDataDNAPath))
+                    Directory.Delete(result.Result.CelestialBodyMetaDataDNAPath, true);
+
+                if (Directory.Exists(result.Result.ZomeMetaDataDNAPath))
+                    Directory.Delete(result.Result.ZomeMetaDataDNAPath, true);
+
+                if (Directory.Exists(result.Result.HolonMetaDataDNAPath))
+                    Directory.Delete(result.Result.HolonMetaDataDNAPath, true);
+
+                Directory.CreateDirectory(result.Result.CelestialBodyMetaDataDNAPath);
+                Directory.CreateDirectory(result.Result.ZomeMetaDataDNAPath);
+                Directory.CreateDirectory(result.Result.HolonMetaDataDNAPath);
+
+                //TODO: Apply this pathing logic to ALL of STARDNA paths! ;-)
+                if (!Path.IsPathRooted(STARDNA.ZomeMetaDataDNA))
+                {
+                    if (Path.IsPathRooted(STARDNA.MetaDataDNATemplateFolder))
+                        zomeDNAPath = Path.Combine(STARDNA.MetaDataDNATemplateFolder, STARDNA.ZomeMetaDataDNA);
+                    else
+                        zomeDNAPath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.MetaDataDNATemplateFolder, STARDNA.ZomeMetaDataDNA);
+                }
+                else
+                    zomeDNAPath = STARDNA.ZomeMetaDataDNA;
+
+
+                if (!Path.IsPathRooted(STARDNA.HolonMetaDataDNA))
+                {
+                    if (Path.IsPathRooted(STARDNA.MetaDataDNATemplateFolder))
+                        holonDNAPath = Path.Combine(STARDNA.MetaDataDNATemplateFolder, STARDNA.HolonMetaDataDNA);
+                    else
+                        holonDNAPath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.MetaDataDNATemplateFolder, STARDNA.HolonMetaDataDNA);
+                }
+                else
+                    holonDNAPath = STARDNA.HolonMetaDataDNA;
+
+                string zomeMetaDataDNA = File.ReadAllText(zomeDNAPath);
+                string holonMetaDataDNA = File.ReadAllText(holonDNAPath);
+
+                foreach (IZome zome in zomes)
+                {
+                    foreach (IHolon holon in zome.Children)
+                    {
+                        propBuffer = "";
+
+                        foreach (INode node in holon.Nodes)
+                        {
+                            switch (node.NodeType)
+                            {
+                                case NodeType.Bool:
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "bool").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    break;
+
+                                case NodeType.String:
+                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "string").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    break;
+
+                                case NodeType.Int:
+                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "int").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    break;
+
+                                case NodeType.Double:
+                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "double").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    break;
+
+                                case NodeType.Float:
+                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "float").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    break;
+
+                                case NodeType.Long:
+                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "long").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    break;
+
+                                case NodeType.DateTime:
+                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "DateTime").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    break;
+
+                                case NodeType.ByteArray:
+                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "byte[]").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    break;
+
+                                case NodeType.Object:
+                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "object").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    break;
+                            }
+                        }
+
+                        holonBuffer = string.Concat(holonBuffer, holonMetaDataDNA.Replace("{HOLONNAME}", holon.Name).Replace("{PROPERTIES}", propBuffer), "\n\n");
+                        File.WriteAllText(result.Result.HolonMetaDataDNAPath, holonBuffer);
+                    }
+
+                    zomeBuffer = zomeMetaDataDNA.Replace("{ZOMENNAME}", zome.Name).Replace("{HOLONS}", holonBuffer);
+                    File.WriteAllText(result.Result.ZomeMetaDataDNAPath, zomeBuffer);
+                    File.WriteAllText(result.Result.CelestialBodyMetaDataDNAPath, zomeBuffer);
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STAR.GenerateMetaDataDNA generating the CelestialBody, Zome & Holon MetaData DNA. Reason: {e}");
+            }
 
             return result;
         }

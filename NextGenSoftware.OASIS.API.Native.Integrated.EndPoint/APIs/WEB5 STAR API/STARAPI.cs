@@ -29,6 +29,9 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         private CelestialSpaceManager _celestialSpaces = null;
         private STARZomeManager _zomes = null;
         private STARHolonManager _holons = null;
+        private CelestialBodyMetaDataDNAManager _celestialBodiesDNA = null;
+        private ZomeMetaDataDNAManager _zomesDNA = null;
+        private HolonMetaDataDNAManager _holonsDNA = null;
 
         public STARAPI(OASISAPI OASISAPI = null) 
         {
@@ -407,6 +410,66 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 }
 
                 return _holons;
+            }
+        }
+
+        public CelestialBodyMetaDataDNAManager CelestialBodiesMetaDataDNA
+        {
+            get
+            {
+                if (_celestialBodiesDNA == null)
+                {
+                    if (!OASISAPI.IsOASISBooted)
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the CelestialBodiesMetaDataDNA property!");
+
+                    else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISDNA.OASIS.OASISSystemAccountId))
+                        throw new OASISException("No avatar is beamed in. Please beam in before accessing the CelestialBodiesMetaDataDNA property!");
+
+                    else
+                        _celestialBodiesDNA = new CelestialBodyMetaDataDNAManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                }
+
+                return _celestialBodiesDNA;
+            }
+        }
+
+        public ZomeMetaDataDNAManager ZomesMetaDataDNA
+        {
+            get
+            {
+                if (_zomesDNA == null)
+                {
+                    if (!OASISAPI.IsOASISBooted)
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the ZomesMetaDataDNA property!");
+
+                    else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISDNA.OASIS.OASISSystemAccountId))
+                        throw new OASISException("No avatar is beamed in. Please beam in before accessing the ZomesMetaDataDNA property!");
+
+                    else
+                        _zomesDNA = new ZomeMetaDataDNAManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                }
+
+                return _zomesDNA;
+            }
+        }
+
+        public HolonMetaDataDNAManager HolonsMetaDataDNA
+        {
+            get
+            {
+                if (_holonsDNA == null)
+                {
+                    if (!OASISAPI.IsOASISBooted)
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the HolonsMetaDataDNA property!");
+
+                    else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISDNA.OASIS.OASISSystemAccountId))
+                        throw new OASISException("No avatar is beamed in. Please beam in before accessing the HolonsMetaDataDNA property!");
+
+                    else
+                        _holonsDNA = new HolonMetaDataDNAManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                }
+
+                return _holonsDNA;
             }
         }
 

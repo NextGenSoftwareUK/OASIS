@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public string STARNETDNAJSONName { get; set; } = "STARNETDNAJSON";
         public Type STARNETHolonSubType { get; set; }
 
-        public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, T1 newHolon = default, ISTARNETDNA STARNETDNA = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> metaData = null, T1 newHolon = default, ISTARNETDNA STARNETDNA = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in STARManagerBase.CreateAsync, Reason:";
@@ -113,9 +113,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             try
             {
                 //TODO: Dont want UI in the backend!
-                if (Directory.Exists(fullPathToT) && checkIfSourcePathExists)
+                if (Directory.Exists(fullPathToSourceFolder) && checkIfSourcePathExists)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToT} already exists! Please either delete it or choose a different name.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToSourceFolder} already exists! Please either delete it or choose a different name.");
                     return result;
 
                     //if (CLIEngine.GetConfirmation($"The directory {fullPathToT} already exists! Would you like to delete it?"))
@@ -197,7 +197,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion;
                     STARNETDNA.COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion;
                     STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
-                    STARNETDNA.SourcePath = fullPathToT;
+                    STARNETDNA.SourcePath = fullPathToSourceFolder;
                     STARNETDNA.MetaData = metaData; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
                     
 
@@ -219,7 +219,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     //    MetaData = metaData //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
                     //};
 
-                    OASISResult<bool> writeSTARNETDNAResult = await WriteDNAAsync(STARNETDNA, fullPathToT);
+                    OASISResult<bool> writeSTARNETDNAResult = await WriteDNAAsync(STARNETDNA, fullPathToSourceFolder);
 
                     if (writeSTARNETDNAResult != null && writeSTARNETDNAResult.Result && !writeSTARNETDNAResult.IsError)
                     {
@@ -248,7 +248,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToT, Dictionary<string, object> metaData = null, T1 newHolon = default, ISTARNETDNA STARNETDNA = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> metaData = null, T1 newHolon = default, ISTARNETDNA STARNETDNA = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in STARManagerBase.Create, Reason:";
@@ -257,9 +257,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             try
             {
                 //TODO: Dont want UI in the backend!
-                if (Directory.Exists(fullPathToT) && checkIfSourcePathExists)
+                if (Directory.Exists(fullPathToSourceFolder) && checkIfSourcePathExists)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToT} already exists! Please either delete it or choose a different name.");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToSourceFolder} already exists! Please either delete it or choose a different name.");
                     return result;
 
                     //if (CLIEngine.GetConfirmation($"The directory {fullPathToT} already exists! Would you like to delete it?"))
@@ -341,7 +341,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion;
                     STARNETDNA.COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion;
                     STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
-                    STARNETDNA.SourcePath = fullPathToT;
+                    STARNETDNA.SourcePath = fullPathToSourceFolder;
                     STARNETDNA.MetaData = metaData; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
 
 
@@ -363,7 +363,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     //    MetaData = metaData //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
                     //};
 
-                    OASISResult<bool> writeSTARNETDNAResult = WriteDNA(STARNETDNA, fullPathToT);
+                    OASISResult<bool> writeSTARNETDNAResult = WriteDNA(STARNETDNA, fullPathToSourceFolder);
 
                     if (writeSTARNETDNAResult != null && writeSTARNETDNAResult.Result && !writeSTARNETDNAResult.IsError)
                     {

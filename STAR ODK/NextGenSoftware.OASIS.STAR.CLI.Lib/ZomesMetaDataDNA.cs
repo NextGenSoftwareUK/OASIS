@@ -1,8 +1,9 @@
-﻿using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+﻿using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class ZomesMetaDataDNA : STARNETUIBase<DownloadedSTARNETHolon, DownloadedSTARNETHolon, InstalledSTARNETHolon>
+    public class ZomesMetaDataDNA : STARNETUIBase<STARNETHolon, DownloadedSTARNETHolon, InstalledSTARNETHolon>
     {
         public ZomesMetaDataDNA(Guid avatarId) : base(new API.ONODE.Core.Managers.ZomeMetaDataDNAManager(avatarId),
             "Welcome to the Zome MetaData DNA Wizard", new List<string> 

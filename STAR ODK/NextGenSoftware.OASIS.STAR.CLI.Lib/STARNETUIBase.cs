@@ -100,29 +100,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
                     holonPath = SourcePath;
-                else
+                else 
                     holonPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, SourcePath);
 
+                (result, holonPath) = GetValidFolder(result, holonPath, STARNETManager.STARNETHolonUIName, SourceSTARDNAKey, true, holonName);
 
-                if (!CLIEngine.GetConfirmation($"Do you wish to create the {STARNETManager.STARNETHolonUIName} in the default path defined in the STARDNA as '{SourceSTARDNAKey}'? The current path points to: {holonPath}"))
-                    holonPath = CLIEngine.GetValidFolder($"Where do you wish to create the {STARNETManager.STARNETHolonUIName}?");
+                if (result.IsError)
+                    return result;
 
-                holonPath = Path.Combine(holonPath, holonName);
+                //if (!CLIEngine.GetConfirmation($"Do you wish to create the {STARNETManager.STARNETHolonUIName} in the default path defined in the STARDNA as '{SourceSTARDNAKey}'? The current path points to: {holonPath}"))
+                //    holonPath = CLIEngine.GetValidFolder($"Where do you wish to create the {STARNETManager.STARNETHolonUIName}?");
 
-                if (Directory.Exists(holonPath) && checkIfSourcePathExists)
-                {
-                    if (CLIEngine.GetConfirmation($"The directory {holonPath} already exists! Would you like to delete it?"))
-                    {
-                        Console.WriteLine("");
-                        Directory.Delete(holonPath, true);
-                    }
-                    else
-                    {
-                        Console.WriteLine("");
-                        OASISErrorHandling.HandleError(ref result, $"The directory {holonPath} already exists! Please either delete it or choose a different name.");
-                        return result;
-                    }
-                }
+                //holonPath = Path.Combine(holonPath, holonName);
+
+                //if (Directory.Exists(holonPath) && checkIfSourcePathExists)
+                //{
+                //    if (CLIEngine.GetConfirmation($"The directory {holonPath} already exists! Would you like to delete it?"))
+                //    {
+                //        Console.WriteLine("");
+                //        Directory.Delete(holonPath, true);
+                //    }
+                //    else
+                //    {
+                //        Console.WriteLine("");
+                //        OASISErrorHandling.HandleError(ref result, $"The directory {holonPath} already exists! Please either delete it or choose a different name.");
+                //        return result;
+                //    }
+                //}
 
                 Console.WriteLine("");
                 CLIEngine.ShowWorkingMessage($"Generating {STARNETManager.STARNETHolonUIName}...");
@@ -148,6 +152,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             return result;
+        }
+
+        public (OASISResult<T>, string) GetValidFolder<T>(OASISResult<T> result, string defaultPath, string pathDisplayName, string SourceSTARDNAKey, bool checkIfExists = true, string holonName = "")
+        {
+            if (!CLIEngine.GetConfirmation($"Do you wish to create the {pathDisplayName} in the default path defined in the STARDNA as '{SourceSTARDNAKey}' (recommended)? The current path points to: {defaultPath}"))
+                defaultPath = CLIEngine.GetValidFolder($"Where do you wish to create the {pathDisplayName}?");
+
+            if (!string.IsNullOrEmpty(holonName))
+                defaultPath = Path.Combine(defaultPath, holonName);
+
+            if (Directory.Exists(defaultPath) && checkIfExists)
+            {
+                if (CLIEngine.GetConfirmation($"The directory {defaultPath} already exists! Would you like to delete it?"))
+                {
+                    Console.WriteLine("");
+                    Directory.Delete(defaultPath, true);
+                }
+                else
+                {
+                    Console.WriteLine("");
+                    OASISErrorHandling.HandleError(ref result, $"The directory {defaultPath} already exists! Please either delete it or choose a different name.");
+                    return (result, defaultPath);
+                }
+            }
+
+            result.IsSaved = true;
+            return (result, defaultPath);
         }
 
         public virtual async Task EditAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
@@ -654,7 +685,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (!CLIEngine.GetConfirmation($"Do you wish to install the {STARNETManager.STARNETHolonUIName} to the default install folder defined in the STARDNA as {InstalledSTARDNAKey} : {installPath}?"))
                     {
                         Console.WriteLine("");
-                        installPath = CLIEngine.GetValidFolder("What is the full path to where you wish to install the {STARNETManager.STARNETHolonUIName}?", true);
+                        installPath = CLIEngine.GetValidFolder($"What is the full path to where you wish to install the {STARNETManager.STARNETHolonUIName}?", true);
                     }
 
                     installPath = new DirectoryInfo(installPath).FullName;
@@ -1619,6 +1650,239 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             return result;
         }
+
+
+        //public async Task<OASISResult<T3>> FindForProviderAndInstallIfNotInstalledAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = true, string STARNETHolonUIName = "", ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T3>> FindForProviderAndInstallIfNotInstalledAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T3> result = new OASISResult<T3>();
+            //OASISResult<T1> downloadedCelestialBodyDNA = await FindForProviderAsync(operationName, idOrName, showOnlyForCurrentAvatar, STARNETHolonUIName: STARNETHolonUIName, providerType: providerType);
+            OASISResult<T1> downloadedCelestialBodyDNA = await FindForProviderAsync(operationName, idOrName, showOnlyForCurrentAvatar, providerType: providerType);
+
+            if (downloadedCelestialBodyDNA != null && downloadedCelestialBodyDNA.Result != null && !downloadedCelestialBodyDNA.IsError)
+            {
+                OASISResult<bool> celestialBodyDNAInstalledResult = await STAR.STARAPI.CelestialBodiesMetaDataDNA.IsInstalledAsync(STAR.BeamedInAvatar.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.VersionSequence, providerType);
+
+                if (celestialBodyDNAInstalledResult != null && !celestialBodyDNAInstalledResult.IsError)
+                {
+                    if (!celestialBodyDNAInstalledResult.Result)
+                    {
+                        if (CLIEngine.GetConfirmation($"The selected {STARNETManager.STARNETHolonUIName} is not currently installed. Do you wish to install it now?"))
+                        {
+                            OASISResult<T3> installResult = await DownloadAndInstallAsync(downloadedCelestialBodyDNA.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
+
+                            if (installResult.Result != null && !installResult.IsError)
+                                result = installResult;
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"Error occured installing the {STARNETManager.STARNETHolonUIName}. Reason: {installResult.Message}");
+                        }
+                    }
+                    else
+                    {
+                        OASISResult<T3> loadResult = await STARNETManager.LoadInstalledAsync(STAR.BeamedInAvatar.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.VersionSequence, providerType);
+
+                        if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                            result = loadResult;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {loadResult.Message}");
+                    }
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error occured checking if {STARNETManager.STARNETHolonUIName} is installed. Reason: {celestialBodyDNAInstalledResult.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error occured finding {STARNETManager.STARNETHolonUIName}. Reason: {downloadedCelestialBodyDNA.Message}");
+
+            return result;
+        }
+
+        //TODO: Finish implementing later!
+        //public OASISResult<T3> FindForProviderAndInstallIfNotInstalled(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = true, string STARNETHolonUIName = "", ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<T3> result = new OASISResult<T3>();
+        //    OASISResult<T1> downloadedCelestialBodyDNA = STARCLI.CelestialBodiesMetaDataDNA.FindForProvider(operationName, idOrName, showOnlyForCurrentAvatar, STARNETHolonUIName: STARNETHolonUIName, providerType: providerType);
+
+        //    if (downloadedCelestialBodyDNA != null && downloadedCelestialBodyDNA.Result != null && !downloadedCelestialBodyDNA.IsError)
+        //    {
+        //        OASISResult<bool> celestialBodyDNAInstalledResult = STAR.STARAPI.CelestialBodiesMetaDataDNA.IsInstalled(STAR.BeamedInAvatar.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.VersionSequence, providerType);
+
+        //        if (celestialBodyDNAInstalledResult != null && !celestialBodyDNAInstalledResult.IsError)
+        //        {
+        //            if (!celestialBodyDNAInstalledResult.Result)
+        //            {
+        //                if (CLIEngine.GetConfirmation($"The selected {STARNETHolonUIName} is not currently installed. Do you wish to install it now?"))
+        //                {
+        //                    OASISResult<T3> installResult = DownloadAndInstall(downloadedCelestialBodyDNA.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
+
+        //                    if (installResult.Result != null && !installResult.IsError)
+        //                        result = installResult;
+        //                    else
+        //                        OASISErrorHandling.HandleError(ref result, $"Error occured installing the {STARNETHolonUIName}. Reason: {installResult.Message}");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                OASISResult<T3> loadResult = STARNETManager.LoadInstalled(STAR.BeamedInAvatar.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.VersionSequence, providerType);
+
+        //                if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+        //                    result = loadResult;
+        //                else
+        //                    OASISErrorHandling.HandleError(ref result, $"Error occured loading the {STARNETHolonUIName}. Reason: {loadResult.Message}");
+        //            }
+        //        }
+        //        else
+        //            CLIEngine.ShowErrorMessage($"Error occured checking if {STARNETHolonUIName} is installed. Reason: {celestialBodyDNAInstalledResult.Message}");
+        //    }
+        //    else
+        //        CLIEngine.ShowErrorMessage($"Error occured finding {STARNETHolonUIName}. Reason: {downloadedCelestialBodyDNA.Message}");
+
+        //    return result;
+        //}
+
+
+        //private async Task<OASISResult<T1>> FindForProviderAndInstallAsync(string operationName, string downloadPath, string installPath, string idOrName = "", bool showOnlyForCurrentAvatar = true, bool addSpace = true, bool simpleWizard = true, InstallMode installMode = InstallMode.DownloadAndInstall, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<T1> result = new OASISResult<T1>();
+        //    ProviderType largeFileProviderType = ProviderType.IPFSOASIS;
+
+
+        //    //OASISResult<T1> result = await FindForProviderAsync(operation, idOrName, false, false, true, providerType);
+
+        //    //if (result != null && result.Result != null && !result.IsError)
+        //    //{
+        //    //    if (result.MetaData != null && result.MetaData.ContainsKey("Reinstall") && !string.IsNullOrEmpty(result.MetaData["Reinstall"]) && result.MetaData["Reinstall"] == "1" && installMode == InstallMode.DownloadAndInstall)
+        //    //        installMode = InstallMode.DownloadAndReInstall;
+
+        //    //    installResult = await CheckIfInstalledAndInstallAsync(result.Result, downloadPath, installPath, installMode, "", providerType);
+        //    //}
+
+        //    OASISResult<T1> templateResult = await FindForProviderAsync(operationName, idOrName, showOnlyForCurrentAvatar,addSpace, simpleWizard, providerType: providerType);
+
+        //    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
+        //    {
+        //        if (result.MetaData != null && result.MetaData.ContainsKey("Reinstall") && !string.IsNullOrEmpty(result.MetaData["Reinstall"]) && result.MetaData["Reinstall"] == "1" && installMode == InstallMode.DownloadAndInstall)
+        //            installMode = InstallMode.DownloadAndReInstall;
+
+        //        DownloadAndInstallAsync(idOrName, downloadPath, installPath, templateResult.Result, installMode, providerType);
+
+        //        //OASISResult<bool> oappTemplateInstalledResult = await CheckIfInstalledAndInstallAsync(templateResult.Result, downloadPath, installPath, installMode, )
+
+        //        //if (oappTemplateInstalledResult != null && !oappTemplateInstalledResult.IsError)
+        //        //{
+        //        //    if (!oappTemplateInstalledResult.Result)
+        //        //    {
+        //        //        if (CLIEngine.GetConfirmation($"The selected OAPP Template is not currently installed. Do you wish to install it now?"))
+        //        //        {
+        //        //            OASISResult<InstalledOAPPTemplate> installResult = await STARCLI.OAPPTemplates.DownloadAndInstallAsync(templateResult.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
+
+        //        //            if (installResult.Result != null && !installResult.IsError)
+        //        //            {
+        //        //                templateInstalled = true;
+        //        //                OAPPTemplate = installResult.Result;
+        //        //            }
+        //        //        }
+        //        //    }
+        //        //    else
+        //        //    {
+        //        //        templateInstalled = true;
+        //        //        OAPPTemplate = templateResult.Result;
+        //        //    }
+        //        //}
+        //        //else
+        //        //    CLIEngine.ShowErrorMessage($"Error occured checking if OAPP Template is installed. Reason: {oappTemplateInstalledResult.Message}");
+        //    }
+        //    else
+        //        CLIEngine.ShowErrorMessage($"Error occured finding OAPP Template. Reason: {templateResult.Message}");
+
+
+        //    return result;
+        //}
+
+
+        public async Task<OASISResult<T3>> FindAndInstallIfNotInstalledAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = true, string STARNETHolonUIName = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T3> result = new OASISResult<T3>();
+            OASISResult<T1> downloadedCelestialBodyDNA = await STARCLI.CelestialBodiesMetaDataDNA.FindAsync<T1>(operationName, idOrName, showOnlyForCurrentAvatar, STARNETHolonUIName: STARNETHolonUIName, providerType: providerType);
+
+            if (downloadedCelestialBodyDNA != null && downloadedCelestialBodyDNA.Result != null && !downloadedCelestialBodyDNA.IsError)
+            {
+                OASISResult<bool> celestialBodyDNAInstalledResult = await STAR.STARAPI.CelestialBodiesMetaDataDNA.IsInstalledAsync(STAR.BeamedInAvatar.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.VersionSequence, providerType);
+
+                if (celestialBodyDNAInstalledResult != null && !celestialBodyDNAInstalledResult.IsError)
+                {
+                    if (!celestialBodyDNAInstalledResult.Result)
+                    {
+                        if (CLIEngine.GetConfirmation($"The selected {STARNETHolonUIName} is not currently installed. Do you wish to install it now?"))
+                        {
+                            OASISResult<T3> installResult = await DownloadAndInstallAsync(downloadedCelestialBodyDNA.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
+
+                            if (installResult.Result != null && !installResult.IsError)
+                                result = installResult;
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"Error occured installing the {STARNETHolonUIName}. Reason: {installResult.Message}");
+                        }
+                    }
+                    else
+                    {
+                        OASISResult<T3> loadResult = await STARNETManager.LoadInstalledAsync(STAR.BeamedInAvatar.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.VersionSequence, providerType);
+
+                        if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                            result = loadResult;
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error occured loading the {STARNETHolonUIName}. Reason: {loadResult.Message}");
+                    }
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error occured checking if {STARNETHolonUIName} is installed. Reason: {celestialBodyDNAInstalledResult.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error occured finding {STARNETHolonUIName}. Reason: {downloadedCelestialBodyDNA.Message}");
+
+            return result;
+        }
+
+        //TODO: Finish implementing later!
+        //public OASISResult<T3> FindAndInstallIfNotInstalled(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = true, string STARNETHolonUIName = "", ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<T3> result = new OASISResult<T3>();
+        //    OASISResult<T1> downloadedCelestialBodyDNA = STARCLI.CelestialBodiesMetaDataDNA.Find<T1>(operationName, idOrName, showOnlyForCurrentAvatar, STARNETHolonUIName: STARNETHolonUIName, providerType: providerType);
+
+        //    if (downloadedCelestialBodyDNA != null && downloadedCelestialBodyDNA.Result != null && !downloadedCelestialBodyDNA.IsError)
+        //    {
+        //        OASISResult<bool> celestialBodyDNAInstalledResult = STAR.STARAPI.CelestialBodiesMetaDataDNA.IsInstalled(STAR.BeamedInAvatar.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.VersionSequence, providerType);
+
+        //        if (celestialBodyDNAInstalledResult != null && !celestialBodyDNAInstalledResult.IsError)
+        //        {
+        //            if (!celestialBodyDNAInstalledResult.Result)
+        //            {
+        //                if (CLIEngine.GetConfirmation($"The selected {STARNETHolonUIName} is not currently installed. Do you wish to install it now?"))
+        //                {
+        //                    OASISResult<T3> installResult = DownloadAndInstall(downloadedCelestialBodyDNA.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
+
+        //                    if (installResult.Result != null && !installResult.IsError)
+        //                        result = installResult;
+        //                    else
+        //                        OASISErrorHandling.HandleError(ref result, $"Error occured installing the {STARNETHolonUIName}. Reason: {installResult.Message}");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                OASISResult<T3> loadResult = STARNETManager.LoadInstalled(STAR.BeamedInAvatar.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.VersionSequence, providerType);
+
+        //                if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+        //                    result = loadResult;
+        //                else
+        //                    OASISErrorHandling.HandleError(ref result, $"Error occured loading the {STARNETHolonUIName}. Reason: {loadResult.Message}");
+        //            }
+        //        }
+        //        else
+        //            CLIEngine.ShowErrorMessage($"Error occured checking if {STARNETHolonUIName} is installed. Reason: {celestialBodyDNAInstalledResult.Message}");
+        //    }
+        //    else
+        //        CLIEngine.ShowErrorMessage($"Error occured finding {STARNETHolonUIName}. Reason: {downloadedCelestialBodyDNA.Message}");
+
+        //    return result;
+        //}
 
         private OASISResult<IEnumerable<T>> ListStarHolons<T>(OASISResult<IEnumerable<T>> starHolons, bool showNumbers = false) where T : ISTARNETHolon, new()
         {
