@@ -907,28 +907,25 @@
             return result;
         }
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
-        {
-            return SendNFTAsync(transation).Result;
-        }
+        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transaction)
+            => SendNFTAsync(transaction).Result;
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+
+        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transaction)
         {
-            ArgumentNullException.ThrowIfNull(transation);
+            ArgumentNullException.ThrowIfNull(transaction);
 
             OASISResult<INFTTransactionRespone> result = new();
-            string errorMessageTemplate = "Error was occured in SendNFTAsync in SolanaOASIS sending nft. Reason: ";
-
             try
             {
-                OASISResult<Entities.DTOs.Responses.SendTransactionResult> solanaNftTransactionResult =
-                    await _solanaService.SendNftAsync(transation as NFTWalletTransactionRequest);
+                OASISResult<SendTransactionResult> solanaNftTransactionResult =
+                    await _solanaService.SendNftAsync(transaction as NFTWalletTransactionRequest);
 
                 if (solanaNftTransactionResult.IsError ||
                     string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
                 {
                     OASISErrorHandling.HandleError(ref result,
-                        string.Concat(errorMessageTemplate, solanaNftTransactionResult.Message),
+                        solanaNftTransactionResult.Message,
                         solanaNftTransactionResult.Exception);
                     return result;
                 }
@@ -944,7 +941,7 @@
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, e.Message), e);
+                OASISErrorHandling.HandleError(ref result, e.Message, e);
             }
 
             return result;
