@@ -1,16 +1,21 @@
-﻿using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
+﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses;
 
-namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses
+public sealed class MintNftResult : BaseTransactionResult
 {
-    public sealed class MintNftResult : BaseTransactionResult
-    {
-        public MintNftResult(string transactionHash) : base(transactionHash)
-        {
-        }
+    public string MintAccount { get; set; }
+    public string Network { get; set; }
 
-        public MintNftResult()
-        {
-            
-        }
+    public MintNftResult(string transactionHash) : base(transactionHash)
+    {
+    }
+
+    public MintNftResult(string mintAccount, string network, string transactionHash) : base(transactionHash)
+    {
+        MintAccount = mintAccount;
+        Network = network;
+    }
+
+    public MintNftResult()
+    {
     }
 }

@@ -9,6 +9,10 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
 {
     public class OASISNFT : IOASISNFT
     {
+        public string UpdateAuthority { get; set; }
+        public string MintAddress { get; set; }
+        public string Symbol { get; set; }
+        public uint SellerFeeBasisPoints { get; set; }
         public Guid Id { get; set; }
         public Guid MintedByAvatarId { get; set; }
         public DateTime MintedOn { get; set; }
