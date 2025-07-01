@@ -16,6 +16,14 @@
     <Compile Remove="DNATemplates\CSharpDNATemplates\Types\int.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\Types\string.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\HolonMetaDataDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\boolDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\DateTimeDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\DoubleDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\intDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\LongDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\stringDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\ZomeMetaDataDNA.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -92,6 +100,14 @@
     <None Include="DNATemplates\CSharpDNATemplates\Types\int.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\Types\string.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\HolonMetaDataDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\Types\BoolDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\Types\LongDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\Types\IntDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\Types\DateTimeDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\Types\DoubleDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\Types\StringDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\ZomeMetaDataDNA.cs" />
   </ItemGroup>
 
   <ItemGroup>

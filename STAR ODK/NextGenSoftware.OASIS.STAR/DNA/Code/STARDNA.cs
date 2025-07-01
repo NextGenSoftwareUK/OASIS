@@ -8,11 +8,20 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         // Default values that are used to generate a new STARDNA.json file if it is not found.
         // If STARBasePath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
         public string BaseSTARPath { get; set; } = @"C:\Source\OASIS\STAR ODK\Release\STAR_ODK_v3.0.0";
+        public string MetaDataDNATemplateFolder { get; set; } = "DNATemplates\\MetaDataDNATemplates"; //MetaData DNA Templates that are used to generate the meta data for CelestialBodies, Zomes & Holons. Can be relative to STARBasePath or absolute.
         public string RustDNARSMTemplateFolder { get; set; } = @"DNATemplates\RustDNATemplates\RSM";  //Rust DNA Templates that hAPPs are built from (releative to STARBasePath above).
         public string CSharpDNATemplateFolder { get; set; } = @"DNATemplates\CSharpDNATemplates";  //C# DNA Templates (CelestialBodies, Zomes & Holons) that are used to generate OAPPs from (releative to STARBasePath above).
         public string CSharpDNATemplateNamespace { get; set; } = "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates"; //The default namespace for the C# DNA Templates above.
-        public string CelestialBodyDNA { get; set; } = "OAPP_Example_MetaData_DNA\\CelestialBodyDNA"; //Example Celestial Body DNA MetaData folder (that an OAPP is generated from and can contain zome and holon metadta), relative to the BaseSTARPath above.
+        public string OAPPMetaDataDNAFolder { get; set; } = "OAPPMetaDataDNA"; //All OAPP DNA MetaData (CelestialBodies, Zomes & Holons) is generated in this folder. It can then be optionally uploaded to STARNET for later re-use in other OAPP's and optionally shared with others. An OAPP is generated from the CelestialBodyMetaDataDNA and can contain zome and holon metadta. You can also create your own meta data here or anywhere to generate a OAPP from and point the Light Wizard to the relevant folder. The folder is relative to the BaseSTARPath above.
         public string DefaultGenesisNamespace { get; set; } = "NextGenSoftware.OASIS.STAR.Genesis"; //The default namespace to be used when generating OAPPs (CelestialBodies).
+        public string ZomeMetaDataDNA { get; set; } = "ZomeMetaDataDNA.cs"; //Can be relative to MetaDataDNATemplateFolder or absolute.
+        public string HolonMetaDataDNA { get; set; } = "HolonMetaDataDNA.cs"; //Can be relative to MetaDataDNATemplateFolder or absolute.
+        //public string HolonMetaDataStringDNA { get; set; } = "Types\\StringDNA.cs"; //Can be relative to MetaDataDNATemplateFolder or absolute.
+        //public string HolonMetaDataBoolDNA { get; set; } = "Types\\BoolDNA.cs"; //Can be relative to MetaDataDNATemplateFolder or absolute.
+        //public string HolonMetaDataIntDNA { get; set; } = "Types\\IntDNA.cs"; //Can be relative to MetaDataDNATemplateFolder or absolute.
+        //public string HolonMetaDataDateTimeDNA { get; set; } = "Types\\DateTimeDNA.cs"; //Can be relative to MetaDataDNATemplateFolder or absolute.
+        //public string HolonMetaDataLongDNA { get; set; } = "Types\\LongDNA.cs"; //Can be relative to MetaDataDNATemplateFolder or absolute.
+        //public string HolonMetaDataDoubleDNA { get; set; } = "Types\\DoubleDNA.cs"; //Can be relative to MetaDataDNATemplateFolder or absolute.
         public string RustTemplateLib { get; set; } = @"core\lib.rs"; //releative to RustDNARSMTemplateFolder above.
         public string RustTemplateHolon { get; set; } = @"core\holon.rs"; //releative to RustDNARSMTemplateFolder above.
         public string RustTemplateValidation { get; set; } = @"core\validation.rs"; //releative to RustDNARSMTemplateFolder above.
