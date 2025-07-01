@@ -140,13 +140,60 @@ internal static class Program
         await solanaOasis.DeActivateProviderAsync();
     }
 
+    /// <summary>
+    /// Sends an NFT from one wallet to another on the Solana network.
+    ///
+    /// Input (NFTWalletTransactionRequest):
+    /// - FromWalletAddress: public key of the sender's wallet. This wallet must own the NFT being sent and must match the active Oasis account signing the transaction.
+    /// - ToWalletAddress: public key of the recipient's wallet.
+    /// - TokenAddress: the token (mint) address of the NFT to be transferred.
+    /// - Amount: number of NFTs to transfer (usually 1 for unique tokens).
+    ///
+    /// The method checks if the recipient’s associated token account exists and creates it if necessary.
+    /// It handles transaction errors and returns clear error messages when something goes wrong.
+    ///
+    /// See the example usage in Run_SendNFTAsync where FromWalletAddress matches the Oasis account.
+    /// </summary>
+    private static async Task Run_SendNFTAsync()
+    {
+        SolanaOASIS solanaOasis = new(TestData.HostUri, TestData.PrivateKey.Key, TestData.PublicKey.Key);
+
+        WriteInfo("Activating Solana provider...");
+        await solanaOasis.ActivateProviderAsync();
+
+
+        // Before using, update with new data!
+        INFTWalletTransactionRequest request = new NFTWalletTransactionRequest()
+        {
+            FromWalletAddress = TestData.PublicKey.Key,
+            TokenAddress = "46SPSK3KbLUVmwPbqbx1PiC6hpqSpBqe5GUeUzsfmZVN",
+            Amount = 1,
+            ToWalletAddress = "2Gtzh4ywuvxNWmtLkS8zqJ3CJpbguquuqRWJCdeZF1Jm"
+        };
+
+        OASISResult<INFTTransactionRespone> response = await solanaOasis.SendNFTAsync(request);
+
+        if (response.IsError)
+        {
+            WriteError($"SendNFTAsync Error: {response.Message}");
+            return;
+        }
+
+        WriteSuccess($"Result:{response.Result.TransactionResult}");
+        WriteSuccess("SendNFTAsync completed successfully.");
+        WriteInfo("Deactivating Solana provider...");
+        await solanaOasis.DeActivateProviderAsync();
+    }
+
     private static async Task Main()
     {
         WriteInfo("=== Starting SolanaOASIS Test Harness ===");
 
 
         //ok// await Run_MintNFTAsync();
-       await Run_LoadNftAsync();
+        //ok// await Run_LoadNftAsync();
+        //ok// await Run_SendNFTAsync();
+
         // await Run_SaveAndLoadAvatar();
 
         WriteInfo("=== Test Harness finished ===");
