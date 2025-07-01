@@ -35,18 +35,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Exchange MintAccount (Public Key) between FromAccount (Public Key) and ToAccount (Public Key)
-        /// </summary>
-        /// <param name="request">Exchange Token Request</param>
-        /// <returns>Exchange Transaction Hash</returns>
-        [HttpPost]
-        [Route("Exchange")]
-        public async Task<OASISResult<ExchangeTokenResult>> ExchangeToken([FromBody] ExchangeTokenRequest request)
-        {
-            return await _solanaService.ExchangeTokens(request);
-        }
-
-        /// <summary>
         /// Handles a transaction between accounts with a specific Lampposts size
         /// </summary>
         /// <param name="request">FromAccount(Public Key) and ToAccount(Public Key)
@@ -57,30 +45,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<SendTransactionResult>> SendTransaction([FromBody] SendTransactionRequest request)
         {
             return await _solanaService.SendTransaction(request);
-        }
-
-        /// <summary>
-        /// Returns NFT Metadata that specified in NFT Account Address
-        /// </summary>
-        /// <param name="request">NFT Account Address</param>
-        /// <returns>NFT Metadata</returns>
-        [HttpGet]
-        [Route("GetNftMetadata")]
-        public async Task<OASISResult<GetNftMetadataResult>> GetNftMetadata(GetNftMetadataRequest request)
-        {
-            return await _solanaService.GetNftMetadata(request);
-        }
-
-        /// <summary>
-        /// Returns Account and Balances of token wallet that specified in OwnerAccount (Public Key)
-        /// </summary>
-        /// <param name="request">OwnerAccount(Public Key)</param>
-        /// <returns>Accounts and Balances of token wallet</returns>
-        [HttpGet]
-        [Route("GetNftWallet")]
-        public async Task<OASISResult<GetNftWalletResult>> GetNftWallet(GetNftWalletRequest request)
-        {
-            return await _solanaService.GetNftWallet(request);
         }
     }
 }
