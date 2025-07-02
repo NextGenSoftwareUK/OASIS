@@ -670,8 +670,14 @@ namespace NextGenSoftware.OASIS.STAR
             if (!IsStarIgnited)
                 await IgniteStarAsync();
 
+            //If folder is not passed in via command line args then use default in config file.
             if (string.IsNullOrEmpty(celestialBodyDNAFolder))
-                celestialBodyDNAFolder = STARDNA.CelestialBodyDNA;
+            {
+                if (Path.IsPathRooted(STARDNA.OAPPMetaDataDNAFolder))
+                    celestialBodyDNAFolder = Path.Combine(STARDNA.OAPPMetaDataDNAFolder, OAPPName, "CelestialBodyDNA");
+                else
+                    celestialBodyDNAFolder = Path.Combine(STARDNA.BaseSTARPath, STARDNA.OAPPMetaDataDNAFolder, OAPPName, "CelestialBodyDNA");
+            }
 
             if (string.IsNullOrEmpty(genesisFolder))
                 genesisFolder = STARDNA.DefaultOAPPsSourcePath;
@@ -731,10 +737,7 @@ namespace NextGenSoftware.OASIS.STAR
             string StringTemplateCSharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateString)).OpenText().ReadToEnd();
             string BoolTemplateCsharp = new FileInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.CSharpDNATemplateFolder, "\\", STARDNA.CSharpTemplateBool)).OpenText().ReadToEnd();
 
-            //If folder is not passed in via command line args then use default in config file.
-            if (string.IsNullOrEmpty(celestialBodyDNAFolder))
-                celestialBodyDNAFolder = $"{STARDNA.BaseSTARPath}\\{STARDNA.CelestialBodyDNA}";
-
+            
             if (string.IsNullOrEmpty(genesisFolder))
                 genesisFolder = $"{STARDNA.BaseSTARNETPath}\\{STARDNA.DefaultOAPPsSourcePath}";
                 //genesisFolder = $"{STARDNA.BaseSTARPath}\\{STARDNA.GenesisFolder}";
@@ -1794,7 +1797,7 @@ namespace NextGenSoftware.OASIS.STAR
             if (starDNA != null)
             {
                 ValidateFolder("", starDNA.BaseSTARPath, "STARDNA.BaseSTARPath");
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.CelestialBodyDNA, "STARDNA.CelestialBodyDNA", true);
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPMetaDataDNAFolder, "STARDNA.OAPPMetaDataDNAFolder");
                 //ValidateFolder(starDNA.BaseSTARPath, starDNA.GenesisFolder, "STARDNA.GenesisFolder", false, true);
                 //ValidateFolder(starDNA.BaseSTARPath, starDNA.GenesisRustFolder, "STARDNA.GenesisRustFolder", false, true);
                 ValidateFolder(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, "STARDNA.CSharpDNATemplateFolder");
@@ -1911,6 +1914,9 @@ namespace NextGenSoftware.OASIS.STAR
         private static void ValidateFolder(string basePath, string folder, string folderParam, bool checkIfContainsFilesOrFolder = false, bool createIfDoesNotExist = false)
         {
             string path = string.IsNullOrEmpty(basePath) ? folder : $"{basePath}\\{folder}";
+
+            if (Path.IsPathRooted(folder))
+                path = folder; //If the folder is rooted, use it as is.
 
             if (string.IsNullOrEmpty(folder))
                 throw new ArgumentNullException(folderParam, string.Concat("The ", folderParam, " param in the STARDNA is null, please double check and try again."));
