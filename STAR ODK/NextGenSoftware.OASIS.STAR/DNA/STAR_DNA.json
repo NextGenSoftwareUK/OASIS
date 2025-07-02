@@ -6,7 +6,6 @@
     "CSharpDNATemplateFolder": "DNATemplates\\CSharpDNATemplates", //C# DNA Templates (CelestialBodies, Zomes & Holons) that are used to generate OAPPs from (releative to STARBasePath above).
     "CSharpDNATemplateNamespace": "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates", //The default namespace for the C# DNA Templates above.
     "OAPPMetaDataDNAFolder": "OAPPMetaDataDNA", //All OAPP DNA MetaData (CelestialBodies, Zomes & Holons) is generated in this folder. It can then be optionally uploaded to STARNET for later re-use in other OAPP's and optionally shared with others. An OAPP is generated from the CelestialBodyMetaDataDNA and can contain zome and holon metadta. You can also create your own meta data here or anywhere to generate a OAPP from and point the Light Wizard to the relevant folder. The folder is relative to the BaseSTARPath above.
-    //"GenesisFolder": "Genesis", //releative to STARBasePath above.
     "DefaultGenesisNamespace": "NextGenSoftware.OASIS.STAR.Genesis", //The default namespace to be used when generating OAPPs (CelestialBodies).
     "ZomeMetaDataDNA": "ZomeMetaDataDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.
     "HolonMetaDataDNA": "HolonMetaDataDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.

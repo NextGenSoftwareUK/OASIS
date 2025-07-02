@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -250,7 +251,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
 
                 if (loadResult.Result.STARNETDNA.PublishedOn != DateTime.MinValue && CLIEngine.GetConfirmation($"Do you wish to upload any changes you have made in the Source folder ({loadResult.Result.STARNETDNA.SourcePath})? The version number will remain the same ({loadResult.Result.STARNETDNA.Version})."))
-                    await PublishAsync(loadResult.Result.STARNETDNA.SourcePath, true, providerType);
+                    await PublishAsync(loadResult.Result.STARNETDNA.SourcePath, true, true, providerType);
                 else
                     Console.WriteLine("");
             }
@@ -293,79 +294,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
-        public virtual async Task PublishAsync(string sourcePath = "", bool edit = false, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> PublishAsync(string sourcePath = "", bool edit = false, bool hasDefaultLaunch = true, ProviderType providerType = ProviderType.Default)
         {
+            OASISResult<T1> publishResult = new OASISResult<T1>();
             bool generateOAPP = true;
             bool uploadOAPPToCloud = true;
             ProviderType OAPPBinaryProviderType = ProviderType.None;  
-            //string launchTarget = "";
             string publishPath = "";
-            //string launchTargetQuestion = "";
-           // bool simpleWizard = false;
 
-            //if (CLIEngine.GetConfirmation("Do you wish to launch the Simple or Advanced Wizard? The Simple Wizard will use defaults (recommended) but the Advanced Wizard will allow greater control and customisation. Press 'Y' for Simple or 'N' for Advanced."))
-            //    simpleWizard = true;
-
-            //if (string.IsNullOrEmpty(sourcePath))
-            //{
-            //    Console.WriteLine("");
-            //    launchTargetQuestion = $"What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the {STARNETManager.STARNETHolonUIName}? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)";
-            //    sourcePath = CLIEngine.GetValidFolder($"What is the full path to the {STARNETManager.STARNETHolonUIName} directory?", false);
-            //}
-
-            //OASISResult<STARNETDNA> DNAResult = await STARNETManager.ReadDNAFromSourceOrInstallFolderAsync<STARNETDNA>(sourcePath);
-
-            //if (DNAResult != null && DNAResult.Result != null && !DNAResult.IsError)
-            //{
-            //    OASISResult<T1> loadResult = await STARNETManager.FindAsync(STAR.BeamedInAvatar.Id, DNAResult.Result.Id, 0, providerType);
-
-            //    if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
-            //    {
-            //        loadResult.Result.STARNETDNA.Version = DNAResult.Result.Version; //Update the version from the JSON file.
-            //        Show(loadResult.Result);
-
-            //        if (!CLIEngine.GetConfirmation($"Is this the correct {STARNETManager.STARNETHolonUIName} you wish to publish?"))
-            //        {
-            //            Console.WriteLine("");
-            //            return;
-            //        }
-
-            //        launchTarget = loadResult.Result.STARNETDNA.LaunchTarget;
-            //        Console.WriteLine("");
-
-            //        //object templateType = Enum.Parse(STARNETManager.STARNETHolonSubType, DNAResult.Result.STARNETHolonType.ToString());
-            //        //Type Type = (Type)templateType;
-
-            //        //switch (Type)
-            //        //{
-            //        //    case Type.Console:
-            //        //    case Type.WPF:
-            //        //    case Type.WinForms:
-            //        //        launchTarget = $"{DNAResult.Result.Name}.exe"; //TODO: For this line to work need to remove the namespace question so it just uses the OAPPName as the namespace. //TODO: Eventually this will be set in the  and/or can also be set when I add the command line dotnet publish integration.
-            //        //        break;
-
-            //        //    case Type.Blazor:
-            //        //    case Type.MAUI:
-            //        //    case Type.WebMVC:
-            //        //        launchTarget = $"index.html";
-            //        //        break;
-            //        //}
-
-            //        if (!string.IsNullOrEmpty(launchTarget))
-            //        {
-            //            if (!CLIEngine.GetConfirmation($"{launchTargetQuestion} Do you wish to use the following default launch target: {launchTarget}?"))
-            //            {
-            //                Console.WriteLine("");
-            //                launchTarget = CLIEngine.GetValidFile("What launch target do you wish to use? ", sourcePath);
-            //            }
-            //            else
-            //                launchTarget = Path.Combine(sourcePath, launchTarget);
-            //        }
-            //        else
-            //            launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, sourcePath);
-
-
-            OASISResult<BeginPublishResult> beginPublishResult = await BeginPublishingAsync(sourcePath, providerType);
+            OASISResult<BeginPublishResult> beginPublishResult = await BeginPublishingAsync(sourcePath, hasDefaultLaunch, providerType);
 
             if (beginPublishResult != null && !beginPublishResult.IsError && beginPublishResult.Result != null)
             {
@@ -393,20 +330,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         Console.WriteLine("");
                 }
 
-                OASISResult<T1> publishResult = await FininaliazePublishingAsync(beginPublishResult.Result.SimpleWizard, sourcePath, publishPath, beginPublishResult.Result.LaunchTarget, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+                publishResult = await FininaliazePublishingAsync(beginPublishResult.Result.SimpleWizard, beginPublishResult.Result.SourcePath, publishPath, beginPublishResult.Result.LaunchTarget, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
             }
             else
                 CLIEngine.ShowErrorMessage($"Error Occured: {beginPublishResult.Message}");
 
-            //}
-            //    else
-            //        CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} could not be found for id {DNAResult.Result.Id} found in the {STARNETManager.STARNETDNAFileName} file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new {STARNETManager.STARNETHolonUIName}.");
-            //}
-            //else
-            //    CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETDNAFileName} file could not be found! Please ensure it is in the folder you specified.");
+            return publishResult;
         }
 
-        protected async Task<OASISResult<BeginPublishResult>> BeginPublishingAsync(string sourcePath, ProviderType providerType)
+        protected async Task<OASISResult<BeginPublishResult>> BeginPublishingAsync(string sourcePath, bool hasDefaultLaunch = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<BeginPublishResult> result = new OASISResult<BeginPublishResult>();
             bool generateOAPP = true;
@@ -467,18 +399,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     //        break;
                     //}
 
-                    if (!string.IsNullOrEmpty(launchTarget))
+                    if (hasDefaultLaunch)
                     {
-                        if (!CLIEngine.GetConfirmation($"{launchTargetQuestion} Do you wish to use the following default launch target: {launchTarget}?"))
+                        if (!string.IsNullOrEmpty(launchTarget))
                         {
-                            Console.WriteLine("");
-                            launchTarget = CLIEngine.GetValidFile("What launch target do you wish to use? ", sourcePath);
+                            if (!CLIEngine.GetConfirmation($"{launchTargetQuestion} Do you wish to use the following default launch target: {launchTarget}?"))
+                            {
+                                Console.WriteLine("");
+                                launchTarget = CLIEngine.GetValidFile("What launch target do you wish to use? ", sourcePath);
+                            }
+                            else
+                                launchTarget = Path.Combine(sourcePath, launchTarget);
                         }
                         else
-                            launchTarget = Path.Combine(sourcePath, launchTarget);
+                            launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, sourcePath);
                     }
-                    else
-                        launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, sourcePath);
                 }
                 else
                     CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} could not be found for id {DNAResult.Result.Id} found in the {STARNETManager.STARNETDNAFileName} file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new {STARNETManager.STARNETHolonUIName}.");
@@ -486,7 +421,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
                 CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETDNAFileName} file could not be found! Please ensure it is in the folder you specified.");
 
-            result.Result = new BeginPublishResult() { LaunchTarget = launchTarget, SimpleWizard = simpleWizard };
+            result.Result = new BeginPublishResult() { SourcePath = sourcePath, LaunchTarget = launchTarget, SimpleWizard = simpleWizard };
             return result;
         }
 
@@ -1392,6 +1327,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         Console.WriteLine("");
                         result.Result = default;
+                        idOrName = "";
 
                         if (!CLIEngine.GetConfirmation($"Do you wish to search for another {STARNETHolonUIName}?"))
                         {
@@ -1656,20 +1592,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<T3>> FindForProviderAndInstallIfNotInstalledAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            //OASISResult<T1> downloadedCelestialBodyDNA = await FindForProviderAsync(operationName, idOrName, showOnlyForCurrentAvatar, STARNETHolonUIName: STARNETHolonUIName, providerType: providerType);
-            OASISResult<T1> downloadedCelestialBodyDNA = await FindForProviderAsync(operationName, idOrName, showOnlyForCurrentAvatar, providerType: providerType);
+            OASISResult<T1> findResult = await FindForProviderAsync(operationName, idOrName, showOnlyForCurrentAvatar, providerType: providerType);
 
-            if (downloadedCelestialBodyDNA != null && downloadedCelestialBodyDNA.Result != null && !downloadedCelestialBodyDNA.IsError)
+            if (findResult != null && findResult.Result != null && !findResult.IsError)
             {
-                OASISResult<bool> celestialBodyDNAInstalledResult = await STAR.STARAPI.CelestialBodiesMetaDataDNA.IsInstalledAsync(STAR.BeamedInAvatar.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.VersionSequence, providerType);
+                OASISResult<bool> installedResult = await STARNETManager.IsInstalledAsync(STAR.BeamedInAvatar.Id, findResult.Result.STARNETDNA.Id, findResult.Result.STARNETDNA.VersionSequence, providerType);
 
-                if (celestialBodyDNAInstalledResult != null && !celestialBodyDNAInstalledResult.IsError)
+                if (installedResult != null && !installedResult.IsError)
                 {
-                    if (!celestialBodyDNAInstalledResult.Result)
+                    if (!installedResult.Result)
                     {
                         if (CLIEngine.GetConfirmation($"The selected {STARNETManager.STARNETHolonUIName} is not currently installed. Do you wish to install it now?"))
                         {
-                            OASISResult<T3> installResult = await DownloadAndInstallAsync(downloadedCelestialBodyDNA.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
+                            OASISResult<T3> installResult = await DownloadAndInstallAsync(findResult.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
 
                             if (installResult.Result != null && !installResult.IsError)
                                 result = installResult;
@@ -1679,7 +1614,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                     else
                     {
-                        OASISResult<T3> loadResult = await STARNETManager.LoadInstalledAsync(STAR.BeamedInAvatar.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.Id, downloadedCelestialBodyDNA.Result.STARNETDNA.VersionSequence, providerType);
+                        OASISResult<T3> loadResult = await STARNETManager.LoadInstalledAsync(STAR.BeamedInAvatar.Id, findResult.Result.STARNETDNA.Id, findResult.Result.STARNETDNA.VersionSequence, providerType);
 
                         if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                             result = loadResult;
@@ -1688,10 +1623,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error occured checking if {STARNETManager.STARNETHolonUIName} is installed. Reason: {celestialBodyDNAInstalledResult.Message}");
+                    CLIEngine.ShowErrorMessage($"Error occured checking if {STARNETManager.STARNETHolonUIName} is installed. Reason: {installedResult.Message}");
             }
             else
-                CLIEngine.ShowErrorMessage($"Error occured finding {STARNETManager.STARNETHolonUIName}. Reason: {downloadedCelestialBodyDNA.Message}");
+            {
+                CLIEngine.ShowErrorMessage($"Error occured finding {STARNETManager.STARNETHolonUIName}. Reason: {findResult.Message}");
+                OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(findResult, result);
+            }
 
             return result;
         }

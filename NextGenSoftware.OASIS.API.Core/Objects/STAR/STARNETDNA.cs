@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
     public class STARNETDNA : ISTARNETDNA
     {
         public Guid Id { get; set; }
+        public bool IsPublic { get; set; } //TODO: Need to implement ASAP! :)
         public string Name { get; set; }
         public string Description { get; set; }
         public object STARNETHolonType { get; set; }

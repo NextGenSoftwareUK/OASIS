@@ -7,6 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
     public interface ISTARNETDNA
     {
         Guid Id { get; set; } 
+        public bool IsPublic { get; set; }
         string Name { get; set; }
         string Description { get; set; }
         Guid CreatedByAvatarId { get; set; }

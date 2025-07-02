@@ -132,9 +132,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 OAPPTemplate = findResult.Result;
                             }
                             else
-                                CLIEngine.ShowErrorMessage($"Error occured finding OAPP Template. Reason: {findResult.Message}");
+                            {
+                                //CLIEngine.ShowErrorMessage($"Error occured finding OAPP Template. Reason: {findResult.Message}");
+
+                                if (findResult.Message == "User Exited")
+                                {
+                                    lightResult.Message = "User Exited";
+                                    return lightResult;
+                                }
+                            }
                         }
-                        while (!templateInstalled);                  }
+                        while (!templateInstalled);                  
+                    }
                 }
             }
             else
@@ -565,22 +574,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (createOAPPResult != null && createOAPPResult.Result != null && !createOAPPResult.IsError)
                         {
                             lightResult.Result.OAPP = createOAPPResult.Result;
+                            oappPath = Path.Combine(oappPath, string.Concat(OAPPName, " OAPP"));
 
                             CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
                             ShowOAPP((IOAPPDNA)lightResult.Result.OAPP.STARNETDNA, lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
                             Console.WriteLine("");
 
                             if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
-                                Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(OAPPName, " OAPP"), string.Concat(genesisNamespace, ".csproj")));
+                                Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(genesisNamespace, ".csproj")));
 
                             Console.WriteLine("");
 
                             if (CLIEngine.GetConfirmation("Do you wish to open the OAPP folder now?"))
-                                Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(OAPPName, " OAPP")));
+                                Process.Start("explorer.exe", oappPath);
 
                             Console.WriteLine("");
-
-                            lightResult = await CreateMetaDataOnSTARNETAsync(lightResult, generateResult.Result, errorMessage, providerType);
+                            lightResult = await CreateOAPPComponentsOnSTARNETAsync(lightResult, oappPath, errorMessage, providerType);
                         }
                         else
                             CLIEngine.ShowErrorMessage($"Error Occured Creating The OAPP. Reason: {createOAPPResult.Message}");
@@ -593,12 +602,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return lightResult;
         }
 
-        public override Task PublishAsync(string sourcePath = "", bool edit = false, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<OAPP>> PublishAsync(string sourcePath = "", bool edit = false, bool hasDefaultLaunch = true, ProviderType providerType = ProviderType.Default)
         {
-            return PublishAsync(sourcePath, edit, false, providerType);
+            return await PublishAsync(sourcePath, edit, hasDefaultLaunch, providerType);
         }
 
-        public async Task<OASISResult<IOAPP>> PublishAsync(string sourcePath = "", bool edit = false, bool dotNetPublish = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> PublishAsync(string sourcePath = "", bool edit = false, bool hasDefaultLaunch = true, bool dotNetPublish = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
             bool generateOAPPSource = false;
@@ -685,7 +694,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //    else
             //        launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, sourcePath);
 
-            OASISResult<BeginPublishResult> beginPublishResult = await BeginPublishingAsync(sourcePath, providerType);
+            OASISResult<BeginPublishResult> beginPublishResult = await BeginPublishingAsync(sourcePath, true, providerType);
 
             if (beginPublishResult != null && !beginPublishResult.IsError && beginPublishResult.Result != null)
             {
@@ -786,7 +795,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
 
                 Console.WriteLine("");
-                await PreFininaliazePublishingAsync(beginPublishResult.Result.SimpleWizard, sourcePath, publishPath, beginPublishResult.Result.LaunchTarget, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+                await PreFininaliazePublishingAsync(beginPublishResult.Result.SimpleWizard, beginPublishResult.Result.SourcePath, publishPath, beginPublishResult.Result.LaunchTarget, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
                 result = await STAR.STARAPI.OAPPs.PublishOAPPAsync(STAR.BeamedInAvatar.Id, sourcePath, beginPublishResult.Result.LaunchTarget, publishPath, edit, registerOnSTARNET, dotNetPublish, generateOAPPSource, uploadOAPPSource, makeOAPPSourcePublic, generateOAPP, generateOAPPSelfContained, generateOAPPSelfContainedFull, uploadOAPPToCloud, uploadOAPPSelfContainedToCloud, uploadOAPPSelfContainedFullToCloud, providerType, OAPPBinaryProviderType, OAPPSelfContainedBinaryProviderType, OAPPSelfContainedFullBinaryProviderType);
                 OASISResult<OAPP> publishResult = new OASISResult<OAPP>((OAPP)result.Result);
                 OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(result, publishResult);
@@ -1092,65 +1101,111 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return lightResult;
         }
 
-        private async Task<OASISResult<CoronalEjection>> CreateOAPPCompsOnSTARNETAsync(OASISResult<CoronalEjection> lightResult, IGenerateMetaDataDNAResult generateResult, string errorMessage, ProviderType providerType = ProviderType.Default)
+        private OASISResult<CoronalEjection> CopyGeneratedCodeToSTARNET<T>(OASISResult<CoronalEjection> result, OASISResult<T> createResult, string holonDisplayName, string sourcePath, string generatedCodeSubFolder, string errorMessage, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon
+        {
+            string path = Path.Combine(sourcePath, STAR.STARDNA.OAPPGeneratedCodeFolder, "CSharp", generatedCodeSubFolder);
+
+            try
+            {
+                DirectoryHelper.CopyFilesRecursively(path, createResult.Result.STARNETDNA.SourcePath);
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to copy the {holonDisplayName} from {path} to {createResult.Result.STARNETDNA.SourcePath}. Reason: {e}");
+            }
+
+            path = Path.Combine(sourcePath, STAR.STARDNA.OAPPGeneratedCodeFolder, "CSharp", "Interfaces", generatedCodeSubFolder);
+
+            try
+            {
+                DirectoryHelper.CopyFilesRecursively(path, createResult.Result.STARNETDNA.SourcePath);
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to copy the {holonDisplayName} from {path} to {createResult.Result.STARNETDNA.SourcePath}. Reason: {e}");
+            }
+
+            return result;
+        }
+
+        private async Task<OASISResult<CoronalEjection>> CreateOAPPComponentsOnSTARNETAsync(OASISResult<CoronalEjection> lightResult, string OAPPSourcePath, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
             if (CLIEngine.GetConfirmation("Would you like to upload the generated OAPP Components (CelestialBody, Zomes & Holons) DNA to STARNET so you or others (if you choose to make it public) can re-use for other OAPP's?"))
             {
                 if (CLIEngine.GetConfirmation("Would you like to upload the CelestialBody generated to STARNET?"))
                 {
-                    OASISResult<> createResult = await STARCLI.CelestialBodies.CreateAsync(null, null, true, false, providerType);
+                    OASISResult<STARCelestialBody> createResult = await STARCLI.CelestialBodies.CreateAsync(null, null, true, false, providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
-                        try
+                        lightResult = CopyGeneratedCodeToSTARNET(lightResult, createResult, "CelestialBody", OAPPSourcePath, "CelestialBodies", errorMessage, providerType);
+
+                        if (lightResult != null && lightResult.Result != null && !lightResult.IsError)
                         {
-                            DirectoryHelper.CopyFilesRecursively(generateResult.CelestialBodyMetaDataDNAPath, createResult.Result.STARNETDNA.SourcePath);
-                        }
-                        catch (Exception e)
-                        {
-                            OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured attempting to copy the CelestialBodyMetaDataDNA from {generateResult.CelestialBodyMetaDataDNAPath} to {createResult.Result.STARNETDNA.SourcePath}. Reason: {e}");
+                            if (CLIEngine.GetConfirmation("CelestialBody successfully created on STARNET! Would you like to publish them now?"))
+                            {
+                                OASISResult<STARCelestialBody> publishResult = await STARCLI.CelestialBodies.PublishAsync(createResult.Result.STARNETDNA.SourcePath, hasDefaultLaunch: false, providerType: providerType);
+
+                                if (publishResult != null && publishResult.Result != null && !publishResult.IsError)
+                                    CLIEngine.ShowSuccessMessage("CelestialBody successfully uploaded to STARNET!");
+                                else
+                                    OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured publishing the Zome(s) in STAR.CLI.Lib.CelestialBodies.PublishAsync. Reason: {publishResult.Message}");
+                            }
                         }
                     }
                     else
-                        OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured in STAR.CLI.Lib.CelestialBodiesMetaDataDNA.CreateAsync. Reason: {createResult.Message}");
+                        OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured creating the STARNET CelestialBody in STAR.CLI.Lib.CelestialBodies.CreateAsync. Reason: {createResult.Message}");
                 }
 
-                if (CLIEngine.GetConfirmation("Would you like to upload the Zome generated metadata DNA to STARNET?"))
+                if (CLIEngine.GetConfirmation("Would you like to upload the Zome(s) generated to STARNET?"))
                 {
-                    OASISResult<STARNETHolon> createResult = await STARCLI.ZomesMetaDataDNA.CreateAsync(null, null, true, false, providerType);
+                    OASISResult<STARZome> createResult = await STARCLI.Zomes.CreateAsync(null, null, true, false, providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
-                        try
+                        lightResult = CopyGeneratedCodeToSTARNET(lightResult, createResult, "Zomes", OAPPSourcePath, "Zomes", errorMessage, providerType);
+
+                        if (CLIEngine.GetConfirmation("Zome(s) successfully created on STARNET! Would you like to publish them now?"))
                         {
-                            DirectoryHelper.CopyFilesRecursively(generateResult.ZomeMetaDataDNAPath, createResult.Result.STARNETDNA.SourcePath);
-                        }
-                        catch (Exception e)
-                        {
-                            OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured attempting to copy the ZomeMetaDataDNA from {generateResult.CelestialBodyMetaDataDNAPath} to {createResult.Result.STARNETDNA.SourcePath}. Reason: {e}");
+                            OASISResult<STARZome> publishResult = await STARCLI.Zomes.PublishAsync(createResult.Result.STARNETDNA.SourcePath, hasDefaultLaunch: false, providerType: providerType);
+
+                            if (publishResult != null && publishResult.Result != null && !publishResult.IsError)
+                                CLIEngine.ShowSuccessMessage("Zome(s) successfully uploaded to STARNET!");
+                            else
+                                OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured publishing the Zome(s) in STAR.CLI.Lib.Zomes.PublishAsync. Reason: {publishResult.Message}");
                         }
                     }
                     else
-                        OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured in STAR.CLI.Lib.ZomesMetaDataDNA.CreateAsync. Reason: {createResult.Message}");
+                        OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured creating the Zome in STAR.CLI.Lib.Zomes.CreateAsync. Reason: {createResult.Message}");
                 }
 
-                if (CLIEngine.GetConfirmation("Would you like to upload the Holon generated metadata DNA to STARNET?"))
+                if (CLIEngine.GetConfirmation("Would you like to upload the Holon(s) generated to STARNET?"))
                 {
-                    OASISResult<STARNETHolon> createResult = await STARCLI.HolonsMetaDataDNA.CreateAsync(null, null, true, false, providerType);
+                    OASISResult<STARHolon> createResult = await STARCLI.Holons.CreateAsync(null, null, true, false, providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
-                        try
+                        lightResult = CopyGeneratedCodeToSTARNET(lightResult, createResult, "Holons", OAPPSourcePath, "Holons", errorMessage, providerType);
+
+                        if (lightResult != null && lightResult.Result != null && !lightResult.IsError)
                         {
-                            DirectoryHelper.CopyFilesRecursively(generateResult.ZomeMetaDataDNAPath, createResult.Result.STARNETDNA.SourcePath);
-                        }
-                        catch (Exception e)
-                        {
-                            OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured attempting to copy the ZomeMetaDataDNA from {generateResult.HolonMetaDataDNAPath} to {createResult.Result.STARNETDNA.SourcePath}. Reason: {e}");
+                            if (CLIEngine.GetConfirmation("Holon(s) successfully created on STARNET! Would you like to publish them now?"))
+                            {
+                                OASISResult<STARHolon> publishResult = await STARCLI.Holons.PublishAsync(createResult.Result.STARNETDNA.SourcePath, hasDefaultLaunch: false, providerType: providerType);
+
+                                if (publishResult != null && publishResult.Result != null && !publishResult.IsError)
+                                    CLIEngine.ShowSuccessMessage("Holon(s) successfully uploaded to STARNET!");
+                                else
+                                    OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured publishing the Holon(s) in STAR.CLI.Lib.Holons.PublishAsync. Reason: {publishResult.Message}");
+
+                                //    createResult.Result.STARNETDNA.IsPublic = CLIEngine.GetConfirmation("Would you like to make the Holon(s) public on STARNET?");
+                                //else
+                                //    createResult.Result.STARNETDNA.IsPublic = false;
+                            }
                         }
                     }
                     else
-                        OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured in STAR.CLI.Lib.HolonsMetaDataDNA.CreateAsync. Reason: {createResult.Message}");
+                        OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured creating the Holon(s) in STAR.CLI.Lib.Holons.CreateAsync. Reason: {createResult.Message}");
                 }
             }
 

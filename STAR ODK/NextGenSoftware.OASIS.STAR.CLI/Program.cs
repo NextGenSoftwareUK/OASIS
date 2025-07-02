@@ -123,7 +123,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     CLIEngine.ShowErrorMessage(string.Concat("Error Igniting STAR. Error Message: ", result.Message));
                 else
                 {
-                    DEFAULT_DNA_FOLDER = STAR.STARDNA.CelestialBodyDNA;
+                    DEFAULT_DNA_FOLDER = STAR.STARDNA.OAPPMetaDataDNAFolder;
                     DEFAULT_GENESIS_FOLDER = STAR.STARDNA.DefaultOAPPsSourcePath;
 
                     await STARCLI.Avatars.BeamInAvatar();
@@ -830,7 +830,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
             Func<string, ProviderType, Task> uninstallPredicate = null,
             //Func<string, ProviderType, Task> reinstallPredicate = null,
-            Func<string, bool, ProviderType, Task> publishPredicate = null,
+            Func<string, bool, bool, ProviderType, Task> publishPredicate = null,
             Func<string, ProviderType, Task> unpublishPredicate = null,
             Func<string, ProviderType, Task> republishPredicate = null,
             Func<string, ProviderType, Task> activatePredicate = null,
@@ -1009,7 +1009,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "publish":
                         {
                             if (publishPredicate != null)
-                                await publishPredicate(id, false, providerType);
+                                await publishPredicate(id, false, true, providerType);
                             else
                                 CLIEngine.ShowMessage("Coming Soon...");
                         }
