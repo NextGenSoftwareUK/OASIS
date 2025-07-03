@@ -344,6 +344,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         do
                         {
+                            Console.WriteLine("");
                             string zomeName = CLIEngine.GetValidInput("What is the name of the Zome (collection of Holons)?");
 
                             IZome zome = new Zome();
@@ -379,12 +380,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                     else
                                         CLIEngine.ShowErrorMessage("Invalid Field/Property Type! Please try again.");
 
+                                    //Console.WriteLine("");
                                     addMoreProps = CLIEngine.GetConfirmation("Do you wish to add more fields/properties to the Holon?");
-                                
+                                    Console.WriteLine("");
+
                                 } while (addMoreProps);
 
                                 zome.Children.Add(holon);
+                                //Console.WriteLine("");
                                 addMoreHolons = CLIEngine.GetConfirmation("Do you wish to add more Holon's to the Zome?");
+                                Console.WriteLine("");
 
                             } while (addMoreHolons);
 
@@ -423,8 +428,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (!Path.IsPathRooted(STAR.STARDNA.OAPPMetaDataDNAFolder))
                             OAPPMetaDataDNAFolder = Path.Combine(STAR.STARDNA.BaseSTARPath, STAR.STARDNA.OAPPMetaDataDNAFolder);
 
+                        Console.WriteLine("");
                         (lightResult, OAPPMetaDataDNAFolder) = GetValidFolder(lightResult, OAPPMetaDataDNAFolder, "CelestialBody/Zomes/Holons MetaData DNA", "OAPPMetaDataDNAFolder", false);
 
+                        Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage("Generating CelestialBody/Zomes/Holons MetaData DNA...");
                         OASISResult<IGenerateMetaDataDNAResult> generateResult = STAR.GenerateMetaDataDNA(zomes, OAPPName, OAPPMetaDataDNAFolder, providerType);
 
@@ -440,9 +447,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                     else
                     {
+                        Console.WriteLine("");
                         if (CLIEngine.GetConfirmation("Do you wish to use/install a CelestialBody MetaData DNA (contains Zome & Holon MetaData DNA) from STARNET? (Enter 'N' if you already have a folder containing the DNA)."))
                         {
-                            //CLIEngine.ShowWorkingMessage("Searching STARNET for CelestialBody/Zomes/Holons DNA...");
+                            Console.WriteLine("");
                             OASISResult<InstalledSTARNETHolon> findResult = await STARCLI.CelestialBodiesMetaDataDNA.FindForProviderAndInstallIfNotInstalledAsync("use", providerType: providerType);
                             
                             if (findResult != null && findResult.Result != null && !findResult.IsError)
@@ -1040,6 +1048,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             if (CLIEngine.GetConfirmation("Would you like to upload the generated metadata DNA to STARNET so you or others (if you choose to make it public) can re-use for other OAPP's?"))
             {
+                Console.WriteLine("");
                 if (CLIEngine.GetConfirmation("Would you like to upload the CelestialBody generated metadata DNA to STARNET?"))
                 {
                     OASISResult<STARNETHolon> createResult = await STARCLI.CelestialBodiesMetaDataDNA.CreateAsync(null, null, true, false, providerType);
@@ -1059,6 +1068,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured in STAR.CLI.Lib.CelestialBodiesMetaDataDNA.CreateAsync. Reason: {createResult.Message}");
                 }
 
+                Console.WriteLine("");
                 if (CLIEngine.GetConfirmation("Would you like to upload the Zome generated metadata DNA to STARNET?"))
                 {
                     OASISResult<STARNETHolon> createResult = await STARCLI.ZomesMetaDataDNA.CreateAsync(null, null, true, false, providerType);
@@ -1078,6 +1088,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured in STAR.CLI.Lib.ZomesMetaDataDNA.CreateAsync. Reason: {createResult.Message}");
                 }
 
+                Console.WriteLine("");
                 if (CLIEngine.GetConfirmation("Would you like to upload the Holon generated metadata DNA to STARNET?"))
                 {
                     OASISResult<STARNETHolon> createResult = await STARCLI.HolonsMetaDataDNA.CreateAsync(null, null, true, false, providerType);

@@ -1604,22 +1604,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         if (CLIEngine.GetConfirmation($"The selected {STARNETManager.STARNETHolonUIName} is not currently installed. Do you wish to install it now?"))
                         {
-                            OASISResult<T3> installResult = await DownloadAndInstallAsync(findResult.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
+                            result = await DownloadAndInstallAsync(findResult.Result.STARNETDNA.Id.ToString(), InstallMode.DownloadAndInstall, providerType);
 
-                            if (installResult.Result != null && !installResult.IsError)
-                                result = installResult;
-                            else
-                                OASISErrorHandling.HandleError(ref result, $"Error occured installing the {STARNETManager.STARNETHolonUIName}. Reason: {installResult.Message}");
+                            if (!(result != null && result.Result != null && !result.IsError))
+                                OASISErrorHandling.HandleError(ref result, $"Error occured installing the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
                         }
                     }
                     else
                     {
-                        OASISResult<T3> loadResult = await STARNETManager.LoadInstalledAsync(STAR.BeamedInAvatar.Id, findResult.Result.STARNETDNA.Id, findResult.Result.STARNETDNA.VersionSequence, providerType);
+                        result = await STARNETManager.LoadInstalledAsync(STAR.BeamedInAvatar.Id, findResult.Result.STARNETDNA.Id, findResult.Result.STARNETDNA.VersionSequence, providerType);
 
-                        if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
-                            result = loadResult;
-                        else
-                            OASISErrorHandling.HandleError(ref result, $"Error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {loadResult.Message}");
+                        if (!(result != null && result.Result != null && !result.IsError))
+                            OASISErrorHandling.HandleError(ref result, $"Error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
                     }
                 }
                 else
@@ -1627,6 +1623,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
             {
+                Console.WriteLine("");
                 CLIEngine.ShowErrorMessage($"Error occured finding {STARNETManager.STARNETHolonUIName}. Reason: {findResult.Message}");
                 OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(findResult, result);
             }
