@@ -1389,7 +1389,7 @@ namespace NextGenSoftware.OASIS.STAR
             string zomeBuffer = "";
             string zomeDNAPath = "";
             string holonDNAPath = "";
-            string propTemplate = "public {TYPE} {PROPERTYNAME} {get; set;}";
+            string propTemplate = "        public {TYPE} {PROPERTYNAME} {get; set;}";
 
             try
             {
@@ -1461,46 +1461,46 @@ namespace NextGenSoftware.OASIS.STAR
                                     break;
 
                                 case NodeType.String:
-                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "string").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "string").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
                                     break;
 
                                 case NodeType.Int:
-                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "int").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "int").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
                                     break;
 
                                 case NodeType.Double:
-                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "double").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "double").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
                                     break;
 
                                 case NodeType.Float:
-                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "float").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "float").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
                                     break;
 
                                 case NodeType.Long:
-                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "long").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "long").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
                                     break;
 
                                 case NodeType.DateTime:
-                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "DateTime").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "DateTime").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
                                     break;
 
                                 case NodeType.ByteArray:
-                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "byte[]").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "byte[]").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
                                     break;
 
                                 case NodeType.Object:
-                                    propBuffer = string.Concat(propTemplate.Replace("{TYPE}", "object").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "object").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
                                     break;
                             }
                         }
 
                         holonBuffer = string.Concat(holonBuffer, holonMetaDataDNA.Replace("{HOLONNAME}", holon.Name).Replace("{PROPERTIES}", propBuffer), "\n\n");
-                        File.WriteAllText(result.Result.HolonMetaDataDNAPath, holonBuffer);
+                        File.WriteAllText(Path.Combine(result.Result.HolonMetaDataDNAPath, holon.Name, ".cs"), holonBuffer);
                     }
 
                     zomeBuffer = zomeMetaDataDNA.Replace("{ZOMENNAME}", zome.Name).Replace("{HOLONS}", holonBuffer);
-                    File.WriteAllText(result.Result.ZomeMetaDataDNAPath, zomeBuffer);
-                    File.WriteAllText(result.Result.CelestialBodyMetaDataDNAPath, zomeBuffer);
+                    File.WriteAllText(Path.Combine(result.Result.ZomeMetaDataDNAPath, zome.Name, ".cs"), zomeBuffer);
+                    File.WriteAllText(Path.Combine(result.Result.CelestialBodyMetaDataDNAPath, zome.Name, ".cs"), zomeBuffer);
                 }
             }
             catch (Exception e)
