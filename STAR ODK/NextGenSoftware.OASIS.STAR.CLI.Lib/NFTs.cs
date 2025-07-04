@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //        CLIEngine.ShowErrorMessage("No NFT Found For That Id!");
         //}
 
-        public override async Task<OASISResult<STARNFT>> CreateAsync(object createParams, STARNFT newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<STARNFT>> CreateAsync(object createParams, STARNFT newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARNFT> result = new OASISResult<STARNFT>();
 

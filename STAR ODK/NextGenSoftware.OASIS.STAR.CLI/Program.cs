@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Drawing;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using MongoDB.Driver;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using Console = System.Console;
+using System.Collections.Generic;
+using System.Security.Cryptography;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
@@ -13,19 +16,12 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.CLI.Lib;
-using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
-using Console = System.Console;
-using System.Security.Cryptography;
-using System.Threading;
-using ConsoleTables;
-using BetterConsoleTables;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
-using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using System.Diagnostics;
-using static System.Net.WebRequestMethods;
+using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 {
@@ -659,16 +655,34 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "celestialbody":
-                                    await ShowSubCommandAsync<STARCelestialBody>(inputArgs, "celestial body", "celestial bodies");
+                                    {
+                                        await ShowSubCommandAsync<STARCelestialBody>(inputArgs, "celestial body", "celestial bodies");
+                                    }
                                     break;
 
                                 case "zome":
-                                    await ShowSubCommandAsync<STARZome>(inputArgs);
+                                    {
+                                        await ShowSubCommandAsync<STARZome>(inputArgs);
+                                    }
                                     break;
 
                                 case "holon":
-                                    await ShowSubCommandAsync<STARHolon>(inputArgs, "", "", STARCLI.Holons.CreateAsync, STARCLI.Holons.EditAsync, STARCLI.Holons.DeleteAsync, STARCLI.Holons.DownloadAndInstallAsync, STARCLI.Holons.UninstallAsync, STARCLI.Holons.PublishAsync, STARCLI.Holons.UnpublishAsync, STARCLI.Holons.RepublishAsync, STARCLI.Holons.ActivateAsync, STARCLI.Holons.DeactivateAsync, STARCLI.Holons.ShowAsync, STARCLI.Holons.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Holons.ListAllAsync, STARCLI.Holons.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Holons.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Holons.SearchsAsync, providerType: providerType);
+                                    {
+                                        await ShowSubCommandAsync<STARHolon>(inputArgs, "", "", STARCLI.Holons.CreateAsync, STARCLI.Holons.EditAsync, STARCLI.Holons.DeleteAsync, STARCLI.Holons.DownloadAndInstallAsync, STARCLI.Holons.UninstallAsync, STARCLI.Holons.PublishAsync, STARCLI.Holons.UnpublishAsync, STARCLI.Holons.RepublishAsync, STARCLI.Holons.ActivateAsync, STARCLI.Holons.DeactivateAsync, STARCLI.Holons.ShowAsync, STARCLI.Holons.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Holons.ListAllAsync, STARCLI.Holons.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Holons.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Holons.SearchsAsync, providerType: providerType);
+                                    }
                                     break;
+
+                                //case "celestialbody":
+                                //    await ShowSubCommandAsync<STARCelestialBody>(inputArgs, "celestial body", "celestial bodies");
+                                //    break;
+
+                                //case "zome":
+                                //    await ShowSubCommandAsync<STARZome>(inputArgs);
+                                //    break;
+
+                                //case "holon":
+                                //    await ShowSubCommandAsync<STARHolon>(inputArgs, "", "", STARCLI.Holons.CreateAsync, STARCLI.Holons.EditAsync, STARCLI.Holons.DeleteAsync, STARCLI.Holons.DownloadAndInstallAsync, STARCLI.Holons.UninstallAsync, STARCLI.Holons.PublishAsync, STARCLI.Holons.UnpublishAsync, STARCLI.Holons.RepublishAsync, STARCLI.Holons.ActivateAsync, STARCLI.Holons.DeactivateAsync, STARCLI.Holons.ShowAsync, STARCLI.Holons.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Holons.ListAllAsync, STARCLI.Holons.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Holons.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Holons.SearchsAsync, providerType: providerType);
+                                //    break;
 
                                 case "chapter":
                                     await ShowSubCommandAsync<Chapter>(inputArgs);
@@ -824,7 +838,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static async Task ShowSubCommandAsync<T>(string[] inputArgs, 
             string subCommand = "",
             string subCommandPlural = "",
-            Func<object, T, bool, bool, ProviderType, Task> createPredicate = null, 
+            Func<object, T, bool, bool, object, ProviderType, Task> createPredicate = null, 
             Func<string, object, ProviderType, Task> updatePredicate = null, 
             Func<string, bool, ProviderType, Task> deletePredicate = null,
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
@@ -903,7 +917,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             if (showCreate)
                             {
                                 if (createPredicate != null)
-                                    await createPredicate(null, default, true, true, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                    await createPredicate(null, default, true, true, null, providerType); //TODO: Pass in params in a object or dynamic obj.
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -1009,7 +1023,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "publish":
                         {
                             if (publishPredicate != null)
-                                await publishPredicate(id, false, true, providerType);
+                            {
+                                if (subCommand.ToUpper() == "RUNTIME")
+                                    await publishPredicate(id, false, false, providerType);
+                                else
+                                    await publishPredicate(id, false, true, providerType);
+                            }
                             else
                                 CLIEngine.ShowMessage("Coming Soon...");
                         }
@@ -4711,6 +4730,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    celestialbody show                           {id/name}                              Shows a celestial body for the given {id} or {name}.");
                 Console.WriteLine("    celestialbody list                           [allVersions] [forAllAvatars]          List all celestial bodies that have been generated.");
                 Console.WriteLine("    celestialbody search                         [allVersions] [forAllAvatars]          Searches the celestial bodies for the given search critera.");
+                Console.WriteLine("    celestialbody metadata create                                                       Creates celestial body metadata.");
+                Console.WriteLine("    celestialbody metadata update                {id/name}                              Update existing celestial body metadata for the given {id} or {name}.");
+                Console.WriteLine("    celestialbody metadata delete                {id/name}                              Delete existing celestial body metadata for the given {id} or {name}.");
+                Console.WriteLine("    celestialbody metadata publish               {id/name}                              Publishes celestial body metadata for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
+                Console.WriteLine("    celestialbody metadata unpublish             {id/name}                              Unpublishes celestial body metadata for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    celestialbody metadata show                  {id/name}                              Shows celestial body metadata for the given {id} or {name}.");
+                Console.WriteLine("    celestialbody metadata list                  [allVersions] [forAllAvatars]          List all celestial body metadata that have been generated.");
+                Console.WriteLine("    celestialbody metadata search                [allVersions] [forAllAvatars]          Searches the celestial body metadata for the given search critera.");
+
                 Console.WriteLine("    zome create                                                                         Create a zome (module).");
                 Console.WriteLine("    zome update                                  {id/name}                              Update an existing zome for the given {id} or {name}");
                 Console.WriteLine("                                                                                        (can upload a zome.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
@@ -4720,17 +4748,35 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    zome show                                    {id/name}                              Shows a zome for the given {id} or {name}.");
                 Console.WriteLine("    zome list                                    [allVersions] [forAllAvatars]          List all zomes (modules that contain holons) that have been generated.");
                 Console.WriteLine("    zome search                                  [allVersions] [forAllAvatars]          Searches the zomes (modules) for the given search critera. If [all] is omitted it will search only your zomes otherwise it will search all public/shared zomes.");
+                Console.WriteLine("    zome metadata create                                                                Create zome metadata.");
+                Console.WriteLine("    zome metadata update                         {id/name}                              Update existing zome metadata for the given {id} or {name}");
+                Console.WriteLine("    zome metadata delete                         {id/name}                              Delete existing zome metadata for the given {id} or {name}.");
+                Console.WriteLine("    zome metadata publish                        {id/name}                              Publishes zome metadata for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
+                Console.WriteLine("    zome metadata unpublish                      {id/name}                              Unpublishes zome metadata for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    zome metadata show                           {id/name}                              Shows zome metadata for the given {id} or {name}.");
+                Console.WriteLine("    zome metadata list                           [allVersions] [forAllAvatars]          List all zome metadata that have been generated.");
+                Console.WriteLine("    zome metadata search                         [allVersions] [forAllAvatars]          Searches the zome metadata for the given search critera. If [all] is omitted it will search only your zomes otherwise it will search all public/shared zomes.");
+
                 //Console.WriteLine("    holon = Shows more info on how to use this command and optionally lauches the Save Holon Wizard.");
                 Console.WriteLine("    holon create                                 json={holonJSONFile}                   Creates/Saves a holon from the given {holonJSONFile}.");
                 Console.WriteLine("    holon create wiz                                                                    Starts the Create Holon Wizard.");
                 Console.WriteLine("    holon update                                 {id/name}                              Update an existing holon for the given {id} or {name}");
-                Console.WriteLine("                                                                                        (can upload a holon.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
+                //Console.WriteLine("                                                                                        (can upload a holon.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
                 Console.WriteLine("    holon delete                                 {id/name}                              Deletes a holon for the given {id} or {name}.");
                 Console.WriteLine("    holon publish                                {id/name}                              Publishes a holon for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
                 Console.WriteLine("    holon unpublish                              {id/name}                              Unpublishes a holon for the given {id} or {name} from the STARNET store.");
                 Console.WriteLine("    holon show                                   {id/name}                              Shows a holon for the given {id} or {name}.");
                 Console.WriteLine("    holon list                                   [allVersions] [forAllAvatars]          List all holons (OASIS Data Objects) that have been generated.");
                 Console.WriteLine("    holon search                                 [allVersions] [forAllAvatars]          Searches the holons for the given search critera.");
+                Console.WriteLine("    holon metadata create                                                               Creates/Saves holon metadata.");
+                Console.WriteLine("    holon metadata update                        {id/name}                              Update an existing holon metadata for the given {id} or {name}");
+                Console.WriteLine("    holon metadata delete                        {id/name}                              Deletes holon metadata for the given {id} or {name}.");
+                Console.WriteLine("    holon metadata publish                       {id/name}                              Publishes holon metadata for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
+                Console.WriteLine("    holon metadata unpublish                     {id/name}                              Unpublishes holon metadata for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    holon metadata show                          {id/name}                              Shows holon metadata for the given {id} or {name}.");
+                Console.WriteLine("    holon metadata list                          [allVersions] [forAllAvatars]          List all holon metadata that has been generated.");
+                Console.WriteLine("    holon metadata search                        [allVersions] [forAllAvatars]          Searches the holon metadata for the given search critera.");
+
                 Console.WriteLine("    chapter create                                                                      Creates a chapter that can be linked to a mission. Quests can be added to the chapter. Chapters are used to group quests together (optional).");
                 Console.WriteLine("    chapter update                               {id/name}                              Updates a chapter for the given {id} or {name}.");
                 Console.WriteLine("    chapter delete                               {id/name}                              Deletes a chapter for the given {id} or {name}.");
@@ -5045,57 +5091,118 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
             else
             {
-                Console.WriteLine("    light            Generate a OAPP.");
-                Console.WriteLine("    bang             Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
-                Console.WriteLine("    wiz              Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
-                Console.WriteLine("    flare            Build a OAPP.");
-                Console.WriteLine("    shine            Launch & activate a OAPP by shining the 's light upon it..."); //TODO: Dev next.
-                Console.WriteLine("    twinkle          Activate a published OAPP within the STARNET store."); //TODO: Dev next.
-                Console.WriteLine("    dim              Deactivate a published OAPP within the STARNET store."); //TODO: Dev next.
-                Console.WriteLine("    seed             Deploy/Publish a OAPP to the STARNET Store.");
-                Console.WriteLine("    unseed           Undeploy/Unpublish a OAPP from the STARNET Store.");
-                Console.WriteLine("    dust             Delete a OAPP (this will also remove it from STARNET if it has already been published)."); //TODO: Dev next.
-                Console.WriteLine("    radiate          Highlight the OAPP in the STARNET Store. *Admin/Wizards Only*");
-                Console.WriteLine("    emit             Show how much light the OAPP is emitting into the solar system (this is determined by the collective karma score of all users of that OAPP).");
-                Console.WriteLine("    reflect          Show stats of the OAPP.");
-                Console.WriteLine("    evolve           Upgrade/update a OAPP)."); //TODO: Dev next.
-                Console.WriteLine("    mutate           Import/Export hApp, dApp & others.");
-                Console.WriteLine("    love             Send/Receive Love.");
-                Console.WriteLine("    burst            View network stats/management/settings.");
-                Console.WriteLine("    super            Reserved For Future Use...");
+                //Console.WriteLine("    light            Generate a OAPP.");
+                //Console.WriteLine("    bang             Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
+                //Console.WriteLine("    wiz              Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
+                //Console.WriteLine("    flare            Build a OAPP.");
+                //Console.WriteLine("    shine            Launch & activate a OAPP by shining the 's light upon it..."); //TODO: Dev next.
+                //Console.WriteLine("    twinkle          Activate a published OAPP within the STARNET store."); //TODO: Dev next.
+                //Console.WriteLine("    dim              Deactivate a published OAPP within the STARNET store."); //TODO: Dev next.
+                //Console.WriteLine("    seed             Deploy/Publish a OAPP to the STARNET Store.");
+                //Console.WriteLine("    unseed           Undeploy/Unpublish a OAPP from the STARNET Store.");
+                //Console.WriteLine("    dust             Delete a OAPP (this will also remove it from STARNET if it has already been published)."); //TODO: Dev next.
+                //Console.WriteLine("    radiate          Highlight the OAPP in the STARNET Store. *Admin/Wizards Only*");
+                //Console.WriteLine("    emit             Show how much light the OAPP is emitting into the solar system (this is determined by the collective karma score of all users of that OAPP).");
+                //Console.WriteLine("    reflect          Show stats of the OAPP.");
+                //Console.WriteLine("    evolve           Upgrade/update a OAPP)."); //TODO: Dev next.
+                //Console.WriteLine("    mutate           Import/Export hApp, dApp & others.");
+                //Console.WriteLine("    love             Send/Receive Love.");
+                //Console.WriteLine("    burst            View network stats/management/settings.");
+                //Console.WriteLine("    super            Reserved For Future Use...");
+                ////Console.WriteLine("    net = Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's, zomes, holons, celestial spaces, celestial bodies, geo-nft's, geo-hotspots, missions, chapters, quests & inventory items.");
+                //Console.WriteLine("    net              Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
+                //Console.WriteLine("    gate             Opens the STARGATE to the OASIS Portal!");
+                //Console.WriteLine("    api [oasis]      Opens the WEB5 STAR API (if oasis is included then it will open the WEB4 OASIS API instead).");
+                //Console.WriteLine("    avatar           Manage avatars.");
+                //Console.WriteLine("    karma            Manage karma.");
+                //Console.WriteLine("    keys             Manage keys.");
+                //Console.WriteLine("    wallet           Manage wallets.");
+                //Console.WriteLine("    search           Search the OASIS.");
+                //Console.WriteLine("    oapp             Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates & OAPP's.");
+                //Console.WriteLine("    happ             Create, edit, delete, publish, unpublish, install, uninstall, list & show hApp's.");
+                //Console.WriteLine("    runtime          Create, edit, delete, publish, unpublish, install, uninstall, list & show runtime's.");
+                //Console.WriteLine("    celestialspace   Create, edit, delete, publish, unpublish, list & show celestial space's.");
+                //Console.WriteLine("    celestialbody    Create, edit, delete, publish, unpublish, list & show celestial bodies's.");
+                //Console.WriteLine("    celestialbody metadata  Create, edit, delete, publish, unpublish, list & show celestial bodies's.");
+                //Console.WriteLine("    zome                    Create, edit, delete, publish, unpublish, list & show zome's.");
+                //Console.WriteLine("    zome metadata           Create, edit, delete, publish, unpublish, list & show zome's.");
+                //Console.WriteLine("    holon                   Create, edit, delete, publish, unpublish, list & show holon's.");
+                //Console.WriteLine("    holon metadata          Create, edit, delete, publish, unpublish, list & show holon's.");
+                //Console.WriteLine("    chapter                 Create, edit, delete, publish, unpublish, list & show chapter's.");
+                //Console.WriteLine("    mission                 Create, edit, delete, publish, unpublish, list & show mission's.");
+                //Console.WriteLine("    quest                   Create, edit, delete, publish, unpublish, list & show quest's.");
+                //Console.WriteLine("    nft                     Mint, send, edit, burn, publish, unpublish, list & show nft's.");
+                //Console.WriteLine("    geonft                  Mint, place, edit, burn, publish, unpublish, list & show geo-nft's.");
+                //Console.WriteLine("    geohotspot       Create, edit, delete, publish, unpublish, list & show geo-hotspot's.");
+                //Console.WriteLine("    inventoryitem    Create, edit, delete, publish, unpublish, list & show inventory item's.");
+                //Console.WriteLine("    seeds            Access the SEEDS API.");
+                //Console.WriteLine("    data             Access the Data API.");
+                //Console.WriteLine("    map              Access the Map API.");
+                //Console.WriteLine("    oland            Access the OLAND (Virtual Land) API.");
+                //Console.WriteLine("    onode            Manage this ONODE (OASIS Node) such as start, stop, view status, edit config, view providers, start & stop providers.");
+                //Console.WriteLine("    hypernet         Start, stop & view status for the HoloNET P2P HyperNET Service.");
+                //Console.WriteLine("    onet             View the status for the ONET (OASIS Network).");
+                //Console.WriteLine("    config           Enables/disables COSMIC detailed output & STAR ODK detailed output.");
+                //Console.WriteLine("    runcosmictests   Run the STAR ODK/COSMIC tests.");
+                //Console.WriteLine("    runoasisapitests Run the OASIS API tests.");
+
+                Console.WriteLine("    light                   Generate a OAPP.");
+                Console.WriteLine("    bang                    Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
+                Console.WriteLine("    wiz                     Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
+                Console.WriteLine("    flare                   Build a OAPP.");
+                Console.WriteLine("    shine                   Launch & activate a OAPP by shining the 's light upon it..."); //TODO: Dev next.
+                Console.WriteLine("    twinkle                 Activate a published OAPP within the STARNET store."); //TODO: Dev next.
+                Console.WriteLine("    dim                     Deactivate a published OAPP within the STARNET store."); //TODO: Dev next.
+                Console.WriteLine("    seed                    Deploy/Publish a OAPP to the STARNET Store.");
+                Console.WriteLine("    unseed                  Undeploy/Unpublish a OAPP from the STARNET Store.");
+                Console.WriteLine("    dust                    Delete a OAPP (this will also remove it from STARNET if it has already been published)."); //TODO: Dev next.
+                Console.WriteLine("    radiate                 Highlight the OAPP in the STARNET Store. *Admin/Wizards Only*");
+                Console.WriteLine("    emit                    Show how much light the OAPP is emitting into the solar system (this is determined by the collective karma score of all users of that OAPP).");
+                Console.WriteLine("    reflect                 Show stats of the OAPP.");
+                Console.WriteLine("    evolve                  Upgrade/update a OAPP)."); //TODO: Dev next.
+                Console.WriteLine("    mutate                  Import/Export hApp, dApp & others.");
+                Console.WriteLine("    love                    Send/Receive Love.");
+                Console.WriteLine("    burst                   View network stats/management/settings.");
+                Console.WriteLine("    super                   Reserved For Future Use...");
                 //Console.WriteLine("    net = Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's, zomes, holons, celestial spaces, celestial bodies, geo-nft's, geo-hotspots, missions, chapters, quests & inventory items.");
-                Console.WriteLine("    net              Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
-                Console.WriteLine("    gate             Opens the STARGATE to the OASIS Portal!");
-                Console.WriteLine("    api [oasis]      Opens the WEB5 STAR API (if oasis is included then it will open the WEB4 OASIS API instead).");
-                Console.WriteLine("    avatar           Manage avatars.");
-                Console.WriteLine("    karma            Manage karma.");
-                Console.WriteLine("    keys             Manage keys.");
-                Console.WriteLine("    wallet           Manage wallets.");
-                Console.WriteLine("    search           Search the OASIS.");
-                Console.WriteLine("    oapp             Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates & OAPP's.");
-                Console.WriteLine("    happ             Create, edit, delete, publish, unpublish, install, uninstall, list & show hApp's.");
-                Console.WriteLine("    runtime          Create, edit, delete, publish, unpublish, install, uninstall, list & show runtime's.");
-                Console.WriteLine("    celestialspace   Create, edit, delete, publish, unpublish, list & show celestial space's.");
-                Console.WriteLine("    celestialbody    Create, edit, delete, publish, unpublish, list & show celestial bodies's.");
-                Console.WriteLine("    zome             Create, edit, delete, publish, unpublish, list & show zome's.");
-                Console.WriteLine("    holon            Create, edit, delete, publish, unpublish, list & show holon's.");
-                Console.WriteLine("    chapter          Create, edit, delete, publish, unpublish, list & show chapter's.");
-                Console.WriteLine("    mission          Create, edit, delete, publish, unpublish, list & show mission's.");
-                Console.WriteLine("    quest            Create, edit, delete, publish, unpublish, list & show quest's.");
-                Console.WriteLine("    nft              Mint, send, edit, burn, publish, unpublish, list & show nft's.");
-                Console.WriteLine("    geonft           Mint, place, edit, burn, publish, unpublish, list & show geo-nft's.");
-                Console.WriteLine("    geohotspot       Create, edit, delete, publish, unpublish, list & show geo-hotspot's.");
-                Console.WriteLine("    inventoryitem    Create, edit, delete, publish, unpublish, list & show inventory item's.");
-                Console.WriteLine("    seeds            Access the SEEDS API.");
-                Console.WriteLine("    data             Access the Data API.");
-                Console.WriteLine("    map              Access the Map API.");
-                Console.WriteLine("    oland            Access the OLAND (Virtual Land) API.");
-                Console.WriteLine("    onode            Manage this ONODE (OASIS Node) such as start, stop, view status, edit config, view providers, start & stop providers.");
-                Console.WriteLine("    hypernet         Start, stop & view status for the HoloNET P2P HyperNET Service.");
-                Console.WriteLine("    onet             View the status for the ONET (OASIS Network).");
-                Console.WriteLine("    config           Enables/disables COSMIC detailed output & STAR ODK detailed output.");
-                Console.WriteLine("    runcosmictests   Run the STAR ODK/COSMIC tests.");
-                Console.WriteLine("    runoasisapitests Run the OASIS API tests.");
+                Console.WriteLine("    net                     Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
+                Console.WriteLine("    gate                    Opens the STARGATE to the OASIS Portal!");
+                Console.WriteLine("    api [oasis]             Opens the WEB5 STAR API (if oasis is included then it will open the WEB4 OASIS API instead).");
+                Console.WriteLine("    avatar                  Manage avatars.");
+                Console.WriteLine("    karma                   Manage karma.");
+                Console.WriteLine("    keys                    Manage keys.");
+                Console.WriteLine("    wallet                  Manage wallets.");
+                Console.WriteLine("    search                  Search the OASIS.");
+                //Console.WriteLine("    oapp                    Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates & OAPP's.");
+                Console.WriteLine("    oapp                    Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP's.");
+                Console.WriteLine("    oapp template           Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates.");
+                Console.WriteLine("    happ                    Create, edit, delete, publish, unpublish, install, uninstall, list & show hApp's.");
+                Console.WriteLine("    runtime                 Create, edit, delete, publish, unpublish, install, uninstall, list & show runtime's.");
+                Console.WriteLine("    celestialspace          Create, edit, delete, publish, unpublish, list & show celestial space's.");
+                Console.WriteLine("    celestialbody           Create, edit, delete, publish, unpublish, list & show celestial bodies's.");
+                Console.WriteLine("    celestialbody metadata  Create, edit, delete, publish, unpublish, list & show celestial body metadata.");
+                Console.WriteLine("    zome                    Create, edit, delete, publish, unpublish, list & show zome's.");
+                Console.WriteLine("    zome metadata           Create, edit, delete, publish, unpublish, list & show zome metadata.");
+                Console.WriteLine("    holon                   Create, edit, delete, publish, unpublish, list & show holon's.");
+                Console.WriteLine("    holon metadata          Create, edit, delete, publish, unpublish, list & show holon metadata.");
+                Console.WriteLine("    chapter                 Create, edit, delete, publish, unpublish, list & show chapter's.");
+                Console.WriteLine("    mission                 Create, edit, delete, publish, unpublish, list & show mission's.");
+                Console.WriteLine("    quest                   Create, edit, delete, publish, unpublish, list & show quest's.");
+                Console.WriteLine("    nft                     Mint, send, edit, burn, publish, unpublish, list & show nft's.");
+                Console.WriteLine("    geonft                  Mint, place, edit, burn, publish, unpublish, list & show geo-nft's.");
+                Console.WriteLine("    geohotspot              Create, edit, delete, publish, unpublish, list & show geo-hotspot's.");
+                Console.WriteLine("    inventoryitem           Create, edit, delete, publish, unpublish, list & show inventory item's.");
+                Console.WriteLine("    seeds                   Access the SEEDS API.");
+                Console.WriteLine("    data                    Access the Data API.");
+                Console.WriteLine("    map                     Access the Map API.");
+                Console.WriteLine("    oland                   Access the OLAND (Virtual Land) API.");
+                Console.WriteLine("    onode                   Manage this ONODE (OASIS Node) such as start, stop, view status, edit config, view providers, start & stop providers.");
+                Console.WriteLine("    hypernet                Start, stop & view status for the HoloNET P2P HyperNET Service.");
+                Console.WriteLine("    onet                    View the status for the ONET (OASIS Network).");
+                Console.WriteLine("    config                  Enables/disables COSMIC detailed output & STAR ODK detailed output.");
+                Console.WriteLine("    runcosmictests          Run the STAR ODK/COSMIC tests.");
+                Console.WriteLine("    runoasisapitests        Run the OASIS API tests.");
+
                 Console.WriteLine("");
                 //Console.WriteLine(" NOTES: -  is not needed if using the STAR CLI Console directly. Star is only needed if calling from the command line or another external script ( is simply the name of the exe).");
                 Console.WriteLine(" NOTES:");

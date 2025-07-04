@@ -1495,12 +1495,12 @@ namespace NextGenSoftware.OASIS.STAR
                         }
 
                         holonBuffer = string.Concat(holonBuffer, holonMetaDataDNA.Replace("{HOLONNAME}", holon.Name).Replace("{PROPERTIES}", propBuffer), "\n\n");
-                        File.WriteAllText(Path.Combine(result.Result.HolonMetaDataDNAPath, holon.Name, ".cs"), holonBuffer);
+                        File.WriteAllText(Path.Combine(result.Result.HolonMetaDataDNAPath, string.Concat(holon.Name, ".cs")), holonBuffer);
                     }
 
                     zomeBuffer = zomeMetaDataDNA.Replace("{ZOMENNAME}", zome.Name).Replace("{HOLONS}", holonBuffer);
-                    File.WriteAllText(Path.Combine(result.Result.ZomeMetaDataDNAPath, zome.Name, ".cs"), zomeBuffer);
-                    File.WriteAllText(Path.Combine(result.Result.CelestialBodyMetaDataDNAPath, zome.Name, ".cs"), zomeBuffer);
+                    File.WriteAllText(Path.Combine(result.Result.ZomeMetaDataDNAPath, string.Concat(zome.Name, ".cs")), zomeBuffer);
+                    File.WriteAllText(Path.Combine(result.Result.CelestialBodyMetaDataDNAPath, string.Concat(zome.Name, ".cs")), zomeBuffer);
                 }
             }
             catch (Exception e)
