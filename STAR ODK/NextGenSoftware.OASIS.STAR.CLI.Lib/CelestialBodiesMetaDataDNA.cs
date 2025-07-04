@@ -18,7 +18,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultCelestialBodiesMetaDataDNASourcePath, "DefaultCelestialBodiesMetaDataDNASourcePath",
             STAR.STARDNA.DefaultCelestialBodiesMetaDataDNAPublishedPath, "DefaultCelestialBodiesMetaDataDNAPublishedPath",
             STAR.STARDNA.DefaultCelestialBodiesMetaDataDNADownloadedPath, "DefaultCelestialBodiesMetaDataDNADownloadedPath",
-            STAR.STARDNA.DefaultCelestialBodiesMetaDataDNAInstalledPath, "DefaultCelestialBodiesMetaDataDNAInstalledPath")
+            STAR.STARDNA.DefaultCelestialBodiesMetaDataDNAInstalledPath, "DefaultCelestialBodiesMetaDataDNAInstalledPath",
+            30)
         { }
     }
 }

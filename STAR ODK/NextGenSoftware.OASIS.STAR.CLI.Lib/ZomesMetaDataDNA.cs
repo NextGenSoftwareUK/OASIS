@@ -18,7 +18,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultZomesMetaDataDNASourcePath, "DefaultZomesMetaDataDNASourcePath",
             STAR.STARDNA.DefaultZomesMetaDataDNAPublishedPath, "DefaultZomesMetaDataDNAPublishedPath",
             STAR.STARDNA.DefaultZomesMetaDataDNADownloadedPath, "DefaultZomesMetaDataDNADownloadedPath",
-            STAR.STARDNA.DefaultZomesMetaDataDNAInstalledPath, "DefaultZomesMetaDataDNAInstalledPath")
+            STAR.STARDNA.DefaultZomesMetaDataDNAInstalledPath, "DefaultZomesMetaDataDNAInstalledPath",
+            30)
         { }
     }
 }

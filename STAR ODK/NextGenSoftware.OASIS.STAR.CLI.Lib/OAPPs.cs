@@ -48,7 +48,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultOAPPsInstalledPath, "DefaultOAPPsInstalledPath")
         { }
 
-        public override async Task<OASISResult<OAPP>> CreateAsync(object createParams, OAPP newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<OAPP>> CreateAsync(object createParams, OAPP newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, ProviderType providerType = ProviderType.Default)
         {
             //return base.CreateAsync(createParams, newHolon, providerType);
             OASISResult<CoronalEjection> result = await LightWizardAsync(createParams, providerType);
@@ -398,30 +398,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         } while (addMoreZomes);
 
-                        CelestialBodyType celestialBodyType = CelestialBodyType.Moon;
+                        //CelestialBodyType celestialBodyType = CelestialBodyType.Moon;
 
-                        switch (genesisType)
-                        {
-                            case GenesisType.Moon:
-                                celestialBodyType = CelestialBodyType.Moon;
-                                break;
+                        //switch (genesisType)
+                        //{
+                        //    case GenesisType.Moon:
+                        //        celestialBodyType = CelestialBodyType.Moon;
+                        //        break;
 
-                            case GenesisType.Planet:
-                                celestialBodyType = CelestialBodyType.Planet;
-                                break;
+                        //    case GenesisType.Planet:
+                        //        celestialBodyType = CelestialBodyType.Planet;
+                        //        break;
 
-                            case GenesisType.Star:
-                                celestialBodyType = CelestialBodyType.Star;
-                                break;
+                        //    case GenesisType.Star:
+                        //        celestialBodyType = CelestialBodyType.Star;
+                        //        break;
 
-                            case GenesisType.SuperStar:
-                                celestialBodyType = CelestialBodyType.SuperStar;
-                                break;
+                        //    case GenesisType.SuperStar:
+                        //        celestialBodyType = CelestialBodyType.SuperStar;
+                        //        break;
 
-                            case GenesisType.GrandSuperStar:
-                                celestialBodyType = CelestialBodyType.GrandSuperStar;
-                                break;
-                        }
+                        //    case GenesisType.GrandSuperStar:
+                        //        celestialBodyType = CelestialBodyType.GrandSuperStar;
+                        //        break;
+                        //}
 
                         string OAPPMetaDataDNAFolder = STAR.STARDNA.OAPPMetaDataDNAFolder;
 
@@ -820,7 +820,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //    base.Show(starHolon, showHeader, showFooter, showNumbers, number, showDetailedInfo);
         //}
 
-        public override void Show<OAPP>(OAPP oapp, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false)
+        public override void Show<OAPP>(OAPP oapp, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 20)
         {
             IOAPPDNA OAPPDNA = (IOAPPDNA)oapp.STARNETDNA;
 
@@ -1051,7 +1051,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
                 if (CLIEngine.GetConfirmation("Would you like to upload the CelestialBody generated metadata DNA to STARNET?"))
                 {
-                    OASISResult<STARNETHolon> createResult = await STARCLI.CelestialBodiesMetaDataDNA.CreateAsync(null, null, true, false, providerType);
+                    Console.WriteLine("");
+                    CelestialBodyType celestialBodyType = CelestialBodyType.Moon;
+
+                    switch (lightResult.Result.CelestialBody.HolonType)
+                    {
+                        case HolonType.Moon:
+                            celestialBodyType = CelestialBodyType.Moon;
+                            break;
+
+                        case HolonType.Planet:
+                            celestialBodyType = CelestialBodyType.Planet;
+                            break;
+
+                        case HolonType.Star:
+                            celestialBodyType = CelestialBodyType.Star;
+                            break;
+
+                        case HolonType.SuperStar:
+                            celestialBodyType = CelestialBodyType.SuperStar;
+                            break;
+
+                        case HolonType.GrandSuperStar:
+                            celestialBodyType = CelestialBodyType.GrandSuperStar;
+                            break;
+                    }
+
+                    OASISResult<STARNETHolon> createResult = await STARCLI.CelestialBodiesMetaDataDNA.CreateAsync(null, null, true, false, celestialBodyType, providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
@@ -1071,7 +1097,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
                 if (CLIEngine.GetConfirmation("Would you like to upload the Zome generated metadata DNA to STARNET?"))
                 {
-                    OASISResult<STARNETHolon> createResult = await STARCLI.ZomesMetaDataDNA.CreateAsync(null, null, true, false, providerType);
+                    Console.WriteLine("");
+                    OASISResult<STARNETHolon> createResult = await STARCLI.ZomesMetaDataDNA.CreateAsync(null, null, true, false, providerType: providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
@@ -1091,13 +1118,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
                 if (CLIEngine.GetConfirmation("Would you like to upload the Holon generated metadata DNA to STARNET?"))
                 {
-                    OASISResult<STARNETHolon> createResult = await STARCLI.HolonsMetaDataDNA.CreateAsync(null, null, true, false, providerType);
+                    Console.WriteLine("");
+                    OASISResult<STARNETHolon> createResult = await STARCLI.HolonsMetaDataDNA.CreateAsync(null, null, true, false, providerType: providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
                         try
                         {
-                            DirectoryHelper.CopyFilesRecursively(generateResult.ZomeMetaDataDNAPath, createResult.Result.STARNETDNA.SourcePath);
+                            DirectoryHelper.CopyFilesRecursively(generateResult.HolonMetaDataDNAPath, createResult.Result.STARNETDNA.SourcePath);
                         }
                         catch (Exception e)
                         {

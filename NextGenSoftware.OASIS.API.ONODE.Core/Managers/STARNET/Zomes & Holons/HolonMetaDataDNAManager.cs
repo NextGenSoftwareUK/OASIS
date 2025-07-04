@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
     {
         public HolonMetaDataDNAManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,
-            typeof(HolonType),
+            typeof(STARHolonType),
             HolonType.HolonMetaDataDNA,
             HolonType.InstalledSTARNETHolon,
             "Holon MetaData DNA",
@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public HolonMetaDataDNAManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
             OASISDNA,
-            typeof(HolonType),
+            typeof(STARHolonType),
             HolonType.HolonMetaDataDNA,
             HolonType.InstalledSTARNETHolon,
             "Holon MetaData DNA",

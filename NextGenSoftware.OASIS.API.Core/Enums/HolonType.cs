@@ -100,5 +100,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         InstalledHolon,
         InstalledZome,
         None
+        //Custom,
+        //DataObject
     }
 }
