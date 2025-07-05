@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class Mission : QuestBase, IMission, IQuestBase, ISTARNETHolon
     {
-        public Mission()
+        public Mission() : base("MissionDNAJSON")
         {
             this.HolonType = HolonType.Mission; 
         }

@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class Quest : QuestBase, IQuest
     {
-        public Quest()
+        public Quest() : base("QuestDNAJSON")
         {
             this.HolonType = HolonType.Quest;
         }

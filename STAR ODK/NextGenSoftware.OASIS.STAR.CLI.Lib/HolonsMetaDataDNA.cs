@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class HolonsMetaDataDNA : STARNETUIBase<STARNETHolon, DownloadedSTARNETHolon, InstalledSTARNETHolon>
+    public class HolonsMetaDataDNA : STARNETUIBase<HolonMetaDataDNA, DownloadedHolonMetaDataDNA, InstalledHolonMetaDataDNA>
     {
         public HolonsMetaDataDNA(Guid avatarId) : base(new API.ONODE.Core.Managers.HolonMetaDataDNAManager(avatarId),
             "Welcome to the Holons MetaData DNA Wizard", new List<string> 
@@ -18,7 +18,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultHolonsMetaDataDNASourcePath, "DefaultHolonsMetaDataDNASourcePath",
             STAR.STARDNA.DefaultHolonsMetaDataDNAPublishedPath, "DefaultHolonsMetaDataDNAPublishedPath",
             STAR.STARDNA.DefaultHolonsMetaDataDNADownloadedPath, "DefaultHolonsMetaDataDNADownloadedPath",
-            STAR.STARDNA.DefaultHolonsMetaDataDNAInstalledPath, "DefaultHolonsMetaDataDNAInstalledPath")
+            STAR.STARDNA.DefaultHolonsMetaDataDNAInstalledPath, "DefaultHolonsMetaDataDNAInstalledPath",
+            50)
         { }
     }
 }

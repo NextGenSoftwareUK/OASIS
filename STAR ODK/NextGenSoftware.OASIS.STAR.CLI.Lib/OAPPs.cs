@@ -451,7 +451,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (CLIEngine.GetConfirmation("Do you wish to use/install a CelestialBody MetaData DNA (contains Zome & Holon MetaData DNA) from STARNET? (Enter 'N' if you already have a folder containing the DNA)."))
                         {
                             Console.WriteLine("");
-                            OASISResult<InstalledSTARNETHolon> findResult = await STARCLI.CelestialBodiesMetaDataDNA.FindForProviderAndInstallIfNotInstalledAsync("use", providerType: providerType);
+                            OASISResult<InstalledCelestialBodyMetaDataDNA> findResult = await STARCLI.CelestialBodiesMetaDataDNA.FindForProviderAndInstallIfNotInstalledAsync("use", providerType: providerType);
                             
                             if (findResult != null && findResult.Result != null && !findResult.IsError)
                             {
@@ -1077,7 +1077,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             break;
                     }
 
-                    OASISResult<STARNETHolon> createResult = await STARCLI.CelestialBodiesMetaDataDNA.CreateAsync(null, null, true, false, celestialBodyType, providerType);
+                    OASISResult<CelestialBodyMetaDataDNA> createResult = await STARCLI.CelestialBodiesMetaDataDNA.CreateAsync(null, null, true, false, celestialBodyType, providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
@@ -1098,7 +1098,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Would you like to upload the Zome generated metadata DNA to STARNET?"))
                 {
                     Console.WriteLine("");
-                    OASISResult<STARNETHolon> createResult = await STARCLI.ZomesMetaDataDNA.CreateAsync(null, null, true, false, providerType: providerType);
+                    OASISResult<ZomeMetaDataDNA> createResult = await STARCLI.ZomesMetaDataDNA.CreateAsync(null, null, true, false, providerType: providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
@@ -1119,7 +1119,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Would you like to upload the Holon generated metadata DNA to STARNET?"))
                 {
                     Console.WriteLine("");
-                    OASISResult<STARNETHolon> createResult = await STARCLI.HolonsMetaDataDNA.CreateAsync(null, null, true, false, providerType: providerType);
+                    OASISResult<HolonMetaDataDNA> createResult = await STARCLI.HolonsMetaDataDNA.CreateAsync(null, null, true, false, providerType: providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {

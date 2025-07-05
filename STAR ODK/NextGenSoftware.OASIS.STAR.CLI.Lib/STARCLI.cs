@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static Quests Quests { get; } = new Quests(STAR.BeamedInAvatar.Id);
         public static NFTs NFTs { get; } = new NFTs(STAR.BeamedInAvatar.Id);
         public static GeoNFTs GeoNFTs { get; } = new GeoNFTs(STAR.BeamedInAvatar.Id);
-        public static GeoHotSpots GeoHotsSpots { get; } = new GeoHotSpots(STAR.BeamedInAvatar.Id);
+        public static GeoHotSpots GeoHotSpots { get; } = new GeoHotSpots(STAR.BeamedInAvatar.Id);
         public static InventoryItems InventoryItems { get; } = new InventoryItems(STAR.BeamedInAvatar.Id);
         public static STARTests STARTests { get; } = new STARTests();
     }

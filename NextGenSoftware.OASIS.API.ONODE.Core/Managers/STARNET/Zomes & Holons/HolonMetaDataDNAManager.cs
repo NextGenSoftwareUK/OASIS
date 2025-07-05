@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class HolonMetaDataDNAManager : STARNETManagerBase<STARNETHolon, DownloadedSTARNETHolon, InstalledSTARNETHolon>
+    public class HolonMetaDataDNAManager : STARNETManagerBase<HolonMetaDataDNA, DownloadedHolonMetaDataDNA, InstalledHolonMetaDataDNA>
     {
         public HolonMetaDataDNAManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

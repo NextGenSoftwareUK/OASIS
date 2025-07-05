@@ -6,15 +6,11 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class STARZome : STARNETHolon, ISTARZome
+    public class CelestialBodyMetaDataDNA : STARNETHolon//, ISTARCelestialBody
     {
-        public STARZome() : base("STARZomeDNAJSON")
+        public CelestialBodyMetaDataDNA() : base("CelestialBodyMetaDataDNAJSON")
         {
-            this.HolonType = HolonType.STARZome;
+            this.HolonType = HolonType.CelestialBodyMetaDataDNA;
         }
-
-        public ZomeType ZomeType { get; set; }
-        public IZome Zome { get; set; }
-        public Guid ZomeId { get; set; }
     }
 }

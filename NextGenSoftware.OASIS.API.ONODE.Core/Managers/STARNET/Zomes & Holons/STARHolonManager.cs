@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "holon",
             "oasis_holons",
             "HolonDNA.json",
-            "HolonDNAJSON")
+            "STARHolonDNAJSON")
         { }
 
         public STARHolonManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
