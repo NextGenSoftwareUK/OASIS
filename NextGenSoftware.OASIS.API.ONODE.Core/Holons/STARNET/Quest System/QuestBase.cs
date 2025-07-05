@@ -8,6 +8,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class QuestBase : TaskBase, IQuestBase
     {
+        public QuestBase(string STARNETDNAJSONName = "QuestBaseDNAJSON") : base(STARNETDNAJSONName)
+        {
+
+        }
+
         [CustomOASISProperty()]
         public Guid ParentMissionId { get; set; }
 

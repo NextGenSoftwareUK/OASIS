@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "celestialbody",
             "oasis_celestialbodes",
             "CelestialBodyDNA.json",
-            "CelestialBodyDNAJSON")
+            "STARCelestialBodyDNAJSON")
         { }
 
         public CelestialBodyManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "celestialbody",
             "oasis_celestialbodies",
             "CelestialBodyDNA.json",
-            "CelestialBodyDNAJSON")
+            "STARCelestialBodyDNAJSON")
         { }
 
         //public async Task<OASISResult<ISTARCelestialBody>> CreateCelestialBodyAsync(

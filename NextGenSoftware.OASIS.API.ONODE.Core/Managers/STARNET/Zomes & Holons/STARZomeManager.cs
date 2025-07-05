@@ -13,7 +13,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class STARZomeManager : STARNETManagerBase<STARZome, DownloadedZome, InstalledZome>, ISTARZomeManager
+    public class STARZomeManager : STARNETManagerBase<STARZome, DownloadedZomeMetaDataDNA, InstalledZome>, ISTARZomeManager
     {
         public STARZomeManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,
@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "zome",
             "oasis_zomes",
             "ZomeDNA.json",
-            "ZomeDNAJSON")
+            "STARZomeDNAJSON")
         { }
 
         public STARZomeManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,

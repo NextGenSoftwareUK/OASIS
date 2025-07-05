@@ -5,7 +5,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class Chapter : QuestBase, IChapter
     {
-        public Chapter()
+        public Chapter() : base("ChapterDNAJSON")
         {
             this.HolonType = HolonType.Chapter;
         }

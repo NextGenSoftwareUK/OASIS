@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class CelestialBodiesMetaDataDNA : STARNETUIBase<STARNETHolon, DownloadedSTARNETHolon, InstalledSTARNETHolon>
+    public class CelestialBodiesMetaDataDNA : STARNETUIBase<CelestialBodyMetaDataDNA, DownloadedCelestialBodyMetaDataDNA, InstalledCelestialBodyMetaDataDNA>
     {
         public CelestialBodiesMetaDataDNA(Guid avatarId) : base(new API.ONODE.Core.Managers.CelestialBodyMetaDataDNAManager(avatarId),
             "Welcome to the Celestial Body MetaData DNA Wizard", new List<string> 
@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultCelestialBodiesMetaDataDNAPublishedPath, "DefaultCelestialBodiesMetaDataDNAPublishedPath",
             STAR.STARDNA.DefaultCelestialBodiesMetaDataDNADownloadedPath, "DefaultCelestialBodiesMetaDataDNADownloadedPath",
             STAR.STARDNA.DefaultCelestialBodiesMetaDataDNAInstalledPath, "DefaultCelestialBodiesMetaDataDNAInstalledPath",
-            30)
+            50)
         { }
     }
 }

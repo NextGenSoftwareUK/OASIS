@@ -17,6 +17,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             this.HolonType = HolonType.STARNETHolon;
         }
 
+        public STARNETHolon(HolonType holonType)
+        {
+            this.HolonType = holonType;
+        }
+
         public STARNETHolon(string STARNETDNAJSONName = "STARNETDNAJSON")
         {
             this.HolonType = HolonType.STARNETHolon;

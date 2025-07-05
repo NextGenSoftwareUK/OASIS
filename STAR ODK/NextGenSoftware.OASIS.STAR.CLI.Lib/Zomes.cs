@@ -7,7 +7,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Zomes : STARNETUIBase<STARZome, DownloadedZome, InstalledZome>
+    public class Zomes : STARNETUIBase<STARZome, DownloadedZomeMetaDataDNA, InstalledZome>
     {
         public Zomes(Guid avatarId) : base(new API.ONODE.Core.Managers.STARZomeManager(avatarId),
             "Welcome to the Zome Wizard", new List<string> 

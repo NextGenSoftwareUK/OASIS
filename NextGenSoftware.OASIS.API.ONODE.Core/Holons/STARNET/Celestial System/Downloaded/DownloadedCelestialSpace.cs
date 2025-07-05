@@ -5,7 +5,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class DownloadedCelestialSpace : DownloadedSTARNETHolon, IDownloadedCelestialSpace
     {
-        public DownloadedCelestialSpace() : base("CelestialSpaceDNAJSON")
+        public DownloadedCelestialSpace() : base("STARCelestialSpaceDNAJSON")
         {
             this.HolonType = HolonType.DownloadedCelestialSpace;
         }

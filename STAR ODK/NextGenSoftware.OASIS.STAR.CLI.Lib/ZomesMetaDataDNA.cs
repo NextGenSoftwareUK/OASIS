@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class ZomesMetaDataDNA : STARNETUIBase<STARNETHolon, DownloadedSTARNETHolon, InstalledSTARNETHolon>
+    public class ZomesMetaDataDNA : STARNETUIBase<ZomeMetaDataDNA, DownloadedZomeMetaDataDNA, InstalledZomeMetaDataDNA>
     {
         public ZomesMetaDataDNA(Guid avatarId) : base(new API.ONODE.Core.Managers.ZomeMetaDataDNAManager(avatarId),
             "Welcome to the Zome MetaData DNA Wizard", new List<string> 
@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultZomesMetaDataDNAPublishedPath, "DefaultZomesMetaDataDNAPublishedPath",
             STAR.STARDNA.DefaultZomesMetaDataDNADownloadedPath, "DefaultZomesMetaDataDNADownloadedPath",
             STAR.STARDNA.DefaultZomesMetaDataDNAInstalledPath, "DefaultZomesMetaDataDNAInstalledPath",
-            30)
+            50)
         { }
     }
 }

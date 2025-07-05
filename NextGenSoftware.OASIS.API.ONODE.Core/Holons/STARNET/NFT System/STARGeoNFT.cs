@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class STARGeoNFT : STARNETHolon, ISTARGeoNFT
     {
-        public STARGeoNFT()
+        public STARGeoNFT() : base("STARGeoNFTDNAJSON")
         {
             this.HolonType = HolonType.STARGeoNFT;
         }

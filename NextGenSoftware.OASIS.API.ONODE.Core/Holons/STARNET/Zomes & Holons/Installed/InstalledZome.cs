@@ -5,7 +5,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class InstalledZome : InstalledSTARNETHolon, IInstalledZome
     {
-        public InstalledZome() : base("ZomeDNAJSON")
+        public InstalledZome() : base("STARZomeDNAJSON")
         {
             this.HolonType = HolonType.InstalledZome;
         }

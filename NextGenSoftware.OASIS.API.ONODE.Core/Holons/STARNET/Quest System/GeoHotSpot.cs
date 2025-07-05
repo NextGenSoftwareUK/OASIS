@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class GeoHotSpot : STARNETHolon, IGeoHotSpot
     {
-        public GeoHotSpot()
+        public GeoHotSpot() : base("GeoHotSpotDNAJSON")
         {
             this.HolonType = HolonType.GeoHotSpot;
         }

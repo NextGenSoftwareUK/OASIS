@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class STARHolon : STARNETHolon, ISTARHolon
     {
-        public STARHolon()
+        public STARHolon() : base("STARHolonDNAJSON")
         {
             this.HolonType = HolonType.STARHolon;
         }

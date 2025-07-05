@@ -7,6 +7,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public abstract class TaskBase : STARNETHolon, ITaskBase
     {
+        public TaskBase(string STARNETDNAJSONName = "TaskBaseDNAJSON") : base(STARNETDNAJSONName)
+        {
+           
+        }
+
         [CustomOASISProperty()]
         public DateTime StartedOn { get; set; }
 
