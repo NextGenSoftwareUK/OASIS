@@ -151,8 +151,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         Task<OASISResult<T3>> UpdateInstallCountsAsync(Guid avatarId, T3 installedSTARNETHolon, ISTARNETDNA STARNETDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> UpdateNumberOfVersionCounts(Guid avatarId, OASISResult<T1> result, string errorMessage, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> UpdateNumberOfVersionCountsAsync(Guid avatarId, OASISResult<T1> result, string errorMessage, ProviderType providerType = ProviderType.Default);
-        OASISResult<T> UploadToCloud<T>(ISTARNETDNA STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType);
-        Task<OASISResult<T>> UploadToCloudAsync<T>(ISTARNETDNA STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType);
+        OASISResult<bool> UploadToCloud(ISTARNETDNA STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType);
+        Task<OASISResult<bool>> UploadToCloudAsync(ISTARNETDNA STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType);
         OASISResult<T1> UploadToOASIS(Guid avatarId, ISTARNETDNA STARNETDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType);
         Task<OASISResult<T1>> UploadToOASISAsync(Guid avatarId, ISTARNETDNA STARNETDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType);
         OASISResult<bool> ValidateVersion(string dnaVersion, string storedVersion, string fullPathToSTARNETHolonFolder, bool firstPublish, bool edit);

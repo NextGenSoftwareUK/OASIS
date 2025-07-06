@@ -327,7 +327,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (registerOnSTARNET)
                 {
                     if (uploadToCloud)
-                        result = await UploadToCloudAsync<IOAPP>(OAPPDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+                    {
+                        OASISResult<bool> uploadToCloudResult = await UploadToCloudAsync(OAPPDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+
+                        if (!(uploadToCloudResult != null && uploadToCloudResult.Result && !uploadToCloudResult.IsError))
+                            OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToCloudAsync. Reason: {uploadToCloudResult.Message}");
+                    }
 
                     if (binaryProviderType != ProviderType.None)
                     {
@@ -488,7 +493,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (registerOnSTARNET)
                 {
                     if (uploadToCloud)
-                        result = UploadToCloud<IOAPP>(OAPPDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+                    {
+                        OASISResult<bool> uploadToCloudResult = UploadToCloud(OAPPDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+
+                        if (!(uploadToCloudResult != null && uploadToCloudResult.Result && !uploadToCloudResult.IsError))
+                            OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToCloud. Reason: {uploadToCloudResult.Message}");
+                    }
 
                     if (binaryProviderType != ProviderType.None)
                     {

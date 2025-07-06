@@ -75,10 +75,13 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         //Runtimes are used to run OAPPs and can be installed on the user's machine or downloaded from the OASIS. Different runtimes can be combined with different OAPP Templates making unique combinations for OAPPs.
         public string DefaultRuntimesSourcePath { get; set; } = "Runtimes\\Source"; 
         public string DefaultRuntimesPublishedPath { get; set; } = "Runtimes\\Published"; 
-        public string DefaultRuntimesDownloadedPath { get; set; } = "Runtimes\\Downloaded"; 
-        public string DefaultRuntimesInstalledPath { get; set; } = "Runtimes\\Installed\\Other"; 
-        public string DefaultRuntimesInstalledOASISPath { get; set; } = "Runtimes\\Installed\\OASIS"; 
-        public string DefaultRuntimesInstalledSTARPath { get; set; } = "Runtimes\\Installed\\STAR";
+        public string DefaultRuntimesDownloadedPath { get; set; } = "Runtimes\\Downloaded";
+        //public string DefaultRuntimesInstalledPath { get; set; } = "Runtimes\\Installed\\Other"; 
+        //public string DefaultRuntimesInstalledOASISPath { get; set; } = "Runtimes\\Installed\\OASIS"; 
+        //public string DefaultRuntimesInstalledSTARPath { get; set; } = "Runtimes\\Installed\\STAR";
+        public string DefaultRuntimesInstalledPath { get; set; } = "Runtimes\\Installed"; //TODO: NEED TO MAKE CUSTOM CHANGES TO RUNTIME MANAGER/UI ETC TO WORK WITH PATHS ABOVE!
+        public string DefaultRuntimesInstalledOASISPath { get; set; } = "Runtimes\\Installed";
+        public string DefaultRuntimesInstalledSTARPath { get; set; } = "Runtimes\\Installed";
 
         //Chapters contain Quests and are used to break down big quests into seperate Chapters.
         public string DefaultChaptersSourcePath { get; set; } = "Chapters\\Source"; 

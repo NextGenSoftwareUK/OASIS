@@ -845,7 +845,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
 
-            OASISResult<IHolon> response = await HolonManager.DeleteHolonAsync(request.Id, request.SoftDelete);
+            OASISResult<IHolon> response = await HolonManager.DeleteHolonAsync(request.Id, AvatarId, request.SoftDelete);
             ResetOASISSettings(request, configResult);
 
             return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);

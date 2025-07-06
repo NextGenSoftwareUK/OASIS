@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<string> GetCurrentLiveVersion()
         {
             //return new(_OASISDNA.OASIS.CurrentLiveVersion) { IsError = false, Message = "OK" };
-            return new(OASISBootLoader.OASISBootLoader.OASISVersion) { IsError = false, Message = "OK" };
+            return new(OASISBootLoader.OASISBootLoader.OASISRuntimeVersion) { IsError = false, Message = "OK" };
         }
         
         //[AllowAnonymous]
