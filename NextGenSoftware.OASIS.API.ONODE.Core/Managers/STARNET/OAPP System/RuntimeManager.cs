@@ -46,32 +46,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         { }
 
 
-        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallOASISRuntimeAsync(Guid avatarId, string version, string baseRuntimeInstalledPath, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallOASISRuntimeAsync(Guid avatarId, string version, string downloadPath, string installPath, ProviderType providerType = ProviderType.Default)
         {
-            //OASISResult<IInstalledRuntime> result = new OASISResult<IInstalledRuntime>();
-            //string errorMessage = "Error occured in RuntimeManager.InstallRuntimeAsync. Reason: ";
-            //IRuntimeDNA runtimeDNA = null;
-
-
-            //string runtimeName = string.Concat(Enum.GetName(typeof(RuntimeType), runtimeType), " ", version);
-            //string runtimePath = Path.Combine(baseRuntimeInstalledPath, runtimeName);
-
-            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, "OASIS Runtime", version, baseRuntimeInstalledPath, providerType: providerType));
+            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, "OASIS Runtime", version, installPath, downloadPath, providerType: providerType));
         }
 
-        public OASISResult<IInstalledRuntime> DownloadAndInstallOASISRuntime(Guid avatarId, string version, string baseRuntimeInstalledPath, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> DownloadAndInstallOASISRuntime(Guid avatarId, string version, string downloadPath, string installPath, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.DownloadAndInstall(avatarId, "OASIS Runtime", version, baseRuntimeInstalledPath, providerType: providerType));
+            return ProcessResult(base.DownloadAndInstall(avatarId, "OASIS Runtime", version, installPath, downloadPath, providerType: providerType));
         }
 
-        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallSTARRuntimeAsync(Guid avatarId, string version, string baseRuntimeInstalledPath, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallSTARRuntimeAsync(Guid avatarId, string version, string downloadPath, string installPath, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, "STAR Runtime", version, baseRuntimeInstalledPath, providerType: providerType));
+            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, "STAR Runtime", version, downloadPath, installPath, providerType: providerType));
         }
 
-        public OASISResult<IInstalledRuntime> DownloadAndInstallSTARRuntime(Guid avatarId, string version, string baseRuntimeInstalledPath, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IInstalledRuntime> DownloadAndInstallSTARRuntime(Guid avatarId, string version, string downloadPath, string installPath, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.DownloadAndInstall(avatarId, "STAR Runtime", version, baseRuntimeInstalledPath, providerType: providerType));
+            return ProcessResult(base.DownloadAndInstall(avatarId, "STAR Runtime", version, downloadPath, installPath, providerType: providerType));
         }
 
         /*

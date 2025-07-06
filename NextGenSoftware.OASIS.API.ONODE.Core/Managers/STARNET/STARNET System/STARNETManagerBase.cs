@@ -194,7 +194,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion;
                     STARNETDNA.STARAPIVersion = OASISBootLoader.OASISBootLoader.STARAPIVersion;
                     STARNETDNA.STARNETVersion = OASISBootLoader.OASISBootLoader.STARNETVersion;
-                    STARNETDNA.OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion;
+                    STARNETDNA.OASISAPIVersion = OASISBootLoader.OASISBootLoader.OASISAPIVersion;
+                    STARNETDNA.OASISRuntimeVersion = OASISBootLoader.OASISBootLoader.OASISRuntimeVersion;
                     STARNETDNA.COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion;
                     STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
                     STARNETDNA.SourcePath = fullPathToSourceFolder;
@@ -338,7 +339,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.STARODKVersion = OASISBootLoader.OASISBootLoader.STARODKVersion;
                     STARNETDNA.STARAPIVersion = OASISBootLoader.OASISBootLoader.STARAPIVersion;
                     STARNETDNA.STARNETVersion = OASISBootLoader.OASISBootLoader.STARNETVersion;
-                    STARNETDNA.OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion;
+                    STARNETDNA.OASISAPIVersion = OASISBootLoader.OASISBootLoader.OASISAPIVersion;
+                    STARNETDNA.OASISRuntimeVersion = OASISBootLoader.OASISBootLoader.OASISRuntimeVersion;
                     STARNETDNA.COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion;
                     STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
                     STARNETDNA.SourcePath = fullPathToSourceFolder;
@@ -1118,7 +1120,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             ISTARNETDNA STARNETDNA = null;
             string errorMessage = "Error occured in STARManagerBase.PublishAsync. Reason:";
 
-            OASISResult<T1> validateResult = await BeginPublishAsync(avatarId, fullPathToSource, launchTarget, fullPathToPublishTo, edit, providerType);
+            OASISResult<T1> validateResult = await BeginPublishAsync(avatarId, fullPathToSource, fullPathToPublishTo, launchTarget, edit, providerType);
 
             if (validateResult != null && validateResult.Result != null && !validateResult.IsError)
             {
@@ -1160,11 +1162,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     if (uploadToCloud)
                     {
-                        OASISResult<T1> uploadToCloudResult = await UploadToCloudAsync<T1>(STARNETDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+                        OASISResult<bool> uploadToCloudResult = await UploadToCloudAsync(STARNETDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
 
-                        if (uploadToCloudResult != null && uploadToCloudResult.Result != null && !uploadToCloudResult.IsError)
-                            result.Result = uploadToCloudResult.Result;
-                        else
+                        if (!(uploadToCloudResult != null && uploadToCloudResult.Result && !uploadToCloudResult.IsError))
                             OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToCloudAsync. Reason: {uploadToCloudResult.Message}");
                     }
 
@@ -1197,7 +1197,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             ISTARNETDNA STARNETDNA = null;
             string errorMessage = "Error occured in STARManagerBase.PublishAsync. Reason:";
 
-            OASISResult<T1> validateResult = BeginPublish(avatarId, fullPathToSource, launchTarget, fullPathToPublishTo, edit, providerType);
+            OASISResult<T1> validateResult = BeginPublish(avatarId, fullPathToSource, fullPathToPublishTo, launchTarget, edit, providerType);
 
             if (validateResult != null && validateResult.Result != null && !validateResult.IsError)
             {
@@ -1239,11 +1239,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     if (uploadToCloud)
                     {
-                        OASISResult<T1> uploadToCloudResult = UploadToCloud<T1>(STARNETDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+                        OASISResult<bool> uploadToCloudResult = UploadToCloud(STARNETDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
 
-                        if (uploadToCloudResult != null && uploadToCloudResult.Result != null && !uploadToCloudResult.IsError)
-                            result.Result = uploadToCloudResult.Result;
-                        else
+                        if (!(uploadToCloudResult != null && uploadToCloudResult.Result && !uploadToCloudResult.IsError))
                             OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToCloud. Reason: {uploadToCloudResult.Message}");
                     }
 
@@ -1494,9 +1492,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual async Task<OASISResult<T>> UploadToCloudAsync<T>(ISTARNETDNA STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType)
+        public virtual async Task<OASISResult<bool>> UploadToCloudAsync(ISTARNETDNA STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType)
         {
-            OASISResult<T> result = new OASISResult<T>();
+            OASISResult<bool> result = new OASISResult<bool>();
 
             try
             {
@@ -1523,6 +1521,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 OnUploadStatusChanged?.Invoke(this, new STARNETHolonUploadProgressEventArgs() { Progress = _progress, Status = STARNETHolonUploadStatus.Uploading });
                 CLIEngine.DisposeProgressBar(false);
                 Console.WriteLine("");
+                result.Result = true;
 
                 //HttpClient client = new HttpClient();
                 //string pinataApiKey = "33e4469830a51af0171b";
@@ -1629,9 +1628,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T> UploadToCloud<T>(ISTARNETDNA STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType)
+        public OASISResult<bool> UploadToCloud(ISTARNETDNA STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType)
         {
-            OASISResult<T> result = new OASISResult<T>();
+            OASISResult<bool> result = new OASISResult<bool>();
 
             try
             {
@@ -1658,6 +1657,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 OnUploadStatusChanged?.Invoke(this, new STARNETHolonUploadProgressEventArgs() { Progress = _progress, Status = STARNETHolonUploadStatus.Uploading });
                 CLIEngine.DisposeProgressBar(false);
                 Console.WriteLine("");
+                result.Result = true;
 
                 //HttpClient client = new HttpClient();
                 //string pinataApiKey = "33e4469830a51af0171b";
@@ -3033,7 +3033,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             OASISResult<T3> result = new OASISResult<T3>();
             OASISResult<T1> STARNETHolonResult = await Data.LoadHolonByMetaDataAsync<T1>(new Dictionary<string, string>()
             {
-                { STARNETHolonNameName, STARNETHolonNameName },
+                { STARNETHolonNameName, STARNETHolonName },
                 { "VersionSequence", version.ToString() } ,
                 { "Active", "1" } //TODO: Not sure if we need this?
             }, metaKeyValuePairMatchMode: MetaKeyValuePairMatchMode.All, providerType: providerType);
@@ -3055,7 +3055,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             OASISResult<T3> result = new OASISResult<T3>();
             OASISResult<T1> STARNETHolonResult = Data.LoadHolonByMetaData<T1>(new Dictionary<string, string>()
             {
-                { STARNETHolonNameName, STARNETHolonNameName },
+                { STARNETHolonNameName, STARNETHolonName },
                 { "VersionSequence", version.ToString() } ,
                 { "Active", "1" } //TODO: Not sure if we need this?
             }, metaKeyValuePairMatchMode: MetaKeyValuePairMatchMode.All, providerType: providerType);
@@ -3076,7 +3076,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             OASISResult<T3> result = new OASISResult<T3>();
             OASISResult<T1> STARNETHolonResult = await Data.LoadHolonByMetaDataAsync<T1>(new Dictionary<string, string>()
             {
-                { STARNETHolonNameName, STARNETHolonNameName },
+                { STARNETHolonNameName, STARNETHolonName },
                 { "Version", version } ,
                 { "Active", "1" } //TODO: Not sure if we need this?
             }, metaKeyValuePairMatchMode: MetaKeyValuePairMatchMode.All, providerType: providerType);
@@ -3097,7 +3097,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             OASISResult<T3> result = new OASISResult<T3>();
             OASISResult<T1> STARNETHolonResult = Data.LoadHolonByMetaData<T1>(new Dictionary<string, string>()
             {
-                { STARNETHolonNameName, STARNETHolonNameName },
+                { STARNETHolonNameName, STARNETHolonName },
                 { "Version", version } ,
                 { "Active", "1" } //TODO: Not sure if we need this?
             }, metaKeyValuePairMatchMode: MetaKeyValuePairMatchMode.All, providerType: providerType);
@@ -5002,8 +5002,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             if (STARNETDNA.STARAPIVersion != OASISBootLoader.OASISBootLoader.STARAPIVersion)
                 OASISErrorHandling.HandleWarning(ref result, string.Format(message, "STAR API", STARNETDNA.STARAPIVersion, OASISBootLoader.OASISBootLoader.STARAPIVersion));
 
-            if (STARNETDNA.OASISVersion != OASISBootLoader.OASISBootLoader.OASISVersion)
-                OASISErrorHandling.HandleWarning(ref result, string.Format(message, "OASIS", STARNETDNA.OASISVersion, OASISBootLoader.OASISBootLoader.OASISVersion));
+            if (STARNETDNA.OASISAPIVersion != OASISBootLoader.OASISBootLoader.OASISAPIVersion)
+                OASISErrorHandling.HandleWarning(ref result, string.Format(message, "OASIS Runtime", STARNETDNA.OASISRuntimeVersion, OASISBootLoader.OASISBootLoader.OASISRuntimeVersion));
+
+            if (STARNETDNA.OASISAPIVersion != OASISBootLoader.OASISBootLoader.OASISAPIVersion)
+                OASISErrorHandling.HandleWarning(ref result, string.Format(message, "OASIS API", STARNETDNA.OASISAPIVersion, OASISBootLoader.OASISBootLoader.OASISAPIVersion));
 
             if (STARNETDNA.COSMICVersion != OASISBootLoader.OASISBootLoader.COSMICVersion)
                 OASISErrorHandling.HandleWarning(ref result, string.Format(message, "COSMIC", STARNETDNA.COSMICVersion, OASISBootLoader.OASISBootLoader.STARODKVersion));

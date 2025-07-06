@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         private OLandManager _olands = null;
 
         public bool IsOASISBooted { get; set; }
-        public string OASISVersion { get; set; }
+        //public string OASISRunVersion { get; set; }
         public OASISDNA OASISDNA { get; set; } 
 
         public HolonManager Data { get; set; } //TODO: FIX TOMORROW!
@@ -191,7 +191,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
         private void InitOASIS(string userName = "", string password = "", bool startApolloServer = true)
         {
-            OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion;
+            //OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion;
             OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
             //Avatar = new AvatarManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Data = new HolonManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);

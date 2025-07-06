@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public string GetVersion()
         {
             // TODO: Finish implementing.
-            return $"OASIS API {OASISBootLoader.OASISBootLoader.OASISVersion}";
+            return $"OASIS API {OASISBootLoader.OASISBootLoader.OASISRuntimeVersion}";
         }
     }
 }

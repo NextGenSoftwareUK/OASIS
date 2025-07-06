@@ -22,6 +22,7 @@ using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.CLI.Lib;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 {
@@ -251,10 +252,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 case "version":
                                     {
                                         Console.WriteLine("");
-                                        CLIEngine.ShowMessage($"STAR ODK Version: {OASISBootLoader.OASISBootLoader.STARODKVersion}", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"COSMIC ORM Version: {OASISBootLoader.OASISBootLoader.COSMICVersion}", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"OASIS Runtime Version: {OASISBootLoader.OASISBootLoader.OASISVersion}", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"OASIS Provider Versions: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
+                                        CLIEngine.ShowMessage($"OASIS RUNTIME VERSION:   v{OASISBootLoader.OASISBootLoader.OASISRuntimeVersion}.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"OASIS API VERSION:       v{OASISBootLoader.OASISBootLoader.OASISAPIVersion}.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"COSMIC ORM VERSION:      v{OASISBootLoader.OASISBootLoader.COSMICVersion}.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"STAR RUNTIME VERSION:    v{OASISBootLoader.OASISBootLoader.STARRuntimeVersion}.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"STAR ODK VERSION:        v{OASISBootLoader.OASISBootLoader.STARODKVersion}.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"STARNET VERSION:         v{OASISBootLoader.OASISBootLoader.STARNETVersion}.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"STAR API VERSION:        v{OASISBootLoader.OASISBootLoader.STARAPIVersion}.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($".NET VERSION:            v{OASISBootLoader.OASISBootLoader.DotNetVersion}.", ConsoleColor.Green, false);
+                                        CLIEngine.ShowMessage($"OASIS PROVIDER VERSIONS: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
                                     }
                                     break;
 
@@ -642,7 +648,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     }
 
                                 case "runtime":  
-                                    await ShowSubCommandAsync<Runtime>(inputArgs, "runtime", "runtimes", STARCLI.Runtimes.CreateAsync, STARCLI.Runtimes.EditAsync, STARCLI.Runtimes.DeleteAsync, STARCLI.Runtimes.DownloadAndInstallAsync, STARCLI.Runtimes.UninstallAsync, STARCLI.Runtimes.PublishAsync, STARCLI.Runtimes.UnpublishAsync, STARCLI.Runtimes.RepublishAsync, STARCLI.Runtimes.ActivateAsync, STARCLI.Runtimes.DeactivateAsync, STARCLI.Runtimes.ShowAsync, STARCLI.Runtimes.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Runtimes.ListAllAsync, STARCLI.Runtimes.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Runtimes.SearchsAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Runtime>(inputArgs, "runtime", "runtimes", STARCLI.Runtimes.CreateAsync, STARCLI.Runtimes.EditAsync, STARCLI.Runtimes.DeleteAsync, STARCLI.Runtimes.DownloadAndInstallAsync, STARCLI.Runtimes.UninstallAsync, STARCLI.Runtimes.PublishAsync, STARCLI.Runtimes.UnpublishAsync, STARCLI.Runtimes.RepublishAsync, STARCLI.Runtimes.ActivateAsync, STARCLI.Runtimes.DeactivateAsync, STARCLI.Runtimes.ShowAsync, STARCLI.Runtimes.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Runtimes.ListAllAsync, STARCLI.Runtimes.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Runtimes.SearchsAsync, true, providerType: providerType);
                                     break;
 
                                 case "celestialspace":
@@ -950,7 +956,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
                             else
-                                CLIEngine.ShowMessage("Command not supported.");
+                                CLIEngine.ShowErrorMessage("Command not supported.");
                         }
                         break;
 
@@ -964,7 +970,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
                             else
-                                CLIEngine.ShowMessage("Command not supported.");
+                                CLIEngine.ShowErrorMessage("Command not supported.");
                         }
                         break;
 
@@ -983,7 +989,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
                             else
-                                CLIEngine.ShowMessage("Command not supported.");
+                                CLIEngine.ShowErrorMessage("Command not supported.");
                         }
                         break;
 
@@ -997,7 +1003,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
                             else
-                                CLIEngine.ShowMessage("Command not supported.");
+                                CLIEngine.ShowErrorMessage("Command not supported.");
                         }
                         break;
 
@@ -1011,7 +1017,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
                             else
-                                CLIEngine.ShowMessage("Command not supported.");
+                                CLIEngine.ShowErrorMessage("Command not supported.");
                         }
                         break;
 
@@ -1025,7 +1031,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
                             else
-                                CLIEngine.ShowMessage("Command not supported.");
+                                CLIEngine.ShowErrorMessage("Command not supported.");
                         }
                         break;
 

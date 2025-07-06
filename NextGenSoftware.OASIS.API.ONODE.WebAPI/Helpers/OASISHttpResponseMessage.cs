@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         {
             get
             {
-                return OASISBootLoader.OASISBootLoader.OASISVersion;
+                return OASISBootLoader.OASISBootLoader.OASISRuntimeVersion;
                 //switch (OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISVersion.ToUpper())
                 //{
                 //    case "LIVE":

@@ -67,9 +67,12 @@
     "DefaultRuntimesSourcePath": "Runtimes\\Source",
     "DefaultRuntimePublishedPath": "Runtimes\\Published",
     "DefaultRuntimeDownloadedPath": "Runtimes\\Downloaded",
-    "DefaultRuntimeInstalledPath": "Runtimes\\Installed\\Other",
-    "DefaultRuntimeInstalledOASISPath": "Runtimes\\Installed\\OASIS",
-    "DefaultRuntimeInstalledSTARPath": "Runtimes\\Installed\\STAR",
+    //"DefaultRuntimeInstalledPath": "Runtimes\\Installed\\Other",
+    //"DefaultRuntimeInstalledOASISPath": "Runtimes\\Installed\\OASIS",
+    //"DefaultRuntimeInstalledSTARPath": "Runtimes\\Installed\\STAR",
+    "DefaultRuntimeInstalledPath": "Runtimes\\Installed", //TODO: NEED TO MAKE CUSTOM CHANGES TO RUNTIME MANAGER/UI ETC TO WORK WITH PATHS ABOVE!
+    "DefaultRuntimeInstalledOASISPath": "Runtimes\\Installed",
+    "DefaultRuntimeInstalledSTARPath": "Runtimes\\Installed",
 
     //Chapters contain Quests and are used to break down big quests into seperate Chapters.
     "DefaultChaptersSourcePath": "Chapters\\Source",

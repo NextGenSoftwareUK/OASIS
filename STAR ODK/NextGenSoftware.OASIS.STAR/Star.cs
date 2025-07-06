@@ -26,13 +26,12 @@ using NextGenSoftware.OASIS.STAR.EventArgs;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.STAR.CelestialSpace;
 using NextGenSoftware.OASIS.STAR.CelestialBodies;
-using NextGenSoftware.OASIS.API.ONODE.Core;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
-using System.Text;
 using NextGenSoftware.OASIS.STAR.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.STAR
 {
@@ -1386,10 +1385,15 @@ namespace NextGenSoftware.OASIS.STAR
             OASISResult<IGenerateMetaDataDNAResult> result = new OASISResult<IGenerateMetaDataDNAResult>();
             string propBuffer = "";
             string holonBuffer = "";
+            string holonsBuffer = "";
             string zomeBuffer = "";
             string zomeDNAPath = "";
             string holonDNAPath = "";
-            string propTemplate = "        public {TYPE} {PROPERTYNAME} {get; set;}";
+            //string propTemplate = "            public {TYPE} {PROPERTYNAME} {get; set;}";
+            string propTemplate = "public {TYPE} {PROPERTYNAME} {get; set;}";
+            bool firstProp = true;
+            int iHolon = 0;
+            int iProp = 0;
 
             try
             {
@@ -1445,60 +1449,94 @@ namespace NextGenSoftware.OASIS.STAR
 
                 string zomeMetaDataDNA = File.ReadAllText(zomeDNAPath);
                 string holonMetaDataDNA = File.ReadAllText(holonDNAPath);
+                //string[] lines = File.ReadAllLines(holonDNAPath);
+
+                //string holonMetaDataDNA = "";
+                //for (int i = 0; i < lines.Length; i++)
+                //{
+                //    if (!lines[i].Contains("//"))
+                //    {
+                //        holonMetaDataDNA = string.Concat(holonMetaDataDNA, lines[i]);
+
+                //        if (i < lines.Length - 1)
+                //            holonMetaDataDNA = string.Concat(holonMetaDataDNA, "\n");
+                //    }
+                //}
 
                 foreach (IZome zome in zomes)
                 {
+                    holonBuffer = "";
+                    holonsBuffer = "";
+                    iHolon = 0;
+
                     foreach (IHolon holon in zome.Children)
                     {
+                        iHolon++;
                         propBuffer = "";
+                        firstProp = true;
+                        iProp = 0;
 
                         foreach (INode node in holon.Nodes)
                         {
+                            iProp++;
+                            if (!firstProp)
+                                propBuffer = string.Concat(propBuffer, "".PadRight(12));
+                                    
                             switch (node.NodeType)
                             {
                                 case NodeType.Bool:
-                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "bool").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "bool").Replace("{PROPERTYNAME}", node.NodeName));
                                     break;
 
                                 case NodeType.String:
-                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "string").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "string").Replace("{PROPERTYNAME}", node.NodeName));
                                     break;
 
                                 case NodeType.Int:
-                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "int").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "int").Replace("{PROPERTYNAME}", node.NodeName));
                                     break;
 
                                 case NodeType.Double:
-                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "double").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "double").Replace("{PROPERTYNAME}", node.NodeName));
                                     break;
 
                                 case NodeType.Float:
-                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "float").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "float").Replace("{PROPERTYNAME}", node.NodeName));
                                     break;
 
                                 case NodeType.Long:
-                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "long").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "long").Replace("{PROPERTYNAME}", node.NodeName));
                                     break;
 
                                 case NodeType.DateTime:
-                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "DateTime").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "DateTime").Replace("{PROPERTYNAME}", node.NodeName));
                                     break;
 
                                 case NodeType.ByteArray:
-                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "byte[]").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "byte[]").Replace("{PROPERTYNAME}", node.NodeName));
                                     break;
 
                                 case NodeType.Object:
-                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "object").Replace("{PROPERTYNAME}", node.NodeName), "\n\n");
+                                    propBuffer = string.Concat(propBuffer, propTemplate.Replace("{TYPE}", "object").Replace("{PROPERTYNAME}", node.NodeName));
                                     break;
                             }
+
+                            if (iProp != holon.Nodes.Count)
+                                propBuffer = string.Concat(propBuffer, "\n");
+
+                            firstProp = false;
                         }
 
-                        holonBuffer = string.Concat(holonBuffer, holonMetaDataDNA.Replace("{HOLONNAME}", holon.Name).Replace("{PROPERTIES}", propBuffer), "\n\n");
+                        holonBuffer = string.Concat(holonMetaDataDNA.Replace("{HOLONNAME}", holon.Name).Replace("{PROPERTIES}", propBuffer));
+
+                        if (iHolon != zome.Children.Count)
+                            holonBuffer = string.Concat(holonBuffer, "\n\n");
+
+                        holonsBuffer = string.Concat(holonsBuffer, holonBuffer);
                         File.WriteAllText(Path.Combine(result.Result.HolonMetaDataDNAPath, string.Concat(holon.Name, ".cs")), holonBuffer);
                     }
 
-                    zomeBuffer = zomeMetaDataDNA.Replace("{ZOMENNAME}", zome.Name).Replace("{HOLONS}", holonBuffer);
+                    zomeBuffer = zomeMetaDataDNA.Replace("{ZOMENAME}", zome.Name).Replace("{HOLONS}", holonsBuffer);
                     File.WriteAllText(Path.Combine(result.Result.ZomeMetaDataDNAPath, string.Concat(zome.Name, ".cs")), zomeBuffer);
                     File.WriteAllText(Path.Combine(result.Result.CelestialBodyMetaDataDNAPath, string.Concat(zome.Name, ".cs")), zomeBuffer);
                 }
@@ -2872,6 +2910,8 @@ namespace NextGenSoftware.OASIS.STAR
         {
             OASISResult<string> result = new OASISResult<string>();
             string errorMessage = "An error occured in InitOAPPFolderAsync. Reason:";
+            string downloadPath = "";
+            string installPath = "";
 
             try
             {
@@ -2879,7 +2919,8 @@ namespace NextGenSoftware.OASIS.STAR
                 //if (OAPPType != OAPPType.GeneratedCodeOnly)
                 //{
                 //OAPPFolder = string.Concat(genesisFolder, "\\", OAPPName, " OAPP");
-                string OAPPFolder = Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP"));
+                //string OAPPFolder = Path.Combine(genesisFolder, string.Concat(OAPPName, " OAPP"));
+                string OAPPFolder = Path.Combine(genesisFolder, OAPPName);
 
                 if (Directory.Exists(OAPPFolder))
                     Directory.Delete(OAPPFolder, true);
@@ -2905,55 +2946,78 @@ namespace NextGenSoftware.OASIS.STAR
                     STARRunTimePath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultRuntimesInstalledSTARPath);
                 }
 
+                OASISRunTimePath = Path.Combine(OASISRunTimePath, string.Concat("OASIS Runtime_v", installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion));
+                STARRunTimePath = Path.Combine(STARRunTimePath, string.Concat("STAR Runtime_v", installedOAPPTemplateResult.Result.STARNETDNA.STARRuntimeVersion));
+
                 //Copy the correct runtimes to the OAPP folder.
-                if (Directory.Exists(Path.Combine(OASISRunTimePath, string.Concat("OASIS Runtime ", installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion))))
+                if (Directory.Exists(OASISRunTimePath))
                     DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
                 else
                 {
-                    CLIEngine.ShowWarningMessage($"The target OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion} is not installed!");
-                    
+                    CLIEngine.ShowWarningMessage($"The target OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion} is not installed!");
+
                     if (CLIEngine.GetConfirmation("Do you wish to download & install now?"))
                     {
-                        //OASISResult<IInstalledRuntime> installResult = await OASISAPI.Runtimes.InstallAsync(BeamedInAvatar.Id, API.Core.RuntimeType.OASIS, installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion, STARDNA.DefaultRuntimesInstalledOASISPath, providerType);
-                        OASISResult<IInstalledRuntime> installResult = await STARAPI.Runtimes.DownloadAndInstallOASISRuntimeAsync(BeamedInAvatar.Id, installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion, STARDNA.DefaultRuntimesInstalledOASISPath, providerType);
+                        if (Path.IsPathRooted(STARDNA.DefaultRuntimesDownloadedPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
+                            downloadPath = STARDNA.DefaultRuntimesDownloadedPath;
+                        else
+                            downloadPath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultRuntimesDownloadedPath);
+
+
+                        if (Path.IsPathRooted(STARDNA.DefaultRuntimesInstalledOASISPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
+                            installPath = STARDNA.DefaultRuntimesInstalledOASISPath;
+                        else
+                            installPath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultRuntimesInstalledOASISPath);
+
+
+                        OASISResult<IInstalledRuntime> installResult = await STARAPI.Runtimes.DownloadAndInstallOASISRuntimeAsync(BeamedInAvatar.Id, installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion, downloadPath, installPath, providerType);
 
                         if (installResult != null && installResult.Result != null && !installResult.IsError)
                             DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
                         else
                         {
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion}. Reason: {installResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion}. Reason: {installResult.Message}");
                             return result;
                         }
                     }
                     else
                     {
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The target OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISVersion} is not installed!");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The target OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion} is not installed!");
                         return result;
                     }
                 }
 
-                //string OASISRunTimePath = STARDNA.OASISRunTimePath;
-                //string STARRunTimePath = STARDNA.STARRunTimePath;
 
-                //if (!string.IsNullOrEmpty(STARDNA.BaseSTARPath))
-                //{
-                //    OASISRunTimePath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.OASISRunTimePath);
-                //    STARRunTimePath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.STARRunTimePath);
-                //}
+                if (Directory.Exists(STARRunTimePath))
+                    DirectoryHelper.CopyFilesRecursively(STARRunTimePath, OAPPFolder);
+                else
+                {
+                    CLIEngine.ShowWarningMessage($"The target STAR Runtime {installedOAPPTemplateResult.Result.STARNETDNA.STARRuntimeVersion} is not installed!");
 
-                //DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
-                //DirectoryHelper.CopyFilesRecursively(STARRunTimePath, OAPPFolder);
+                    if (CLIEngine.GetConfirmation("Do you wish to download & install now?"))
+                    {
+                        if (Path.IsPathRooted(STARDNA.DefaultRuntimesInstalledSTARPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
+                            installPath = STARDNA.DefaultRuntimesInstalledSTARPath;
+                        else
+                            installPath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultRuntimesInstalledOASISPath);
 
-                //switch (OAPPType)
-                //{
-                //    case OAPPType.Blazor:
-                //        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.OAPPBlazorTemplateDNA)), new DirectoryInfo(OAPPFolder));
-                //        break;
 
-                //    case OAPPType.Console:
-                //        CopyFolder(genesisNameSpace, new DirectoryInfo(string.Concat(STARDNA.BaseSTARPath, "\\", STARDNA.OAPPConsoleTemplateDNA)), new DirectoryInfo(OAPPFolder));
-                //        break;
-                //}
+                        OASISResult<IInstalledRuntime> installResult = await STARAPI.Runtimes.DownloadAndInstallSTARRuntimeAsync(BeamedInAvatar.Id, installedOAPPTemplateResult.Result.STARNETDNA.STARRuntimeVersion, downloadPath, installPath, providerType);
+
+                        if (installResult != null && installResult.Result != null && !installResult.IsError)
+                            DirectoryHelper.CopyFilesRecursively(STARRunTimePath, OAPPFolder);
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the STAR Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion}. Reason: {installResult.Message}");
+                            return result;
+                        }
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} The target STAR Runtime {installedOAPPTemplateResult.Result.STARNETDNA.STARRuntimeVersion} is not installed!");
+                        return result;
+                    }
+                }
 
                 genesisFolder = string.Concat(OAPPFolder, "\\", STARDNA.OAPPGeneratedCodeFolder);
 
@@ -2969,6 +3033,110 @@ namespace NextGenSoftware.OASIS.STAR
 
             return result;
         }
+
+
+        //private OASISResult<Runtime> DownloadAndInstallRuntime(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<Runtime> installResult = new OASISResult<Runtime>();
+        //    string downloadPath = "";
+        //    string installPath = "";
+
+        //    if (Path.IsPathRooted(STARDNA.DefaultRuntimesDownloadedPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+        //        downloadPath = STARDNA.DefaultRuntimesDownloadedPath;
+        //    else
+        //        downloadPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STARDNA.DefaultRuntimesDownloadedPath);
+
+
+        //    if (Path.IsPathRooted(STARDNA.DefaultRuntimesInstallPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+        //        installPath = SourcePath;
+        //    else
+        //        installPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, InstalledPath);
+
+        //    Console.WriteLine("");
+
+        //    if (!CLIEngine.GetConfirmation($"Do you wish to download the {STARNETManager.STARNETHolonUIName} to the default download folder defined in the STARDNA as {DownloadSTARDNAKey} : {downloadPath}?"))
+        //    {
+        //        Console.WriteLine("");
+        //        downloadPath = CLIEngine.GetValidFolder($"What is the full path to where you wish to download the {STARNETManager.STARNETHolonUIName}?", true);
+        //    }
+
+        //    downloadPath = new DirectoryInfo(downloadPath).FullName;
+
+        //    Console.WriteLine("");
+
+        //    if (!CLIEngine.GetConfirmation($"Do you wish to install the {STARNETManager.STARNETHolonUIName} to the default install folder defined in the STARDNA as {DownloadSTARDNAKey} : {installPath}?"))
+        //    {
+        //        Console.WriteLine("");
+        //        installPath = CLIEngine.GetValidFolder($"What is the full path to where you wish to install the {STARNETManager.STARNETHolonUIName}?", true);
+        //    }
+
+        //    installPath = new DirectoryInfo(installPath).FullName;
+
+        //    //if (!string.IsNullOrEmpty(idOrName))
+        //    //{
+        //    //    Console.WriteLine("");
+        //    //    OASISResult<T1> result = FindForProvider("install", idOrName, false, false, true, providerType);
+
+        //    //    if (result != null && result.Result != null && !result.IsError)
+        //    //        installResult = STARNETManager.DownloadAndInstall(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, false, providerType);
+        //    //}
+        //    //else
+        //    //{
+        //        Console.WriteLine("");
+        //        if (CLIEngine.GetConfirmation($"Do you wish to install the {STARNETManager.STARNETHolonUIName} from a local .{STARNETManager.STARNETDNAFileName} file or from STARNET? Press 'Y' for local .{STARNETManager.STARNETDNAFileName} file or 'N' for STARNET."))
+        //        {
+        //            Console.WriteLine("");
+        //            string oappPath = CLIEngine.GetValidFile($"What is the full path to the {STARNETManager.STARNETDNAFileName} file?");
+
+        //            if (oappPath == "exit")
+        //                return installResult;
+
+        //            installResult = STARNETManager.Install(STAR.BeamedInAvatar.Id, oappPath, installPath, true, null, false, providerType);
+        //        }
+        //        else
+        //        {
+        //            Console.WriteLine("");
+        //            CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}s...");
+        //            OASISResult<IEnumerable<T1>> starHolonsResult = ListAll();
+
+        //            if (starHolonsResult != null && starHolonsResult.Result != null && !starHolonsResult.IsError && starHolonsResult.Result.Count() > 0)
+        //            {
+        //                OASISResult<T1> result = FindForProvider("", "install", false, false, true, providerType);
+
+        //                if (result != null && result.Result != null && !result.IsError)
+        //                    installResult = STARNETManager.DownloadAndInstall(STAR.BeamedInAvatar.Id, result.Result, installPath, downloadPath, true, false, providerType);
+        //                else
+        //                {
+        //                    installResult.Message = result.Message;
+        //                    installResult.IsError = true;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                installResult.Message = $"No {STARNETManager.STARNETHolonUIName}s found to install.";
+        //                installResult.IsError = true;
+        //            }
+        //        }
+        //    //}
+
+        //    if (installResult != null)
+        //    {
+        //        if (!installResult.IsError && installResult.Result != null)
+        //        {
+        //            ShowInstalled(installResult.Result);
+
+        //            if (CLIEngine.GetConfirmation($"Do you wish to open the folder to the {STARNETManager.STARNETHolonUIName} now?"))
+        //                STARNETManager.OpenSTARNETHolonFolder(STAR.BeamedInAvatar.Id, installResult.Result);
+        //        }
+        //        else
+        //            CLIEngine.ShowErrorMessage($"Error installing {STARNETManager.STARNETHolonUIName}. Reason: {installResult.Message}");
+        //    }
+        //    else
+        //        CLIEngine.ShowErrorMessage($"Error installing {STARNETManager.STARNETHolonUIName}. Reason: Unknown error occured!");
+
+        //    Console.WriteLine("");
+        //    return installResult;
+        //}
 
         //private static async Task<OASISResult<bool>> DownloadAndInstallOASISRunTime(string OASISRuntimeVersion)
         //{

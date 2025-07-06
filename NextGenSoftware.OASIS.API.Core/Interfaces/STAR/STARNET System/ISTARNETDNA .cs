@@ -31,7 +31,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         string LaunchTarget { get; set; }
         long FileSize { get; set; }
         string Version { get; set; }
-        public string OASISVersion { get; set; }
+        public string OASISRuntimeVersion { get; set; }
+        public string OASISAPIVersion { get; set; }
         public string COSMICVersion { get; set; }
         public string STARRuntimeVersion { get; set; }
         public string STARODKVersion { get; set; }
