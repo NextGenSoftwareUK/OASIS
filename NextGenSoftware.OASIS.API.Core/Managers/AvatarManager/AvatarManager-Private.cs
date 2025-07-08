@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class AvatarManager : OASISManager
     {
-        private const string LIVE_OASISSITE = "https://oasisplatform.world";
+        private const string LIVE_OASISSITE = "https://oasisweb4.one";
 
         private string OASISWebSiteURL
         {

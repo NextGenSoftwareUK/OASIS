@@ -46,7 +46,7 @@
       "SmtpPass": "",
       "DisableAllEmails": "false", //This overrides the SendVerificationEmail setting below. MAKE SURE THIS IS FALSE FOR LIVE!
       "SendVerificationEmail": "true",
-      "OASISWebSiteURL": "https://staging.oasisplatform.world"
+      "OASISWebSiteURL": "https://staging.oasisweb4.one"
     },
     "StorageProviders": {
       "AutoReplicationEnabled": "false",

@@ -49,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             get
             {
                 if (_instance == null)
-                    _instance = new AvatarManager(ProviderManager.Instance.CurrentStorageProvider);
+                    _instance = new AvatarManager(ProviderManager.Instance.CurrentStorageProvider, ProviderManager.Instance.OASISDNA);
 
                 return _instance;
             }
