@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
@@ -14,6 +15,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     {
         IList<IHolon> Children { get; set; } //Allows any holon to add any number of custom child holons to it.
         IReadOnlyCollection<IHolon> AllChildren { get; } //Readonly collection of all the total children including all the zomes, celestialbodies, celestialspaces, moons, holons, planets, stars etc belong to the holon.
+
+        [JsonIgnore]
         IAvatar CreatedByAvatar { get; set; }
         Guid CreatedByAvatarId { get; set; }
         //string CreatedByAvatarUsername { get; set; }
