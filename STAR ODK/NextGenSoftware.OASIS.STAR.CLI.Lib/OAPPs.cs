@@ -13,7 +13,7 @@ using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.STAR.Interfaces;
 using NextGenSoftware.Utilities;
-]using NextGenSoftware.Utilities.ExtentionMethods;
+using NextGenSoftware.Utilities.ExtentionMethods;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
