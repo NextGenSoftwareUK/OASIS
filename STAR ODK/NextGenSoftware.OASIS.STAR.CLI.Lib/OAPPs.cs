@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.STAR.Interfaces;
 using NextGenSoftware.Utilities;
+]using NextGenSoftware.Utilities.ExtentionMethods;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -91,6 +92,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 lightResult.Message = "User Exited";
                 return lightResult;
             }
+
+            //OAPPName = OAPPName.Replace(" ", "_");
 
             string OAPPDesc = CLIEngine.GetValidInput("What is the description of the OAPP?");
 
@@ -491,7 +494,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     return lightResult;
                 }
 
-                string genesisNamespace = OAPPName;
+                //string genesisNamespace = OAPPName.Replace(" ", "");
+                string genesisNamespace = OAPPName.ToPascalCase();
 
                 Console.WriteLine("");
                 if (!CLIEngine.GetConfirmation("Do you wish to use the OAPP Name for the Genesis Namespace (the OAPP namespace)? (Recommended)"))
@@ -577,9 +581,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (createOAPPResult != null && createOAPPResult.Result != null && !createOAPPResult.IsError)
                         {
                             lightResult.Result.OAPP = createOAPPResult.Result;
-                            oappPath = Path.Combine(oappPath, string.Concat(OAPPName, " OAPP"));
+                            //oappPath = Path.Combine(oappPath, string.Concat(OAPPName, " OAPP"));
 
                             CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+
+                            Console.WriteLine("");
                             Show(lightResult.Result.OAPP, customData: lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
                             Console.WriteLine("");
 
@@ -825,47 +831,47 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             IOAPPDNA OAPPDNA = (IOAPPDNA)oapp.STARNETDNA;
 
-            CLIEngine.ShowMessage(string.Concat($"Id:                                                   ", OAPPDNA.Id != Guid.Empty ? OAPPDNA.Id : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Name:                                                 ", !string.IsNullOrEmpty(OAPPDNA.Name) ? OAPPDNA.Name : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Description:                                          ", !string.IsNullOrEmpty(OAPPDNA.Description) ? OAPPDNA.Description : "None"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Type:                                            ", Enum.GetName(typeof(OAPPType), OAPPDNA.OAPPType)));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                                   ", Enum.GetName(typeof(OAPPTemplateType), OAPPDNA.OAPPTemplateType)));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Id:                                     ", OAPPDNA.OAPPTemplateId));
-            CLIEngine.ShowMessage(string.Concat($"Genesis Type:                                         ", Enum.GetName(typeof(GenesisType), OAPPDNA.GenesisType)));
-            CLIEngine.ShowMessage(string.Concat($"Celestial Body Id:                                    ", OAPPDNA.CelestialBodyId != Guid.Empty ? OAPPDNA.CelestialBodyId : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Celestial Body Name:                                  ", !string.IsNullOrEmpty(OAPPDNA.CelestialBodyName) ? OAPPDNA.CelestialBodyName : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Celestial Body Type:                                  ", Enum.GetName(typeof(HolonType), OAPPDNA.CelestialBodyType)));
-            CLIEngine.ShowMessage(string.Concat($"Created On:                                           ", OAPPDNA.CreatedOn != DateTime.MinValue ? OAPPDNA.CreatedOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Created By:                                           ", OAPPDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(OAPPDNA.CreatedByAvatarUsername, " (", OAPPDNA.CreatedByAvatarId.ToString(), ")") : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Published On:                                         ", OAPPDNA.PublishedOn != DateTime.MinValue ? OAPPDNA.PublishedOn.ToString() : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Published By:                                         ", OAPPDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(OAPPDNA.PublishedByAvatarUsername, " (", OAPPDNA.PublishedByAvatarId.ToString(), ")") : "None"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Published Path:                                  ", !string.IsNullOrEmpty(OAPPDNA.PublishedPath) ? OAPPDNA.PublishedPath : "None"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Filesize:                                        ", OAPPDNA.FileSize.ToString()));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published Path:                   ", !string.IsNullOrEmpty(OAPPDNA.SelfContainedPublishedPath) ? OAPPDNA.PublishedPath : "None"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Filesize:                         ", OAPPDNA.SelfContainedFileSize.ToString()));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published Path:              ", !string.IsNullOrEmpty(OAPPDNA.SelfContainedFullPublishedPath) ? OAPPDNA.PublishedPath : "None"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Filesize:                    ", OAPPDNA.SelfContainedFullFileSize.ToString()));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Published On STARNET:                            ", OAPPDNA.PublishedOnSTARNET ? "True" : "False"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Published To Cloud:                              ", OAPPDNA.PublishedToCloud ? "True" : "False"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Published To OASIS Provider:                     ", Enum.GetName(typeof(ProviderType), OAPPDNA.PublishedProviderType)));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To Cloud:               ", OAPPDNA.SelfContainedPublishedToCloud ? "True" : "False"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To OASIS Provider:      ", Enum.GetName(typeof(ProviderType), OAPPDNA.SelfContainedPublishedProviderType)));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To Cloud:          ", OAPPDNA.SelfContainedFullPublishedToCloud ? "True" : "False"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To OASIS Provider: ", Enum.GetName(typeof(ProviderType), OAPPDNA.SelfContainedFullPublishedProviderType)));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Source Published Path:                           ", !string.IsNullOrEmpty(OAPPDNA.SourcePublishedPath) ? OAPPDNA.SourcePublishedPath : "None"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Source Filesize:                                 ", OAPPDNA.SourceFileSize.ToString()));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Source Published On STARNET:                     ", OAPPDNA.SourcePublishedOnSTARNET ? "True" : "False"));
-            CLIEngine.ShowMessage(string.Concat($"OAPP Source Public On STARNET:                        ", OAPPDNA.SourcePublicOnSTARNET ? "True" : "False"));
-            CLIEngine.ShowMessage(string.Concat($"Launch Target:                                        ", !string.IsNullOrEmpty(OAPPDNA.LaunchTarget) ? OAPPDNA.LaunchTarget : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Version:                                              ", OAPPDNA.Version));
-            CLIEngine.ShowMessage(string.Concat($"OASIS Runtime Version:                                ", OAPPDNA.OASISRuntimeVersion));
-            CLIEngine.ShowMessage(string.Concat($"OASIS API Version:                                    ", OAPPDNA.OASISAPIVersion));
-            CLIEngine.ShowMessage(string.Concat($"COSMIC Version:                                       ", OAPPDNA.COSMICVersion));
-            CLIEngine.ShowMessage(string.Concat($"STAR Runtime Version:                                 ", OAPPDNA.STARRuntimeVersion));
-            CLIEngine.ShowMessage(string.Concat($"STAR ODK Version:                                     ", OAPPDNA.STARODKVersion));
-            CLIEngine.ShowMessage(string.Concat($"STARNET Version:                                      ", OAPPDNA.STARNETVersion));
-            CLIEngine.ShowMessage(string.Concat($"STAR API Version:                                     ", OAPPDNA.STARAPIVersion));
-            CLIEngine.ShowMessage(string.Concat($".NET Version:                                         ", OAPPDNA.DotNetVersion));
+            CLIEngine.ShowMessage(string.Concat($"Id:                                                   ", OAPPDNA.Id != Guid.Empty ? OAPPDNA.Id : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Name:                                                 ", !string.IsNullOrEmpty(OAPPDNA.Name) ? OAPPDNA.Name : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Description:                                          ", !string.IsNullOrEmpty(OAPPDNA.Description) ? OAPPDNA.Description : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Type:                                            ", Enum.GetName(typeof(OAPPType), OAPPDNA.OAPPType)), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                                   ", Enum.GetName(typeof(OAPPTemplateType), OAPPDNA.OAPPTemplateType)), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Id:                                     ", OAPPDNA.OAPPTemplateId), false);
+            CLIEngine.ShowMessage(string.Concat($"Genesis Type:                                         ", Enum.GetName(typeof(GenesisType), OAPPDNA.GenesisType)), false);
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Id:                                    ", OAPPDNA.CelestialBodyId != Guid.Empty ? OAPPDNA.CelestialBodyId : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Name:                                  ", !string.IsNullOrEmpty(OAPPDNA.CelestialBodyName) ? OAPPDNA.CelestialBodyName : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Type:                                  ", Enum.GetName(typeof(HolonType), OAPPDNA.CelestialBodyType)), false);
+            CLIEngine.ShowMessage(string.Concat($"Created On:                                           ", OAPPDNA.CreatedOn != DateTime.MinValue ? OAPPDNA.CreatedOn.ToString() : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Created By:                                           ", OAPPDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(OAPPDNA.CreatedByAvatarUsername, " (", OAPPDNA.CreatedByAvatarId.ToString(), ")") : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Published On:                                         ", OAPPDNA.PublishedOn != DateTime.MinValue ? OAPPDNA.PublishedOn.ToString() : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Published By:                                         ", OAPPDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(OAPPDNA.PublishedByAvatarUsername, " (", OAPPDNA.PublishedByAvatarId.ToString(), ")") : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Published Path:                                  ", !string.IsNullOrEmpty(OAPPDNA.PublishedPath) ? OAPPDNA.PublishedPath : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Filesize:                                        ", OAPPDNA.FileSize.ToString()), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published Path:                   ", !string.IsNullOrEmpty(OAPPDNA.SelfContainedPublishedPath) ? OAPPDNA.PublishedPath : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Filesize:                         ", OAPPDNA.SelfContainedFileSize.ToString()), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published Path:              ", !string.IsNullOrEmpty(OAPPDNA.SelfContainedFullPublishedPath) ? OAPPDNA.PublishedPath : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Filesize:                    ", OAPPDNA.SelfContainedFullFileSize.ToString()), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Published On STARNET:                            ", OAPPDNA.PublishedOnSTARNET ? "True" : "False"), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Published To Cloud:                              ", OAPPDNA.PublishedToCloud ? "True" : "False"), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Published To OASIS Provider:                     ", Enum.GetName(typeof(ProviderType), OAPPDNA.PublishedProviderType)), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To Cloud:               ", OAPPDNA.SelfContainedPublishedToCloud ? "True" : "False"), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To OASIS Provider:      ", Enum.GetName(typeof(ProviderType), OAPPDNA.SelfContainedPublishedProviderType)), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To Cloud:          ", OAPPDNA.SelfContainedFullPublishedToCloud ? "True" : "False"), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To OASIS Provider: ", Enum.GetName(typeof(ProviderType), OAPPDNA.SelfContainedFullPublishedProviderType)), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Source Published Path:                           ", !string.IsNullOrEmpty(OAPPDNA.SourcePublishedPath) ? OAPPDNA.SourcePublishedPath : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Source Filesize:                                 ", OAPPDNA.SourceFileSize.ToString()), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Source Published On STARNET:                     ", OAPPDNA.SourcePublishedOnSTARNET ? "True" : "False"), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Source Public On STARNET:                        ", OAPPDNA.SourcePublicOnSTARNET ? "True" : "False"), false);
+            CLIEngine.ShowMessage(string.Concat($"Launch Target:                                        ", !string.IsNullOrEmpty(OAPPDNA.LaunchTarget) ? OAPPDNA.LaunchTarget : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Version:                                              ", OAPPDNA.Version), false);
+            CLIEngine.ShowMessage(string.Concat($"OASIS Runtime Version:                                ", OAPPDNA.OASISRuntimeVersion), false);
+            CLIEngine.ShowMessage(string.Concat($"OASIS API Version:                                    ", OAPPDNA.OASISAPIVersion), false);
+            CLIEngine.ShowMessage(string.Concat($"COSMIC Version:                                       ", OAPPDNA.COSMICVersion), false);
+            CLIEngine.ShowMessage(string.Concat($"STAR Runtime Version:                                 ", OAPPDNA.STARRuntimeVersion), false);
+            CLIEngine.ShowMessage(string.Concat($"STAR ODK Version:                                     ", OAPPDNA.STARODKVersion), false);
+            CLIEngine.ShowMessage(string.Concat($"STARNET Version:                                      ", OAPPDNA.STARNETVersion), false);
+            CLIEngine.ShowMessage(string.Concat($"STAR API Version:                                     ", OAPPDNA.STARAPIVersion), false);
+            CLIEngine.ShowMessage(string.Concat($".NET Version:                                         ", OAPPDNA.DotNetVersion), false);
 
 
             if (customData != null)
@@ -1205,6 +1211,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             if (CLIEngine.GetConfirmation("CelestialBody successfully created on STARNET! Would you like to publish them now?"))
                             {
+                                Console.WriteLine("");
                                 OASISResult<STARCelestialBody> publishResult = await STARCLI.CelestialBodies.PublishAsync(createResult.Result.STARNETDNA.SourcePath, hasDefaultLaunch: false, providerType: providerType);
 
                                 if (publishResult != null && publishResult.Result != null && !publishResult.IsError)
