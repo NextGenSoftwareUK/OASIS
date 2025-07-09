@@ -2951,7 +2951,7 @@ namespace NextGenSoftware.OASIS.STAR
 
                 //Copy the correct runtimes to the OAPP folder.
                 if (Directory.Exists(OASISRunTimePath))
-                    DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
+                    DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, Path.Combine(OAPPFolder, "Runtimes", "OASIS Runtime"));
                 else
                 {
                     CLIEngine.ShowWarningMessage($"The target OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion} is not installed!");
@@ -2973,7 +2973,7 @@ namespace NextGenSoftware.OASIS.STAR
                         OASISResult<IInstalledRuntime> installResult = await STARAPI.Runtimes.DownloadAndInstallOASISRuntimeAsync(BeamedInAvatar.Id, installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion, downloadPath, installPath, providerType);
 
                         if (installResult != null && installResult.Result != null && !installResult.IsError)
-                            DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, OAPPFolder);
+                            DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, Path.Combine(OAPPFolder, "Runtimes", "OASIS Runtime"));
                         else
                         {
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion}. Reason: {installResult.Message}");
@@ -2989,7 +2989,7 @@ namespace NextGenSoftware.OASIS.STAR
 
 
                 if (Directory.Exists(STARRunTimePath))
-                    DirectoryHelper.CopyFilesRecursively(STARRunTimePath, OAPPFolder);
+                    DirectoryHelper.CopyFilesRecursively(STARRunTimePath, Path.Combine(OAPPFolder, "Runtimes", "STAR Runtime"));
                 else
                 {
                     CLIEngine.ShowWarningMessage($"The target STAR Runtime {installedOAPPTemplateResult.Result.STARNETDNA.STARRuntimeVersion} is not installed!");
@@ -3005,7 +3005,7 @@ namespace NextGenSoftware.OASIS.STAR
                         OASISResult<IInstalledRuntime> installResult = await STARAPI.Runtimes.DownloadAndInstallSTARRuntimeAsync(BeamedInAvatar.Id, installedOAPPTemplateResult.Result.STARNETDNA.STARRuntimeVersion, downloadPath, installPath, providerType);
 
                         if (installResult != null && installResult.Result != null && !installResult.IsError)
-                            DirectoryHelper.CopyFilesRecursively(STARRunTimePath, OAPPFolder);
+                            DirectoryHelper.CopyFilesRecursively(STARRunTimePath, Path.Combine(OAPPFolder, "Runtimes", "STAR Runtime"));
                         else
                         {
                             OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the STAR Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion}. Reason: {installResult.Message}");
