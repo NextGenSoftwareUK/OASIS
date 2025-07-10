@@ -39,8 +39,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "RuntimeId",
             "RuntimeName",
             "RuntimeType",
-            "oapp",
-            "oasis_oapps",
+            "runtime",
+            "oasis_runtimes",
             "RuntimeDNA.json",
             "RuntimeDNAJSON")
         { }
