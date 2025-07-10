@@ -555,12 +555,35 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
                         oappPath = Path.Combine(oappPath, OAPPName);
 
-                        OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, null, null, new OAPPDNA()
+                        OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, new Dictionary<string, object>()
+                        {
+                            { "CelestialBodyId", lightResult.Result.CelestialBody.Id },
+                            { "CelestialBodyName", lightResult.Result.CelestialBody.Name },
+                            { "GenesisType", genesisType },
+                            { "OAPPTemplateId", OAPPTemplate.STARNETDNA.Id },
+                            { "OAPPTemplateType", OAPPTemplateType },
+                            { "OAPPTemplateVersionSequence", OAPPTemplate.STARNETDNA.VersionSequence },
+                            { "STARNETHolonType", OAPPType },
+                            { "OurWorldLat", ourWorldLat },
+                            { "OurWorldLong", ourWorldLong },
+                            { "OurWorld3dObject", ourWorld3dObject },
+                            { "OurWorld3dObjectURI", ourWorld3dObjectURI },
+                            { "OurWorld2dSprite", ourWorld2dSprite },
+                            { "OurWorld2dSpriteURI", ourWorld2dSpriteURI },
+                            { "OneWorldLat", oneWorlddLat },
+                            { "OneWorldLong", oneWorldLong },
+                            { "OneWorld3dObject", oneWorld3dObject },
+                            { "OneWorld3dObjectURI", oneWorld3dObjectURI },
+                            { "OneWorld2dSprite", oneWorld2dSprite },
+                            { "OneWorld2dSpriteURI", oneWorld2dSpriteURI },
+                            { "Zomes", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes } },
+                            null, new OAPPDNA()
                         {
                             CelestialBodyId = lightResult.Result.CelestialBody.Id,
                             CelestialBodyName = lightResult.Result.CelestialBody.Name,
                             GenesisType = genesisType,
                             OAPPTemplateId = OAPPTemplate.STARNETDNA.Id,
+                            OAPPTemplateType = OAPPTemplateType,
                             OAPPTemplateVersionSequence = OAPPTemplate.STARNETDNA.VersionSequence,
                             STARNETHolonType = OAPPType,
                             OurWorldLat = ourWorldLat,
@@ -1106,6 +1129,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         try
                         {
                             DirectoryHelper.CopyFilesRecursively(generateResult.CelestialBodyMetaDataDNAPath, createResult.Result.STARNETDNA.SourcePath);
+
+                            if (CLIEngine.GetConfirmation("CelestialBody MetaData DNA successfully created on STARNET! Would you like to publish them now?"))
+                            {
+                                Console.WriteLine("");
+                                OASISResult<CelestialBodyMetaDataDNA> publishResult = await STARCLI.CelestialBodiesMetaDataDNA.PublishAsync(createResult.Result.STARNETDNA.SourcePath, hasDefaultLaunch: false, providerType: providerType);
+
+                                if (publishResult != null && publishResult.Result != null && !publishResult.IsError)
+                                    CLIEngine.ShowSuccessMessage("CelestialBody MetaData DNA successfully uploaded to STARNET!");
+                                else
+                                    OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured publishing the CelestialBody MetaData DNA in STAR.CLI.Lib.CelestialBodiesMetaDataDNA.PublishAsync. Reason: {publishResult.Message}");
+                            }
                         }
                         catch (Exception e)
                         {
@@ -1127,6 +1161,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         try
                         {
                             DirectoryHelper.CopyFilesRecursively(generateResult.ZomeMetaDataDNAPath, createResult.Result.STARNETDNA.SourcePath);
+
+                            if (CLIEngine.GetConfirmation("Zome MetaData DNA successfully created on STARNET! Would you like to publish them now?"))
+                            {
+                                Console.WriteLine("");
+                                OASISResult<ZomeMetaDataDNA> publishResult = await STARCLI.ZomesMetaDataDNA.PublishAsync(createResult.Result.STARNETDNA.SourcePath, hasDefaultLaunch: false, providerType: providerType);
+
+                                if (publishResult != null && publishResult.Result != null && !publishResult.IsError)
+                                    CLIEngine.ShowSuccessMessage("Zome MetaData DNA successfully uploaded to STARNET!");
+                                else
+                                    OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured publishing the Zome MetaData DNA in STAR.CLI.Lib.ZomesMetaDataDNA.PublishAsync. Reason: {publishResult.Message}");
+                            }
                         }
                         catch (Exception e)
                         {
@@ -1148,6 +1193,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         try
                         {
                             DirectoryHelper.CopyFilesRecursively(generateResult.HolonMetaDataDNAPath, createResult.Result.STARNETDNA.SourcePath);
+
+                            if (CLIEngine.GetConfirmation("Holon MetaData DNA successfully created on STARNET! Would you like to publish them now?"))
+                            {
+                                Console.WriteLine("");
+                                OASISResult<HolonMetaDataDNA> publishResult = await STARCLI.HolonsMetaDataDNA.PublishAsync(createResult.Result.STARNETDNA.SourcePath, hasDefaultLaunch: false, providerType: providerType);
+
+                                if (publishResult != null && publishResult.Result != null && !publishResult.IsError)
+                                    CLIEngine.ShowSuccessMessage("Holon MetaData DNA successfully uploaded to STARNET!");
+                                else
+                                    OASISErrorHandling.HandleError(ref lightResult, $"{errorMessage} Error occured publishing the Holon MetaData DNA in STAR.CLI.Lib.HolonsMetaDataDNA.PublishAsync. Reason: {publishResult.Message}");
+                            }
                         }
                         catch (Exception e)
                         {
@@ -1236,6 +1292,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (CLIEngine.GetConfirmation("Zome(s) successfully created on STARNET! Would you like to publish them now?"))
                         {
+                            Console.WriteLine("");
                             OASISResult<STARZome> publishResult = await STARCLI.Zomes.PublishAsync(createResult.Result.STARNETDNA.SourcePath, hasDefaultLaunch: false, providerType: providerType);
 
                             if (publishResult != null && publishResult.Result != null && !publishResult.IsError)
@@ -1261,6 +1318,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             if (CLIEngine.GetConfirmation("Holon(s) successfully created on STARNET! Would you like to publish them now?"))
                             {
+                                Console.WriteLine("");
                                 OASISResult<STARHolon> publishResult = await STARCLI.Holons.PublishAsync(createResult.Result.STARNETDNA.SourcePath, hasDefaultLaunch: false, providerType: providerType);
 
                                 if (publishResult != null && publishResult.Result != null && !publishResult.IsError)

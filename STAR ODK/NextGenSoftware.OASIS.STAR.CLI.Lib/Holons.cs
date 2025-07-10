@@ -90,10 +90,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         //Console.WriteLine("");
                         CLIEngine.ShowMessage("", false);
-                        string tree = string.Concat(" |", indentPadding, "  NODE").PadRight(22);
+                        string tree = string.Concat(" |", indentPadding, "  NODE").PadRight(17);
                         //Console.WriteLine(string.Concat(indentPadding, "  | NODE | Name: ", node.NodeName.PadRight(20), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(10)));
                         //Console.WriteLine(string.Concat(tree, " | Name: ", node.NodeName.PadRight(40), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(15), " | ".PadRight(30), " | ".PadRight(30), "|"));
-                        CLIEngine.ShowMessage(string.Concat(tree, " | Name: ", node.NodeName.PadRight(40), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(15), " | ".PadRight(30), " | ".PadRight(30), "|"), false);
+                        CLIEngine.ShowMessage(string.Concat(tree, " | Name: ", node.NodeName.PadRight(20), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(8), " | ".PadRight(30), " | ".PadRight(27), "|"), false);
                     }
                 }
 

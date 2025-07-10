@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "ZomeMetaDataName",
             "ZomeMetaDataType",
             "ozomemetadata",
-            "oasis_zomessmetadata",
+            "oasis_zomesmetadata",
             "ZomeMetaDataDNA.json",
             "ZomeMetaDataDNAJSON")
         { }
@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "ZomeMetaDataName",
             "ZomeMetaDataType",
             "ozomemetadata",
-            "oasis_zomessmetadata",
+            "oasis_zomesmetadata",
             "ZomeMetaDataDNA.json",
             "ZomeMetaDataDNAJSON")
         { }
