@@ -575,8 +575,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             { "OneWorld3dObject", oneWorld3dObject },
                             { "OneWorld3dObjectURI", oneWorld3dObjectURI },
                             { "OneWorld2dSprite", oneWorld2dSprite },
-                            { "OneWorld2dSpriteURI", oneWorld2dSpriteURI },
-                            { "Zomes", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes } },
+                            { "OneWorld2dSpriteURI", oneWorld2dSpriteURI } },
+                           // { "Zomes", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes } },
                             null, new OAPPDNA()
                         {
                             CelestialBodyId = lightResult.Result.CelestialBody.Id,
@@ -852,49 +852,124 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public override void Show<OAPP>(OAPP oapp, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = DEFAULT_FIELD_LENGTH, object customData = null)
         {
-            IOAPPDNA OAPPDNA = (IOAPPDNA)oapp.STARNETDNA;
+            //base.Show(oapp, showHeader, showFooter, showNumbers, number, showDetailedInfo, displayFieldLength, customData);
 
-            CLIEngine.ShowMessage(string.Concat($"Id:                                                   ", OAPPDNA.Id != Guid.Empty ? OAPPDNA.Id : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Name:                                                 ", !string.IsNullOrEmpty(OAPPDNA.Name) ? OAPPDNA.Name : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Description:                                          ", !string.IsNullOrEmpty(OAPPDNA.Description) ? OAPPDNA.Description : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Type:                                            ", Enum.GetName(typeof(OAPPType), OAPPDNA.OAPPType)), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                                   ", Enum.GetName(typeof(OAPPTemplateType), OAPPDNA.OAPPTemplateType)), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Id:                                     ", OAPPDNA.OAPPTemplateId), false);
-            CLIEngine.ShowMessage(string.Concat($"Genesis Type:                                         ", Enum.GetName(typeof(GenesisType), OAPPDNA.GenesisType)), false);
-            CLIEngine.ShowMessage(string.Concat($"Celestial Body Id:                                    ", OAPPDNA.CelestialBodyId != Guid.Empty ? OAPPDNA.CelestialBodyId : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Celestial Body Name:                                  ", !string.IsNullOrEmpty(OAPPDNA.CelestialBodyName) ? OAPPDNA.CelestialBodyName : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Celestial Body Type:                                  ", Enum.GetName(typeof(HolonType), OAPPDNA.CelestialBodyType)), false);
-            CLIEngine.ShowMessage(string.Concat($"Created On:                                           ", OAPPDNA.CreatedOn != DateTime.MinValue ? OAPPDNA.CreatedOn.ToString() : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Created By:                                           ", OAPPDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(OAPPDNA.CreatedByAvatarUsername, " (", OAPPDNA.CreatedByAvatarId.ToString(), ")") : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Published On:                                         ", OAPPDNA.PublishedOn != DateTime.MinValue ? OAPPDNA.PublishedOn.ToString() : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Published By:                                         ", OAPPDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(OAPPDNA.PublishedByAvatarUsername, " (", OAPPDNA.PublishedByAvatarId.ToString(), ")") : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Published Path:                                  ", !string.IsNullOrEmpty(OAPPDNA.PublishedPath) ? OAPPDNA.PublishedPath : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Filesize:                                        ", OAPPDNA.FileSize.ToString()), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published Path:                   ", !string.IsNullOrEmpty(OAPPDNA.SelfContainedPublishedPath) ? OAPPDNA.PublishedPath : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Filesize:                         ", OAPPDNA.SelfContainedFileSize.ToString()), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published Path:              ", !string.IsNullOrEmpty(OAPPDNA.SelfContainedFullPublishedPath) ? OAPPDNA.PublishedPath : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Filesize:                    ", OAPPDNA.SelfContainedFullFileSize.ToString()), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Published On STARNET:                            ", OAPPDNA.PublishedOnSTARNET ? "True" : "False"), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Published To Cloud:                              ", OAPPDNA.PublishedToCloud ? "True" : "False"), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Published To OASIS Provider:                     ", Enum.GetName(typeof(ProviderType), OAPPDNA.PublishedProviderType)), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To Cloud:               ", OAPPDNA.SelfContainedPublishedToCloud ? "True" : "False"), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To OASIS Provider:      ", Enum.GetName(typeof(ProviderType), OAPPDNA.SelfContainedPublishedProviderType)), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To Cloud:          ", OAPPDNA.SelfContainedFullPublishedToCloud ? "True" : "False"), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To OASIS Provider: ", Enum.GetName(typeof(ProviderType), OAPPDNA.SelfContainedFullPublishedProviderType)), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Source Published Path:                           ", !string.IsNullOrEmpty(OAPPDNA.SourcePublishedPath) ? OAPPDNA.SourcePublishedPath : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Source Filesize:                                 ", OAPPDNA.SourceFileSize.ToString()), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Source Published On STARNET:                     ", OAPPDNA.SourcePublishedOnSTARNET ? "True" : "False"), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Source Public On STARNET:                        ", OAPPDNA.SourcePublicOnSTARNET ? "True" : "False"), false);
-            CLIEngine.ShowMessage(string.Concat($"Launch Target:                                        ", !string.IsNullOrEmpty(OAPPDNA.LaunchTarget) ? OAPPDNA.LaunchTarget : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Version:                                              ", OAPPDNA.Version), false);
-            CLIEngine.ShowMessage(string.Concat($"OASIS Runtime Version:                                ", OAPPDNA.OASISRuntimeVersion), false);
-            CLIEngine.ShowMessage(string.Concat($"OASIS API Version:                                    ", OAPPDNA.OASISAPIVersion), false);
-            CLIEngine.ShowMessage(string.Concat($"COSMIC Version:                                       ", OAPPDNA.COSMICVersion), false);
-            CLIEngine.ShowMessage(string.Concat($"STAR Runtime Version:                                 ", OAPPDNA.STARRuntimeVersion), false);
-            CLIEngine.ShowMessage(string.Concat($"STAR ODK Version:                                     ", OAPPDNA.STARODKVersion), false);
-            CLIEngine.ShowMessage(string.Concat($"STARNET Version:                                      ", OAPPDNA.STARNETVersion), false);
-            CLIEngine.ShowMessage(string.Concat($"STAR API Version:                                     ", OAPPDNA.STARAPIVersion), false);
-            CLIEngine.ShowMessage(string.Concat($".NET Version:                                         ", OAPPDNA.DotNetVersion), false);
+            if (DisplayFieldLength > displayFieldLength)
+                displayFieldLength = DisplayFieldLength;
+
+            if (showHeader)
+                CLIEngine.ShowDivider();
+
+            Console.WriteLine("");
+
+            if (showNumbers)
+                CLIEngine.ShowMessage(string.Concat("Number:".PadRight(displayFieldLength), number), false);
+
+            CLIEngine.ShowMessage(string.Concat($"Id:".PadRight(displayFieldLength), oapp.STARNETDNA.Id != Guid.Empty ? oapp.STARNETDNA.Id : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Name:".PadRight(displayFieldLength), !string.IsNullOrEmpty(oapp.STARNETDNA.Name) ? oapp.STARNETDNA.Name : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Description:".PadRight(displayFieldLength), !string.IsNullOrEmpty(oapp.STARNETDNA.Description) ? oapp.STARNETDNA.Description : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Type:".PadRight(displayFieldLength), oapp.STARNETDNA.STARNETHolonType), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:".PadRight(displayFieldLength), Enum.GetName(typeof(OAPPTemplateType), oapp.MetaData["OAPPTemplateType"])), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Id:".PadRight(displayFieldLength), oapp.MetaData["OAPPTemplateId"]), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Version:".PadRight(displayFieldLength), oapp.MetaData["OAPPTemplateVersion"]), false);
+            CLIEngine.ShowMessage(string.Concat($"OAPP Template Version Sequence:".PadRight(displayFieldLength), oapp.MetaData["OAPPTemplateVersionSequence"]), false);
+            CLIEngine.ShowMessage(string.Concat($"Genesis Type:".PadRight(displayFieldLength), oapp.MetaData["GenesisType"]), false);
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Id:".PadRight(displayFieldLength), oapp.MetaData["CelestialBodyId"]), false);
+            CLIEngine.ShowMessage(string.Concat($"Celestial Body Name:".PadRight(displayFieldLength), oapp.MetaData["CelestialBodyName"]), false);
+            
+            CLIEngine.ShowMessage(string.Concat($"Our World Lat/Long:".PadRight(displayFieldLength), oapp.MetaData["OurWorldLat"], "/", oapp.MetaData["OurWorldLong"]), false);
+            CLIEngine.ShowMessage(string.Concat($"Our World 3D Object:".PadRight(displayFieldLength), oapp.MetaData != null && oapp.MetaData.ContainsKey("OurWorld3dObject") ? "BINARY UPLOADED" : oapp.MetaData["OurWorld3dObjectURI"]), false);
+            //CLIEngine.ShowMessage(string.Concat($"Our World 3D Object URI:".PadRight(displayFieldLength), oapp.MetaData["OurWorld3dObjectURI"]), false);
+            //CLIEngine.ShowMessage(string.Concat($"Our World 2D Sprite:".PadRight(displayFieldLength), oapp.MetaData != null && oapp.MetaData.ContainsKey("OurWorld2dSprite") ? "Yes" : "No"), false);
+            //CLIEngine.ShowMessage(string.Concat($"Our World 2D Sprite URI:".PadRight(displayFieldLength), oapp.MetaData["OurWorld2dSpriteURI"]), false);
+            CLIEngine.ShowMessage(string.Concat($"Our World 2D Sprite:".PadRight(displayFieldLength), oapp.MetaData != null && oapp.MetaData.ContainsKey("OurWorld2dSprite") ? "BINARY UPLOADED" : oapp.MetaData["OurWorld2dSpriteURI "]), false);
+
+            CLIEngine.ShowMessage(string.Concat($"One World Lat/Long:".PadRight(displayFieldLength), oapp.MetaData["OneWorldLat"], "/", oapp.MetaData["OneWorldLong"]), false);
+            CLIEngine.ShowMessage(string.Concat($"One World 3D Object:".PadRight(displayFieldLength), oapp.MetaData != null && oapp.MetaData.ContainsKey("OneWorld3dObject") ? "Yes" : "No"), false);
+            CLIEngine.ShowMessage(string.Concat($"One World 3D Object URI:".PadRight(displayFieldLength), oapp.MetaData["OneWorld3dObjectURI"]), false);
+            CLIEngine.ShowMessage(string.Concat($"One World 2D Sprite".PadRight(displayFieldLength), oapp.MetaData != null && oapp.MetaData.ContainsKey("OneWorld2dSprite") ? "Yes" : "No"), false);
+            CLIEngine.ShowMessage(string.Concat($"One World 2D Sprite URI:".PadRight(displayFieldLength), oapp.MetaData["OneWorld2dSpriteURI"]), false);
+
+
+
+            CLIEngine.ShowMessage(string.Concat($"Created On:".PadRight(displayFieldLength), oapp.STARNETDNA.CreatedOn != DateTime.MinValue ? oapp.STARNETDNA.CreatedOn.ToString() : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Created By:".PadRight(displayFieldLength), oapp.STARNETDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(oapp.STARNETDNA.CreatedByAvatarUsername, " (", oapp.STARNETDNA.CreatedByAvatarId.ToString(), ")") : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Modified On:".PadRight(displayFieldLength), oapp.STARNETDNA.ModifiedOn != DateTime.MinValue ? oapp.STARNETDNA.CreatedOn.ToString() : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Modified By:".PadRight(displayFieldLength), oapp.STARNETDNA.ModifiedByAvatarId != Guid.Empty ? string.Concat(oapp.STARNETDNA.ModifiedByAvatarUsername, " (", oapp.STARNETDNA.ModifiedByAvatarId.ToString(), ")") : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Path:".PadRight(displayFieldLength), !string.IsNullOrEmpty(oapp.STARNETDNA.SourcePath) ? oapp.STARNETDNA.SourcePath : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Published On:".PadRight(displayFieldLength), oapp.STARNETDNA.PublishedOn != DateTime.MinValue ? oapp.STARNETDNA.PublishedOn.ToString() : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"Published By:".PadRight(displayFieldLength), oapp.STARNETDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(oapp.STARNETDNA.PublishedByAvatarUsername, " (", oapp.STARNETDNA.PublishedByAvatarId.ToString(), ")") : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published Path:".PadRight(displayFieldLength), !string.IsNullOrEmpty(oapp.STARNETDNA.PublishedPath) ? oapp.STARNETDNA.PublishedPath : "None"), false);
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Filesize:".PadRight(displayFieldLength), oapp.STARNETDNA.FileSize.ToString()), false);
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published On STARNET:".PadRight(displayFieldLength), oapp.STARNETDNA.PublishedOnSTARNET ? "True" : "False"), false);
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published To Cloud:".PadRight(displayFieldLength), oapp.STARNETDNA.PublishedToCloud ? "True" : "False"), false);
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published To OASIS Provider:".PadRight(displayFieldLength), Enum.GetName(typeof(ProviderType), oapp.STARNETDNA.PublishedProviderType)), false);
+            CLIEngine.ShowMessage(string.Concat($"Launch Target:".PadRight(displayFieldLength), oapp.STARNETDNA.LaunchTarget), false);
+            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Version:".PadRight(displayFieldLength), oapp.STARNETDNA.Version), false);
+            CLIEngine.ShowMessage(string.Concat($"Version Sequence:".PadRight(displayFieldLength), oapp.STARNETDNA.VersionSequence), false);
+            CLIEngine.ShowMessage(string.Concat($"Number Of Versions:".PadRight(displayFieldLength), oapp.STARNETDNA.NumberOfVersions), false);
+            //CLIEngine.ShowMessage(string.Concat($"OASIS Holon Version:                        ", oapp.Version), false);
+            //CLIEngine.ShowMessage(string.Concat($"OASIS Holon VersionId:                      ", oapp.VersionId), false);
+            //CLIEngine.ShowMessage(string.Concat($"OASIS Holon PreviousVersionId:              ", oapp.PreviousVersionId), false);
+            CLIEngine.ShowMessage(string.Concat($"Downloads:".PadRight(displayFieldLength), oapp.STARNETDNA.Downloads), false);
+            CLIEngine.ShowMessage(string.Concat($"Installs:".PadRight(displayFieldLength), oapp.STARNETDNA.Installs), false);
+            CLIEngine.ShowMessage(string.Concat($"Total Downloads:".PadRight(displayFieldLength), oapp.STARNETDNA.TotalDownloads), false);
+            CLIEngine.ShowMessage(string.Concat($"Total Installs:".PadRight(displayFieldLength), oapp.STARNETDNA.TotalInstalls), false);
+            CLIEngine.ShowMessage(string.Concat($"Active:".PadRight(displayFieldLength), oapp.MetaData != null && oapp.MetaData.ContainsKey("Active") && oapp.MetaData["Active"] != null && oapp.MetaData["Active"].ToString() == "1" ? "True" : "False"), false);
+            CLIEngine.ShowMessage(string.Concat($"OASIS Runtime Version:".PadRight(displayFieldLength), oapp.STARNETDNA.OASISRuntimeVersion), false);
+            CLIEngine.ShowMessage(string.Concat($"OASIS API Version:".PadRight(displayFieldLength), oapp.STARNETDNA.OASISAPIVersion), false);
+            CLIEngine.ShowMessage(string.Concat($"COSMIC Version:".PadRight(displayFieldLength), oapp.STARNETDNA.COSMICVersion), false);
+            CLIEngine.ShowMessage(string.Concat($"STAR Runtime Version:".PadRight(displayFieldLength), oapp.STARNETDNA.STARRuntimeVersion), false);
+            CLIEngine.ShowMessage(string.Concat($"STAR ODK Version:".PadRight(displayFieldLength), oapp.STARNETDNA.STARODKVersion), false);
+            CLIEngine.ShowMessage(string.Concat($"STARNET Version:".PadRight(displayFieldLength), oapp.STARNETDNA.STARNETVersion), false);
+            CLIEngine.ShowMessage(string.Concat($"STAR API Version:".PadRight(displayFieldLength), oapp.STARNETDNA.STARAPIVersion), false);
+            CLIEngine.ShowMessage(string.Concat($".NET Version:".PadRight(displayFieldLength), oapp.STARNETDNA.DotNetVersion), false);
+
+
+
+                        //IOAPPDNA OAPPDNA = (IOAPPDNA)oapp.STARNETDNA;
+
+            //CLIEngine.ShowMessage(string.Concat($"Id:                                                   ", OAPPDNA.Id != Guid.Empty ? OAPPDNA.Id : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"Name:                                                 ", !string.IsNullOrEmpty(OAPPDNA.Name) ? OAPPDNA.Name : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"Description:                                          ", !string.IsNullOrEmpty(OAPPDNA.Description) ? OAPPDNA.Description : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Type:                                            ", Enum.GetName(typeof(OAPPType), OAPPDNA.OAPPType)), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:                                   ", Enum.GetName(typeof(OAPPTemplateType), OAPPDNA.OAPPTemplateType)), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Template Id:                                     ", OAPPDNA.OAPPTemplateId), false);
+            //CLIEngine.ShowMessage(string.Concat($"Genesis Type:                                         ", Enum.GetName(typeof(GenesisType), OAPPDNA.GenesisType)), false);
+            //CLIEngine.ShowMessage(string.Concat($"Celestial Body Id:                                    ", OAPPDNA.CelestialBodyId != Guid.Empty ? OAPPDNA.CelestialBodyId : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"Celestial Body Name:                                  ", !string.IsNullOrEmpty(OAPPDNA.CelestialBodyName) ? OAPPDNA.CelestialBodyName : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"Celestial Body Type:                                  ", Enum.GetName(typeof(HolonType), OAPPDNA.CelestialBodyType)), false);
+            //CLIEngine.ShowMessage(string.Concat($"Created On:                                           ", OAPPDNA.CreatedOn != DateTime.MinValue ? OAPPDNA.CreatedOn.ToString() : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"Created By:                                           ", OAPPDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(OAPPDNA.CreatedByAvatarUsername, " (", OAPPDNA.CreatedByAvatarId.ToString(), ")") : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"Published On:                                         ", OAPPDNA.PublishedOn != DateTime.MinValue ? OAPPDNA.PublishedOn.ToString() : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"Published By:                                         ", OAPPDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(OAPPDNA.PublishedByAvatarUsername, " (", OAPPDNA.PublishedByAvatarId.ToString(), ")") : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Published Path:                                  ", !string.IsNullOrEmpty(OAPPDNA.PublishedPath) ? OAPPDNA.PublishedPath : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Filesize:                                        ", OAPPDNA.FileSize.ToString()), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published Path:                   ", !string.IsNullOrEmpty(OAPPDNA.SelfContainedPublishedPath) ? OAPPDNA.PublishedPath : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Filesize:                         ", OAPPDNA.SelfContainedFileSize.ToString()), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published Path:              ", !string.IsNullOrEmpty(OAPPDNA.SelfContainedFullPublishedPath) ? OAPPDNA.PublishedPath : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Filesize:                    ", OAPPDNA.SelfContainedFullFileSize.ToString()), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Published On STARNET:                            ", OAPPDNA.PublishedOnSTARNET ? "True" : "False"), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Published To Cloud:                              ", OAPPDNA.PublishedToCloud ? "True" : "False"), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Published To OASIS Provider:                     ", Enum.GetName(typeof(ProviderType), OAPPDNA.PublishedProviderType)), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To Cloud:               ", OAPPDNA.SelfContainedPublishedToCloud ? "True" : "False"), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Published To OASIS Provider:      ", Enum.GetName(typeof(ProviderType), OAPPDNA.SelfContainedPublishedProviderType)), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To Cloud:          ", OAPPDNA.SelfContainedFullPublishedToCloud ? "True" : "False"), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Self Contained Full Published To OASIS Provider: ", Enum.GetName(typeof(ProviderType), OAPPDNA.SelfContainedFullPublishedProviderType)), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Source Published Path:                           ", !string.IsNullOrEmpty(OAPPDNA.SourcePublishedPath) ? OAPPDNA.SourcePublishedPath : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Source Filesize:                                 ", OAPPDNA.SourceFileSize.ToString()), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Source Published On STARNET:                     ", OAPPDNA.SourcePublishedOnSTARNET ? "True" : "False"), false);
+            //CLIEngine.ShowMessage(string.Concat($"OAPP Source Public On STARNET:                        ", OAPPDNA.SourcePublicOnSTARNET ? "True" : "False"), false);
+            //CLIEngine.ShowMessage(string.Concat($"Launch Target:                                        ", !string.IsNullOrEmpty(OAPPDNA.LaunchTarget) ? OAPPDNA.LaunchTarget : "None"), false);
+            //CLIEngine.ShowMessage(string.Concat($"Version:                                              ", OAPPDNA.Version), false);
+            //CLIEngine.ShowMessage(string.Concat($"OASIS Runtime Version:                                ", OAPPDNA.OASISRuntimeVersion), false);
+            //CLIEngine.ShowMessage(string.Concat($"OASIS API Version:                                    ", OAPPDNA.OASISAPIVersion), false);
+            //CLIEngine.ShowMessage(string.Concat($"COSMIC Version:                                       ", OAPPDNA.COSMICVersion), false);
+            //CLIEngine.ShowMessage(string.Concat($"STAR Runtime Version:                                 ", OAPPDNA.STARRuntimeVersion), false);
+            //CLIEngine.ShowMessage(string.Concat($"STAR ODK Version:                                     ", OAPPDNA.STARODKVersion), false);
+            //CLIEngine.ShowMessage(string.Concat($"STARNET Version:                                      ", OAPPDNA.STARNETVersion), false);
+            //CLIEngine.ShowMessage(string.Concat($"STAR API Version:                                     ", OAPPDNA.STARAPIVersion), false);
+            //CLIEngine.ShowMessage(string.Concat($".NET Version:                                         ", OAPPDNA.DotNetVersion), false);
 
 
             if (customData != null)
