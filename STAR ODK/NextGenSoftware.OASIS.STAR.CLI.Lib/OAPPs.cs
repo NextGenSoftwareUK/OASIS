@@ -562,6 +562,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             { "GenesisType", genesisType },
                             { "OAPPTemplateId", OAPPTemplate.STARNETDNA.Id },
                             { "OAPPTemplateType", OAPPTemplateType },
+                            { "OAPPTemplateVersion", OAPPTemplate.STARNETDNA.Version },
                             { "OAPPTemplateVersionSequence", OAPPTemplate.STARNETDNA.VersionSequence },
                             { "STARNETHolonType", OAPPType },
                             { "OurWorldLat", ourWorldLat },
@@ -584,6 +585,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             GenesisType = genesisType,
                             OAPPTemplateId = OAPPTemplate.STARNETDNA.Id,
                             OAPPTemplateType = OAPPTemplateType,
+                            OAPPTemplateVersion = OAPPTemplate.STARNETDNA.Version,
                             OAPPTemplateVersionSequence = OAPPTemplate.STARNETDNA.VersionSequence,
                             STARNETHolonType = OAPPType,
                             OurWorldLat = ourWorldLat,
@@ -863,71 +865,109 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             Console.WriteLine("");
 
             if (showNumbers)
-                CLIEngine.ShowMessage(string.Concat("Number:".PadRight(displayFieldLength), number), false);
+                DisplayProperty("Number", number.ToString(), displayFieldLength);
 
+            //DisplayProperty("Id", oapp.STARNETDNA.Id != Guid.Empty ? oapp.STARNETDNA.Id : "None", displayFieldLength);
             CLIEngine.ShowMessage(string.Concat($"Id:".PadRight(displayFieldLength), oapp.STARNETDNA.Id != Guid.Empty ? oapp.STARNETDNA.Id : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Name:".PadRight(displayFieldLength), !string.IsNullOrEmpty(oapp.STARNETDNA.Name) ? oapp.STARNETDNA.Name : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Description:".PadRight(displayFieldLength), !string.IsNullOrEmpty(oapp.STARNETDNA.Description) ? oapp.STARNETDNA.Description : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Type:".PadRight(displayFieldLength), oapp.STARNETDNA.STARNETHolonType), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Type:".PadRight(displayFieldLength), Enum.GetName(typeof(OAPPTemplateType), oapp.MetaData["OAPPTemplateType"])), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Id:".PadRight(displayFieldLength), oapp.MetaData["OAPPTemplateId"]), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Version:".PadRight(displayFieldLength), oapp.MetaData["OAPPTemplateVersion"]), false);
-            CLIEngine.ShowMessage(string.Concat($"OAPP Template Version Sequence:".PadRight(displayFieldLength), oapp.MetaData["OAPPTemplateVersionSequence"]), false);
-            CLIEngine.ShowMessage(string.Concat($"Genesis Type:".PadRight(displayFieldLength), oapp.MetaData["GenesisType"]), false);
-            CLIEngine.ShowMessage(string.Concat($"Celestial Body Id:".PadRight(displayFieldLength), oapp.MetaData["CelestialBodyId"]), false);
-            CLIEngine.ShowMessage(string.Concat($"Celestial Body Name:".PadRight(displayFieldLength), oapp.MetaData["CelestialBodyName"]), false);
+            DisplayProperty("Name", !string.IsNullOrEmpty(oapp.STARNETDNA.Name) ? oapp.STARNETDNA.Name : "None", displayFieldLength);
+            DisplayProperty("Description", !string.IsNullOrEmpty(oapp.STARNETDNA.Description) ? oapp.STARNETDNA.Description : "None", displayFieldLength);
+            DisplayProperty($"OAPP Type:", oapp.STARNETDNA.STARNETHolonType.ToString(), displayFieldLength);
+            DisplayProperty("OAPP Template Type", ParseMetaDataForEnum(oapp.MetaData, "OAPPTemplateType", typeof(OAPPTemplateType)), displayFieldLength);
+            DisplayProperty("OAPP Template Version", ParseMetaData(oapp.MetaData, "OAPPTemplateVersion"), displayFieldLength);
+            DisplayProperty("OAPP Template Version Sequence", ParseMetaData(oapp.MetaData, "OAPPTemplateVersionSequence"), displayFieldLength);
+            DisplayProperty("Genesis Type", ParseMetaDataForEnum(oapp.MetaData, "GenesisType", typeof(GenesisType)), displayFieldLength);
+            DisplayProperty("Celestial Body Id", ParseMetaData(oapp.MetaData, "CelestialBodyId"), displayFieldLength);
+            DisplayProperty("Celestial Body Name", ParseMetaData(oapp.MetaData, "CelestialBodyName"), displayFieldLength);
+
+            Console.WriteLine("");
+            DisplayProperty("Our World Lat/Long", ParseMetaDataForLatLong(oapp.MetaData, "OurWorldLat", "OurWorldLong"), displayFieldLength);
+            DisplayProperty("Our World 3D Object", ParseMetaDataForBinaryUploadAndURI(oapp.MetaData, "OurWorld3dObject", "OurWorld3dObjectURI"), displayFieldLength);
+            DisplayProperty("Our World 2D Sprite", ParseMetaDataForBinaryUploadAndURI(oapp.MetaData, "OurWorld2dSprite", "OurWorld2dSpriteURI"), displayFieldLength);
+            DisplayProperty("One World Lat/Long", ParseMetaDataForLatLong(oapp.MetaData, "OneWorldLat", "OneWorldLong"), displayFieldLength);
+            DisplayProperty("One World 3D Object", ParseMetaDataForBinaryUploadAndURI(oapp.MetaData, "OneWorld3dObject", "OneWorld3dObjectURI"), displayFieldLength);
+            DisplayProperty("One World 2D Sprite", ParseMetaDataForBinaryUploadAndURI(oapp.MetaData, "OneWorld2dSprite", "OneWorld2dSpriteURI"), displayFieldLength);
+
+            Console.WriteLine("");
+            DisplayProperty("Source Path", !string.IsNullOrEmpty(oapp.STARNETDNA.SourcePath) ? oapp.STARNETDNA.SourcePath : "None", displayFieldLength);
+            DisplayProperty("Published On", oapp.STARNETDNA.PublishedOn != DateTime.MinValue ? oapp.STARNETDNA.PublishedOn.ToString() : "None", displayFieldLength);
+            DisplayProperty("Published By", oapp.STARNETDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(oapp.STARNETDNA.PublishedByAvatarUsername, " (", oapp.STARNETDNA.PublishedByAvatarId.ToString(), ")") : "None", displayFieldLength);
+            DisplayProperty("Published Path", !string.IsNullOrEmpty(oapp.STARNETDNA.PublishedPath) ? oapp.STARNETDNA.PublishedPath : "None", displayFieldLength);
+            DisplayProperty("Filesize", oapp.STARNETDNA.FileSize > 0 ? oapp.STARNETDNA.FileSize.ToString() : "None", displayFieldLength);
+            //DisplayProperty("Self Contained Published Path", ParseMetaData(oapp.MetaData, "SelfContainedPublishedPath"), displayFieldLength);
+            //DisplayProperty("Self Contained Filesize", ParseMetaData(oapp.MetaData, "SelfContainedFileSize"), displayFieldLength);
+            //DisplayProperty("Self Contained Full Published Path", ParseMetaData(oapp.MetaData, "SelfContainedFullPublishedPath"), displayFieldLength);
+            //DisplayProperty("Self Contained Full Filesize", ParseMetaData(oapp.MetaData, "SelfContainedFullFileSize"), displayFieldLength);
+            //DisplayProperty("Published On STARNET:".PadRight(displayFieldLength), oapp.STARNETDNA.PublishedOnSTARNET ? "True" : "False"), displayFieldLength);
+            //DisplayProperty("Published To Cloud:".PadRight(displayFieldLength), oapp.STARNETDNA.PublishedToCloud ? "True" : "False"), displayFieldLength);
+            //DisplayProperty("Published To OASIS Provider".PadRight(displayFieldLength), Enum.GetName(typeof(ProviderType), oapp.STARNETDNA.PublishedProviderType)), displayFieldLength);
+            //DisplayProperty("Self Contained Published To Cloud", ParseMetaData(oapp.MetaData, "SelfContainedPublishedToCloud", "False"), displayFieldLength);
+            //DisplayProperty("Self Contained Published To OASIS Provider", ParseMetaData(oapp.MetaData, "SelfContainedPublishedProviderType"), displayFieldLength);
+            //DisplayProperty("Self Contained Full Published To Cloud", ParseMetaData(oapp.MetaData, "SelfContainedFullPublishedToCloud", "False"), displayFieldLength);
+            //DisplayProperty("Self Contained Full Published To OASIS Provider", ParseMetaData(oapp.MetaData, "SelfContainedFullPublishedProviderType"), displayFieldLength);
+
+            DisplayProperty("Published On STARNET", oapp.STARNETDNA.PublishedOnSTARNET ? "True" : "False", displayFieldLength);
+            DisplayProperty("Published To Cloud", oapp.STARNETDNA.PublishedToCloud ? "True" : "False", displayFieldLength);
+            DisplayProperty("Published To OASIS Provider", Enum.GetName(typeof(ProviderType), oapp.STARNETDNA.PublishedProviderType), displayFieldLength);
+            DisplayProperty("Launch Target", !string.IsNullOrEmpty(oapp.STARNETDNA.LaunchTarget) ? oapp.STARNETDNA.LaunchTarget : "None", displayFieldLength);
+            DisplayProperty($"{STARNETManager.STARNETHolonUIName} Version", oapp.STARNETDNA.Version, displayFieldLength);
+            DisplayProperty("Version Sequence", oapp.STARNETDNA.VersionSequence.ToString(), displayFieldLength);
+            DisplayProperty("Number Of Versions", oapp.STARNETDNA.NumberOfVersions.ToString(), displayFieldLength);
+
+            Console.WriteLine("");
+            //DisplayProperty("Self Contained", "", displayFieldLength, displayFieldLength);
+            DisplayProperty("SELF CONTAINED", "", displayFieldLength);
+            DisplayProperty("Published Path", ParseMetaData(oapp.MetaData, "SelfContainedPublishedPath"), displayFieldLength);
+            DisplayProperty("Filesize", ParseMetaData(oapp.MetaData, "SelfContainedFileSize"), displayFieldLength);
+            DisplayProperty("Published To Cloud", ParseMetaData(oapp.MetaData, "SelfContainedPublishedToCloud", "False"), displayFieldLength);
+            DisplayProperty("Published To OASIS Provider", ParseMetaData(oapp.MetaData, "SelfContainedPublishedProviderType"), displayFieldLength);
+
+            Console.WriteLine("");
+            //DisplayProperty("Self Contained Full", "", displayFieldLength, displayFieldLength);
+            DisplayProperty("SELF CONTAINED FULL", "", displayFieldLength);
+            DisplayProperty("Published Path", ParseMetaData(oapp.MetaData, "SelfContainedFullPublishedPath"), displayFieldLength);
+            DisplayProperty("Filesize", ParseMetaData(oapp.MetaData, "SelfContainedFullFileSize"), displayFieldLength);
+            DisplayProperty("Published To Cloud", ParseMetaData(oapp.MetaData, "SelfContainedFullPublishedToCloud", "False"), displayFieldLength);
+            DisplayProperty("Published To OASIS Provider", ParseMetaData(oapp.MetaData, "SelfContainedFullPublishedProviderType"), displayFieldLength);
+
+            Console.WriteLine("");
+            //DisplayProperty("Source Code Only", "", displayFieldLength, displayFieldLength);
+            DisplayProperty("SOURCE CODE ONLY", "", displayFieldLength);
+            DisplayProperty("Published Path", ParseMetaData(oapp.MetaData, "SourcePublishedPath"), displayFieldLength);
+            DisplayProperty("Filesize", ParseMetaData(oapp.MetaData, "SourceFileSize"), displayFieldLength);
+            DisplayProperty("Published On STARNET", ParseMetaData(oapp.MetaData, "SourcePublishedOnSTARNET", "False"), displayFieldLength);
+            DisplayProperty("Public On STARNET", ParseMetaData(oapp.MetaData, "SourcePublicOnSTARNET", "False"), displayFieldLength);
             
-            CLIEngine.ShowMessage(string.Concat($"Our World Lat/Long:".PadRight(displayFieldLength), oapp.MetaData["OurWorldLat"], "/", oapp.MetaData["OurWorldLong"]), false);
-            CLIEngine.ShowMessage(string.Concat($"Our World 3D Object:".PadRight(displayFieldLength), oapp.MetaData != null && oapp.MetaData.ContainsKey("OurWorld3dObject") ? "BINARY UPLOADED" : oapp.MetaData["OurWorld3dObjectURI"]), false);
-            //CLIEngine.ShowMessage(string.Concat($"Our World 3D Object URI:".PadRight(displayFieldLength), oapp.MetaData["OurWorld3dObjectURI"]), false);
-            //CLIEngine.ShowMessage(string.Concat($"Our World 2D Sprite:".PadRight(displayFieldLength), oapp.MetaData != null && oapp.MetaData.ContainsKey("OurWorld2dSprite") ? "Yes" : "No"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Our World 2D Sprite URI:".PadRight(displayFieldLength), oapp.MetaData["OurWorld2dSpriteURI"]), false);
-            CLIEngine.ShowMessage(string.Concat($"Our World 2D Sprite:".PadRight(displayFieldLength), oapp.MetaData != null && oapp.MetaData.ContainsKey("OurWorld2dSprite") ? "BINARY UPLOADED" : oapp.MetaData["OurWorld2dSpriteURI "]), false);
+            
+            //DisplayProperty("OASIS Holon Version:                        ", oapp.Version), displayFieldLength);
+            //DisplayProperty("OASIS Holon VersionId:                      ", oapp.VersionId), displayFieldLength);
+            //DisplayProperty("OASIS Holon PreviousVersionId:              ", oapp.PreviousVersionId), displayFieldLength);
 
-            CLIEngine.ShowMessage(string.Concat($"One World Lat/Long:".PadRight(displayFieldLength), oapp.MetaData["OneWorldLat"], "/", oapp.MetaData["OneWorldLong"]), false);
-            CLIEngine.ShowMessage(string.Concat($"One World 3D Object:".PadRight(displayFieldLength), oapp.MetaData != null && oapp.MetaData.ContainsKey("OneWorld3dObject") ? "Yes" : "No"), false);
-            CLIEngine.ShowMessage(string.Concat($"One World 3D Object URI:".PadRight(displayFieldLength), oapp.MetaData["OneWorld3dObjectURI"]), false);
-            CLIEngine.ShowMessage(string.Concat($"One World 2D Sprite".PadRight(displayFieldLength), oapp.MetaData != null && oapp.MetaData.ContainsKey("OneWorld2dSprite") ? "Yes" : "No"), false);
-            CLIEngine.ShowMessage(string.Concat($"One World 2D Sprite URI:".PadRight(displayFieldLength), oapp.MetaData["OneWorld2dSpriteURI"]), false);
+            Console.WriteLine("");
+            DisplayProperty("Downloads", oapp.STARNETDNA.Downloads.ToString(), displayFieldLength);
+            DisplayProperty("Installs", oapp.STARNETDNA.Installs.ToString(), displayFieldLength);
+            DisplayProperty("Total Downloads", oapp.STARNETDNA.TotalDownloads.ToString(), displayFieldLength);
+            DisplayProperty("Total Installs", oapp.STARNETDNA.TotalInstalls.ToString(), displayFieldLength);
 
+            Console.WriteLine("");
+            DisplayProperty("OASIS Runtime Version", oapp.STARNETDNA.OASISRuntimeVersion.ToString(), displayFieldLength);
+            DisplayProperty("OASIS API Version", oapp.STARNETDNA.OASISAPIVersion.ToString(), displayFieldLength);
+            DisplayProperty("COSMIC Version", oapp.STARNETDNA.COSMICVersion.ToString(), displayFieldLength);
+            DisplayProperty("STAR Runtime Version", oapp.STARNETDNA.STARRuntimeVersion.ToString(), displayFieldLength);
+            DisplayProperty("STAR ODK Version", oapp.STARNETDNA.STARODKVersion.ToString(), displayFieldLength);
+            DisplayProperty("STARNET Version", oapp.STARNETDNA.STARNETVersion.ToString(), displayFieldLength);
+            DisplayProperty("STAR API Version", oapp.STARNETDNA.STARAPIVersion.ToString(), displayFieldLength);
+            DisplayProperty(".NET Version", oapp.STARNETDNA.DotNetVersion.ToString(), displayFieldLength);
 
-
-            CLIEngine.ShowMessage(string.Concat($"Created On:".PadRight(displayFieldLength), oapp.STARNETDNA.CreatedOn != DateTime.MinValue ? oapp.STARNETDNA.CreatedOn.ToString() : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Created By:".PadRight(displayFieldLength), oapp.STARNETDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(oapp.STARNETDNA.CreatedByAvatarUsername, " (", oapp.STARNETDNA.CreatedByAvatarId.ToString(), ")") : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Modified On:".PadRight(displayFieldLength), oapp.STARNETDNA.ModifiedOn != DateTime.MinValue ? oapp.STARNETDNA.CreatedOn.ToString() : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Modified By:".PadRight(displayFieldLength), oapp.STARNETDNA.ModifiedByAvatarId != Guid.Empty ? string.Concat(oapp.STARNETDNA.ModifiedByAvatarUsername, " (", oapp.STARNETDNA.ModifiedByAvatarId.ToString(), ")") : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Path:".PadRight(displayFieldLength), !string.IsNullOrEmpty(oapp.STARNETDNA.SourcePath) ? oapp.STARNETDNA.SourcePath : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Published On:".PadRight(displayFieldLength), oapp.STARNETDNA.PublishedOn != DateTime.MinValue ? oapp.STARNETDNA.PublishedOn.ToString() : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"Published By:".PadRight(displayFieldLength), oapp.STARNETDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(oapp.STARNETDNA.PublishedByAvatarUsername, " (", oapp.STARNETDNA.PublishedByAvatarId.ToString(), ")") : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published Path:".PadRight(displayFieldLength), !string.IsNullOrEmpty(oapp.STARNETDNA.PublishedPath) ? oapp.STARNETDNA.PublishedPath : "None"), false);
-            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Filesize:".PadRight(displayFieldLength), oapp.STARNETDNA.FileSize.ToString()), false);
-            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published On STARNET:".PadRight(displayFieldLength), oapp.STARNETDNA.PublishedOnSTARNET ? "True" : "False"), false);
-            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published To Cloud:".PadRight(displayFieldLength), oapp.STARNETDNA.PublishedToCloud ? "True" : "False"), false);
-            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published To OASIS Provider:".PadRight(displayFieldLength), Enum.GetName(typeof(ProviderType), oapp.STARNETDNA.PublishedProviderType)), false);
-            CLIEngine.ShowMessage(string.Concat($"Launch Target:".PadRight(displayFieldLength), oapp.STARNETDNA.LaunchTarget), false);
-            CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Version:".PadRight(displayFieldLength), oapp.STARNETDNA.Version), false);
-            CLIEngine.ShowMessage(string.Concat($"Version Sequence:".PadRight(displayFieldLength), oapp.STARNETDNA.VersionSequence), false);
-            CLIEngine.ShowMessage(string.Concat($"Number Of Versions:".PadRight(displayFieldLength), oapp.STARNETDNA.NumberOfVersions), false);
-            //CLIEngine.ShowMessage(string.Concat($"OASIS Holon Version:                        ", oapp.Version), false);
-            //CLIEngine.ShowMessage(string.Concat($"OASIS Holon VersionId:                      ", oapp.VersionId), false);
-            //CLIEngine.ShowMessage(string.Concat($"OASIS Holon PreviousVersionId:              ", oapp.PreviousVersionId), false);
-            CLIEngine.ShowMessage(string.Concat($"Downloads:".PadRight(displayFieldLength), oapp.STARNETDNA.Downloads), false);
-            CLIEngine.ShowMessage(string.Concat($"Installs:".PadRight(displayFieldLength), oapp.STARNETDNA.Installs), false);
-            CLIEngine.ShowMessage(string.Concat($"Total Downloads:".PadRight(displayFieldLength), oapp.STARNETDNA.TotalDownloads), false);
-            CLIEngine.ShowMessage(string.Concat($"Total Installs:".PadRight(displayFieldLength), oapp.STARNETDNA.TotalInstalls), false);
-            CLIEngine.ShowMessage(string.Concat($"Active:".PadRight(displayFieldLength), oapp.MetaData != null && oapp.MetaData.ContainsKey("Active") && oapp.MetaData["Active"] != null && oapp.MetaData["Active"].ToString() == "1" ? "True" : "False"), false);
-            CLIEngine.ShowMessage(string.Concat($"OASIS Runtime Version:".PadRight(displayFieldLength), oapp.STARNETDNA.OASISRuntimeVersion), false);
-            CLIEngine.ShowMessage(string.Concat($"OASIS API Version:".PadRight(displayFieldLength), oapp.STARNETDNA.OASISAPIVersion), false);
-            CLIEngine.ShowMessage(string.Concat($"COSMIC Version:".PadRight(displayFieldLength), oapp.STARNETDNA.COSMICVersion), false);
-            CLIEngine.ShowMessage(string.Concat($"STAR Runtime Version:".PadRight(displayFieldLength), oapp.STARNETDNA.STARRuntimeVersion), false);
-            CLIEngine.ShowMessage(string.Concat($"STAR ODK Version:".PadRight(displayFieldLength), oapp.STARNETDNA.STARODKVersion), false);
-            CLIEngine.ShowMessage(string.Concat($"STARNET Version:".PadRight(displayFieldLength), oapp.STARNETDNA.STARNETVersion), false);
-            CLIEngine.ShowMessage(string.Concat($"STAR API Version:".PadRight(displayFieldLength), oapp.STARNETDNA.STARAPIVersion), false);
-            CLIEngine.ShowMessage(string.Concat($".NET Version:".PadRight(displayFieldLength), oapp.STARNETDNA.DotNetVersion), false);
+            Console.WriteLine("");
+            DisplayProperty("Created On", oapp.STARNETDNA.CreatedOn != DateTime.MinValue ? oapp.STARNETDNA.CreatedOn.ToString() : "None", displayFieldLength);
+            DisplayProperty("Created By", oapp.STARNETDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(oapp.STARNETDNA.CreatedByAvatarUsername, " (", oapp.STARNETDNA.CreatedByAvatarId.ToString(), ")") : "None", displayFieldLength);
+            DisplayProperty("Modified On", oapp.STARNETDNA.ModifiedOn != DateTime.MinValue ? oapp.STARNETDNA.CreatedOn.ToString() : "None", displayFieldLength);
+            DisplayProperty("Modified By", oapp.STARNETDNA.ModifiedByAvatarId != Guid.Empty ? string.Concat(oapp.STARNETDNA.ModifiedByAvatarUsername, " (", oapp.STARNETDNA.ModifiedByAvatarId.ToString(), ")") : "None", displayFieldLength);
+            DisplayProperty("Active", oapp.MetaData != null && oapp.MetaData.ContainsKey("Active") && oapp.MetaData["Active"] != null && oapp.MetaData["Active"].ToString() == "1" ? "True" : "False", displayFieldLength);
 
 
 
-                        //IOAPPDNA OAPPDNA = (IOAPPDNA)oapp.STARNETDNA;
+            //IOAPPDNA OAPPDNA = (IOAPPDNA)oapp.STARNETDNA;
 
             //CLIEngine.ShowMessage(string.Concat($"Id:                                                   ", OAPPDNA.Id != Guid.Empty ? OAPPDNA.Id : "None"), false);
             //CLIEngine.ShowMessage(string.Concat($"Name:                                                 ", !string.IsNullOrEmpty(OAPPDNA.Name) ? OAPPDNA.Name : "None"), false);
@@ -1419,39 +1459,40 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return lightResult;
         }
 
+
         //private async Task CheckIfRunTimeInstalledAsync(string runtimeName, string version, ProviderType providerType = ProviderType.Default)
         //{
         //    string errorMessage = "errorMessage"
         //    string OASISRunTimePath = STAR.STARDNA.DefaultRuntimesInstalledOASISPath;
         //    string STARRunTimePath = STAR.STARDNA.DefaultRuntimesInstalledSTARPath;
 
-        //    if (!string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
-        //    {
-        //        OASISRunTimePath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultRuntimesInstalledOASISPath);
-        //        STARRunTimePath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultRuntimesInstalledSTARPath);
-        //    }
+            //    if (!string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            //    {
+            //        OASISRunTimePath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultRuntimesInstalledOASISPath);
+            //        STARRunTimePath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultRuntimesInstalledSTARPath);
+            //    }
 
-        //    //Copy the correct runtimes to the OAPP folder.
-        //    if (!Directory.Exists(Path.Combine(OASISRunTimePath, string.Concat($"{runtimeName}_v", version))))
-        //    { 
-        //        CLIEngine.ShowWarningMessage($"The target {runtimeName} {version} is not installed!");
+            //    //Copy the correct runtimes to the OAPP folder.
+            //    if (!Directory.Exists(Path.Combine(OASISRunTimePath, string.Concat($"{runtimeName}_v", version))))
+            //    { 
+            //        CLIEngine.ShowWarningMessage($"The target {runtimeName} {version} is not installed!");
 
-        //        if (CLIEngine.GetConfirmation("Do you wish to download & install now?"))
-        //        {
-        //            OASISResult<InstalledRuntime> installResult = await STARCLI.Runtimes.DownloadAndInstallAsync(runtimeName, providerType: providerType);
+            //        if (CLIEngine.GetConfirmation("Do you wish to download & install now?"))
+            //        {
+            //            OASISResult<InstalledRuntime> installResult = await STARCLI.Runtimes.DownloadAndInstallAsync(runtimeName, providerType: providerType);
 
-        //            if (!(installResult != null && installResult.Result != null && !installResult.IsError))
-        //            { 
-        //                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion}. Reason: {installResult.Message}");
-        //                return result;
-        //            }
-        //        }
-        //        else
-        //        {
-        //            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The target OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion} is not installed!");
-        //            return result;
-        //        }
-        //    }
-        //}
+            //            if (!(installResult != null && installResult.Result != null && !installResult.IsError))
+            //            { 
+            //                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured downloading & installing the OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion}. Reason: {installResult.Message}");
+            //                return result;
+            //            }
+            //        }
+            //        else
+            //        {
+            //            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The target OASIS Runtime {installedOAPPTemplateResult.Result.STARNETDNA.OASISRuntimeVersion} is not installed!");
+            //            return result;
+            //        }
+            //    }
+            //}
     }
 }

@@ -125,10 +125,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
                 nodes = " |";
 
-            string tree = string.Concat(" |", indentBuffer, "HOLON").PadRight(22);
+            string tree = string.Concat(" |", indentBuffer, "HOLON").PadRight(17);
 
             //Console.WriteLine(string.Concat(tree, " | Name: ", holon.Name != null ? holon.Name.PadRight(40) : "".PadRight(40), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(15), children.PadRight(30), nodes.PadRight(30), "|"));
-            CLIEngine.ShowMessage(string.Concat(tree, " | Name: ", holon.Name != null ? holon.Name.PadRight(40) : "".PadRight(40), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(15), children.PadRight(30), nodes.PadRight(30), "|"), false);
+            CLIEngine.ShowMessage(string.Concat(tree, " | Name: ", holon.Name != null ? holon.Name.PadRight(20) : "".PadRight(20), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(8), children.PadRight(30), nodes.PadRight(27), "|"), false);
         }
 
         public void ShowHolonProperties(IHolon holon, bool showChildren = true)
