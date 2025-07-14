@@ -93,7 +93,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         string tree = string.Concat(" |", indentPadding, "  NODE").PadRight(17);
                         //Console.WriteLine(string.Concat(indentPadding, "  | NODE | Name: ", node.NodeName.PadRight(20), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(10)));
                         //Console.WriteLine(string.Concat(tree, " | Name: ", node.NodeName.PadRight(40), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(15), " | ".PadRight(30), " | ".PadRight(30), "|"));
-                        CLIEngine.ShowMessage(string.Concat(tree, " | Name: ", node.NodeName.PadRight(20), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(8), " | ".PadRight(30), " | ".PadRight(27), "|"), false);
+                        CLIEngine.ShowMessage(string.Concat(tree, "| Name: ", node.NodeName.PadRight(20), " | Id: ", node.Id, " | Type: ", Enum.GetName(node.NodeType).PadRight(6), " | ".PadRight(30), " | ".PadRight(27), "|"), false);
                     }
                 }
 
@@ -128,7 +128,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             string tree = string.Concat(" |", indentBuffer, "HOLON").PadRight(17);
 
             //Console.WriteLine(string.Concat(tree, " | Name: ", holon.Name != null ? holon.Name.PadRight(40) : "".PadRight(40), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(15), children.PadRight(30), nodes.PadRight(30), "|"));
-            CLIEngine.ShowMessage(string.Concat(tree, " | Name: ", holon.Name != null ? holon.Name.PadRight(20) : "".PadRight(20), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(8), children.PadRight(30), nodes.PadRight(27), "|"), false);
+            CLIEngine.ShowMessage(string.Concat(tree, "| Name: ", holon.Name != null ? holon.Name.PadRight(20) : "".PadRight(20), prefix, " | Id: ", holon.Id, prefix, " | Type: ", Enum.GetName(typeof(HolonType), holon.HolonType).PadRight(6), children.PadRight(30), nodes.PadRight(27), "|"), false);
         }
 
         public void ShowHolonProperties(IHolon holon, bool showChildren = true)

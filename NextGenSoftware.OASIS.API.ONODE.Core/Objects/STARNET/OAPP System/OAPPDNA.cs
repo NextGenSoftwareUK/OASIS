@@ -9,8 +9,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects
     public class OAPPDNA : STARNETDNA, IOAPPDNA
     {
         public Guid OAPPTemplateId { get; set; }
+        public string OAPPTemplateName { get; set; }
+        public string OAPPTemplateDescription { get; set; }
+        public OAPPTemplateType OAPPTemplateType { get; set; }
         public int OAPPTemplateVersionSequence { get; set; }
         public string OAPPTemplateVersion { get; set; }
+
+        public Guid CelestialBodyMetaDataId { get; set; }
+        public string CelestialBodyMetaDataName { get; set; }
+        public string CelestialBodyMetaDataDescription { get; set; }
+        public CelestialBodyType CelestialBodyMetaDataType { get; set; }
+        public int CelestialBodyMetaDataVersionSequence { get; set; }
+        public string CelestialBodyMetaDataVersion { get; set; }
+        public string CelestialBodyMetaDataGeneratedPath { get; set; }
+
         public long OurWorldLat { get; set; }
         public long OurWorldLong { get; set; }
         public long OneWorldLat { get; set; }
@@ -42,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects
         public long SourceFileSize { get; set; }
         //public bool IsActive { get; set; }
         public OAPPType OAPPType { get; set; }
-        public OAPPTemplateType OAPPTemplateType { get; set; }
+       
         public GenesisType GenesisType { get; set; }
         public Guid CelestialBodyId { get; set; }
         public string CelestialBodyName { get; set; }
