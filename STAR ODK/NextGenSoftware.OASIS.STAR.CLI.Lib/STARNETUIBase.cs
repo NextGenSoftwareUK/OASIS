@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()
     {
-        protected const int DEFAULT_FIELD_LENGTH = 30;
+        protected const int DEFAULT_FIELD_LENGTH = 35;
 
         public virtual ISTARNETManagerBase<T1, T2, T3> STARNETManager { get; set; }
         public virtual bool IsInit { get; set; }

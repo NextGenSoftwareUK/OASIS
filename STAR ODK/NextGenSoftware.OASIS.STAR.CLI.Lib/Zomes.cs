@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 string tree = string.Concat("  |", indentBuffer, "ZOME").PadRight(17);
                 string children = string.Concat(" | Containing ", zome.Children != null ? zome.Children.Count() : 0, " Child Holon(s)");
 
-                Console.WriteLine(string.Concat(tree, " | Name: ", zome.Name.PadRight(20), " | Id: ", zome.Id, " | Type: ", "Zome".PadRight(8), children.PadRight(30), " |".PadRight(27), "|"));
+                Console.WriteLine(string.Concat(tree, " | Name: ", zome.Name.PadRight(20), " | Id: ", zome.Id, " | Type: ", "Zome".PadRight(6), children.PadRight(30), " |".PadRight(27), "|"));
                 STARCLI.Holons.ShowHolons(zome.Children, false);
             }
         }
