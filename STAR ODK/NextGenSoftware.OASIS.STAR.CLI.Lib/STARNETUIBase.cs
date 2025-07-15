@@ -1721,6 +1721,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             if (!(result != null && result.Result != null && !result.IsError))
                                 OASISErrorHandling.HandleError(ref result, $"Error occured installing the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
                         }
+                        else
+                        {
+                            Console.WriteLine("");
+                            result.Message = "User Declined Installation";
+                            result.IsError = true;
+                        }
                     }
                     else
                     {
@@ -2155,11 +2161,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         //OASISResult<bool> publishResult = await STARNETManager.PublishAsync(STAR.BeamedInAvatar.Id, holon.STARNETDNA.Id, holon.STARNETDNA.VersionSequence, providerType);
                         OASISResult<T1> publishResult = await PublishAsync(holon.STARNETDNA.SourcePath, hasDefaultLaunch: false, providerType: providerType);
 
-                        if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
-                            installResult = await InstallAsync(holon, downloadPath, installPath, installMode, fullPathToPublishedFile, providerType);
-                        else
+                        if (!(publishResult != null && !publishResult.IsError && publishResult.Result != null))
                             CLIEngine.ShowErrorMessage($"Error publishing the {STARNETManager.STARNETHolonUIName} before installing it! Reason: {publishResult.Message}");
+
+                        //The publish routine automatically installs at the end (if the user agrees) so no need to install again here.
+                        //if (publishResult != null && !publishResult.IsError && publishResult.Result != null)
+                        //    installResult = await InstallAsync(holon, downloadPath, installPath, installMode, fullPathToPublishedFile, providerType);
+                        //else
+                        //    CLIEngine.ShowErrorMessage($"Error publishing the {STARNETManager.STARNETHolonUIName} before installing it! Reason: {publishResult.Message}");
                     }
+                    else
+                        Console.WriteLine("");
                 }
             }
 
