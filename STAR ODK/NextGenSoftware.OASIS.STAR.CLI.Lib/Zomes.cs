@@ -55,7 +55,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public void ShowZomesAndHolons(IEnumerable<IZome> zomes, string customHeader = null, string indentBuffer = " ")
         {
             if (string.IsNullOrEmpty(customHeader))
-                Console.WriteLine($" {zomes.Count()} Zome(s) Found", zomes.Count() > 0 ? ":" : "");
+                //Console.WriteLine($" {zomes.Count()} Zome(s) Found", zomes.Count() > 0 ? ":" : "");
+                Console.WriteLine($" {zomes.Count()} Zome(s) Found:");
             else
                 Console.WriteLine(customHeader);
 
@@ -64,10 +65,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             foreach (IZome zome in zomes)
             {
                 //Console.WriteLine(string.Concat("  | ZOME | Name: ", zome.Name.PadRight(20), " | Id: ", zome.Id, " | Containing ", zome.Children.Count(), " Holon(s)", zome.Children.Count > 0 ? ":" : ""));
-                string tree = string.Concat("  |", indentBuffer, "ZOME").PadRight(17);
+                string tree = string.Concat(" |", indentBuffer, "ZOME").PadRight(16);
                 string children = string.Concat(" | Containing ", zome.Children != null ? zome.Children.Count() : 0, " Child Holon(s)");
 
-                Console.WriteLine(string.Concat(tree, " | Name: ", zome.Name.PadRight(20), " | Id: ", zome.Id, " | Type: ", "Zome".PadRight(6), children.PadRight(30), " |".PadRight(27), "|"));
+                //Console.WriteLine(string.Concat(tree, " | Name: ", zome.Name.PadRight(20), " | Id: ", zome.Id, " | Type: ", "Zome".PadRight(6), children.PadRight(30), " |".PadRight(27), "|"));
+                //Console.WriteLine(string.Concat(tree, " | Name: ", zome.Name.PadRight(20), " | Id: ", zome.Id, " | Type: ", "Zome".PadRight(6)));
+                CLIEngine.ShowMessage(string.Concat(tree, " | Name: ", zome.Name.PadRight(20), " | Id: ", zome.Id, " | Type: ", "Zome".PadRight(6)), false);
                 STARCLI.Holons.ShowHolons(zome.Children, false);
             }
         }

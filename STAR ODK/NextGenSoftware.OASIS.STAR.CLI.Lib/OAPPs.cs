@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.STAR.Interfaces;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.Utilities.ExtentionMethods;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -442,11 +443,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             (lightResult, CelestialBodyMetaDataDNA cbDNA) = await CreateMetaDataOnSTARNETAsync(lightResult, generateResult.Result, genesisType, errorMessage, providerType);
 
                             if (cbDNA != null)
-                                celestialBodyMetaDataDNA = new InstalledCelestialBodyMetaDataDNA()
-                                { 
-                                    STARNETDNA = cbDNA.STARNETDNA,
-                                    //InstalledPath = Path.Combine(OAPPMetaDataDNAFolder, OAPPName, "CelestialBodyDNA")
-                                };
+                            {
+                                celestialBodyMetaDataDNA = new InstalledCelestialBodyMetaDataDNA(){ STARNETDNA = cbDNA.STARNETDNA };
+
+                                //Check if the user chose to install (after creating and publishing).
+                                CLIEngine.SupressConsoleLogging = true;
+                                OASISResult<InstalledCelestialBodyMetaDataDNA> installedResult = await STAR.STARAPI.CelestialBodiesMetaDataDNA.LoadInstalledAsync(STAR.BeamedInAvatar.Id, cbDNA.STARNETDNA.Id, cbDNA.STARNETDNA.Version, providerType);
+                                CLIEngine.SupressConsoleLogging = false;
+
+                                if (installedResult != null && !installedResult.IsError && installedResult.Result != null)
+                                    celestialBodyMetaDataDNA = installedResult.Result;
+                            }
 
                             cbMetaDataGeneratedPath = Path.Combine(OAPPMetaDataDNAFolder, OAPPName, "CelestialBodyDNA");
                             dnaFolder = cbMetaDataGeneratedPath;
@@ -582,13 +589,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             { "OAPPTemplateVersion", installedOAPPTemplate.STARNETDNA.Version },
                             { "OAPPTemplateVersionSequence", installedOAPPTemplate.STARNETDNA.VersionSequence },
                             { "OAPPTemplateInstalledPath", installedOAPPTemplate.InstalledPath },
-                            { "CelestialBodyMetaDataId", celestialBodyMetaDataDNA.STARNETDNA.Id },
-                            { "CelestialBodyMetaDataName", celestialBodyMetaDataDNA.STARNETDNA.Name },
-                            { "CelestialBodyMetaDataDescription", celestialBodyMetaDataDNA.STARNETDNA.Description },
-                            { "CelestialBodyMetaDataType", celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType },
-                            { "CelestialBodyMetaDataVersionSequence", celestialBodyMetaDataDNA.STARNETDNA.VersionSequence },
-                            { "CelestialBodyMetaDataVersion", celestialBodyMetaDataDNA.STARNETDNA.Version },
-                            { "CelestialBodyMetaDataInstalledPath", celestialBodyMetaDataDNA.InstalledPath },
+                            { "CelestialBodyMetaDataId", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Id : null },
+                            { "CelestialBodyMetaDataName", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Name : null },
+                            { "CelestialBodyMetaDataDescription", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Description : null },
+                            { "CelestialBodyMetaDataType", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType : null },
+                            { "CelestialBodyMetaDataVersionSequence", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.VersionSequence : null },
+                            { "CelestialBodyMetaDataVersion", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Version : null },
+                            { "CelestialBodyMetaDataInstalledPath", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.InstalledPath : null },
                             { "CelestialBodyMetaDataGeneratedPath", cbMetaDataGeneratedPath },
                             { "STARNETHolonType", OAPPType },
                             { "OurWorldLat", ourWorldLat },
@@ -615,13 +622,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             OAPPTemplateType = OAPPTemplateType,
                             OAPPTemplateVersion = installedOAPPTemplate.STARNETDNA.Version,
                             OAPPTemplateVersionSequence = installedOAPPTemplate.STARNETDNA.VersionSequence,
-                            CelestialBodyMetaDataId = celestialBodyMetaDataDNA.STARNETDNA.Id,
-                            CelestialBodyMetaDataName = celestialBodyMetaDataDNA.STARNETDNA.Name,
-                            CelestialBodyMetaDataDescription = celestialBodyMetaDataDNA.STARNETDNA.Description,
-                            CelestialBodyMetaDataType = (CelestialBodyType)Enum.Parse(typeof(CelestialBodyType), celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType.ToString()),
-                            CelestialBodyMetaDataVersion = celestialBodyMetaDataDNA.STARNETDNA.Version,
-                            CelestialBodyMetaDataVersionSequence = celestialBodyMetaDataDNA.STARNETDNA.VersionSequence,
-                            CelestialBodyMetaDataGeneratedPath = cbMetaDataGeneratedPath,
+                            CelestialBodyMetaDataId = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Id : Guid.Empty,
+                            CelestialBodyMetaDataName = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Name : null,
+                            CelestialBodyMetaDataDescription = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Description : null,
+                            CelestialBodyMetaDataType = celestialBodyMetaDataDNA != null ? (CelestialBodyType)Enum.Parse(typeof(CelestialBodyType), celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType.ToString()) : CelestialBodyType.Moon,
+                            CelestialBodyMetaDataVersion = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Version : null,
+                            CelestialBodyMetaDataVersionSequence = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.VersionSequence : 0,
+                            CelestialBodyMetaDataGeneratedPath = celestialBodyMetaDataDNA != null ? cbMetaDataGeneratedPath : null,
                             STARNETHolonType = OAPPType,
                             OurWorldLat = ourWorldLat,
                             OurWorldLong = ourWorldLong,
@@ -930,7 +937,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Version", ParseMetaData(oapp.MetaData, "CelestialBodyMetaDataVersion"), displayFieldLength);
             DisplayProperty("Version Sequence", ParseMetaData(oapp.MetaData, "CelestialBodyMetaDataVersionSequence"), displayFieldLength);
             DisplayProperty("Installed Path", ParseMetaData(oapp.MetaData, "CelestialBodyMetaDataInstalledPath"), displayFieldLength);
-            DisplayProperty("Generated Path", ParseMetaData(oapp.MetaData, "CelestialBodyMetaDataDnaPath"), displayFieldLength);
+            DisplayProperty("Generated Path", ParseMetaData(oapp.MetaData, "CelestialBodyMetaDataGeneratedPath"), displayFieldLength);
 
             Console.WriteLine("");
             DisplayProperty("Our World Lat/Long", ParseMetaDataForLatLong(oapp.MetaData, "OurWorldLat", "OurWorldLong"), displayFieldLength);
