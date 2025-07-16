@@ -6,7 +6,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Events
 {
     public class OAPPPublishStatusEventArgs : EventArgs
     {
-        public IOAPPDNA OAPPDNA { get; set; }
+        //public IOAPPDNA OAPPDNA { get; set; }
+        public ISTARNETDNA OAPPDNA { get; set; }
         public OAPPPublishStatus Status { get; set; }
         public string ErrorMessage { get; set; }
     }

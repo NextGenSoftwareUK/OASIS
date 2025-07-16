@@ -26,7 +26,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
-    public abstract class STARNETManagerBase<T1, T2, T3> : COSMICManagerBase, ISTARNETManagerBase<T1, T2, T3> 
+    public abstract class STARNETManagerBase<T1, T2, T3> : COSMICManagerBase, ISTARNETManagerBase<T1, T2, T3>
         where T1 : ISTARNETHolon, new()
         where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()
@@ -200,7 +200,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
                     STARNETDNA.SourcePath = fullPathToSourceFolder;
                     STARNETDNA.MetaData = metaData; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
-                    
+
 
                     //STARNETDNA STARNETDNA = new STARNETDNA()
                     //{
@@ -1764,10 +1764,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
+        //public virtual async Task<OASISResult<T1>> UploadToOASISAsync(Guid avatarId, ISTARNETDNA STARNETDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType, OASISResult<T1> result)
         public virtual async Task<OASISResult<T1>> UploadToOASISAsync(Guid avatarId, ISTARNETDNA STARNETDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-
+            result.Result = new T1();
             result.Result.PublishedSTARNETHolon = File.ReadAllBytes(publishedPath);
 
             //TODO: We could use HoloOASIS and other large file storage providers in future...
@@ -1791,7 +1792,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T1> UploadToOASIS(Guid avatarId, ISTARNETDNA STARNETDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-
+            result.Result = new T1();
             result.Result.PublishedSTARNETHolon = File.ReadAllBytes(publishedPath);
 
             //TODO: We could use HoloOASIS and other large file storage providers in future...
@@ -1845,7 +1846,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 saveSTARNETHolonResult = await UpdateNumberOfVersionCountsAsync(avatarId, saveSTARNETHolonResult, errorMessage, providerType);
                 result.IsSaved = true;
                 result.Result = saveSTARNETHolonResult.Result; //TODO:Check if this is needed?
-                
+
                 CheckForVersionMismatches(holon.STARNETDNA, ref result);
 
                 if (result.IsWarning)
@@ -2536,7 +2537,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual OASISResult<T2> Download(Guid avatarId, string STARNETHolonName, string version, string fullDownloadPath = "",  bool reInstall = false, ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<T2> Download(Guid avatarId, string STARNETHolonName, string version, string fullDownloadPath = "", bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T2> result = new OASISResult<T2>();
             OASISResult<T1> STARNETHolonResult = Data.LoadHolonByMetaData<T1>(new Dictionary<string, string>()
@@ -2621,7 +2622,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                                 DownloadedBy = avatarId,
                                 DownloadedByAvatarUsername = avatarResult.Result.Username,
                                 DownloadedOn = DateTime.Now,
-                                DownloadedPath = fullDownloadPath
+                                DownloadedPath = fullDownloadPath,
+                                MetaData = holon.MetaData
+
                             };
 
                             await UpdateDownloadCountsAsync(avatarId, downloadedSTARNETHolon, holon.STARNETDNA, result, errorMessage, providerType);
@@ -2644,6 +2647,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                                 downloadedSTARNETHolon.DownloadedBy = avatarId;
                                 downloadedSTARNETHolon.DownloadedByAvatarUsername = avatarResult.Result.Username;
                                 downloadedSTARNETHolon.DownloadedPath = fullDownloadPath;
+                                downloadedSTARNETHolon.MetaData = holon.MetaData;
 
                                 OASISResult<T2> saveResult = await downloadedSTARNETHolon.SaveAsync<T2>();
 
@@ -2761,7 +2765,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                                 DownloadedBy = avatarId,
                                 DownloadedByAvatarUsername = avatarResult.Result.Username,
                                 DownloadedOn = DateTime.Now,
-                                DownloadedPath = fullDownloadPath
+                                DownloadedPath = fullDownloadPath,
+                                MetaData = holon.MetaData
                             };
 
                             UpdateDownloadCounts(avatarId, downloadedSTARNETHolon, holon.STARNETDNA, result, errorMessage, providerType);
@@ -2784,6 +2789,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                                 downloadedSTARNETHolon.DownloadedBy = avatarId;
                                 downloadedSTARNETHolon.DownloadedByAvatarUsername = avatarResult.Result.Username;
                                 downloadedSTARNETHolon.DownloadedPath = fullDownloadPath;
+                                downloadedSTARNETHolon.MetaData = holon.MetaData;
 
                                 OASISResult<T2> saveResult = downloadedSTARNETHolon.Save<T2>();
 
@@ -2989,7 +2995,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> DownloadAndInstallAsync(Guid avatarId, Guid STARNETHolonId, string version, string fullInstallPath, string fullDownloadPath = "", bool createSTARNETHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            OASISResult<T1> STARNETHolonResult = await Data.LoadHolonByMetaDataAsync<T1>(new Dictionary<string, string>() 
+            OASISResult<T1> STARNETHolonResult = await Data.LoadHolonByMetaDataAsync<T1>(new Dictionary<string, string>()
             {
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
                 { "Version", version } ,
@@ -3118,6 +3124,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.InstallAsync. Reason: ";
             ISTARNETDNA STARNETDNA = null;
+            T1 STARNETHolon = default;
             string tempPath = "";
             T3 installedSTARNETHolon = default;
             int totalInstalls = 0;
@@ -3146,6 +3153,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     {
                         //TODO: Not sure if we want to add a check here to compare the STARNETDNA in the T dir with the one stored in the OASIS?
                         STARNETDNA = STARNETHolonLoadResult.Result.STARNETDNA;
+                        STARNETHolon = STARNETHolonLoadResult.Result;
 
                         if (createSTARNETHolonDirectory)
                             fullInstallPath = Path.Combine(fullInstallPath, string.Concat(STARNETDNAResult.Result.Name, "_v", STARNETDNAResult.Result.Version));
@@ -3195,6 +3203,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                                     DownloadedPath = downloadedSTARNETHolon.DownloadedPath,
                                     DownloadedSTARNETHolonId = downloadedSTARNETHolon.Id,
                                     Active = "1",
+                                    MetaData = STARNETHolon.MetaData
                                     //STARNETHolonVersion = STARNETDNA.Version
                                 };
 
@@ -3223,6 +3232,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                                     installedSTARNETHolon.DownloadedByAvatarUsername = downloadedSTARNETHolon.DownloadedByAvatarUsername;
                                     installedSTARNETHolon.DownloadedOn = downloadedSTARNETHolon.DownloadedOn;
                                     installedSTARNETHolon.DownloadedPath = downloadedSTARNETHolon.DownloadedPath;
+                                    installedSTARNETHolon.MetaData = STARNETHolon.MetaData;
                                 }
                                 else
                                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured re-installing {STARNETHolonUIName} calling LoadAsync. Reason: {installedSTARNETHolonResult.Message}");
@@ -3288,6 +3298,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             OASISResult<T3> result = new OASISResult<T3>();
             string errorMessage = "Error occured in STARManagerBase.Install. Reason: ";
             ISTARNETDNA STARNETDNA = null;
+            T1 STARNETHolon = default;
             string tempPath = "";
             T3 installedSTARNETHolon = default;
             int totalInstalls = 0;
@@ -3317,6 +3328,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     {
                         //TODO: Not sure if we want to add a check here to compare the STARNETDNA in the T dir with the one stored in the OASIS?
                         STARNETDNA = STARNETHolonLoadResult.Result.STARNETDNA;
+                        STARNETHolon = STARNETHolonLoadResult.Result;
 
                         if (createSTARNETHolonDirectory)
                             fullInstallPath = Path.Combine(fullInstallPath, string.Concat(STARNETDNAResult.Result.Name, "_v", STARNETDNAResult.Result.Version));
@@ -3368,6 +3380,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                                     DownloadedPath = downloadedSTARNETHolon.DownloadedPath,
                                     DownloadedSTARNETHolonId = downloadedSTARNETHolon.Id,
                                     Active = "1",
+                                    MetaData = STARNETHolon.MetaData
                                     //STARNETHolonVersion = STARNETDNA.Version
                                 };
 
@@ -3396,6 +3409,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                                     installedSTARNETHolon.DownloadedByAvatarUsername = downloadedSTARNETHolon.DownloadedByAvatarUsername;
                                     installedSTARNETHolon.DownloadedOn = downloadedSTARNETHolon.DownloadedOn;
                                     installedSTARNETHolon.DownloadedPath = downloadedSTARNETHolon.DownloadedPath;
+                                    installedSTARNETHolon.MetaData = STARNETHolon.MetaData;
                                 }
                                 else
                                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured re-installing {STARNETHolonUIName} calling LoadAsync. Reason: {installedSTARNETHolonResult.Message}");
@@ -5178,6 +5192,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
+        protected void RaisePublishStatusChangedEvent(ISTARNETDNA STARNETDNA, STARNETHolonPublishStatus status, string errorMesssage = "")
+        {
+            OnPublishStatusChanged?.Invoke(this, new STARNETHolonPublishStatusEventArgs() { STARNETDNA = STARNETDNA, Status = status, ErrorMessage = errorMesssage });
+        }
+
+        protected void RaiseInstallStatusChangedEvent(ISTARNETDNA STARNETDNA, STARNETHolonInstallStatus status, string errorMesssage = "")
+        {
+            OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { STARNETDNA = STARNETDNA, Status = status, ErrorMessage = errorMesssage });
+        }
+
+        protected void RaiseUploadStatusChangedEvent(ISTARNETDNA STARNETDNA, STARNETHolonUploadStatus status, string errorMesssage = "")
+        {
+            OnUploadStatusChanged?.Invoke(this, new STARNETHolonUploadProgressEventArgs() {  STARNETDNA = STARNETDNA, Status = status, ErrorMessage = errorMesssage });
+        }
+
+        protected void RaiseDownloadStatusChangedEvent(ISTARNETDNA STARNETDNA, STARNETHolonDownloadStatus status, string errorMesssage = "")
+        {
+            OnDownloadStatusChanged?.Invoke(this, new STARNETHolonDownloadProgressEventArgs() { STARNETDNA = STARNETDNA, Status = status, ErrorMessage = errorMesssage });
+        }
+
         private OASISResult<T> CheckForVersionMismatches<T>(ISTARNETDNA STARNETDNA, ref OASISResult<T> result)
         {
             string message = "The {0} Version ({1}) does not match the current version ({1}). This may lead to issues, it is recommended to make sure the versions match.";
@@ -5233,7 +5267,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        private OASISResult<IEnumerable<T>> FilterResultsForVersion<T>(Guid avatarId, OASISResult<IEnumerable<T>> results, bool showAllVersions = false, int version = 0) where T: ISTARNETHolon, new()
+        private OASISResult<IEnumerable<T>> FilterResultsForVersion<T>(Guid avatarId, OASISResult<IEnumerable<T>> results, bool showAllVersions = false, int version = 0) where T : ISTARNETHolon, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
             List<T> templates = new List<T>();

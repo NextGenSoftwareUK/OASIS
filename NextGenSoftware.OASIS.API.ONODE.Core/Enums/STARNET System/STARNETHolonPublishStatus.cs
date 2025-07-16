@@ -3,6 +3,7 @@
     public enum STARNETHolonPublishStatus
     {
         Packaging,
+        DotNetPublishing,
         Compressing,
         Uploading,
         Published,
