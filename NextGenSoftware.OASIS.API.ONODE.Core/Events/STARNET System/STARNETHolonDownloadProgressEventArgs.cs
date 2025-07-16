@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon
 {
     public class STARNETHolonDownloadProgressEventArgs : EventArgs
     {
-        public ISTARNETDNA STARHolonDNA { get; set; }
+        public ISTARNETDNA STARNETDNA { get; set; }
         public int Progress { get; set; }
         public STARNETHolonDownloadStatus Status { get; set; }
         public string ErrorMessage { get; set; }

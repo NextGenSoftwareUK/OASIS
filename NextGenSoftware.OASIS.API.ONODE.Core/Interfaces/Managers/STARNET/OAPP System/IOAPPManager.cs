@@ -11,10 +11,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
 {
     public interface IOAPPManager
     {
-        event OAPPManager.OAPPDownloadStatusChanged OnOAPPDownloadStatusChanged;
-        event OAPPManager.OAPPInstallStatusChanged OnOAPPInstallStatusChanged;
-        event OAPPManager.OAPPPublishStatusChanged OnOAPPPublishStatusChanged;
-        event OAPPManager.OAPPUploadStatusChanged OnOAPPUploadStatusChanged;
+        //event OAPPManager.OAPPDownloadStatusChanged OnOAPPDownloadStatusChanged;
+        //event OAPPManager.OAPPInstallStatusChanged OnOAPPInstallStatusChanged;
+        //event OAPPManager.OAPPPublishStatusChanged OnOAPPPublishStatusChanged;
+        //event OAPPManager.OAPPUploadStatusChanged OnOAPPUploadStatusChanged;
 
         //OASISResult<IOAPP> CreateOAPP(Guid avatarId, string name, string description, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPId, GenesisType genesisType, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
         //Task<OASISResult<IOAPP>> CreateOAPPAsync(Guid avatarId, string name, string description, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPId, GenesisType genesisType, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);

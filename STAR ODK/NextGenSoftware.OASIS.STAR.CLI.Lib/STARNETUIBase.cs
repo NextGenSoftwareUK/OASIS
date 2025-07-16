@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayFieldLength = displayFieldLength;
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             STARNETManager.OnDownloadStatusChanged -= OnDownloadStatusChanged;
             STARNETManager.OnInstallStatusChanged -= OnInstallStatusChanged;
@@ -1252,6 +1252,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             //Show((T1)starHolon, showHeader, false, showNumbers, number, showDetailedInfo);
             Show(ConvertFromT3ToT1(starHolon), showHeader, false, showNumbers, number, showDetailedInfo);
+
+            Console.WriteLine("");
             CLIEngine.ShowMessage(string.Concat($"Downloaded On:".PadRight(displayFieldLength), starHolon.DownloadedOn != DateTime.MinValue ? starHolon.DownloadedOn.ToString() : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Downloaded By:".PadRight(displayFieldLength), starHolon.DownloadedBy != Guid.Empty ? string.Concat(starHolon.DownloadedByAvatarUsername, " (", starHolon.DownloadedBy.ToString(), ")") : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Downloaded Path:".PadRight(displayFieldLength), !string.IsNullOrEmpty(starHolon.DownloadedPath) ? starHolon.DownloadedPath : "None"), false);
@@ -2330,6 +2332,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             T1 newHolon = new T1();
             newHolon.STARNETDNA = holon.STARNETDNA;
+            newHolon.MetaData = holon.MetaData;
             return newHolon;
         }
 
