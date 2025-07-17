@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "InventoryItemId",
             "InventoryItemName",
             "InventoryItemType",
-            "inventoryitem",
+            "oinventoryitem",
             "oasis_inventoryitems",
             "InventoryItemDNA.json",
             "InventoryItemDNAJSON")
@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "InventoryItemId",
             "InventoryItemName",
             "InventoryItemType",
-            "inventoryitem",
+            "oinventoryitem",
             "oasis_inventoryitems",
             "InventoryItemDNA.json",
             "InventoryItemDNAJSON")

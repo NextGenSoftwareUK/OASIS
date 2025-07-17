@@ -69,6 +69,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         OAPP,
         OAPPTemplate,
         Runtime,
+        Plugin,
         DownloadedSTARNETHolon,
         DownloadedOAPP,
         DownloadedOAPPTemplate,
@@ -87,6 +88,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         DownloadedHolonMetaDataDNA,
         DownloadedZome,
         DownloadedZomeMetaDataDNA,
+        DownloadedPlugin,
         InstalledSTARNETHolon,
         InstalledOAPP,
         InstalledOAPPTemplate,
@@ -105,6 +107,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         InstalledHolonMetaDataDNA,
         InstalledZome,
         InstalledZomeMetaDataDNA,
+        InstalledPlugin,
         None
         //Custom,
         //DataObject

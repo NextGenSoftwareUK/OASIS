@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "NFTId",
             "NFTName",
             "NFTType",
-            "nft",
+            "onft",
             "oasis_nfts",
             "NFTDNA.json",
             "NFTDNAJSON")
@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "NFTId",
             "NFTName",
             "NFTType",
-            "nft",
+            "onft",
             "oasis_nfts",
             "NFTDNA.json",
             "NFTDNAJSON")

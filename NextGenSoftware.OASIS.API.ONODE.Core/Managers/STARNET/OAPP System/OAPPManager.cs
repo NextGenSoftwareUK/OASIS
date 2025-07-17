@@ -3,21 +3,17 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using NextGenSoftware.Utilities;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.Core.Events;
-using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
-using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -53,30 +49,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "OAPPDNAJSON")
         { }
 
-        public delegate void OAPPPublishStatusChanged(object sender, OAPPPublishStatusEventArgs e);
-        public delegate void OAPPInstallStatusChanged(object sender, OAPPInstallStatusEventArgs e);
-        public delegate void OAPPUploadStatusChanged(object sender, OAPPUploadProgressEventArgs e);
-        public delegate void OAPPDownloadStatusChanged(object sender, OAPPDownloadProgressEventArgs e);
+        //public delegate void OAPPPublishStatusChanged(object sender, OAPPPublishStatusEventArgs e);
+        //public delegate void OAPPInstallStatusChanged(object sender, OAPPInstallStatusEventArgs e);
+        //public delegate void OAPPUploadStatusChanged(object sender, OAPPUploadProgressEventArgs e);
+        //public delegate void OAPPDownloadStatusChanged(object sender, OAPPDownloadProgressEventArgs e);
 
-        /// <summary>
-        /// Fired when there is a change in the OAPP publish status.
-        /// </summary>
-        public event OAPPPublishStatusChanged OnOAPPPublishStatusChanged;
+        ///// <summary>
+        ///// Fired when there is a change in the OAPP publish status.
+        ///// </summary>
+        //public event OAPPPublishStatusChanged OnOAPPPublishStatusChanged;
 
-        /// <summary>
-        /// Fired when there is a change to the OAPP Install status.
-        /// </summary>
-        public event OAPPInstallStatusChanged OnOAPPInstallStatusChanged;
+        ///// <summary>
+        ///// Fired when there is a change to the OAPP Install status.
+        ///// </summary>
+        //public event OAPPInstallStatusChanged OnOAPPInstallStatusChanged;
 
-        /// <summary>
-        /// Fired when there is a change in the OAPP upload status.
-        /// </summary>
-        public event OAPPUploadStatusChanged OnOAPPUploadStatusChanged;
+        ///// <summary>
+        ///// Fired when there is a change in the OAPP upload status.
+        ///// </summary>
+        //public event OAPPUploadStatusChanged OnOAPPUploadStatusChanged;
 
-        /// <summary>
-        /// Fired when there is a change in the OAPP download status.
-        /// </summary>
-        public event OAPPDownloadStatusChanged OnOAPPDownloadStatusChanged;
+        ///// <summary>
+        ///// Fired when there is a change in the OAPP download status.
+        ///// </summary>
+        //public event OAPPDownloadStatusChanged OnOAPPDownloadStatusChanged;
 
         //public async Task<OASISResult<IOAPP>> CreateOAPPAsync(Guid avatarId, string name, string description, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string fullPathToOAPP, ICelestialBody celestialBody = null, IEnumerable<IZome> zomes = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         //{
@@ -223,6 +219,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             //IOAPPDNA OAPPDNA = null;
             ISTARNETDNA OAPPDNA = null;
             IOAPP OAPP = null;
+            string originalFullPathToSource = fullPathToSource;
 
             OASISResult<OAPP> validateResult = await BeginPublishAsync(avatarId, fullPathToSource, launchTarget, fullPathToPublishTo, edit, providerType);
 
@@ -230,6 +227,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 //OAPPDNA = (IOAPPDNA)validateResult.Result.STARNETDNA;
                 OAPPDNA = validateResult.Result.STARNETDNA;
+                OAPP = validateResult.Result;
+
                 string publishedFileName = string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version, ".", STARNETHolonFileExtention);
                 string publishedSelfContainedFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARNETHolonFileExtention);
                 string publishedSelfContainedFullFileName = string.Concat(OAPPDNA.Name, " (Self Contained)_v", OAPPDNA.Version, ".", STARNETHolonFileExtention);
@@ -237,11 +236,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 OAPPDNA.PublishedOnSTARNET = registerOnSTARNET && (binaryProviderType != ProviderType.None || uploadToCloud || selfContainedBinaryProviderType != ProviderType.None || uploadSelfContainedToCloud || selfContainedFullBinaryProviderType != ProviderType.None || uploadSelfContainedFullToCloud);
 
-                if (dotnetPublish)
-                {
-                    OASISResult<bool> publishResult = PublishToDotNet(fullPathToSource, OAPPDNA);
+                if (dotnetPublish || generateSelfContainedFullBinary)
+                { 
+                    OASISResult<(bool, string)> publishResult = PublishToDotNet(fullPathToSource, OAPPDNA, generateSelfContainedFullBinary);
 
-                    if (!(publishResult != null && publishResult.Result != null && !publishResult.IsError))
+                    if (publishResult != null && publishResult.Result.Item1 && !publishResult.IsError)
+                        fullPathToSource = publishResult.Result.Item2;
+                    else
                     {
                         result.Message = publishResult.Message;
                         result.IsError = true;
@@ -282,9 +283,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     OAPPDNA.MetaData["SelfContainedPublishedPath"] = Path.Combine(fullPathToPublishTo, publishedSelfContainedFileName);
                     OAPPDNA.MetaData["SelfContainedPublishedToCloud"] = registerOnSTARNET && uploadSelfContainedToCloud;
                     OAPPDNA.MetaData["SelfContainedPublishedProviderType"] = selfContainedBinaryProviderType;
-                    OAPP.MetaData["SelfContainedPublishedPath"] = Path.Combine(fullPathToPublishTo, publishedSelfContainedFileName);
-                    OAPP.MetaData["SelfContainedPublishedToCloud"] = registerOnSTARNET && uploadSelfContainedToCloud;
-                    OAPP.MetaData["SelfContainedPublishedProviderType"] = selfContainedBinaryProviderType;
+                    OAPP.SelfContainedPublishedPath = Path.Combine(fullPathToPublishTo, publishedSelfContainedFileName);
+                    OAPP.SelfContainedPublishedToCloud = registerOnSTARNET && uploadSelfContainedToCloud;
+                    OAPP.SelfContainedPublishedProviderType = selfContainedBinaryProviderType;
                 }
 
                 if (generateSelfContainedFullBinary)
@@ -292,9 +293,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     OAPPDNA.MetaData["SelfContainedFullPublishedPath"] = Path.Combine(fullPathToPublishTo, publishedSelfContainedFullFileName);
                     OAPPDNA.MetaData["SelfContainedFullPublishedToCloud"] = registerOnSTARNET && uploadSelfContainedFullToCloud;
                     OAPPDNA.MetaData["SelfContainedFullPublishedProviderType"] = selfContainedFullBinaryProviderType;
-                    OAPP.MetaData["SelfContainedFullPublishedPath"] = Path.Combine(fullPathToPublishTo, publishedSelfContainedFullFileName);
-                    OAPP.MetaData["SelfContainedFullPublishedToCloud"] = registerOnSTARNET && uploadSelfContainedFullToCloud;
-                    OAPP.MetaData["SelfContainedFullPublishedProviderType"] = selfContainedFullBinaryProviderType;
+                    OAPP.SelfContainedFullPublishedPath = Path.Combine(fullPathToPublishTo, publishedSelfContainedFullFileName);
+                    OAPP.SelfContainedFullPublishedToCloud = registerOnSTARNET && uploadSelfContainedFullToCloud;
+                    OAPP.SelfContainedFullPublishedProviderType = selfContainedFullBinaryProviderType;
                 }
 
                 if (generateSource)
@@ -302,19 +303,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     OAPPDNA.MetaData["SourcePublishedPath"] = Path.Combine(fullPathToPublishTo, publishedSourceFileName);
                     OAPPDNA.MetaData["SourcePublishedOnSTARNET"] = registerOnSTARNET && uploadSourceToSTARNET;
                     OAPPDNA.MetaData["SourcePublicOnSTARNET"] = makeSourcePublic;
-                    OAPP.MetaData["SourcePublishedPath"] = Path.Combine(fullPathToPublishTo, publishedSourceFileName);
-                    OAPP.MetaData["SourcePublishedOnSTARNET"] = registerOnSTARNET && uploadSourceToSTARNET;
-                    OAPP.MetaData["SourcePublicOnSTARNET"] = makeSourcePublic;
+                    OAPP.SourcePublishedPath = Path.Combine(fullPathToPublishTo, publishedSourceFileName);
+                    OAPP.SourcePublishedOnSTARNET = registerOnSTARNET && uploadSourceToSTARNET;
+                    OAPP.SourcePublicOnSTARNET = makeSourcePublic;
                 }
 
                 WriteDNA(OAPPDNA, fullPathToSource);
-                OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Compressing });
+                //OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Compressing });
                 //base.OnPublishStatusChanged?.Invoke(this, new STARNETHolonPublishStatusEventArgs() { STARNETDNA = OAPPDNA, Status = STARNETHolonPublishStatus.Compressing });
-                //RaisePublishStatusChangedEvent(OAPPDNA, STARNETHolonPublishStatus.Compressing);
+                RaisePublishStatusChangedEvent(OAPPDNA, STARNETHolonPublishStatus.Compressing);
 
                 if (generateBinary)
                 {
-                    OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPPDNA.PublishedPath);
+                    string publishedPath = Path.Combine(fullPathToPublishTo, "No Runtimes");
+                    
+                    if (Directory.Exists(publishedPath))
+                        Directory.Delete(publishedPath, true);
+
+                    Directory.CreateDirectory(publishedPath);
+                    DirectoryHelper.CopyFilesRecursively(fullPathToSource, publishedPath);
+                    Directory.Delete(Path.Combine(publishedPath, "Runtimes"), true);
+                    OASISResult<bool> compressedResult = GenerateCompressedFile(publishedPath, OAPPDNA.PublishedPath);
+
+                    //TODO: Put back in once finished testing! ;-)
+                    Directory.Delete(publishedPath, true);
 
                     if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
                     {
@@ -326,8 +338,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (generateSelfContainedBinary)
                 {
+                    if (!Directory.Exists(Path.Combine(fullPathToSource, "Runtimes")))
+                        DirectoryHelper.CopyFilesRecursively(Path.Combine(originalFullPathToSource, "Runtimes"), fullPathToSource);
+
                     //OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPPDNA.SelfContainedPublishedPath);
-                    OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPPDNA.MetaData["SelfContainedPublishedPath"].ToString());
+                    OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPP.SelfContainedPublishedPath.ToString());
 
                     if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
                     {
@@ -339,8 +354,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (generateSelfContainedFullBinary)
                 {
-                    //OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPPDNA.SelfContainedFullPublishedPath);
-                    OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPPDNA.MetaData["SelfContainedFullPublishedPath"].ToString());
+                    if (!Directory.Exists(Path.Combine(fullPathToSource, "Runtimes")))
+                        DirectoryHelper.CopyFilesRecursively(Path.Combine(originalFullPathToSource, "Runtimes"), fullPathToSource);
+
+                    //OASISResult<bool> compressedResult = GenerateCompressedFile(publishedPath, OAPPDNA.SelfContainedFullPublishedPath);
+                    //OASISResult<bool> compressedResult = GenerateCompressedFile(publishedPath1, OAPPDNA.MetaData["SelfContainedFullPublishedPath"].ToString());
+                    OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPP.SelfContainedFullPublishedPath);
 
                     if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
                     {
@@ -352,7 +371,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (generateSource)
                 {
-                    OASISResult<bool> generateSourceResult = GenerateSource(OAPPDNA, fullPathToSource, OAPP.MetaData["SourcePublishedPath"].ToString());
+                    OASISResult<bool> generateSourceResult = GenerateSource(OAPPDNA, originalFullPathToSource, OAPP.SourcePublishedPath, fullPathToPublishTo);
 
                     if (!(generateSourceResult != null && generateSourceResult.Result != null && !generateSourceResult.IsError))
                         OASISErrorHandling.HandleWarning(ref result, $" Error occured calling GenerateSource. Reason: {generateSourceResult.Message}");
@@ -361,15 +380,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 //TODO: Currently the filesize will NOT be in the compressed .STARNETHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARHolonDNA inside it...
                 if (!string.IsNullOrEmpty(OAPPDNA.PublishedPath) && File.Exists(OAPPDNA.PublishedPath))
                     OAPPDNA.FileSize = new FileInfo(OAPPDNA.PublishedPath).Length;
-                //OAPPDNA.FileSize = new FileInfo(OAPPDNA.PublishedPath).Length;
+                    //OAPPDNA.FileSize = new FileInfo(OAPPDNA.PublishedPath).Length;
+
+                //if (!string.IsNullOrEmpty(OAPP.PublishedPath) && File.Exists(OAPP.PublishedPath))
+                //    OAPP.FileSize = new FileInfo(OAPP.PublishedPath).Length;
+
+                if (!string.IsNullOrEmpty(OAPP.SelfContainedPublishedPath) && File.Exists(OAPP.SelfContainedPublishedPath))
+                    OAPP.SelfContainedFileSize = new FileInfo(OAPP.SelfContainedPublishedPath).Length;
+
+                if (!string.IsNullOrEmpty(OAPP.SelfContainedFullPublishedPath) && File.Exists(OAPP.SelfContainedFullPublishedPath))
+                    OAPP.SelfContainedFullFileSize = new FileInfo(OAPP.SelfContainedFullPublishedPath).Length;
+
+                if (!string.IsNullOrEmpty(OAPP.SourcePublishedPath) && File.Exists(OAPP.SourcePublishedPath))
+                    OAPP.SourceFileSize = new FileInfo(OAPP.SourcePublishedPath).Length;
 
                 WriteDNA(OAPPDNA, fullPathToSource);
                 validateResult.Result.STARNETDNA = OAPPDNA;
 
                 if (registerOnSTARNET)
                 {
-                    OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = OAPPPublishStatus.Uploading });
-
                     if (uploadToCloud)
                     {
                         OASISResult<bool> uploadToCloudResult = await UploadToCloudAsync(OAPPDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
@@ -454,11 +483,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 OAPPDNA.PublishedOnSTARNET = registerOnSTARNET && (binaryProviderType != ProviderType.None || uploadToCloud || selfContainedBinaryProviderType != ProviderType.None || uploadSelfContainedToCloud || selfContainedFullBinaryProviderType != ProviderType.None || uploadSelfContainedFullToCloud);
 
-                if (dotnetPublish)
+                if (dotnetPublish || generateSelfContainedFullBinary)
                 {
-                    OASISResult<bool> publishResult = PublishToDotNet(fullPathToSource, OAPPDNA);
+                    OASISResult<(bool, string)> publishResult = PublishToDotNet(fullPathToSource, OAPPDNA, generateSelfContainedFullBinary);
 
-                    if (!(publishResult != null && publishResult.Result != null && !publishResult.IsError))
+                    if (publishResult != null && publishResult.Result.Item1 && !publishResult.IsError)
+                        fullPathToSource = publishResult.Result.Item2;
+                    else
                     {
                         result.Message = publishResult.Message;
                         result.IsError = true;
@@ -525,8 +556,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 WriteDNA(OAPPDNA, fullPathToSource);
-                OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Compressing });
-                //RaisePublishStatusChangedEvent(OAPPDNA, STARNETHolonPublishStatus.Compressing);
+                //OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.Compressing });
+                RaisePublishStatusChangedEvent(OAPPDNA, STARNETHolonPublishStatus.Compressing);
 
                 if (generateBinary)
                 {
@@ -568,7 +599,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (generateSource)
                 {
-                    OASISResult<bool> generateSourceResult = GenerateSource(OAPPDNA, fullPathToSource, OAPP.MetaData["SourcePublishedPath"].ToString());
+                    OASISResult<bool> generateSourceResult = GenerateSource(OAPPDNA, fullPathToSource, OAPP.MetaData["SourcePublishedPath"].ToString(), fullPathToPublishTo);
 
                     if (!(generateSourceResult != null && generateSourceResult.Result != null && !generateSourceResult.IsError))
                         OASISErrorHandling.HandleWarning(ref result, $" Error occured calling GenerateSource. Reason: {generateSourceResult.Message}");
@@ -1070,25 +1101,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         */
 
         //private OASISResult<bool> PublishToDotNet(string fullPathToSource, IOAPPDNA OAPPDNA)
-        private OASISResult<bool> PublishToDotNet(string fullPathToSource, ISTARNETDNA OAPPDNA)
+        private OASISResult<(bool, string)> PublishToDotNet(string fullPathToSource, ISTARNETDNA OAPPDNA, bool generateSelfContainedFullBinary = false)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
+            OASISResult<(bool, string)> result = new OASISResult<(bool, string)>();
 
             try
             {
+                string full = "";
                 //TODO: Finish implementing this.
                 //Process.Start("dotnet publish -c Release -r <RID> --self-contained");
                 //Process.Start("dotnet publish -c Release -r win-x64 --self-contained");
                 //string command = 
 
-                OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.DotNetPublishing });
-                //RaisePublishStatusChangedEvent(OAPPDNA, STARNETHolonPublishStatus.DotNetPublishing);
-
+                //OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.DotNetPublishing });
+                RaisePublishStatusChangedEvent(OAPPDNA, STARNETHolonPublishStatus.DotNetPublishing);
                 string dotnetPublishPath = Path.Combine(fullPathToSource, "dotnetPublished");
-                Process.Start($"dotnet publish PROJECT {fullPathToSource} -c Release --self-contained -output {dotnetPublishPath}");
-                fullPathToSource = dotnetPublishPath;
 
-                //"bin\\Release\\net8.0\\";
+                if (generateSelfContainedFullBinary)
+                    full = "--self-contained";
+
+                Process.Start($"dotnet publish PROJECT {fullPathToSource} -c Release {full} -output {dotnetPublishPath}");
+                fullPathToSource = dotnetPublishPath;
+                result.Result = (true, fullPathToSource);
             }
             catch (Exception e)
             {
@@ -1099,24 +1133,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
         //private OASISResult<bool> GenerateSource(IOAPPDNA OAPPDNA, string fullPathToSource)
-        private OASISResult<bool> GenerateSource(ISTARNETDNA OAPPDNA, string fullPathToSource, string sourcePublishedPath)
+        private OASISResult<bool> GenerateSource(ISTARNETDNA OAPPDNA, string fullPathToSource, string fullPathToCompressedFile, string fullPathToPublishTo)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             string tempPath = string.Empty;
 
             try
             {
-                tempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.Name);
+                //tempPath = Path.Combine(Path.GetTempPath(), OAPPDNA.Name);
+                string publishedPath = Path.Combine(fullPathToPublishTo, "Source Only");
 
-                if (Directory.Exists(tempPath))
-                    Directory.Delete(tempPath, true);
+                if (Directory.Exists(publishedPath))
+                    Directory.Delete(publishedPath, true);
 
-                DirectoryHelper.CopyFilesRecursively(fullPathToSource, tempPath);
-                Directory.Delete(Path.Combine(tempPath, "bin"), true);
-                Directory.Delete(Path.Combine(tempPath, "obj"), true);
+                Directory.CreateDirectory(publishedPath);
+                DirectoryHelper.CopyFilesRecursively(fullPathToSource, publishedPath);
 
-                //GenerateCompressedFile(fullPathToSource, OAPPDNA.SourcePublishedPath);
-                GenerateCompressedFile(fullPathToSource, sourcePublishedPath);
+                if (Directory.Exists(Path.Combine(publishedPath, "bin")))
+                    Directory.Delete(Path.Combine(publishedPath, "bin"), true);
+
+                if (Directory.Exists(Path.Combine(publishedPath, "obj")))
+                    Directory.Delete(Path.Combine(publishedPath, "obj"), true);
+
+                if (Directory.Exists(Path.Combine(publishedPath, "Runtimes")))
+                    Directory.Delete(Path.Combine(publishedPath, "Runtimes"), true);
+
+                GenerateCompressedFile(publishedPath, fullPathToCompressedFile);
+                Directory.Delete(publishedPath, true);
             }
             catch (Exception e)
             {

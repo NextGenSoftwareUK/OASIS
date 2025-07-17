@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "QuestId",
             "QuestName",
             "QuestType",
-            "quest",
+            "oquest",
             "oasis_quests",
             "QuestDNA.json",
             "QuestDNAJSON")
@@ -53,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "QuestId",
             "QuestName",
             "QuestType",
-            "quest",
+            "oquest",
             "oasis_quests",
             "QuestDNA.json",
             "QuestDNAJSON")

@@ -174,6 +174,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (Directory.Exists(defaultPath) && checkIfExists)
             {
+                Console.WriteLine("");
                 if (CLIEngine.GetConfirmation($"The directory {defaultPath} already exists! Would you like to delete it?"))
                 {
                     Console.WriteLine("");
@@ -690,7 +691,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             installResult = await CheckIfInstalledAndInstallAsync(starHolonResult.Result, downloadPath, installPath, installMode, oappPath, providerType);
                         }
                         else
-                            CLIEngine.ShowErrorMessage($"The  could not be found for id {starHolonDNAResult.Result.Id} found in the STARNETDNA.json file. It could be corrupt or the id could be wrong, please check and try again, or create a new {STARNETManager.STARNETHolonUIName}.");
+                            CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} could not be found for id {starHolonDNAResult.Result.Id} found in the STARNETDNA.json file. It could be corrupt or the id could be wrong, please check and try again, or create a new {STARNETManager.STARNETHolonUIName}.");
                     }
                     else
                         CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} could not be found or is not valid! Please ensure it is in the folder you specified.");
@@ -698,7 +699,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     Console.WriteLine("");
-                    OASISResult<T1> result = await FindForProviderAsync("", operation, false, false, true, providerType);
+                    OASISResult<T1> result = await FindForProviderAsync(operation, "", false, false, true, providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
@@ -2340,6 +2341,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             switch (e.Status)
             {
+                case STARNETHolonPublishStatus.DotNetPublishing:
+                    CLIEngine.ShowWorkingMessage("DotNet Publishing...");
+                    break;
+
                 case STARNETHolonPublishStatus.Uploading:
                     CLIEngine.ShowMessage("Uploading...");
                     Console.WriteLine("");

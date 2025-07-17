@@ -23,6 +23,7 @@ using NextGenSoftware.OASIS.STAR.CLI.Lib;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.Logging;
+using Colorful;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 {
@@ -737,7 +738,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "inventoryitem":
-                                    await ShowSubCommandAsync<InventoryItem>(inputArgs);
+                                    await ShowSubCommandAsync<InventoryItem>(inputArgs, "inventoryitem", "inventoryitem", STARCLI.InventoryItems.CreateAsync, STARCLI.InventoryItems.EditAsync, STARCLI.InventoryItems.DeleteAsync, STARCLI.InventoryItems.DownloadAndInstallAsync, STARCLI.InventoryItems.UninstallAsync, STARCLI.InventoryItems.PublishAsync, STARCLI.InventoryItems.UnpublishAsync, STARCLI.InventoryItems.RepublishAsync, STARCLI.InventoryItems.ActivateAsync, STARCLI.InventoryItems.DeactivateAsync, STARCLI.InventoryItems.ShowAsync, STARCLI.InventoryItems.ListAllCreatedByBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllAsync, STARCLI.InventoryItems.ListAllInstalledForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.InventoryItems.SearchsAsync, providerType: providerType);
+                                    break;
+
+                                case "plugin":
+                                    await ShowSubCommandAsync<Plugin>(inputArgs, "plugin", "plugin", STARCLI.Plugins.CreateAsync, STARCLI.Plugins.EditAsync, STARCLI.Plugins.DeleteAsync, STARCLI.Plugins.DownloadAndInstallAsync, STARCLI.Plugins.UninstallAsync, STARCLI.Plugins.PublishAsync, STARCLI.Plugins.UnpublishAsync, STARCLI.Plugins.RepublishAsync, STARCLI.Plugins.ActivateAsync, STARCLI.Plugins.DeactivateAsync, STARCLI.Plugins.ShowAsync, STARCLI.Plugins.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Plugins.ListAllAsync, STARCLI.Plugins.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Plugins.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Plugins.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Plugins.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Plugins.SearchsAsync, providerType: providerType);
                                     break;
 
                                 case "avatar":
@@ -2718,6 +2723,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    inventoryitem search                         [allVersions] [forAllAvatars]          Search all inventory item's that have been created.");
                 //Console.WriteLine("    inventoryitem activate = Activates an inventory item that has been published to the STARNET store so is visible to others.");
                 //Console.WriteLine("    inventoryitem deactivate = Deactivates an inventory item that has been published to the STARNET store so is invisible to others.");
+                Console.WriteLine("    plugin create                                                                       Creates a plugin.");
+                Console.WriteLine("    plugin update                                {id/name}                              Updates a plugin for the given {id} or {name}.");
+                Console.WriteLine("    plugin delete                                {id/name}                              Deletes a plugin for the given {id} or {name}.");
+                Console.WriteLine("    plugin publish                               {id/name}                              Publishes a plugin for the given {id} or {name} to the STARNET store so others can use in their own quests.");
+                Console.WriteLine("    plugin unpublish                             {id/name}                              Unpublishes a plugin from the STARNET store.");
+                Console.WriteLine("    plugin show                                  {id/name}                              Shows the plugin for the given {id} or {name}.");
+                Console.WriteLine("    plugin list                                  [allVersions] [forAllAvatars]          List all plugin that have been created.");
+                Console.WriteLine("    plugin list installed                                                               List all plugin's installed for the currently beamed in avatar.");
+                Console.WriteLine("    plugin list uninstalled                                                             List all plugin's uninstalled for the currently beamed in avatar (and allow re-install).");
+                Console.WriteLine("    plugin list unpublished                                                             List all plugin's unpublished for the currently beamed in avatar (and allow republish).");
+                Console.WriteLine("    plugin list deactivated                                                             List all plugin's deactivated for the currently beamed in avatar (and allow reactivate).");
+                Console.WriteLine("    plugin search                                [allVersions] [forAllAvatars]          Search all plugin's that have been created.");
+                Console.WriteLine("    plugin install                               {id/name}                              Installs/downloads a plugin for the given {id} or {name}.");
+                Console.WriteLine("    plugin uninstall                             {id/name}                              Uninstalls a plugin for the given {id} or {name}.");
                 Console.WriteLine("    seeds balance                                {telosAccountName/avatarId}            Get's the balance of your SEEDS account.");
                 Console.WriteLine("    seeds organisations                                                                 Get's a list of all the SEEDS organisations.");
                 Console.WriteLine("    seeds organisation                           {organisationName}                     Get's a organisation for the given {organisationName}.");
@@ -2842,6 +2861,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    geonft                  Mint, place, edit, burn, publish, unpublish, list & show geo-nft's.");
                 Console.WriteLine("    geohotspot              Create, edit, delete, publish, unpublish, list & show geo-hotspot's.");
                 Console.WriteLine("    inventoryitem           Create, edit, delete, publish, unpublish, list & show inventory item's.");
+                Console.WriteLine("    plugin                  Create, edit, delete, publish, unpublish, list & show plugin item's.");
                 Console.WriteLine("    seeds                   Access the SEEDS API.");
                 Console.WriteLine("    data                    Access the Data API.");
                 Console.WriteLine("    map                     Access the Map API.");

@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "GeoHotSpotId",
             "GeoHotSpotName",
             "GeoHotSpotType",
-            "geohotspot",
+            "ogeohotspot",
             "oasis_geohotspots",
             "GeoHotSpotDNA.json",
             "GeoHotSpotDNAJSON")
@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "GeoHotSpotId",
             "GeoHotSpotName",
             "GeoHotSpotType",
-            "geohotspot",
+            "ogeohotspot",
             "oasis_geohotspots",
             "GeoHotSpotDNA.json",
             "GeoHotSpotDNAJSON")

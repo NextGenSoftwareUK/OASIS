@@ -32,6 +32,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         private CelestialBodyMetaDataDNAManager _celestialBodiesDNA = null;
         private ZomeMetaDataDNAManager _zomesDNA = null;
         private HolonMetaDataDNAManager _holonsDNA = null;
+        private PluginManager _plugins = null;
 
         public STARAPI(OASISAPI OASISAPI = null) 
         {
@@ -470,6 +471,26 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 }
 
                 return _holonsDNA;
+            }
+        }
+
+        public PluginManager Plugins
+        {
+            get
+            {
+                if (_plugins == null)
+                {
+                    if (!OASISAPI.IsOASISBooted)
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Plugins property!");
+
+                    else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISSystemAccountId))
+                        throw new OASISException("No avatar is beamed in. Please beam in before accessing the Plugins property!");
+
+                    else
+                        _plugins = new PluginManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                }
+
+                return _plugins;
             }
         }
 

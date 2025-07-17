@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "RuntimeId",
             "RuntimeName",
             "RuntimeType",
-            "runtime",
+            "oruntime",
             "oasis_runtimes",
             "RuntimeDNA.json",
             "RuntimeDNAJSON")
@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "RuntimeId",
             "RuntimeName",
             "RuntimeType",
-            "runtime",
+            "oruntime",
             "oasis_runtimes",
             "RuntimeDNA.json",
             "RuntimeDNAJSON")
@@ -58,12 +58,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public async Task<OASISResult<IInstalledRuntime>> DownloadAndInstallSTARRuntimeAsync(Guid avatarId, string version, string downloadPath, string installPath, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, "STAR Runtime", version, downloadPath, installPath, providerType: providerType));
+            return ProcessResult(await base.DownloadAndInstallAsync(avatarId, "STAR Runtime", version, installPath, downloadPath, providerType: providerType));
         }
 
         public OASISResult<IInstalledRuntime> DownloadAndInstallSTARRuntime(Guid avatarId, string version, string downloadPath, string installPath, ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(base.DownloadAndInstall(avatarId, "STAR Runtime", version, downloadPath, installPath, providerType: providerType));
+            return ProcessResult(base.DownloadAndInstall(avatarId, "STAR Runtime", version, installPath, downloadPath, providerType: providerType));
         }
 
         /*

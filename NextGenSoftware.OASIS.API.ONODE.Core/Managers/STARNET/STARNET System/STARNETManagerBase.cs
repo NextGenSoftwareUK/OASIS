@@ -107,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> metaData = null, T1 newHolon = default, ISTARNETDNA STARNETDNA = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            string errorMessage = "Error occured in STARManagerBase.CreateAsync, Reason:";
+            string errorMessage = "Error occured in STARNETManagerBase.CreateAsync, Reason:";
             T1 holon;
 
             try
@@ -252,7 +252,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> metaData = null, T1 newHolon = default, ISTARNETDNA STARNETDNA = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            string errorMessage = "Error occured in STARManagerBase.Create, Reason:";
+            string errorMessage = "Error occured in STARNETManagerBase.Create, Reason:";
             T1 holon;
 
             try
@@ -404,7 +404,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             holon.MetaData[STARNETDNAJSONName] = JsonSerializer.Serialize(holon.STARNETDNA);
 
-            OASISResult<T1> saveResult = await SaveHolonAsync<T1>(holon, avatarId, providerType, "STARManagerBase.UpdateAsync<T>");
+            OASISResult<T1> saveResult = await SaveHolonAsync<T1>(holon, avatarId, providerType, "STARNETManagerBase.UpdateAsync<T>");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
             result.Result = saveResult.Result;
             return result;
@@ -419,7 +419,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             holon.MetaData[STARNETDNAJSONName] = JsonSerializer.Serialize(holon.STARNETDNA);
 
-            OASISResult<T1> saveResult = SaveHolon<T1>(holon, avatarId, providerType, "STARManagerBase.Update<T>");
+            OASISResult<T1> saveResult = SaveHolon<T1>(holon, avatarId, providerType, "STARNETManagerBase.Update<T>");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
             result.Result = saveResult.Result;
             return result;
@@ -434,7 +434,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             holon.MetaData[STARNETDNAJSONName] = JsonSerializer.Serialize(holon.STARNETDNA);
 
-            OASISResult<T3> saveResult = await SaveHolonAsync<T3>(holon, avatarId, providerType, "STARManagerBase.UpdateAsync<T>");
+            OASISResult<T3> saveResult = await SaveHolonAsync<T3>(holon, avatarId, providerType, "STARNETManagerBase.UpdateAsync<T>");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
             result.Result = saveResult.Result;
             return result;
@@ -449,7 +449,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             holon.MetaData[STARNETDNAJSONName] = JsonSerializer.Serialize(holon.STARNETDNA);
 
-            OASISResult<T3> saveResult = SaveHolon<T3>(holon, avatarId, providerType, "STARManagerBase.Update<T>");
+            OASISResult<T3> saveResult = SaveHolon<T3>(holon, avatarId, providerType, "STARNETManagerBase.Update<T>");
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(saveResult, result);
             result.Result = saveResult.Result;
             return result;
@@ -466,6 +466,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in LoadAsync<T> loading the {STARNETHolonUIName} with Id {id} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {filterdResult.Message}");
 
+            if (result.Result == null)
+                result.Message = "No Holon Found";
+
             return result;
         }
 
@@ -479,6 +482,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result.Result = filterdResult.Result.FirstOrDefault();
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured in Load<T> loading the {STARNETHolonUIName} with Id {id} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {filterdResult.Message}");
+
+            if (result.Result == null)
+                result.Message = "No Holon Found";
 
             return result;
         }
@@ -550,14 +556,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<IEnumerable<T>>> SearchAsync<T>(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
-            OASISResult<IEnumerable<T>> loadHolonsResult = await SearchHolonsAsync<T>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "STARManagerBase.SearchAsync", STARNETHolonType);
+            OASISResult<IEnumerable<T>> loadHolonsResult = await SearchHolonsAsync<T>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "STARNETManagerBase.SearchAsync", STARNETHolonType);
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
         public OASISResult<IEnumerable<T1>> Search(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
-            OASISResult<IEnumerable<T1>> loadHolonsResult = SearchHolons<T1>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "STARManagerBase.Search", STARNETHolonType);
+            OASISResult<IEnumerable<T1>> loadHolonsResult = SearchHolons<T1>(searchTerm, avatarId, searchOnlyForCurrentAvatar, providerType, "STARNETManagerBase.Search", STARNETHolonType);
             return FilterResultsForVersion(avatarId, loadHolonsResult, showAllVersions, version);
         }
 
@@ -648,7 +654,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                     if (deleteInstall)
                     {
-                        OASISResult<T1> deleteInstalledSTARNETHolonHolonResult = await DeleteHolonAsync<T1>(installedSTARNETHolonResult.Result.Id, avatarId, softDelete, providerType, "STARManagerBase.DeleteAsync");
+                        OASISResult<T1> deleteInstalledSTARNETHolonHolonResult = await DeleteHolonAsync<T1>(installedSTARNETHolonResult.Result.Id, avatarId, softDelete, providerType, "STARNETManagerBase.DeleteAsync");
 
                         if (!(deleteInstalledSTARNETHolonHolonResult != null && deleteInstalledSTARNETHolonHolonResult.Result != null && !deleteInstalledSTARNETHolonHolonResult.IsError))
                             OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting the Installed {STARNETHolonUIName} holon with id {installedSTARNETHolonResult.Result.Id} calling DeleteAsync. Reason: {deleteInstalledSTARNETHolonHolonResult.Message}");
@@ -656,7 +662,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                     if (deleteDownload)
                     {
-                        OASISResult<T1> deleteDownloadedSTARNETHolonHolonResult = await DeleteHolonAsync<T1>(installedSTARNETHolonResult.Result.DownloadedSTARNETHolonId, avatarId, softDelete, providerType, "STARManagerBase.DeleteAsync");
+                        OASISResult<T1> deleteDownloadedSTARNETHolonHolonResult = await DeleteHolonAsync<T1>(installedSTARNETHolonResult.Result.DownloadedSTARNETHolonId, avatarId, softDelete, providerType, "STARNETManagerBase.DeleteAsync");
 
                         if (!(deleteDownloadedSTARNETHolonHolonResult != null && deleteDownloadedSTARNETHolonHolonResult.Result != null && !deleteDownloadedSTARNETHolonHolonResult.IsError))
                             OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting the Downloaded {STARNETHolonUIName} holon with id {installedSTARNETHolonResult.Result.DownloadedSTARNETHolonId} calling DeleteAsync. Reason: {deleteDownloadedSTARNETHolonHolonResult.Message}");
@@ -664,7 +670,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 }
             }
 
-            OASISResult<T1> deleteHolonResult = await DeleteHolonAsync<T1>(oappSystemHolon.Id, avatarId, softDelete, providerType, "STARManagerBase.DeleteAsync");
+            OASISResult<T1> deleteHolonResult = await DeleteHolonAsync<T1>(oappSystemHolon.Id, avatarId, softDelete, providerType, "STARNETManagerBase.DeleteAsync");
 
             if (!(deleteHolonResult != null && deleteHolonResult.Result != null && !deleteHolonResult.IsError))
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured deleting the {STARNETHolonUIName} holon with id {oappSystemHolon.Id} calling DeleteAsync. Reason: {deleteHolonResult.Message}");
@@ -732,7 +738,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                     if (deleteInstall)
                     {
-                        OASISResult<T1> deleteInstalledSTARNETHolonHolonResult = DeleteHolon<T1>(installedSTARNETHolonResult.Result.Id, avatarId, softDelete, providerType, "STARManagerBase.Delete");
+                        OASISResult<T1> deleteInstalledSTARNETHolonHolonResult = DeleteHolon<T1>(installedSTARNETHolonResult.Result.Id, avatarId, softDelete, providerType, "STARNETManagerBase.Delete");
 
                         if (!(deleteInstalledSTARNETHolonHolonResult != null && deleteInstalledSTARNETHolonHolonResult.Result != null && !deleteInstalledSTARNETHolonHolonResult.IsError))
                             OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting the Installed {STARNETHolonUIName} holon with id {installedSTARNETHolonResult.Result.Id} calling DeleteHolonAsync. Reason: {deleteInstalledSTARNETHolonHolonResult.Message}");
@@ -740,7 +746,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                     if (deleteDownload)
                     {
-                        OASISResult<T1> deleteDownloadedSTARNETHolonHolonResult = DeleteHolon<T1>(installedSTARNETHolonResult.Result.DownloadedSTARNETHolonId, avatarId, softDelete, providerType, "STARManagerBase.Delete");
+                        OASISResult<T1> deleteDownloadedSTARNETHolonHolonResult = DeleteHolon<T1>(installedSTARNETHolonResult.Result.DownloadedSTARNETHolonId, avatarId, softDelete, providerType, "STARNETManagerBase.Delete");
 
                         if (!(deleteDownloadedSTARNETHolonHolonResult != null && deleteDownloadedSTARNETHolonHolonResult.Result != null && !deleteDownloadedSTARNETHolonHolonResult.IsError))
                             OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured deleting the Downloaded {STARNETHolonUIName} holon with id {installedSTARNETHolonResult.Result.DownloadedSTARNETHolonId} calling DeleteHolonAsync. Reason: {deleteDownloadedSTARNETHolonHolonResult.Message}");
@@ -748,7 +754,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 }
             }
 
-            OASISResult<T1> deleteHolonResult = DeleteHolon<T1>(avatarId, oappSystemHolon.Id, softDelete, providerType, "STARManagerBase.Delete");
+            OASISResult<T1> deleteHolonResult = DeleteHolon<T1>(avatarId, oappSystemHolon.Id, softDelete, providerType, "STARNETManagerBase.Delete");
 
             if (!(deleteHolonResult != null && deleteHolonResult.Result != null && !deleteHolonResult.IsError))
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured deleting the {STARNETHolonUIName} holon with id {oappSystemHolon.Id} calling DeleteHolonAsync. Reason: {deleteHolonResult.Message}");
@@ -808,10 +814,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 if (loadHolonResult.Result.STARNETDNA.Version == version)
                     result.Result = loadHolonResult.Result;
                 else
-                    OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.LoadVersionAsync. Reason: The version {version} does not exist for id {id}.");
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.LoadVersionAsync. Reason: The version {version} does not exist for id {id}.");
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.LoadVersionAsync. Reason: {loadHolonResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.LoadVersionAsync. Reason: {loadHolonResult.Message}");
 
             return result;
         }
@@ -832,10 +838,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 if (loadHolonResult.Result.STARNETDNA.Version == version)
                     result.Result = loadHolonResult.Result;
                 else
-                    OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.LoadVersion. Reason: The version {version} does not exist for id {id}.");
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.LoadVersion. Reason: The version {version} does not exist for id {id}.");
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.LoadVersion. Reason: {loadHolonResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.LoadVersion. Reason: {loadHolonResult.Message}");
 
             return result;
         }
@@ -848,7 +854,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
         //        await EditAsync<T1, T2>(loadResult.Result, newSTARNETDNA, avatarId, providerType);
         //    else
-        //        OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.EditAsync. Reason: {loadResult.Message}");
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.EditAsync. Reason: {loadResult.Message}");
 
         //    return result;
         //}
@@ -861,7 +867,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 await EditAsync(avatarId, loadResult.Result, newSTARNETDNA, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.EditAsync. Reason: {loadResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.EditAsync. Reason: {loadResult.Message}");
 
             return result;
         }
@@ -869,7 +875,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T1>> EditAsync(Guid avatarId, T1 holon, ISTARNETDNA newSTARNETDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            string errorMessage = "Error occured in STARManagerBase.EditAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.EditAsync. Reason: ";
             string oldPath = "";
             string newPath = "";
             string oldPublishedPath = "";
@@ -1118,7 +1124,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             ISTARNETDNA STARNETDNA = null;
-            string errorMessage = "Error occured in STARManagerBase.PublishAsync. Reason:";
+            string errorMessage = "Error occured in STARNETManagerBase.PublishAsync. Reason:";
 
             OASISResult<T1> validateResult = await BeginPublishAsync(avatarId, fullPathToSource, fullPathToPublishTo, launchTarget, edit, providerType);
 
@@ -1195,7 +1201,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             ISTARNETDNA STARNETDNA = null;
-            string errorMessage = "Error occured in STARManagerBase.PublishAsync. Reason:";
+            string errorMessage = "Error occured in STARNETManagerBase.PublishAsync. Reason:";
 
             OASISResult<T1> validateResult = BeginPublish(avatarId, fullPathToSource, fullPathToPublishTo, launchTarget, edit, providerType);
 
@@ -1320,7 +1326,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string userName = "Unknown";
-            string errorMessage = "Error occured in STARManagerBase.BeginPublishAsync. Reason:";
+            string errorMessage = "Error occured in STARNETManagerBase.BeginPublishAsync. Reason:";
 
             try
             {
@@ -1398,7 +1404,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.BeginPublishAsync. Reason: {e.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.BeginPublishAsync. Reason: {e.Message}");
             }
 
             return result;
@@ -1408,7 +1414,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string userName = "Unknown";
-            string errorMessage = "Error occured in STARManagerBase.BeginPublishAsync. Reason:";
+            string errorMessage = "Error occured in STARNETManagerBase.BeginPublishAsync. Reason:";
 
             try
             {
@@ -1486,7 +1492,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.BeginPublish. Reason: {e.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.BeginPublish. Reason: {e.Message}");
             }
 
             return result;
@@ -2343,7 +2349,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    if (STARNETHolonResult != null && !STARNETHolonResult.IsError && STARNETHolonResult.Result != null)
         //        result = await DownloadAsync(avatarId, STARNETHolonResult.Result, fullDownloadPath, reInstall, providerType);
         //    else
-        //        OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName}")}");
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName}")}");
 
         //    return result;
         //}
@@ -2356,7 +2362,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    if (STARNETHolonResult != null && !STARNETHolonResult.IsError && STARNETHolonResult.Result != null)
         //        result = Download(avatarId, STARNETHolonResult.Result, fullDownloadPath, reInstall, providerType);
         //    else
-        //        OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.Download loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName}")}");
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.Download loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName}")}");
 
         //    return result;
         //}
@@ -2369,7 +2375,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    if (STARNETHolonResult != null && !STARNETHolonResult.IsError && STARNETHolonResult.Result != null)
         //        result = await DownloadAsync(avatarId, STARNETHolonResult.Result, fullDownloadPath, reInstall, providerType);
         //    else
-        //        OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAsync loading the {STARNETHolonUIName} with the LoadAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId}")}");
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAsync loading the {STARNETHolonUIName} with the LoadAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId}")}");
 
         //    return result;
         //}
@@ -2382,7 +2388,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    if (STARNETHolonResult != null && !STARNETHolonResult.IsError && STARNETHolonResult.Result != null)
         //        result = Download(avatarId, STARNETHolonResult.Result, fullDownloadPath, reInstall, providerType);
         //    else
-        //        OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.Download loading the {STARNETHolonUIName} with the Load method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId}")}");
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.Download loading the {STARNETHolonUIName} with the Load method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId}")}");
 
         //    return result;
         //}
@@ -2401,7 +2407,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = await DownloadAsync(avatarId, STARNETHolonResult.Result, fullDownloadPath, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAsync loading the {STARNETHolonUIName} with the LoadAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}.")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAsync loading the {STARNETHolonUIName} with the LoadAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}.")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -2424,7 +2430,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = Download(avatarId, STARNETHolonResult.Result, fullDownloadPath, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.Download loading the {STARNETHolonUIName} with the LoadAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}.")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.Download loading the {STARNETHolonUIName} with the LoadAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}.")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -2445,7 +2451,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = await DownloadAsync(avatarId, STARNETHolonResult.Result, fullDownloadPath, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -2466,7 +2472,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = Download(avatarId, STARNETHolonResult.Result, fullDownloadPath, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.Download loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.Download loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -2487,7 +2493,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = await DownloadAsync(avatarId, STARNETHolonResult.Result, fullDownloadPath, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -2509,7 +2515,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = Download(avatarId, STARNETHolonResult.Result, fullDownloadPath, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.Download loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.Download loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -2530,7 +2536,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = await DownloadAsync(avatarId, STARNETHolonResult.Result, fullDownloadPath, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -2551,7 +2557,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = Download(avatarId, STARNETHolonResult.Result, fullDownloadPath, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.Download loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.Download loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -2561,7 +2567,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T2>> DownloadAsync(Guid avatarId, T1 holon, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T2> result = new OASISResult<T2>();
-            string errorMessage = "Error occured in STARManagerBase.DownloadAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.DownloadAsync. Reason: ";
             T2 downloadedSTARNETHolon = default;
 
             try
@@ -2704,7 +2710,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T2> Download(Guid avatarId, T1 holon, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T2> result = new OASISResult<T2>();
-            string errorMessage = "Error occured in STARManagerBase.Download. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.Download. Reason: ";
             T2 downloadedSTARNETHolon = default;
 
             try
@@ -2846,7 +2852,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> DownloadAndInstallAsync(Guid avatarId, T1 holon, string fullInstallPath, string fullDownloadPath = "", bool createSTARNETHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.DownloadAndInstallAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.DownloadAndInstallAsync. Reason: ";
             bool isFullDownloadPathTemp = false;
 
             try
@@ -2899,7 +2905,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> DownloadAndInstall(Guid avatarId, T1 holon, string fullInstallPath, string fullDownloadPath = "", bool createSTARNETHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.DownloadAndInstall. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.DownloadAndInstall. Reason: ";
             bool isFullDownloadPathTemp = false;
 
             try
@@ -2962,7 +2968,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = await DownloadAndInstallAsync(avatarId, STARNETHolonResult.Result, fullInstallPath, fullDownloadPath, createSTARNETHolonDirectory, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAndInstallAsync loading the {STARNETHolonUIName} with the LoadAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}.")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAndInstallAsync loading the {STARNETHolonUIName} with the LoadAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}.")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -2985,7 +2991,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = DownloadAndInstall(avatarId, STARNETHolonResult.Result, fullInstallPath, fullDownloadPath, createSTARNETHolonDirectory, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAndInstall loading the {STARNETHolonUIName} with the LoadAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}.")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAndInstall loading the {STARNETHolonUIName} with the LoadAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}.")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -3006,7 +3012,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = await DownloadAndInstallAsync(avatarId, STARNETHolonResult.Result, fullInstallPath, fullDownloadPath, createSTARNETHolonDirectory, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAndInstallAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAndInstallAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -3027,7 +3033,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = DownloadAndInstall(avatarId, STARNETHolonResult.Result, fullInstallPath, fullDownloadPath, createSTARNETHolonDirectory, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAndInstall loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAndInstall loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for id {STARNETHolonId.ToString()} and version {version}")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -3048,7 +3054,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = await DownloadAndInstallAsync(avatarId, STARNETHolonResult.Result, fullInstallPath, fullDownloadPath, createSTARNETHolonDirectory, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAndInstallAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAndInstallAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -3070,7 +3076,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = DownloadAndInstall(avatarId, STARNETHolonResult.Result, fullInstallPath, fullDownloadPath, createSTARNETHolonDirectory, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAndInstall loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAndInstall loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -3091,7 +3097,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = await DownloadAndInstallAsync(avatarId, STARNETHolonResult.Result, fullInstallPath, fullDownloadPath, createSTARNETHolonDirectory, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAndInstallAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAndInstallAsync loading the {STARNETHolonUIName} with the LoadHolonByMetaDataAsync method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -3112,7 +3118,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = DownloadAndInstall(avatarId, STARNETHolonResult.Result, fullInstallPath, fullDownloadPath, createSTARNETHolonDirectory, reInstall, providerType);
             else
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.DownloadAndInstall loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.DownloadAndInstall loading the {STARNETHolonUIName} with the LoadHolonByMetaData method, reason: {OASISErrorHandling.ProcessMessage(result, $"No result found for name {STARNETHolonName} and version {version}")}");
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.Error, ErrorMessage = result.Message });
             }
 
@@ -3122,7 +3128,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> InstallAsync(Guid avatarId, string fullPathToPublishedOrDownloadedSTARNETHolonFile, string fullInstallPath, bool createSTARNETHolonDirectory = true, IDownloadedSTARNETHolon downloadedSTARNETHolon = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.InstallAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.InstallAsync. Reason: ";
             ISTARNETDNA STARNETDNA = null;
             T1 STARNETHolon = default;
             string tempPath = "";
@@ -3273,7 +3279,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         }
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadSTARNETHolonAsync method. Reason: {STARNETHolonLoadResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAsync method. Reason: {STARNETHolonLoadResult.Message}");
                 }
             }
             catch (Exception ex)
@@ -3296,7 +3302,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> Install(Guid avatarId, string fullPathToPublishedOrDownloadedSTARNETHolonFile, string fullInstallPath, bool createSTARNETHolonDirectory = true, IDownloadedSTARNETHolon downloadedSTARNETHolon = null, bool reInstall = false, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.Install. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.Install. Reason: ";
             ISTARNETDNA STARNETDNA = null;
             T1 STARNETHolon = default;
             string tempPath = "";
@@ -3552,7 +3558,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, Guid STARNETHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.UninstallAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.UninstallAsync. Reason: ";
 
             OASISResult<T3> loadResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
@@ -3572,7 +3578,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> Uninstall(Guid avatarId, Guid STARNETHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.UninstallAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.UninstallAsync. Reason: ";
 
             OASISResult<T3> loadResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
@@ -3592,7 +3598,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, Guid STARNETHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.UninstallAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.UninstallAsync. Reason: ";
 
             OASISResult<T3> loadResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
@@ -3612,7 +3618,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> Uninstall(Guid avatarId, Guid STARNETHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.Uninstall. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.Uninstall. Reason: ";
 
             OASISResult<T3> loadResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
@@ -3632,7 +3638,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, string STARNETHolonName, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.UninstallAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.UninstallAsync. Reason: ";
 
             OASISResult<T3> loadResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
@@ -3652,7 +3658,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> Uninstall(Guid avatarId, string STARNETHolonName, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.Uninstall. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.Uninstall. Reason: ";
 
             OASISResult<T3> loadResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
@@ -3672,7 +3678,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> UninstallAsync(Guid avatarId, string STARNETHolonName, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.UninstallAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.UninstallAsync. Reason: ";
 
             OASISResult<T3> loadResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
@@ -3692,7 +3698,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> Uninstall(Guid avatarId, string STARNETHolonName, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.Uninstall. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.Uninstall. Reason: ";
 
             OASISResult<T3> loadResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
@@ -3716,7 +3722,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             if (result != null && !result.IsError && result.Result != null)
                 result.Result = result.Result.Where(x => x.UninstalledOn == DateTime.MinValue);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.ListInstalledAsync. Reason: Error occured calling LoadHolonsForParentAsync. Reason: {result.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.ListInstalledAsync. Reason: Error occured calling LoadHolonsForParentAsync. Reason: {result.Message}");
 
             return result;
         }
@@ -3728,7 +3734,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             if (result != null && !result.IsError && result.Result != null)
                 result.Result = result.Result.Where(x => x.UninstalledOn == DateTime.MinValue);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.ListInstalled. Reason: Error occured calling LoadHolonsForParent. Reason: {result.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.ListInstalled. Reason: Error occured calling LoadHolonsForParent. Reason: {result.Message}");
 
             return result;
         }
@@ -3740,7 +3746,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             if (result != null && !result.IsError && result.Result != null)
                 result.Result = result.Result.Where(x => x.UninstalledOn != DateTime.MinValue);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.ListUninstalledAsync. Reason:  Error occured calling LoadHolonsForParent. Reason: {result.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.ListUninstalledAsync. Reason:  Error occured calling LoadHolonsForParent. Reason: {result.Message}");
 
             return result;
         }
@@ -3752,7 +3758,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             if (result != null && !result.IsError && result.Result != null)
                 result.Result = result.Result.Where(x => x.UninstalledOn != DateTime.MinValue);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in STARManagerBase.ListUninstalled. Reason:  Error occured calling LoadHolonsForParent. Reason: {result.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.ListUninstalled. Reason:  Error occured calling LoadHolonsForParent. Reason: {result.Message}");
 
             return result;
         }
@@ -3760,7 +3766,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<IEnumerable<T1>>> ListUnpublishedAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
-            string errorMessage = "Error occured in STARManagerBase.ListUnpublishedAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.ListUnpublishedAsync. Reason: ";
             result = await Data.LoadHolonsForParentAsync<T1>(avatarId, STARNETHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
@@ -3774,7 +3780,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<IEnumerable<T1>> ListUnpublished(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
-            string errorMessage = "Error occured in STARManagerBase.ListUnpublished. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.ListUnpublished. Reason: ";
             result = Data.LoadHolonsForParent<T1>(avatarId, STARNETHolonType, false, false, 0, true, false, 0, HolonType.All, 0, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
@@ -3788,7 +3794,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<IEnumerable<T1>>> ListDeactivatedAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
-            string errorMessage = "Error occured in STARManagerBase.ListDeactivatedAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.ListDeactivatedAsync. Reason: ";
             result = await Data.LoadHolonsByMetaDataAsync<T1>("Active", "0", STARNETHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
             return result;
         }
@@ -3796,7 +3802,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<IEnumerable<T1>> ListDeactivated(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
-            string errorMessage = "Error occured in STARManagerBase.ListDeactivated. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.ListDeactivated. Reason: ";
             result = Data.LoadHolonsByMetaData<T1>("Active", "0", STARNETHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
             return result;
         }
@@ -3804,7 +3810,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, Guid STARNETHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsInstalledAsync. Reason: ";
 
             OASISResult<T3> installedSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
@@ -3828,7 +3834,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<bool> IsInstalled(Guid avatarId, Guid STARNETHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsInstalled. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsInstalled. Reason: ";
 
             OASISResult<T3> installedSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
@@ -3849,7 +3855,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, Guid STARNETHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsInstalledAsync. Reason: ";
 
             OASISResult<T3> installedSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
@@ -3873,7 +3879,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<bool> IsInstalled(Guid avatarId, Guid STARNETHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsInstalled. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsInstalled. Reason: ";
 
             OASISResult<T3> installedSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
@@ -3897,7 +3903,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, string name, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsInstalledAsync. Reason: ";
 
             OASISResult<T3> installedSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
@@ -3921,7 +3927,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<bool> IsInstalled(Guid avatarId, string name, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsInstalled. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsInstalled. Reason: ";
 
             OASISResult<T3> installedSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
@@ -3945,7 +3951,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<bool>> IsInstalledAsync(Guid avatarId, string name, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsInstalledAsync. Reason: ";
 
             OASISResult<T3> installedSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
@@ -3969,7 +3975,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<bool> IsInstalled(Guid avatarId, string name, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsInstalled. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsInstalled. Reason: ";
 
             OASISResult<T3> installedSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
@@ -3993,7 +3999,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<bool>> IsPublishedAsync(Guid avatarId, Guid STARNETHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsPublishedAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsPublishedAsync. Reason: ";
 
             OASISResult<T3> loadSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
@@ -4017,7 +4023,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<bool> IsPublished(Guid avatarId, Guid STARNETHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsPublished. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsPublished. Reason: ";
 
             OASISResult<T3> loadSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
@@ -4041,7 +4047,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<bool>> IsPublishedAsync(Guid avatarId, Guid STARNETHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsPublishedAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsPublishedAsync. Reason: ";
 
             OASISResult<T3> loadSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
@@ -4065,7 +4071,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<bool> IsPublished(Guid avatarId, Guid STARNETHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsPublished. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsPublished. Reason: ";
 
             OASISResult<T3> loadSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
@@ -4089,7 +4095,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<bool>> IsPublishedAsync(Guid avatarId, string name, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsPublishedAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsPublishedAsync. Reason: ";
 
             OASISResult<T3> loadSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
@@ -4113,7 +4119,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<bool> IsPublished(Guid avatarId, string name, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsPublished. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsPublished. Reason: ";
 
             OASISResult<T3> loadSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
@@ -4137,7 +4143,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<bool>> IsPublishedAsync(Guid avatarId, string name, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsPublishedAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsPublishedAsync. Reason: ";
 
             OASISResult<T3> loadSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
@@ -4161,7 +4167,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<bool> IsPublished(Guid avatarId, string name, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in STARManagerBase.IsPublished. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.IsPublished. Reason: ";
 
             OASISResult<T3> loadSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
@@ -4185,7 +4191,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARNETHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
@@ -4204,7 +4210,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> LoadInstalled(Guid avatarId, Guid STARNETHolonId, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalled. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalled. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
@@ -4223,7 +4229,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonNameName, name },
@@ -4242,7 +4248,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> LoadInstalled(Guid avatarId, string name, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalled. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalled. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonNameName, name },
@@ -4261,7 +4267,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARNETHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
@@ -4280,7 +4286,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> LoadInstalled(Guid avatarId, Guid STARNETHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalled. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalled. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
@@ -4299,7 +4305,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonNameName, name },
@@ -4318,7 +4324,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> LoadInstalled(Guid avatarId, string name, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalled. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalled. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonNameName, name },
@@ -4337,7 +4343,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARNETHolonId, bool active, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
@@ -4357,7 +4363,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> LoadInstalled(Guid avatarId, Guid STARNETHolonId, bool active, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalled. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalled. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
@@ -4377,7 +4383,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string name, bool active, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonNameName, name },
@@ -4396,7 +4402,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> LoadInstalled(Guid avatarId, string name, bool active, int versionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalled. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalled. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonNameName, name },
@@ -4416,7 +4422,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, Guid STARNETHolonId, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
@@ -4436,7 +4442,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> LoadInstalled(Guid avatarId, Guid STARNETHolonId, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalled. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalled. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
@@ -4456,7 +4462,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> LoadInstalledAsync(Guid avatarId, string STARNETHolonName, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalledAsync. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalledAsync. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonNameName, STARNETHolonName },
@@ -4476,7 +4482,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> LoadInstalled(Guid avatarId, string STARNETHolonName, string version, bool active, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "Error occured in STARManagerBase.LoadInstalled. Reason: ";
+            string errorMessage = "Error occured in STARNETManagerBase.LoadInstalled. Reason: ";
             OASISResult<T3> installedSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
             {
                 { STARNETHolonNameName, STARNETHolonName },
@@ -4496,7 +4502,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> OpenSTARNETHolonFolder(Guid avatarId, T3 holon)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "An error occured in STARManagerBase.OpenSTARNETHolonFolder. Reason:";
+            string errorMessage = "An error occured in STARNETManagerBase.OpenSTARNETHolonFolder. Reason:";
 
             if (holon != null)
             {
@@ -4522,7 +4528,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> OpenSTARNETHolonFolderAsync(Guid avatarId, Guid STARNETHolonId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "An error occured in STARManagerBase.OpenSTARNETHolonFolderAsync. Reason:";
+            string errorMessage = "An error occured in STARNETManagerBase.OpenSTARNETHolonFolderAsync. Reason:";
             result = await LoadInstalledAsync(avatarId, STARNETHolonId, versionSequence, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
@@ -4536,7 +4542,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> OpenSTARNETHolonFolder(Guid avatarId, Guid STARNETHolonId, int versionSequence = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "An error occured in STARManagerBase.OpenSTARNETHolonFolder. Reason:";
+            string errorMessage = "An error occured in STARNETManagerBase.OpenSTARNETHolonFolder. Reason:";
             result = LoadInstalled(avatarId, STARNETHolonId, versionSequence);
 
             if (result != null && !result.IsError && result.Result != null)
@@ -4550,7 +4556,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> OpenSTARNETHolonFolderAsync(Guid avatarId, Guid STARNETHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "An error occured in STARManagerBase.OpenSTARNETHolonFolderAsync. Reason:";
+            string errorMessage = "An error occured in STARNETManagerBase.OpenSTARNETHolonFolderAsync. Reason:";
             result = await LoadInstalledAsync(avatarId, STARNETHolonId, version, providerType);
 
             if (result != null && !result.IsError && result.Result != null)
@@ -4564,7 +4570,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T3> OpenSTARNETHolonFolder(Guid avatarId, Guid STARNETHolonId, string version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
-            string errorMessage = "An error occured in STARManagerBase.OpenSTARNETHolonFolder. Reason:";
+            string errorMessage = "An error occured in STARNETManagerBase.OpenSTARNETHolonFolder. Reason:";
             result = LoadInstalled(avatarId, STARNETHolonId, version, providerType);
 
             if (result != null && !result.IsError && result.Result != null)

@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "ChapterId",
             "ChapterName",
             "ChapterType",
-            "chapter",
+            "ochapter",
             "oasis_chapters",
             "ChapterDNA.json",
             "ChapterDNAJSON")
@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "ChapterId",
             "ChapterName",
             "ChapterType",
-            "chapter",
+            "ochapter",
             "oasis_chapters",
             "ChapterDNA.json",
             "ChapterDNAJSON")
