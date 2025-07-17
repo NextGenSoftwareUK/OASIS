@@ -158,6 +158,12 @@
     "DefaultHolonsMetaDataDNADownloadedPath": "HolonsMetaDataDNA\\Downloaded",
     "DefaultHolonsMetaDataDNAInstalledPath": "HolonsMetaDataDNA\\Installed",
 
+    //Plugins to extend STAR & STARNET.
+    "DefaultPluginsSourcePath": "Plugins\\Source",
+    "DefaultPluginsPublishedPath": "Plugins\\Published",
+    "DefaultPluginsDownloadedPath": "Plugins\\Downloaded",
+    "DefaultPluginsInstalledPath": "Plugins\\Installed",
+
     //OASIS Settings
     "DetailedCOSMICOutputEnabled": false, //Turn on to get detailed output from COSMIC (the Cosmic Operating System for the Omniverse).
     "DetailedSTARStatusOutputEnabled": false, //Turn on to get detailed output from STAR (the status of the STAR ODK).

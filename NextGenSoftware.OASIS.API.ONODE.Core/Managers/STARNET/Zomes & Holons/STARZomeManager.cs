@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "ZomeId",
             "ZomeName",
             "ZomeType",
-            "zome",
+            "ozome",
             "oasis_zomes",
             "ZomeDNA.json",
             "STARZomeDNAJSON")
@@ -39,10 +39,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "ZomeId",
             "ZomeName",
             "ZomeType",
-            "celestialbody",
-            "oasis_celestialbodies",
+            "ozome",
+            "oasis_zomes",
             "ZomeDNA.json",
-            "ZomeDNAJSON")
+            "STARZomeDNAJSON")
         { }
 
         //public async Task<OASISResult<ISTARZome>> CreateZomeAsync(

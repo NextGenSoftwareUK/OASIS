@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "CelestialBodyId",
             "CelestialBodyName",
             "CelestialBodyType",
-            "celestialbody",
+            "ocelestialbody",
             "oasis_celestialbodies",
             "CelestialBodyDNA.json",
             "STARCelestialBodyDNAJSON")
@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "CelestialBodyId",
             "CelestialBodyName",
             "CelestialBodyType",
-            "celestialbody",
+            "ocelestialbody",
             "oasis_celestialbodies",
             "CelestialBodyDNA.json",
             "STARCelestialBodyDNAJSON")

@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "CelestialSpaceId",
             "CelestialSpaceName",
             "CelestialSpaceType",
-            "celestialspace",
+            "ocelestialspace",
             "oasis_celestialspaces",
             "CelestialSpaceDNA.json",
             "STARCelestialSpaceDNAJSON")
@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "CelestialSpaceId",
             "CelestialSpaceName",
             "CelestialSpaceType",
-            "celestialspace",
+            "ocelestialspace",
             "oasis_celestialspaces",
             "CelestialSpaceDNA.json",
             "STARCelestialSpaceDNAJSON")

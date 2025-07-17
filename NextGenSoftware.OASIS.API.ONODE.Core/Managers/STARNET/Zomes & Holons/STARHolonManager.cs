@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "HolonId",
             "HolonName",
             "HolonType",
-            "holon",
+            "oholon",
             "oasis_holons",
             "HolonDNA.json",
             "STARHolonDNAJSON")
@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "HolonId",
             "HolonName",
             "HolonType",
-            "holon",
+            "oholon",
             "oasis_holons",
             "HolonDNA.json",
             "HolonDNAJSON")

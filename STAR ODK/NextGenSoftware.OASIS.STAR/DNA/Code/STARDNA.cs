@@ -180,7 +180,14 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultHolonsMetaDataDNADownloadedPath { get; set; } = "Holons\\Downloaded"; 
         public string DefaultHolonsMetaDataDNAInstalledPath { get; set; } = "Holons\\Installed";
 
-        
+
+        //Plugins to extend STAR & STARNET.
+        public string DefaultPluginsSourcePath { get; set; } = "Plugins\\Source";
+        public string DefaultPluginsPublishedPath { get; set; } = "Plugins\\Published";
+        public string DefaultPluginsDownloadedPath { get; set; } = "Plugins\\Downloaded";
+        public string DefaultPluginsInstalledPath { get; set; } = "Plugins\\Installed";
+
+
         //OASIS Settings
         public bool DetailedCOSMICOutputEnabled { get; set; } = false; //Turn on to get detailed output from COSMIC (the Cosmic Operating System for the Omniverse).
         public bool DetailedSTARStatusOutputEnabled { get; set; } = false; //Turn on to get detailed output from STAR (the status of the STAR ODK).

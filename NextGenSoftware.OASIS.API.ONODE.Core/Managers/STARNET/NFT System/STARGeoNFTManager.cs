@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "GeoNFTId",
             "GeoNFTName",
             "GeoNFTType",
-            "geonft",
+            "ogeonft",
             "oasis_geonfts",
             "GeoNFTDNA.json",
             "GeoNFTDNAJSON")
@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "GeoNFTId",
             "GeoNFTName",
             "GeoNFTType",
-            "geonft",
+            "ogeonft",
             "oasis_geonfts",
             "GeoNFTDNA.json",
             "GeoNFTDNAJSON")

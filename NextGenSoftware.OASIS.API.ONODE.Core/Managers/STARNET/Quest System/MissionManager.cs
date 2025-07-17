@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "MissionId",
             "MissionName",
             "MissionType",
-            "mission",
+            "omission",
             "oasis_missions",
             "MissionDNA.json",
             "MissionDNAJSON")
@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "MissionId",
             "MissionName",
             "MissionType",
-            "mission",
+            "omission",
             "oasis_missions",
             "MissionDNA.json",
             "MissionDNAJSON")
