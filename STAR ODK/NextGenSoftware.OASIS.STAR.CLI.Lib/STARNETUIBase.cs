@@ -261,7 +261,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
 
                 if (loadResult.Result.STARNETDNA.PublishedOn != DateTime.MinValue && CLIEngine.GetConfirmation($"Do you wish to upload any changes you have made in the Source folder ({loadResult.Result.STARNETDNA.SourcePath})? The version number will remain the same ({loadResult.Result.STARNETDNA.Version})."))
-                    await PublishAsync(loadResult.Result.STARNETDNA.SourcePath, true, true, providerType);
+                    await PublishAsync(loadResult.Result.STARNETDNA.SourcePath, true, DefaultLaunchMode.Optional, providerType);
                 else
                     Console.WriteLine("");
             }
@@ -304,7 +304,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
-        public virtual async Task<OASISResult<T1>> PublishAsync(string sourcePath = "", bool edit = false, bool hasDefaultLaunch = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> PublishAsync(string sourcePath = "", bool edit = false, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> publishResult = new OASISResult<T1>();
             bool generateOAPP = true;
@@ -312,7 +312,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             ProviderType OAPPBinaryProviderType = ProviderType.None;  
            // string publishPath = "";
 
-            OASISResult<BeginPublishResult> beginPublishResult = await BeginPublishingAsync(sourcePath, hasDefaultLaunch, providerType);
+            OASISResult<BeginPublishResult> beginPublishResult = await BeginPublishingAsync(sourcePath, defaultLaunchMode, providerType);
 
             if (beginPublishResult != null && !beginPublishResult.IsError && beginPublishResult.Result != null)
             {
@@ -348,7 +348,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return publishResult;
         }
 
-        protected async Task<OASISResult<BeginPublishResult>> BeginPublishingAsync(string sourcePath, bool hasDefaultLaunch = true, ProviderType providerType = ProviderType.Default)
+        protected async Task<OASISResult<BeginPublishResult>> BeginPublishingAsync(string sourcePath, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<BeginPublishResult> result = new OASISResult<BeginPublishResult>();
             bool generateOAPP = true;
@@ -408,24 +408,32 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     //        break;
                     //}
 
-                    if (hasDefaultLaunch)
+                    if (defaultLaunchMode != DefaultLaunchMode.None)
                     {
-                        if (!string.IsNullOrEmpty(launchTarget))
+                        bool hasDefaultLaunchTarget = false;
+
+                        if (defaultLaunchMode == DefaultLaunchMode.Optional)
+                            hasDefaultLaunchTarget = CLIEngine.GetConfirmation($"Do you wish to set a default launch target?");
+
+                        else if (defaultLaunchMode == DefaultLaunchMode.Mandatory)
+                            hasDefaultLaunchTarget = true;
+
+                        if (hasDefaultLaunchTarget)
                         {
-                            if (!CLIEngine.GetConfirmation($"{launchTargetQuestion} Do you wish to use the following default launch target: {launchTarget}?"))
+                            if (!string.IsNullOrEmpty(launchTarget))
                             {
-                                Console.WriteLine("");
-                                launchTarget = CLIEngine.GetValidFile("What launch target do you wish to use? ", sourcePath);
+                                if (!CLIEngine.GetConfirmation($"{launchTargetQuestion} Do you wish to use the following default launch target: {launchTarget}?"))
+                                {
+                                    Console.WriteLine("");
+                                    launchTarget = CLIEngine.GetValidFile("What launch target do you wish to use? ", sourcePath);
+                                }
+                                else
+                                    launchTarget = Path.Combine(sourcePath, launchTarget);
                             }
                             else
-                                launchTarget = Path.Combine(sourcePath, launchTarget);
+                                launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, sourcePath);
                         }
-                        else
-                            launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, sourcePath);
                     }
-
-
-
                 }
                 else
                     CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} could not be found for id {DNAResult.Result.Id} found in the {STARNETManager.STARNETDNAFileName} file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new {STARNETManager.STARNETHolonUIName}.");
@@ -2162,7 +2170,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         Console.WriteLine("");
                         //OASISResult<bool> publishResult = await STARNETManager.PublishAsync(STAR.BeamedInAvatar.Id, holon.STARNETDNA.Id, holon.STARNETDNA.VersionSequence, providerType);
-                        OASISResult<T1> publishResult = await PublishAsync(holon.STARNETDNA.SourcePath, hasDefaultLaunch: false, providerType: providerType);
+                        OASISResult<T1> publishResult = await PublishAsync(holon.STARNETDNA.SourcePath, defaultLaunchMode: DefaultLaunchMode.Optional, providerType: providerType);
 
                         if (!(publishResult != null && !publishResult.IsError && publishResult.Result != null))
                             CLIEngine.ShowErrorMessage($"Error publishing the {STARNETManager.STARNETHolonUIName} before installing it! Reason: {publishResult.Message}");

@@ -877,7 +877,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
             Func<string, ProviderType, Task> uninstallPredicate = null,
             //Func<string, ProviderType, Task> reinstallPredicate = null,
-            Func<string, bool, bool, ProviderType, Task> publishPredicate = null,
+            Func<string, bool, DefaultLaunchMode, ProviderType, Task> publishPredicate = null,
             Func<string, ProviderType, Task> unpublishPredicate = null,
             Func<string, ProviderType, Task> republishPredicate = null,
             Func<string, ProviderType, Task> activatePredicate = null,
@@ -1065,9 +1065,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             if (publishPredicate != null)
                             {
                                 if (subCommand.ToUpper() == "RUNTIME")
-                                    await publishPredicate(id, false, false, providerType);
+                                    await publishPredicate(id, false, DefaultLaunchMode.None, providerType);
                                 else
-                                    await publishPredicate(id, false, true, providerType);
+                                    await publishPredicate(id, false, DefaultLaunchMode.Optional, providerType);
                             }
                             else
                                 CLIEngine.ShowMessage("Coming Soon...");
