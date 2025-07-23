@@ -83,6 +83,14 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultRuntimesInstalledOASISPath { get; set; } = "Runtimes\\Installed";
         public string DefaultRuntimesInstalledSTARPath { get; set; } = "Runtimes\\Installed";
 
+
+        //Libs are used in OAPPs and can be installed on the user's machine or downloaded from the OASIS. Different libs can be combined with different OAPP Templates & Runtimes making unique combinations for OAPPs.
+        public string DefaultLibsSourcePath { get; set; } = "Libs\\Source";
+        public string DefaultLibsPublishedPath { get; set; } = "Libs\\Published";
+        public string DefaultLibsDownloadedPath { get; set; } = "Libs\\Downloaded";
+        public string DefaultLibsInstalledPath { get; set; } = "Libs\\Installed";
+
+
         //Chapters contain Quests and are used to break down big quests into seperate Chapters.
         public string DefaultChaptersSourcePath { get; set; } = "Chapters\\Source"; 
         public string DefaultChaptersPublishedPath { get; set; } = "Chapters\\Published"; 

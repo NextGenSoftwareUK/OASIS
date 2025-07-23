@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Runtimes : STARNETUIBase<Runtime, DownloadedQuest, InstalledRuntime>
+    public class Runtimes : STARNETUIBase<Runtime, DownloadedRuntime, InstalledRuntime>
     {
         public Runtimes(Guid avatarId) : base(new RuntimeManager(avatarId),
             "Welcome to the Runtime Wizard", new List<string> 
