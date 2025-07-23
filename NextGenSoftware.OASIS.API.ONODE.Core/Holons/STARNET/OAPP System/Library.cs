@@ -1,13 +1,14 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class InstalledRuntime : InstalledSTARNETHolon, IInstalledLibrary
+    public class Library : STARNETHolon, ILibrary
     {
-        public InstalledRuntime() : base("RuntimeDNAJSON")
+        public Library() : base("LibraryDNAJSON")
         {
-            this.HolonType = HolonType.InstalledRuntime;
+            this.HolonType = HolonType.Library;
         }
     }
 }

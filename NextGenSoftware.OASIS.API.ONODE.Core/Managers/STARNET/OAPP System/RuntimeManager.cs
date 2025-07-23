@@ -13,7 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class RuntimeManager : STARNETManagerBase<Runtime, DownloadedQuest, InstalledRuntime>
+    public class RuntimeManager : STARNETManagerBase<Runtime, DownloadedRuntime, InstalledRuntime>
     {
         public RuntimeManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, 
             OASISDNA,

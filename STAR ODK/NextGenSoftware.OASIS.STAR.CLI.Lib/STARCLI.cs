@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public static OAPPs OAPPs { get; } = new OAPPs(STAR.BeamedInAvatar.Id);
         public static OAPPTemplates OAPPTemplates { get; } = new OAPPTemplates(STAR.BeamedInAvatar.Id);
         public static Runtimes Runtimes { get; } = new Runtimes(STAR.BeamedInAvatar.Id);
+        public static Libs Libs { get; } = new Libs(STAR.BeamedInAvatar.Id);
         public static Chapters Chapters { get; } = new Chapters(STAR.BeamedInAvatar.Id);
         public static Missions Missions { get; } = new Missions(STAR.BeamedInAvatar.Id);
         public static Quests Quests { get; } = new Quests(STAR.BeamedInAvatar.Id);

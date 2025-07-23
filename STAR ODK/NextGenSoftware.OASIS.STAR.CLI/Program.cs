@@ -658,6 +658,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     await ShowSubCommandAsync<Runtime>(inputArgs, "runtime", "runtimes", STARCLI.Runtimes.CreateAsync, STARCLI.Runtimes.EditAsync, STARCLI.Runtimes.DeleteAsync, STARCLI.Runtimes.DownloadAndInstallAsync, STARCLI.Runtimes.UninstallAsync, STARCLI.Runtimes.PublishAsync, STARCLI.Runtimes.UnpublishAsync, STARCLI.Runtimes.RepublishAsync, STARCLI.Runtimes.ActivateAsync, STARCLI.Runtimes.DeactivateAsync, STARCLI.Runtimes.ShowAsync, STARCLI.Runtimes.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Runtimes.ListAllAsync, STARCLI.Runtimes.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Runtimes.SearchsAsync, true, providerType: providerType);
                                     break;
 
+                                case "lib":
+                                    await ShowSubCommandAsync<Library>(inputArgs, "library", "libs", STARCLI.Libs.CreateAsync, STARCLI.Libs.EditAsync, STARCLI.Libs.DeleteAsync, STARCLI.Libs.DownloadAndInstallAsync, STARCLI.Libs.UninstallAsync, STARCLI.Libs.PublishAsync, STARCLI.Libs.UnpublishAsync, STARCLI.Libs.RepublishAsync, STARCLI.Libs.ActivateAsync, STARCLI.Libs.DeactivateAsync, STARCLI.Libs.ShowAsync, STARCLI.Libs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Libs.ListAllAsync, STARCLI.Libs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Libs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Libs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Libs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Libs.SearchsAsync, true, providerType: providerType);
+                                    break;
+
                                 case "celestialspace":
                                     await ShowSubCommandAsync<STARCelestialSpace>(inputArgs, "celestial space", "celestial spaces", STARCLI.CelestialSpaces.CreateAsync, STARCLI.CelestialSpaces.EditAsync, STARCLI.CelestialSpaces.DeleteAsync, STARCLI.CelestialSpaces.DownloadAndInstallAsync, STARCLI.CelestialSpaces.UninstallAsync, STARCLI.CelestialSpaces.PublishAsync, STARCLI.CelestialSpaces.UnpublishAsync, STARCLI.CelestialSpaces.RepublishAsync, STARCLI.CelestialSpaces.ActivateAsync, STARCLI.CelestialSpaces.DeactivateAsync, STARCLI.CelestialSpaces.ShowAsync, STARCLI.CelestialSpaces.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllAsync, STARCLI.CelestialSpaces.ListAllInstalledForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.CelestialSpaces.SearchsAsync, providerType: providerType);
                                     break;
@@ -1234,13 +1238,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 if (showDelete)
                     CLIEngine.ShowMessage(string.Concat("    delete".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Delete an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
 
-                if (isOAPPOrHappOrRuntime)
-                {
+                //if (isOAPPOrHappOrRuntime)
+                //{
                     CLIEngine.ShowMessage(string.Concat("    download".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Download a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                     CLIEngine.ShowMessage(string.Concat("    install".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Install/download a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                     CLIEngine.ShowMessage(string.Concat("    uninstall".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Uninstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                     //CLIEngine.ShowMessage(string.Concat("    reinstall".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Reinstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
-                }
+                //}
 
                 if (isOAPPOrHappOrRuntime)
                 {
@@ -1263,11 +1267,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " that have been created."), ConsoleColor.Green, false);
                 //CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "[allVersions] [forAllAvatars]   List all ", subCommandPlural, " that have been created."), ConsoleColor.Green, false);
 
-                if (isOAPPOrHappOrRuntime)
-                {
+                //if (isOAPPOrHappOrRuntime)
+                //{
                     CLIEngine.ShowMessage(string.Concat("    list installed".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " installed for the currently beamed in avatar."), ConsoleColor.Green, false);
                     CLIEngine.ShowMessage(string.Concat("    list uninstalled".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " uninstalled for the currently beamed in avatar (allows reinstalling)."), ConsoleColor.Green, false);
-                }
+               // }
 
                 CLIEngine.ShowMessage(string.Concat("    list unpublished".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " unpublished for the currently beamed in avatar (allows republishing)."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    list deactivated".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " deactivated for the currently beamed in avatar (allows reactivating)."), ConsoleColor.Green, false);
@@ -2578,7 +2582,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    happ list unpublished                                                               List all hApp's unpublished for the currently beamed in avatar (and allow republishing).");
                 Console.WriteLine("    happ list deactivated                                                               List all hApp's deactivated for the currently beamed in avatar (and allow reactivating).");
                 Console.WriteLine("    happ search                                  [allVersions] [forAllAvatars]          Searches the hApp's for the given search critera.");
-                Console.WriteLine("    runtime create                                                                      Create a new runtime (currently supports OASIS & STAR but more to follow). Only admin's can create & publish OASIS/STAR runtime's.");
+                Console.WriteLine("    runtime create                                                                      Create a new runtime. Only admin's can create & publish OASIS/STAR runtime's.");
                 Console.WriteLine("    runtime update                               {id/name}                              Update an existing runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime delete                               {id/name}                              Delete an existing runtime for the given {id} or {name}.");
                 Console.WriteLine("    runtime publish                              {id/name}                              Publish a runtime.");
@@ -2597,6 +2601,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    runtime list unpublished                                                            List all runtime's unpublished for the currently beamed in avatar (and allow republishing).");
                 Console.WriteLine("    runtime list deactivated                                                            List all runtime's deactivated for the currently beamed in avatar (and allow reactivating).");
                 Console.WriteLine("    runtime search                               [allVersions] [forAllAvatars]          Searches the runtime's for the given search critera.");
+                Console.WriteLine("    lib create                                                                          Create a new library. Only admin's can create & publish OASIS/STAR runtime's.");
+                Console.WriteLine("    lib update                                   {id/name}                              Update an existing library for the given {id} or {name}.");
+                Console.WriteLine("    lib delete                                   {id/name}                              Delete an existing library for the given {id} or {name}.");
+                Console.WriteLine("    lib publish                                  {id/name}                              Publish a library.");
+                Console.WriteLine("    lib unpublish                                {id/name}                              Unpublish a library.");
+                Console.WriteLine("    lib republish                                {id/name}                              Republish a library.");
+                Console.WriteLine("    lib activate                                 {id/name}                              Activates a library on the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    lib deactivate                               {id/name}                              Decctivates a library on the STARNET store for the given {id} or {name}.");
+                Console.WriteLine("    lib download                                 {id/name}                              Downloads a library for the given {id} or {name}.");
+                Console.WriteLine("    lib install                                  {id/name}                              Installs/downloads a library for the given {id} or {name}.");
+                Console.WriteLine("    lib uninstall                                {id/name}                              Uninstalls a library for the given {id} or {name}.");
+                //Console.WriteLine("    lib reinstall                              {id/name}                              Reinstalls a lib for the given {id} or {name}.");
+                Console.WriteLine("    lib show                                     {id/name}                              Shows a library for the given {id} or {name}.");
+                Console.WriteLine("    lib list                                     [allVersions] [forAllAvatars]          List all libraries that have been generated.");
+                Console.WriteLine("    lib list installed                                                                  List all libraries installed for the currently beamed in avatar.");
+                Console.WriteLine("    lib list uninstalled                                                                List all libraries uninstalled for the currently beamed in avatar (and allow reinstalling).");
+                Console.WriteLine("    lib list unpublished                                                                List all libraries unpublished for the currently beamed in avatar (and allow republishing).");
+                Console.WriteLine("    lib list deactivated                                                                List all libraries deactivated for the currently beamed in avatar (and allow reactivating).");
+                Console.WriteLine("    lib search                                   [allVersions] [forAllAvatars]          Searches the libraries for the given search critera.");
                 Console.WriteLine("    celestialspace create                                                               Creates a celestial space.");
                 Console.WriteLine("    celestialspace update                        {id/name}                              Update an existing celestial space for the given {id} or {name}.");
                 Console.WriteLine("    celestialspace delete                        {id/name}                              Delete an existing celestial space for the given {id} or {name}.");
@@ -2847,6 +2870,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    oapp template           Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates.");
                 Console.WriteLine("    happ                    Create, edit, delete, publish, unpublish, install, uninstall, list & show hApp's.");
                 Console.WriteLine("    runtime                 Create, edit, delete, publish, unpublish, install, uninstall, list & show runtime's.");
+                Console.WriteLine("    lib                     Create, edit, delete, publish, unpublish, install, uninstall, list & show libraries.");
                 Console.WriteLine("    celestialspace          Create, edit, delete, publish, unpublish, list & show celestial space's.");
                 Console.WriteLine("    celestialbody           Create, edit, delete, publish, unpublish, list & show celestial bodies's.");
                 Console.WriteLine("    celestialbody metadata  Create, edit, delete, publish, unpublish, list & show celestial body metadata.");

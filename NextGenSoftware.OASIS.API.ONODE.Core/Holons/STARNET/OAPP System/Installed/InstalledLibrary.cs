@@ -3,11 +3,11 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class InstalledRuntime : InstalledSTARNETHolon, IInstalledLibrary
+    public class InstalledLibrary : InstalledSTARNETHolon, IInstalledRuntime
     {
-        public InstalledRuntime() : base("RuntimeDNAJSON")
+        public InstalledLibrary() : base("LibraryDNAJSON")
         {
-            this.HolonType = HolonType.InstalledRuntime;
+            this.HolonType = HolonType.InstalledLibrary;
         }
     }
 }
