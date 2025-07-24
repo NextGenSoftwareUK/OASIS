@@ -4,11 +4,12 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class CelestialBodies : STARNETUIBase<STARCelestialBody, DownloadedCelestialBody, InstalledCelestialBody>
+    public class CelestialBodies : STARNETUIBase<STARCelestialBody, DownloadedCelestialBody, InstalledCelestialBody, CelestialBodyDNA>
     {
         public CelestialBodies(Guid avatarId) : base(new API.ONODE.Core.Managers.CelestialBodyManager(avatarId),
             "Welcome to the Celestial Bodies Wizard", new List<string> 

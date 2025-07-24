@@ -1,8 +1,16 @@
-﻿using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+﻿using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class OAPPTemplates : STARNETUIBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate>
+    public class OAPPTemplates : STARNETUIBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, OAPPTemplateDNA>
     {
         public OAPPTemplates(Guid avatarId) : base(new API.ONODE.Core.Managers.OAPPTemplateManager(avatarId),
             "Welcome to the OAPP Template Wizard", new List<string> 
@@ -21,5 +29,61 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultOAPPTemplatesDownloadedPath, "DefaultOAPPTemplatesDownloadedPath",
             STAR.STARDNA.DefaultOAPPTemplatesInstalledPath, "DefaultOAPPTemplatesInstalledPath")
         { }
+
+        public override async Task<OASISResult<OAPPTemplate>> CreateAsync(object createParams, OAPPTemplate newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<OAPPTemplate> createResult = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, providerType);
+
+            if (createResult != null && createResult.Result != null && !createResult.IsError)
+            {
+                if (CLIEngine.GetConfirmation("Do you wish to add any custom runtimes now? (you do not need to add the OASIS or STAR runtimes, they are added automatically)."))
+                {
+                    OASISResult<InstalledRuntime> installedRuntime = await STARCLI.Runtimes.FindAndInstallIfNotInstalledAsync("use", providerType: providerType);
+
+                    if (installedRuntime != null && installedRuntime.Result != null && !installedRuntime.IsError)
+                    {
+                        OASISResult<IOAPPTemplate> addRuntimeToTemplateResult = await ((OAPPTemplateManager)STARNETManager).AddRuntimeToOAPPTemplateAsync(STAR.BeamedInAvatar.Id, createResult.Result.STARNETDNA.Id, installedRuntime.Result.STARNETDNA.Id, providerType);
+
+                        if (addRuntimeToTemplateResult != null && addRuntimeToTemplateResult.Result != null && !addRuntimeToTemplateResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Runtime '{installedRuntime.Result.Name}' added to OAPP Template '{createResult.Result.Name}'.");
+
+                            CLIEngine.ShowWorkingMessage("Installing Runtime Into Template...");
+                            DirectoryHelper.CopyFilesRecursively(installedRuntime.Result.InstalledPath, createResult.Result.STARNETDNA.SourcePath);
+                            CLIEngine.ShowMessage($"You can now use the runtime in your OAPP Template '{createResult.Result.Name}' by using the reserved tags in your OAPP Template files. For more information on how to do this, please refer to the documentation for the runtime you just added.");
+                        }
+                        else
+                            CLIEngine.ShowErrorMessage($"Failed to add runtime '{installedRuntime.Result.Name}' to OAPP Template '{createResult.Result.Name}'. Error: {addRuntimeToTemplateResult.Message}");
+                    }
+                    else
+                        CLIEngine.ShowErrorMessage($"Failed to add runtime to OAPP Template '{createResult.Result.Name}'. Error: {installedRuntime.Message}");
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish to add any libraries now?"))
+                {
+                    OASISResult<InstalledLibrary> installedLib = await STARCLI.Libs.FindAndInstallIfNotInstalledAsync("use", providerType: providerType);
+
+                    if (installedLib != null && installedLib.Result != null && !installedLib.IsError)
+                    {
+                        OASISResult<IOAPPTemplate> addLibToTemplateResult = await ((OAPPTemplateManager)STARNETManager).AddLibraryToOAPPTemplateAsync(STAR.BeamedInAvatar.Id, createResult.Result.STARNETDNA.Id, installedLib.Result.STARNETDNA.Id, providerType);
+
+                        if (addLibToTemplateResult != null && addLibToTemplateResult.Result != null && !addLibToTemplateResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage($"Library '{installedLib.Result.Name}' added to OAPP Template '{createResult.Result.Name}'.");
+
+                            CLIEngine.ShowWorkingMessage("Installing Library Into Template...");
+                            DirectoryHelper.CopyFilesRecursively(installedLib.Result.InstalledPath, createResult.Result.STARNETDNA.SourcePath);
+                            CLIEngine.ShowMessage($"You can now use the library in your OAPP Template '{createResult.Result.Name}' by using the reserved tags in your OAPP Template files. For more information on how to do this, please refer to the documentation for the library you just added.");
+                        }
+                        else
+                            CLIEngine.ShowErrorMessage($"Failed to add library '{installedLib.Result.Name}' to OAPP Template '{createResult.Result.Name}'. Error: {addLibToTemplateResult.Message}");
+                    }
+                    else
+                        CLIEngine.ShowErrorMessage($"Failed to add library to OAPP Template '{createResult.Result.Name}'. Error: {installedLib.Message}");
+                }
+            }
+
+            return createResult;
+        }
     }
 }

@@ -9,10 +9,11 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class STARHolonManager : STARNETManagerBase<STARHolon, DownloadedHolon, InstalledHolon>, ISTARHolonManager
+    public class STARHolonManager : STARNETManagerBase<STARHolon, DownloadedHolon, InstalledHolon, HolonDNA>, ISTARHolonManager
     {
         public STARHolonManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

@@ -5,10 +5,11 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class InventoryItemManager : STARNETManagerBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem>
+    public class InventoryItemManager : STARNETManagerBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem, InventoryItemDNA>
     {
         public InventoryItemManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

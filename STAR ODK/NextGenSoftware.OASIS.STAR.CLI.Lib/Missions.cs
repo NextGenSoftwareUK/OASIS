@@ -1,8 +1,9 @@
 ﻿using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Missions : STARNETUIBase<Mission, DownloadedMission, InstalledMission>
+    public class Missions : STARNETUIBase<Mission, DownloadedMission, InstalledMission, MissionDNA>
     {
         public Missions(Guid avatarId) : base(new API.ONODE.Core.Managers.MissionManager(avatarId),
             "Welcome to the Mission Wizard", new List<string> 

@@ -3,10 +3,11 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class ChapterManager : QuestManagerBase<Chapter, DownloadedChapter, InstalledChapter>
+    public class ChapterManager : QuestManagerBase<Chapter, DownloadedChapter, InstalledChapter, ChapterDNA>
     {
         public ChapterManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, 
             OASISDNA,

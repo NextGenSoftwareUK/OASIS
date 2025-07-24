@@ -3,26 +3,25 @@ using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
-using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class STARNETUIBase<T1, T2, T3>
+    public class STARNETUIBase<T1, T2, T3, T4>
         where T1 : ISTARNETHolon, new()
         where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()
+        where T4 : ISTARNETDNA, new()
     {
         protected const int DEFAULT_FIELD_LENGTH = 35;
 
-        public virtual ISTARNETManagerBase<T1, T2, T3> STARNETManager { get; set; }
+        public virtual ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager { get; set; }
         public virtual bool IsInit { get; set; }
         public virtual string CreateHeader { get; set; }
         public virtual List<string> CreateIntroParagraphs { get; set; }
@@ -38,7 +37,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public int DisplayFieldLength { get; set; } = DEFAULT_FIELD_LENGTH;
         
 
-        public STARNETUIBase(ISTARNETManagerBase<T1, T2, T3> starManager, string createHeader, List<string> createIntroParagraphs, string sourcePath = "", string sourceSTARDNAKey = "", string publishedPath = "", string publishedSTARDNAKey = "", string downloadedPath = "", string downloadSTARDNAKey = "", string installedPath = "", string installedSTARDNAKey = "", int displayFieldLength = DEFAULT_FIELD_LENGTH)
+        public STARNETUIBase(ISTARNETManagerBase<T1, T2, T3, T4> starManager, string createHeader, List<string> createIntroParagraphs, string sourcePath = "", string sourceSTARDNAKey = "", string publishedPath = "", string publishedSTARDNAKey = "", string downloadedPath = "", string downloadSTARDNAKey = "", string installedPath = "", string installedSTARDNAKey = "", int displayFieldLength = DEFAULT_FIELD_LENGTH)
         {
             starManager.OnDownloadStatusChanged += OnDownloadStatusChanged;
             starManager.OnInstallStatusChanged += OnInstallStatusChanged;

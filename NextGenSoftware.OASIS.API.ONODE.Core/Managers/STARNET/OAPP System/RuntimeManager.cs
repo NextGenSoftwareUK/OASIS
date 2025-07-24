@@ -10,10 +10,11 @@ using NextGenSoftware.OASIS.Common;
 using System.IO;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class RuntimeManager : STARNETManagerBase<Runtime, DownloadedRuntime, InstalledRuntime>
+    public class RuntimeManager : STARNETManagerBase<Runtime, DownloadedRuntime, InstalledRuntime, RuntimeDNA>
     {
         public RuntimeManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, 
             OASISDNA,

@@ -10,10 +10,14 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class STARNFTManager : STARNETManagerBase<STARNFT, DownloadedNFT, InstalledNFT>, ISTARNFTManager
+    /// Note: You can choose to use the base STARNETDNA (and other base classes) or extend them and inject them in here...
+    public class STARNFTManager : STARNETManagerBase<STARNFT, DownloadedNFT, InstalledNFT, NFTDNA>, ISTARNFTManager
+    //public class STARNFTManager : STARNETManagerBase<STARNFT, DownloadedNFT, InstalledNFT, STARNETDNA>, ISTARNFTManager
     {
         public STARNFTManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

@@ -9,13 +9,15 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public abstract class QuestManagerBase<T1, T2, T3> : TaskManagerBase<T1, T2, T3>, IQuestManagerBase<T1> 
+    public abstract class QuestManagerBase<T1, T2, T3, T4> : TaskManagerBase<T1, T2, T3, T4>, IQuestManagerBase<T1> 
         where T1 : IQuestBase, new()
         where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()
+        where T4 : ISTARNETDNA, new()
     {
         public QuestManagerBase(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA) { }
         public QuestManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA) { }

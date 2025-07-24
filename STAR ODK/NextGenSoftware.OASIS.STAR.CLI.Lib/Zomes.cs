@@ -3,11 +3,12 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Zomes : STARNETUIBase<STARZome, DownloadedZomeMetaDataDNA, InstalledZome>
+    public class Zomes : STARNETUIBase<STARZome, DownloadedZome, InstalledZome, ZomeDNA>
     {
         public Zomes(Guid avatarId) : base(new API.ONODE.Core.Managers.STARZomeManager(avatarId),
             "Welcome to the Zome Wizard", new List<string> 

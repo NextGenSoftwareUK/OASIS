@@ -4,15 +4,16 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
 {
-    public interface ISTARNETManagerBase<T1, T2, T3>
+    public interface ISTARNETManagerBase<T1, T2, T3, T4>
         where T1 : ISTARNETHolon, new()
         where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()
+        where T4 : ISTARNETDNA, new()
     {
         string STARNETDNAFileName { get; set; }
         string STARNETDNAJSONName { get; set; }
@@ -26,26 +27,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         string STARNETHolonTypeName { get; set; }
         string STARNETHolonUIName { get; set; }
 
-        event STARNETManagerBase<T1, T2, T3>.DownloadStatusChanged OnDownloadStatusChanged;
-        event STARNETManagerBase<T1, T2, T3>.InstallStatusChanged OnInstallStatusChanged;
-        event STARNETManagerBase<T1, T2, T3>.PublishStatusChanged OnPublishStatusChanged;
-        event STARNETManagerBase<T1, T2, T3>.UploadStatusChanged OnUploadStatusChanged;
+        event STARNETManagerBase<T1, T2, T3, T4>.DownloadStatusChanged OnDownloadStatusChanged;
+        event STARNETManagerBase<T1, T2, T3, T4>.InstallStatusChanged OnInstallStatusChanged;
+        event STARNETManagerBase<T1, T2, T3, T4>.PublishStatusChanged OnPublishStatusChanged;
+        event STARNETManagerBase<T1, T2, T3, T4>.UploadStatusChanged OnUploadStatusChanged;
 
         OASISResult<T1> Activate(Guid avatarId, Guid id, int version, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> Activate(Guid avatarId, ISTARNETDNA STARNETDNA, ProviderType providerType = ProviderType.Default);
+        OASISResult<T1> Activate(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Activate(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> ActivateAsync(Guid avatarId, Guid id, int version, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> ActivateAsync(Guid avatarId, ISTARNETDNA STARNETDNA, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> ActivateAsync(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> ActivateAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> BeginPublish(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType);
         Task<OASISResult<T1>> BeginPublishAsync(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType);
-        OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> metaData = null, T1 newHolon = default, ISTARNETDNA STARNETDNA = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> metaData = null, T1 newHolon = default, ISTARNETDNA STARNETDNA = null, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
+        OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> metaData = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> metaData = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Deactivate(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> Deactivate(Guid avatarId, ISTARNETDNA STARNETDNA, ProviderType providerType = ProviderType.Default);
+        OASISResult<T1> Deactivate(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Deactivate(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> DeactivateAsync(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> DeactivateAsync(Guid avatarId, ISTARNETDNA STARNETDNA, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> DeactivateAsync(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> DeactivateAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Delete(Guid avatarId, Guid id, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Delete(Guid avatarId, ISTARNETHolon oappSystemHolon, int version, bool softDelete = true, bool deleteDownload = true, bool deleteInstall = true, ProviderType providerType = ProviderType.Default);
@@ -57,8 +58,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         Task<OASISResult<T3>> DownloadAndInstallAsync(Guid avatarId, Guid STARNETHolonId, int version, string fullInstallPath, string fullDownloadPath = "", bool createSTARNETHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T3>> DownloadAndInstallAsync(Guid avatarId, T1 holon, string fullInstallPath, string fullDownloadPath = "", bool createSTARNETHolonDirectory = true, bool reInstall = false, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T2>> DownloadAsync(Guid avatarId, T1 holon, string fullDownloadPath, bool reInstall = false, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> EditAsync(Guid id, ISTARNETDNA newSTARNETDNA, Guid avatarId, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> EditAsync(Guid avatarId, T1 holon, ISTARNETDNA newSTARNETDNA, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> EditAsync(Guid id, T4 newSTARNETDNA, Guid avatarId, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> EditAsync(Guid avatarId, T1 holon, T4 newSTARNETDNA, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> FininalizePublish(Guid avatarId, T1 holon, bool edit, ProviderType providerType);
         Task<OASISResult<T1>> FininalizePublishAsync(Guid avatarId, T1 holon, bool edit, ProviderType providerType);
         OASISResult<bool> GenerateCompressedFile(string sourcePath, string destinationPath);
@@ -127,10 +128,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         OASISResult<T> ReadDNAFromSourceOrInstallFolder<T>(string fullPathToSTARNETHolonFolder);
         Task<OASISResult<T>> ReadDNAFromSourceOrInstallFolderAsync<T>(string fullPathToSTARNETHolonFolder);
         OASISResult<T1> Republish(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> Republish(Guid avatarId, ISTARNETDNA STARNETDNA, ProviderType providerType = ProviderType.Default);
+        OASISResult<T1> Republish(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Republish(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> RepublishAsync(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> RepublishAsync(Guid avatarId, ISTARNETDNA STARNETDNA, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> RepublishAsync(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> RepublishAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         OASISResult<IEnumerable<T1>> Search(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IEnumerable<T>>> SearchAsync<T>(Guid avatarId, string searchTerm, bool searchOnlyForCurrentAvatar = true, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new();
@@ -145,25 +146,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         Task<OASISResult<T3>> UninstallAsync(Guid avatarId, string STARNETHolonName, string version, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T3>> UninstallAsync(Guid avatarId, T3 installedSTARNETHolon, string errorMessage, ProviderType providerType);
         OASISResult<T1> Unpublish(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> Unpublish(Guid avatarId, ISTARNETDNA STARNETDNA, ProviderType providerType = ProviderType.Default);
+        OASISResult<T1> Unpublish(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Unpublish(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, ISTARNETDNA STARNETDNA, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Update(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         OASISResult<T3> Update(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> UpdateAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T3>> UpdateAsync(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default);
-        OASISResult<T2> UpdateDownloadCounts(Guid avatarId, T2 downloadedSTARNETHolon, ISTARNETDNA STARNETDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T2>> UpdateDownloadCountsAsync(Guid avatarId, T2 downloadedSTARNETHolon, ISTARNETDNA STARNETDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default);
-        OASISResult<T3> UpdateInstallCounts(Guid avatarId, T3 installedSTARNETHolon, ISTARNETDNA STARNETDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T3>> UpdateInstallCountsAsync(Guid avatarId, T3 installedSTARNETHolon, ISTARNETDNA STARNETDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default);
+        OASISResult<T2> UpdateDownloadCounts(Guid avatarId, T2 downloadedSTARNETHolon, T4 STARNETDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T2>> UpdateDownloadCountsAsync(Guid avatarId, T2 downloadedSTARNETHolon, T4 STARNETDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default);
+        OASISResult<T3> UpdateInstallCounts(Guid avatarId, T3 installedSTARNETHolon, T4 STARNETDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T3>> UpdateInstallCountsAsync(Guid avatarId, T3 installedSTARNETHolon, T4 STARNETDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> UpdateNumberOfVersionCounts(Guid avatarId, OASISResult<T1> result, string errorMessage, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> UpdateNumberOfVersionCountsAsync(Guid avatarId, OASISResult<T1> result, string errorMessage, ProviderType providerType = ProviderType.Default);
-        OASISResult<bool> UploadToCloud(ISTARNETDNA STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType);
-        Task<OASISResult<bool>> UploadToCloudAsync(ISTARNETDNA STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType);
-        OASISResult<T1> UploadToOASIS(Guid avatarId, ISTARNETDNA STARNETDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType);
-        Task<OASISResult<T1>> UploadToOASISAsync(Guid avatarId, ISTARNETDNA STARNETDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType);
+        OASISResult<bool> UploadToCloud(T4 STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType);
+        Task<OASISResult<bool>> UploadToCloudAsync(T4 STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType);
+        OASISResult<T1> UploadToOASIS(Guid avatarId, T4 STARNETDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType);
+        Task<OASISResult<T1>> UploadToOASISAsync(Guid avatarId, T4 STARNETDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType);
         OASISResult<bool> ValidateVersion(string dnaVersion, string storedVersion, string fullPathToSTARNETHolonFolder, bool firstPublish, bool edit);
         OASISResult<bool> WriteDNA<T>(T STARNETDNA, string fullPathToSTARNETHolon);
         Task<OASISResult<bool>> WriteDNAAsync<T>(T STARNETDNA, string fullPathToSTARNETHolon);
