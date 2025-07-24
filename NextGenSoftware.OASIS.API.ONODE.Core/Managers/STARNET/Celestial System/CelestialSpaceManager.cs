@@ -10,10 +10,11 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class CelestialSpaceManager : STARNETManagerBase<STARCelestialSpace, DownloadedCelestialSpace, InstalledCelestialSpace>, ICelestialSpaceManager
+    public class CelestialSpaceManager : STARNETManagerBase<STARCelestialSpace, DownloadedCelestialSpace, InstalledCelestialSpace, CelestialSpaceDNA>, ICelestialSpaceManager
     {
         public CelestialSpaceManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

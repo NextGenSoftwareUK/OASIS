@@ -7,7 +7,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class ZomeMetaDataDNAManager : STARNETManagerBase<ZomeMetaDataDNA, DownloadedZomeMetaDataDNA, InstalledZomeMetaDataDNA>
+    public class ZomeMetaDataDNAManager : STARNETManagerBase<ZomeMetaDataDNA, DownloadedZomeMetaDataDNA, InstalledZomeMetaDataDNA, ZomeMetaDataDNA>
     {
         public ZomeMetaDataDNAManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class CelestialBodyMetaDataDNA : STARNETHolon//, ISTARCelestialBody
+    public class CelestialBodyMetaDataDNA : STARNETHolon//, ISTARNETDNA//, ISTARCelestialBody
     {
         public CelestialBodyMetaDataDNA() : base("CelestialBodyMetaDataDNAJSON")
         {

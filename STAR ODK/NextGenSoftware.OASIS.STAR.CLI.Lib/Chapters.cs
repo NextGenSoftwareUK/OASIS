@@ -1,8 +1,9 @@
 ﻿using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Chapters : STARNETUIBase<Chapter, DownloadedChapter, InstalledChapter>
+    public class Chapters : STARNETUIBase<Chapter, DownloadedChapter, InstalledChapter, ChapterDNA>
     {
         public Chapters(Guid avatarId) : base(new API.ONODE.Core.Managers.ChapterManager(avatarId),
             "Welcome to the Chapter Wizard", new List<string> 

@@ -1,8 +1,9 @@
 ﻿using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Quests : STARNETUIBase<Quest, DownloadedQuest, InstalledQuest>
+    public class Quests : STARNETUIBase<Quest, DownloadedQuest, InstalledQuest, QuestDNA>
     {
         public Quests(Guid avatarId) : base(new API.ONODE.Core.Managers.QuestManager(avatarId),
             "Welcome to the Quest Wizard", new List<string> 

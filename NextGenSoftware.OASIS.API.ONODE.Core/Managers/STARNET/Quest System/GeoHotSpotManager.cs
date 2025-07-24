@@ -10,10 +10,11 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class GeoHotSpotManager : STARNETManagerBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot>, IGeoHotSpotManager
+    public class GeoHotSpotManager : STARNETManagerBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot, GeoHotSpotDNA>, IGeoHotSpotManager
     {
         public GeoHotSpotManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

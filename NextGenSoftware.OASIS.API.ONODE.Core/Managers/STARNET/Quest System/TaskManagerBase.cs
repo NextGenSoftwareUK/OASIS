@@ -8,13 +8,15 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public abstract class TaskManagerBase<T1, T2, T3> : STARNETManagerBase<T1, T2, T3>, ITaskManagerBase<T1> 
+    public abstract class TaskManagerBase<T1, T2, T3, T4> : STARNETManagerBase<T1, T2, T3, T4>, ITaskManagerBase<T1> 
         where T1 : IQuestBase, new()
         where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()
+        where T4 : ISTARNETDNA, new()
     {
         public TaskManagerBase(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA) { }
         public TaskManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA) { }

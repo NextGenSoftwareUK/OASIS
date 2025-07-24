@@ -9,8 +9,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects
     {
         //public OAPPTemplateType OAPPTemplateType { get; set; }
 
-        //public List<IRuntime> Runtimes { get; set; } = new List<IRuntime>();
-        //public bool UseNuGetForOASISRuntime { get; set; } = true;
-        //public bool UseNuGetForSTARRuntime { get; set; } = true;
+        //TODO: Need to finish the refactor of the STARNETManagerBase to allow cutom DNA's to be injected in before these properties are usable here...
+        //List of custom Runtimes the OAPP Template uses (on top of the built-in OASIS & STAR runtime).
+        public IList<IRuntime> Runtimes { get; set; } = new List<IRuntime>();
+
+        public IList<string> RuntimeIds { get; set; } = new List<string>();
+
+        public IList<ILibrary> Libraries { get; set; } = new List<ILibrary>();
+
+        public IList<string> LibraryIds { get; set; } = new List<string>();
     }
 }

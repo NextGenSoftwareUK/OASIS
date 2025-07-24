@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class PluginManager : STARNETManagerBase<Plugin, DownloadedPlugin, InstalledPlugin>, IPluginManager
+    public class PluginManager : STARNETManagerBase<Plugin, DownloadedPlugin, InstalledPlugin, PluginDNA>, IPluginManager
     {
         public PluginManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

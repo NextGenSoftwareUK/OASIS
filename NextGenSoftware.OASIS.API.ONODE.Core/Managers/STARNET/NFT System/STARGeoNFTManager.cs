@@ -5,10 +5,11 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class STARGeoNFTManager : STARNETManagerBase<STARGeoNFT, DownloadedGeoNFT, InstalledGeoNFT>, ISTARGeoNFTManager
+    public class STARGeoNFTManager : STARNETManagerBase<STARGeoNFT, DownloadedGeoNFT, InstalledGeoNFT, GeoNFTDNA>, ISTARGeoNFTManager
     {
         public STARGeoNFTManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

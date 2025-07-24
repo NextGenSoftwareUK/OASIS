@@ -23,6 +23,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         private OAPPManager _oapps = null;
         private OAPPTemplateManager _oappTemplates = null;
         private RuntimeManager _runtimes = null;
+        private LibraryManager _libs = null;
         private STARNFTManager _nfts = null;
         private STARGeoNFTManager _geoNFTs = null;
         private CelestialBodyManager _celestialBodies = null;
@@ -347,6 +348,26 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 }
 
                 return _runtimes;
+            }
+        }
+
+        public LibraryManager Libraries
+        {
+            get
+            {
+                if (_libs == null)
+                {
+                    if (!OASISAPI.IsOASISBooted)
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Libraries property!");
+
+                    else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISSystemAccountId))
+                        throw new OASISException("No avatar is beamed in. Please beam in before accessing the Libraries property!");
+
+                    else
+                        _libs = new LibraryManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
+                }
+
+                return _libs;
             }
         }
 

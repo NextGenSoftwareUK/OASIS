@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects
 {
     public class OAPPDNA : STARNETDNA, IOAPPDNA
     {
+        //TODO: Need to finish the refactor of the STARNETManagerBase to allow cutom DNA's to be injected in before these properties are usable here...
         public Guid OAPPTemplateId { get; set; }
         public string OAPPTemplateName { get; set; }
         public string OAPPTemplateDescription { get; set; }
