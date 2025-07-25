@@ -455,11 +455,71 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual async Task<OASISResult<T>> LoadAsync<T>(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new()
+        //public virtual async Task<OASISResult<T>> LoadAsync<T>(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new()
+        //{
+        //    OASISResult<T> result = new OASISResult<T>();
+        //    OASISResult<IEnumerable<T>> loadResult = await Data.LoadHolonsByMetaDataAsync<T>(STARNETHolonIdName, id.ToString(), STARNETHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+        //    OASISResult<IEnumerable<T>> filterdResult = FilterResultsForVersion(avatarId, loadResult, false, version);
+
+        //    if (filterdResult != null && filterdResult.Result != null && !filterdResult.IsError)
+        //        result.Result = filterdResult.Result.FirstOrDefault();
+        //    else
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in LoadAsync<T> loading the {STARNETHolonUIName} with Id {id} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {filterdResult.Message}");
+
+        //    if (result.Result == null)
+        //        result.Message = "No Holon Found";
+
+        //    return result;
+        //}
+
+        //public OASISResult<T> Load<T>(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new()
+        //{
+        //    OASISResult<T> result = new OASISResult<T>();
+        //    OASISResult<IEnumerable<T>> loadResult = Data.LoadHolonsByMetaData<T>(STARNETHolonIdName, id.ToString(), STARNETHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+        //    OASISResult<IEnumerable<T>> filterdResult = FilterResultsForVersion(avatarId, loadResult, false, version);
+
+        //    if (filterdResult != null && filterdResult.Result != null && !filterdResult.IsError)
+        //        result.Result = filterdResult.Result.FirstOrDefault();
+        //    else
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in Load<T> loading the {STARNETHolonUIName} with Id {id} from the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {filterdResult.Message}");
+
+        //    if (result.Result == null)
+        //        result.Message = "No Holon Found";
+
+        //    return result;
+        //}
+
+        //public virtual async Task<OASISResult<T>> LoadAsync<T>(Guid avatarId, string sourcePath, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new()
+        //{
+        //    OASISResult<T> result = new OASISResult<T>();
+        //    OASISResult<T4> readDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<T4>(sourcePath);
+
+        //    if (readDNAResult != null && readDNAResult.Result != null && !readDNAResult.IsError)
+        //        result = await LoadAsync<T>(avatarId, readDNAResult.Result.Id, 0, providerType);
+        //    else
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in LoadAsync<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {sourcePath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
+
+        //    return result;
+        //}
+
+        //public OASISResult<T> Load<T>(Guid avatarId, string sourcePath, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new()
+        //{
+        //    OASISResult<T> result = new OASISResult<T>();
+        //    OASISResult<T4> readDNAResult = ReadDNAFromSourceOrInstallFolder<T4>(sourcePath);
+
+        //    if (readDNAResult != null && readDNAResult.Result != null && !readDNAResult.IsError)
+        //        result = Load<T>(avatarId, readDNAResult.Result.Id, 0, providerType);
+        //    else
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in Load<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {sourcePath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
+
+        //    return result;
+        //}
+
+        public virtual async Task<OASISResult<T1>> LoadAsync(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default) 
         {
-            OASISResult<T> result = new OASISResult<T>();
-            OASISResult<IEnumerable<T>> loadResult = await Data.LoadHolonsByMetaDataAsync<T>(STARNETHolonIdName, id.ToString(), STARNETHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
-            OASISResult<IEnumerable<T>> filterdResult = FilterResultsForVersion(avatarId, loadResult, false, version);
+            OASISResult<T1> result = new OASISResult<T1>();
+            OASISResult<IEnumerable<T1>> loadResult = await Data.LoadHolonsByMetaDataAsync<T1>(STARNETHolonIdName, id.ToString(), STARNETHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
+            OASISResult<IEnumerable<T1>> filterdResult = FilterResultsForVersion(avatarId, loadResult, false, version);
 
             if (filterdResult != null && filterdResult.Result != null && !filterdResult.IsError)
                 result.Result = filterdResult.Result.FirstOrDefault();
@@ -472,7 +532,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> Load(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> Load(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default) 
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<IEnumerable<T1>> loadResult = Data.LoadHolonsByMetaData<T1>(STARNETHolonIdName, id.ToString(), STARNETHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
@@ -485,6 +545,68 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             if (result.Result == null)
                 result.Message = "No Holon Found";
+
+            return result;
+        }
+
+        public virtual async Task<OASISResult<T1>> LoadForSourceOrInstalledFolderAsync(Guid avatarId, string sourceOrInstallPath, ProviderType providerType = ProviderType.Default) 
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            OASISResult<T4> readDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<T4>(sourceOrInstallPath);
+
+            if (readDNAResult != null && readDNAResult.Result != null && !readDNAResult.IsError)
+                result = await LoadAsync(avatarId, readDNAResult.Result.Id, readDNAResult.Result.VersionSequence, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadAsync<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {sourcePath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<T1> LoadForSourceOrInstalledFolder(Guid avatarId, string sourceOrInstallPath, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            OASISResult<T4> readDNAResult = ReadDNAFromSourceOrInstallFolder<T4>(sourceOrInstallPath);
+
+            if (readDNAResult != null && readDNAResult.Result != null && !readDNAResult.IsError)
+                result = Load(avatarId, readDNAResult.Result.Id, readDNAResult.Result.VersionSequence, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in Load<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {sourcePath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
+
+            return result;
+        }
+
+        public virtual async Task<OASISResult<T1>> LoadForHolonAsync(Guid avatarId, Guid holonId, ProviderType providerType = ProviderType.Default)
+        {
+            return await Data.LoadHolonAsync<T1>(holonId, providerType: providerType);
+        }
+
+        public OASISResult<T1> LoadForHolon(Guid avatarId, Guid holonId, ProviderType providerType = ProviderType.Default)
+        {
+            return Data.LoadHolon<T1>(holonId, providerType: providerType);
+        }
+
+        public virtual async Task<OASISResult<T1>> LoadForPublishedFileAsync(Guid avatarId, string publishedFilePath, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            OASISResult<T4> readDNAResult = await ReadDNAFromPublishedFileAsync<T4>(publishedFilePath);
+
+            if (readDNAResult != null && readDNAResult.Result != null && !readDNAResult.IsError)
+                result = await LoadAsync(avatarId, readDNAResult.Result.Id, readDNAResult.Result.VersionSequence, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadAsync<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {sourcePath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
+
+            return result;
+        }
+
+        public OASISResult<T1> LoadForPublishedFile(Guid avatarId, string publishedFilePath, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            OASISResult<T4> readDNAResult = ReadDNAFromPublishedFile<T4>(publishedFilePath);
+
+            if (readDNAResult != null && readDNAResult.Result != null && !readDNAResult.IsError)
+                result = Load(avatarId, readDNAResult.Result.Id, readDNAResult.Result.VersionSequence, providerType);
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in Load<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {sourcePath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
 
             return result;
         }
@@ -571,7 +693,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in DeleteAsync. Reason: ";
-            OASISResult<T1> loadResult = await LoadAsync<T1>(id, avatarId, version, providerType);
+            OASISResult<T1> loadResult = await LoadAsync(id, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await DeleteAsync(avatarId, loadResult.Result, version, softDelete, deleteDownload, deleteInstall, providerType);
@@ -862,7 +984,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T1>> EditAsync(Guid id, T4 newSTARNETDNA, Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T1> loadResult = await LoadAsync<T1>(id, avatarId, providerType: providerType);
+            OASISResult<T1> loadResult = await LoadAsync(id, avatarId, providerType: providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 await EditAsync(avatarId, loadResult.Result, newSTARNETDNA, providerType);
@@ -1343,7 +1465,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         userName = loadAvatarResult.Result.Username;
 
                         //Load latest version.
-                        OASISResult<T1> loadOAPPResult = await LoadAsync<T1>(avatarId, readSTARNETDNAResult.Result.Id);
+                        OASISResult<T1> loadOAPPResult = await LoadAsync(avatarId, readSTARNETDNAResult.Result.Id);
 
                         if (loadOAPPResult != null && loadOAPPResult.Result != null && !loadOAPPResult.IsError)
                         {
@@ -1968,7 +2090,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T1> loadResult = await LoadAsync<T1>(STARNETHolonId, avatarId, version, providerType);
+            OASISResult<T1> loadResult = await LoadAsync(STARNETHolonId, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await UnpublishAsync(avatarId, loadResult.Result, providerType);
@@ -1994,7 +2116,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T1> oappResult = await LoadAsync<T1>(STARNETDNA.Id, avatarId, STARNETDNA.VersionSequence, providerType);
+            OASISResult<T1> oappResult = await LoadAsync(STARNETDNA.Id, avatarId, STARNETDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in UnpublishSTARNETHolonAsync. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
@@ -2084,7 +2206,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T1>> RepublishAsync(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T1> oappResult = await LoadAsync<T1>(STARNETDNA.Id, avatarId, STARNETDNA.VersionSequence, providerType);
+            OASISResult<T1> oappResult = await LoadAsync(STARNETDNA.Id, avatarId, STARNETDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in RepublishAsync. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
@@ -2112,7 +2234,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T1>> RepublishAsync(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T1> loadResult = await LoadAsync<T1>(STARNETHolonId, avatarId, version, providerType);
+            OASISResult<T1> loadResult = await LoadAsync(STARNETHolonId, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await RepublishAsync(avatarId, loadResult.Result, providerType);
@@ -2180,7 +2302,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T1>> DeactivateAsync(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T1> loadResult = await LoadAsync<T1>(STARNETHolonId, avatarId, version, providerType);
+            OASISResult<T1> loadResult = await LoadAsync(STARNETHolonId, avatarId, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await DeactivateAsync(avatarId, loadResult.Result, providerType);
@@ -2206,7 +2328,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T1>> DeactivateAsync(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T1> oappResult = await LoadAsync<T1>(STARNETDNA.Id, avatarId, STARNETDNA.VersionSequence, providerType);
+            OASISResult<T1> oappResult = await LoadAsync(STARNETDNA.Id, avatarId, STARNETDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in DeactivateAsync. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
@@ -2290,7 +2412,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T1>> ActivateAsync(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T1> oappResult = await LoadAsync<T1>(avatarId, STARNETDNA.Id, STARNETDNA.VersionSequence, providerType);
+            OASISResult<T1> oappResult = await LoadAsync(avatarId, STARNETDNA.Id, STARNETDNA.VersionSequence, providerType);
             string errorMessage = "Error occured in ActivateAsync. Reason: ";
 
             if (oappResult != null && oappResult.Result != null && !oappResult.IsError)
@@ -2318,7 +2440,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T1>> ActivateAsync(Guid avatarId, Guid id, int version, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T1> loadResult = await LoadAsync<T1>(avatarId, id, version, providerType);
+            OASISResult<T1> loadResult = await LoadAsync(avatarId, id, version, providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                 result = await ActivateAsync(avatarId, loadResult.Result, providerType);
@@ -3153,7 +3275,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     //Load the T from the OASIS to make sure the STARNETDNA is valid (and has not been tampered with).
 
                     //TODO: Check if this works ok? What if they tamper with the VersionSequence in the DNA file?!
-                    OASISResult<T1> STARNETHolonLoadResult = await LoadAsync<T1>(avatarId, STARNETDNAResult.Result.Id, STARNETDNAResult.Result.VersionSequence, providerType);
+                    OASISResult<T1> STARNETHolonLoadResult = await LoadAsync(avatarId, STARNETDNAResult.Result.Id, STARNETDNAResult.Result.VersionSequence, providerType);
 
                     if (STARNETHolonLoadResult != null && STARNETHolonLoadResult.Result != null && !STARNETHolonLoadResult.IsError)
                     {

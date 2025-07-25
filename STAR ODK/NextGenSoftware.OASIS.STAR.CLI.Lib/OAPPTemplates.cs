@@ -1,18 +1,19 @@
-﻿using NextGenSoftware.CLI.Engine;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
-using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+﻿using NextGenSoftware.Utilities;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public class OAPPTemplates : STARNETUIBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, OAPPTemplateDNA>
     {
-        public OAPPTemplates(Guid avatarId) : base(new API.ONODE.Core.Managers.OAPPTemplateManager(avatarId),
+        public OAPPTemplates(Guid avatarId) : base(new OAPPTemplateManager(avatarId),
             "Welcome to the OAPP Template Wizard", new List<string> 
             {
                 "This wizard will allow you create an OAPP Template from which OAPP's can be created from.",
@@ -84,6 +85,35 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             return createResult;
+        }
+
+        public override async Task<OASISResult<OAPPTemplate>> PublishAsync(string sourcePath = "", bool edit = false, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, ProviderType providerType = ProviderType.Default)
+        {
+            
+            if (!CLIEngine.GetConfirmation("Do you wish to embed the libraries & runtimes in the template? (It is not recommended because will increase the storage space/cost & upload/download time). If you choose 'N' then they will be automatically downloaded and installed when someone installs your template. Only choose 'Y' if you want them embedded in case there is an issue downloading/installing them seperatley later (unlikely) or if you want the template to be fully self-contained with no external dependencies (useful if you wish to install it offline from the .oapptemplate file)."))
+            {
+
+                OASISResult<OAPPTemplate> templateResult = await STARNETManager.LoadForSourceOrInstalledFolderAsync(STAR.BeamedInAvatar.Id, sourcePath, providerType);
+
+
+                foreach (string id in templateResult.Result.RuntimeIds)
+                {
+                    Guid holonId = Guid.Empty;
+
+                    if (Guid.TryParse(id, out holonId))
+                    {
+                        OASISResult<Runtime> runtimeResult = await STAR.STARAPI.Runtimes.LoadForHolonAsync(STAR.BeamedInAvatar.Id, holonId, providerType);
+
+                        Directory.Delete(sourcePath, true);
+                    }
+                    else
+
+                }
+
+                
+            }
+
+            return base.PublishAsync(sourcePath, edit, defaultLaunchMode, providerType);
         }
     }
 }
