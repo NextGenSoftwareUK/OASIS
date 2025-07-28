@@ -22,6 +22,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
@@ -1242,7 +1243,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual async Task<OASISResult<T1>> PublishAsync(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS)
+        public virtual async Task<OASISResult<T1>> PublishAsync(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS, bool embedRuntimes = false, bool embedLibs = false, bool embedTemplates = false)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             T4 STARNETDNA = default;
@@ -1269,18 +1270,47 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 if (generateBinary)
                 {
-                    OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, STARNETDNA.PublishedPath);
-
-                    if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
+                    try
                     {
-                        result.Message = compressedResult.Message;
-                        result.IsError = true;
+                        string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp");
+
+                        if (Directory.Exists(publishedPath))
+                            Directory.Delete(publishedPath, true);
+
+                        Directory.CreateDirectory(publishedPath);
+                        DirectoryHelper.CopyFilesRecursively(fullPathToSource, publishedPath);
+
+                        if (!embedRuntimes && Directory.Exists(Path.Combine(publishedPath, "Runtimes")))
+                            Directory.Delete(Path.Combine(publishedPath, "Runtimes"), true);
+
+                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Templates")))
+                            Directory.Delete(Path.Combine(publishedPath, "Templates"), true);
+
+                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Libs")))
+                            Directory.Delete(Path.Combine(publishedPath, "Libs"), true);
+
+                        OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, STARNETDNA.PublishedPath);
+
+                        if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
+                        {
+                            result.Message = compressedResult.Message;
+                            result.IsError = true;
+                            return result;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to compress the {STARNETHolonUIName} files. Reason: {e}");
                         return result;
                     }
-                }
+                    finally
+                    {
+                        //TODO: Put back in once finished testing! ;-)
+                        //Directory.Delete(publishedPath, true);
+                    }
 
-                //TODO: Currently the filesize will NOT be in the compressed .STARNETHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARNETDNA inside it...
-                if (!string.IsNullOrEmpty(STARNETDNA.PublishedPath) && File.Exists(STARNETDNA.PublishedPath))
+                    //TODO: Currently the filesize will NOT be in the compressed .STARNETHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARNETDNA inside it...
+                    if (!string.IsNullOrEmpty(STARNETDNA.PublishedPath) && File.Exists(STARNETDNA.PublishedPath))
                     STARNETDNA.FileSize = new FileInfo(STARNETDNA.PublishedPath).Length;
 
                 WriteDNA(STARNETDNA, fullPathToSource);
@@ -1319,7 +1349,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> Publish(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS)
+        public OASISResult<T1> Publish(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool generateBinary = true, bool uploadToCloud = true, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS, bool embedRuntimes = false, bool embedLibs = false, bool embedTemplates = false)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             T4 STARNETDNA = default;
