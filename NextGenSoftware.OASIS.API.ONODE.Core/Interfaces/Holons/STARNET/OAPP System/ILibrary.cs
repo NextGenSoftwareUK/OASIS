@@ -1,10 +1,10 @@
 ﻿
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+//using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
-{
-    public interface ILibrary : ISTARNETHolon
-    {
+//namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
+//{
+//    public interface ILibrary : ISTARNETHolon
+//    {
 
-    }
-}
+//    }
+//}

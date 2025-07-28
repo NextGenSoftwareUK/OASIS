@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class OAPP : STARNETHolon, IOAPP
+    public class OAPP : OAPPBase, IOAPP
     {
         public OAPP() : base("OAPPDNAJSON")
         {
