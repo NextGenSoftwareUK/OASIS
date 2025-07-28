@@ -66,7 +66,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public override async Task<OASISResult<OAPP>> CreateAsync(object createParams, OAPP newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, ProviderType providerType = ProviderType.Default)
         {
-            //return base.CreateAsync(createParams, newHolon, providerType);
             OASISResult<CoronalEjection> result = await LightWizardAsync(createParams, providerType);
 
             return new OASISResult<OAPP>
@@ -698,6 +697,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             Console.WriteLine("");
                             lightResult = await CreateOAPPComponentsOnSTARNETAsync(lightResult, oappPath, errorMessage, providerType);
+
+
                         }
                         else
                             CLIEngine.ShowErrorMessage($"Error Occured Creating The OAPP. Reason: {createOAPPResult.Message}");
@@ -709,6 +710,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             return lightResult;
         }
+
+        
 
         public override async Task<OASISResult<OAPP>> PublishAsync(string sourcePath = "", bool edit = false, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, ProviderType providerType = ProviderType.Default)
         {

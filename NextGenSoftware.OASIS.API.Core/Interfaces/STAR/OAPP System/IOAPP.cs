@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
-    public interface IOAPP : ISTARNETHolon
+    public interface IOAPP : IOAPPBase
     {
         Guid CelestialBodyId { get; set; }
         string CelestialBodyMetaDataDescription { get; set; }
