@@ -94,7 +94,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     OAPPDNA.PublishedProviderType = binaryProviderType;
                 }
 
-                //NOTE: 
                 if (generateSelfContainedBinary)
                 {
                     OAPPDNA.MetaData["SelfContainedPublishedPath"] = Path.Combine(fullPathToPublishTo, publishedSelfContainedFileName);
