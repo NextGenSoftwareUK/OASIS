@@ -724,27 +724,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             bool generateOAPPSource = false;
             bool uploadOAPPSource = false;
             bool generateOAPP = true;
-            //bool uploadOAPP = true;
             bool uploadOAPPToCloud = false;
             bool generateOAPPSelfContained = false;
-            //bool uploadOAPPSelfContained = false;
             bool uploadOAPPSelfContainedToCloud = false;
             bool generateOAPPSelfContainedFull = false;
-            //bool uploadOAPPSelfContainedFull = false;
             bool uploadOAPPSelfContainedFullToCloud = false;
             bool makeOAPPSourcePublic = false;
-            //ProviderType OAPPBinaryProviderType = providerType; //ProviderType.IPFSOASIS;
-            //ProviderType OAPPSelfContainedBinaryProviderType = ProviderType.IPFSOASIS; //ProviderType.IPFSOASIS;
-            //ProviderType OAPPSelfContainedFullBinaryProviderType = ProviderType.IPFSOASIS; //ProviderType.IPFSOASIS;
             ProviderType OAPPBinaryProviderType = ProviderType.None; //ProviderType.IPFSOASIS;
             ProviderType OAPPSelfContainedBinaryProviderType = ProviderType.None; //ProviderType.IPFSOASIS;
             ProviderType OAPPSelfContainedFullBinaryProviderType = ProviderType.None; //ProviderType.IPFSOASIS;
-            //string launchTarget = "";
-            //string publishPath = "";
             bool registerOnSTARNET = false;
             string STARNETInfo = "If you select 'Y' to this question then your OAPP will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .oapp install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.";
-            //string launchTargetQuestion = "";
-            // bool publishDotNot = false;
+            bool embedLibs = false;
+            bool embedRuntimes = false;
+            bool embedTemplates = false;
+
 
             CLIEngine.ShowDivider();
             CLIEngine.ShowMessage("Welcome to the OAPP Publish Wizard!");
@@ -944,7 +938,36 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (prePubResult != null && !string.IsNullOrEmpty(prePubResult.Result) && !prePubResult.IsError)
                 {
-                    result = await ((OAPPManager)STARNETManager).PublishOAPPAsync(STAR.BeamedInAvatar.Id, sourcePath, beginPublishResult.Result.LaunchTarget, prePubResult.Result, edit, registerOnSTARNET, dotNetPublish, generateOAPPSource, uploadOAPPSource, makeOAPPSourcePublic, generateOAPP, generateOAPPSelfContained, generateOAPPSelfContainedFull, uploadOAPPToCloud, uploadOAPPSelfContainedToCloud, uploadOAPPSelfContainedFullToCloud, providerType, OAPPBinaryProviderType, OAPPSelfContainedBinaryProviderType, OAPPSelfContainedFullBinaryProviderType);
+
+                    //if (!CLIEngine.GetConfirmation("Do you wish to embed the libraries, runtimes & sub-templates in the template? (It is not recommended because will increase the storage space/cost & upload/download time). If you choose 'N' then they will be automatically downloaded and installed when someone installs your template. Only choose 'Y' if you want them embedded in case there is an issue downloading/installing them seperatley later (unlikely) or if you want the template to be fully self-contained with no external dependencies (useful if you wish to install it offline from the .oapptemplate file)."))
+                    //{
+                    //    if (!CLIEngine.GetConfirmation("Do you wish to embed the runtimes?"))
+                    //    {
+                    //        if (Directory.Exists(Path.Combine(sourcePath, "Runtimes")))
+                    //            Directory.Delete(Path.Combine(sourcePath, "Runtimes"), true);
+                    //    }
+
+                    //    if (!CLIEngine.GetConfirmation("Do you wish to embed the libraries?"))
+                    //    {
+                    //        if (Directory.Exists(Path.Combine(sourcePath, "Libs")))
+                    //            Directory.Delete(Path.Combine(sourcePath, "Libs"), true);
+                    //    }
+
+                    //    if (!CLIEngine.GetConfirmation("Do you wish to embed the sub-templates?"))
+                    //    {
+                    //        if (Directory.Exists(Path.Combine(sourcePath, "Templates")))
+                    //            Directory.Delete(Path.Combine(sourcePath, "Templates"), true);
+                    //    }
+                    //}
+
+                    if (CLIEngine.GetConfirmation("Do you wish to embed the libraries, runtimes & sub-templates in the oapp (say 'Y' if you only want to enbed one of these)? It is not recommended because will increase the storage space/cost & upload/download time. If you choose 'N' then they will be automatically downloaded and installed when someone installs your OAPP. Only choose 'Y' if you want them embedded in case there is an issue downloading/installing them seperatley later (unlikely) or if you want the OAPP to be fully self-contained with no external dependencies (useful if you wish to install it offline from the .oapp file)."))
+                    {
+                        embedTemplates = CLIEngine.GetConfirmation("Do you wish to embed the sub-templates?");
+                        embedRuntimes = CLIEngine.GetConfirmation("Do you wish to embed the runtimes?");
+                        embedLibs = CLIEngine.GetConfirmation("Do you wish to embed the libraries?");
+                    }
+
+                    result = await ((OAPPManager)STARNETManager).PublishOAPPAsync(STAR.BeamedInAvatar.Id, sourcePath, beginPublishResult.Result.LaunchTarget, prePubResult.Result, edit, registerOnSTARNET, dotNetPublish, generateOAPPSource, uploadOAPPSource, makeOAPPSourcePublic, generateOAPP, generateOAPPSelfContained, generateOAPPSelfContainedFull, uploadOAPPToCloud, uploadOAPPSelfContainedToCloud, uploadOAPPSelfContainedFullToCloud, providerType, OAPPBinaryProviderType, OAPPSelfContainedBinaryProviderType, OAPPSelfContainedFullBinaryProviderType, embedRuntimes, embedLibs, embedTemplates);
                     OASISResult<OAPP> publishResult = new OASISResult<OAPP>((OAPP)result.Result);
 
                     //if (publishResult != null && publishResult.Result != null && !publishResult.IsError)

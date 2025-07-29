@@ -448,10 +448,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<T1> publishResult = new OASISResult<T1>();
             OASISResult<string> prePubResult = await PreFininaliazePublishingAsync(simpleWizard, sourcePath, launchTarget, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+            bool embedLibs = false;
+            bool embedRuntimes = false;
+            bool embedTemplates = false;
 
             if (prePubResult != null && !string.IsNullOrEmpty(prePubResult.Result) && !prePubResult.IsError)
             {
-                publishResult = await STARNETManager.PublishAsync(STAR.BeamedInAvatar.Id, sourcePath, launchTarget, prePubResult.Result, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+                if (STARNETManager.STARNETHolonType == HolonType.OAPPTemplate && CLIEngine.GetConfirmation("Do you wish to embed the libraries, runtimes & sub-templates in the template (say 'Y' if you only want to enbed one of these)? It is not recommended because will increase the storage space/cost & upload/download time. If you choose 'N' then they will be automatically downloaded and installed when someone installs your template. Only choose 'Y' if you want them embedded in case there is an issue downloading/installing them seperatley later (unlikely) or if you want the template to be fully self-contained with no external dependencies (useful if you wish to install it offline from the .oapptemplate file)."))
+                {
+                    embedTemplates = CLIEngine.GetConfirmation("Do you wish to embed the sub-templates?");
+                    embedRuntimes = CLIEngine.GetConfirmation("Do you wish to embed the runtimes?");
+                    embedLibs = CLIEngine.GetConfirmation("Do you wish to embed the libraries?");
+                }
+
+                publishResult = await STARNETManager.PublishAsync(STAR.BeamedInAvatar.Id, sourcePath, launchTarget, prePubResult.Result, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType, embedRuntimes, embedLibs, embedTemplates);
                 await PostFininaliazePublishingAsync(publishResult, sourcePath, providerType);
             }
             else

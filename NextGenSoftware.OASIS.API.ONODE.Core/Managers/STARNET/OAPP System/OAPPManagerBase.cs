@@ -838,6 +838,403 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
 
+        public async Task<OASISResult<T1>> AddOAPPTemplateAsync(Guid avatarId, Guid parentId, int parentVersion, Guid templateId, int subTemplateVersion, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            string errorMessage = "Error occured in OAPPManagerBase.AddOAPPTemplateAsync. Reason:";
+
+            try
+            {
+                OASISResult<T1> parentResult = await LoadAsync(avatarId, parentId, parentVersion, providerType: providerType);
+
+                if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
+                {
+                    OASISResult<OAPPTemplate> templateResult = await Data.LoadHolonByMetaDataAsync<OAPPTemplate>(new Dictionary<string, string>()
+                    {
+                        { "OAPPTemplateId", templateId.ToString() },
+                        { "VersionSequence", subTemplateVersion.ToString() }
+
+                    }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
+
+                    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
+                    {
+                        parentResult.Result.OAPPTemplates.Add((IOAPPTemplate)templateResult.Result);
+                        parentResult.Result.OAPPTemplatesMetaData.Add(new STARNETHolonMetaData()
+                        {
+                            HolonId = templateResult.Result.Id,
+                            STARNETHolonId = templateResult.Result.STARNETDNA.Id,
+                            Name = templateResult.Result.Name,
+                            VersionSequence = templateResult.Result.STARNETDNA.VersionSequence,
+                            Version = templateResult.Result.STARNETDNA.Version
+                        });
+
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplates"] = parentResult.Result.OAPPTemplates;
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parentResult.Result.OAPPTemplatesMetaData;
+
+                        result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaDataAsync. Reason: {templateResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the {STARNETHolonUIName}  with OAPPManagerBase.LoadHolonByMetaDataAsync. Reason: {parentResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<T1> AddOAPPTemplate(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int subTemplateVersionSequnce, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            string errorMessage = "Error occured in OAPPManagerBase.AddOAPPTemplateAsync. Reason:";
+
+            try
+            {
+                OASISResult<T1> parentResult = Load(avatarId, parentId, parentVersionSequence, providerType: providerType);
+
+                if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
+                {
+                    OASISResult<OAPPTemplate> templateResult = Data.LoadHolonByMetaData<OAPPTemplate>(new Dictionary<string, string>()
+                    {
+                        { "OAPPTemplateId", templateId.ToString() },
+                        { "VersionSequence", subTemplateVersionSequnce.ToString() }
+
+                    }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
+
+                    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
+                    {
+                        parentResult.Result.OAPPTemplates.Add((IOAPPTemplate)templateResult.Result);
+                        parentResult.Result.OAPPTemplatesMetaData.Add((ISTARNETHolonMetaData)new STARNETHolonMetaData()
+                        {
+                            HolonId = templateResult.Result.Id,
+                            STARNETHolonId = templateResult.Result.STARNETDNA.Id,
+                            Name = templateResult.Result.Name,
+                            VersionSequence = templateResult.Result.STARNETDNA.VersionSequence,
+                            Version = templateResult.Result.STARNETDNA.Version
+                        });
+
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplates"] = parentResult.Result.OAPPTemplates;
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parentResult.Result.OAPPTemplatesMetaData;
+
+                        result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaData. Reason: {templateResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the {STARNETHolonUIName}  with OAPPManagerBase.LoadHolonByMetaData. Reason: {parentResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<T1>> AddOAPPTemplateAsync(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string subTemplateVersion, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            string errorMessage = "Error occured in OAPPManagerBase.AddOAPPTemplateAsync. Reason:";
+
+            try
+            {
+                OASISResult<T1> parentResult = await Data.LoadHolonByMetaDataAsync<T1>(new Dictionary<string, string>()
+                {
+                    { STARNETHolonIdName, parentId.ToString() },
+                    { "Version", parentVersion }
+
+                }, MetaKeyValuePairMatchMode.All, STARNETHolonType, providerType: providerType);
+
+                if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
+                {
+                    OASISResult<OAPPTemplate> templateResult = await Data.LoadHolonByMetaDataAsync<OAPPTemplate>(new Dictionary<string, string>()
+                    {
+                        { "OAPPTemplateId", templateId.ToString() },
+                        { "Version", subTemplateVersion.ToString() }
+
+                    }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
+
+                    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
+                    {
+                        parentResult.Result.OAPPTemplates.Add((IOAPPTemplate)templateResult.Result);
+                        parentResult.Result.OAPPTemplatesMetaData.Add((ISTARNETHolonMetaData)new STARNETHolonMetaData()
+                        {
+                            HolonId = templateResult.Result.Id,
+                            STARNETHolonId = templateResult.Result.STARNETDNA.Id,
+                            Name = templateResult.Result.Name,
+                            VersionSequence = templateResult.Result.STARNETDNA.VersionSequence,
+                            Version = templateResult.Result.STARNETDNA.Version
+                        });
+
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplates"] = parentResult.Result.OAPPTemplates;
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parentResult.Result.OAPPTemplatesMetaData;
+
+                        result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaDataAsync. Reason: {templateResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the {STARNETHolonUIName}  with OAPPManagerBase.LoadHolonByMetaDataAsync. Reason: {parentResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<T1> AddOAPPTemplate(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string subTemplateVersion, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            string errorMessage = "Error occured in OAPPManagerBase.AddOAPPTemplateAsync. Reason:";
+
+            try
+            {
+                OASISResult<T1> parentResult = Data.LoadHolonByMetaData<T1>(new Dictionary<string, string>()
+                {
+                    { STARNETHolonIdName, parentId.ToString() },
+                    { "Version", parentVersion }
+
+                }, MetaKeyValuePairMatchMode.All, STARNETHolonType, providerType: providerType);
+
+                if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
+                {
+                    OASISResult<OAPPTemplate> templateResult = Data.LoadHolonByMetaData<OAPPTemplate>(new Dictionary<string, string>()
+                    {
+                        { "OAPPTemplateId", templateId.ToString() },
+                        { "Version", subTemplateVersion }
+
+                    }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
+
+                    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
+                    {
+                        parentResult.Result.OAPPTemplates.Add((IOAPPTemplate)templateResult.Result);
+                        parentResult.Result.OAPPTemplatesMetaData.Add((ISTARNETHolonMetaData)new STARNETHolonMetaData()
+                        {
+                            HolonId = templateResult.Result.Id,
+                            STARNETHolonId = templateResult.Result.STARNETDNA.Id,
+                            Name = templateResult.Result.Name,
+                            VersionSequence = templateResult.Result.STARNETDNA.VersionSequence,
+                            Version = templateResult.Result.STARNETDNA.Version
+                        });
+
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplates"] = parentResult.Result.OAPPTemplates;
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parentResult.Result.OAPPTemplatesMetaData;
+
+                        result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaData. Reason: {templateResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the {STARNETHolonUIName}  with OAPPManagerBase.LoadHolonByMetaData. Reason: {parentResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+
+        public async Task<OASISResult<T1>> RemoveOAPPTemplateAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int subTemplateVersionSequence, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            string errorMessage = "Error occured in OAPPManagerBase.RemoveOAPPTemplateAsync. Reason:";
+
+            try
+            {
+                OASISResult<T1> parentResult = await LoadAsync(avatarId, parentId, parentVersionSequence, providerType: providerType);
+
+                if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
+                {
+                    OASISResult<OAPPTemplate> templateResult = await Data.LoadHolonByMetaDataAsync<OAPPTemplate>(new Dictionary<string, string>()
+                    {
+                        { "OAPPTemplateId", templateId.ToString() },
+                        { "VersionSequence", subTemplateVersionSequence.ToString() }
+
+                    }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
+
+                    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
+                    {
+                        parentResult.Result.OAPPTemplates.Remove((IOAPPTemplate)templateResult.Result);
+                        ISTARNETHolonMetaData metaData = parentResult.Result.OAPPTemplatesMetaData.FirstOrDefault(x => x.HolonId == templateResult.Result.Id);
+
+                        if (metaData != null)
+                            parentResult.Result.OAPPTemplatesMetaData.Remove(metaData);
+
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplates"] = parentResult.Result.OAPPTemplates;
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parentResult.Result.OAPPTemplatesMetaData;
+
+                        result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaDataAsync. Reason: {templateResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the {STARNETHolonUIName}  with OAPPManagerBase.LoadHolonByMetaDataAsync. Reason: {parentResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<T1> RemoveOAPPTemplate(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int subTemplateVersionSequnce, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            string errorMessage = "Error occured in OAPPManagerBase.RemoveOAPPTemplateAsync. Reason:";
+
+            try
+            {
+                OASISResult<T1> parentResult = Load(avatarId, parentId, parentVersionSequence, providerType: providerType);
+
+                if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
+                {
+                    OASISResult<OAPPTemplate> templateResult = Data.LoadHolonByMetaData<OAPPTemplate>(new Dictionary<string, string>()
+                    {
+                        { "OAPPTemplateId", templateId.ToString() },
+                        { "VersionSequence", subTemplateVersionSequnce.ToString() }
+
+                    }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
+
+                    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
+                    {
+                        parentResult.Result.OAPPTemplates.Remove((IOAPPTemplate)templateResult.Result);
+                        ISTARNETHolonMetaData metaData = parentResult.Result.OAPPTemplatesMetaData.FirstOrDefault(x => x.HolonId == templateResult.Result.Id);
+
+                        if (metaData != null)
+                            parentResult.Result.OAPPTemplatesMetaData.Remove(metaData);
+
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplates"] = parentResult.Result.OAPPTemplates;
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parentResult.Result.OAPPTemplatesMetaData;
+                        result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaData. Reason: {templateResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the {STARNETHolonUIName}  with OAPPManagerBase.LoadHolonByMetaData. Reason: {parentResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<T1>> RemoveOAPPTemplateAsync(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string subTemplateVersion, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            string errorMessage = "Error occured in OAPPManagerBase.RemoveOAPPTemplateAsync. Reason:";
+
+            try
+            {
+                OASISResult<T1> parentResult = await Data.LoadHolonByMetaDataAsync<T1>(new Dictionary<string, string>()
+                {
+                    { STARNETHolonIdName, parentId.ToString() },
+                    { "Version", parentVersion }
+
+                }, MetaKeyValuePairMatchMode.All, STARNETHolonType, providerType: providerType);
+
+                if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
+                {
+                    OASISResult<OAPPTemplate> templateResult = await Data.LoadHolonByMetaDataAsync<OAPPTemplate>(new Dictionary<string, string>()
+                    {
+                        { "OAPPTemplateId", templateId.ToString() },
+                        { "Version", subTemplateVersion }
+
+                    }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
+
+                    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
+                    {
+                        parentResult.Result.OAPPTemplates.Remove((IOAPPTemplate)templateResult.Result);
+                        ISTARNETHolonMetaData metaData = parentResult.Result.OAPPTemplatesMetaData.FirstOrDefault(x => x.HolonId == templateResult.Result.Id);
+
+                        if (metaData != null)
+                            parentResult.Result.OAPPTemplatesMetaData.Remove(metaData);
+
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplates"] = parentResult.Result.OAPPTemplates;
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parentResult.Result.OAPPTemplatesMetaData;
+
+                        result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaDataAsync. Reason: {templateResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the {STARNETHolonUIName}  with OAPPManagerBase.LoadHolonByMetaDataAsync. Reason: {parentResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+        public OASISResult<T1> RemoveOAPPTemplate(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string subTemplateVersion, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            string errorMessage = "Error occured in OAPPManagerBase.RemoveOAPPTemplateAsync. Reason:";
+
+            try
+            {
+                OASISResult<T1> parentResult = Data.LoadHolonByMetaData<T1>(new Dictionary<string, string>()
+                {
+                    { STARNETHolonIdName, templateId.ToString() },
+                    { "Version", parentVersion }
+
+                }, MetaKeyValuePairMatchMode.All, STARNETHolonType, providerType: providerType);
+
+                if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
+                {
+                    OASISResult<OAPPTemplate> templateResult = Data.LoadHolonByMetaData<OAPPTemplate>(new Dictionary<string, string>()
+                    {
+                        { "OAPPTemplateId", templateId.ToString() },
+                        { "Version", subTemplateVersion.ToString() }
+
+                    }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
+
+                    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
+                    {
+                        parentResult.Result.OAPPTemplates.Remove((IOAPPTemplate)templateResult.Result);
+                        ISTARNETHolonMetaData metaData = parentResult.Result.OAPPTemplatesMetaData.FirstOrDefault(x => x.HolonId == templateResult.Result.Id);
+
+                        if (metaData != null)
+                            parentResult.Result.OAPPTemplatesMetaData.Remove(metaData);
+
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplates"] = parentResult.Result.OAPPTemplates;
+                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parentResult.Result.OAPPTemplatesMetaData;
+
+                        result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaData. Reason: {templateResult.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the {STARNETHolonUIName} with OAPPManagerBase.LoadHolonByMetaData. Reason: {parentResult.Message}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured. Reason: {ex}");
+            }
+
+            return result;
+        }
+
+
 
 
 
