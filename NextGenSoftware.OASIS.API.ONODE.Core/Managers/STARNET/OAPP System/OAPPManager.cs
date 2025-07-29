@@ -49,13 +49,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "OAPPDNAJSON")
         { }
 
-        public async Task<OASISResult<IOAPP>> PublishOAPPAsync(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool dotnetPublish = true, bool generateSource = true, bool uploadSourceToSTARNET = true, bool makeSourcePublic = false, bool generateBinary = true, bool generateSelfContainedBinary = false, bool generateSelfContainedFullBinary = false, bool uploadToCloud = false, bool uploadSelfContainedToCloud = false, bool uploadSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS, ProviderType selfContainedBinaryProviderType = ProviderType.None, ProviderType selfContainedFullBinaryProviderType = ProviderType.None)
+        public async Task<OASISResult<IOAPP>> PublishOAPPAsync(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool dotnetPublish = true, bool generateSource = true, bool uploadSourceToSTARNET = true, bool makeSourcePublic = false, bool generateBinary = true, bool generateSelfContainedBinary = false, bool generateSelfContainedFullBinary = false, bool uploadToCloud = false, bool uploadSelfContainedToCloud = false, bool uploadSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS, ProviderType selfContainedBinaryProviderType = ProviderType.None, ProviderType selfContainedFullBinaryProviderType = ProviderType.None, bool embedRuntimes = false, bool embedLibs = false, bool embedTemplates = false)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
             IOAPPDNA OAPPDNA = null;
             //ISTARNETDNA OAPPDNA = null;
             IOAPP OAPP = null;
             string originalFullPathToSource = fullPathToSource;
+            string errorMessage = "Error occured in OAPPManager.PublishAsync. Reason:";
 
             OASISResult<OAPP> validateResult = await BeginPublishAsync(avatarId, fullPathToSource, launchTarget, fullPathToPublishTo, edit, providerType);
 
@@ -93,27 +94,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     OAPPDNA.PublishedProviderType = binaryProviderType;
                 }
 
-                //if (generateSelfContainedBinary)
-                //{
-                //    OAPPDNA.SelfContainedPublishedPath = Path.Combine(fullPathToPublishTo, publishedSelfContainedFileName);
-                //    OAPPDNA.SelfContainedPublishedToCloud = registerOnSTARNET && uploadSelfContainedToCloud;
-                //    OAPPDNA.SelfContainedPublishedProviderType = selfContainedBinaryProviderType;
-                //}
-
-                //if (generateSelfContainedFullBinary)
-                //{
-                //    OAPPDNA.SelfContainedFullPublishedPath = Path.Combine(fullPathToPublishTo, publishedSelfContainedFullFileName);
-                //    OAPPDNA.SelfContainedFullPublishedToCloud = registerOnSTARNET && uploadSelfContainedFullToCloud;
-                //    OAPPDNA.SelfContainedFullPublishedProviderType = selfContainedFullBinaryProviderType;
-                //}
-
-                //if (generateSource)
-                //{
-                //    OAPPDNA.SourcePublishedPath = Path.Combine(fullPathToPublishTo, publishedSourceFileName);
-                //    OAPPDNA.SourcePublishedOnSTARNET = registerOnSTARNET && uploadSourceToSTARNET;
-                //    OAPPDNA.SourcePublicOnSTARNET = makeSourcePublic;
-                //}
-
+                //NOTE: 
                 if (generateSelfContainedBinary)
                 {
                     OAPPDNA.MetaData["SelfContainedPublishedPath"] = Path.Combine(fullPathToPublishTo, publishedSelfContainedFileName);
@@ -158,57 +139,132 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (generateBinary)
                 {
-                    string publishedPath = Path.Combine(fullPathToPublishTo, "No Runtimes");
-                    
-                    if (Directory.Exists(publishedPath))
-                        Directory.Delete(publishedPath, true);
-
-                    Directory.CreateDirectory(publishedPath);
-                    DirectoryHelper.CopyFilesRecursively(fullPathToSource, publishedPath);
-                    Directory.Delete(Path.Combine(publishedPath, "Runtimes"), true);
-                    OASISResult<bool> compressedResult = GenerateCompressedFile(publishedPath, OAPPDNA.PublishedPath);
-
-                    //TODO: Put back in once finished testing! ;-)
-                    Directory.Delete(publishedPath, true);
-
-                    if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
+                    try
                     {
-                        result.Message = compressedResult.Message;
-                        result.IsError = true;
+                        string publishedPath = Path.Combine(fullPathToPublishTo, "No Runtimes");
+
+                        if (Directory.Exists(publishedPath))
+                            Directory.Delete(publishedPath, true);
+
+                        Directory.CreateDirectory(publishedPath);
+                        DirectoryHelper.CopyFilesRecursively(fullPathToSource, publishedPath);
+                        Directory.Delete(Path.Combine(publishedPath, "Runtimes"), true);
+
+                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Templates")))
+                            Directory.Delete(Path.Combine(publishedPath, "Templates"), true);
+
+                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Libs")))
+                            Directory.Delete(Path.Combine(publishedPath, "Libs"), true);
+
+                        OASISResult<bool> compressedResult = GenerateCompressedFile(publishedPath, OAPPDNA.PublishedPath);
+
+                        if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
+                        {
+                            result.Message = compressedResult.Message;
+                            result.IsError = true;
+                            return result;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to compress the {STARNETHolonUIName} files. Reason: {e}");
                         return result;
+                    }
+                    finally
+                    {
+                        //TODO: Put back in once finished testing! ;-)
+                        //Directory.Delete(publishedPath, true);
                     }
                 }
 
                 if (generateSelfContainedBinary)
                 {
-                    if (!Directory.Exists(Path.Combine(fullPathToSource, "Runtimes")))
-                        DirectoryHelper.CopyFilesRecursively(Path.Combine(originalFullPathToSource, "Runtimes"), fullPathToSource);
-
-                    OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPPDNA.SelfContainedPublishedPath);
-                    //OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPP.SelfContainedPublishedPath.ToString());
-
-                    if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
+                    try
                     {
-                        result.Message = compressedResult.Message;
-                        result.IsError = true;
+                        string publishedPath = Path.Combine(fullPathToPublishTo, "Self Contained");
+
+                        if (Directory.Exists(publishedPath))
+                            Directory.Delete(publishedPath, true);
+
+                        Directory.CreateDirectory(publishedPath);
+                        DirectoryHelper.CopyFilesRecursively(fullPathToSource, publishedPath);
+
+                        if (!Directory.Exists(Path.Combine(publishedPath, "Runtimes")))
+                            DirectoryHelper.CopyFilesRecursively(Path.Combine(originalFullPathToSource, "Runtimes"), publishedPath);
+
+                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Templates")))
+                            Directory.Delete(Path.Combine(publishedPath, "Templates"), true);
+
+                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Libs")))
+                            Directory.Delete(Path.Combine(publishedPath, "Libs"), true);
+
+                        OASISResult<bool> compressedResult = GenerateCompressedFile(publishedPath, OAPPDNA.SelfContainedPublishedPath);
+
+                        if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
+                        {
+                            result.Message = compressedResult.Message;
+                            result.IsError = true;
+                            return result;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to compress the {STARNETHolonUIName} files. Reason: {e}");
                         return result;
+                    }
+                    finally
+                    {
+                        //TODO: Put back in once finished testing! ;-)
+                        //Directory.Delete(publishedPath, true);
                     }
                 }
 
                 if (generateSelfContainedFullBinary)
                 {
-                    if (!Directory.Exists(Path.Combine(fullPathToSource, "Runtimes")))
-                        DirectoryHelper.CopyFilesRecursively(Path.Combine(originalFullPathToSource, "Runtimes"), fullPathToSource);
-
-                    OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPPDNA.SelfContainedFullPublishedPath);
-                    //OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPPDNA.MetaData["SelfContainedFullPublishedPath"].ToString());
-                    //OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPP.SelfContainedFullPublishedPath);
-
-                    if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
+                    try
                     {
-                        result.Message = compressedResult.Message;
-                        result.IsError = true;
+                        //if (!Directory.Exists(Path.Combine(fullPathToSource, "Runtimes")))
+                        //    DirectoryHelper.CopyFilesRecursively(Path.Combine(originalFullPathToSource, "Runtimes"), fullPathToSource);
+
+                        //OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPPDNA.SelfContainedFullPublishedPath);
+                        ////OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPPDNA.MetaData["SelfContainedFullPublishedPath"].ToString());
+                        ////OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, OAPP.SelfContainedFullPublishedPath);
+
+                        string publishedPath = Path.Combine(fullPathToPublishTo, "Self Contained Full");
+
+                        if (Directory.Exists(publishedPath))
+                            Directory.Delete(publishedPath, true);
+
+                        Directory.CreateDirectory(publishedPath);
+                        DirectoryHelper.CopyFilesRecursively(fullPathToSource, publishedPath);
+
+                        if (!Directory.Exists(Path.Combine(publishedPath, "Runtimes")))
+                            DirectoryHelper.CopyFilesRecursively(Path.Combine(originalFullPathToSource, "Runtimes"), publishedPath);
+
+                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Templates")))
+                            Directory.Delete(Path.Combine(publishedPath, "Templates"), true);
+
+                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Libs")))
+                            Directory.Delete(Path.Combine(publishedPath, "Libs"), true);
+
+                        OASISResult<bool> compressedResult = GenerateCompressedFile(publishedPath, OAPPDNA.SelfContainedPublishedPath);
+
+                        if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
+                        {
+                            result.Message = compressedResult.Message;
+                            result.IsError = true;
+                            return result;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured attempting to compress the {STARNETHolonUIName} files. Reason: {e}");
                         return result;
+                    }
+                    finally
+                    {
+                        //TODO: Put back in once finished testing! ;-)
+                        //Directory.Delete(publishedPath, true);
                     }
                 }
 
@@ -311,7 +367,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
 
-        public OASISResult<IOAPP> PublishOAPP(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool dotnetPublish = true, bool generateSource = true, bool uploadSourceToSTARNET = true, bool makeSourcePublic = false, bool generateBinary = true, bool generateSelfContainedBinary = false, bool generateSelfContainedFullBinary = false, bool uploadToCloud = false, bool uploadSelfContainedToCloud = false, bool uploadSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS, ProviderType selfContainedBinaryProviderType = ProviderType.None, ProviderType selfContainedFullBinaryProviderType = ProviderType.None)
+        public OASISResult<IOAPP> PublishOAPP(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool dotnetPublish = true, bool generateSource = true, bool uploadSourceToSTARNET = true, bool makeSourcePublic = false, bool generateBinary = true, bool generateSelfContainedBinary = false, bool generateSelfContainedFullBinary = false, bool uploadToCloud = false, bool uploadSelfContainedToCloud = false, bool uploadSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS, ProviderType selfContainedBinaryProviderType = ProviderType.None, ProviderType selfContainedFullBinaryProviderType = ProviderType.None, bool embedRuntimes = false, bool embedLibs = false, bool embedTemplates = false)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
             //IOAPPDNA OAPPDNA = null;
