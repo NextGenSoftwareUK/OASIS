@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class STARZomeManager : STARNETManagerBase<STARZome, DownloadedZome, InstalledZome, ZomeDNA>, ISTARZomeManager
+    public class STARZomeManager : STARNETManagerBase<STARZome, DownloadedZome, InstalledZome, ZomeDNA>//, ISTARZomeManager
     {
         public STARZomeManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

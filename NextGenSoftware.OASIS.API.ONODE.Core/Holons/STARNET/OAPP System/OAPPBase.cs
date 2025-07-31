@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public IList<IOAPPTemplate> OAPPTemplates { get; set; } = new List<IOAPPTemplate>();
 
         [CustomOASISProperty]
-        public IList<ISTARNETHolonMetaData> OAPPTemplatesMetaData { get; set; } = new List<IOAPPTemplate>();
+        public IList<ISTARNETHolonMetaData> OAPPTemplatesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
 
 
         //[CustomOASISProperty]

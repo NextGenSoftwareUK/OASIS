@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (installedRuntime != null && installedRuntime.Result != null && !installedRuntime.IsError)
                     {
                         CLIEngine.ShowWorkingMessage($"Installing Runtime Into {holonTypeToAddTo}...");
-                        OASISResult<IOAPPTemplate> addRuntimeResult = await ((OAPPManagerBase)STARNETManager).AddRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedRuntime.Result.STARNETDNA.Id, installedRuntime.Result.STARNETDNA.Version, providerType);
+                        OASISResult<T1> addRuntimeResult = await ((IOAPPManagerBase<T1, T2, T3, T4>)STARNETManager).AddRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedRuntime.Result.STARNETDNA.Id, installedRuntime.Result.STARNETDNA.Version, providerType);
 
                         if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
                         {
@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (installedLib != null && installedLib.Result != null && !installedLib.IsError)
                     {
                         CLIEngine.ShowWorkingMessage($"Installing Library Into {holonTypeToAddTo}...");
-                        OASISResult<IOAPPTemplate> addLibResult = await ((OAPPManagerBase)STARNETManager).AddLibraryAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedLib.Result.STARNETDNA.Id, installedLib.Result.STARNETDNA.Version, providerType);
+                        OASISResult<T1> addLibResult = await ((IOAPPManagerBase<T1, T2, T3, T4>)STARNETManager).AddLibraryAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedLib.Result.STARNETDNA.Id, installedLib.Result.STARNETDNA.Version, providerType);
 
                         if (addLibResult != null && addLibResult.Result != null && !addLibResult.IsError)
                         {
@@ -84,7 +84,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (installedTemplate != null && installedTemplate.Result != null && !installedTemplate.IsError)
                     {
                         CLIEngine.ShowWorkingMessage($"Installing Library Into {holonTypeToAddTo}...");
-                        OASISResult<IOAPPTemplate> addTemplateResult = await ((OAPPManagerBase)STARNETManager).AddLibraryAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedTemplate.Result.STARNETDNA.Id, installedTemplate.Result.STARNETDNA.Version, providerType);
+                        OASISResult<T1> addTemplateResult = await ((IOAPPManagerBase<T1, T2, T3, T4>)STARNETManager).AddLibraryAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedTemplate.Result.STARNETDNA.Id, installedTemplate.Result.STARNETDNA.Version, providerType);
 
                         if (addTemplateResult != null && addTemplateResult.Result != null && !addTemplateResult.IsError)
                         {
