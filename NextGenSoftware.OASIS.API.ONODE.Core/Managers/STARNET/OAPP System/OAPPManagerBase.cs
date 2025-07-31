@@ -15,7 +15,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects.STARNET;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public abstract class OAPPManagerBase<T1, T2, T3, T4> : STARNETManagerBase<T1, T2, T3, T4>
+    public abstract class OAPPManagerBase<T1, T2, T3, T4> : STARNETManagerBase<T1, T2, T3, T4>, IOAPPManagerBase<T1, T2, T3, T4> 
         where T1 : IOAPPBase, new()
         where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()
@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         parentResult.Result.STARNETDNA.MetaData["Runtimes"] = parentResult.Result.Runtimes;
                         //parentResult.Result.STARNETDNA.MetaData["RuntimeIds"] = parentResult.Result.RuntimeIds;
                         parentResult.Result.STARNETDNA.MetaData["RuntimesMetaData"] = parentResult.Result.RuntimesMetaData;
-                        
+
                         result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
                     }
                     else

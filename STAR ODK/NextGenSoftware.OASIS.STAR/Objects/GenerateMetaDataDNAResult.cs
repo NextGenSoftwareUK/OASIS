@@ -1,4 +1,5 @@
-﻿using NextGenSoftware.OASIS.STAR.Interfaces;
+﻿
+using NextGenSoftware.OASIS.STAR.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {

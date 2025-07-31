@@ -20,14 +20,12 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
-    public abstract class STARNETManagerBase<T1, T2, T3, T4> : COSMICManagerBase, ISTARNETManagerBase<T1, T2, T3, T4>
-        where T1 : ISTARNETHolon, new()
+    public abstract class STARNETManagerBase<T1, T2, T3, T4> : COSMICManagerBase, ISTARNETManagerBase<T1, T2, T3, T4> where T1 : ISTARNETHolon, new()
         where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()
         where T4 : ISTARNETDNA, new()
@@ -516,7 +514,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    return result;
         //}
 
-        public virtual async Task<OASISResult<T1>> LoadAsync(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default) 
+        public virtual async Task<OASISResult<T1>> LoadAsync(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<IEnumerable<T1>> loadResult = await Data.LoadHolonsByMetaDataAsync<T1>(STARNETHolonIdName, id.ToString(), STARNETHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
@@ -533,7 +531,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> Load(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default) 
+        public OASISResult<T1> Load(Guid avatarId, Guid id, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<IEnumerable<T1>> loadResult = Data.LoadHolonsByMetaData<T1>(STARNETHolonIdName, id.ToString(), STARNETHolonType, true, true, 0, true, false, 0, HolonType.All, 0, providerType);
@@ -550,7 +548,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual async Task<OASISResult<T1>> LoadForSourceOrInstalledFolderAsync(Guid avatarId, string sourceOrInstallPath, ProviderType providerType = ProviderType.Default) 
+        public virtual async Task<OASISResult<T1>> LoadForSourceOrInstalledFolderAsync(Guid avatarId, string sourceOrInstallPath, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             OASISResult<T4> readDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<T4>(sourceOrInstallPath);
@@ -558,7 +556,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             if (readDNAResult != null && readDNAResult.Result != null && !readDNAResult.IsError)
                 result = await LoadAsync(avatarId, readDNAResult.Result.Id, readDNAResult.Result.VersionSequence, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadAsync<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {sourcePath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadAsync<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {sourceOrInstallPath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
 
             return result;
         }
@@ -571,7 +569,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             if (readDNAResult != null && readDNAResult.Result != null && !readDNAResult.IsError)
                 result = Load(avatarId, readDNAResult.Result.Id, readDNAResult.Result.VersionSequence, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in Load<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {sourcePath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in Load<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {sourceOrInstallPath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
 
             return result;
         }
@@ -594,7 +592,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             if (readDNAResult != null && readDNAResult.Result != null && !readDNAResult.IsError)
                 result = await LoadAsync(avatarId, readDNAResult.Result.Id, readDNAResult.Result.VersionSequence, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadAsync<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {sourcePath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in LoadAsync<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {publishedFilePath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
 
             return result;
         }
@@ -607,7 +605,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             if (readDNAResult != null && readDNAResult.Result != null && !readDNAResult.IsError)
                 result = Load(avatarId, readDNAResult.Result.Id, readDNAResult.Result.VersionSequence, providerType);
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in Load<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {sourcePath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in Load<T> calling ReadDNAFromSourceOrInstallFolderAsync reading the STARNETDNA from the source path {publishedFilePath} for the {STARNETHolonUIName}. Reason: {readDNAResult.Message}");
 
             return result;
         }
@@ -887,13 +885,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         }
         #endregion
 
-        public virtual async Task<OASISResult<IEnumerable<T>>> LoadVersionsAsync<T>(Guid id, ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new()
+        public virtual async Task<OASISResult<IEnumerable<T1>>> LoadVersionsAsync(Guid id, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
+            OASISResult<IEnumerable<T1>> result = new OASISResult<IEnumerable<T1>>();
 
             //TODO: Currently we pass in 0 for version (which means the OASIS will return the latest version) but we need to be able to query for all versions (-1)
             //OASISResult<IEnumerable<T>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<T>("STARNETHolonId", STARNETHolonId.ToString(), HolonType.T, true, true, 0, true, false, 0, HolonType.All, -1, providerType);
-            OASISResult<IEnumerable<T>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<T>(new Dictionary<string, string>()
+            OASISResult<IEnumerable<T1>> loadHolonsResult = await Data.LoadHolonsByMetaDataAsync<T1>(new Dictionary<string, string>()
             {
                 { STARNETHolonIdName, id.ToString() },
                 { "Active", "1" }
@@ -1061,7 +1059,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             if (saveResult != null && !saveResult.IsError && saveResult.Result != null)
             {
-                OASISResult<IEnumerable<T1>> holonsResult = await LoadVersionsAsync<T1>(newSTARNETDNA.Id, providerType);
+                OASISResult<IEnumerable<T1>> holonsResult = await LoadVersionsAsync(newSTARNETDNA.Id, providerType);
 
                 if (holonsResult != null && holonsResult.Result != null && !holonsResult.IsError)
                 {
@@ -1297,6 +1295,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                             result.IsError = true;
                             return result;
                         }
+
+                        //TODO: Currently the filesize will NOT be in the compressed .STARNETHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARNETDNA inside it...
+                        if (!string.IsNullOrEmpty(STARNETDNA.PublishedPath) && File.Exists(STARNETDNA.PublishedPath))
+                            STARNETDNA.FileSize = new FileInfo(STARNETDNA.PublishedPath).Length;
                     }
                     catch (Exception e)
                     {
@@ -1308,10 +1310,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         //TODO: Put back in once finished testing! ;-)
                         //Directory.Delete(publishedPath, true);
                     }
-
-                    //TODO: Currently the filesize will NOT be in the compressed .STARNETHolon file because we dont know the size before we create it! ;-) We would need to compress it twice or edit the compressed file after to update the STARNETDNA inside it...
-                    if (!string.IsNullOrEmpty(STARNETDNA.PublishedPath) && File.Exists(STARNETDNA.PublishedPath))
-                    STARNETDNA.FileSize = new FileInfo(STARNETDNA.PublishedPath).Length;
+                }
 
                 WriteDNA(STARNETDNA, fullPathToSource);
                 validateResult.Result.STARNETDNA = STARNETDNA;
@@ -5046,7 +5045,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
         public virtual async Task<OASISResult<T1>> UpdateNumberOfVersionCountsAsync(Guid avatarId, OASISResult<T1> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IEnumerable<T1>> versionsResult = await LoadVersionsAsync<T1>(result.Result.STARNETDNA.Id, providerType);
+            OASISResult<IEnumerable<T1>> versionsResult = await LoadVersionsAsync(result.Result.STARNETDNA.Id, providerType);
 
             if (versionsResult != null && versionsResult.Result != null && !versionsResult.IsError)
             {
@@ -5123,7 +5122,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T2>> UpdateDownloadCountsAsync(Guid avatarId, T2 downloadedSTARNETHolon, T4 STARNETDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
             int totalDownloads = 0;
-            OASISResult<IEnumerable<T1>> holonVersionsResult = await LoadVersionsAsync<T1>(STARNETDNA.Id, providerType);
+            OASISResult<IEnumerable<T1>> holonVersionsResult = await LoadVersionsAsync(STARNETDNA.Id, providerType);
 
             if (holonVersionsResult != null && holonVersionsResult.Result != null && !holonVersionsResult.IsError)
             {
@@ -5221,7 +5220,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public virtual async Task<OASISResult<T3>> UpdateInstallCountsAsync(Guid avatarId, T3 installedSTARNETHolon, T4 STARNETDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
             int totalInstalls = 0;
-            OASISResult<IEnumerable<T1>> holonVersionsResult = await LoadVersionsAsync<T1>(STARNETDNA.Id, providerType);
+            OASISResult<IEnumerable<T1>> holonVersionsResult = await LoadVersionsAsync(STARNETDNA.Id, providerType);
 
             if (holonVersionsResult != null && holonVersionsResult.Result != null && !holonVersionsResult.IsError)
             {

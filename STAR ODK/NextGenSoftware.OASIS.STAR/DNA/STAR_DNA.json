@@ -76,9 +76,9 @@
 
     //Libs are used in OAPPs and can be installed on the user's machine or downloaded from the OASIS. Different libs can be combined with different OAPP Templates & Runtimes making unique combinations for OAPPs.
     "DefaultLibsSourcePath": "Libs\\Source",
-    "DefaultRuntimePublishedPath": "Libs\\Published",
-    "DefaultRuntimeDownloadedPath": "Libs\\Downloaded",
-    "DefaultRuntimeInstalledPath": "Libs\\Installed",
+    "DefaultLibsPublishedPath": "Libs\\Published",
+    "DefaultLibsDownloadedPath": "Libs\\Downloaded",
+    "DefaultLibsInstalledPath": "Libs\\Installed",
 
     //Chapters contain Quests and are used to break down big quests into seperate Chapters.
     "DefaultChaptersSourcePath": "Chapters\\Source",
