@@ -2,7 +2,7 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
 {
     //TODO: Need to add rest of Avatar fields here (do we need seperate object? Could just add this DataAnnotations to the main Avatar object in Core?
     public class UpdateRequest

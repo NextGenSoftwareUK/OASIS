@@ -3,7 +3,7 @@ using System.Net.Http;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 {
     public class OASISHttpResponseMessage<T> : HttpResponseMessage
     {
@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
         {
             get
             {
-                return OASISBootLoader.OASISBootLoader.OASISVersion;
+                return OASISBootLoader.OASISBootLoader.OASISRuntimeVersion;
                 //switch (OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISVersion.ToUpper())
                 //{
                 //    case "LIVE":

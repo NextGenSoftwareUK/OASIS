@@ -45,5 +45,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 
         //ObservableCollection<INode> Nodes { get; set; }
         IList<INode> Nodes { get; set; }
+       // IList<IHolonPropType> Nodes { get; set; }
     }
 }

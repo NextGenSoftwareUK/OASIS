@@ -11,12 +11,12 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Managers;
-using NextGenSoftware.OASIS.API.ONode.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public class OLandManager : OASISManager
     {
@@ -160,9 +160,9 @@ namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
             return response;
         }
 
-        public async Task<OASISResult<IHolon>> DeleteOlandAsync(Guid olandId)
+        public async Task<OASISResult<IHolon>> DeleteOlandAsync(Guid olandId, Guid avatarId)
         {
-            return await Data.DeleteHolonAsync(olandId);
+            return await Data.DeleteHolonAsync(olandId, avatarId);
         }
 
         public async Task<OASISResult<string>> SaveOlandAsync(IOLand request)

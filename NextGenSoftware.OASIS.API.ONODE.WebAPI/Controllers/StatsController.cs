@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/stats")]
@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         public OASISResult<string> GetCurrentLiveVersion()
         {
             //return new(_OASISDNA.OASIS.CurrentLiveVersion) { IsError = false, Message = "OK" };
-            return new(OASISBootLoader.OASISBootLoader.OASISVersion) { IsError = false, Message = "OK" };
+            return new(OASISBootLoader.OASISBootLoader.OASISRuntimeVersion) { IsError = false, Message = "OK" };
         }
         
         //[AllowAnonymous]

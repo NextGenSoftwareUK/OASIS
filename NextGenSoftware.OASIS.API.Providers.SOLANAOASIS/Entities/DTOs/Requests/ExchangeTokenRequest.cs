@@ -1,9 +1,6 @@
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 
-namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests
+public sealed class ExchangeTokenRequest : BaseExchangeRequest
 {
-    public sealed class ExchangeTokenRequest : BaseExchangeRequest
-    {
-        public BaseAccountRequest MintAccount { get; set; }
-    }
+    public BaseAccountRequest MintAccount { get; set; }
 }

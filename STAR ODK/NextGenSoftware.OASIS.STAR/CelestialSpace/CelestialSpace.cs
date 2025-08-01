@@ -11,7 +11,6 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
-using NextGenSoftware.OASIS.STAR.CelestialBodies;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 {
@@ -679,7 +678,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public OASISResult<ICelestialBody> RemoveCelestialBody(ICelestialBody celestialBody, bool deleteCelestialBody = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<ICelestialBody> RemoveCelestialBody(ICelestialBody celestialBody, Guid avatarId, bool deleteCelestialBody = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>(celestialBody);
             OASISResult<IHolon> holonResult = null;
@@ -688,7 +687,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             try
             {
                 if (deleteCelestialBody)
-                    holonResult = celestialBody.Delete(softDelete, providerType);
+                    holonResult = celestialBody.Delete(avatarId, softDelete, providerType);
 
                 if ((deleteCelestialBody && holonResult != null && !holonResult.IsError) || !deleteCelestialBody)
                 {
@@ -713,7 +712,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public async Task<OASISResult<ICelestialBody>> RemoveCelestialBodyAsync(ICelestialBody celestialBody, bool deleteCelestialBody = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<ICelestialBody>> RemoveCelestialBodyAsync(ICelestialBody celestialBody, Guid avatarId, bool deleteCelestialBody = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ICelestialBody> result = new OASISResult<ICelestialBody>(celestialBody);
             OASISResult<IHolon> holonResult = null;
@@ -722,7 +721,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             try
             {
                 if (deleteCelestialBody)
-                    holonResult = await celestialBody.DeleteAsync(softDelete, providerType);
+                    holonResult = await celestialBody.DeleteAsync(avatarId, softDelete, providerType);
 
                 if ((deleteCelestialBody && holonResult != null && !holonResult.IsError) || !deleteCelestialBody)
                 {
@@ -801,7 +800,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public OASISResult<IEnumerable<ICelestialBody>> RemoveCelestialBodies(IEnumerable<ICelestialBody> celestialBodies, bool deleteCelestialBodies = true, bool softDelete = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<ICelestialBody>> RemoveCelestialBodies(IEnumerable<ICelestialBody> celestialBodies, Guid avatarId, bool deleteCelestialBodies = true, bool softDelete = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>(celestialBodies);
             string errorMessage = $"An error occured in CelestialSpace.RemoveCelestialBodies removing {celestialBodies.Count()} celestial bodies from the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
@@ -810,7 +809,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 foreach (ICelestialBody celestialBody in celestialBodies)
                 {
-                    OASISResult<ICelestialBody> celestialBodyResult = RemoveCelestialBody(celestialBody, deleteCelestialBodies, softDelete, providerType);
+                    OASISResult<ICelestialBody> celestialBodyResult = RemoveCelestialBody(celestialBody, avatarId, deleteCelestialBodies, softDelete, providerType);
 
                     if ((celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null) && !continueOnError)
                         break;
@@ -825,7 +824,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<ICelestialBody>>> RemoveCelestialBodiesAsync(IEnumerable<ICelestialBody> celestialBodies, bool deleteCelestialBodies = true, bool softDelete = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<ICelestialBody>>> RemoveCelestialBodiesAsync(IEnumerable<ICelestialBody> celestialBodies, Guid avatarId, bool deleteCelestialBodies = true, bool softDelete = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>(celestialBodies);
             string errorMessage = $"An error occured in CelestialSpace.RemoveCelestialBodiesAsync removing {celestialBodies.Count()} celestial bodies from the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
@@ -834,7 +833,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 foreach (ICelestialBody celestialBody in celestialBodies)
                 {
-                    OASISResult<ICelestialBody> celestialBodyResult = await RemoveCelestialBodyAsync(celestialBody, deleteCelestialBodies, softDelete, providerType);
+                    OASISResult<ICelestialBody> celestialBodyResult = await RemoveCelestialBodyAsync(celestialBody, avatarId, deleteCelestialBodies, softDelete, providerType);
 
                     if ((celestialBodyResult != null && !celestialBodyResult.IsError && celestialBodyResult.Result != null) && !continueOnError)
                         break;
@@ -856,7 +855,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             try
             {
-                OASISResult<IEnumerable<ICelestialBody>> celestialBodiesResult = RemoveCelestialBodies(_celestialBodies, deleteCelestialBodies, softDelete, continueOnError, providerType);
+                OASISResult<IEnumerable<ICelestialBody>> celestialBodiesResult = RemoveCelestialBodies(_celestialBodies, STAR.BeamedInAvatar.Id, deleteCelestialBodies, softDelete, continueOnError, providerType);
 
                 if (celestialBodiesResult != null && !celestialBodiesResult.IsError && celestialBodiesResult.Result != null)
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling CelestialSpace.RemoveCelestialBodies. Reason: {celestialBodiesResult.Result}");
@@ -870,14 +869,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<ICelestialBody>>> RemoveAllCelestialBodiesAsync(bool deleteCelestialBodies = true, bool softDelete = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<ICelestialBody>>> RemoveAllCelestialBodiesAsync(Guid avatarId, bool deleteCelestialBodies = true, bool softDelete = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<ICelestialBody>> result = new OASISResult<IEnumerable<ICelestialBody>>(_celestialBodies);
             string errorMessage = $"An error occured in CelestialSpace.RemoveAllCelestialBodiesAsync removing {_celestialBodies.Count()} celestial bodies from the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
 
             try
             {
-                OASISResult<IEnumerable<ICelestialBody>> celestialBodiesResult = await RemoveCelestialBodiesAsync(_celestialBodies, deleteCelestialBodies, softDelete, continueOnError, providerType);
+                OASISResult<IEnumerable<ICelestialBody>> celestialBodiesResult = await RemoveCelestialBodiesAsync(_celestialBodies, avatarId, deleteCelestialBodies, softDelete, continueOnError, providerType);
 
                 if (celestialBodiesResult != null && !celestialBodiesResult.IsError && celestialBodiesResult.Result != null)
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling CelestialSpace.RemoveCelestialBodies. Reason: {celestialBodiesResult.Result}");
@@ -957,7 +956,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public OASISResult<ICelestialSpace> RemoveCelestialSpace(ICelestialSpace celestialSpace, bool deleteCelestialSpace = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<ICelestialSpace> RemoveCelestialSpace(ICelestialSpace celestialSpace, Guid avatarId, bool deleteCelestialSpace = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>(celestialSpace);
             OASISResult<IHolon> holonResult = null;
@@ -966,7 +965,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             try
             {
                 if (deleteCelestialSpace)
-                    holonResult = celestialSpace.Delete(softDelete, providerType);
+                    holonResult = celestialSpace.Delete(avatarId, softDelete, providerType);
 
                 if ((deleteCelestialSpace && holonResult != null && !holonResult.IsError) || !deleteCelestialSpace)
                 {
@@ -991,7 +990,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public async Task<OASISResult<ICelestialSpace>> RemoveCelestialSpaceAsync(ICelestialSpace celestialSpace, bool deleteCelestialSpace = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<ICelestialSpace>> RemoveCelestialSpaceAsync(ICelestialSpace celestialSpace, Guid avatarId, bool deleteCelestialSpace = true, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ICelestialSpace> result = new OASISResult<ICelestialSpace>(celestialSpace);
             OASISResult<IHolon> holonResult = null;
@@ -1000,7 +999,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             try
             {
                 if (deleteCelestialSpace)
-                    holonResult = await celestialSpace.DeleteAsync(softDelete, providerType);
+                    holonResult = await celestialSpace.DeleteAsync(avatarId, softDelete, providerType);
 
                 if ((deleteCelestialSpace && holonResult != null && !holonResult.IsError) || !deleteCelestialSpace)
                 {
@@ -1073,7 +1072,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public OASISResult<IEnumerable<ICelestialSpace>> RemoveCelestialSpaces(IEnumerable<ICelestialSpace> celestialSpaces, bool deleteCelestialSpaces = true, bool softDelete = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IEnumerable<ICelestialSpace>> RemoveCelestialSpaces(IEnumerable<ICelestialSpace> celestialSpaces, Guid avatarId, bool deleteCelestialSpaces = true, bool softDelete = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<ICelestialSpace>> result = new OASISResult<IEnumerable<ICelestialSpace>>(celestialSpaces);
             string errorMessage = $"An error occured in CelestialSpace.RemoveCelestialSpaces removing {celestialSpaces.Count()} celestial spaces from the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
@@ -1082,7 +1081,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 foreach (ICelestialSpace celestialSpace in celestialSpaces)
                 {
-                    OASISResult<ICelestialSpace> celestialSpaceResult = RemoveCelestialSpace(celestialSpace, deleteCelestialSpaces, softDelete, providerType);
+                    OASISResult<ICelestialSpace> celestialSpaceResult = RemoveCelestialSpace(celestialSpace, avatarId, deleteCelestialSpaces, softDelete, providerType);
 
                     if ((celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null) && !continueOnError)
                         break;
@@ -1097,7 +1096,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<ICelestialSpace>>> RemoveCelestialSpacesAsync(IEnumerable<ICelestialSpace> celestialSpaces, bool deleteCelestialSpaces = true, bool softDelete = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<ICelestialSpace>>> RemoveCelestialSpacesAsync(IEnumerable<ICelestialSpace> celestialSpaces, Guid avatarId, bool deleteCelestialSpaces = true, bool softDelete = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<ICelestialSpace>> result = new OASISResult<IEnumerable<ICelestialSpace>>(celestialSpaces);
             string errorMessage = $"An error occured in CelestialSpace.RemoveCelestialSpacesAsync removing {celestialSpaces.Count()} celestial spaces from the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
@@ -1106,7 +1105,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             {
                 foreach (ICelestialSpace celestialSpace in celestialSpaces)
                 {
-                    OASISResult<ICelestialSpace> celestialSpaceResult = await RemoveCelestialSpaceAsync(celestialSpace, deleteCelestialSpaces, softDelete, providerType);
+                    OASISResult<ICelestialSpace> celestialSpaceResult = await RemoveCelestialSpaceAsync(celestialSpace, avatarId, deleteCelestialSpaces, softDelete, providerType);
 
                     if ((celestialSpaceResult != null && !celestialSpaceResult.IsError && celestialSpaceResult.Result != null) && !continueOnError)
                         break;
@@ -1128,7 +1127,7 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
 
             try
             {
-                OASISResult<IEnumerable<ICelestialSpace>> celestialSpacesResult = RemoveCelestialSpaces(_celestialSpaces, deleteCelestialSpaces, softDelete, continueOnError, providerType);
+                OASISResult<IEnumerable<ICelestialSpace>> celestialSpacesResult = RemoveCelestialSpaces(_celestialSpaces, STAR.BeamedInAvatar.Id, deleteCelestialSpaces, softDelete, continueOnError, providerType);
 
                 if (!(celestialSpacesResult != null && !celestialSpacesResult.IsError && celestialSpacesResult.Result != null))
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling CelestialSpace.RemoveCelestialSpaces. Reason: {celestialSpacesResult.Result}");
@@ -1142,14 +1141,14 @@ namespace NextGenSoftware.OASIS.STAR.CelestialSpace
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<ICelestialSpace>>> RemoveAllCelestialSpacesAsync(bool deleteCelestialSpaces = true, bool softDelete = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<ICelestialSpace>>> RemoveAllCelestialSpacesAsync(Guid avatarId, bool deleteCelestialSpaces = true, bool softDelete = true, bool continueOnError = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<ICelestialSpace>> result = new OASISResult<IEnumerable<ICelestialSpace>>();
             string errorMessage = $"An error occured in CelestialSpace.RemoveAllCelestialSpacesAsync removing {_celestialSpaces.Count()} celestial spaces from the celestial space {LoggingHelper.GetHolonInfoForLogging(this, "CelestialSpace")}. Reason:";
 
             try
             {
-                OASISResult<IEnumerable<ICelestialSpace>> celestialSpacesResult = await RemoveCelestialSpacesAsync(_celestialSpaces, deleteCelestialSpaces, softDelete, continueOnError, providerType);
+                OASISResult<IEnumerable<ICelestialSpace>> celestialSpacesResult = await RemoveCelestialSpacesAsync(_celestialSpaces, avatarId, deleteCelestialSpaces, softDelete, continueOnError, providerType);
 
                 if (!(celestialSpacesResult != null && !celestialSpacesResult.IsError && celestialSpacesResult.Result != null))
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured calling CelestialSpace.RemoveCelestialSpacesAsync. Reason: {celestialSpacesResult.Result}");

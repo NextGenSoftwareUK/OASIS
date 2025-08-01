@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
 {
     public interface IAvatarService
     {
@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces
         Task<OASISResult<bool>> VerifyEmail(string token);
         //Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model, string origin);
         Task<OASISResult<string>> ValidateResetToken(ValidateResetTokenRequest model);
-        Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model);
+        //Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model);
         //Task<OASISResult<IEnumerable<IAvatar>>> GetAll();
         Task<OASISResult<AvatarPortrait>> GetAvatarPortraitById(Guid id);
         Task<OASISResult<AvatarPortrait>> GetAvatarPortraitByUsername(string userName);

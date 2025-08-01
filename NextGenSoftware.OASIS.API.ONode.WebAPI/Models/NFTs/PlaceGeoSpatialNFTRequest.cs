@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Models.NFT
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
 {
     public class PlaceGeoSpatialNFTRequest
     {

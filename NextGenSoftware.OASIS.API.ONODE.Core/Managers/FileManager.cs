@@ -7,7 +7,7 @@
 //using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
 
-//namespace NextGenSoftware.OASIS.API.ONode.Core.Managers
+//namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 //{
 //    public class FileManager : OASISManager//, INFTManager
 //    {

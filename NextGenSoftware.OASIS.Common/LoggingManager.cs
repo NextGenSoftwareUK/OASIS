@@ -51,28 +51,28 @@ namespace NextGenSoftware.OASIS.Common
 
         public static void BeginLogAction(string message, LogType logType)
         {
-            Log(message, logType, true, false, false, 1, true);
+            Log(message, logType, true, true, true, false, false, 1, true);
         }
 
         public static void EndLogAction(string message, LogType logType)
         {
-            Log(message, logType, false, false, false, 0);
+            Log(message, logType, true, true, false, false, false, 0);
         }
 
-        public static void Log(string message, LogType type, bool showWorkingAnimation = false, bool noLineBreaks = false, bool insertExtraNewLineAfterLogMessage = false, int? indentLogMessagesBy = 1, bool nextMessageOnSameLine = false)
+        public static void Log(string message, LogType type, bool logToFile = true, bool logToConsole = true, bool showWorkingAnimation = false, bool noLineBreaks = false, bool insertExtraNewLineAfterLogMessage = false, int? indentLogMessagesBy = 1, bool nextMessageOnSameLine = false)
         {
-            Logger.Log($"{message}", type, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
+            Logger.Log($"{message}", type, logToFile, logToConsole, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
             //Console.WriteLine(message);
 
-            //if (nextMessageOnSameLine)
-            //    Logger.Log($"{message}", type, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
-            //else
-            //    Logger.Log($"\n {message}", type, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
+        //    if (nextMessageOnSameLine)
+        //        Logger.Log($"{message}", type, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
+        //    else
+        //        Logger.Log($"\n {message}", type, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
         }
 
-        public static void Log(string message, LogType type, ConsoleColor consoleColour, bool showWorkingAnimation = false, bool noLineBreaks = false, bool insertExtraNewLineAfterLogMessage = false, int? indentLogMessagesBy = 1, bool nextMessageOnSameLine = false)
+        public static void Log(string message, LogType type, ConsoleColor consoleColour, bool logToFile = true, bool logToConsole = true, bool showWorkingAnimation = false, bool noLineBreaks = false, bool insertExtraNewLineAfterLogMessage = false, int? indentLogMessagesBy = 1, bool nextMessageOnSameLine = false)
         {
-            Logger.Log($"{message}", type, consoleColour, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
+            Logger.Log($"{message}", type, consoleColour, logToFile, logToConsole, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
 
             //if (nextMessageOnSameLine)
             //    Logger.Log($"{message}", type, consoleColour, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
@@ -80,7 +80,7 @@ namespace NextGenSoftware.OASIS.Common
             //    Logger.Log($"\n {message}", type, consoleColour, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
         }
 
-        public static void Log<T>(string message, LogType type, ref OASISResult<T> result, bool logToInnerMessages = true, bool logToMessage = true, bool showWorkingAnimation = false, bool noLineBreaks = false, bool insertExtraNewLineAfterLogMessage = false, int? indentLogMessagesBy = 1, bool nextMessageOnSameLine = false)
+        public static void Log<T>(string message, LogType type, ref OASISResult<T> result, bool logToFile = true, bool logToConsole = true, bool logToInnerMessages = true, bool logToMessage = true, bool showWorkingAnimation = false, bool noLineBreaks = false, bool insertExtraNewLineAfterLogMessage = false, int? indentLogMessagesBy = 1, bool nextMessageOnSameLine = false)
         {
             if (logToMessage)
                 result.Message = message;
@@ -88,7 +88,7 @@ namespace NextGenSoftware.OASIS.Common
             if (logToInnerMessages)
                 result.InnerMessages.Add(message);
 
-            Log(message, type, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
+            Log(message, type, logToFile, logToConsole, showWorkingAnimation, noLineBreaks, insertExtraNewLineAfterLogMessage, indentLogMessagesBy, nextMessageOnSameLine);
         }
 
         private static void InitLogger(Logger logger = null)

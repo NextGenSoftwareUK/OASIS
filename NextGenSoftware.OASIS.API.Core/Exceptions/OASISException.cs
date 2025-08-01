@@ -17,4 +17,14 @@ namespace NextGenSoftware.OASIS.API.Core.Exceptions
         public string Reason { get; set; }
         public OASISResult<T> Result { get; set; }
     }
+
+    public class OASISException : Exception
+    {
+        public OASISException(string reason) : base()
+        {
+            Reason = reason;
+        }
+
+        public string Reason { get; set; }
+    }
 }

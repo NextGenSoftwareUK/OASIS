@@ -5,7 +5,7 @@ WEB4 OASIS API Holochain OASIS Provider is one of the many WEB2/WEB3 providers t
 The wraps around the [HoloNET .NET/Unity Client](https://github.com/holochain-open-dev/holochain-client-csharp).
 
 Initial Release targeting OASIS API v2.3.1 (Current LIVE REST version): \
-https://api.oasisplatform.world
+https://api.oasisweb4.one
 
 Full documentation and source code can be found here: \
 https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK

@@ -90,7 +90,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public ICelestialBody ParentCelestialBody { get; set; } // The CelestialBody  this holon belongs to (this could be a moon, planet, star, etc). 
         public Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
         public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
-        
+
         //public Guid ParentHolonId { get; set; }
         //public IHolon ParentHolon { get; set; }
         //public IEnumerable<IHolon> Children { get; set; }
@@ -111,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public EnumValue<ProviderType> CreatedProviderType { get; set; } // The primary provider that this holon was originally saved with (it can then be auto-replicated to other providers to give maximum redundancy/speed via auto-load balancing etc).
         */
 
-        public IList<INode> Nodes { get; set; } // List of nodes/fields (int, string, bool, etc) that belong to this Holon (STAR ODK auto-generates these when generating dynamic code from DNA Templates passed in).
+        public IList<INode> Nodes { get; set; } = new List<INode>(); // List of nodes/fields (int, string, bool, etc) that belong to this Holon (STAR ODK auto-generates these when generating dynamic code from DNA Templates passed in).
         //public ObservableCollection<INode> Nodes { get; set; } //TODO: Not sure why we was using this one before?
 
         /// <summary>

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.Razor
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.Razor
 {
     public class Program
     {

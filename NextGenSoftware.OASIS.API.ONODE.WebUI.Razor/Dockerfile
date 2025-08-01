@@ -7,16 +7,16 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
-COPY ["NextGenSoftware.OASIS.API.ONode.WebUI.Razor/NextGenSoftware.OASIS.API.ONode.WebUI.Razor.csproj", "NextGenSoftware.OASIS.API.ONode.WebUI.Razor/"]
-RUN dotnet restore "NextGenSoftware.OASIS.API.ONode.WebUI.Razor/NextGenSoftware.OASIS.API.ONode.WebUI.Razor.csproj"
+COPY ["NextGenSoftware.OASIS.API.ONODE.WebUI.Razor/NextGenSoftware.OASIS.API.ONODE.WebUI.Razor.csproj", "NextGenSoftware.OASIS.API.ONODE.WebUI.Razor/"]
+RUN dotnet restore "NextGenSoftware.OASIS.API.ONODE.WebUI.Razor/NextGenSoftware.OASIS.API.ONODE.WebUI.Razor.csproj"
 COPY . .
-WORKDIR "/src/NextGenSoftware.OASIS.API.ONode.WebUI.Razor"
-RUN dotnet build "NextGenSoftware.OASIS.API.ONode.WebUI.Razor.csproj" -c Release -o /app/build
+WORKDIR "/src/NextGenSoftware.OASIS.API.ONODE.WebUI.Razor"
+RUN dotnet build "NextGenSoftware.OASIS.API.ONODE.WebUI.Razor.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "NextGenSoftware.OASIS.API.ONode.WebUI.Razor.csproj" -c Release -o /app/publish
+RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebUI.Razor.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.API.ONode.WebUI.Razor.dll"]
+ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.API.ONODE.WebUI.Razor.dll"]

@@ -1,7 +1,7 @@
 ﻿//using System.Collections.Generic;
 //using NextGenSoftware.OASIS.STAR.Interfaces;
 //using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-//using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Objects;
+//using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects;
 
 //namespace NextGenSoftware.OASIS.API.Core.Objects
 //{

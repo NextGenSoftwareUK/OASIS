@@ -600,54 +600,247 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
+        //public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
+        //{
+        //    OASISResult<IHolon> result = new OASISResult<IHolon>();
+        //    string reason = "unknown";
+        //    string softDeleting = "";
+
+        //    if (softDelete)
+        //        softDeleting = "soft";
+
+        //    string errorMessage = $"An error occured {softDeleting} deleting the holon with id {id}";
+
+        //    try
+        //    {
+        //        if (softDelete)
+        //        {
+        //            OASISResult<IHolon> holonResult = LoadHolon(id);
+
+        //            if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+        //            {
+        //                holonResult.Result.DeletedDate = DateTime.Now;
+        //                holonResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+        //                OASISResult<IHolon> saveHolonResult = SaveHolon(holonResult.Result);
+
+        //                if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
+        //                {
+        //                    result.Result = saveHolonResult.Result;
+        //                    result.IsSaved = true;
+        //                }
+        //                else
+        //                {
+        //                    if (saveHolonResult != null && !string.IsNullOrEmpty(saveHolonResult.Message))
+        //                        reason = saveHolonResult.Message;
+
+        //                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {holonResult.Result.Id} and name {holonResult.Result.Name}. Reason: {reason}.");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                if (holonResult != null && !string.IsNullOrEmpty(holonResult.Message))
+        //                    reason = holonResult.Message;
+
+        //                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+        //            }
+        //        }
+        //        else
+        //            holonRepository.DeleteAsync(id).Wait();
+
+        //       // result.Result = true;
+        //        result.IsSaved = true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+        //    }
+
+        //    return result;
+        //}
+
+        //public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
+        //{
+        //    OASISResult<IHolon> result = new OASISResult<IHolon>();
+        //    string reason = "unknown";
+        //    string softDeleting = "";
+
+        //    if (softDelete)
+        //        softDeleting = "soft";
+
+        //    string errorMessage = $"An error occured {softDeleting} deleting the holon with providerKey {providerKey}";
+
+        //    try
+        //    {
+        //        if (softDelete)
+        //        {
+        //            OASISResult<IHolon> holonResult = LoadHolon(providerKey);
+
+        //            if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+        //            {
+        //                holonResult.Result.DeletedDate = DateTime.Now;
+        //                holonResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+        //                OASISResult<IHolon> saveHolonResult = SaveHolon(holonResult.Result);
+
+        //                if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
+        //                {
+        //                    result.Result = saveHolonResult.Result;
+        //                    result.IsSaved = true;
+        //                }
+        //                else
+        //                {
+        //                    if (saveHolonResult != null && !string.IsNullOrEmpty(saveHolonResult.Message))
+        //                        reason = saveHolonResult.Message;
+
+        //                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {holonResult.Result.Id} and name {holonResult.Result.Name}. Reason: {reason}.");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                if (holonResult != null && !string.IsNullOrEmpty(holonResult.Message))
+        //                    reason = holonResult.Message;
+
+        //                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+        //            }
+        //        }
+        //        else
+        //            holonRepository.DeleteAsync(providerKey).Wait();
+
+        //        //result.Result = true;
+        //        result.IsSaved = true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+        //    }
+
+        //    return result;
+        //}
+
+        //public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        //{
+        //    OASISResult<IHolon> result = new OASISResult<IHolon>();
+        //    string reason = "unknown";
+        //    string softDeleting = "";
+
+        //    if (softDelete)
+        //        softDeleting = "soft";
+
+        //    string errorMessage = $"An error occured {softDeleting} deleting the holon with id {id}";
+
+        //    try
+        //    {
+        //        if (softDelete)
+        //        {
+        //            OASISResult<IHolon> holonResult = await LoadHolonAsync(id);
+
+        //            if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+        //            {
+        //                holonResult.Result.DeletedDate = DateTime.Now;
+        //                holonResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+        //                OASISResult<IHolon> saveHolonResult = await SaveHolonAsync(holonResult.Result);
+
+        //                if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
+        //                {
+        //                    result.Result = saveHolonResult.Result;
+        //                    result.IsSaved = true;
+        //                }
+        //                else
+        //                {
+        //                    if (saveHolonResult != null && !string.IsNullOrEmpty(saveHolonResult.Message))
+        //                        reason = saveHolonResult.Message;
+
+        //                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} and name {holonResult.Result.Name}. Reason: {reason}.");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                if (holonResult != null && !string.IsNullOrEmpty(holonResult.Message))
+        //                    reason = holonResult.Message;
+
+        //                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+        //            }
+        //        }
+        //        else
+        //            await holonRepository.DeleteAsync(id);
+
+        //        //result.Result = true;
+        //        result.IsSaved = true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+        //    }
+
+        //    return result;
+        //}
+
+        //public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        //{
+        //    OASISResult<IHolon> result = new OASISResult<IHolon>();
+        //    string reason = "unknown";
+        //    string softDeleting = "";
+
+        //    if (softDelete)
+        //        softDeleting = "soft";
+
+        //    string errorMessage = $"An error occured {softDeleting} deleting the holon with providerKey {providerKey}";
+
+        //    try
+        //    {
+        //        if (softDelete)
+        //        {
+        //            OASISResult<IHolon> holonResult = await LoadHolonAsync(providerKey);
+
+        //            if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+        //            {
+        //                holonResult.Result.DeletedDate = DateTime.Now;
+        //                holonResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
+        //                OASISResult<IHolon> saveHolonResult = await SaveHolonAsync(holonResult.Result);
+
+        //                if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
+        //                {
+        //                    result.Result = saveHolonResult.Result;
+        //                    result.IsSaved = true;
+        //                }
+        //                else
+        //                {
+        //                    if (saveHolonResult != null && !string.IsNullOrEmpty(saveHolonResult.Message))
+        //                        reason = saveHolonResult.Message;
+
+        //                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {holonResult.Result.Id} and name {holonResult.Result.Name}. Reason: {reason}.");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                if (holonResult != null && !string.IsNullOrEmpty(holonResult.Message))
+        //                    reason = holonResult.Message;
+
+        //                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
+        //            }
+        //        }
+        //        else
+        //            await holonRepository.DeleteAsync(providerKey);
+
+        //        //result.Result = true;
+        //        result.IsSaved = true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
+        //    }
+
+        //    return result;
+        //}
+
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
             string reason = "unknown";
-            string softDeleting = "";
-
-            if (softDelete)
-                softDeleting = "soft";
-
-            string errorMessage = $"An error occured {softDeleting} deleting the holon with id {id}";
+            string errorMessage = $"An error occured deleting the holon with id {id}";
 
             try
             {
-                if (softDelete)
-                {
-                    OASISResult<IHolon> holonResult = LoadHolon(id);
-
-                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
-                    {
-                        holonResult.Result.DeletedDate = DateTime.Now;
-                        holonResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                        OASISResult<IHolon> saveHolonResult = SaveHolon(holonResult.Result);
-
-                        if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
-                        {
-                            result.Result = saveHolonResult.Result;
-                            result.IsSaved = true;
-                        }
-                        else
-                        {
-                            if (saveHolonResult != null && !string.IsNullOrEmpty(saveHolonResult.Message))
-                                reason = saveHolonResult.Message;
-
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {holonResult.Result.Id} and name {holonResult.Result.Name}. Reason: {reason}.");
-                        }
-                    }
-                    else
-                    {
-                        if (holonResult != null && !string.IsNullOrEmpty(holonResult.Message))
-                            reason = holonResult.Message;
-
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
-                    }
-                }
-                else
-                    holonRepository.DeleteAsync(id).Wait();
-
-               // result.Result = true;
+                holonRepository.DeleteAsync(id).Wait();
                 result.IsSaved = true;
             }
             catch (Exception ex)
@@ -658,54 +851,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
             string reason = "unknown";
-            string softDeleting = "";
+            string errorMessage = $"An error occured deleting the holon with providerKey {providerKey}";
 
-            if (softDelete)
-                softDeleting = "soft";
-
-            string errorMessage = $"An error occured {softDeleting} deleting the holon with providerKey {providerKey}";
-            
             try
             {
-                if (softDelete)
-                {
-                    OASISResult<IHolon> holonResult = LoadHolon(providerKey);
-
-                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
-                    {
-                        holonResult.Result.DeletedDate = DateTime.Now;
-                        holonResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                        OASISResult<IHolon> saveHolonResult = SaveHolon(holonResult.Result);
-
-                        if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
-                        {
-                            result.Result = saveHolonResult.Result;
-                            result.IsSaved = true;
-                        }
-                        else
-                        {
-                            if (saveHolonResult != null && !string.IsNullOrEmpty(saveHolonResult.Message))
-                                reason = saveHolonResult.Message;
-
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {holonResult.Result.Id} and name {holonResult.Result.Name}. Reason: {reason}.");
-                        }
-                    }
-                    else
-                    {
-                        if (holonResult != null && !string.IsNullOrEmpty(holonResult.Message))
-                            reason = holonResult.Message;
-
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
-                    }
-                }
-                else
-                    holonRepository.DeleteAsync(providerKey).Wait();
-
-                //result.Result = true;
+                holonRepository.DeleteAsync(providerKey).Wait();
                 result.IsSaved = true;
             }
             catch (Exception ex)
@@ -716,54 +870,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
             string reason = "unknown";
-            string softDeleting = "";
-
-            if (softDelete)
-                softDeleting = "soft";
-
-            string errorMessage = $"An error occured {softDeleting} deleting the holon with id {id}";
+            string errorMessage = $"An error occured deleting the holon with id {id}";
 
             try
             {
-                if (softDelete)
-                {
-                    OASISResult<IHolon> holonResult = await LoadHolonAsync(id);
-
-                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
-                    {
-                        holonResult.Result.DeletedDate = DateTime.Now;
-                        holonResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                        OASISResult<IHolon> saveHolonResult = await SaveHolonAsync(holonResult.Result);
-
-                        if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
-                        {
-                            result.Result = saveHolonResult.Result;
-                            result.IsSaved = true;
-                        }
-                        else
-                        {
-                            if (saveHolonResult != null && !string.IsNullOrEmpty(saveHolonResult.Message))
-                                reason = saveHolonResult.Message;
-
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} and name {holonResult.Result.Name}. Reason: {reason}.");
-                        }
-                    }
-                    else
-                    {
-                        if (holonResult != null && !string.IsNullOrEmpty(holonResult.Message))
-                            reason = holonResult.Message;
-
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
-                    }
-                }
-                else
-                    await holonRepository.DeleteAsync(id);
-
-                //result.Result = true;
+                await holonRepository.DeleteAsync(id);
                 result.IsSaved = true;
             }
             catch (Exception ex)
@@ -774,54 +889,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
             string reason = "unknown";
-            string softDeleting = "";
-
-            if (softDelete)
-                softDeleting = "soft";
-
-            string errorMessage = $"An error occured {softDeleting} deleting the holon with providerKey {providerKey}";
+            string errorMessage = $"An error occured deleting the holon with providerKey {providerKey}";
 
             try
             {
-                if (softDelete)
-                {
-                    OASISResult<IHolon> holonResult = await LoadHolonAsync(providerKey);
-
-                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
-                    {
-                        holonResult.Result.DeletedDate = DateTime.Now;
-                        holonResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                        OASISResult<IHolon> saveHolonResult = await SaveHolonAsync(holonResult.Result);
-
-                        if (saveHolonResult != null && !saveHolonResult.IsError && saveHolonResult.Result != null)
-                        {
-                            result.Result = saveHolonResult.Result;
-                            result.IsSaved = true;
-                        }
-                        else
-                        {
-                            if (saveHolonResult != null && !string.IsNullOrEmpty(saveHolonResult.Message))
-                                reason = saveHolonResult.Message;
-
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, id {holonResult.Result.Id} and name {holonResult.Result.Name}. Reason: {reason}.");
-                        }
-                    }
-                    else
-                    {
-                        if (holonResult != null && !string.IsNullOrEmpty(holonResult.Message))
-                            reason = holonResult.Message;
-
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {reason}.");
-                    }
-                }
-                else
-                    await holonRepository.DeleteAsync(providerKey);
-
-                //result.Result = true;
+                await holonRepository.DeleteAsync(providerKey);
                 result.IsSaved = true;
             }
             catch (Exception ex)
@@ -1481,42 +1557,52 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public override Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             throw new NotImplementedException();
         }

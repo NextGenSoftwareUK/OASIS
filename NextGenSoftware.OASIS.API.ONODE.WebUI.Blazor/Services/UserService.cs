@@ -1,8 +1,8 @@
-using NextGenSoftware.OASIS.API.ONode.WebUI.Blazor.Models;
+using NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.Blazor.Services
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor.Services
 {
     public interface IUserService
     {

@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.Razor
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.Razor
 {
     public class Startup
     {

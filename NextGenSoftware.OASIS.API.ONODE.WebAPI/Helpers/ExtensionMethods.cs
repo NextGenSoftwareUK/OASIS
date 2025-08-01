@@ -2,7 +2,7 @@ using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     //TODO: Finish moving these to OASISStorageBase... (or maybe somewhere better? Be nice to split this out into its own AvatarManager...)
     public static class ExtensionMethods

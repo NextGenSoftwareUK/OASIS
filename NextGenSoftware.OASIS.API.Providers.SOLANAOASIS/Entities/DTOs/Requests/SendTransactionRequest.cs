@@ -1,9 +1,6 @@
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 
-namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests
+public sealed class SendTransactionRequest : BaseExchangeRequest
 {
-    public sealed class SendTransactionRequest : BaseExchangeRequest
-    {
-        public ulong Lampposts { get; set; }
-    }
+    public ulong Lampposts { get; set; }
 }

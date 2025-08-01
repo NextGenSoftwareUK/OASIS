@@ -18,6 +18,7 @@ using System.Drawing;
 
 namespace NextGenSoftware.OASIS.STAR.CelestialBodies
 {
+    //public abstract class CelestialBody<T> : CelestialHolon, ICelestialBody where T : ICelestialBody, new()
     public abstract class CelestialBody<T> : CelestialHolon, ICelestialBody where T : ICelestialBody, new()
     {
         public ICelestialBodyCore CelestialBodyCore { get; set; } // This is the core zome of the star/planet/moon/etc (OApp), which links to all the other stars/planets/moons/etc/zomes/holons...

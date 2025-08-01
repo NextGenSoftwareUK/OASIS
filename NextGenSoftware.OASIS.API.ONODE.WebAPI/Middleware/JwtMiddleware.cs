@@ -13,7 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 {
     public class JwtMiddleware
     {

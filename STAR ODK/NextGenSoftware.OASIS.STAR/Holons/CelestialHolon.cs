@@ -9,6 +9,7 @@ using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 namespace NextGenSoftware.OASIS.STAR.Holons
 {
     public abstract class CelestialHolon : Holon, ICelestialHolon
+    //public abstract class CelestialHolon : STARHolon, ICelestialHolon
     {
         public GenesisType GenesisType { get; set; }
         //public OASISAPIManager OASISAPI = new OASISAPIManager(new List<IOASISProvider>() { new SEEDSOASIS() });

@@ -43,6 +43,8 @@ namespace NextGenSoftware.OASIS.Common
 
         public Dictionary<string, string> MetaData = new Dictionary<string, string>();
 
+        public string ErrorCode { get; set; }
+
         public bool IsError
         {
             get

@@ -3,7 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Delivery : BaseEntity
     {

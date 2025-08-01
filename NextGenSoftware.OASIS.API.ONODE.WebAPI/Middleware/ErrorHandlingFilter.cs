@@ -4,7 +4,7 @@
 //using System.Web.Http.Results;
 //using System.Web.Http.Filters;
 
-//namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 //{
 //    public class ErrorHandlingFilter : ExceptionFilterAttribute
 //    {

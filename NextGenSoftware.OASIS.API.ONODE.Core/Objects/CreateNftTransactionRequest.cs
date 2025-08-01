@@ -1,8 +1,8 @@
 ﻿
 //using NextGenSoftware.OASIS.API.Core.Enums;
-//using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Objects;
+//using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects;
 
-//namespace NextGenSoftware.OASIS.API.ONode.Core.Objects
+//namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects
 //{
 //    public class CreateNftTransactionRequest : ICreateNftTransactionRequest
 //    {

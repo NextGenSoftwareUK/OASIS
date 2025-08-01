@@ -4,11 +4,11 @@
 //using NextGenSoftware.OASIS.API.Core.Helpers;
 //using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 //using NextGenSoftware.OASIS.API.Core.Objects;
-//using NextGenSoftware.OASIS.API.ONode.Core.Managers;
-//using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
-//using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
+//using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+//using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+//using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 
-//namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 //{
 //    //TODO: PLEASE MOVE TO OASIS.CORE ASAP, ALL SERVICES SHOULD BE CONVERTED TO MANAGERS IN OASIS.CORE so they can be shared by other endpoints such as gRPC, GraphQL etc...
 //    public class OlandService : IOlandService

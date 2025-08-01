@@ -19,8 +19,28 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
+                //Make sure the password is not blank before saving!
+                if (string.IsNullOrEmpty(avatar.Password))
+                {
+                    OASISResult<IAvatar> avatarResult = await LoadAvatarAsync(avatar.Id, false, false, providerType);
+
+                    if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+                        avatar = avatarResult.Result;
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error occured in SaveAvatarAsync loading avatar. Reason: {avatarResult.Message}");
+                        return result;
+                    }
+                }
+
+                avatar.ModifiedDate = DateTime.Now;
+                avatar.ModifiedByAvatarId = avatar.Id;
+
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
-                int removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
+                int removeQty = 0;
+
+                if (avatar.RefreshTokens != null)
+                    removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
 
                 result = await SaveAvatarForProviderAsync(avatar, result, SaveMode.FirstSaveAttempt, providerType);
                 previousProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
@@ -78,9 +98,28 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
+                //Make sure the password is not blank before saving!
+                if (string.IsNullOrEmpty(avatar.Password))
+                {
+                    OASISResult<IAvatar> avatarResult = LoadAvatar(avatar.Id, false, false, providerType);
+
+                    if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
+                        avatar = avatarResult.Result;
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error occured in SaveAvatarAsync loading avatar. Reason: {avatarResult.Message}");
+                        return result;
+                    }
+                }
+
+                avatar.ModifiedDate = DateTime.Now;
+                avatar.ModifiedByAvatarId = avatar.Id;
+
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
-                int removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
-                //Dictionary<ProviderType, List<IProviderWallet>> wallets = WalletManager.Instance.CopyProviderWallets(avatar.ProviderWallets);
+                int removeQty = 0;
+
+                if (avatar.RefreshTokens != null)
+                    removeQty = avatar.RefreshTokens.RemoveAll(token => (DateTime.Today - token.Created).TotalDays > removingDays);
 
                 result = SaveAvatarForProvider(avatar, result, SaveMode.FirstSaveAttempt, providerType);
                 previousProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
@@ -140,6 +179,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
+                avatar.ModifiedDate = DateTime.Now;
+                avatar.ModifiedByAvatarId = avatar.Id;
+
                 result = SaveAvatarDetailForProvider(avatar, result, SaveMode.FirstSaveAttempt, providerType);
                 previousProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
 
@@ -195,6 +237,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
+                avatar.ModifiedDate = DateTime.Now;
+                avatar.ModifiedByAvatarId = avatar.Id;
+
                 result = await SaveAvatarDetailForProviderAsync(avatar, result, SaveMode.FirstSaveAttempt, providerType);
                 previousProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
 

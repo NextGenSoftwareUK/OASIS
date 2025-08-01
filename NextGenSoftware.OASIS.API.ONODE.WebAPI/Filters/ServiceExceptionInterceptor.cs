@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Filters
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters
 {
     public class ServiceExceptionInterceptor: ExceptionFilterAttribute
     {

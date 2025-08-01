@@ -143,7 +143,7 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Fixed a bug in all methods in AvatarManager where the response from load/save methods on an OASIS Provider were not being handled properly.
 - Added AutoMapper to OASIS.API.Core to be used in UpdateAvatarDetailAsync method.
 - Added Automapper config to UpdateAvatarDetailAsync method.
-- Upgraded AutoMapper to v11 in OASIS.API.ONode.WebAPI project so matches the version added to OASIS.API.Core.
+- Upgraded AutoMapper to v11 in OASIS.API.ONODE.WebAPI project so matches the version added to OASIS.API.Core.
 
 https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/cf1cf1b0ab282acabf7af64d2d50df530962c492
 - Removed where clause restriction on OASISResultCollectionToCollection helper so can be used for mapping any objects and not just holons.
@@ -854,7 +854,7 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 
 https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/5f58cf11639b47fdb3c807b37fbc1a29edc5ea13
 - Fixed bugs in SetAndActivateCurrentStorageProvider method in ProviderManager making it even more robust with improved error handling etc.
-- Started adding new GetAllAvatarNames methods to AvatarController in ONode.WebAPI.
+- Started adding new GetAllAvatarNames methods to AvatarController in ONODE.WebAPI.
 - Fixed a bug in ResetPassword method in AvatarService where the message was being set in the Result property instead of the Message one.
 - Removed Connect and Disconnect methods in the Neo4jOASIS Provider.
 - Re-wrote ActivateProvider and DeActivateProvider methods in Neo4jOASIS Provider fixing a number of bugs and improved error handling/reporting etc.
@@ -985,10 +985,10 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Renamed PurchaseOland to PurchaseOlandAsync on OLandManager in OASIS.API.ONODE.Core.
 - Updated and fixed bugs in PurchaseOlandAsync function in OLandManager in OASIS.API.ONODE.Core.
 - Updated PurchaseOlandAsync function in OLandManager in OASIS.API.ONODE.Core making more generic and fixed bugs.
-- Changed Guid OlandId property to List<Guid> OlandIds on PurchaseOlandRequest in OASIS.API.ONode.
-- Rewrote PurchaseOlandResponse on OASIS.API.ONode so it now contains TransactionHash,  OlandIds and OLandPurchaseId.
-- Updating NftController in OASIS.API.ONode.WebAPI which included removing INftService because services should not be used in WebAPI, all logic needs to go into the managers so it can be re-used in other ONODE types such as gRPC, GraphQL, Native Integrated, etc. as well as in STAR ODK etc. All logic has now been moved to NftManger in OASIS.API.ONode.Core.
-- Removed OLandService for same reasons as above All logic has now been moved to OLandManger in OASIS.API.ONode.Core.
+- Changed Guid OlandId property to List<Guid> OlandIds on PurchaseOlandRequest in OASIS.API.ONODE.
+- Rewrote PurchaseOlandResponse on OASIS.API.ONODE so it now contains TransactionHash,  OlandIds and OLandPurchaseId.
+- Updating NftController in OASIS.API.ONODE.WebAPI which included removing INftService because services should not be used in WebAPI, all logic needs to go into the managers so it can be re-used in other ONODE types such as gRPC, GraphQL, Native Integrated, etc. as well as in STAR ODK etc. All logic has now been moved to NftManger in OASIS.API.ONODE.Core.
+- Removed OLandService for same reasons as above All logic has now been moved to OLandManger in OASIS.API.ONODE.Core.
 
 https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/a22e37d641c19c8d5314c602fd7c1ce662eb0bab
 - Continued work on upgrading the OASIS API NFT API.
@@ -997,15 +997,15 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Updated IOASISNFTProvider interface in OASIS.API.Core by adding MintNFT, MintNFTAsync, LoadNFT, LoadNFTAsync, LoadAllNFTsForAvatar, LoadAllNFTsForAvatarAsync, LoadAllNFTsForMintAddress, LoadAllNFTsForMintAddressAsync, PlaceGeoNFT, PlaceGeoNFTAsync, MintAndPlaceGeoNFT & MintAndPlaceGeoNFTAsync functions.
 - Removed Date from IWalletTransaction and WalletTransaction in OASIS.API.Core (this should be set by the relevant managers (NFTManger, WalletManager etc) so the date is always set to Now and so the date cannot be forged then.)
 - Added Hash, ThumbnailUrl, Token & MetaData to OASISNFT in OASIS.API.Core.
-- Created NFTProviderType enum in OASIS.API.ONode.Core.
-- Updated INFTManager interface in OASIS.API.ONode.Core by adding CreateNftTransactionAsync, CreateNftTransaction, MintNftAsync, MintNft, LoadNftAsync, LoadNft, GetNFTProvider, GetNFTProviderTypeFromProviderType & GetProviderTypeFromNFTProviderType functions.
-- Created ICreateNftTransactionRequest, IPurchaseOlandRequest & IPurchaseOlandResponse interfaces in OASIS.API.ONode.Core.
-- Updated NFTManager in OASIS.API.ONode.Core by adding CreateNftTransactionAsync, CreateNftTransaction, MintNftAsync, MintNft, LoadNftAsync, LoadNft, GetNFTProvider, GetNFTProviderTypeFromProviderType & GetProviderTypeFromNFTProviderType functions.
-- Added CreateNftTransactionRequest object to OASIS.API.ONode.Core.
-- Removed CargoSaleId property from PurchaseOlandRequest object in OASIS.API.ONode.Core.
-- PurchaseOlandResponse object now implements new IPurchaseOlandResponse interface in OASIS.API.ONode.Core.
-- Updated NFTController in OASIS.API.ONode.WebAPI by removing all references to the new obsolete NFTService and pointing methods CreateNftTransaction to the new NFTManger in OASIS.API.ONode.Core instead. Also added new MintNFT function.
-- Removed the rest of the now retired NFTService in OASIS.API.ONode.WebAPI.
+- Created NFTProviderType enum in OASIS.API.ONODE.Core.
+- Updated INFTManager interface in OASIS.API.ONODE.Core by adding CreateNftTransactionAsync, CreateNftTransaction, MintNftAsync, MintNft, LoadNftAsync, LoadNft, GetNFTProvider, GetNFTProviderTypeFromProviderType & GetProviderTypeFromNFTProviderType functions.
+- Created ICreateNftTransactionRequest, IPurchaseOlandRequest & IPurchaseOlandResponse interfaces in OASIS.API.ONODE.Core.
+- Updated NFTManager in OASIS.API.ONODE.Core by adding CreateNftTransactionAsync, CreateNftTransaction, MintNftAsync, MintNft, LoadNftAsync, LoadNft, GetNFTProvider, GetNFTProviderTypeFromProviderType & GetProviderTypeFromNFTProviderType functions.
+- Added CreateNftTransactionRequest object to OASIS.API.ONODE.Core.
+- Removed CargoSaleId property from PurchaseOlandRequest object in OASIS.API.ONODE.Core.
+- PurchaseOlandResponse object now implements new IPurchaseOlandResponse interface in OASIS.API.ONODE.Core.
+- Updated NFTController in OASIS.API.ONODE.WebAPI by removing all references to the new obsolete NFTService and pointing methods CreateNftTransaction to the new NFTManger in OASIS.API.ONODE.Core instead. Also added new MintNFT function.
+- Removed the rest of the now retired NFTService in OASIS.API.ONODE.WebAPI.
 
 https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/commit/3ad18e238ecf98f66f76a483626694e43a1a00e7
 - Continued on the new NFT API and OLAND API for the OASIS API...
@@ -1036,5 +1036,22 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 - Also added the new NFT methods above to the OASIS Provider Template.
 - Removed MongoDB.Bson ref from NextGenSoftware.OASIS.API.Providers.MongoDBOASIS project file which was causing a version conflict in the other projects.
 
-WOW! Even though I have been 95% focused on HoloNET the past year, I have done a LOT more on OASIS API than I realised! The change history length for the past year for v2.4.0 (the latest version about to release tomorrow) is roughly the same length as the past 3 years! :)
+----------------------------------------------------------------------------------------------------------------------------
+## 3.3.3 (17/04/25)
+
+Way too many changes to list here, there were numerous internal releases between v3.0.0 and v3.3.3, some of these changes are listed below:
+
+- ArbitrumOASIS Provider added.
+- PolygonOASIS Provider added.
+- Rootstock Provider added.
+- Data API upgrade/overhaul.
+- GeoNFT API upgraded.
+- Various performance improvements.
+- NFT API upgraded.
+- Upgraded to .NET 8 which comes with various improvements, performance enhacements and other fixes etc.
+- Numerous bug fixes.
+- Misc improvements.
+
+Going forward we are likely to keep the changelog more brief and will summarise the changes rather than list the full changelog! ;-)
+
 ----------------------------------------------------------------------------------------------------------------------------

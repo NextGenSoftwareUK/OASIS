@@ -51,7 +51,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iis": {
-      "applicationUrl": "http://localhost/NextGenSoftware.OASIS.API.ONode.WebAPI",
+      "applicationUrl": "http://localhost/NextGenSoftware.OASIS.API.ONODE.WebAPI",
       "sslPort": 0
     },
     "iisExpress": {

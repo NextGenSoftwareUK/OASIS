@@ -5,7 +5,7 @@
 //using System.Net;
 //using System.Net.Mail;
 
-//namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 //{
 //    public interface IEmailService
 //    {

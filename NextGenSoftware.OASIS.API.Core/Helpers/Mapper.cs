@@ -40,6 +40,26 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         //        return null;
         //}
 
+        public static IEnumerable<IAvatar> ConvertIHolonsToIAvatars(IEnumerable<IHolon> holons)
+        {
+            List<IAvatar> avatars = new List<IAvatar>();
+
+            foreach (IHolon holon in holons)
+                avatars.Add(ConvertIHolonToIAvatar(holon));
+
+            return avatars;
+        }
+
+        public static IEnumerable<IHolon> ConvertIAvatarsToIHolons(IEnumerable<IAvatar> avatars)
+        {
+            List<IHolon> holons = new List<IHolon>();
+
+            foreach (IAvatar avatar in avatars)
+                holons.Add(ConvertIAvatarToIHolon(avatar));
+
+            return holons;
+        }
+
         public static IEnumerable<T> Convert<T>(IEnumerable<IHolon> sourceHolons) where T : IHolon
         {
             if (sourceHolons != null)
@@ -128,6 +148,28 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             }
 
             return null;            
+        }
+
+        public static IAvatar ConvertIHolonToIAvatar(IHolon holon)
+        {
+            if (holon != null)
+            {
+                IAvatar avatar = (IAvatar)holon;
+                return avatar;
+            }
+
+            return null;
+        }
+
+        public static IHolon ConvertIAvatarToIHolon(IAvatar avatar)
+        {
+            if (avatar != null)
+            {
+                IHolon holon = (IHolon)avatar;
+                return holon;
+            }
+
+            return null;
         }
 
         public static IEnumerable<ICelestialBody> ConvertIHolonsToICelestialBodies(IEnumerable<IHolon> holons)

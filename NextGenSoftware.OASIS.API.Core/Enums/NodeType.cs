@@ -6,8 +6,14 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         String,
         Int,
         Bool,
-        List,
-        Link,
-        Set
+        DateTime,
+        Long,
+        Double,
+        ByteArray,
+        Float,
+        Object
+        //List,
+        //Link,
+        //Set
     }
 }

@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -46,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             get
             {
                 if (_instance == null)
-                    _instance = new AvatarManager(ProviderManager.Instance.CurrentStorageProvider);
+                    _instance = new AvatarManager(ProviderManager.Instance.CurrentStorageProvider, ProviderManager.Instance.OASISDNA);
 
                 return _instance;
             }
@@ -130,6 +133,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         var jwtToken = GenerateJWTToken(result.Result);
                         var refreshToken = generateRefreshToken(ipAddress);
 
+                        if (result.Result.RefreshTokens == null)
+                            result.Result.RefreshTokens = new List<RefreshToken>();
+
                         result.Result.RefreshTokens.Add(refreshToken);
                         result.Result.JwtToken = jwtToken;
                         result.Result.RefreshToken = refreshToken.Token;
@@ -141,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
                         {
-                            result.Result = HideAuthDetails(saveAvatarResult.Result);
+                            result.Result = HideAuthDetails(saveAvatarResult.Result, false, true, false, false);
                             result.IsSaved = true;
                             result.Message = "Avatar Successfully Authenticated.";
                         }
@@ -222,6 +228,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         var jwtToken = GenerateJWTToken(result.Result);
                         var refreshToken = generateRefreshToken(ipAddress);
 
+                        if (result.Result.RefreshTokens == null)
+                            result.Result.RefreshTokens = new List<RefreshToken>();
+
                         result.Result.RefreshTokens.Add(refreshToken);
                         result.Result.JwtToken = jwtToken;
                         result.Result.RefreshToken = refreshToken.Token;
@@ -233,7 +242,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
                         {
-                            result.Result = HideAuthDetails(saveAvatarResult.Result);
+                            result.Result = HideAuthDetails(saveAvatarResult.Result, false, true, false, false);
                             result.IsSaved = true;
                             result.Message = "Avatar Successfully Authenticated.";
                         }
@@ -425,13 +434,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //public async Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model)
-        public async Task<OASISResult<string>> ForgotPassword(string email)
+        public async Task<OASISResult<string>> ForgotPasswordAsync(string email, ProviderType providerType = ProviderType.Default)
         {
             var response = new OASISResult<string>();
 
             try
             {
-                OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(email, false, false);
+                OASISResult<IAvatar> avatarResult = await LoadAvatarByEmailAsync(email, false, false, providerType);
 
                 // always return ok response to prevent email enumeration
                 if (avatarResult.IsError || avatarResult.Result == null)
@@ -444,7 +453,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatarResult.Result.ResetToken = RandomTokenString();
                 avatarResult.Result.ResetTokenExpires = DateTime.UtcNow.AddDays(24);
 
-                var saveAvatar = SaveAvatar(avatarResult.Result);
+                var saveAvatar = SaveAvatar(avatarResult.Result, providerType: providerType);
 
                 if (saveAvatar.IsError)
                 {
@@ -455,6 +464,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // send email
                 SendPasswordResetEmail(avatarResult.Result);
                 response.Message = "Please check your email for password reset instructions";
+                response.Result = response.Message;
             }
             catch (Exception e)
             {
@@ -465,6 +475,167 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return response;
         }
 
+        public OASISResult<string> ForgotPassword(string email, ProviderType providerType = ProviderType.Default)
+        {
+            var response = new OASISResult<string>();
+
+            try
+            {
+                OASISResult<IAvatar> avatarResult = LoadAvatarByEmail(email, false, false, providerType);
+
+                // always return ok response to prevent email enumeration
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Error occured loading avatar in ForgotPassword, avatar not found. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    return response;
+                }
+
+                // create reset token that expires after 1 day
+                avatarResult.Result.ResetToken = RandomTokenString();
+                avatarResult.Result.ResetTokenExpires = DateTime.UtcNow.AddDays(24);
+
+                var saveAvatar = SaveAvatar(avatarResult.Result, providerType: providerType);
+
+                if (saveAvatar.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"An error occured saving the avatar in ForgotPassword method in AvatarService. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
+                    return response;
+                }
+
+                // send email
+                SendPasswordResetEmail(avatarResult.Result);
+                response.Message = "Please check your email for password reset instructions";
+                response.Result = response.Message;
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                OASISErrorHandling.HandleError(ref response, $"An error occured in ForgotPassword method in AvatarService. Reason: {e.Message}");
+            }
+
+            return response;
+        }
+
+        public async Task<OASISResult<string>> ResetPasswordAsync(string token, string oldPassword, string newPassword, ProviderType providerType = ProviderType.Default)
+        {
+            var response = new OASISResult<string>();
+
+            try
+            {
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync(false, false, false, providerType);
+
+                if (!avatarsResult.IsError && avatarsResult.Result != null)
+                {
+                    //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
+                    var avatar = avatarsResult.Result.FirstOrDefault(x =>
+                        x.ResetToken == token &&
+                        x.ResetTokenExpires > DateTime.UtcNow);
+
+                    if (avatar == null)
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found, token is invalid.");
+                        return response;
+                    }
+
+                    if (!BCrypt.Net.BCrypt.Verify(oldPassword, avatar.Password))
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
+                        return response;
+                    }
+
+                    // update password and remove reset token
+                    avatar.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                    avatar.PasswordReset = DateTime.UtcNow;
+                    avatar.ResetToken = null;
+                    avatar.ResetTokenExpires = null;
+
+                    var saveAvatarResult = await SaveAvatarAsync(avatar, providerType: providerType);
+
+                    if (saveAvatarResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                        return response;
+                    }
+
+                    if (_loggedInAvatar.Id == avatar.Id)
+                        _loggedInAvatar = avatar;
+
+                    response.Message = "Password reset successful, you can now login";
+                    response.Result = response.Message;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+                OASISErrorHandling.HandleError(ref response, e.Message);
+            }
+
+            return response;
+        }
+
+        public OASISResult<string> ResetPassword(string token, string oldPassword, string newPassword, ProviderType providerType = ProviderType.Default)
+        {
+            var response = new OASISResult<string>();
+
+            try
+            {
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, false, false, providerType);
+
+                if (!avatarsResult.IsError && avatarsResult.Result != null)
+                {
+                    //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
+                    var avatar = avatarsResult.Result.FirstOrDefault(x =>
+                        x.ResetToken == token &&
+                        x.ResetTokenExpires > DateTime.UtcNow);
+
+                    if (avatar == null)
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found, token is invalid.");
+                        return response;
+                    }
+
+                    if (!BCrypt.Net.BCrypt.Verify(oldPassword, avatar.Password))
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
+                        return response;
+                    }
+
+                    // update password and remove reset token
+                    avatar.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                    avatar.PasswordReset = DateTime.UtcNow;
+                    avatar.ResetToken = null;
+                    avatar.ResetTokenExpires = null;
+
+                    var saveAvatarResult = SaveAvatar(avatar, providerType: providerType);
+
+                    if (saveAvatarResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                        return response;
+                    }
+
+                    response.Message = "Password reset successful, you can now login";
+                    response.Result = response.Message;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+            }
+            catch (Exception e)
+            {
+                response.Exception = e;
+                response.Message = e.Message;
+                response.IsError = true;
+                response.IsSaved = false;
+                OASISErrorHandling.HandleError(ref response, e.Message);
+            }
+
+            return response;
+        }
         public string RandomTokenString()
         {
             using var rngCryptoServiceProvider = new System.Security.Cryptography.RNGCryptoServiceProvider();
@@ -627,7 +798,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public IAvatar HideAuthDetails(IAvatar avatar, bool hidePassword = true, bool hidePrivateKeys = true, bool hideVerificationToken = true, bool hideRefreshTokens = true)
+        //public IAvatar HideAuthDetails(IAvatar avatar, bool hidePassword = true, bool hidePrivateKeys = true, bool hideVerificationToken = true, bool hideRefreshTokens = true)
+        public IAvatar HideAuthDetails(IAvatar avatar, bool hidePassword = false, bool hidePrivateKeys = true, bool hideVerificationToken = false, bool hideRefreshTokens = false)
         {
             if (OASISDNA.OASIS.Security.HideVerificationToken || hideVerificationToken)
                 avatar.VerificationToken = null;
@@ -862,7 +1034,65 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return LevelManager.LevelLookup;
         }
 
-        
+        public async Task<OASISResult<IEnumerable<IAvatar>>> SearchAvatarsAsync(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
+            //OASISResult<IEnumerable<IHolon>> searchResults = await HolonManager.Instance.SearchHolonsAsync(searchTerm, HolonType.Avatar, true, true, 0, true, false, HolonType.All, 0, providerType);
+            OASISResult<ISearchResults> searchResults = await SearchManager.Instance.SearchAsync(new SearchParams()
+            {
+                SearchGroups = new List<ISearchGroupBase>()
+                            {
+                                new SearchTextGroup()
+                                {
+                                    HolonType = HolonType.Avatar,
+                                    SearchQuery = searchTerm,
+                                    SearchAvatars = true,
+                                    AvatarSerachParams = new SearchAvatarParams()
+                                    {
+                                        SearchAllFields = true
+                                    }
+                                }
+                            }
+            });
+
+            if (searchResults != null && !searchResults.IsError && searchResults.Result != null)
+                result.Result = searchResults.Result.SearchResultAvatars;
+
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(searchResults, result);
+            //result.Result = Mapper.ConvertIHolonsToIAvatars(searchResults.Result);
+
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IAvatar>> SearchAvatars(string searchTerm, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
+            //OASISResult<IEnumerable<IHolon>> searchResults = await HolonManager.Instance.SearchHolonsAsync(searchTerm, HolonType.Avatar, true, true, 0, true, false, HolonType.All, 0, providerType);
+            OASISResult<ISearchResults> searchResults = SearchManager.Instance.Search(new SearchParams()
+            {
+                SearchGroups = new List<ISearchGroupBase>()
+                            {
+                                new SearchTextGroup()
+                                {
+                                    HolonType = HolonType.Avatar,
+                                    SearchQuery = searchTerm,
+                                    SearchAvatars = true,
+                                    AvatarSerachParams = new SearchAvatarParams()
+                                    {
+                                        SearchAllFields = true
+                                    }
+                                }
+                            }
+            });
+
+            if (searchResults != null && !searchResults.IsError && searchResults.Result != null)
+                result.Result = searchResults.Result.SearchResultAvatars;
+
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(searchResults, result);
+            //result.Result = Mapper.ConvertIHolonsToIAvatars(searchResults.Result);
+
+            return result;
+        }
 
         /*
        public OASISResult<bool> DeleteAvatarDetailForProvider(Guid id, OASISResult<bool> result, SaveMode saveMode, bool softDelete = true, ProviderType providerType = ProviderType.Default)

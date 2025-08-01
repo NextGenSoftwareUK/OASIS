@@ -1,6 +1,6 @@
 using System;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.MVC.Models
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.MVC.Models
 {
     public class ErrorViewModel
     {

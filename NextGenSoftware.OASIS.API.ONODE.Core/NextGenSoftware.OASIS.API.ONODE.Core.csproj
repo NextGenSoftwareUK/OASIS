@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-	  <PackageId>NextGenSoftware.OASIS.API.ONode.Core</PackageId>
+	  <PackageId>NextGenSoftware.OASIS.API.ONODEONODE.Core</PackageId>
 	  <Company>NextGen Software Ltd</Company>
-	  <Product>WEB4 OASIS API ONode Core</Product>
-	  <Title>WEB4 OASIS API ONode Core</Title>
-	  <Summary>This sit's at a higher level of abstraction over OASIS API Core, and acts as the main Core (Business Logic Layer) to the OASIS API, whereas OASIS API Core is the core architecture and hosts the central managers such as ProviderManager, AvatarManager, HolonManager, etc, This package contains more higher level Managers (such as OLANDManager, MissionManager, ParksManager, MapManager, QuestManager, SEEDSManager, etc) and use cases built on top of OASIS API Core. This module also uses the OASISBootLoader to manage loading and using the OASISDNA/config for the ONode. OASIS API Core does not use the OASISBootLoader because it is at a lower level in the stack and so interface implementations (OASIS Providers) need to be manually injected into each Manager's constructor (DI) whereas this module and the OASISBootLoader manages all of this for you via the OASISDNA.json config file. Both OASIS.API.Native.Integrated.EndPoint &amp; the REST API both use this module/package and provide a wrapper around it and are the recommeneded ways to use the OASIS API.</Summary>
-	  <Description>This sit's at a higher level of abstraction over OASIS API Core, and acts as the main Core (Business Logic Layer) to the OASIS API, whereas OASIS API Core is the core architecture and hosts the central managers such as ProviderManager, AvatarManager, HolonManager, etc, This package contains more higher level Managers (such as OLANDManager, MissionManager, ParksManager, MapManager, QuestManager, SEEDSManager, etc) and use cases built on top of OASIS API Core. This module also uses the OASISBootLoader to manage loading and using the OASISDNA/config for the ONode. OASIS API Core does not use the OASISBootLoader because it is at a lower level in the stack and so interface implementations (OASIS Providers) need to be manually injected into each Manager's constructor (DI) whereas this module and the OASISBootLoader manages all of this for you via the OASISDNA.json config file. Both OASIS.API.Native.Integrated.EndPoint &amp; the REST API both use this module/package and provide a wrapper around it and are the recommeneded ways to use the OASIS API.</Description>
+	  <Product>WEB4 OASIS API ONODEONODE Core</Product>
+	  <Title>WEB4 OASIS API ONODEONODE Core</Title>
+	  <Summary>This sit's at a higher level of abstraction over OASIS API Core, and acts as the main Core (Business Logic Layer) to the OASIS API, whereas OASIS API Core is the core architecture and hosts the central managers such as ProviderManager, AvatarManager, HolonManager, etc, This package contains more higher level Managers (such as OLANDManager, MissionManager, ParksManager, MapManager, QuestManager, SEEDSManager, etc) and use cases built on top of OASIS API Core. This module also uses the OASISBootLoader to manage loading and using the OASISDNA/config for the ONODEONODE. OASIS API Core does not use the OASISBootLoader because it is at a lower level in the stack and so interface implementations (OASIS Providers) need to be manually injected into each Manager's constructor (DI) whereas this module and the OASISBootLoader manages all of this for you via the OASISDNA.json config file. Both OASIS.API.Native.Integrated.EndPoint &amp; the REST API both use this module/package and provide a wrapper around it and are the recommeneded ways to use the OASIS API.</Summary>
+	  <Description>This sit's at a higher level of abstraction over OASIS API Core, and acts as the main Core (Business Logic Layer) to the OASIS API, whereas OASIS API Core is the core architecture and hosts the central managers such as ProviderManager, AvatarManager, HolonManager, etc, This package contains more higher level Managers (such as OLANDManager, MissionManager, ParksManager, MapManager, QuestManager, SEEDSManager, etc) and use cases built on top of OASIS API Core. This module also uses the OASISBootLoader to manage loading and using the OASISDNA/config for the ONODEONODE. OASIS API Core does not use the OASISBootLoader because it is at a lower level in the stack and so interface implementations (OASIS Providers) need to be manually injected into each Manager's constructor (DI) whereas this module and the OASISBootLoader manages all of this for you via the OASISDNA.json config file. Both OASIS.API.Native.Integrated.EndPoint &amp; the REST API both use this module/package and provide a wrapper around it and are the recommeneded ways to use the OASIS API.</Description>
 	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
 	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
@@ -38,9 +38,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Google.Cloud.Storage.V1" Version="4.10.0" />
+	  <PackageReference Include="Google.Cloud.Storage.V1" Version="4.11.0" />
+	  <PackageReference Include="Pinata.Client" Version="1.0.0" />
+	  <PackageReference Include="PinataNET" Version="1.0.2" />
 	  <PackageReference Include="SevenZip" Version="19.0.0" />
-	  <PackageReference Include="SharpCompress" Version="0.38.0" />
+	  <PackageReference Include="SharpCompress" Version="0.39.0" />
 	  <PackageReference Include="SharpZipLib" Version="1.4.2" />
 	</ItemGroup>
 
@@ -56,5 +58,9 @@
       <Pack>True</Pack>
     </None>
   </ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Interfaces\Managers\COSMIC ORM\" />
+	</ItemGroup>
 
 </Project>

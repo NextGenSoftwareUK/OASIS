@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NextGenSoftware.OASIS.API.ONode.ONIXOS
+namespace NextGenSoftware.OASIS.API.ONODE.ONIXOS
 {
     class Program
     {

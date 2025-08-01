@@ -3,9 +3,9 @@
 //using NextGenSoftware.OASIS.API.Core.Enums;
 //using NextGenSoftware.OASIS.API.Core.Helpers;
 //using NextGenSoftware.OASIS.API.Core.Interfaces;
-//using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
+//using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 
-//namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 //{
 //    public class ValidationHelpers
 //    {

@@ -1,7 +1,7 @@
 using System.Net;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 {
     public static class HttpResponseHelper
     {

@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 {
     // custom exception class for throwing application specific exceptions 
     // that can be caught and handled within the application

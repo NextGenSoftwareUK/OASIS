@@ -4,7 +4,7 @@
 //using System.Threading.Tasks;
 //using System.Web.Http;
 
-//namespace NextGenSoftware.OASIS.API.ONode.WebUI.HTML2.App_Start
+//namespace NextGenSoftware.OASIS.API.ONODE.WebUI.HTML2.App_Start
 //{
 //    public static class WebApiConfig
 //    {

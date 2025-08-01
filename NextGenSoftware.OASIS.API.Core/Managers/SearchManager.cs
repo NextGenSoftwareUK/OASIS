@@ -86,7 +86,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         else
                             result.Message = "Search Completed Successfully.";
 
-                        result.Result = FilterResults(result.Result.SearchResultAvatars, result.Result.SearchResultHolons, allowDuplicates);
+                        result.Result = FilterResults(searchParams.AvatarId, result.Result.SearchResultAvatars, result.Result.SearchResultHolons, allowDuplicates, searchParams.SearchOnlyForCurrentAvatar);
                     }
 
                     // Set the current provider back to the original provider.
@@ -148,7 +148,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         else
                             result.Message = "Search Completed Successfully.";
 
-                        result.Result = FilterResults(result.Result.SearchResultAvatars, result.Result.SearchResultHolons, allowDuplicates);
+                        result.Result = FilterResults(searchParams.AvatarId, result.Result.SearchResultAvatars, result.Result.SearchResultHolons, allowDuplicates, searchParams.SearchOnlyForCurrentAvatar);
                     }
 
                     // Set the current provider back to the original provider.
@@ -164,8 +164,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private ISearchResults FilterResults(List<IAvatar> avatars, List<IHolon> holons, bool allowDuplicates = true)
+        private ISearchResults FilterResults(Guid avatarId, List<IAvatar> avatars, List<IHolon> holons, bool allowDuplicates = false, bool searchOnlyForCurrentAvatar = false)
         {
+            //Each provider should filter results already but just in case we will do it here too.
             ISearchResults results = new SearchResults();
 
             foreach (IAvatar avatar in avatars)
@@ -197,7 +198,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 results.NumberOfResults++;
             }
-            
+
+            results.SearchResultAvatars = results.SearchResultAvatars.Where(x => x.DeletedDate == DateTime.MinValue).ToList();
+            results.SearchResultHolons = results.SearchResultHolons.Where(x => x.DeletedDate == DateTime.MinValue).ToList();
+
+            if (searchOnlyForCurrentAvatar)
+            {
+                results.SearchResultAvatars = results.SearchResultAvatars.Where(x => x.CreatedByAvatarId == avatarId).ToList();
+                results.SearchResultHolons = results.SearchResultHolons.Where(x => x.CreatedByAvatarId == avatarId).ToList();
+            }
+
             return results;
         }
 
@@ -223,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
 
-            result.Result = FilterResults(avatars, holons, allowDuplicates);
+            result.Result = FilterResults(searchParams.AvatarId, avatars, holons, allowDuplicates, searchParams.SearchOnlyForCurrentAvatar);
 
             if (result.ErrorCount > 0 || result.WarningCount > 0)
                 OASISErrorHandling.HandleError(ref result, String.Concat("One ore more OASIS Providers failed to search. ErrorCount: ", result.ErrorCount, ". WarningCount: ", result.WarningCount, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
@@ -253,7 +263,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
             }
 
-            result.Result = FilterResults(avatars, holons, allowDuplicates);
+            result.Result = FilterResults(searchParams.AvatarId, avatars, holons, allowDuplicates, searchParams.SearchOnlyForCurrentAvatar);
 
             if (result.ErrorCount > 0 || result.WarningCount > 0)
                 OASISErrorHandling.HandleError(ref result, String.Concat("One ore more OASIS Providers failed to search. ErrorCount: ", result.ErrorCount, ". WarningCount: ", result.WarningCount, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Details: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
@@ -263,7 +273,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private async Task<OASISResult<ISearchResults>> SearchProviderAsync(ISearchParams searchParams, OASISResult<ISearchResults> result, ProviderType providerType = ProviderType.Default, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            string errorMessageTemplate = "Error in SearchProviderAsync method in SearchManager for provider {1}. Reason: ";
+            string errorMessageTemplate = "Error in SearchProviderAsync method in SearchManager for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
             try
@@ -306,7 +316,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private OASISResult<ISearchResults> SearchProvider(ISearchParams searchParams, OASISResult<ISearchResults> result, ProviderType providerType = ProviderType.Default, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            string errorMessageTemplate = "Error in SearchProvider method in SearchManager for provider {1}. Reason: ";
+            string errorMessageTemplate = "Error in SearchProvider method in SearchManager for provider {0}. Reason: ";
             string errorMessage = string.Format(errorMessageTemplate, providerType);
 
             try

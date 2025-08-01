@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Models.NFT
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
 {
     public class MintNFTTransactionRequest
     {
