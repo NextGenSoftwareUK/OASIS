@@ -71,7 +71,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             return result;
         }
-
         public OASISResult<T1> AddRuntime(Guid avatarId, T1 parent, IInstalledRuntime installedRuntime, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
