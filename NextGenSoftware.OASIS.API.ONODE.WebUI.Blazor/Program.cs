@@ -3,10 +3,10 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using NextGenSoftware.OASIS.API.ONode.WebUI.Blazor.Services;
-using NextGenSoftware.OASIS.API.ONode.WebUI.Blazor.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor.Services;
+using NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor.Helpers;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.Blazor
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor
 {
     public class Program
     {

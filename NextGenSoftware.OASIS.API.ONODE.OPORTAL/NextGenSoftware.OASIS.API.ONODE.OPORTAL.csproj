@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <UserSecretsId>aspnet-NextGenSoftware.OASIS.API.ONode.OPORTAL-E5D81B7C-560D-44B4-B634-486ADD17D34A</UserSecretsId>
+    <UserSecretsId>aspnet-NextGenSoftware.OASIS.API.ONODEONODE.OPORTAL-E5D81B7C-560D-44B4-B634-486ADD17D34A</UserSecretsId>
     <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
   </PropertyGroup>
 

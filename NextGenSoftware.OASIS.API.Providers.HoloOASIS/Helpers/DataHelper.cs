@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcAvatar.Children = avatar.Children;
             hcAvatar.CreatedOASISType = avatar.CreatedOASISType;
             hcAvatar.CreatedProviderType = avatar.CreatedProviderType;
-            hcAvatar.CustomKey = avatar.CustomKey;
+            //hcAvatar.CustomKey = avatar.CustomKey;
             hcAvatar.IsActive = avatar.IsActive;
             hcAvatar.IsBeamedIn = avatar.IsBeamedIn;
             hcAvatar.JwtToken = avatar.JwtToken;
@@ -213,7 +213,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 children = avatar.Children, //JsonSerializer.Serialize(avatar.Children), //TODO: We may need to serialize a few of these props if they are not supported...
                 created_oasis_type = avatar.CreatedOASISType,
                 created_provider_type = avatar.CreatedProviderType,
-                custom_key = avatar.CustomKey,
+                //custom_key = avatar.CustomKey,
                 is_active = avatar.IsActive,
                 is_beamed_in = avatar.IsBeamedIn,
                 jwt_token = avatar.JwtToken,
@@ -260,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcAvatarDetail.CreatedDate = avatarDetail.CreatedDate;
             hcAvatarDetail.CreatedOASISType = avatarDetail.CreatedOASISType;
             hcAvatarDetail.CreatedProviderType = avatarDetail.CreatedProviderType;
-            hcAvatarDetail.CustomKey = avatarDetail.CustomKey;
+            //hcAvatarDetail.CustomKey = avatarDetail.CustomKey;
             hcAvatarDetail.DeletedBy = avatarDetail.DeletedByAvatarId.ToString();
             hcAvatarDetail.DeletedDate = avatarDetail.DeletedDate;
             hcAvatarDetail.Description = avatarDetail.Description;
@@ -473,7 +473,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 children = avatar.Children, //JsonSerializer.Serialize(avatar.Children), //TODO: We may need to serialize a few of these props if they are not supported...
                 created_oasis_type = avatar.CreatedOASISType,
                 created_provider_type = avatar.CreatedProviderType,
-                custom_key = avatar.CustomKey,
+                //custom_key = avatar.CustomKey,
                 is_active = avatar.IsActive,
                 meta_data = avatar.MetaData,
                 parent_holon_id = avatar.ParentHolonId,
@@ -537,7 +537,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcHolon.Children = holon.Children;
             hcHolon.CreatedOASISType = holon.CreatedOASISType;
             hcHolon.CreatedProviderType = holon.CreatedProviderType;
-            hcHolon.CustomKey = holon.CustomKey;
+            //hcHolon.CustomKey = holon.CustomKey;
             hcHolon.IsActive = holon.IsActive;
             hcHolon.MetaData = holon.MetaData;
             hcHolon.ParentHolonId = holon.ParentHolonId;
@@ -697,7 +697,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 children = holon.Children, //JsonSerializer.Serialize(holon.Children), //TODO: We may need to serialize a few of these props if they are not supported...
                 created_oasis_type = holon.CreatedOASISType,
                 created_provider_type = holon.CreatedProviderType,
-                custom_key = holon.CustomKey,
+                //custom_key = holon.CustomKey,
                 is_active = holon.IsActive,
                 meta_data = holon.MetaData,
                 parent_holon_id = holon.ParentHolonId,

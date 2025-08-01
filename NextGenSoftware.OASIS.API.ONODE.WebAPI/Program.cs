@@ -8,14 +8,14 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Program
     {
         private static AvatarManager _avatarManager;
 
         //public static bool IsDevEnviroment = false;
-        //public static string LIVE_OASISAPI = "https://oasisplatform.world"; //"https://api.oasisplatform.world/api";
+        //public static string LIVE_OASISAPI = "https://oasisweb4.one"; //"https://api.oasisweb4.one/api";
         //public static string DEV_OASISAPI = "https://localhost:3000"; //"http://localhost:5000/api";
 
         //public static string CURRENT_OASISAPI

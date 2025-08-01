@@ -1,16 +1,15 @@
 ﻿using System;
+using System.Linq;
 using MongoDB.Driver;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.Logging;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
@@ -80,8 +79,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonId == id);
-                return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonId == id && x.DeletedDate == DateTime.MinValue);
+                //return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
+
+                Holon holon = await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
+
+                if (holon != null)
+                {
+                    //if (holon.DeletedDate == DateTime.MinValue)
+                    //{
+
+                    //}
+
+                    if ((holon.ProviderUniqueStorageKey != null && holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS) && holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] != holon.Id)
+                        || (holon.ProviderUniqueStorageKey != null && !holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS))
+                        || holon.ProviderUniqueStorageKey == null)
+                    {
+                        if (holon.ProviderUniqueStorageKey == null)
+                            holon.ProviderUniqueStorageKey = new Dictionary<ProviderType, string>();
+
+                        holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
+                        await UpdateAsync(holon);
+                    }
+                }
+
+                return holon;
             }
             catch
             {
@@ -93,8 +115,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonId == id);
-                return _dbContext.Holon.Find(filter).FirstOrDefault();
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonId == id && x.DeletedDate == DateTime.MinValue);
+                //return _dbContext.Holon.Find(filter).FirstOrDefault();
+
+                Holon holon = _dbContext.Holon.Find(filter).FirstOrDefault();
+
+                if (holon != null)
+                {
+                    if ((holon.ProviderUniqueStorageKey != null && holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS) && holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] != holon.Id)
+                        || (holon.ProviderUniqueStorageKey != null && !holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.MongoDBOASIS))
+                        || holon.ProviderUniqueStorageKey == null)
+                    {
+                        if (holon.ProviderUniqueStorageKey == null)
+                            holon.ProviderUniqueStorageKey = new Dictionary<ProviderType, string>();
+
+                        holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
+                        Update(holon);
+                    }
+                }
+
+                return holon;
             }
             catch
             {
@@ -119,7 +159,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey && x.DeletedDate == DateTime.MinValue);
                 return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
             }
             catch
@@ -132,7 +172,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             try
             {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey && x.DeletedDate == DateTime.MinValue);
                 return _dbContext.Holon.Find(filter).FirstOrDefault();
             }
             catch
@@ -141,92 +181,92 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        public async Task<Holon> GetHolonByMetaDataAsync(string metaKey, string metaValue)
-        {
-            try
-            {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.MetaData[metaKey].ToString() == metaValue);
-                return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
-            }
-            catch
-            {
-                throw;
-            }
-        }
+        //public async Task<Holon> GetHolonByMetaDataAsync(string metaKey, string metaValue)
+        //{
+        //    try
+        //    {
+        //        FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.MetaData[metaKey].ToString() == metaValue);
+        //        return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
 
-        public Holon GetHolonByMetaData(string metaKey, string metaValue)
-        {
-            try
-            {
-                var documents = _dbContext.Holon.Find(Builders<Holon>.Filter.Empty).ToList();
-                Holon matchedHolon = null;
+        //public Holon GetHolonByMetaData(string metaKey, string metaValue)
+        //{
+        //    try
+        //    {
+        //        var documents = _dbContext.Holon.Find(Builders<Holon>.Filter.Empty).ToList();
+        //        Holon matchedHolon = null;
 
-                foreach (Holon holon in documents)
-                {
-                    if (holon.MetaData[metaKey].ToString() == metaValue)
-                    {
-                        matchedHolon = holon;
-                        break;
-                    }
-                }
+        //        foreach (Holon holon in documents)
+        //        {
+        //            if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey].ToString() == metaValue)
+        //            {
+        //                matchedHolon = holon;
+        //                break;
+        //            }
+        //        }
 
-                return matchedHolon;
+        //        return matchedHolon;
 
-                //FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.MetaData[metaKey].ToString() == metaValue);
+        //        //FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.MetaData[metaKey].ToString() == metaValue);
 
-                //var filter = Builders<Holon>.Filter.Lte("MetaData.NFTMintWalletAddress", metaValue);
-                //var filter = Builders<Holon>.Filter.AnyEq("MetaData", new BsonDocument { { "NFTMintWalletAddress", metaValue } });
-                //var filter = Builders<Holon>.Filter.ElemMatch<BsonValue>("MetaData", new BsonDocument { { "NFTMintWalletAddress", metaValue }});
-                //var result = _dbContext.Holon.Find(filter).ToList();
+        //        //var filter = Builders<Holon>.Filter.Lte("MetaData.NFTMintWalletAddress", metaValue);
+        //        //var filter = Builders<Holon>.Filter.AnyEq("MetaData", new BsonDocument { { "NFTMintWalletAddress", metaValue } });
+        //        //var filter = Builders<Holon>.Filter.ElemMatch<BsonValue>("MetaData", new BsonDocument { { "NFTMintWalletAddress", metaValue }});
+        //        //var result = _dbContext.Holon.Find(filter).ToList();
 
 
 
-                //var c = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue).FirstOrDefault();
-                //var e = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"])
-                //_dbContext.Holon.Find( { $text: { $search: "On" } } );
+        //        //var c = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue).FirstOrDefault();
+        //        //var e = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"])
+        //        //_dbContext.Holon.Find( { $text: { $search: "On" } } );
 
-                //var c = _dbContext.Holon.Find(x => x.MetaData[metaKey].ToString() == metaKey).FirstOrDefault();
-                //var c = _dbContext.Holon.Find(x => x.MetaData[metaKey].ToString() == metaValue).FirstOrDefault();
-                //var d = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue);
-                //var e = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue).FirstOrDefault();
+        //        //var c = _dbContext.Holon.Find(x => x.MetaData[metaKey].ToString() == metaKey).FirstOrDefault();
+        //        //var c = _dbContext.Holon.Find(x => x.MetaData[metaKey].ToString() == metaValue).FirstOrDefault();
+        //        //var d = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue);
+        //        //var e = _dbContext.Holon.Find(x => x.MetaData["NFTMintWalletAddress"].ToString() == metaValue).FirstOrDefault();
 
-                //var c = _dbContext.Holon.Find({"comments.user": "AaravSingh" }).FirstOrDefault();
-                //var c = _dbContext.Holon.Find({"comments.user": "AaravSingh" }).FirstOrDefault();
+        //        //var c = _dbContext.Holon.Find({"comments.user": "AaravSingh" }).FirstOrDefault();
+        //        //var c = _dbContext.Holon.Find({"comments.user": "AaravSingh" }).FirstOrDefault();
 
-                //return _dbContext.Holon.Find(filter).FirstOrDefault();
-                return null;
-            }
-            catch
-            {
-                throw;
-            }
-        }
+        //        //return _dbContext.Holon.Find(filter).FirstOrDefault();
+        //        return null;
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
 
-        public async Task<Holon> GetHolonByCustomKeyAsync(string customKey)
-        {
-            try
-            {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.CustomKey == customKey);
-                return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
-            }
-            catch
-            {
-                throw;
-            }
-        }
+        //public async Task<Holon> GetHolonByCustomKeyAsync(string customKey)
+        //{
+        //    try
+        //    {
+        //        FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.CustomKey == customKey);
+        //        return await _dbContext.Holon.FindAsync(filter).Result.FirstOrDefaultAsync();
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
 
-        public Holon GetHolonByCustomKey(string customKey)
-        {
-            try
-            {
-                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.CustomKey == customKey);
-                return _dbContext.Holon.Find(filter).FirstOrDefault();
-            }
-            catch
-            {
-                throw;
-            }
-        }
+        //public Holon GetHolonByCustomKey(string customKey)
+        //{
+        //    try
+        //    {
+        //        FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.CustomKey == customKey);
+        //        return _dbContext.Holon.Find(filter).FirstOrDefault();
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
 
         public async Task<IEnumerable<Holon>> GetAllHolonsAsync(HolonType holonType = HolonType.All)
         {
@@ -234,11 +274,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 if (holonType == HolonType.All)
                 {
-                    return await _dbContext.Holon.FindAsync(_ => true).Result.ToListAsync();
+                    //return await _dbContext.Holon.FindAsync(_ => true).Result.ToListAsync();
+                    FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue);
+                    return await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
                 }
                 else
                 {
-                    FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType);
+                    FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue);
                     return await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
                 }
             }
@@ -254,11 +296,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 if (holonType == HolonType.All)
                 {
-                    return _dbContext.Holon.Find(_ => true).ToList();
+                    //return await _dbContext.Holon.FindAsync(_ => true).Result.ToListAsync();
+                    FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue);
+                    return _dbContext.Holon.Find(filter).ToList();
                 }
                 else
                 {
-                    FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType);
+                    FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue);
                     return _dbContext.Holon.Find(filter).ToList();
                 }
             }
@@ -344,63 +388,94 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        public async Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentByCustomKeyAsync(string customKey, HolonType holonType)
+        //public async Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentByCustomKeyAsync(string customKey, HolonType holonType)
+        //{
+        //    OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
+
+        //    try
+        //    {
+        //        result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByCustomKey(customKey, holonType)).Result.ToListAsync();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        string errorMessage = string.Concat("Unknown error occured in GetAllHolonsForParentByCustomKeyAsync method. customKey: ", customKey, ", holonType: ", Enum.GetName(typeof(HolonType), holonType), ". Error details: ", ex.ToString());
+        //        result.IsError = true;
+        //        result.Message = errorMessage;
+        //        LoggingManager.Log(errorMessage, LogType.Error);
+        //        result.Exception = ex;
+        //    }
+
+        //    return result;
+        //}
+
+        //public IEnumerable<Holon> GetAllHolonsForParentByCustomKey(string customKey, HolonType holonType)
+        //{
+        //    try
+        //    {
+        //        return _dbContext.Holon.Find(BuildFilterForGetHolonsForParentByCustomKey(customKey, holonType)).ToList();
+        //    }
+        //    catch
+        //    {
+        //        throw;
+        //    }
+        //}
+
+        public async Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType holonType)
         {
             OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
 
             try
             {
-                result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByCustomKey(customKey, holonType)).Result.ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = string.Concat("Unknown error occured in GetAllHolonsForParentByCustomKeyAsync method. customKey: ", customKey, ", holonType: ", Enum.GetName(typeof(HolonType), holonType), ". Error details: ", ex.ToString());
-                result.IsError = true;
-                result.Message = errorMessage;
-                LoggingManager.Log(errorMessage, LogType.Error);
-                result.Exception = ex;
-            }
+                //var collection = _dbContext.MongoDB.GetCollection<Holon>("Holon");
 
-            return result;
-        }
+                //if (holonType == HolonType.All)
+                //{
+                //    var query = from doc in collection.AsQueryable<Holon>()
+                //                //where doc.MetaData.ContainsKey(metaKey) && doc.MetaData[metaKey] != null && doc.MetaData[metaKey].ToString() == metaValue
+                //                where doc.MetaData[metaKey] != null && doc.MetaData[metaKey].ToString() == metaValue
+                //                where doc.DeletedDate == DateTime.MinValue
+                //                select doc;
 
-        public IEnumerable<Holon> GetAllHolonsForParentByCustomKey(string customKey, HolonType holonType)
-        {
-            try
-            {
-                return _dbContext.Holon.Find(BuildFilterForGetHolonsForParentByCustomKey(customKey, holonType)).ToList();
-            }
-            catch
-            {
-                throw;
-            }
-        }
+                //    result.Result = query.ToList();
+                //}
+                //else
+                //{
+                //    var query = from doc in collection.AsQueryable<Holon>()
+                //                //where doc.MetaData.ContainsKey(metaKey) && doc.MetaData[metaKey] != null && doc.MetaData[metaKey].ToString() == metaValue
+                //                where doc.MetaData[metaKey] != null && doc.MetaData[metaKey].ToString() == metaValue
+                //                where doc.HolonType == holonType
+                //                where doc.DeletedDate == DateTime.MinValue
+                //                select doc;
 
-        public async Task<OASISResult<IEnumerable<Holon>>> GetAllHolonsForParentByMetaDataAsync(string metaKey, string metaValue, HolonType holonType)
-        {
-            OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
+                //    result.Result = query.ToList();
+                //}
 
-            try
-            {
-                //result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).Result.ToListAsync();
-                var documents = _dbContext.Holon.FindAsync(Builders<Holon>.Filter.Empty).Result.ToListAsync();
-                //var documents = await _dbContext.Holon.FindAsync(_ => true).ToList();
+                List<Holon> holons = new List<Holon>();
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue);
 
-                //var documents2 = _dbContext.Holon.AsQueryable().ToList();
+                if (holonType == HolonType.All)
+                    filter = Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue);
+
+                holons = _dbContext.Holon.Find(filter).ToList();
 
                 List<Holon> matchedHolons = new List<Holon>();
 
-                foreach (Holon holon in documents.Result)
+                foreach (Holon holon in holons)
                 {
                     if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey] != null && holon.MetaData[metaKey].ToString() == metaValue)
                         matchedHolons.Add(holon);
                 }
 
                 result.Result = matchedHolons;
+
+                //if (holonType != HolonType.All)
+                //    result.Result = matchedHolons.Where(x => x.HolonType == holonType);
+                //else
+                //    result.Result = matchedHolons;
             }
             catch (Exception ex)
             {
-                string errorMessage = string.Concat("Unknown error occured in GetAllHolonsForParentByMetaDataAsync method. metaKey: ", metaKey, ", metaValue:, ", metaValue, "holonType: ", Enum.GetName(typeof(HolonType), holonType), ". Error details: ", ex.ToString());
+                string errorMessage = string.Concat("Unknown error occured in GetHolonsByMetaDataAsync method. metaKey: ", metaKey, ", metaValue:, ", metaValue, "holonType: ", Enum.GetName(typeof(HolonType), holonType), ". Error details: ", ex.ToString());
                 result.IsError = true;
                 result.Message = errorMessage;
                 LoggingManager.Log(errorMessage, LogType.Error);
@@ -410,16 +485,200 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public IEnumerable<Holon> GetAllHolonsForParentByMetaData(string metaKey, string metaValue, HolonType holonType)
+        public OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(string metaKey, string metaValue, HolonType holonType)
         {
+            OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
+
             try
             {
-                return _dbContext.Holon.Find(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).ToList();
+                //var collection = _dbContext.MongoDB.GetCollection<Holon>("Holon");
+
+                //if (holonType == HolonType.All)
+                //{
+                //    var query = from doc in collection.AsQueryable<Holon>()
+                //                where doc.MetaData.ContainsKey(metaKey) && doc.MetaData[metaKey] != null && doc.MetaData[metaKey].ToString() == metaValue
+                //                where doc.DeletedDate == DateTime.MinValue
+                //                select doc;
+
+                //    result.Result = query.ToList();
+                //}
+                //else
+                //{
+                //    var query = from doc in collection.AsQueryable<Holon>()
+                //                where doc.MetaData.ContainsKey(metaKey) && doc.MetaData[metaKey] != null && doc.MetaData[metaKey].ToString() == metaValue
+                //                where doc.HolonType == holonType
+                //                where doc.DeletedDate == DateTime.MinValue
+                //                select doc;
+
+                //    result.Result = query.ToList();
+                //}
+
+                List<Holon> holons = new List<Holon>();
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue);
+
+                if (holonType == HolonType.All)
+                    filter = Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue);
+
+                holons = _dbContext.Holon.Find(filter).ToList();
+
+                List<Holon> matchedHolons = new List<Holon>();
+
+                foreach (Holon holon in holons)
+                {
+                    if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey] != null && holon.MetaData[metaKey].ToString() == metaValue)
+                        matchedHolons.Add(holon);
+                }
+                
+                result.Result = matchedHolons;
+
+                //if (holonType != HolonType.All)
+                //    result.Result = matchedHolons.Where(x => x.HolonType == holonType);
+                //else
+                //    result.Result = matchedHolons;
             }
-            catch
+            catch (Exception ex)
             {
-                throw;
+                string errorMessage = string.Concat("Unknown error occured in GetHolonsByMetaDataAsync method. metaKey: ", metaKey, ", metaValue:, ", metaValue, "holonType: ", Enum.GetName(typeof(HolonType), holonType), ". Error details: ", ex.ToString());
+                result.IsError = true;
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+                result.Exception = ex;
             }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType)
+        {
+            OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
+
+            try
+            {
+                //TODO: Need to finish later! ;-)
+                //var collection = _dbContext.MongoDB.GetCollection<Holon>("Holon");
+
+                //if (holonType == HolonType.All)
+                //{
+                //    var query = from doc in collection.AsQueryable<Holon>()
+                //                where doc.MetaData.ContainsKey(metaKey) && doc.MetaData[metaKey] != null && doc.MetaData[metaKey].ToString() == metaValue
+                //                select doc;
+
+                //    result.Result = query.ToList();
+                //}
+                //else
+                //{
+                //    var query = from doc in collection.AsQueryable<Holon>()
+                //                where doc.MetaData.ContainsKey(metaKey) && doc.MetaData[metaKey] != null && doc.MetaData[metaKey].ToString() == metaValue
+                //                where doc.HolonType == holonType
+                //                select doc;
+
+                //    result.Result = query.ToList();
+                //}
+
+
+
+                //TODO: Need to write a query to load by meta data so is more efficent! :)
+                //result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).Result.ToListAsync();
+
+                List<Holon> holons = new List<Holon>();
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue);
+
+                if (holonType == HolonType.All)
+                    filter = Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue);
+
+                holons = await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
+                List<Holon> matchedHolons = new List<Holon>();
+                int matchedKeys = 0;
+
+                foreach (Holon holon in holons)
+                {
+                    matchedKeys = 0;
+                    foreach (KeyValuePair<string, string> metaKeyValuePair in metaKeyValuePairs)
+                    {
+                        if (holon.MetaData.ContainsKey(metaKeyValuePair.Key) && holon.MetaData[metaKeyValuePair.Key] != null && holon.MetaData[metaKeyValuePair.Key].ToString() == metaKeyValuePair.Value)
+                        {
+                            if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any)
+                                matchedHolons.Add(holon);
+                            else
+                                matchedKeys++;
+                        }
+                    }
+
+                    if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All && matchedKeys == metaKeyValuePairs.Count)
+                        matchedHolons.Add(holon);
+                }
+
+                result.Result = matchedHolons;
+
+                //if (holonType != HolonType.All)
+                //    result.Result = matchedHolons.Where(x => x.HolonType == holonType).ToList();
+                //else
+                //    result.Result = matchedHolons;
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = string.Concat("Unknown error occured in GetHolonsByMetaDataAsync method. holonType: ", Enum.GetName(typeof(HolonType), holonType), ". Error details: ", ex.ToString());
+                result.IsError = true;
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+                result.Exception = ex;
+            }
+
+            return result; 
+        }
+
+        public OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType)
+        {
+            OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
+
+            try
+            {
+                //TODO: Need to write a query to load by meta data so is more efficent! :)
+                List<Holon> holons = new List<Holon>();
+                FilterDefinition<Holon> filter = Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue);
+
+                if (holonType == HolonType.All)
+                    filter = Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue);
+
+                holons = _dbContext.Holon.Find(filter).ToList();
+                List<Holon> matchedHolons = new List<Holon>();
+                int matchedKeys = 0;
+
+                foreach (Holon holon in holons)
+                {
+                    matchedKeys = 0;
+                    foreach (KeyValuePair<string, string> metaKeyValuePair in metaKeyValuePairs)
+                    {
+                        if (holon.MetaData.ContainsKey(metaKeyValuePair.Key) && holon.MetaData[metaKeyValuePair.Key] != null && holon.MetaData[metaKeyValuePair.Key].ToString() == metaKeyValuePair.Value)
+                        {
+                            if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any)
+                                matchedHolons.Add(holon);
+                            else
+                                matchedKeys++;
+                        }
+                    }
+
+                    if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All && matchedKeys == metaKeyValuePairs.Count)
+                        matchedHolons.Add(holon);
+                }
+
+                result.Result = matchedHolons;
+
+                //if (holonType != HolonType.All)
+                //    result.Result = matchedHolons.Where(x => x.HolonType == holonType).ToList();
+                //else
+                //    result.Result = matchedHolons;
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = string.Concat("Unknown error occured in GetHolonsByMetaData method. holonType: ", Enum.GetName(typeof(HolonType), holonType), ". Error details: ", ex.ToString());
+                result.IsError = true;
+                result.Message = errorMessage;
+                LoggingManager.Log(errorMessage, LogType.Error);
+                result.Exception = ex;
+            }
+
+            return result;
         }
 
         public async Task<OASISResult<Holon>> UpdateAsync(Holon holon)
@@ -431,26 +690,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //TODO: Cant remember why I was doing this?! lol
                 if (holon.Id == null)
                 {
-                    Holon originalHolon = await GetHolonAsync(holon.HolonId);
+                    //Holon originalHolon = await GetHolonAsync(holon.HolonId);
 
-                    if (originalHolon != null)
-                    {
-                        holon.Id = originalHolon.Id;
-                        holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
-                        holon.CreatedDate = originalHolon.CreatedDate;
-                        holon.HolonType = originalHolon.HolonType;
-                        holon.ParentZome = originalHolon.ParentZome;
-                        holon.ParentZomeId = originalHolon.ParentZomeId;
-                        holon.ParentMoon = originalHolon.ParentMoon;
-                        holon.ParentPlanet = originalHolon.ParentPlanet;
-                        holon.ParentMoonId = originalHolon.ParentMoonId;
-                        holon.ParentPlanetId = originalHolon.ParentPlanetId;
-                        holon.Children = originalHolon.Children;
-                        holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
-                        holon.DeletedDate = originalHolon.DeletedDate;
-
-                        //TODO: Needs more thought!
-                    }
+                    //if (originalHolon != null)
+                    //{
+                    //    holon.Id = originalHolon.Id;
+                    //    holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
+                    //    holon.CreatedDate = originalHolon.CreatedDate;
+                    //    holon.HolonType = originalHolon.HolonType;
+                    //    holon.ParentZome = originalHolon.ParentZome;
+                    //    holon.ParentZomeId = originalHolon.ParentZomeId;
+                    //    holon.ParentMoon = originalHolon.ParentMoon;
+                    //    holon.ParentPlanet = originalHolon.ParentPlanet;
+                    //    holon.ParentMoonId = originalHolon.ParentMoonId;
+                    //    holon.ParentPlanetId = originalHolon.ParentPlanetId;
+                    //    holon.Children = originalHolon.Children;
+                    //    holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
+                    //    holon.DeletedDate = originalHolon.DeletedDate;
+                    //    holon.MetaData = originalHolon.MetaData;
+                    //    //TODO: Needs more thought!
+                    //}
                 }
 
                 await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: holon);
@@ -509,181 +768,352 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public async Task<OASISResult<IHolon>> DeleteAsync(Guid id, bool softDelete = true)
+        //public async Task<OASISResult<IHolon>> DeleteAsync(Guid id, Guid avatarId, bool softDelete = true)
+        //{
+        //    OASISResult<IHolon> result = new OASISResult<IHolon>();
+
+        //    try
+        //    {
+        //        Holon holon = await GetHolonAsync(id);
+
+        //        if (holon != null)
+        //        {
+        //            if (softDelete)
+        //            {
+        //                result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(await SoftDeleteAsync(holon, avatarId));
+
+        //                if (result.Result != null)
+        //                {
+        //                    result.IsDeleted = true;
+        //                    result.DeletedCount = 1;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.HolonId == id);
+        //                await _dbContext.Holon.DeleteOneAsync(data);
+        //                result.IsDeleted = true;
+        //                result.DeletedCount = 1;
+        //                result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            result.IsError = true;
+        //            result.Message = $"Holon with id {id} not found.";
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.DeleteAsync. Reason: {e}");
+        //    }
+
+        //    return result;
+        //}
+
+        //public OASISResult<IHolon> Delete(Guid id, Guid avatarId, bool softDelete = true)
+        //{
+        //    OASISResult<IHolon> result = new OASISResult<IHolon>();
+
+        //    try
+        //    {
+        //        Holon holon = GetHolon(id);
+
+        //        if (holon != null)
+        //        {
+        //            if (softDelete)
+        //            {
+        //                result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(SoftDelete(holon, avatarId));
+
+        //                if (result.Result != null)
+        //                {
+        //                    result.IsDeleted = true;
+        //                    result.DeletedCount = 1;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.HolonId == id);
+        //                _dbContext.Holon.DeleteOne(data);
+        //                result.IsDeleted = true;
+        //                result.DeletedCount = 1;
+        //                result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            result.IsError = true;
+        //            result.Message = $"Holon with id {id} not found.";
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.Delete. Reason: {e}");
+        //    }
+
+        //    return result;
+        //}
+
+        //public async Task<OASISResult<IHolon>> DeleteAsync(Guid avatarId, string providerKey, bool softDelete = true)
+        //{
+        //    OASISResult<IHolon> result = new OASISResult<IHolon>();
+
+        //    try
+        //    {
+        //        Holon holon = await GetHolonAsync(providerKey);
+
+        //        if (holon != null)
+        //        {
+        //            if (softDelete)
+        //            {
+        //                result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(await SoftDeleteAsync(holon, avatarId));
+
+        //                if (result.Result != null)
+        //                {
+        //                    result.IsDeleted = true;
+        //                    result.DeletedCount = 1;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
+        //                await _dbContext.Holon.DeleteOneAsync(data);
+        //                result.IsDeleted = true;
+        //                result.DeletedCount = 1;
+        //                result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            result.IsError = true;
+        //            result.Message = $"Holon with providerKey {providerKey} not found.";
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.DeleteAsync. Reason: {e}");
+        //    }
+
+        //    return result;
+        //}
+
+        //public OASISResult<IHolon> Delete(Guid avatarId, string providerKey, bool softDelete = true)
+        //{
+        //    OASISResult<IHolon> result = new OASISResult<IHolon>();
+
+        //    try
+        //    {
+        //        Holon holon = GetHolon(providerKey);
+
+        //        if (holon != null)
+        //        {
+        //            if (softDelete)
+        //            {
+        //                result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(SoftDelete(holon, avatarId));
+
+        //                if (result.Result != null)
+        //                {
+        //                    result.IsDeleted = true;
+        //                    result.DeletedCount = 1;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
+        //                _dbContext.Holon.DeleteOne(data);
+        //                result.IsDeleted = true;
+        //                result.DeletedCount = 1;
+        //                result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            result.IsError = true;
+        //            result.Message = $"Holon with providerKey {providerKey} not found.";
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.Delete. Reason: {e}");
+        //    }
+
+        //    return result;
+        //}
+
+        public async Task<OASISResult<IHolon>> DeleteAsync(Guid id)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
-                if (softDelete)
-                {
-                    Holon holon = await GetHolonAsync(id);
-                    result.Result = await SoftDeleteAsync(holon);
+                Holon holon = await GetHolonAsync(id);
 
-                    if (result.Result != null)
-                    {
-                        result.IsDeleted = true;
-                        result.DeletedCount = 1;
-                    }
-                }
-                else
+                if (holon != null)
                 {
                     FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.HolonId == id);
                     await _dbContext.Holon.DeleteOneAsync(data);
                     result.IsDeleted = true;
                     result.DeletedCount = 1;
+                    result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon); 
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.Message = $"Holon with id {id} not found.";
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In HolonRepository.DeleteAsync. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.DeleteAsync. Reason: {e}");
             }
 
             return result;
         }
 
-        public OASISResult<IHolon> Delete(Guid id, bool softDelete = true)
+        public OASISResult<IHolon> Delete(Guid id)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
-                if (softDelete)
-                {
-                    Holon holon = GetHolon(id);
-                    result.Result = SoftDelete(holon);
+                Holon holon = GetHolon(id);
 
-                    if (result.Result != null)
-                    {
-                        result.IsDeleted = true;
-                        result.DeletedCount = 1;
-                    }
-                }
-                else
+                if (holon != null)
                 {
                     FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.HolonId == id);
                     _dbContext.Holon.DeleteOne(data);
                     result.IsDeleted = true;
                     result.DeletedCount = 1;
+                    result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.Message = $"Holon with id {id} not found.";
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In HolonRepository.Delete. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.Delete. Reason: {e}");
             }
 
             return result;
         }
 
-        public async Task<OASISResult<IHolon>> DeleteAsync(string providerKey, bool softDelete = true)
+        public async Task<OASISResult<IHolon>> DeleteAsync(string providerKey)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
-                if (softDelete)
-                {
-                    Holon holon = await GetHolonAsync(providerKey);
-                    result.Result = await SoftDeleteAsync(holon);
+                Holon holon = await GetHolonAsync(providerKey);
 
-                    if (result.Result != null)
-                    {
-                        result.IsDeleted = true;
-                        result.DeletedCount = 1;
-                    }
-                }
-                else
+                if (holon != null)
                 {
                     FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
                     await _dbContext.Holon.DeleteOneAsync(data);
                     result.IsDeleted = true;
                     result.DeletedCount = 1;
+                    result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.Message = $"Holon with providerKey {providerKey} not found.";
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In HolonRepository.DeleteAsync. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.DeleteAsync. Reason: {e}");
             }
 
             return result;
         }
 
-        public OASISResult<IHolon> Delete(string providerKey, bool softDelete = true)
+        public OASISResult<IHolon> Delete(string providerKey)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
-                if (softDelete)
-                {
-                    Holon holon = GetHolon(providerKey);
-                    result.Result = SoftDelete(holon);
+                Holon holon = GetHolon(providerKey);
 
-                    if (result.Result != null)
-                    {
-                        result.IsDeleted = true;
-                        result.DeletedCount = 1;
-                    }
-                }
-                else
+                if (holon != null)
                 {
                     FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] == providerKey);
                     _dbContext.Holon.DeleteOne(data);
                     result.IsDeleted = true;
                     result.DeletedCount = 1;
+                    result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon);
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.Message = $"Holon with providerKey {providerKey} not found.";
                 }
             }
-            catch
+            catch (Exception e)
             {
-                throw;
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.Delete. Reason: {e}");
             }
 
             return result;
         }
 
-        private async Task<IHolon> SoftDeleteAsync(Holon holon)
-        {
-            try
-            {
-                if (holon != null)
-                {
-                    if (AvatarManager.LoggedInAvatar != null)
-                        holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+        //private async Task<OASISResult<Holon>> SoftDeleteAsync(Holon holon, Guid avatarId)
+        //{
+        //    OASISResult<Holon> result = new OASISResult<Holon>();
 
-                    holon.DeletedDate = DateTime.Now;
-                    await _dbContext.Holon.ReplaceOneAsync(filter: g => g.Id == holon.Id, replacement: holon);
-                    return (IHolon)holon;
-                }
-                else
-                    return null;
-            }
-            catch
-            {
-                throw;
-            }
-        }
+        //    try
+        //    {
+        //        if (holon != null)
+        //        {
+        //            //if (AvatarManager.LoggedInAvatar != null)
+        //            //    holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
-        private IHolon SoftDelete(Holon holon)
-        {
-            try
-            {
-                if (holon != null)
-                {
-                    if (AvatarManager.LoggedInAvatar != null)
-                        holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+        //            holon.DeletedByAvatarId = avatarId.ToString();
+        //            holon.DeletedDate = DateTime.Now;
+        //            await _dbContext.Holon.ReplaceOneAsync(filter: g => g.Id == holon.Id, replacement: holon);
+        //            //return (IHolon)holon;
+        //            result.Result = holon;
+        //        }
+        //        else
+        //            return null;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in MongoDBOASIS Provider.HolonReoisitory.SoftDeleteAsync. Reason: {e}");
+        //    }
 
-                    holon.DeletedDate = DateTime.Now;
-                    _dbContext.Holon.ReplaceOne(filter: g => g.Id == holon.Id, replacement: holon);
-                    return (IHolon)holon;
-                }
-                else
-                    return null;
-            }
-            catch
-            {
-                throw;
-            }
-        }
+        //    return result;
+        //}
+
+        //private OASISResult<Holon> SoftDelete(Holon holon, Guid avatarId)
+        //{
+        //    OASISResult<Holon> result = new OASISResult<Holon>();
+
+        //    try
+        //    {
+        //        if (holon != null)
+        //        {
+        //            //if (AvatarManager.LoggedInAvatar != null)
+        //            //    holon.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
+
+        //            holon.DeletedByAvatarId = avatarId.ToString();
+        //            holon.DeletedDate = DateTime.Now;
+        //             _dbContext.Holon.ReplaceOne(filter: g => g.Id == holon.Id, replacement: holon);
+        //            result.Result = holon;
+        //        }
+        //        else
+        //            return null;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in MongoDBOASIS Provider.HolonReoisitory.SoftDelete. Reason: {e}");
+        //    }
+
+        //    return result;
+        //}
 
         private FilterDefinition<Holon> BuildFilterForGetHolonsForParent(string providerKey, HolonType holonType)
         {
@@ -696,27 +1126,27 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 return null;
         }
 
-        private FilterDefinition<Holon> BuildFilterForGetHolonsForParentByCustomKey(string customKey, HolonType holonType)
-        {
-            FilterDefinition<Holon> filter = null;
-            Holon holon = GetHolonByCustomKey(customKey);
+        //private FilterDefinition<Holon> BuildFilterForGetHolonsForParentByCustomKey(string customKey, HolonType holonType)
+        //{
+        //    FilterDefinition<Holon> filter = null;
+        //    Holon holon = GetHolonByCustomKey(customKey);
 
-            if (holon != null)
-                return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
-            else
-                return null;
-        }
+        //    if (holon != null)
+        //        return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
+        //    else
+        //        return null;
+        //}
 
-        private FilterDefinition<Holon> BuildFilterForGetHolonsForParentByMetaData(string metaKey, string metaValue, HolonType holonType)
-        {
-            FilterDefinition<Holon> filter = null;
-            Holon holon = GetHolonByMetaData(metaKey, metaValue);
+        //private FilterDefinition<Holon> BuildFilterForGetHolonsForParentByMetaData(string metaKey, string metaValue, HolonType holonType)
+        //{
+        //    FilterDefinition<Holon> filter = null;
+        //    Holon holon = GetHolonByMetaData(metaKey, metaValue);
 
-            if (holon != null)
-                return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
-            else
-                return null;
-        }
+        //    if (holon != null)
+        //        return BuildFilterForGetHolonsForParent(holon.HolonId, holonType);
+        //    else
+        //        return null;
+        //}
 
         private FilterDefinition<Holon> BuildFilterForGetHolonsForParent(Guid id, HolonType holonType)
         {
@@ -727,11 +1157,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 filter = Builders<Holon>.Filter.And(
                 Builders<Holon>.Filter.Where(p => p.ParentHolonId == id),
                 Builders<Holon>.Filter.Where(p => p.HolonType == holonType));
+                Builders<Holon>.Filter.Where(p => p.DeletedDate == DateTime.MinValue);
             }
             else
             {
                 filter = Builders<Holon>.Filter.And(
                 Builders<Holon>.Filter.Where(p => p.ParentHolonId == id));
+                Builders<Holon>.Filter.Where(p => p.DeletedDate == DateTime.MinValue);
             }
 
             return filter;

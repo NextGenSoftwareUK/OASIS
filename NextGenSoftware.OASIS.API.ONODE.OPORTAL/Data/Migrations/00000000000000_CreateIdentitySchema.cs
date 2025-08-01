@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace NextGenSoftware.OASIS.API.ONode.OPORTAL.Data.Migrations
+namespace NextGenSoftware.OASIS.API.ONODE.OPORTAL.Data.Migrations
 {
     public partial class CreateIdentitySchema : Migration
     {

@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Http;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Middleware
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 {
     public class ErrorHandlerMiddleware
     {

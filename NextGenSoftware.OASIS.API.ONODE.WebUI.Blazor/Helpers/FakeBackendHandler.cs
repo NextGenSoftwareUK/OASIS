@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.Blazor.Helpers
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor.Helpers
 {
     public class FakeBackendHandler : HttpClientHandler
     {

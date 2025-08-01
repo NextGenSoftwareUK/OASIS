@@ -15,14 +15,14 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Avatar;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using BC = BCrypt.Net.BCrypt;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
     //TODO: Want to phase this out, not needed, moving more and more code into AvatarManager.
     public class AvatarService : IAvatarService
@@ -313,67 +313,67 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
             return result;
         }
 
-        public async Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model)
-        {
-            var response = new OASISResult<string>();
+        //public async Task<OASISResult<string>> ResetPassword(ResetPasswordRequest model)
+        //{
+        //    var response = new OASISResult<string>();
 
-            try
-            {
-                OASISResult<IEnumerable<IAvatar>> avatarsResult = await AvatarManager.LoadAllAvatarsAsync(false, false);
+        //    try
+        //    {
+        //        OASISResult<IEnumerable<IAvatar>> avatarsResult = await AvatarManager.LoadAllAvatarsAsync(false, false);
 
-                if (!avatarsResult.IsError && avatarsResult.Result != null)
-                {
-                    //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
-                    var avatar = avatarsResult.Result.FirstOrDefault(x =>
-                        x.ResetToken == model.Token &&
-                        x.ResetTokenExpires > DateTime.UtcNow);
+        //        if (!avatarsResult.IsError && avatarsResult.Result != null)
+        //        {
+        //            //TODO: PERFORMANCE} Implement in Providers so more efficient and do not need to return whole list!
+        //            var avatar = avatarsResult.Result.FirstOrDefault(x =>
+        //                x.ResetToken == model.Token &&
+        //                x.ResetTokenExpires > DateTime.UtcNow);
 
-                    if (avatar == null)
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar Not Found");
-                        return response;
-                    }
+        //            if (avatar == null)
+        //            {
+        //                OASISErrorHandling.HandleError(ref response, "Avatar Not Found");
+        //                return response;
+        //            }
 
-                    //int salt = 12;
-                    //string passwordHash = BC.HashPassword(model.OldPassword, salt);
+        //            //int salt = 12;
+        //            //string passwordHash = BC.HashPassword(model.OldPassword, salt);
 
-                    //if (!BC.Verify(avatar.Password, passwordHash))
-                    //{
-                    //    OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
-                    //    return response;
-                    //}
+        //            //if (!BC.Verify(avatar.Password, passwordHash))
+        //            //{
+        //            //    OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
+        //            //    return response;
+        //            //}
 
-                    // update password and remove reset token
-                    avatar.Password = BC.HashPassword(model.NewPassword);
-                    avatar.PasswordReset = DateTime.UtcNow;
-                    avatar.ResetToken = null;
-                    avatar.ResetTokenExpires = null;
+        //            // update password and remove reset token
+        //            avatar.Password = BC.HashPassword(model.NewPassword);
+        //            avatar.PasswordReset = DateTime.UtcNow;
+        //            avatar.ResetToken = null;
+        //            avatar.ResetTokenExpires = null;
 
-                    var saveAvatarResult = AvatarManager.SaveAvatar(avatar);
+        //            var saveAvatarResult = AvatarManager.SaveAvatar(avatar);
 
-                    if (saveAvatarResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
-                        return response;
-                    }
+        //            if (saveAvatarResult.IsError)
+        //            {
+        //                OASISErrorHandling.HandleError(ref saveAvatarResult, $"Error occured in ResetPassword saving the avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+        //                return response;
+        //            }
 
-                    response.Message = "Password reset successful, you can now login";
-                    response.Result = response.Message;
-                }
-                else
-                    OASISErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
-            }
-            catch (Exception e)
-            {
-                response.Exception = e;
-                response.Message = e.Message;
-                response.IsError = true;
-                response.IsSaved = false;
-                OASISErrorHandling.HandleError(ref response, e.Message);
-            }
+        //            response.Message = "Password reset successful, you can now login";
+        //            response.Result = response.Message;
+        //        }
+        //        else
+        //            OASISErrorHandling.HandleError(ref response, $"Error occured in ResetPassword loading all avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        response.Exception = e;
+        //        response.Message = e.Message;
+        //        response.IsError = true;
+        //        response.IsSaved = false;
+        //        OASISErrorHandling.HandleError(ref response, e.Message);
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
         public async Task<OASISResult<AvatarPortrait>> GetAvatarPortraitById(Guid id)
         {

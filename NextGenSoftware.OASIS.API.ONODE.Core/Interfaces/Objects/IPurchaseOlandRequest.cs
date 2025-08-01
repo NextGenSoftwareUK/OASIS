@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Objects
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects
 {
     public interface IPurchaseOlandRequest
     {

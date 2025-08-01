@@ -2,7 +2,7 @@
 //using System.Threading.Tasks;
 //using Microsoft.AspNetCore.Mvc;
 //using NextGenSoftware.OASIS.API.Core.Helpers;
-//using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
+//using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 //using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Cargo;
 //using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Request;
 //using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Response;
@@ -11,7 +11,7 @@
 //using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
 //using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
 
-//namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 //{
 //    [Route("api/[controller]")]
 //    [ApiController]

@@ -165,17 +165,17 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         throw new NotImplementedException();
     }
 
-    public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
+    public override OASISResult<IHolon> DeleteHolon(Guid id)
     {
         throw new NotImplementedException();
     }
 
-    public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
+    public override OASISResult<IHolon> DeleteHolon(string providerKey)
     {
         throw new NotImplementedException();
     }
 
-    public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
+    public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
     {
         OASISResult<IHolon> result = new();
         string errorMessage = "Error in DeleteHolonAsync method in Web3CoreOASIS while deleting holon. Reason: ";
@@ -216,7 +216,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+    public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
     {
         throw new NotImplementedException();
     }
@@ -488,25 +488,25 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         throw new NotImplementedException();
     }
 
-    public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        throw new NotImplementedException();
-    }
+    //public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
-    public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        throw new NotImplementedException();
-    }
+    //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
-    public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        throw new NotImplementedException();
-    }
+    //public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
-    public override Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        throw new NotImplementedException();
-    }
+    //public override Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
@@ -528,22 +528,32 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         throw new NotImplementedException();
     }
 
-    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    //public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    //{
+    //    throw new NotImplementedException();
+    //}
+
+    //public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    //{
+    //    throw new NotImplementedException();
+    //}
+
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         throw new NotImplementedException();
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         throw new NotImplementedException();
     }
 
-    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         throw new NotImplementedException();
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         throw new NotImplementedException();
     }

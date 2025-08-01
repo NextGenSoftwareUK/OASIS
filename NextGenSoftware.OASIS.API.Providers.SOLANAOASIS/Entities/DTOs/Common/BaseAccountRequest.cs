@@ -1,7 +1,6 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common
+﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
+
+public class BaseAccountRequest
 {
-    public class BaseAccountRequest
-    {
-        public string PublicKey { get; set; }
-    }
+    public string PublicKey { get; set; }
 }

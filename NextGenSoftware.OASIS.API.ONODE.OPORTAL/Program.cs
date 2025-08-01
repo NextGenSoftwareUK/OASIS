@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace NextGenSoftware.OASIS.API.ONode.OPORTAL
+namespace NextGenSoftware.OASIS.API.ONODE.OPORTAL
 {
     public class Program
     {

@@ -8,9 +8,9 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
-    <RootNamespace>NextGenSoftware.OASIS.API.ONode.WebAPI</RootNamespace>
-    <AssemblyName>NextGenSoftware.OASIS.API.ONode.WebAPI</AssemblyName>
-    <StartupObject>NextGenSoftware.OASIS.API.ONode.WebAPI.Program</StartupObject>
+    <RootNamespace>NextGenSoftware.OASIS.API.ONODE.WebAPI</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.API.ONODE.WebAPI</AssemblyName>
+    <StartupObject>NextGenSoftware.OASIS.API.ONODE.WebAPI.Program</StartupObject>
     <UserSecretsId>b95fccdc-3bbf-4f80-b705-624af891ef15</UserSecretsId>
     <!--<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>-->
 	<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>

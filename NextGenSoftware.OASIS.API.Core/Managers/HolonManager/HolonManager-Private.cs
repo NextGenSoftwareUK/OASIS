@@ -570,7 +570,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     PropertyInfo propInfo = typeof(T).GetProperty(key);
 
-                    if (propInfo != null)
+                    if (propInfo != null && holon.MetaData[key] != null)
                     {
                         if (propInfo.PropertyType == typeof(Guid))
                             propInfo.SetValue(holon, new Guid(holon.MetaData[key].ToString()));
@@ -623,6 +623,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         //else if (propInfo.Attributes.)
                         //    propInfo.SetValue(holon, holon.MetaData[key]);
+
+                        else if (propInfo.PropertyType == typeof(string) && holon.MetaData[key] != null)
+                            propInfo.SetValue(holon, holon.MetaData[key].ToString());
                     }
                 }
                 catch (Exception ex)
@@ -1080,8 +1083,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             List<IHolon> restoredHolons = new List<IHolon>();
 
-            foreach (IHolon holon in holons)
-                restoredHolons.Add(RestoreCelesialBodies(holon));
+            if (holons != null)
+            {
+                foreach (IHolon holon in holons)
+                    restoredHolons.Add(RestoreCelesialBodies(holon));
+            }
+            //else
+            //    LoggingManager.Log("The list of holons to restore celestial bodies for is null.", LogType.Warning);
 
             return restoredHolons;
         }
@@ -1090,8 +1098,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             List<T> restoredHolons = new List<T>();
 
-            foreach (T holon in holons)
-                restoredHolons.Add(RestoreCelesialBodies(holon));
+            if (holons != null)
+            {
+                foreach (T holon in holons)
+                    restoredHolons.Add(RestoreCelesialBodies(holon));
+            }
+            //else
+            //    LoggingManager.Log("The list of holons to restore celestial bodies for is null.", LogType.Warning);
 
             return restoredHolons;
         }

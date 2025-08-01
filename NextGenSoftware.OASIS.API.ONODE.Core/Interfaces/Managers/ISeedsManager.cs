@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.ONode.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONode.Core.Interfaces
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
 {
     public interface ISeedsManager : IOASISManager
     {

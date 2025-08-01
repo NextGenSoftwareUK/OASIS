@@ -16,6 +16,14 @@
     <Compile Remove="DNATemplates\CSharpDNATemplates\Types\int.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\Types\string.cs" />
     <Compile Remove="DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\HolonMetaDataDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\boolDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\DateTimeDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\DoubleDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\intDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\LongDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\Types\stringDNA.cs" />
+    <Compile Remove="DNATemplates\MetaDataDNATemplates\ZomeMetaDataDNA.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,6 +53,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
     <!--<ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj" />
@@ -91,12 +100,26 @@
     <None Include="DNATemplates\CSharpDNATemplates\Types\int.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\Types\string.cs" />
     <None Include="DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\HolonMetaDataDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\Types\BoolDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\Types\LongDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\Types\IntDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\Types\DateTimeDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\Types\DoubleDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\Types\StringDNA.cs" />
+    <None Include="DNATemplates\MetaDataDNATemplates\ZomeMetaDataDNA.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MappingGenerator" Version="1.22.3" />
     <PackageReference Include="Mapster" Version="7.2.0" />
     <!--<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.8" />-->
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="NextGenSoftware.OASIS.STAR.CLI.Lib">
+      <HintPath>..\STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\Runtimes\STAR ODK Runtime v2.0.2\NextGenSoftware.OASIS.STAR.CLI.Lib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

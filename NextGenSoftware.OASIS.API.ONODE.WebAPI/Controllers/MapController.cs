@@ -8,7 +8,7 @@
 //using NextGenSoftware.OASIS.API.Core.Managers;
 //using NextGenSoftware.OASIS.API.Core.Objects;
 
-//namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 //{
 
 

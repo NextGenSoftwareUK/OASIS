@@ -580,7 +580,7 @@ function onLogin() {
     };
     (async () => {
         const e = await fetch(
-            'https://api.oasisplatform.world/api/avatar/authenticate',
+            'https://api.oasisweb4.one/api/avatar/authenticate',
             {
                 method: 'POST',
                 body: JSON.stringify(n),
@@ -612,7 +612,7 @@ async function onLogout() {
     console.log(body);
 
     const e = await fetch(
-        'https://api.oasisplatform.world/api/avatar/revoke-token',
+        'https://api.oasisweb4.one/api/avatar/revoke-token',
         {
             method: 'POST',
             body: JSON.stringify(body),
@@ -640,7 +640,7 @@ function onSignup() {
 	};
 	(async () => {
 		const e = await fetch(
-			'https://api.oasisplatform.world/api/avatar/register',
+			'https://api.oasisweb4.one/api/avatar/register',
 			{
 				method: 'POST',
 				body: JSON.stringify(n),

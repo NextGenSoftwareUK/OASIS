@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.ONode.Core.Interfaces.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects;
 
-namespace NextGenSoftware.OASIS.API.ONode.Core.Objects
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects
 {
     public class PurchaseOlandResponse : IPurchaseOlandResponse
     {

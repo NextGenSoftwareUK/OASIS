@@ -135,7 +135,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             try
             {
-                IPFSClient.ShutdownAsync();
+                if (IPFSClient != null)
+                    IPFSClient.ShutdownAsync();
+
                 IPFSClient = null;
                 result.Result = true;
                 IsProviderActivated = false;
@@ -238,34 +240,42 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public async Task<IHolon> SaveHolonToFile(IHolon holon)
         {
-            //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
-            _idLookup = await LoadLookupToJson();
-            HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == holon.Id);
+            try
+            {
+                //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
+                _idLookup = await LoadLookupToJson();
+                HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == holon.Id);
 
-            // in case there is no element in _idlookup dictionary
-            if (dico == null)
-                dico = new HolonResume();
+                // in case there is no element in _idlookup dictionary
+                if (dico == null)
+                    dico = new HolonResume();
 
-            if (_idLookup.Count(a => a.Value.Id == holon.Id) > 0)
-                holon.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
-                    _idLookup.FirstOrDefault(a => a.Value.Id == holon.Id).Key;
+                if (_idLookup.Count(a => a.Value.Id == holon.Id) > 0)
+                    holon.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
+                        _idLookup.FirstOrDefault(a => a.Value.Id == holon.Id).Key;
 
-            string json = JsonConvert.SerializeObject(holon);
-            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
+                string json = JsonConvert.SerializeObject(holon);
+                var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
 
-            // we store just values that we will use as a filter of search in other methods.
-            dico.Id = holon.Id;
-            dico.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
-            dico.ParentHolonId = holon.ParentHolonId;
-            dico.HolonType = holon.HolonType;
+                // we store just values that we will use as a filter of search in other methods.
+                dico.Id = holon.Id;
+                dico.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
+                dico.ParentHolonId = holon.ParentHolonId;
+                dico.HolonType = holon.HolonType;
 
-            if (_idLookup.Count == 0)
-                _idLookup.Add(fsn.Id, dico);
-            else
-                _idLookup[fsn.Id] = dico;
+                if (_idLookup.Count == 0)
+                    _idLookup.Add(fsn.Id, dico);
+                else
+                    _idLookup[fsn.Id] = dico;
 
-            string id = await SaveLookupToFile(_idLookup);
+                string id = await SaveLookupToFile(_idLookup);
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError($"Error occured in SaveHolonToFile method in IPFSOASIS Provider. Reason: {e}");
+            }
+
             return holon;
         }
 
@@ -571,17 +581,17 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            return DeleteHolonAsync(id, softDelete).Result;
+            return DeleteHolonAsync(id).Result;
         }
 
-        public override OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            return DeleteHolonAsync(providerKey, softDelete).Result;
+            return DeleteHolonAsync(providerKey).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
@@ -602,7 +612,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
@@ -941,42 +951,52 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public override Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             throw new NotImplementedException();
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             throw new NotImplementedException();
         }

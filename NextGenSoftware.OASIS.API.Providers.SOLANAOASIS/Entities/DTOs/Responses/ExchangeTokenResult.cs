@@ -1,15 +1,12 @@
-﻿using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Common;
+﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses;
 
-namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses
+public sealed class ExchangeTokenResult : BaseTransactionResult
 {
-    public sealed class ExchangeTokenResult : BaseTransactionResult
+    public ExchangeTokenResult(string transactionHash) : base(transactionHash)
     {
-        public ExchangeTokenResult(string transactionHash) : base(transactionHash)
-        {
-        }
+    }
 
-        public ExchangeTokenResult()
-        {
-        }
+    public ExchangeTokenResult()
+    {
     }
 }
