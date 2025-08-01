@@ -137,7 +137,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                OASISResult<Quest> parentQuestResult = await LoadAsync<Quest>(avatarId, parentQuestId, providerType: providerType);
+                OASISResult<Quest> parentQuestResult = await LoadAsync(avatarId, parentQuestId, providerType: providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
@@ -203,7 +203,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                OASISResult<Quest> parentQuestResult = await LoadAsync<Quest>(avatarId, parentQuestId, providerType: providerType);
+                OASISResult<Quest> parentQuestResult = await LoadAsync(avatarId, parentQuestId, providerType: providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
@@ -269,7 +269,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                OASISResult<Quest> parentQuestResult = await LoadAsync<Quest>(avatarId, parentQuestId, providerType: providerType);
+                OASISResult<Quest> parentQuestResult = await LoadAsync(avatarId, parentQuestId, providerType: providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
@@ -335,7 +335,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                OASISResult<Quest> parentQuestResult = await LoadAsync<Quest>(avatarId, parentQuestId, providerType: providerType);
+                OASISResult<Quest> parentQuestResult = await LoadAsync(avatarId, parentQuestId, providerType: providerType);
 
                 if (parentQuestResult != null && parentQuestResult.Result != null && !parentQuestResult.IsError)
                 {
@@ -399,7 +399,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManager.GetCurentStageForQuestAsync. Reason:";
 
-            OASISResult<Quest> loadResult = await LoadAsync<Quest>(avatarId, questId, providerType: providerType);
+            OASISResult<Quest> loadResult = await LoadAsync(avatarId, questId, providerType: providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {
