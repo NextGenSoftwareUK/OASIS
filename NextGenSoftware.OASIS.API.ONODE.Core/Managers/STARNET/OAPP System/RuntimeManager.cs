@@ -672,7 +672,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private OASISResult<IInstalledRuntime> ProcessResult(OASISResult<InstalledRuntime> operationResult)
         {
             OASISResult<IInstalledRuntime> result = new OASISResult<IInstalledRuntime>();
-            result.Result = operationResult.Result;
+            result.Result = (IInstalledRuntime)operationResult.Result;
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
             return result;
         }

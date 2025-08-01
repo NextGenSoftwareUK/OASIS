@@ -1,6 +1,5 @@
 ﻿using System;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons.STARNET;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects.STARNET
 {
