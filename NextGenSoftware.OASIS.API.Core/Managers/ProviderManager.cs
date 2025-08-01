@@ -18,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private List<IOASISProvider> _registeredProviders = new List<IOASISProvider>();
         private List<EnumValue<ProviderType>> _registeredProviderTypes = new List<EnumValue<ProviderType>>();
         private List<EnumValue<ProviderType>> _providerAutoFailOverList { get; set; } = new List<EnumValue<ProviderType>>();
+        private List<EnumValue<ProviderType>> _providerAutoFailOverListForCheckIfOASISSystemAccountExists { get; set; } = new List<EnumValue<ProviderType>>();
         private List<EnumValue<ProviderType>> _providerAutoFailOverListForAvatarLogin { get; set; } = new List<EnumValue<ProviderType>>();
         private List<EnumValue<ProviderType>> _providerAutoFailOverListForCheckIfEmailAlreadyInUse { get; set; } = new List<EnumValue<ProviderType>>();
         private List<EnumValue<ProviderType>> _providerAutoFailOverListForCheckIfUsernameAlreadyInUse { get; set; } = new List<EnumValue<ProviderType>>();
@@ -330,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return new OASISResult<IOASISStorageProvider>(CurrentStorageProvider);
         }
 
-        // Called from ONode.WebAPI.OASISProviderManager.
+        // Called from ONODE.WebAPI.OASISProviderManager.
         public OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(IOASISProvider OASISProvider)
         {
             if (OASISProvider != CurrentStorageProvider)
@@ -363,7 +364,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return new OASISResult<IOASISStorageProvider>(CurrentStorageProvider);
         }
 
-        // Called from ONode.WebAPI.OASISProviderManager.
+        // Called from ONODE.WebAPI.OASISProviderManager.
         //TODO: In future more than one StorageProvider will be active at a time so we need to work out how to handle this...
         public OASISResult<IOASISStorageProvider> SetAndActivateCurrentStorageProvider(ProviderType providerType, bool setGlobally = false)
         {
@@ -672,6 +673,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return SetProviderList(addToFailOverList, providers, _providerAutoFailOverListForCheckIfUsernameAlreadyInUse);
         }
 
+        public bool SetAutoFailOverForProvidersForCheckIfOASISSystemAccountExists(bool addToFailOverList, IEnumerable<ProviderType> providers)
+        {
+            return SetProviderList(addToFailOverList, providers, _providerAutoFailOverListForCheckIfOASISSystemAccountExists);
+        }
+
         public OASISResult<bool> SetAutoFailOverForProviders(bool addToFailOverList, string providerList)
         {
             OASISResult<bool> result = new OASISResult<bool>();
@@ -923,6 +929,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return _providerAutoFailOverListForCheckIfUsernameAlreadyInUse;
         }
 
+        public List<EnumValue<ProviderType>> GetProviderAutoFailOverListForCheckIfOASISSystemAccountExists()
+        {
+            return _providerAutoFailOverListForCheckIfOASISSystemAccountExists;
+        }
         public string GetProviderAutoFailOverListAsString()
         {
             return GetProviderListAsString(GetProviderAutoFailOverList());

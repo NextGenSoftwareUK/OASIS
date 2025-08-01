@@ -1,6 +1,7 @@
 ﻿using System;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
-namespace NextGenSoftware.OASIS.API.Core.Interfaces
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
     public interface ISeedTransaction : IHolon
     {

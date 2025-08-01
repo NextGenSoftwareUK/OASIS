@@ -1,7 +1,7 @@
 
 using NextGenSoftware.OASIS.API.Core.Enums;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Data
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data
 {
     public abstract class BaseHolonRequest : OASISRequest
     {

@@ -1,15 +1,15 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.ONode.Core.Holons;
-using NextGenSoftware.OASIS.API.ONode.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using System;
 
-namespace NextGenSoftware.OASIS.API.ONode.Core.TestHarness
+namespace NextGenSoftware.OASIS.API.ONODE.Core.TestHarness
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("NEXTGEN SOFTWARE ONode Core TEST HARNESS V1.2");
+            Console.WriteLine("NEXTGEN SOFTWARE ONODE Core TEST HARNESS V1.2");
             Console.WriteLine("");
 
             SampleManager sampleManager = new SampleManager();

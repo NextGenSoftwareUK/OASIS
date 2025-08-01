@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.MVC
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.MVC
 {
     public class Startup
     {

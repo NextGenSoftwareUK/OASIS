@@ -7,6 +7,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.Search
 {
     public interface ISearchGroupBase
     {
+        public HolonType HolonType { get; set; }
+        //public bool SearchOnlyForCurrentAvatar { get; set; }
         public SearchParamGroupOperator PreviousSearchGroupOperator { get; set; }   
         public bool SearchAvatars { get; set; }
         public bool SearchHolons { get; set; }

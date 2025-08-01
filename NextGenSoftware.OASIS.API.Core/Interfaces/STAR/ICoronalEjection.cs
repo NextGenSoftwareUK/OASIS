@@ -6,7 +6,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
     {
         ICelestialBody CelestialBody { get; set; }
         ICelestialSpace CelestialSpace { get; set; }
-        IOAPPDNA OAPPDNA { get; set; }
+        //IOAPPDNA OAPPDNA { get; set; }
+        public IOAPP OAPP { get; set; }
         IEnumerable<IZome> Zomes { get; set; }
     }
 }

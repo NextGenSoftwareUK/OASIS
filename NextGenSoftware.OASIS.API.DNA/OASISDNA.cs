@@ -220,6 +220,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string AutoFailOverProvidersForAvatarLogin { get; set; }
         public string AutoFailOverProvidersForCheckIfEmailAlreadyInUse { get; set; }
         public string AutoFailOverProvidersForCheckIfUsernameAlreadyInUse { get; set; }
+        public string AutoFailOverProvidersForCheckIfOASISSystemAccountExists { get; set; }
         public string OASISProviderBootType { get; set; }
         public AzureOASISProviderSettings AzureCosmosDBOASIS { get; set; }
         public HoloOASISProviderSettings HoloOASIS { get; set; }

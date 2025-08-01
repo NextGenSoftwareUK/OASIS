@@ -6,10 +6,10 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.ONode.Core.Managers;
-using NextGenSoftware.OASIS.API.ONode.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -69,9 +69,9 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         [Authorize(AvatarType.Wizard)]
         [HttpPost]
         [Route("delete-oland/{olandId}")]
-        public async Task<OASISResult<IHolon>> DeleteOlandAsync(Guid olandId)
+        public async Task<OASISResult<IHolon>> DeleteOlandAsync(Guid avatarId, Guid olandId)
         {
-            return await OLandManager.DeleteOlandAsync(olandId);
+            return await OLandManager.DeleteOlandAsync(olandId, avatarId);
         }
 
         [Authorize(AvatarType.Wizard)]

@@ -388,178 +388,178 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IEnumerable<IHolon>> LoadHolonsForParentForProviderTypeByCustomKey(string customKey, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<IHolon>> result = null)
-        {
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
+        //private OASISResult<IEnumerable<IHolon>> LoadHolonsForParentForProviderTypeByCustomKey(string customKey, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<IHolon>> result = null)
+        //{
+        //    try
+        //    {
+        //        OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
 
-                if (providerResult.IsError)
-                {
-                    LoggingManager.Log(providerResult.Message, LogType.Error);
+        //        if (providerResult.IsError)
+        //        {
+        //            LoggingManager.Log(providerResult.Message, LogType.Error);
 
-                    if (result != null)
-                    {
-                        result.IsError = true;
-                        result.Message = providerResult.Message;
-                    }
-                }
-                else if (result != null)
-                {
-                    result = providerResult.Result.LoadHolonsForParentByCustomKey(customKey, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
-                    result.IsLoaded = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with customKey ", customKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
+        //            if (result != null)
+        //            {
+        //                result.IsError = true;
+        //                result.Message = providerResult.Message;
+        //            }
+        //        }
+        //        else if (result != null)
+        //        {
+        //            result = providerResult.Result.LoadHolonsByCustomKey(customKey, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
+        //            result.IsLoaded = true;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        string errorMessage = string.Concat("An error occured attempting to load the holons for parent with customKey ", customKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                if (result != null)
-                {
-                    result.Result = null;
-                    OASISErrorHandling.HandleError(ref result, errorMessage);
-                }
-                else
-                    OASISErrorHandling.HandleError(errorMessage);
-            }
+        //        if (result != null)
+        //        {
+        //            result.Result = null;
+        //            OASISErrorHandling.HandleError(ref result, errorMessage);
+        //        }
+        //        else
+        //            OASISErrorHandling.HandleError(errorMessage);
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        private OASISResult<IEnumerable<T>> LoadHolonsForParentForProviderTypeByCustomKey<T>(string customKey, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
-        {
-            string errorMessage = string.Concat("An error occured attempting to load the holons for parent with customKey ", customKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider.");
+        //private OASISResult<IEnumerable<T>> LoadHolonsForParentForProviderTypeByCustomKey<T>(string customKey, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
+        //{
+        //    string errorMessage = string.Concat("An error occured attempting to load the holons for parent with customKey ", customKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider.");
 
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
+        //    try
+        //    {
+        //        OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
 
-                if (providerResult.IsError)
-                {
-                    LoggingManager.Log(providerResult.Message, LogType.Error);
+        //        if (providerResult.IsError)
+        //        {
+        //            LoggingManager.Log(providerResult.Message, LogType.Error);
 
-                    if (result != null)
-                    {
-                        result.IsError = true;
-                        result.Message = providerResult.Message;
-                    }
-                }
-                else if (result != null)
-                {
-                    T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IEnumerable<IHolon>> holonResult = providerResult.Result.LoadHolonsForParentByCustomKey(customKey, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
+        //            if (result != null)
+        //            {
+        //                result.IsError = true;
+        //                result.Message = providerResult.Message;
+        //            }
+        //        }
+        //        else if (result != null)
+        //        {
+        //            T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
+        //            OASISResult<IEnumerable<IHolon>> holonResult = providerResult.Result.LoadHolonsByCustomKey(customKey, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
 
-                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
-                    {
-                        result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
-                        result.IsLoaded = true;
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                errorMessage = $"{errorMessage} Reason: {ex}";
+        //            if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
+        //            {
+        //                result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(holonResult.Result);
+        //                result.IsLoaded = true;
+        //            }
+        //            else
+        //                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {holonResult.Message}");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        errorMessage = $"{errorMessage} Reason: {ex}";
 
-                if (result != null)
-                {
-                    result.Result = null;
-                    OASISErrorHandling.HandleError(ref result, errorMessage);
-                }
-                else
-                    OASISErrorHandling.HandleError(errorMessage);
-            }
+        //        if (result != null)
+        //        {
+        //            result.Result = null;
+        //            OASISErrorHandling.HandleError(ref result, errorMessage);
+        //        }
+        //        else
+        //            OASISErrorHandling.HandleError(errorMessage);
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentForProviderTypeByCustomKeyAsync(string customKey, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<IHolon>> result = null)
-        {
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+        //private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentForProviderTypeByCustomKeyAsync(string customKey, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<IHolon>> result = null)
+        //{
+        //    try
+        //    {
+        //        OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
 
-                if (providerResult.IsError)
-                {
-                    LoggingManager.Log(providerResult.Message, LogType.Error);
+        //        if (providerResult.IsError)
+        //        {
+        //            LoggingManager.Log(providerResult.Message, LogType.Error);
 
-                    if (result != null)
-                    {
-                        result.IsError = true;
-                        result.Message = providerResult.Message;
-                    }
-                }
-                else if (result != null)
-                {
-                    result = await providerResult.Result.LoadHolonsForParentByCustomKeyAsync(customKey, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
-                    result.IsLoaded = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with customKey ", customKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
+        //            if (result != null)
+        //            {
+        //                result.IsError = true;
+        //                result.Message = providerResult.Message;
+        //            }
+        //        }
+        //        else if (result != null)
+        //        {
+        //            result = await providerResult.Result.LoadHolonsByCustomKeyAsync(customKey, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
+        //            result.IsLoaded = true;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        string errorMessage = string.Concat("An error occured attempting to load the holons for parent with customKey ", customKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                if (result != null)
-                {
-                    result.Result = null;
-                    OASISErrorHandling.HandleError(ref result, errorMessage);
-                }
-                else
-                    OASISErrorHandling.HandleError(errorMessage);
-            }
+        //        if (result != null)
+        //        {
+        //            result.Result = null;
+        //            OASISErrorHandling.HandleError(ref result, errorMessage);
+        //        }
+        //        else
+        //            OASISErrorHandling.HandleError(errorMessage);
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        private async Task<OASISResult<IEnumerable<T>>> LoadHolonsForParentForProviderTypeByCustomKeyAsync<T>(string customKey, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
-        {
-            try
-            {
-                OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
+        //private async Task<OASISResult<IEnumerable<T>>> LoadHolonsForParentForProviderTypeByCustomKeyAsync<T>(string customKey, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<T>> result = null) where T : IHolon, new()
+        //{
+        //    try
+        //    {
+        //        OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
 
-                if (providerResult.IsError)
-                {
-                    LoggingManager.Log(providerResult.Message, LogType.Error);
+        //        if (providerResult.IsError)
+        //        {
+        //            LoggingManager.Log(providerResult.Message, LogType.Error);
 
-                    if (result != null)
-                    {
-                        result.IsError = true;
-                        result.Message = providerResult.Message;
-                    }
-                }
-                else if (result != null)
-                {
-                    //T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IEnumerable<IHolon>> loadHolonsForParentResult = await providerResult.Result.LoadHolonsForParentByCustomKeyAsync(customKey, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
+        //            if (result != null)
+        //            {
+        //                result.IsError = true;
+        //                result.Message = providerResult.Message;
+        //            }
+        //        }
+        //        else if (result != null)
+        //        {
+        //            //T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
+        //            OASISResult<IEnumerable<IHolon>> loadHolonsForParentResult = await providerResult.Result.LoadHolonsByCustomKeyAsync(customKey, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
 
-                    if (!loadHolonsForParentResult.IsError && loadHolonsForParentResult.Result != null)
-                    {
-                        result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(loadHolonsForParentResult.Result);
-                        result.IsLoaded = true;
-                    }
-                    else
-                    {
-                        result.IsError = true;
-                        result.Message = loadHolonsForParentResult.Message;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = string.Concat("An error occured attempting to load the holons for parent with customKey ", customKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
+        //            if (!loadHolonsForParentResult.IsError && loadHolonsForParentResult.Result != null)
+        //            {
+        //                result.Result = Mapper<IHolon, T>.MapBaseHolonProperties(loadHolonsForParentResult.Result);
+        //                result.IsLoaded = true;
+        //            }
+        //            else
+        //            {
+        //                result.IsError = true;
+        //                result.Message = loadHolonsForParentResult.Message;
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        string errorMessage = string.Concat("An error occured attempting to load the holons for parent with customKey ", customKey, " and holonType ", Enum.GetName(typeof(HolonType), holonType), " using the ", Enum.GetName(providerType), " provider. Error Details: ", ex.ToString());
 
-                if (result != null)
-                {
-                    result.Result = null;
-                    OASISErrorHandling.HandleError(ref result, errorMessage);
-                }
-                else
-                    OASISErrorHandling.HandleError(errorMessage);
-            }
+        //        if (result != null)
+        //        {
+        //            result.Result = null;
+        //            OASISErrorHandling.HandleError(ref result, errorMessage);
+        //        }
+        //        else
+        //            OASISErrorHandling.HandleError(errorMessage);
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         private OASISResult<IEnumerable<IHolon>> LoadHolonsForParentForProviderTypeByMetaData(string metaKey, string metaValue, HolonType holonType, ProviderType providerType, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0, OASISResult<IEnumerable<IHolon>> result = null)
         {
@@ -579,7 +579,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = providerResult.Result.LoadHolonsForParentByMetaData(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
+                    result = providerResult.Result.LoadHolonsByMetaData(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -620,7 +620,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     //T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IEnumerable<IHolon>> holonResult = providerResult.Result.LoadHolonsForParentByMetaData(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
+                    OASISResult<IEnumerable<IHolon>> holonResult = providerResult.Result.LoadHolonsByMetaData(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
 
                     if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
@@ -665,7 +665,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else if (result != null)
                 {
-                    result = await providerResult.Result.LoadHolonsForParentByMetaDataAsync(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
+                    result = await providerResult.Result.LoadHolonsByMetaDataAsync(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
                     result.IsLoaded = true;
                 }
             }
@@ -704,7 +704,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 else if (result != null)
                 {
                     //T convertedHolon = (T)Activator.CreateInstance(typeof(T)); //TODO: Need to find faster alternative to relfection... maybe JSON?
-                    OASISResult<IEnumerable<IHolon>> loadHolonsForParentResult = await providerResult.Result.LoadHolonsForParentByMetaDataAsync(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
+                    OASISResult<IEnumerable<IHolon>> loadHolonsForParentResult = await providerResult.Result.LoadHolonsByMetaDataAsync(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
 
                     if (!loadHolonsForParentResult.IsError && loadHolonsForParentResult.Result != null)
                     {

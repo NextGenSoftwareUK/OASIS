@@ -1,59 +1,177 @@
 {
-  //TODO: If BasePath is blank then all other paths below are absolute otherwise they are relative.
-  "BasePath": "C:\\OASIS\\STAR ODK",
-  "OASISRunTimePath": "Runtimes\\OASIS Runtime\\OASIS Runtime (With Holochain Conductors Embedded) v3.3.1",
-  "STARRunTimePath": "Runtimes\\STAR Runtime\\STAR ODK Runtime v2.2.0 (With OASIS Runtime v3.3.1 HC Conductor Embedded)",
-  "OAPPDNATemplatePath": "STAR OAPP DNA Templates",
-  "RustDNARSMTemplateFolder": "NextGenSoftware.OASIS.STAR\\DNATemplates\\RustDNATemplates\\RSM",
-  "CSharpDNATemplateFolder": "NextGenSoftware.OASIS.STAR\\DNATemplates\\CSharpDNATemplates",
-  "CelestialBodyDNA": "NextGenSoftware.OASIS.STAR.TestHarness\\CelestialBodyDNA",
-  "GenesisFolder": "NextGenSoftware.OASIS.STAR.TestHarness\\bin\\Debug\\net8.0\\Genesis",
-  "GenesisNamespace": "NextGenSoftware.OASIS.STAR.TestHarness.Genesis",
-  "TemplateNamespace": "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates",
-  "RustTemplateLib": "core\\lib.rs",
-  "RustTemplateHolon": "core\\holon.rs",
-  "RustTemplateValidation": "core\\validation.rs",
-  "RustTemplateCreate": "crud\\create.rs",
-  "RustTemplateRead": "crud\\read.rs",
-  "RustTemplateUpdate": "crud\\update.rs",
-  "RustTemplateDelete": "crud\\delete.rs",
-  "RustTemplateList": "crud\\list.rs",
-  "RustTemplateInt": "types\\int.rs",
-  "RustTemplateString": "types\\string.rs",
-  "RustTemplateBool": "types\\bool.rs",
-  "CSharpTemplateIHolonDNA": "Interfaces\\IHolonDNATemplate.cs",
-  "CSharpTemplateHolonDNA": "HolonDNATemplate.cs",
-  "CSharpTemplateIZomeDNA": "Interfaces\\IZomeDNATemplate.cs",
-  "CSharpTemplateZomeDNA": "ZomeDNATemplate.cs",
-  "CSharpTemplateICelestialBodyDNA": "Interfaces\\ICelestialBodyDNATemplate.cs",
-  "CSharpTemplateCelestialBodyDNA": "CelestialBodyDNATemplate.cs",
-  "CSharpTemplateLoadHolonDNA": "LoadHolonDNATemplate.cs",
-  "CSharpTemplateSaveHolonDNA": "SaveHolonDNATemplate.cs",
-  "CSharpTemplateILoadHolonDNA": "Interfaces\\ILoadHolonDNATemplate.cs",
-  "CSharpTemplateISaveHolonDNA": "Interfaces\\ISaveHolonDNATemplate.cs",
-  "CSharpTemplateInt": "types\\int.cs",
-  "CSharpTemplateString": "types\\string.cs",
-  "CSharpTemplateBool": "types\\bool.cs",
-  //"OAPPConsoleTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Console.DLL",
-  //"OAPPBlazorTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WebBlazor",
-  //"OAPPWebMVCTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WebMVC",
-  //"OAPPMAUITemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.MAUI",
-  //"OAPPUnityTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Unity",
-  //"OAPPWinFormsTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WinForms",
-  //"OAPPWPFTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WPF",
-  //"OAPPWindowsServiceTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.WindowsService",
-  //"OAPPRESTServiceTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.RESTService",
-  //"OAPPgRPCServiceTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.gRPCService",
-  //"OAPPGraphQLServiceTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.GraphQLService",
-  //"OAPPCustomTemplateDNA": "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Custom",
-  "OAPPGeneratedCodeFolder": "Generated Code",
-  "StarProviderKey": "",
-  "DefaultGreatGrandSuperStarId": "",
-  "DefaultGrandSuperStarId": "",
-  "DefaultSuperStarId": "",
-  "DefaultStarId": "",
-  "DefaultPlanetId": "",
-  "DefaultPublishedOAPPsPath": "PublishedOAPPs", //Can be releative to BasePath above or absolute.
-  "DefaultInstalledOAPPsPath": "InstalledOAPPs", //Can be releative to BasePath above or absolute.
-  "DefaultInstalledOAPPTemplatesPath": "InstalledOAPPTemplates" //Can be releative to BasePath above or absolute.
+    // If STARBasePath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
+    "STARBasePath": "C:\\Source\\OASIS\\STAR ODK\\Release\\STAR_ODK_v3.0.0",
+    "MetaDataDNATemplateFolder": "DNATemplates\\MetaDataDNATemplates", //MetaData DNA Templates that are used to generate the meta data for CelestialBodies, Zomes & Holons.  Can be relative to STARBasePath or absolute.
+    "RustDNARSMTemplateFolder": "DNATemplates\\RustDNATemplates\\RSM", //Rust DNA Templates that hAPPs are built from (releative to STARBasePath above).
+    "CSharpDNATemplateFolder": "DNATemplates\\CSharpDNATemplates", //C# DNA Templates (CelestialBodies, Zomes & Holons) that are used to generate OAPPs from (releative to STARBasePath above).
+    "CSharpDNATemplateNamespace": "NextGenSoftware.OASIS.STAR.DNATemplates.CSharpTemplates", //The default namespace for the C# DNA Templates above.
+    "OAPPMetaDataDNAFolder": "OAPPMetaDataDNA", //All OAPP DNA MetaData (CelestialBodies, Zomes & Holons) is generated in this folder. It can then be optionally uploaded to STARNET for later re-use in other OAPP's and optionally shared with others. An OAPP is generated from the CelestialBodyMetaDataDNA and can contain zome and holon metadta. You can also create your own meta data here or anywhere to generate a OAPP from and point the Light Wizard to the relevant folder. The folder is relative to the BaseSTARPath above.
+    "DefaultGenesisNamespace": "NextGenSoftware.OASIS.STAR.Genesis", //The default namespace to be used when generating OAPPs (CelestialBodies).
+    "ZomeMetaDataDNA": "ZomeMetaDataDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.
+    "HolonMetaDataDNA": "HolonMetaDataDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.
+    //"HolonMetaDataStringDNA": "StringDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.
+    //"HolonMetaDataBoolDNA": "BoolDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.
+    //"HolonMetaDataIntDNA": "IntDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.
+    //"HolonMetaDataDateTimeDNA": "DateTimeDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.
+    //"HolonMetaDataLongDNA": "LongDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.
+    //"HolonMetaDataDoubleDNA": "DoubleDNA.cs", //Can be relative to MetaDataDNATemplateFolder or absolute.
+    "RustTemplateLib": "core\\lib.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateHolon": "core\\holon.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateValidation": "core\\validation.rs", //releative to RustDNARSMTemplateFolder above.     
+    "RustTemplateCreate": "crud\\create.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateRead": "crud\\read.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateUpdate": "crud\\update.rs", //releative to RustsDNARSMTemplateFolder above.
+    "RustTemplateDelete": "crud\\delete.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateList": "crud\\list.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateInt": "types\\int.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateString": "types\\string.rs", //releative to RustDNARSMTemplateFolder above.
+    "RustTemplateBool": "types\\bool.rs", //releative to RustDNARSMTemplateFolder above.
+    "CSharpTemplateIHolonDNA": "Interfaces\\IHolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateHolonDNA": "HolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateIZomeDNA": "Interfaces\\IZomeDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateZomeDNA": "ZomeDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateICelestialBodyDNA": "Interfaces\\ICelestialBodyDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateCelestialBodyDNA": "CelestialBodyDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateLoadHolonDNA": "LoadHolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateSaveHolonDNA": "SaveHolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateILoadHolonDNA": "Interfaces\\ILoadHolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateISaveHolonDNA": "Interfaces\\ISaveHolonDNATemplate.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateInt": "types\\int.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateString": "types\\string.cs", //releative to CSharpDNATemplateFolder above.
+    "CSharpTemplateBool": "types\\bool.cs", //releative to CSharpDNATemplateFolder above.
+    "OAPPGeneratedCodeFolder": "Generated Code", //The folder where the generated code for OAPPs is placed (releative to the root of the generated OAPP).
+    "StarProviderKey": "",
+    "DefaultGreatGrandSuperStarId": "", //The default Great Grand Super Star ID (at the centre of the Omniverse/God Head/Source) to use when creating new OAPPs and using COSMIC.
+    "DefaultGrandSuperStarId": "", //The default Grand Super Star ID (at the centre of the Universe/Prime Creator) to use when creating new OAPPs and using COSMIC.
+    "DefaultSuperStarId": "", //The default Super Star ID (Great Central Sun at the centre of the Milky Way) to use when creating new OAPPs and using COSMIC.
+    "DefaultStarId": "", //The default Star ID (The Sun) to use when creating new OAPPs and using COSMIC.
+    "DefaultPlanetId": "", //The default Planet ID (Our World) to use when creating new OAPPs and using COSMIC.
+
+    //If this is left blank then all STARNET paths below will be absolute otherwise they will be relative (NOTE: This is NOT STARBasePath above to allow the user data to be stored in a different location if needed).
+    "STARNETBasePath": "C:\\Source\\OASIS\\STAR ODK\\Release\\STAR_ODK_v3.0.0\\STARNET",
+
+    //All paths below for STARNET can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
+    //OAPP's are composed of Celestial Bodies, Zomes and Holons (which are all types of DNA) and can be used to create OAPPs (Omniverse/OASIS/Our World Applications) which are like Apps in the Omniverse/OASIS/Our World. OAPPs can be published, searched, downloaded, installed on the user's machine or downloaded from the OASIS/STARNET. They can also be published to the OASIS/STARNET for others to use and can be updated with new versions. The same applies for everything below here for STARNET.
+    "DefaultOAPPsSourcePath": "OAPPs\\Source",
+    "DefaultOAPPsPublishedPath": "OAPPs\\Published",
+    "DefaultOAPPsDownloadedPath": "OAPPs\\Downloaded",
+    "DefaultOAPPsInstalledPath": "OAPPs\\Installed",
+
+    //OAPP Templates are used to create OAPPs along with Runtimes.
+    "DefaultOAPPTemplatesSourcePath": "OAPPTemplates\\Source",
+    "DefaultOAPPTemplatesPublishedPath": "OAPPTemplates\\Published",
+    "DefaultOAPPTemplatesDownloadedPath": "OAPPTemplates\\Downloaded",
+    "DefaultOAPPTemplatesInstalledPath": "OAPPTemplates\\Installed",
+
+    //Runtimes are used to run OAPPs and can be installed on the user's machine or downloaded from the OASIS. Different runtimes can be combined with different OAPP Templates making unique combinations for OAPPs.
+    "DefaultRuntimesSourcePath": "Runtimes\\Source",
+    "DefaultRuntimePublishedPath": "Runtimes\\Published",
+    "DefaultRuntimeDownloadedPath": "Runtimes\\Downloaded",
+    //"DefaultRuntimeInstalledPath": "Runtimes\\Installed\\Other",
+    //"DefaultRuntimeInstalledOASISPath": "Runtimes\\Installed\\OASIS",
+    //"DefaultRuntimeInstalledSTARPath": "Runtimes\\Installed\\STAR",
+    "DefaultRuntimeInstalledPath": "Runtimes\\Installed", //TODO: NEED TO MAKE CUSTOM CHANGES TO RUNTIME MANAGER/UI ETC TO WORK WITH PATHS ABOVE!
+    "DefaultRuntimeInstalledOASISPath": "Runtimes\\Installed",
+    "DefaultRuntimeInstalledSTARPath": "Runtimes\\Installed",
+
+    //Libs are used in OAPPs and can be installed on the user's machine or downloaded from the OASIS. Different libs can be combined with different OAPP Templates & Runtimes making unique combinations for OAPPs.
+    "DefaultLibsSourcePath": "Libs\\Source",
+    "DefaultLibsPublishedPath": "Libs\\Published",
+    "DefaultLibsDownloadedPath": "Libs\\Downloaded",
+    "DefaultLibsInstalledPath": "Libs\\Installed",
+
+    //Chapters contain Quests and are used to break down big quests into seperate Chapters.
+    "DefaultChaptersSourcePath": "Chapters\\Source",
+    "DefaultChaptersPublishedPath": "Chapters\\Published",
+    "DefaultChaptersDownloadedPath": "Chapters\\Downloaded",
+    "DefaultChaptersInstalledPath": "Chapters\\Installed",
+
+    //Missions contain Quests and optionally Chapters.
+    "DefaultMissionsSourcePath": "Missions\\Source",
+    "DefaultMissionsPublishedPath": "Missions\\Published",
+    "DefaultMissionsDownloadedPath": "Missions\\Downloaded",
+    "DefaultMissionsInstalledPath": "Missions\\Installed",
+
+    //Quests contain GeoNFTs, GeoHotSpots and InventoryItems (that are rewarded when you complete a quest).
+    "DefaultQuestsSourcePath": "Quests\\Source",
+    "DefaultQuestsPublishedPath": "Quests\\Published",
+    "DefaultQuestsDownloadedPath": "Quests\\Downloaded",
+    "DefaultQuestsInstalledPath": "Quests\\Installed",
+
+    //OASIS NFTs (wrap around all types of web3 NFTs and form an abstraction layer to convert between standards and chains) are Non-Fungible Tokens that can be used to represent unique items, assets or collectibles in the Omniverse/OASIS/Our World.
+    "DefaultNFTsSourcePath": "NFTs\\Source",
+    "DefaultNFTsPublishedPath": "NFTs\\Published",
+    "DefaultNFTsDownloadedPath": "NFTs\\Downloaded",
+    "DefaultNFTsInstalledPath": "NFTs\\Installed",
+
+    //GeoNFTs are Geographical Non-Fungible Tokens that can be used to represent unique geographical locations or assets in the Omniverse/OASIS/Our World. (GeoNFTs can be created from OASIS NFTs).
+    "DefaultGeoNFTsSourcePath": "GeoNFTs\\Source",
+    "DefaultGeoNFTsPublishedPath": "GeoNFTs\\Published",
+    "DefaultGeoNFTsDownloadedPath": "GeoNFTs\\Downloaded",
+    "DefaultGeoNFTsInstalledPath": "GeoNFTs\\Installed",
+
+    //GeoHotSpots are special geolocations within Our World/Omniverse that can be triggered when you arrive at the location, when you activate AR mode or interact with a virtual object at that location.
+    "DefaultGeoHotSpotsSourcePath": "GeoHotSpots\\Source",
+    "DefaultGeoHotSpotsPublishedPath": "GeoHotSpots\\Published",
+    "DefaultGeoHotSpotsDownloadedPath": "GeoHotSpots\\Downloaded",
+    "DefaultGeoHotSpotsInstalledPath": "GeoHotSpots\\Installed",
+
+    //InventoryItems are items that can be collected/rewarded, traded or used within the Omniverse/OASIS/Our World such as weapons, shields, armor, potions, power ups etc for your Avatar and much much more! ;-)
+    "DefaultInventoryItemsSourcePath": "InventoryItems\\Source",
+    "DefaultInventoryItemsPublishedPath": "InventoryItems\\Published",
+    "DefaultInventoryItemsDownloadedPath": "InventoryItems\\Downloaded",
+    "DefaultInventoryItemsInstalledPath": "InventoryItems\\Installed",
+
+    //CelestialSpaces (such as SolarSystem's, Galaxies, Universes etc) contain CelestialBodies.
+    "DefaultCelestialSpacesSourcePath": "CelestialSpaces\\Source",
+    "DefaultCelestialSpacesPublishedPath": "CelestialSpaces\\Published",
+    "DefaultCelestialSpacesDownloadedPath": "CelestialSpaces\\Downloaded",
+    "DefaultCelestialSpacesInstalledPath": "CelestialSpaces\\Installed",
+
+    //CelestialBodies are the planets, moons, stars, galaxies etc in the Omniverse and can contain Zomes and Holons. They also represet your OAPP in the Omniverse.
+    "DefaultCelestialBodiesSourcePath": "CelestialBodies\\Source",
+    "DefaultCelestialBodiesPublishedPath": "CelestialBodies\\Published",
+    "DefaultCelestialBodiesDownloadedPath": "CelestialBodies\\Downloaded",
+    "DefaultCelestialBodiesInstalledPath": "CelestialBodies\\Installed",
+
+    //Zomes are the building blocks of Celestial Bodies and can contain Holons. They are like modules that can be used to build Celestial Bodies.
+    "DefaultZomesSourcePath": "Zomes\\Source",
+    "DefaultZomesPublishedPath": "Zomes\\Published",
+    "DefaultZomesDownloadedPath": "Zomes\\Downloaded",
+    "DefaultZomesInstalledPath": "Zomes\\Installed",
+
+    //Holons are the individual components of Zomes and can contain data, logic and functionality. They are like the building blocks of Zomes.
+    "DefaultHolonsSourcePath": "Holons\\Source",
+    "DefaultHolonsPublishedPath": "Holons\\Published",
+    "DefaultHolonsDownloadedPath": "Holons\\Downloaded",
+    "DefaultHolonsInstalledPath": "Holons\\Installed",
+
+    //CelestialBodiesMetaDataDNA is the DNA that contains the metadata for Celestial Bodies.
+    "DefaultCelestialBodiesMetaDataDNASourcePath": "CelestialBodiesMetaDataDNA\\Source",
+    "DefaultCelestialBodiesMetaDataDNAPublishedPath": "CelestialBodiesMetaDataDNA\\Published",
+    "DefaultCelestialBodiesMetaDataDNADownloadedPath": "CelestialBodiesMetaDataDNA\\Downloaded",
+    "DefaultCelestialBodiesMetaDataDNAInstalledPath": "CelestialBodiesMetaDataDNA\\Installed",
+
+    //ZomesMetaDataDNA is the DNA that contains the metadata for Zomes.
+    "DefaultZomesMetaDataDNASourcePath": "ZomesMetaDataDNA\\Source",
+    "DefaultZomesMetaDataDNAPublishedPath": "ZomesMetaDataDNA\\Published",
+    "DefaultZomesMetaDataDNADownloadedPath": "ZomesMetaDataDNA\\Downloaded",
+    "DefaultZomesMetaDataDNAInstalledPath": "ZomesMetaDataDNA\\Installed",
+
+    //HolonsMetaDataDNA is the DNA that contains the metadata for Holons.
+    "DefaultHolonsMetaDataDNASourcePath": "HolonsMetaDataDNA\\Source",
+    "DefaultHolonsMetaDataDNAPublishedPath": "HolonsMetaDataDNA\\Published",
+    "DefaultHolonsMetaDataDNADownloadedPath": "HolonsMetaDataDNA\\Downloaded",
+    "DefaultHolonsMetaDataDNAInstalledPath": "HolonsMetaDataDNA\\Installed",
+
+    //Plugins to extend STAR & STARNET.
+    "DefaultPluginsSourcePath": "Plugins\\Source",
+    "DefaultPluginsPublishedPath": "Plugins\\Published",
+    "DefaultPluginsDownloadedPath": "Plugins\\Downloaded",
+    "DefaultPluginsInstalledPath": "Plugins\\Installed",
+
+    //OASIS Settings
+    "DetailedCOSMICOutputEnabled": false, //Turn on to get detailed output from COSMIC (the Cosmic Operating System for the Omniverse).
+    "DetailedSTARStatusOutputEnabled": false, //Turn on to get detailed output from STAR (the status of the STAR ODK).
+    "DetailedOASISHyperdriveLoggingEnabled": false //Turn on to get detailed logging output from the OASIS Hyperdrive (this will log to the OASIS log file as well as the screen/console).
 }

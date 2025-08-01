@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/settings")]
@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers
         public string GetVersion()
         {
             // TODO: Finish implementing.
-            return $"OASIS API {OASISBootLoader.OASISBootLoader.OASISVersion}";
+            return $"OASIS API {OASISBootLoader.OASISBootLoader.OASISRuntimeVersion}";
         }
     }
 }

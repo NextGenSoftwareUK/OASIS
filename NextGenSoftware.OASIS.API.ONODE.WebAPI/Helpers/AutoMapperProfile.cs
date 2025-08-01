@@ -1,8 +1,8 @@
 using AutoMapper;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Helpers
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 {
     public class AutoMapperProfile : Profile
     {

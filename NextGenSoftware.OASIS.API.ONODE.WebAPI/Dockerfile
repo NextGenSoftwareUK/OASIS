@@ -22,7 +22,7 @@ COPY ["NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj", "N
 COPY ["NextGenSoftware.OASIS.API.Core.Apollo.Server/NextGenSoftware.OASIS.API.Core.Apollo.Server.csproj", "NextGenSoftware.OASIS.API.Core.Apollo.Server/"]
 COPY ["NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj", "NextGenSoftware.OASIS.API.DNA/"]
 COPY ["NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj", "NextGenSoftware.OASIS.OASISBootLoader/"]
-COPY ["NextGenSoftware.OASIS.API.ONode.WebAPI/NextGenSoftware.OASIS.API.ONode.WebAPI.csproj", "NextGenSoftware.OASIS.API.ONode.WebAPI/"]
+COPY ["NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj", "NextGenSoftware.OASIS.API.ONODE.WebAPI/"]
 COPY ["NextGenSoftware.OASIS.API.ONODE.Core/NextGenSoftware.OASIS.API.ONODE.Core.csproj", "NextGenSoftware.OASIS.API.ONODE.Core/"]
 COPY ["NextGenSoftware.OASIS.API.Providers.HoloOASIS/NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj", "NextGenSoftware.OASIS.API.Providers.HoloOASIS/"]
 COPY ["NextGenSoftware.OASIS.API.Providers.IPFSOASIS/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj", "NextGenSoftware.OASIS.API.Providers.IPFSOASIS/"]
@@ -55,15 +55,15 @@ COPY ["NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS/NextGenSoftware.OA
 COPY ["NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj", "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/"]
 
 
-RUN dotnet restore "NextGenSoftware.OASIS.API.ONode.WebAPI/NextGenSoftware.OASIS.API.ONode.WebAPI.csproj"
+RUN dotnet restore "NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj"
 COPY . .
-WORKDIR "/src/NextGenSoftware.OASIS.API.ONode.WebAPI"
-RUN dotnet build "NextGenSoftware.OASIS.API.ONode.WebAPI.csproj" -c Release -o /app/build
+WORKDIR "/src/NextGenSoftware.OASIS.API.ONODE.WebAPI"
+RUN dotnet build "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "NextGenSoftware.OASIS.API.ONode.WebAPI.csproj" -c Release -o /app/publish
+RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.API.ONode.WebAPI.dll"]
+ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.API.ONODE.WebAPI.dll"]

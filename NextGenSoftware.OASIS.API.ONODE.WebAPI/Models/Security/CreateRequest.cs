@@ -1,7 +1,7 @@
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Models.Security
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
 {
     public class CreateRequest
     {

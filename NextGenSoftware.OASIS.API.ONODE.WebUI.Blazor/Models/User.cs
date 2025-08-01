@@ -1,4 +1,4 @@
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.Blazor.Models
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor.Models
 {
     public class User
     {

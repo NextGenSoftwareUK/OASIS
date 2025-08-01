@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
-using NextGenSoftware.OASIS.API.ONode.WebUI.Blazor.Services;
+using NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor.Services;
 using System;
 using System.Net;
 
-namespace NextGenSoftware.OASIS.API.ONode.WebUI.Blazor.Helpers
+namespace NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor.Helpers
 {
     public class AppRouteView : RouteView
     {

@@ -320,8 +320,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 if (Original.CreatedOASISType != CreatedOASISType)
                     return true;
 
-                if (Original.CustomKey != CustomKey)
-                    return true;
+                //if (Original.CustomKey != CustomKey)
+                //    return true;
 
                 if (Original.InstanceSavedOnProviderType != InstanceSavedOnProviderType)
                     return true;
@@ -839,13 +839,13 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return result;
         }
 
-        public async Task<OASISResult<IHolon>> DeleteAsync(bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> DeleteAsync(Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
-                result = await HolonManager.Instance.DeleteHolonAsync(this.Id, softDelete, providerType);
+                result = await HolonManager.Instance.DeleteHolonAsync(this.Id, avatarId, softDelete, providerType);
 
                 if (result != null && !result.IsError)
                     OnDeleted?.Invoke(this, new HolonDeletedEventArgs() { Result = result });
@@ -864,13 +864,13 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return result;
         }
 
-        public OASISResult<IHolon> Delete(bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IHolon> Delete(Guid avatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 
             try
             {
-                result = HolonManager.Instance.DeleteHolon(this.Id, softDelete, providerType);
+                result = HolonManager.Instance.DeleteHolon(this.Id, avatarId, softDelete, providerType);
 
                 if (result != null && !result.IsError)
                     OnDeleted?.Invoke(this, new HolonDeletedEventArgs() { Result = result });
@@ -1025,7 +1025,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return result;
         }
 
-        public async Task<OASISResult<IHolon>> RemoveHolonAsync(IHolon holon, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IHolon>> RemoveHolonAsync(IHolon holon, Guid avatarId, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>(holon);
 
@@ -1037,7 +1037,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
                 if (deleteHolon)
                 {
-                    result = await HolonManager.Instance.DeleteHolonAsync(holon.Id, softDelete, providerType);
+                    result = await HolonManager.Instance.DeleteHolonAsync(holon.Id, avatarId, softDelete, providerType);
 
                     if (result.IsError)
                     {
@@ -1059,7 +1059,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return result;
         }
 
-        public OASISResult<IHolon> RemoveHolon(IHolon holon, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IHolon> RemoveHolon(IHolon holon, Guid avatarId, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>(holon);
 
@@ -1071,7 +1071,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
                 if (deleteHolon)
                 {
-                    result = HolonManager.Instance.DeleteHolon(holon.Id, softDelete, providerType);
+                    result = HolonManager.Instance.DeleteHolon(holon.Id, avatarId, softDelete, providerType);
 
                     if (result.IsError)
                     {
@@ -1942,7 +1942,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             this.CreatedDate = holon.CreatedDate;
             this.CreatedOASISType = holon.CreatedOASISType;
             this.CreatedProviderType = holon.CreatedProviderType;
-            this.CustomKey = holon.CustomKey;
+            //this.CustomKey = holon.CustomKey;
             this.DeletedByAvatar = holon.DeletedByAvatar;
             this.DeletedByAvatarId = holon.DeletedByAvatarId;
             this.DeletedDate = holon.DeletedDate;

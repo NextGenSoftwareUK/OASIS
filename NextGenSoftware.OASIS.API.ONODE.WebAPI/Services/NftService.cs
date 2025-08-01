@@ -4,13 +4,13 @@
 //using System.Threading.Tasks;
 //using NextGenSoftware.OASIS.API.Core.Helpers;
 //using NextGenSoftware.OASIS.API.Core.Objects;
-//using NextGenSoftware.OASIS.API.ONode.Core.Managers;
-//using NextGenSoftware.OASIS.API.ONode.WebAPI.Controllers;
-//using NextGenSoftware.OASIS.API.ONode.WebAPI.Interfaces;
+//using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+//using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
+//using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 //using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Core.Models.Cargo;
 //using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
-//namespace NextGenSoftware.OASIS.API.ONode.WebAPI.Services
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 //{
 //    //TODO: PLEASE MOVE TO OASIS.CORE ASAP, ALL SERVICES SHOULD BE CONVERTED TO MANAGERS IN OASIS.CORE so they can be shared by other endpoints such as gRPC, GraphQL etc...
 //    public class NftService : INftService

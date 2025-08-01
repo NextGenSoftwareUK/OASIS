@@ -1,7 +1,7 @@
 ﻿//using System.Collections.Generic;
 //using System.Threading.Tasks;
 
-//namespace NextGenSoftware.OASIS.API.ONode.WebAPI
+//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 //{
 //    public interface ISCMSService
 //    {

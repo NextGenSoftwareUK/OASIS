@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         [BsonRepresentation(BsonType.ObjectId)]  
         public string Id { get; set; }
 
-        public string CustomKey { get; set; } //A custom key that can be used to load the holon by (other than Id or ProviderKey).
+        //public string CustomKey { get; set; } //A custom key that can be used to load the holon by (other than Id or ProviderKey).
 
         public bool IsChanged { get; set; }
 
@@ -165,12 +165,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
             throw new NotImplementedException();
         }
 
-        public OASISResult<IHolon> Delete(bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IHolon> Delete(Guid avtatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<IHolon>> DeleteAsync(bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public Task<OASISResult<IHolon>> DeleteAsync(Guid avtatarId, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             throw new NotImplementedException();
         }
@@ -225,12 +225,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
             throw new NotImplementedException();
         }
 
-        public OASISResult<IHolon> RemoveHolon(IHolon holon, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public OASISResult<IHolon> RemoveHolon(IHolon holon, Guid avtatarId, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<IHolon>> RemoveHolonAsync(IHolon holon, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public Task<OASISResult<IHolon>> RemoveHolonAsync(IHolon holon, Guid avtatarId, bool deleteHolon = false, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
             throw new NotImplementedException();
         }

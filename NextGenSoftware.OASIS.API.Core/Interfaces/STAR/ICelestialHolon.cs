@@ -5,6 +5,7 @@ using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     public interface ICelestialHolon : IHolon
+    //public interface ICelestialHolon : ISTARHolon
     {
         // public int Dimension { get; set; } //TODO: May need this?
         //event HolonLoaded OnHolonLoaded;
