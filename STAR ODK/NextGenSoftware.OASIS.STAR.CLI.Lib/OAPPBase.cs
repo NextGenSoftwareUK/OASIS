@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
                         {
-                            DirectoryHelper.CopyFilesRecursively(installedRuntime.Result.InstalledPath, Path.Combine(STARNETDNA.SourcePath, "Runtimes"));
+                            DirectoryHelper.CopyFilesRecursively(installedRuntime.Result.InstalledPath, Path.Combine(STARNETDNA.SourcePath, "Dependencies", "STARNET", "Runtimes"));
                             //CLIEngine.ShowMessage($"You can now use the runtime in your OAPP Template '{createResult.Result.Name}' by using the reserved tags in your OAPP Template files. For more information on how to do this, please refer to the documentation for the runtime you just added.");
                             CLIEngine.ShowSuccessMessage($"Runtime '{installedRuntime.Result.Name}' added to {holonTypeToAddTo} '{STARNETDNA.Name}'.");
                         }
@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (addLibResult != null && addLibResult.Result != null && !addLibResult.IsError)
                         {
-                            DirectoryHelper.CopyFilesRecursively(installedLib.Result.InstalledPath, Path.Combine(STARNETDNA.SourcePath, "Libs"));
+                            DirectoryHelper.CopyFilesRecursively(installedLib.Result.InstalledPath, Path.Combine(STARNETDNA.SourcePath, "Dependencies", "STARNET", "Libs"));
                             CLIEngine.ShowSuccessMessage($"Library '{installedLib.Result.Name}' added to {holonTypeToAddTo} '{STARNETDNA.Name}'.");
                             //CLIEngine.ShowMessage($"You can now use the library in your OAPP Template '{createResult.Result.Name}' by using the reserved tags in your OAPP Template files. For more information on how to do this, please refer to the documentation for the library you just added.");
                         }
@@ -88,7 +88,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (addTemplateResult != null && addTemplateResult.Result != null && !addTemplateResult.IsError)
                         {
-                            DirectoryHelper.CopyFilesRecursively(installedTemplate.Result.InstalledPath, Path.Combine(STARNETDNA.SourcePath, "Templates"));
+                            DirectoryHelper.CopyFilesRecursively(installedTemplate.Result.InstalledPath, Path.Combine(STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates"));
                             CLIEngine.ShowSuccessMessage($"Template '{installedTemplate.Result.Name}' added to {holonTypeToAddTo} '{STARNETDNA.Name}'.");
                             //CLIEngine.ShowMessage($"You can now use the library in your OAPP Template '{createResult.Result.Name}' by using the reserved tags in your OAPP Template files. For more information on how to do this, please refer to the documentation for the library you just added.");
                         }
