@@ -2,7 +2,7 @@
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons.STARNET;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
@@ -34,6 +34,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 
         [CustomOASISProperty]
         public IList<ISTARNETHolonMetaData> OAPPTemplatesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
+
+        [CustomOASISProperty]
+        public IList<IExternalDependency> ExternalDependencies { get; set; } = new List<IExternalDependency>();
+
+
+        //[CustomOASISProperty]
+        //public IList<IOAPPTemplate> WebDeps { get; set; } = new List<IOAPPTemplate>();
+
+        //[CustomOASISProperty]
+        //public IList<ISTARNETHolonMetaData> NugetDeps { get; set; } = new List<ISTARNETHolonMetaData>();
 
 
         //[CustomOASISProperty]

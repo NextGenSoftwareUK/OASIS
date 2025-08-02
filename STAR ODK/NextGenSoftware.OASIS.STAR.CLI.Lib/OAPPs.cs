@@ -9,20 +9,17 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
-using NextGenSoftware.OASIS.API.ONODE.Core.Events;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.Interfaces;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class OAPPs : STARNETUIBase<OAPP, DownloadedOAPP, InstalledOAPP, OAPPDNA>
+    public class OAPPs : OAPPBase<OAPP, DownloadedOAPP, InstalledOAPP, OAPPDNA>
     {
         public OAPPs(Guid avatarId) : base(new OAPPManager(avatarId),
             "Welcome to the OASIS Omniverse/MagicVerse Light Wizard!", new List<string> 
@@ -676,7 +673,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (createOAPPResult != null && createOAPPResult.Result != null && !createOAPPResult.IsError)
                         {
                             lightResult.Result.OAPP = createOAPPResult.Result;
-                            //oappPath = Path.Combine(oappPath, string.Concat(OAPPName, " OAPP"));
+                            await AddLibsRuntimesAndTemplatesAsync(createOAPPResult.Result.STARNETDNA, "OAPP", providerType);
 
                             if (!string.IsNullOrEmpty(lightResult.Message))
                                 CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
