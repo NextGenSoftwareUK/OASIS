@@ -2,7 +2,6 @@
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons.STARNET;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
@@ -14,8 +13,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         }
 
         //List of custom Runtimes the OAPP Template uses (on top of the built-in OASIS & STAR runtime).
-        [CustomOASISProperty]
-        public IList<IRuntime> Runtimes { get; set; } = new List<IRuntime>();
+        //[CustomOASISProperty]
+        //public IList<IRuntime> Runtimes { get; set; } = new List<IRuntime>();
 
         //[CustomOASISProperty]
         //public IList<string> RuntimeIds { get; set; } = new List<string>();
@@ -23,27 +22,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty]
         public IList<ISTARNETHolonMetaData> RuntimesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
 
-        [CustomOASISProperty]
-        public IList<ILibrary> Libraries { get; set; } = new List<ILibrary>();
+        //[CustomOASISProperty]
+        //public IList<ILibrary> Libraries { get; set; } = new List<ILibrary>();
 
         [CustomOASISProperty]
         public IList<ISTARNETHolonMetaData> LibrariesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
 
-        [CustomOASISProperty]
-        public IList<IOAPPTemplate> OAPPTemplates { get; set; } = new List<IOAPPTemplate>();
+        //[CustomOASISProperty]
+        //public IList<IOAPPTemplate> OAPPTemplates { get; set; } = new List<IOAPPTemplate>();
 
         [CustomOASISProperty]
         public IList<ISTARNETHolonMetaData> OAPPTemplatesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
 
-        [CustomOASISProperty]
-        public IList<IExternalDependency> ExternalDependencies { get; set; } = new List<IExternalDependency>();
 
-
+        //These are wrapped in a STARNET Lib so appear in STARNET and work the same as the rest so can be searched, added, removed etc.//These are wrapped in a STARNET Lib so appear in STARNET and work the same as the rest so can be searched, added, removed etc.
         //[CustomOASISProperty]
-        //public IList<IOAPPTemplate> WebDeps { get; set; } = new List<IOAPPTemplate>();
-
-        //[CustomOASISProperty]
-        //public IList<ISTARNETHolonMetaData> NugetDeps { get; set; } = new List<ISTARNETHolonMetaData>();
+        //public IList<IExternalDependency> ExternalDependencies { get; set; } = new List<IExternalDependency>();
 
 
         //[CustomOASISProperty]

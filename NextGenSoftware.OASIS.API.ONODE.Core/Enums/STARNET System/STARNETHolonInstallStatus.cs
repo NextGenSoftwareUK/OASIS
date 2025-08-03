@@ -5,6 +5,10 @@
         Downloading,
         Decompressing,
         Installing,
+        InstallingDependencies,
+        InstallingRuntimes,
+        InstallingLibs,
+        InstallingTemplates,
         Installed,
         Error
     }
