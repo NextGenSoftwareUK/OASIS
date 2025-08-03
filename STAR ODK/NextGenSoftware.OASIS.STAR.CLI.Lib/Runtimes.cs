@@ -49,11 +49,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STARRunTimePath = Path.Combine(STARRunTimePath, string.Concat("STAR Runtime_v", STARNETDNA.STARRuntimeVersion));
 
             //If the OASIS Runtime folder does not exist in the OAPP folder, then we need to copy it from the installed runtimes folder.
-            if (!Directory.Exists(Path.Combine(OAPPFolder, "Runtimes", "OASIS Runtime")))
+            if (!Directory.Exists(Path.Combine(OAPPFolder, "Dependencies", "STARNET", "Runtimes", "OASIS Runtime")))
             {
                 //Copy the correct runtimes to the OAPP folder.
                 if (Directory.Exists(OASISRunTimePath))
-                    DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, Path.Combine(OAPPFolder, "Runtimes", "OASIS Runtime"));
+                    DirectoryHelper.CopyFilesRecursively(OASISRunTimePath, Path.Combine(OAPPFolder, "Dependencies", "STARNET", "Runtimes", "OASIS Runtime"));
                 else
                 {
                     CLIEngine.ShowWarningMessage($"The target OASIS Runtime {STARNETDNA.OASISRuntimeVersion} is not installed!");
@@ -98,10 +98,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             //If the STAR Runtime folder does not exist in the OAPP folder, then we need to copy it from the installed runtimes folder.
-            if (!Directory.Exists(Path.Combine(OAPPFolder, "Runtimes", "STAR Runtime")))
+            if (!Directory.Exists(Path.Combine(OAPPFolder, "Dependencies", "STARNET", "Runtimes", "STAR Runtime")))
             {
                 if (Directory.Exists(STARRunTimePath))
-                    DirectoryHelper.CopyFilesRecursively(STARRunTimePath, Path.Combine(OAPPFolder, "Runtimes", "STAR Runtime"));
+                    DirectoryHelper.CopyFilesRecursively(STARRunTimePath, Path.Combine(OAPPFolder, "Dependencies", "STARNET", "Runtimes", "STAR Runtime"));
                 else
                 {
                     CLIEngine.ShowWarningMessage($"The target STAR Runtime {STARNETDNA.STARRuntimeVersion} is not installed!");

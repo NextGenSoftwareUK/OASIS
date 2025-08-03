@@ -92,7 +92,8 @@ namespace NextGenSoftware.OASIS.Common
             }
         }
 
-        public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, Exception ex = null, bool logToFile = true, bool logToConsole = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, string detailedMessage = "", bool onlyLogToInnerMessages = false)
+        //public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, Exception ex = null, bool logToFile = true, bool logToConsole = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = false, bool incrementErrorCount = true, string detailedMessage = "", bool onlyLogToInnerMessages = false)
+        public static void HandleError<T>(ref OASISResult<T> result, string errorMessage, Exception ex = null, bool logToFile = true, bool logToConsole = true, bool includeStackTrace = false, bool throwException = false, bool addToInnerMessages = true, bool incrementErrorCount = true, string detailedMessage = "", bool onlyLogToInnerMessages = false)
         {
             ////NOTE: If you are throwing an exception then you do not need to show an additional stack trace here because the exception has it already! ;-)
             //if (includeStackTrace || ShowStackTrace)

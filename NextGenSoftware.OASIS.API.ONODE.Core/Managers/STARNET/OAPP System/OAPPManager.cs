@@ -147,13 +147,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                         Directory.CreateDirectory(publishedPath);
                         DirectoryHelper.CopyFilesRecursively(fullPathToSource, publishedPath);
-                        Directory.Delete(Path.Combine(publishedPath, "Runtimes"), true);
+                        Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Runtimes"), true);
 
-                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Templates")))
-                            Directory.Delete(Path.Combine(publishedPath, "Templates"), true);
+                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Templates")))
+                            Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Templates"), true);
 
-                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Libs")))
-                            Directory.Delete(Path.Combine(publishedPath, "Libs"), true);
+                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Libs")))
+                            Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Libs"), true);
 
                         OASISResult<bool> compressedResult = GenerateCompressedFile(publishedPath, OAPPDNA.PublishedPath);
 
@@ -188,14 +188,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         Directory.CreateDirectory(publishedPath);
                         DirectoryHelper.CopyFilesRecursively(fullPathToSource, publishedPath);
 
-                        if (!Directory.Exists(Path.Combine(publishedPath, "Runtimes")))
+                        if (!Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Runtimes")))
                             DirectoryHelper.CopyFilesRecursively(Path.Combine(originalFullPathToSource, "Runtimes"), publishedPath);
 
-                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Templates")))
-                            Directory.Delete(Path.Combine(publishedPath, "Templates"), true);
+                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Templates")))
+                            Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Templates"), true);
 
-                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Libs")))
-                            Directory.Delete(Path.Combine(publishedPath, "Libs"), true);
+                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Libs")))
+                            Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Libs"), true);
 
                         OASISResult<bool> compressedResult = GenerateCompressedFile(publishedPath, OAPPDNA.SelfContainedPublishedPath);
 
@@ -237,14 +237,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         Directory.CreateDirectory(publishedPath);
                         DirectoryHelper.CopyFilesRecursively(fullPathToSource, publishedPath);
 
-                        if (!Directory.Exists(Path.Combine(publishedPath, "Runtimes")))
+                        if (!Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Runtimes")))
                             DirectoryHelper.CopyFilesRecursively(Path.Combine(originalFullPathToSource, "Runtimes"), publishedPath);
 
-                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Templates")))
-                            Directory.Delete(Path.Combine(publishedPath, "Templates"), true);
+                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Templates")))
+                            Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Templates"), true);
 
-                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Libs")))
-                            Directory.Delete(Path.Combine(publishedPath, "Libs"), true);
+                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Libs")))
+                            Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Libs"), true);
 
                         OASISResult<bool> compressedResult = GenerateCompressedFile(publishedPath, OAPPDNA.SelfContainedPublishedPath);
 
@@ -1058,8 +1058,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (Directory.Exists(Path.Combine(publishedPath, "obj")))
                     Directory.Delete(Path.Combine(publishedPath, "obj"), true);
 
-                if (Directory.Exists(Path.Combine(publishedPath, "Runtimes")))
-                    Directory.Delete(Path.Combine(publishedPath, "Runtimes"), true);
+                if (Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Runtimes")))
+                    Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Runtimes"), true);
 
                 GenerateCompressedFile(publishedPath, fullPathToCompressedFile);
                 Directory.Delete(publishedPath, true);
