@@ -22,6 +22,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
@@ -1273,19 +1274,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp");
 
                         if (Directory.Exists(publishedPath))
-                            Directory.Delete(publishedPath, true);
+                            Directory.Delete(publishedPath, true); 
 
                         Directory.CreateDirectory(publishedPath);
                         DirectoryHelper.CopyFilesRecursively(fullPathToSource, publishedPath);
 
-                        if (!embedRuntimes && Directory.Exists(Path.Combine(publishedPath, "Runtimes")))
+                        if (!embedRuntimes && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Runtimes")))
                             Directory.Delete(Path.Combine(publishedPath, "Runtimes"), true);
 
-                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Templates")))
-                            Directory.Delete(Path.Combine(publishedPath, "Templates"), true);
+                        if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Templates")))
+                            Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Templates"), true);
 
                         if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Libs")))
-                            Directory.Delete(Path.Combine(publishedPath, "Libs"), true);
+                            Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Libs"), true);
 
                         OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, STARNETDNA.PublishedPath);
 
@@ -3318,9 +3319,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         if (Directory.Exists(fullInstallPath))
                             Directory.Delete(fullInstallPath, true);
 
-                        Directory.Move(tempPath, fullInstallPath);
-
                         OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { STARNETDNA = STARNETDNAResult.Result, Status = STARNETHolonInstallStatus.Installing });
+                        Directory.Move(tempPath, fullInstallPath);
                         OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
                         if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
@@ -3401,15 +3401,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                                 if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                                 {
-                                    //result.Result = installedSTARNETHolon;
-                                    //result.Result.DownloadedSTARNETHolon = downloadedSTARNETHolon;
                                     STARNETHolonLoadResult.Result.STARNETDNA = STARNETDNA;
-
                                     OASISResult<T1> oappSaveResult = await UpdateAsync(avatarId, STARNETHolonLoadResult.Result, providerType);
 
                                     if (oappSaveResult != null && !oappSaveResult.IsError && oappSaveResult.Result != null)
                                     {
-                                        CheckForVersionMismatches((T4)STARNETDNAResult.Result, ref result);
+                                        CheckForVersionMismatches(STARNETDNAResult.Result, ref result);
+
+                                        OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { STARNETDNA = STARNETDNAResult.Result, Status = STARNETHolonInstallStatus.InstallingDependencies });
+                                        result = await InstallDependenciesAsync(STARNETHolon, fullInstallPath, errorMessage, result, providerType);
 
                                         if (result.InnerMessages.Count > 0)
                                             result.Message = $"{STARNETHolonUIName} successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
@@ -3587,6 +3587,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                                     if (oappSaveResult != null && !oappSaveResult.IsError && oappSaveResult.Result != null)
                                     {
                                         CheckForVersionMismatches(STARNETDNAResult.Result, ref result);
+
+                                        OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { STARNETDNA = STARNETDNAResult.Result, Status = STARNETHolonInstallStatus.InstallingDependencies });
+                                        result = InstallDependencies(STARNETHolon, fullInstallPath, errorMessage, result, providerType);
 
                                         if (result.InnerMessages.Count > 0)
                                             result.Message = $"{STARNETHolonUIName} successfully installed but there were {result.WarningCount} warnings:\n\n {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
@@ -5420,6 +5423,202 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result = Uninstall(avatarId, installedSTARNETHolonResult.Result, errorMessage, providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadHolonByMetaData. Reason: {installedSTARNETHolonResult.Message}");
+
+            return result;
+        }
+
+        private async Task<OASISResult<T3>> InstallDependenciesAsync(T1 STARNETHolon, string fullInstallPath, string errorMessage, OASISResult<T3> result, ProviderType providerType = ProviderType.Default)
+        {
+            if (STARNETHolonType == HolonType.OAPP || STARNETHolonType == HolonType.OAPPTemplate)
+            {
+                foreach (ISTARNETHolonMetaData library in ((IOAPPBase)STARNETHolon).LibrariesMetaData)
+                {
+                    string libInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Libs");
+
+                    if (!Directory.Exists(libInstalledPath))
+                    {
+                        if (Directory.Exists(library.InstalledPath))
+                            DirectoryHelper.CopyFilesRecursively(library.InstalledPath, libInstalledPath);
+                        else
+                        {
+                            OASISResult<InstalledLibrary> installedLibResult = await Data.LoadHolonByMetaDataAsync<InstalledLibrary>(new Dictionary<string, string>()
+                                                        {
+                                                            { "Id", library.STARNETHolonId.ToString() },
+                                                            { "Version", library.Version },
+                                                            { "Active", "1" }
+                                                        }, metaKeyValuePairMatchMode: MetaKeyValuePairMatchMode.All, HolonType.InstalledLibrary, providerType: providerType);
+
+                            if (installedLibResult != null && installedLibResult.Result != null && !installedLibResult.IsError)
+                            {
+                                if (Directory.Exists(installedLibResult.Result.InstalledPath))
+                                    DirectoryHelper.CopyFilesRecursively(installedLibResult.Result.InstalledPath, libInstalledPath);
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the library dependency {installedLibResult.Result.STARNETDNA.Name}. The installed path ({installedLibResult.Result.InstalledPath}) was not found!");
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the library dependency {library.Name}. Reason: {installedLibResult.Message}");
+                        }
+                    }
+                }
+
+                foreach (ISTARNETHolonMetaData runtime in ((IOAPPBase)STARNETHolon).RuntimesMetaData)
+                {
+                    string runtimeInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Runtimes");
+
+                    if (!Directory.Exists(runtimeInstalledPath))
+                    {
+                        if (Directory.Exists(runtime.InstalledPath))
+                            DirectoryHelper.CopyFilesRecursively(runtime.InstalledPath, runtimeInstalledPath);
+                        else
+                        {
+                            OASISResult<InstalledRuntime> installedRuntimeResult = await Data.LoadHolonByMetaDataAsync<InstalledRuntime>(new Dictionary<string, string>()
+                                                        {
+                                                            { "Id", runtime.STARNETHolonId.ToString() },
+                                                            { "Version", runtime.Version },
+                                                            { "Active", "1" }
+                                                        }, metaKeyValuePairMatchMode: MetaKeyValuePairMatchMode.All, HolonType.InstalledRuntime, providerType: providerType);
+
+                            if (installedRuntimeResult != null && installedRuntimeResult.Result != null && !installedRuntimeResult.IsError)
+                            {
+                                if (Directory.Exists(installedRuntimeResult.Result.InstalledPath))
+                                    DirectoryHelper.CopyFilesRecursively(installedRuntimeResult.Result.InstalledPath, runtimeInstalledPath);
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the runtime dependency {installedRuntimeResult.Result.STARNETDNA.Name}. The installed path ({installedRuntimeResult.Result.InstalledPath}) was not found!");
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the runtime dependency {runtime.Name}. Reason: {installedRuntimeResult.Message}");
+                        }
+                    }
+                }
+
+                foreach (ISTARNETHolonMetaData template in ((IOAPPBase)STARNETHolon).OAPPTemplatesMetaData)
+                {
+                    string templateInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Templates");
+
+                    if (!Directory.Exists(templateInstalledPath))
+                    {
+                        if (Directory.Exists(template.InstalledPath))
+                            DirectoryHelper.CopyFilesRecursively(template.InstalledPath, templateInstalledPath);
+                        else
+                        {
+                            OASISResult<InstalledOAPPTemplate> installedTemplateResult = await Data.LoadHolonByMetaDataAsync<InstalledOAPPTemplate>(new Dictionary<string, string>()
+                                                        {
+                                                            { "Id", template.STARNETHolonId.ToString() },
+                                                            { "Version", template.Version },
+                                                            { "Active", "1" }
+                                                        }, metaKeyValuePairMatchMode: MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, providerType: providerType);
+
+                            if (installedTemplateResult != null && installedTemplateResult.Result != null && !installedTemplateResult.IsError)
+                            {
+                                if (Directory.Exists(installedTemplateResult.Result.InstalledPath))
+                                    DirectoryHelper.CopyFilesRecursively(installedTemplateResult.Result.InstalledPath, templateInstalledPath);
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the template dependency {installedTemplateResult.Result.STARNETDNA.Name}. The installed path ({installedTemplateResult.Result.InstalledPath}) was not found!");
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the template dependency {template.Name}. Reason: {installedTemplateResult.Message}");
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private OASISResult<T3> InstallDependencies(T1 STARNETHolon, string fullInstallPath, string errorMessage, OASISResult<T3> result, ProviderType providerType = ProviderType.Default)
+        {
+            if (STARNETHolonType == HolonType.OAPP || STARNETHolonType == HolonType.OAPPTemplate)
+            {
+                foreach (ISTARNETHolonMetaData library in ((IOAPPBase)STARNETHolon).LibrariesMetaData)
+                {
+                    string libInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Libs");
+
+                    if (!Directory.Exists(libInstalledPath))
+                    {
+                        if (Directory.Exists(library.InstalledPath))
+                            DirectoryHelper.CopyFilesRecursively(library.InstalledPath, libInstalledPath);
+                        else
+                        {
+                            OASISResult<InstalledLibrary> installedLibResult = Data.LoadHolonByMetaData<InstalledLibrary>(new Dictionary<string, string>()
+                                                        {
+                                                            { "Id", library.STARNETHolonId.ToString() },
+                                                            { "Version", library.Version },
+                                                            { "Active", "1" }
+                                                        }, metaKeyValuePairMatchMode: MetaKeyValuePairMatchMode.All, HolonType.InstalledLibrary, providerType: providerType);
+
+                            if (installedLibResult != null && installedLibResult.Result != null && !installedLibResult.IsError)
+                            {
+                                if (Directory.Exists(installedLibResult.Result.InstalledPath))
+                                    DirectoryHelper.CopyFilesRecursively(installedLibResult.Result.InstalledPath, libInstalledPath);
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the library dependency {installedLibResult.Result.STARNETDNA.Name}. The installed path ({installedLibResult.Result.InstalledPath}) was not found!");
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the library dependency {library.Name}. Reason: {installedLibResult.Message}");
+                        }
+                    }
+                }
+
+                foreach (ISTARNETHolonMetaData runtime in ((IOAPPBase)STARNETHolon).RuntimesMetaData)
+                {
+                    string runtimeInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Runtimes");
+
+                    if (!Directory.Exists(runtimeInstalledPath))
+                    {
+                        if (Directory.Exists(runtime.InstalledPath))
+                            DirectoryHelper.CopyFilesRecursively(runtime.InstalledPath, runtimeInstalledPath);
+                        else
+                        {
+                            OASISResult<InstalledRuntime> installedRuntimeResult = Data.LoadHolonByMetaData<InstalledRuntime>(new Dictionary<string, string>()
+                                                        {
+                                                            { "Id", runtime.STARNETHolonId.ToString() },
+                                                            { "Version", runtime.Version },
+                                                            { "Active", "1" }
+                                                        }, metaKeyValuePairMatchMode: MetaKeyValuePairMatchMode.All, HolonType.InstalledRuntime, providerType: providerType);
+
+                            if (installedRuntimeResult != null && installedRuntimeResult.Result != null && !installedRuntimeResult.IsError)
+                            {
+                                if (Directory.Exists(installedRuntimeResult.Result.InstalledPath))
+                                    DirectoryHelper.CopyFilesRecursively(installedRuntimeResult.Result.InstalledPath, runtimeInstalledPath);
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the runtime dependency {installedRuntimeResult.Result.STARNETDNA.Name}. The installed path ({installedRuntimeResult.Result.InstalledPath}) was not found!");
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the runtime dependency {runtime.Name}. Reason: {installedRuntimeResult.Message}");
+                        }
+                    }
+                }
+
+                foreach (ISTARNETHolonMetaData template in ((IOAPPBase)STARNETHolon).OAPPTemplatesMetaData)
+                {
+                    string templateInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Templates");
+
+                    if (!Directory.Exists(templateInstalledPath))
+                    {
+                        if (Directory.Exists(template.InstalledPath))
+                            DirectoryHelper.CopyFilesRecursively(template.InstalledPath, templateInstalledPath);
+                        else
+                        {
+                            OASISResult<InstalledOAPPTemplate> installedTemplateResult = Data.LoadHolonByMetaData<InstalledOAPPTemplate>(new Dictionary<string, string>()
+                                                        {
+                                                            { "Id", template.STARNETHolonId.ToString() },
+                                                            { "Version", template.Version },
+                                                            { "Active", "1" }
+                                                        }, metaKeyValuePairMatchMode: MetaKeyValuePairMatchMode.All, HolonType.InstalledOAPPTemplate, providerType: providerType);
+
+                            if (installedTemplateResult != null && installedTemplateResult.Result != null && !installedTemplateResult.IsError)
+                            {
+                                if (Directory.Exists(installedTemplateResult.Result.InstalledPath))
+                                    DirectoryHelper.CopyFilesRecursively(installedTemplateResult.Result.InstalledPath, templateInstalledPath);
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the template dependency {installedTemplateResult.Result.STARNETDNA.Name}. The installed path ({installedTemplateResult.Result.InstalledPath}) was not found!");
+                            }
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the template dependency {template.Name}. Reason: {installedTemplateResult.Message}");
+                        }
+                    }
+                }
+            }
 
             return result;
         }

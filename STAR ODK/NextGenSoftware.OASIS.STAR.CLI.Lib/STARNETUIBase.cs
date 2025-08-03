@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -134,6 +135,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 //        return result;
                 //    }
                 //}
+
+                //await AddLibsRuntimesAndTemplatesAsync(createResult.Result.STARNETDNA, "OAPP Template", providerType);
 
                 Console.WriteLine("");
                 CLIEngine.ShowWorkingMessage($"Generating {STARNETManager.STARNETHolonUIName}...");
@@ -268,6 +271,54 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 Console.WriteLine("");
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {loadResult.Message}");
+            }
+        }
+
+        public virtual async Task AddRuntimeAsync(string idOrNameOfParent = "", string idOrNameOfRuntime = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                OASISResult<InstalledRuntime> installedRuntime = await STARCLI.Runtimes.FindAndInstallIfNotInstalledAsync("use", idOrNameOfRuntime, providerType: providerType);
+
+                if (installedRuntime != null && installedRuntime.Result != null && !installedRuntime.IsError)
+                {
+                    CLIEngine.ShowWorkingMessage($"Installing Runtime Into {result.Result.STARNETDNA.Name}...");
+                    OASISResult<T1> addRuntimeResult = await STARNETManager.AddRuntimeAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, (IInstalledRuntime)installedRuntime.Result, providerType);
+
+                    if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
+                        CLIEngine.ShowSuccessMessage($"Runtime '{installedRuntime.Result.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
+                    else
+                        CLIEngine.ShowErrorMessage($"Failed to add runtime '{installedRuntime.Result.Name}' to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {addRuntimeResult.Message}");
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Failed to add runtime to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {installedRuntime.Message}");
+            }
+        }
+
+        public virtual async Task RemoveRuntimeAsync(string idOrNameOfParent = "", string idOrNameOfRuntime = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T1> result = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                //TODO: Need to list all installed runtimes for the given parent here and allow user to select one.
+
+                //OASISResult<InstalledRuntime> installedRuntime = await STARCLI.Runtimes.FindAndInstallIfNotInstalledAsync("use", idOrNameOfRuntime, providerType: providerType);
+
+                //if (installedRuntime != null && installedRuntime.Result != null && !installedRuntime.IsError)
+                //{
+                //    CLIEngine.ShowWorkingMessage($"Installing Runtime Into {result.Result.STARNETDNA.Name}...");
+                //    OASISResult<T1> addRuntimeResult = await STARNETManager.RemoveRuntimeAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, (IInstalledRuntime)installedRuntime.Result, providerType);
+
+                //    if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
+                //        CLIEngine.ShowSuccessMessage($"Runtime '{installedRuntime.Result.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
+                //    else
+                //        CLIEngine.ShowErrorMessage($"Failed to add runtime '{installedRuntime.Result.Name}' to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {addRuntimeResult.Message}");
+                //}
+                //else
+                //    CLIEngine.ShowErrorMessage($"Failed to add runtime to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {installedRuntime.Message}");
             }
         }
 
@@ -906,27 +957,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
-        public virtual async Task<OASISResult<IEnumerable<T1>>> ListAllAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<T1>>> ListAllAsync(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}'s...");
-            return ListStarHolons(await STARNETManager.LoadAllAsync(STAR.BeamedInAvatar.Id, null, true, showAllVersions, 0, providerType: providerType));
+            return ListStarHolons(await STARNETManager.LoadAllAsync(STAR.BeamedInAvatar.Id, null, true, showAllVersions, version, providerType: providerType), showDetailedInfo: showDetailedInfo);
         }
 
-        public virtual OASISResult<IEnumerable<T1>> ListAll(bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<IEnumerable<T1>> ListAll(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}'s...");
-            return  ListStarHolons(STARNETManager.LoadAll(STAR.BeamedInAvatar.Id, null, true, showAllVersions, version, providerType: providerType));
+            return  ListStarHolons(STARNETManager.LoadAll(STAR.BeamedInAvatar.Id, null, true, showAllVersions, version, providerType: providerType), showDetailedInfo: showDetailedInfo);
         }
 
-        public virtual async Task ListAllCreatedByBeamedInAvatarAsync(bool showAllVersions = false, ProviderType providerType = ProviderType.Default)
+        public virtual async Task ListAllCreatedByBeamedInAvatarAsync(bool showAllVersions = false, bool showDetailedInfo = false, ProviderType providerType = ProviderType.Default)
         {
             if (STAR.BeamedInAvatar != null)
             {
                 Console.WriteLine("");
                 CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}'s...");
-                ListStarHolons(await STARNETManager.LoadAllForAvatarAsync(STAR.BeamedInAvatar.AvatarId));
+                ListStarHolons(await STARNETManager.LoadAllForAvatarAsync(STAR.BeamedInAvatar.AvatarId), showDetailedInfo: showDetailedInfo);
             }
             else
                 CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
@@ -1165,9 +1216,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.Version), false);
             CLIEngine.ShowMessage(string.Concat($"Version Sequence:".PadRight(displayFieldLength), starHolon.STARNETDNA.VersionSequence), false);
             CLIEngine.ShowMessage(string.Concat($"Number Of Versions:".PadRight(displayFieldLength), starHolon.STARNETDNA.NumberOfVersions), false);
-            //CLIEngine.ShowMessage(string.Concat($"OASIS Holon Version:                        ", starHolon.Version), false);
-            //CLIEngine.ShowMessage(string.Concat($"OASIS Holon VersionId:                      ", starHolon.VersionId), false);
-            //CLIEngine.ShowMessage(string.Concat($"OASIS Holon PreviousVersionId:              ", starHolon.PreviousVersionId), false);
             CLIEngine.ShowMessage(string.Concat($"Downloads:".PadRight(displayFieldLength), starHolon.STARNETDNA.Downloads), false);
             CLIEngine.ShowMessage(string.Concat($"Installs:".PadRight(displayFieldLength), starHolon.STARNETDNA.Installs), false);
             CLIEngine.ShowMessage(string.Concat($"Total Downloads:".PadRight(displayFieldLength), starHolon.STARNETDNA.TotalDownloads), false);
@@ -1182,81 +1230,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"STAR API Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARAPIVersion), false);
             CLIEngine.ShowMessage(string.Concat($".NET Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.DotNetVersion), false);
 
-
-
-            //CLIEngine.ShowMessage(string.Concat($"Id:".PadRight(displayFieldLength), starHolon.STARNETDNA.Id != Guid.Empty ? starHolon.STARNETDNA.Id : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Name:".PadRight(displayFieldLength), !string.IsNullOrEmpty(starHolon.STARNETDNA.Name) ? starHolon.STARNETDNA.Name : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Description:".PadRight(displayFieldLength), !string.IsNullOrEmpty(starHolon.STARNETDNA.Description) ? starHolon.STARNETDNA.Description : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Type:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARNETHolonType), false);
-            //CLIEngine.ShowMessage(string.Concat($"Created On:".PadRight(displayFieldLength), starHolon.STARNETDNA.CreatedOn != DateTime.MinValue ? starHolon.STARNETDNA.CreatedOn.ToString() : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Created By:".PadRight(displayFieldLength), starHolon.STARNETDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARNETDNA.CreatedByAvatarUsername, " (", starHolon.STARNETDNA.CreatedByAvatarId.ToString(), ")") : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Modified On:".PadRight(displayFieldLength), starHolon.STARNETDNA.ModifiedOn != DateTime.MinValue ? starHolon.STARNETDNA.CreatedOn.ToString() : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Modified By:".PadRight(displayFieldLength), starHolon.STARNETDNA.ModifiedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARNETDNA.ModifiedByAvatarUsername, " (", starHolon.STARNETDNA.ModifiedByAvatarId.ToString(), ")") : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Path:".PadRight(displayFieldLength), !string.IsNullOrEmpty(starHolon.STARNETDNA.SourcePath) ? starHolon.STARNETDNA.SourcePath : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Published On:".PadRight(displayFieldLength), starHolon.STARNETDNA.PublishedOn != DateTime.MinValue ? starHolon.STARNETDNA.PublishedOn.ToString() : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Published By:".PadRight(displayFieldLength), starHolon.STARNETDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARNETDNA.PublishedByAvatarUsername, " (", starHolon.STARNETDNA.PublishedByAvatarId.ToString(), ")") : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published Path:".PadRight(displayFieldLength), !string.IsNullOrEmpty(starHolon.STARNETDNA.PublishedPath) ? starHolon.STARNETDNA.PublishedPath : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Filesize:".PadRight(displayFieldLength), starHolon.STARNETDNA.FileSize.ToString()), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published On STARNET:".PadRight(displayFieldLength), starHolon.STARNETDNA.PublishedOnSTARNET ? "True" : "False"), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published To Cloud:".PadRight(displayFieldLength), starHolon.STARNETDNA.PublishedToCloud ? "True" : "False"), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published To OASIS Provider:".PadRight(displayFieldLength), Enum.GetName(typeof(ProviderType), starHolon.STARNETDNA.PublishedProviderType)), false);
-            //CLIEngine.ShowMessage(string.Concat($"Launch Target:".PadRight(displayFieldLength), starHolon.STARNETDNA.LaunchTarget), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.Version), false);
-            //CLIEngine.ShowMessage(string.Concat($"Version Sequence:".PadRight(displayFieldLength), starHolon.STARNETDNA.VersionSequence), false);
-            //CLIEngine.ShowMessage(string.Concat($"Number Of Versions:".PadRight(displayFieldLength), starHolon.STARNETDNA.NumberOfVersions), false);
-            ////CLIEngine.ShowMessage(string.Concat($"OASIS Holon Version:                        ", starHolon.Version), false);
-            ////CLIEngine.ShowMessage(string.Concat($"OASIS Holon VersionId:                      ", starHolon.VersionId), false);
-            ////CLIEngine.ShowMessage(string.Concat($"OASIS Holon PreviousVersionId:              ", starHolon.PreviousVersionId), false);
-            //CLIEngine.ShowMessage(string.Concat($"Downloads:".PadRight(displayFieldLength), starHolon.STARNETDNA.Downloads), false);
-            //CLIEngine.ShowMessage(string.Concat($"Installs:".PadRight(displayFieldLength), starHolon.STARNETDNA.Installs), false);
-            //CLIEngine.ShowMessage(string.Concat($"Total Downloads:".PadRight(displayFieldLength), starHolon.STARNETDNA.TotalDownloads), false);
-            //CLIEngine.ShowMessage(string.Concat($"Total Installs:".PadRight(displayFieldLength), starHolon.STARNETDNA.TotalInstalls), false);
-            //CLIEngine.ShowMessage(string.Concat($"Active:".PadRight(displayFieldLength), starHolon.MetaData != null && starHolon.MetaData.ContainsKey("Active") && starHolon.MetaData["Active"] != null && starHolon.MetaData["Active"].ToString() == "1" ? "True" : "False"), false);
-            //CLIEngine.ShowMessage(string.Concat($"OASIS Runtime Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.OASISRuntimeVersion), false);
-            //CLIEngine.ShowMessage(string.Concat($"OASIS API Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.OASISAPIVersion), false);
-            //CLIEngine.ShowMessage(string.Concat($"COSMIC Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.COSMICVersion), false);
-            //CLIEngine.ShowMessage(string.Concat($"STAR Runtime Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARRuntimeVersion), false);
-            //CLIEngine.ShowMessage(string.Concat($"STAR ODK Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARODKVersion), false);
-            //CLIEngine.ShowMessage(string.Concat($"STARNET Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARNETVersion), false);
-            //CLIEngine.ShowMessage(string.Concat($"STAR API Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARAPIVersion), false);
-            //CLIEngine.ShowMessage(string.Concat($".NET Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.DotNetVersion), false);
-
-
-            //if (showNumbers)
-            //    CLIEngine.ShowMessage(string.Concat("Number:                                     ", number), false);
-
-            //CLIEngine.ShowMessage(string.Concat($"Id:                                         ", starHolon.STARNETDNA.Id != Guid.Empty ? starHolon.STARNETDNA.Id : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Name:                                       ", !string.IsNullOrEmpty(starHolon.STARNETDNA.Name) ? starHolon.STARNETDNA.Name : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Description:                                ", !string.IsNullOrEmpty(starHolon.STARNETDNA.Description) ? starHolon.STARNETDNA.Description : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Type:                         ", starHolon.STARNETDNA.STARNETHolonType), false);
-            //CLIEngine.ShowMessage(string.Concat($"Created On:                                 ", starHolon.STARNETDNA.CreatedOn != DateTime.MinValue ? starHolon.STARNETDNA.CreatedOn.ToString() : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Created By:                                 ", starHolon.STARNETDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARNETDNA.CreatedByAvatarUsername, " (", starHolon.STARNETDNA.CreatedByAvatarId.ToString(), ")") : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Modified On:                                ", starHolon.STARNETDNA.ModifiedOn != DateTime.MinValue ? starHolon.STARNETDNA.CreatedOn.ToString() : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Modified By:                                ", starHolon.STARNETDNA.ModifiedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARNETDNA.ModifiedByAvatarUsername, " (", starHolon.STARNETDNA.ModifiedByAvatarId.ToString(), ")") : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Path:                         ", !string.IsNullOrEmpty(starHolon.STARNETDNA.SourcePath) ? starHolon.STARNETDNA.SourcePath : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Published On:                               ", starHolon.STARNETDNA.PublishedOn != DateTime.MinValue ? starHolon.STARNETDNA.PublishedOn.ToString() : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"Published By:                               ", starHolon.STARNETDNA.PublishedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARNETDNA.PublishedByAvatarUsername, " (", starHolon.STARNETDNA.PublishedByAvatarId.ToString(), ")") : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published Path:               ", !string.IsNullOrEmpty(starHolon.STARNETDNA.PublishedPath) ? starHolon.STARNETDNA.PublishedPath : "None"), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Filesize:                     ", starHolon.STARNETDNA.FileSize.ToString()), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published On STARNET:         ", starHolon.STARNETDNA.PublishedOnSTARNET ? "True" : "False"), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published To Cloud:           ", starHolon.STARNETDNA.PublishedToCloud ? "True" : "False"), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Published To OASIS Provider:  ", Enum.GetName(typeof(ProviderType), starHolon.STARNETDNA.PublishedProviderType)), false);
-            //CLIEngine.ShowMessage(string.Concat($"Launch Target:                              ", starHolon.STARNETDNA.LaunchTarget), false);
-            //CLIEngine.ShowMessage(string.Concat($"{STARNETManager.STARNETHolonUIName} Version:                      ", starHolon.STARNETDNA.Version), false);
-            //CLIEngine.ShowMessage(string.Concat($"Version Sequence:                           ", starHolon.STARNETDNA.VersionSequence), false);
-            //CLIEngine.ShowMessage(string.Concat($"Number Of Versions:                         ", starHolon.STARNETDNA.NumberOfVersions), false);
-            ////CLIEngine.ShowMessage(string.Concat($"OASIS Holon Version:                        ", starHolon.Version), false);
-            ////CLIEngine.ShowMessage(string.Concat($"OASIS Holon VersionId:                      ", starHolon.VersionId), false);
-            ////CLIEngine.ShowMessage(string.Concat($"OASIS Holon PreviousVersionId:              ", starHolon.PreviousVersionId), false);
-            //CLIEngine.ShowMessage(string.Concat($"Downloads:                                  ", starHolon.STARNETDNA.Downloads), false);
-            //CLIEngine.ShowMessage(string.Concat($"Installs:                                   ", starHolon.STARNETDNA.Installs), false);
-            //CLIEngine.ShowMessage(string.Concat($"Total Downloads:                            ", starHolon.STARNETDNA.TotalDownloads), false);
-            //CLIEngine.ShowMessage(string.Concat($"Total Installs:                             ", starHolon.STARNETDNA.TotalInstalls), false);
-            //CLIEngine.ShowMessage(string.Concat($"Active:                                     ", starHolon.MetaData != null && starHolon.MetaData.ContainsKey("Active") && starHolon.MetaData["Active"] != null && starHolon.MetaData["Active"].ToString() == "1" ? "True" : "False"), false);
-
-            if (showDetailedInfo)
+            if (showDetailedInfo && STARNETManager.STARNETHolonType == HolonType.OAPPTemplate)
             {
-                //Show base holon info.
+                Console.WriteLine("");
+                DisplayProperty("RUNTIMES", "", displayFieldLength, false);
+
+                foreach (ISTARNETHolonMetaData lib in ((IOAPPBase)starHolon).RuntimesMetaData)
+                    DisplaySTARNETHolonMetaData(lib, displayFieldLength);
+
+                Console.WriteLine("");
+                DisplayProperty("LIBS", "", displayFieldLength, false);
+
+                foreach (ISTARNETHolonMetaData lib in ((IOAPPBase)starHolon).RuntimesMetaData)
+                    DisplaySTARNETHolonMetaData(lib, displayFieldLength);
+
+                Console.WriteLine("");
+                DisplayProperty("TEMPLATES", "", displayFieldLength, false);
+
+                foreach (ISTARNETHolonMetaData lib in ((IOAPPBase)starHolon).RuntimesMetaData)
+                    DisplaySTARNETHolonMetaData(lib, displayFieldLength);
             }
 
             if (showFooter)
@@ -1300,6 +1292,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowMessage(CreateIntroParagraphs[i]);
 
             CLIEngine.ShowDivider();
+        }
+
+        private void DisplaySTARNETHolonMetaData(ISTARNETHolonMetaData metaData, int displayFieldLength)
+        {
+            DisplayProperty("Id", metaData.STARNETHolonId.ToString(), displayFieldLength);
+            DisplayProperty("Name", metaData.Name, displayFieldLength);
+            DisplayProperty("Description", metaData.Description, displayFieldLength);
+            DisplayProperty("Version", metaData.Version, displayFieldLength);
+            DisplayProperty("Version Sequence", metaData.VersionSequence.ToString(), displayFieldLength);
+            DisplayProperty("Installed From", metaData.InstalledFrom, displayFieldLength);
+            DisplayProperty("Installed To", metaData.InstalledTo, displayFieldLength);
+            Console.WriteLine("");
         }
 
         public async Task<OASISResult<T1>> FindAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string STARNETHolonUIName = "Default", ProviderType providerType = ProviderType.Default)
@@ -2012,7 +2016,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
 
 
-        private OASISResult<IEnumerable<T>> ListStarHolons<T>(OASISResult<IEnumerable<T>> starHolons, bool showNumbers = false) where T : ISTARNETHolon, new()
+        private OASISResult<IEnumerable<T>> ListStarHolons<T>(OASISResult<IEnumerable<T>> starHolons, bool showNumbers = false, bool showDetailedInfo = false) where T : ISTARNETHolon, new()
         {
             if (starHolons != null)
             {
@@ -2028,7 +2032,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             CLIEngine.ShowMessage($"{starHolons.Result.Count()} {STARNETManager.STARNETHolonUIName}s Found:");
 
                         for (int i = 0; i < starHolons.Result.Count(); i++)
-                            Show(starHolons.Result.ElementAt(i), i == 0, true, showNumbers, i + 1);
+                            Show(starHolons.Result.ElementAt(i), i == 0, true, showNumbers, i + 1, showDetailedInfo);
                     }
                     else
                         CLIEngine.ShowWarningMessage($"No {STARNETManager.STARNETHolonUIName}s Found.");
