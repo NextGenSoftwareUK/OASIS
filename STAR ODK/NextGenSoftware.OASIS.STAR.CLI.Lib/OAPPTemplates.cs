@@ -6,7 +6,8 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class OAPPTemplates : OAPPBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, OAPPTemplateDNA>
+    //public class OAPPTemplates : OAPPBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, OAPPTemplateDNA>
+    public class OAPPTemplates : STARNETUIBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, OAPPTemplateDNA>
     {
         public OAPPTemplates(Guid avatarId) : base(new OAPPTemplateManager(avatarId),
             "Welcome to the OAPP Template Wizard", new List<string> 

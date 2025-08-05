@@ -1,9 +1,11 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
-    public class OAPPTemplate : OAPPBase, IOAPPTemplate
+    //public class OAPPTemplate : OAPPBase, IOAPPTemplate
+    public class OAPPTemplate : STARNETHolon, IOAPPTemplate
     {
         public OAPPTemplate() : base("OAPPTemplateDNAJSON")
         {
