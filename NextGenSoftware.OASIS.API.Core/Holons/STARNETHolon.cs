@@ -3,8 +3,6 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
-using System.Collections.Generic;
-using System;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -61,6 +59,15 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         [CustomOASISProperty()]
         public virtual byte[] PublishedSTARNETHolon { get; set; }
 
+
+        //[CustomOASISProperty]
+        //public IList<ISTARNETHolonMetaData> RuntimesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
+
+        //[CustomOASISProperty]
+        //public IList<ISTARNETHolonMetaData> LibrariesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
+
+        //[CustomOASISProperty]
+        //public IList<ISTARNETHolonMetaData> OAPPTemplatesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
 
 
         //public Guid Id { get; set; }

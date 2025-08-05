@@ -19,7 +19,8 @@ using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class OAPPs : OAPPBase<OAPP, DownloadedOAPP, InstalledOAPP, OAPPDNA>
+    //public class OAPPs : OAPPBase<OAPP, DownloadedOAPP, InstalledOAPP, OAPPDNA>
+    public class OAPPs : STARNETUIBase<OAPP, DownloadedOAPP, InstalledOAPP, OAPPDNA>
     {
         public OAPPs(Guid avatarId) : base(new OAPPManager(avatarId),
             "Welcome to the OASIS Omniverse/MagicVerse Light Wizard!", new List<string> 
