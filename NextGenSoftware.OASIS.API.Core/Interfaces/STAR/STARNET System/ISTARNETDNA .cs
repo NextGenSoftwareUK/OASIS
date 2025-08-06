@@ -45,8 +45,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public int TotalDownloads { get; set; }
         public int TotalInstalls { get; set; }
         public int NumberOfVersions { get; set; }
-        public IList<ISTARNETHolonMetaData> RuntimesMetaData { get; set; }
-        public IList<ISTARNETHolonMetaData> LibrariesMetaData { get; set; }
-        public IList<ISTARNETHolonMetaData> OAPPTemplatesMetaData { get; set; }
+        public IList<ISTARNETDependency> RuntimeDependencies { get; set; }
+        public IList<ISTARNETDependency> LibraryDependencies { get; set; }
+        public IList<ISTARNETDependency> TemplateDependencies { get; set; }
     }
 }

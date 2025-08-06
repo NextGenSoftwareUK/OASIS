@@ -61,13 +61,13 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
 
         //[CustomOASISProperty]
-        //public IList<ISTARNETHolonMetaData> RuntimesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
+        //public IList<ISTARNETDependency> RuntimesMetaData { get; set; } = new List<ISTARNETDependency>();
 
         //[CustomOASISProperty]
-        //public IList<ISTARNETHolonMetaData> LibrariesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
+        //public IList<ISTARNETDependency> LibrariesMetaData { get; set; } = new List<ISTARNETDependency>();
 
         //[CustomOASISProperty]
-        //public IList<ISTARNETHolonMetaData> OAPPTemplatesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
+        //public IList<ISTARNETDependency> OAPPTemplatesMetaData { get; set; } = new List<ISTARNETDependency>();
 
 
         //public Guid Id { get; set; }
