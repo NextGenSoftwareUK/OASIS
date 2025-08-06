@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects.STARNET
 {
-    public class STARNETHolonMetaData : ISTARNETHolonMetaData
+    public class STARNETHolonMetaData : ISTARNETDependency
     {
         public Guid HolonId { get; set; }
         public Guid STARNETHolonId { get; set; }

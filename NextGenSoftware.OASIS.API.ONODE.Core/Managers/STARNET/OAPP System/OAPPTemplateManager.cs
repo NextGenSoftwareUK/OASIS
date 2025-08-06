@@ -291,7 +291,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //            if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
         //            {
         //                parentOAPPTemplateResult.Result.Runtimes.Remove(runtimeResult.Result);
-        //                ISTARNETHolonMetaData metaData = parentOAPPTemplateResult.Result.RuntimesMetaData.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
+        //                ISTARNETDependency metaData = parentOAPPTemplateResult.Result.RuntimesMetaData.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
 
         //                if (metaData != null)
         //                    parentOAPPTemplateResult.Result.RuntimesMetaData.Remove(metaData);
@@ -336,7 +336,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //            if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
         //            {
         //                parentOAPPTemplateResult.Result.Runtimes.Remove(runtimeResult.Result);
-        //                ISTARNETHolonMetaData metaData = parentOAPPTemplateResult.Result.RuntimesMetaData.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
+        //                ISTARNETDependency metaData = parentOAPPTemplateResult.Result.RuntimesMetaData.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
 
         //                if (metaData != null)
         //                    parentOAPPTemplateResult.Result.RuntimesMetaData.Remove(metaData);
@@ -385,7 +385,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //            if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
         //            {
         //                parentOAPPTemplateResult.Result.Runtimes.Remove(runtimeResult.Result);
-        //                ISTARNETHolonMetaData metaData = parentOAPPTemplateResult.Result.RuntimesMetaData.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
+        //                ISTARNETDependency metaData = parentOAPPTemplateResult.Result.RuntimesMetaData.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
 
         //                if (metaData != null)
         //                    parentOAPPTemplateResult.Result.RuntimesMetaData.Remove(metaData);
@@ -435,7 +435,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //            if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
         //            {
         //                parentOAPPTemplateResult.Result.Runtimes.Remove(runtimeResult.Result);
-        //                ISTARNETHolonMetaData metaData = parentOAPPTemplateResult.Result.RuntimesMetaData.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
+        //                ISTARNETDependency metaData = parentOAPPTemplateResult.Result.RuntimesMetaData.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
 
         //                if (metaData != null)
         //                    parentOAPPTemplateResult.Result.RuntimesMetaData.Remove(metaData);
@@ -689,7 +689,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //            if (libraryResult != null && libraryResult.Result != null && !libraryResult.IsError)
         //            {
         //                parentOAPPTemplateResult.Result.Libraries.Remove(libraryResult.Result);
-        //                ISTARNETHolonMetaData metaData = parentOAPPTemplateResult.Result.LibrariesMetaData.FirstOrDefault(x => x.HolonId == libraryResult.Result.Id);
+        //                ISTARNETDependency metaData = parentOAPPTemplateResult.Result.LibrariesMetaData.FirstOrDefault(x => x.HolonId == libraryResult.Result.Id);
 
         //                if (metaData != null)
         //                    parentOAPPTemplateResult.Result.LibrariesMetaData.Remove(metaData);
@@ -734,7 +734,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //            if (libraryResult != null && libraryResult.Result != null && !libraryResult.IsError)
         //            {
         //                parentOAPPTemplateResult.Result.Libraries.Remove(libraryResult.Result);
-        //                ISTARNETHolonMetaData metaData = parentOAPPTemplateResult.Result.LibrariesMetaData.FirstOrDefault(x => x.HolonId == libraryResult.Result.Id);
+        //                ISTARNETDependency metaData = parentOAPPTemplateResult.Result.LibrariesMetaData.FirstOrDefault(x => x.HolonId == libraryResult.Result.Id);
 
         //                if (metaData != null)
         //                    parentOAPPTemplateResult.Result.LibrariesMetaData.Remove(metaData);
@@ -783,7 +783,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //            if (libraryResult != null && libraryResult.Result != null && !libraryResult.IsError)
         //            {
         //                parentOAPPTemplateResult.Result.Libraries.Remove(libraryResult.Result);
-        //                ISTARNETHolonMetaData metaData = parentOAPPTemplateResult.Result.LibrariesMetaData.FirstOrDefault(x => x.HolonId == libraryResult.Result.Id);
+        //                ISTARNETDependency metaData = parentOAPPTemplateResult.Result.LibrariesMetaData.FirstOrDefault(x => x.HolonId == libraryResult.Result.Id);
 
         //                if (metaData != null)
         //                    parentOAPPTemplateResult.Result.LibrariesMetaData.Remove(metaData);
@@ -833,7 +833,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //            if (libraryResult != null && libraryResult.Result != null && !libraryResult.IsError)
         //            {
         //                parentOAPPTemplateResult.Result.Libraries.Remove(libraryResult.Result);
-        //                ISTARNETHolonMetaData metaData = parentOAPPTemplateResult.Result.LibrariesMetaData.FirstOrDefault(x => x.HolonId == libraryResult.Result.Id);
+        //                ISTARNETDependency metaData = parentOAPPTemplateResult.Result.LibrariesMetaData.FirstOrDefault(x => x.HolonId == libraryResult.Result.Id);
 
         //                if (metaData != null)
         //                    parentOAPPTemplateResult.Result.LibrariesMetaData.Remove(metaData);

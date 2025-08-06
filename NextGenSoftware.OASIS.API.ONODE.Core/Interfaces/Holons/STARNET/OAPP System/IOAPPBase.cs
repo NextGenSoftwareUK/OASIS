@@ -6,8 +6,8 @@
 //    public interface IOAPPBase
 //    {
 //        IList<ILibrary> Libraries { get; set; }
-//        IList<ISTARNETHolonMetaData> LibrariesMetaData { get; set; }
+//        IList<ISTARNETDependency> LibrariesMetaData { get; set; }
 //        IList<IRuntime> Runtimes { get; set; }
-//        IList<ISTARNETHolonMetaData> RuntimesMetaData { get; set; }
+//        IList<ISTARNETDependency> RuntimesMetaData { get; set; }
 //    }
 //}
