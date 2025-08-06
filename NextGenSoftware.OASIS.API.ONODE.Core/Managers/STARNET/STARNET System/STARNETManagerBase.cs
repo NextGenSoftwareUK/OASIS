@@ -106,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public string STARNETDNAJSONName { get; set; } = "STARNETDNAJSON";
         public Type STARNETHolonSubType { get; set; }
 
-        public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> metaData = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> dependency = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in STARNETManagerBase.CreateAsync, Reason:";
@@ -167,12 +167,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 holon.MetaData["Active"] = "1";
                 holon.MetaData["CreatedByAvatarId"] = avatarId.ToString();
 
-                foreach (string key in metaData?.Keys ?? new Dictionary<string, object>().Keys)
+                foreach (string key in dependency?.Keys ?? new Dictionary<string, object>().Keys)
                 {
                     if (!holon.MetaData.ContainsKey(key))
-                        holon.MetaData.Add(key, metaData[key]);
+                        holon.MetaData.Add(key, dependency[key]);
                     else
-                        holon.MetaData[key] = metaData[key];
+                        holon.MetaData[key] = dependency[key];
                 }
 
                 //T.MetaData["LatestVersion"] = "1";
@@ -201,7 +201,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion;
                     STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
                     STARNETDNA.SourcePath = fullPathToSourceFolder;
-                    STARNETDNA.MetaData = metaData; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
+                    STARNETDNA.MetaData = dependency; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
 
 
                     //STARNETDNA STARNETDNA = new STARNETDNA()
@@ -219,7 +219,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     //    COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
                     //    DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion,
                     //    SourcePath = fullPathToT,
-                    //    MetaData = metaData //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
+                    //    MetaData = dependency //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
                     //};
 
                     OASISResult<bool> writeSTARNETDNAResult = await WriteDNAAsync(STARNETDNA, fullPathToSourceFolder);
@@ -251,7 +251,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> metaData = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> dependency = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in STARNETManagerBase.Create, Reason:";
@@ -312,12 +312,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 holon.MetaData["Active"] = "1";
                 holon.MetaData["CreatedByAvatarId"] = avatarId.ToString();
 
-                foreach (string key in metaData?.Keys ?? new Dictionary<string, object>().Keys)
+                foreach (string key in dependency?.Keys ?? new Dictionary<string, object>().Keys)
                 {
                     if (!holon.MetaData.ContainsKey(key))
-                        holon.MetaData.Add(key, metaData[key]);
+                        holon.MetaData.Add(key, dependency[key]);
                     else
-                        holon.MetaData[key] = metaData[key];
+                        holon.MetaData[key] = dependency[key];
                 }
 
                 //T.MetaData["LatestVersion"] = "1";
@@ -346,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion;
                     STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
                     STARNETDNA.SourcePath = fullPathToSourceFolder;
-                    STARNETDNA.MetaData = metaData; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
+                    STARNETDNA.MetaData = dependency; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
 
 
                     //STARNETDNA STARNETDNA = new STARNETDNA()
@@ -364,7 +364,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     //    COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion,
                     //    DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion,
                     //    SourcePath = fullPathToT,
-                    //    MetaData = metaData //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
+                    //    MetaData = dependency //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
                     //};
 
                     OASISResult<bool> writeSTARNETDNAResult = WriteDNA(STARNETDNA, fullPathToSourceFolder);
@@ -5370,8 +5370,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
                 {
-                    //parent.RuntimesMetaData.Add(new STARNETHolonMetaData()
-                    parent.STARNETDNA.RuntimesMetaData.Add(new STARNETHolonMetaData()
+                    //parent.RuntimeDependencies.Add(new STARNETHolonMetaData()
+                    parent.STARNETDNA.RuntimeDependencies.Add(new STARNETHolonMetaData()
                     {
                         HolonId = runtimeResult.Result.Id,
                         STARNETHolonId = runtimeResult.Result.STARNETDNA.Id,
@@ -5381,7 +5381,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         Version = runtimeResult.Result.STARNETDNA.Version
                     });
 
-                    //parent.STARNETDNA.MetaData["RuntimesMetaData"] = parent.RuntimesMetaData;
+                    //parent.STARNETDNA.MetaData["RuntimeDependencies"] = parent.RuntimeDependencies;
                     result = Update(avatarId, parent, result, errorMessage, providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
@@ -5414,7 +5414,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
                 {
                     //parent.Runtimes.Add(runtimeResult.Result);
-                    parent.STARNETDNA.RuntimesMetaData.Add(new STARNETHolonMetaData()
+                    parent.STARNETDNA.RuntimeDependencies.Add(new STARNETHolonMetaData()
                     {
                         HolonId = runtimeResult.Result.Id,
                         STARNETHolonId = runtimeResult.Result.STARNETDNA.Id,
@@ -5427,7 +5427,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     });
 
                     //parent.STARNETDNA.MetaData["Runtimes"] = parent.Runtimes;
-                    parent.STARNETDNA.MetaData["RuntimesMetaData"] = parent.STARNETDNA.RuntimesMetaData;
+                    parent.STARNETDNA.MetaData["RuntimeDependencies"] = parent.STARNETDNA.RuntimeDependencies;
                     result = Update(avatarId, parent, result, errorMessage, providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
@@ -5552,15 +5552,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> AddRuntimeAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> AddRuntimeAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid runtimeId, int runtimeVersionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.AddRuntimeAsync. Reason:";
 
             OASISResult<InstalledRuntime> installedLibResult = await Data.LoadHolonByMetaDataAsync<InstalledRuntime>(new Dictionary<string, string>()
             {
-                { "RuntimeId", templateId.ToString() },
-                { "VersionSequence", libraryVersionSequence.ToString() }
+                { "RuntimeId", runtimeId.ToString() },
+                { "VersionSequence", runtimeVersionSequence.ToString() }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledRuntime, providerType: providerType);
 
@@ -5572,15 +5572,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> AddRuntime(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> AddRuntime(Guid avatarId, Guid parentId, int parentVersionSequence, Guid runtimeId, int runtimeVersionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.AddRuntime. Reason:";
 
             OASISResult<InstalledRuntime> installedLibResult = Data.LoadHolonByMetaData<InstalledRuntime>(new Dictionary<string, string>()
             {
-                { "RuntimeId", templateId.ToString() },
-                { "VersionSequence", libraryVersionSequence.ToString() }
+                { "RuntimeId", runtimeId.ToString() },
+                { "VersionSequence", runtimeVersionSequence.ToString() }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledRuntime, providerType: providerType);
 
@@ -5592,15 +5592,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> AddRuntimeAsync(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string libraryVersion, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> AddRuntimeAsync(Guid avatarId, Guid parentId, string parentVersion, Guid runtimeId, string runtimeVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.AddRuntimeAsync. Reason:";
 
             OASISResult<InstalledRuntime> installedLibResult = await Data.LoadHolonByMetaDataAsync<InstalledRuntime>(new Dictionary<string, string>()
             {
-                { "RuntimeId", templateId.ToString() },
-                { "Version", libraryVersion }
+                { "RuntimeId", runtimeId.ToString() },
+                { "Version", runtimeVersion }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledRuntime, providerType: providerType);
 
@@ -5612,15 +5612,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> AddRuntime(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string libraryVersion, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> AddRuntime(Guid avatarId, Guid parentId, string parentVersion, Guid runtimeId, string runtimeVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.AddRuntime. Reason:";
 
             OASISResult<InstalledRuntime> installedLibResult = Data.LoadHolonByMetaData<InstalledRuntime>(new Dictionary<string, string>()
             {
-                { "RuntimeId", templateId.ToString() },
-                { "Version", libraryVersion }
+                { "RuntimeId", runtimeId.ToString() },
+                { "Version", runtimeVersion }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledRuntime, providerType: providerType);
 
@@ -5633,7 +5633,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         }
 
 
-        public async Task<OASISResult<T1>> RemoveRuntimeAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> RemoveRuntimeAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid runtimeId, int runtimeVersionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.RemoveRuntimeAsync. Reason:";
@@ -5646,27 +5646,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     OASISResult<Runtime> runtimeResult = await Data.LoadHolonByMetaDataAsync<Runtime>(new Dictionary<string, string>()
                     {
-                        { "RuntimeId", templateId.ToString() },
-                        { "VersionSequence", libraryVersionSequence.ToString() }
+                        { "RuntimeId", runtimeId.ToString() },
+                        { "VersionSequence", runtimeVersionSequence.ToString() }
 
                     }, MetaKeyValuePairMatchMode.All, HolonType.Runtime, providerType: providerType);
 
                     if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
                     {
-                        //parentResult.Result.Runtimes.Remove((IRuntime)runtimeResult.Result);
-                        ISTARNETHolonMetaData metaData = parentResult.Result.STARNETDNA.RuntimesMetaData.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
+                        ISTARNETDependency dependency = parentResult.Result.STARNETDNA.RuntimeDependencies.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
 
-                        if (metaData != null)
-                            parentResult.Result.STARNETDNA.RuntimesMetaData.Remove(metaData);
+                        if (dependency != null)
+                        {
+                            parentResult.Result.STARNETDNA.RuntimeDependencies.Remove(dependency);
+                            result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
 
-                        //parentResult.Result.STARNETDNA.MetaData["Runtimes"] = parentResult.Result.Runtimes;
-                        //parentResult.Result.STARNETDNA.MetaData["RuntimesMetaData"] = parentResult.Result.RuntimesMetaData;
-                        result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
+                            string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Runtimes", string.Concat(runtimeResult.Result.STARNETDNA.Name, "_v", runtimeResult.Result.STARNETDNA.Version));
 
-                        string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(runtimeResult.Result.STARNETDNA.Name, "_v", runtimeResult.Result.STARNETDNA.Version));
-
-                        if (Directory.Exists(path))
-                            Directory.Exists(path);
+                            if (Directory.Exists(path))
+                                Directory.Exists(path);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The runtime with id {runtimeResult.Result.Id} was not found!");
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the Runtime with Data.LoadHolonByMetaDataAsync. Reason: {runtimeResult.Message}");
@@ -5682,7 +5682,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> RemoveRuntime(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int libraryVersionSequnce, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> RemoveRuntime(Guid avatarId, Guid parentId, int parentVersionSequence, Guid runtimeId, int runtimeVersionSequnce, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.RemoveRuntimeAsync. Reason:";
@@ -5695,27 +5695,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     OASISResult<Runtime> runtimeResult = Data.LoadHolonByMetaData<Runtime>(new Dictionary<string, string>()
                     {
-                        { "RuntimeId", templateId.ToString() },
-                        { "VersionSequence", libraryVersionSequnce.ToString() }
+                        { "RuntimeId", runtimeId.ToString() },
+                        { "VersionSequence", runtimeVersionSequnce.ToString() }
 
                     }, MetaKeyValuePairMatchMode.All, HolonType.Runtime, providerType: providerType);
 
                     if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
                     {
-                        //parentResult.Result.Runtimes.Remove((IRuntime)runtimeResult.Result);
-                        ISTARNETHolonMetaData metaData = parentResult.Result.STARNETDNA.RuntimesMetaData.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
+                        ISTARNETDependency dependency = parentResult.Result.STARNETDNA.RuntimeDependencies.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
 
-                        if (metaData != null)
-                            parentResult.Result.STARNETDNA.RuntimesMetaData.Remove(metaData);
+                        if (dependency != null)
+                        {
+                            parentResult.Result.STARNETDNA.RuntimeDependencies.Remove(dependency);
+                            result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
 
-                        //parentResult.Result.STARNETDNA.MetaData["Runtimes"] = parentResult.Result.Runtimes;
-                        //parentResult.Result.STARNETDNA.MetaData["RuntimesMetaData"] = parentResult.Result.RuntimesMetaData;
-                        result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
+                            string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Runtimes", string.Concat(runtimeResult.Result.STARNETDNA.Name, "_v", runtimeResult.Result.STARNETDNA.Version));
 
-                        string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(runtimeResult.Result.STARNETDNA.Name, "_v", runtimeResult.Result.STARNETDNA.Version));
-
-                        if (Directory.Exists(path))
-                            Directory.Exists(path);
+                            if (Directory.Exists(path))
+                                Directory.Exists(path);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The runtime with id {runtimeResult.Result.Id} was not found!");
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the Runtime with Data.LoadHolonByMetaData. Reason: {runtimeResult.Message}");
@@ -5731,7 +5731,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> RemoveRuntimeAsync(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string libraryVersion, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> RemoveRuntimeAsync(Guid avatarId, Guid parentId, string parentVersion, Guid runtimeId, string runtimeVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.RemoveRuntimeAsync. Reason:";
@@ -5749,27 +5749,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     OASISResult<Runtime> runtimeResult = await Data.LoadHolonByMetaDataAsync<Runtime>(new Dictionary<string, string>()
                     {
-                        { "RuntimeId", templateId.ToString() },
-                        { "Version", libraryVersion }
+                        { "RuntimeId", runtimeId.ToString() },
+                        { "Version", runtimeVersion }
 
                     }, MetaKeyValuePairMatchMode.All, HolonType.Runtime, providerType: providerType);
 
                     if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
                     {
-                        //parentResult.Result.Runtimes.Remove((IRuntime)runtimeResult.Result);
-                        ISTARNETHolonMetaData metaData = parentResult.Result.STARNETDNA.RuntimesMetaData.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
+                        ISTARNETDependency dependency = parentResult.Result.STARNETDNA.RuntimeDependencies.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
 
-                        if (metaData != null)
-                            parentResult.Result.STARNETDNA.RuntimesMetaData.Remove(metaData);
+                        if (dependency != null)
+                        {
+                            parentResult.Result.STARNETDNA.RuntimeDependencies.Remove(dependency);
+                            result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
 
-                        //parentResult.Result.STARNETDNA.MetaData["Runtimes"] = parentResult.Result.Runtimes;
-                        //parentResult.Result.STARNETDNA.MetaData["RuntimesMetaData"] = parentResult.Result.RuntimesMetaData;
-                        result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
+                            string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Runtimes", string.Concat(runtimeResult.Result.STARNETDNA.Name, "_v", runtimeResult.Result.STARNETDNA.Version));
 
-                        string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(runtimeResult.Result.STARNETDNA.Name, "_v", runtimeResult.Result.STARNETDNA.Version));
-
-                        if (Directory.Exists(path))
-                            Directory.Exists(path);
+                            if (Directory.Exists(path))
+                                Directory.Exists(path);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The runtime with id {runtimeResult.Result.Id} was not found!");
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the Runtime with Data.LoadHolonByMetaDataAsync. Reason: {runtimeResult.Message}");
@@ -5785,7 +5785,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> RemoveRuntime(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string libraryVersion, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> RemoveRuntime(Guid avatarId, Guid parentId, string parentVersion, Guid runtimeId, string runtimeVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.RemoveRuntimeAsync. Reason:";
@@ -5794,7 +5794,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             {
                 OASISResult<T1> parentResult = Data.LoadHolonByMetaData<T1>(new Dictionary<string, string>()
                 {
-                    { STARNETHolonIdName, templateId.ToString() },
+                    { STARNETHolonIdName, parentId.ToString() },
                     { "Version", parentVersion }
 
                 }, MetaKeyValuePairMatchMode.All, STARNETHolonType, providerType: providerType);
@@ -5803,27 +5803,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     OASISResult<Runtime> runtimeResult = Data.LoadHolonByMetaData<Runtime>(new Dictionary<string, string>()
                     {
-                        { "RuntimeId", templateId.ToString() },
-                        { "Version", libraryVersion.ToString() }
+                        { "RuntimeId", runtimeId.ToString() },
+                        { "Version", runtimeVersion.ToString() }
 
                     }, MetaKeyValuePairMatchMode.All, HolonType.Runtime, providerType: providerType);
 
                     if (runtimeResult != null && runtimeResult.Result != null && !runtimeResult.IsError)
                     {
-                        //parentResult.Result.Runtimes.Remove((IRuntime)runtimeResult.Result);
-                        ISTARNETHolonMetaData metaData = parentResult.Result.STARNETDNA.RuntimesMetaData.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
+                        ISTARNETDependency dependency = parentResult.Result.STARNETDNA.RuntimeDependencies.FirstOrDefault(x => x.HolonId == runtimeResult.Result.Id);
 
-                        if (metaData != null)
-                            parentResult.Result.STARNETDNA.RuntimesMetaData.Remove(metaData);
+                        if (dependency != null)
+                        {
+                            parentResult.Result.STARNETDNA.RuntimeDependencies.Remove(dependency);
+                            result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
 
-                        //parentResult.Result.STARNETDNA.MetaData["Runtimes"] = parentResult.Result.Runtimes;
-                        parentResult.Result.STARNETDNA.MetaData["RuntimesMetaData"] = parentResult.Result.STARNETDNA.RuntimesMetaData;
-                        result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
+                            string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Runtimes", string.Concat(runtimeResult.Result.STARNETDNA.Name, "_v", runtimeResult.Result.STARNETDNA.Version));
 
-                        string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(runtimeResult.Result.STARNETDNA.Name, "_v", runtimeResult.Result.STARNETDNA.Version));
-
-                        if (Directory.Exists(path))
-                            Directory.Exists(path);
+                            if (Directory.Exists(path))
+                                Directory.Exists(path);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The runtime with id {runtimeResult.Result.Id} was not found!");
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the Runtime with Data.LoadHolonByMetaData. Reason: {runtimeResult.Message}");
@@ -5857,7 +5857,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 if (libResult != null && libResult.Result != null && !libResult.IsError)
                 {
                     //parent.Libraries.Add(libResult.Result);
-                    parent.STARNETDNA.LibrariesMetaData.Add(new STARNETHolonMetaData()
+                    parent.STARNETDNA.LibraryDependencies.Add(new STARNETHolonMetaData()
                     {
                         HolonId = libResult.Result.Id,
                         STARNETHolonId = libResult.Result.STARNETDNA.Id,
@@ -5870,7 +5870,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     });
 
                     //parent.STARNETDNA.MetaData["Libraries"] = parent.Libraries;
-                    //parent.STARNETDNA.MetaData["LibrariesMetaData"] = parent.LibrariesMetaData;
+                    //parent.STARNETDNA.MetaData["LibraryDependencies"] = parent.LibraryDependencies;
                     result = Update(avatarId, parent, result, errorMessage, providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
@@ -5904,7 +5904,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 if (libResult != null && libResult.Result != null && !libResult.IsError)
                 {
                     //parent.Libraries.Add(libResult.Result);
-                    parent.STARNETDNA.LibrariesMetaData.Add(new STARNETHolonMetaData()
+                    parent.STARNETDNA.LibraryDependencies.Add(new STARNETHolonMetaData()
                     {
                         HolonId = libResult.Result.Id,
                         STARNETHolonId = libResult.Result.STARNETDNA.Id,
@@ -5917,7 +5917,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     });
 
                     //parent.STARNETDNA.MetaData["Libraries"] = parent.Libraries;
-                    //parent.STARNETDNA.MetaData["LibrariesMetaData"] = parent.LibrariesMetaData;
+                    //parent.STARNETDNA.MetaData["LibraryDependencies"] = parent.LibraryDependencies;
                     result = Update(avatarId, parent, result, errorMessage, providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
@@ -6042,14 +6042,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> AddLibraryAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> AddLibraryAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid libraryId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.AddLibraryAsync. Reason:";
 
             OASISResult<InstalledLibrary> installedLibResult = await Data.LoadHolonByMetaDataAsync<InstalledLibrary>(new Dictionary<string, string>()
             {
-                { "LibraryId", templateId.ToString() },
+                { "LibraryId", libraryId.ToString() },
                 { "VersionSequence", libraryVersionSequence.ToString() }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledLibrary, providerType: providerType);
@@ -6062,14 +6062,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> AddLibrary(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> AddLibrary(Guid avatarId, Guid parentId, int parentVersionSequence, Guid libraryId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.AddLibrary. Reason:";
 
             OASISResult<InstalledLibrary> installedLibResult = Data.LoadHolonByMetaData<InstalledLibrary>(new Dictionary<string, string>()
             {
-                { "LibraryId", templateId.ToString() },
+                { "LibraryId", libraryId.ToString() },
                 { "VersionSequence", libraryVersionSequence.ToString() }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledLibrary, providerType: providerType);
@@ -6082,14 +6082,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> AddLibraryAsync(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string libraryVersion, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> AddLibraryAsync(Guid avatarId, Guid parentId, string parentVersion, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.AddLibraryAsync. Reason:";
 
             OASISResult<InstalledLibrary> installedLibResult = await Data.LoadHolonByMetaDataAsync<InstalledLibrary>(new Dictionary<string, string>()
             {
-                { "LibraryId", templateId.ToString() },
+                { "LibraryId", libraryId.ToString() },
                 { "Version", libraryVersion }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledLibrary, providerType: providerType);
@@ -6102,14 +6102,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> AddLibrary(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string libraryVersion, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> AddLibrary(Guid avatarId, Guid parentId, string parentVersion, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.AddLibrary. Reason:";
 
             OASISResult<InstalledLibrary> installedLibResult = Data.LoadHolonByMetaData<InstalledLibrary>(new Dictionary<string, string>()
             {
-                { "LibraryId", templateId.ToString() },
+                { "LibraryId", libraryId.ToString() },
                 { "Version", libraryVersion }
 
             }, MetaKeyValuePairMatchMode.All, HolonType.InstalledLibrary, providerType: providerType);
@@ -6123,7 +6123,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         }
 
 
-        public async Task<OASISResult<T1>> RemoveLibraryAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> RemoveLibraryAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid libraryId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.RemoveLibraryAsync. Reason:";
@@ -6136,27 +6136,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     OASISResult<Library> libResult = await Data.LoadHolonByMetaDataAsync<Library>(new Dictionary<string, string>()
                     {
-                        { "LibraryId", templateId.ToString() },
+                        { "LibraryId", libraryId.ToString() },
                         { "VersionSequence", libraryVersionSequence.ToString() }
 
                     }, MetaKeyValuePairMatchMode.All, HolonType.Library, providerType: providerType);
 
                     if (libResult != null && libResult.Result != null && !libResult.IsError)
                     {
-                        //parentResult.Result.Libraries.Remove((ILibrary)libResult.Result);
-                        ISTARNETHolonMetaData metaData = parentResult.Result.STARNETDNA.LibrariesMetaData.FirstOrDefault(x => x.HolonId == libResult.Result.Id);
+                        ISTARNETDependency dependency = parentResult.Result.STARNETDNA.LibraryDependencies.FirstOrDefault(x => x.HolonId == libResult.Result.Id);
 
-                        if (metaData != null)
-                            parentResult.Result.STARNETDNA.LibrariesMetaData.Remove(metaData);
+                        if (dependency != null)
+                        {
+                            parentResult.Result.STARNETDNA.LibraryDependencies.Remove(dependency);
+                            result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
 
-                        //parentResult.Result.STARNETDNA.MetaData["Libraries"] = parentResult.Result.Libraries;
-                        //parentResult.Result.STARNETDNA.MetaData["LibrariesMetaData"] = parentResult.Result.LibrariesMetaData;
-                        result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
+                            string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(libResult.Result.STARNETDNA.Name, "_v", libResult.Result.STARNETDNA.Version));
 
-                        string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(libResult.Result.STARNETDNA.Name, "_v", libResult.Result.STARNETDNA.Version));
-
-                        if (Directory.Exists(path))
-                            Directory.Exists(path);
+                            if (Directory.Exists(path))
+                                Directory.Exists(path);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The library with id {libResult.Result.Id} was not found!");
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the Library with Data.LoadHolonByMetaDataAsync. Reason: {libResult.Message}");
@@ -6172,7 +6172,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> RemoveLibrary(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int libraryVersionSequnce, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> RemoveLibrary(Guid avatarId, Guid parentId, int parentVersionSequence, Guid libraryId, int libraryVersionSequnce, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.RemoveLibraryAsync. Reason:";
@@ -6185,27 +6185,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     OASISResult<Library> libResult = Data.LoadHolonByMetaData<Library>(new Dictionary<string, string>()
                     {
-                        { "LibraryId", templateId.ToString() },
+                        { "LibraryId", libraryId.ToString() },
                         { "VersionSequence", libraryVersionSequnce.ToString() }
 
                     }, MetaKeyValuePairMatchMode.All, HolonType.Library, providerType: providerType);
 
                     if (libResult != null && libResult.Result != null && !libResult.IsError)
                     {
-                        //parentResult.Result.Libraries.Remove((ILibrary)libResult.Result);
-                        ISTARNETHolonMetaData metaData = parentResult.Result.STARNETDNA.LibrariesMetaData.FirstOrDefault(x => x.HolonId == libResult.Result.Id);
+                        ISTARNETDependency dependency = parentResult.Result.STARNETDNA.LibraryDependencies.FirstOrDefault(x => x.HolonId == libResult.Result.Id);
 
-                        if (metaData != null)
-                            parentResult.Result.STARNETDNA.LibrariesMetaData.Remove(metaData);
+                        if (dependency != null)
+                        {
+                            parentResult.Result.STARNETDNA.LibraryDependencies.Remove(dependency);
+                            result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
 
-                        //parentResult.Result.STARNETDNA.MetaData["Libraries"] = parentResult.Result.Libraries;
-                        //parentResult.Result.STARNETDNA.MetaData["LibrariesMetaData"] = parentResult.Result.LibrariesMetaData;
-                        result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
+                            string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(libResult.Result.STARNETDNA.Name, "_v", libResult.Result.STARNETDNA.Version));
 
-                        string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(libResult.Result.STARNETDNA.Name, "_v", libResult.Result.STARNETDNA.Version));
-
-                        if (Directory.Exists(path))
-                            Directory.Exists(path);
+                            if (Directory.Exists(path))
+                                Directory.Exists(path);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The library with id {libResult.Result.Id} was not found!");
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the Library with Data.LoadHolonByMetaData. Reason: {libResult.Message}");
@@ -6221,7 +6221,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> RemoveLibraryAsync(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string libraryVersion, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> RemoveLibraryAsync(Guid avatarId, Guid parentId, string parentVersion, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.RemoveLibraryAsync. Reason:";
@@ -6239,27 +6239,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     OASISResult<Library> libResult = await Data.LoadHolonByMetaDataAsync<Library>(new Dictionary<string, string>()
                     {
-                        { "LibraryId", templateId.ToString() },
+                        { "LibraryId", libraryId.ToString() },
                         { "Version", libraryVersion }
 
                     }, MetaKeyValuePairMatchMode.All, HolonType.Library, providerType: providerType);
 
                     if (libResult != null && libResult.Result != null && !libResult.IsError)
                     {
-                        //parentResult.Result.Libraries.Remove((ILibrary)libResult.Result);
-                        ISTARNETHolonMetaData metaData = parentResult.Result.STARNETDNA.LibrariesMetaData.FirstOrDefault(x => x.HolonId == libResult.Result.Id);
+                        ISTARNETDependency dependency = parentResult.Result.STARNETDNA.LibraryDependencies.FirstOrDefault(x => x.HolonId == libResult.Result.Id);
 
-                        if (metaData != null)
-                            parentResult.Result.STARNETDNA.LibrariesMetaData.Remove(metaData);
+                        if (dependency != null)
+                        {
+                            parentResult.Result.STARNETDNA.LibraryDependencies.Remove(dependency);
+                            result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
 
-                        //parentResult.Result.STARNETDNA.MetaData["Libraries"] = parentResult.Result.Libraries;
-                        //parentResult.Result.STARNETDNA.MetaData["LibrariesMetaData"] = parentResult.Result.LibrariesMetaData;
-                        result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
+                            string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(libResult.Result.STARNETDNA.Name, "_v", libResult.Result.STARNETDNA.Version));
 
-                        string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(libResult.Result.STARNETDNA.Name, "_v", libResult.Result.STARNETDNA.Version));
-
-                        if (Directory.Exists(path))
-                            Directory.Exists(path);
+                            if (Directory.Exists(path))
+                                Directory.Exists(path);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The library with id {libResult.Result.Id} was not found!");
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the Library with Data.LoadHolonByMetaDataAsync. Reason: {libResult.Message}");
@@ -6275,7 +6275,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> RemoveLibrary(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string libraryVersion, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> RemoveLibrary(Guid avatarId, Guid parentId, string parentVersion, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.RemoveLibraryAsync. Reason:";
@@ -6284,7 +6284,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             {
                 OASISResult<T1> parentResult = Data.LoadHolonByMetaData<T1>(new Dictionary<string, string>()
                 {
-                    { STARNETHolonIdName, templateId.ToString() },
+                    { STARNETHolonIdName, parentId.ToString() },
                     { "Version", parentVersion }
 
                 }, MetaKeyValuePairMatchMode.All, STARNETHolonType, providerType: providerType);
@@ -6293,27 +6293,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     OASISResult<Library> libResult = Data.LoadHolonByMetaData<Library>(new Dictionary<string, string>()
                     {
-                        { "LibraryId", templateId.ToString() },
+                        { "LibraryId", libraryId.ToString() },
                         { "Version", libraryVersion.ToString() }
 
                     }, MetaKeyValuePairMatchMode.All, HolonType.Library, providerType: providerType);
 
                     if (libResult != null && libResult.Result != null && !libResult.IsError)
                     {
-                        //parentResult.Result.Libraries.Remove((ILibrary)libResult.Result);
-                        ISTARNETHolonMetaData metaData = parentResult.Result.STARNETDNA.LibrariesMetaData.FirstOrDefault(x => x.HolonId == libResult.Result.Id);
+                        ISTARNETDependency dependency = parentResult.Result.STARNETDNA.LibraryDependencies.FirstOrDefault(x => x.HolonId == libResult.Result.Id);
 
-                        if (metaData != null)
-                            parentResult.Result.STARNETDNA.LibrariesMetaData.Remove(metaData);
+                        if (dependency != null)
+                        {
+                            parentResult.Result.STARNETDNA.LibraryDependencies.Remove(dependency);
+                            result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
 
-                        //parentResult.Result.STARNETDNA.MetaData["Libraries"] = parentResult.Result.Libraries;
-                        //parentResult.Result.STARNETDNA.MetaData["LibrariesMetaData"] = parentResult.Result.LibrariesMetaData;
-                        result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
+                            string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(libResult.Result.STARNETDNA.Name, "_v", libResult.Result.STARNETDNA.Version));
 
-                        string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(libResult.Result.STARNETDNA.Name, "_v", libResult.Result.STARNETDNA.Version));
-
-                        if (Directory.Exists(path))
-                            Directory.Exists(path);
+                            if (Directory.Exists(path))
+                                Directory.Exists(path);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The library with id {libResult.Result.Id} was not found!");
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the Library with Data.LoadHolonByMetaData. Reason: {libResult.Message}");
@@ -6346,7 +6346,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 if (libResult != null && libResult.Result != null && !libResult.IsError)
                 {
                     // parent.OAPPTemplates.Add(libResult.Result);
-                    parent.STARNETDNA.OAPPTemplatesMetaData.Add(new STARNETHolonMetaData()
+                    parent.STARNETDNA.TemplateDependencies.Add(new STARNETHolonMetaData()
                     {
                         HolonId = libResult.Result.Id,
                         STARNETHolonId = libResult.Result.STARNETDNA.Id,
@@ -6359,7 +6359,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     });
 
                     //parent.STARNETDNA.MetaData["OAPPTemplates"] = parent.OAPPTemplates;
-                    //parent.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parent.OAPPTemplatesMetaData;
+                    //parent.STARNETDNA.MetaData["TemplateDependencies"] = parent.TemplateDependencies;
                     result = Update(avatarId, parent, result, errorMessage, providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
@@ -6393,7 +6393,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 if (libResult != null && libResult.Result != null && !libResult.IsError)
                 {
                     //parent.OAPPTemplates.Add(libResult.Result);
-                    parent.STARNETDNA.OAPPTemplatesMetaData.Add(new STARNETHolonMetaData()
+                    parent.STARNETDNA.TemplateDependencies.Add(new STARNETHolonMetaData()
                     {
                         HolonId = libResult.Result.Id,
                         STARNETHolonId = libResult.Result.STARNETDNA.Id,
@@ -6406,7 +6406,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     });
 
                     //parent.STARNETDNA.MetaData["OAPPTemplates"] = parent.OAPPTemplates;
-                    //parent.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parent.OAPPTemplatesMetaData;
+                    //parent.STARNETDNA.MetaData["TemplateDependencies"] = parent.TemplateDependencies;
                     result = Update(avatarId, parent, result, errorMessage, providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
@@ -6623,32 +6623,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
                 {
-                    OASISResult<OAPPTemplate> libResult = await Data.LoadHolonByMetaDataAsync<OAPPTemplate>(new Dictionary<string, string>()
+                    OASISResult<OAPPTemplate> templateResult = await Data.LoadHolonByMetaDataAsync<OAPPTemplate>(new Dictionary<string, string>()
                     {
                         { "OAPPTemplateId", templateId.ToString() },
                         { "VersionSequence", subTemplateVersionSequence.ToString() }
 
                     }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
 
-                    if (libResult != null && libResult.Result != null && !libResult.IsError)
+                    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
                     {
-                        //parentResult.Result.OAPPTemplates.Remove((IOAPPTemplate)libResult.Result);
-                        ISTARNETHolonMetaData metaData = parentResult.Result.STARNETDNA.OAPPTemplatesMetaData.FirstOrDefault(x => x.HolonId == libResult.Result.Id);
+                        ISTARNETDependency dependency = parentResult.Result.STARNETDNA.TemplateDependencies.FirstOrDefault(x => x.HolonId == templateResult.Result.Id);
 
-                        if (metaData != null)
-                            parentResult.Result.STARNETDNA.OAPPTemplatesMetaData.Remove(metaData);
+                        if (dependency != null)
+                        {
+                            parentResult.Result.STARNETDNA.TemplateDependencies.Remove(dependency);
+                            result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
 
-                        //parentResult.Result.STARNETDNA.MetaData["OAPPTemplates"] = parentResult.Result.OAPPTemplates;
-                        //parentResult.Result.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parentResult.Result.OAPPTemplatesMetaData;
-                        result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
+                            string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(templateResult.Result.STARNETDNA.Name, "_v", templateResult.Result.STARNETDNA.Version));
 
-                        string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(libResult.Result.STARNETDNA.Name, "_v", libResult.Result.STARNETDNA.Version));
-
-                        if (Directory.Exists(path))
-                            Directory.Exists(path);
+                            if (Directory.Exists(path))
+                                Directory.Exists(path);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The template with id {templateResult.Result.Id} was not found!");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaDataAsync. Reason: {libResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaDataAsync. Reason: {templateResult.Message}");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the {STARNETHolonUIName}  with OAPPManagerBase.LoadHolonByMetaDataAsync. Reason: {parentResult.Message}");
@@ -6672,32 +6672,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
                 {
-                    OASISResult<OAPPTemplate> libResult = Data.LoadHolonByMetaData<OAPPTemplate>(new Dictionary<string, string>()
+                    OASISResult<OAPPTemplate> templateResult = Data.LoadHolonByMetaData<OAPPTemplate>(new Dictionary<string, string>()
                     {
                         { "OAPPTemplateId", templateId.ToString() },
                         { "VersionSequence", subTemplateVersionSequnce.ToString() }
 
                     }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
 
-                    if (libResult != null && libResult.Result != null && !libResult.IsError)
+                    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
                     {
-                        //parentResult.Result.OAPPTemplates.Remove((IOAPPTemplate)libResult.Result);
-                        ISTARNETHolonMetaData metaData = parentResult.Result.STARNETDNA.OAPPTemplatesMetaData.FirstOrDefault(x => x.HolonId == libResult.Result.Id);
+                        ISTARNETDependency dependency = parentResult.Result.STARNETDNA.TemplateDependencies.FirstOrDefault(x => x.HolonId == templateResult.Result.Id);
 
-                        if (metaData != null)
-                            parentResult.Result.STARNETDNA.OAPPTemplatesMetaData.Remove(metaData);
+                        if (dependency != null)
+                        {
+                            parentResult.Result.STARNETDNA.TemplateDependencies.Remove(dependency);
+                            result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
 
-                        //parentResult.Result.STARNETDNA.MetaData["OAPPTemplates"] = parentResult.Result.OAPPTemplates;
-                        //parentResult.Result.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parentResult.Result.STARNETDNA.OAPPTemplatesMetaData;
-                        result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
+                            string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(templateResult.Result.STARNETDNA.Name, "_v", templateResult.Result.STARNETDNA.Version));
 
-                        string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(libResult.Result.STARNETDNA.Name, "_v", libResult.Result.STARNETDNA.Version));
-
-                        if (Directory.Exists(path))
-                            Directory.Exists(path);
+                            if (Directory.Exists(path))
+                                Directory.Exists(path);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The template with id {templateResult.Result.Id} was not found!");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaData. Reason: {libResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaData. Reason: {templateResult.Message}");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the {STARNETHolonUIName}  with OAPPManagerBase.LoadHolonByMetaData. Reason: {parentResult.Message}");
@@ -6726,32 +6726,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
                 {
-                    OASISResult<OAPPTemplate> libResult = await Data.LoadHolonByMetaDataAsync<OAPPTemplate>(new Dictionary<string, string>()
+                    OASISResult<OAPPTemplate> templateResult = await Data.LoadHolonByMetaDataAsync<OAPPTemplate>(new Dictionary<string, string>()
                     {
                         { "OAPPTemplateId", templateId.ToString() },
                         { "Version", subTemplateVersion }
 
                     }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
 
-                    if (libResult != null && libResult.Result != null && !libResult.IsError)
+                    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
                     {
-                        //parentResult.Result.OAPPTemplates.Remove((IOAPPTemplate)libResult.Result);
-                        ISTARNETHolonMetaData metaData = parentResult.Result.STARNETDNA.OAPPTemplatesMetaData.FirstOrDefault(x => x.HolonId == libResult.Result.Id);
+                        ISTARNETDependency dependency = parentResult.Result.STARNETDNA.TemplateDependencies.FirstOrDefault(x => x.HolonId == templateResult.Result.Id);
 
-                        if (metaData != null)
-                            parentResult.Result.STARNETDNA.OAPPTemplatesMetaData.Remove(metaData);
+                        if (dependency != null)
+                        {
+                            parentResult.Result.STARNETDNA.TemplateDependencies.Remove(dependency);
+                            result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
 
-                        //parentResult.Result.STARNETDNA.MetaData["OAPPTemplates"] = parentResult.Result.OAPPTemplates;
-                        //parentResult.Result.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parentResult.Result.OAPPTemplatesMetaData;
-                        result = await UpdateAsync(avatarId, parentResult.Result, result, errorMessage, providerType);
+                            string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(templateResult.Result.STARNETDNA.Name, "_v", templateResult.Result.STARNETDNA.Version));
 
-                        string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(libResult.Result.STARNETDNA.Name, "_v", libResult.Result.STARNETDNA.Version));
-
-                        if (Directory.Exists(path))
-                            Directory.Exists(path);
+                            if (Directory.Exists(path))
+                                Directory.Exists(path);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The template with id {templateResult.Result.Id} was not found!");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaDataAsync. Reason: {libResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaDataAsync. Reason: {templateResult.Message}");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the {STARNETHolonUIName}  with OAPPManagerBase.LoadHolonByMetaDataAsync. Reason: {parentResult.Message}");
@@ -6780,32 +6780,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
                 {
-                    OASISResult<OAPPTemplate> libResult = Data.LoadHolonByMetaData<OAPPTemplate>(new Dictionary<string, string>()
+                    OASISResult<OAPPTemplate> templateResult = Data.LoadHolonByMetaData<OAPPTemplate>(new Dictionary<string, string>()
                     {
                         { "OAPPTemplateId", templateId.ToString() },
                         { "Version", subTemplateVersion.ToString() }
 
                     }, MetaKeyValuePairMatchMode.All, HolonType.OAPPTemplate, providerType: providerType);
 
-                    if (libResult != null && libResult.Result != null && !libResult.IsError)
+                    if (templateResult != null && templateResult.Result != null && !templateResult.IsError)
                     {
-                        //parentResult.Result.OAPPTemplates.Remove((IOAPPTemplate)libResult.Result);
-                        ISTARNETHolonMetaData metaData = parentResult.Result.STARNETDNA.OAPPTemplatesMetaData.FirstOrDefault(x => x.HolonId == libResult.Result.Id);
+                        ISTARNETDependency dependency = parentResult.Result.STARNETDNA.TemplateDependencies.FirstOrDefault(x => x.HolonId == templateResult.Result.Id);
 
-                        if (metaData != null)
-                            parentResult.Result.STARNETDNA.OAPPTemplatesMetaData.Remove(metaData);
+                        if (dependency != null)
+                        {
+                            parentResult.Result.STARNETDNA.TemplateDependencies.Remove(dependency);
+                            result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
 
-                        //parentResult.Result.STARNETDNA.MetaData["OAPPTemplates"] = parentResult.Result.OAPPTemplates;
-                        parentResult.Result.STARNETDNA.MetaData["OAPPTemplatesMetaData"] = parentResult.Result.STARNETDNA.OAPPTemplatesMetaData;
-                        result = Update(avatarId, parentResult.Result, result, errorMessage, providerType);
+                            string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(templateResult.Result.STARNETDNA.Name, "_v", templateResult.Result.STARNETDNA.Version));
 
-                        string path = Path.Combine(parentResult.Result.STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates", string.Concat(libResult.Result.STARNETDNA.Name, "_v", libResult.Result.STARNETDNA.Version));
-
-                        if (Directory.Exists(path))
-                            Directory.Exists(path);
+                            if (Directory.Exists(path))
+                                Directory.Exists(path);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The template with id {templateResult.Result.Id} was not found!");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaData. Reason: {libResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the OAPP Template with Data.LoadHolonByMetaData. Reason: {templateResult.Message}");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the {STARNETHolonUIName} with OAPPManagerBase.LoadHolonByMetaData. Reason: {parentResult.Message}");
@@ -6933,7 +6933,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             if (STARNETHolonType == HolonType.OAPP || STARNETHolonType == HolonType.OAPPTemplate)
             {
-                foreach (ISTARNETHolonMetaData library in STARNETHolon.STARNETDNA.LibrariesMetaData)
+                foreach (ISTARNETDependency library in STARNETHolon.STARNETDNA.LibraryDependencies)
                 {
                     string libInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Libs");
 
@@ -6965,7 +6965,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.InstallingRuntimes });
 
-                foreach (ISTARNETHolonMetaData runtime in STARNETHolon.STARNETDNA.RuntimesMetaData)
+                foreach (ISTARNETDependency runtime in STARNETHolon.STARNETDNA.RuntimeDependencies)
                 {
                     string runtimeInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Runtimes");
 
@@ -6997,7 +6997,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 OnInstallStatusChanged?.Invoke(this, new STARNETHolonInstallStatusEventArgs() { Status = STARNETHolonInstallStatus.InstallingTemplates });
 
-                foreach (ISTARNETHolonMetaData template in STARNETHolon.STARNETDNA.OAPPTemplatesMetaData)
+                foreach (ISTARNETDependency template in STARNETHolon.STARNETDNA.TemplateDependencies)
                 {
                     string templateInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Templates");
 
@@ -7035,7 +7035,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             if (STARNETHolonType == HolonType.OAPP || STARNETHolonType == HolonType.OAPPTemplate)
             {
-                foreach (ISTARNETHolonMetaData library in STARNETHolon.STARNETDNA.LibrariesMetaData)
+                foreach (ISTARNETDependency library in STARNETHolon.STARNETDNA.LibraryDependencies)
                 {
                     string libInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Libs");
 
@@ -7065,7 +7065,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     }
                 }
 
-                foreach (ISTARNETHolonMetaData runtime in STARNETHolon.STARNETDNA.RuntimesMetaData)
+                foreach (ISTARNETDependency runtime in STARNETHolon.STARNETDNA.RuntimeDependencies)
                 {
                     string runtimeInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Runtimes");
 
@@ -7095,7 +7095,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     }
                 }
 
-                foreach (ISTARNETHolonMetaData template in STARNETHolon.STARNETDNA.OAPPTemplatesMetaData)
+                foreach (ISTARNETDependency template in STARNETHolon.STARNETDNA.TemplateDependencies)
                 {
                     string templateInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Templates");
 
@@ -7141,23 +7141,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     if (version == 0) //latest version
                     {
                         Dictionary<string, T> latestVersions = new Dictionary<string, T>();
-                        string metaDataId = "";
+                        string dependencyId = "";
                         int latestVersion = 0;
                         int currentVersion = 0;
 
                         foreach (T oappSystemHolon in results.Result)
                         {
                             if (oappSystemHolon.MetaData != null && oappSystemHolon.MetaData.ContainsKey(STARNETHolonIdName) && oappSystemHolon.MetaData[STARNETHolonIdName] != null)
-                                metaDataId = oappSystemHolon.MetaData[STARNETHolonIdName].ToString();
+                                dependencyId = oappSystemHolon.MetaData[STARNETHolonIdName].ToString();
 
-                            latestVersion = latestVersions.ContainsKey(metaDataId) ? Convert.ToInt32(latestVersions[metaDataId].STARNETDNA.Version.Replace(".", "")) : 0;
+                            latestVersion = latestVersions.ContainsKey(dependencyId) ? Convert.ToInt32(latestVersions[dependencyId].STARNETDNA.Version.Replace(".", "")) : 0;
                             currentVersion = Convert.ToInt32(oappSystemHolon.STARNETDNA.Version.Replace(".", ""));
 
-                            if (latestVersions.ContainsKey(metaDataId) &&
+                            if (latestVersions.ContainsKey(dependencyId) &&
                                 currentVersion > latestVersion
-                                //oappSystemHolon.STARNETDNA.CreatedOn > latestVersions[metaDataId].STARNETDNA.CreatedOn)
-                                || !latestVersions.ContainsKey(metaDataId))
-                                latestVersions[metaDataId] = oappSystemHolon;
+                                //oappSystemHolon.STARNETDNA.CreatedOn > latestVersions[dependencyId].STARNETDNA.CreatedOn)
+                                || !latestVersions.ContainsKey(dependencyId))
+                                latestVersions[dependencyId] = oappSystemHolon;
                         }
 
                         result.Result = latestVersions.Values.ToList();

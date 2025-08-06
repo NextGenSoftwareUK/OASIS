@@ -1119,21 +1119,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 Console.WriteLine("");
                 DisplayProperty("RUNTIMES", "", displayFieldLength, false);
-                
-                foreach (ISTARNETHolonMetaData lib in ((IOAPPBase)oapp).RuntimesMetaData)
-                    DisplaySTARNETHolonMetaData(lib, displayFieldLength);
+
+                foreach (ISTARNETDependency dependency in oapp.STARNETDNA.RuntimeDependencies)
+                    ShowDependency(dependency, displayFieldLength);
 
                 Console.WriteLine("");
                 DisplayProperty("LIBS", "", displayFieldLength, false);
 
-                foreach (ISTARNETHolonMetaData lib in ((IOAPPBase)oapp).RuntimesMetaData)
-                    DisplaySTARNETHolonMetaData(lib, displayFieldLength);
+                foreach (ISTARNETDependency dependency in oapp.STARNETDNA.LibraryDependencies)
+                    ShowDependency(dependency, displayFieldLength);
 
                 Console.WriteLine("");
                 DisplayProperty("TEMPLATES", "", displayFieldLength, false);
 
-                foreach (ISTARNETHolonMetaData lib in ((IOAPPBase)oapp).RuntimesMetaData)
-                    DisplaySTARNETHolonMetaData(lib, displayFieldLength);
+                foreach (ISTARNETDependency dependency in oapp.STARNETDNA.TemplateDependencies)
+                    ShowDependency(dependency, displayFieldLength);
             }
 
             if (customData != null)
@@ -1152,7 +1152,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
 
-        private void DisplaySTARNETHolonMetaData(ISTARNETHolonMetaData metaData, int displayFieldLength)
+        private void DisplaySTARNETHolonMetaData(ISTARNETDependency metaData, int displayFieldLength)
         {
             DisplayProperty("Id", metaData.STARNETHolonId.ToString(), displayFieldLength);
             DisplayProperty("Name", metaData.Name, displayFieldLength);

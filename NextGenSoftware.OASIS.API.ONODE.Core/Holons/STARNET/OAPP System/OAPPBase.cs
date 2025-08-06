@@ -14,13 +14,13 @@
 
 
 //        //[CustomOASISProperty]
-//        //public IList<ISTARNETHolonMetaData> RuntimesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
+//        //public IList<ISTARNETDependency> RuntimesMetaData { get; set; } = new List<ISTARNETDependency>();
 
 //        //[CustomOASISProperty]
-//        //public IList<ISTARNETHolonMetaData> LibrariesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
+//        //public IList<ISTARNETDependency> LibrariesMetaData { get; set; } = new List<ISTARNETDependency>();
 
 //        //[CustomOASISProperty]
-//        //public IList<ISTARNETHolonMetaData> OAPPTemplatesMetaData { get; set; } = new List<ISTARNETHolonMetaData>();
+//        //public IList<ISTARNETDependency> OAPPTemplatesMetaData { get; set; } = new List<ISTARNETDependency>();
 
 
 //        //These are wrapped in a STARNET Lib so appear in STARNET and work the same as the rest so can be searched, added, removed etc.//These are wrapped in a STARNET Lib so appear in STARNET and work the same as the rest so can be searched, added, removed etc.

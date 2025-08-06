@@ -2,7 +2,7 @@
 
 //namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons.STARNET
 //{
-//    public interface ISTARNETHolonMetaData
+//    public interface ISTARNETDependency
 //    {
 //        Guid HolonId { get; set; }
 //        string Name { get; set; }
