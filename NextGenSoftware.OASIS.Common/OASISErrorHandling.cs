@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.Common
                 errorMessage = string.Concat(errorMessage, "StackTrace:\n", Environment.StackTrace);
 
             if (logToFile || logToConsole || LogAllErrors)
-                LoggingManager.Log($"\n{errorMessage}", LogType.Error);
+                LoggingManager.Log($"\n {errorMessage}", LogType.Error);
 
             OnError?.Invoke(null, new OASISErrorEventArgs { Reason = errorMessage, Exception = ex });
 

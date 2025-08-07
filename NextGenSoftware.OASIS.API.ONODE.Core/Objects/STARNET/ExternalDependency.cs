@@ -1,5 +1,5 @@
-﻿using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons.STARNET;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects.STARNET
 {

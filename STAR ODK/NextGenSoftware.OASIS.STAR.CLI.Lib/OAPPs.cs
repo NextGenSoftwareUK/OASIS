@@ -1115,26 +1115,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Modified By", oapp.STARNETDNA.ModifiedByAvatarId != Guid.Empty ? string.Concat(oapp.STARNETDNA.ModifiedByAvatarUsername, " (", oapp.STARNETDNA.ModifiedByAvatarId.ToString(), ")") : "None", displayFieldLength);
             DisplayProperty("Active", oapp.MetaData != null && oapp.MetaData.ContainsKey("Active") && oapp.MetaData["Active"] != null && oapp.MetaData["Active"].ToString() == "1" ? "True" : "False", displayFieldLength);
 
-            if (showDetailedInfo)
-            {
-                Console.WriteLine("");
-                DisplayProperty("RUNTIMES", "", displayFieldLength, false);
-
-                foreach (ISTARNETDependency dependency in oapp.STARNETDNA.RuntimeDependencies)
-                    ShowDependency(dependency, displayFieldLength);
-
-                Console.WriteLine("");
-                DisplayProperty("LIBS", "", displayFieldLength, false);
-
-                foreach (ISTARNETDependency dependency in oapp.STARNETDNA.LibraryDependencies)
-                    ShowDependency(dependency, displayFieldLength);
-
-                Console.WriteLine("");
-                DisplayProperty("TEMPLATES", "", displayFieldLength, false);
-
-                foreach (ISTARNETDependency dependency in oapp.STARNETDNA.TemplateDependencies)
-                    ShowDependency(dependency, displayFieldLength);
-            }
+            ShowAllDependencies(oapp, showDetailedInfo, displayFieldLength);
 
             if (customData != null)
             {
