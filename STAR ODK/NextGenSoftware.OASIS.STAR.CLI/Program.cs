@@ -1324,7 +1324,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     CLIEngine.ShowMessage($"For the publish command, if the flag [publishDotNet] is specified it will first do a dotnet publish before publishing to STARNET.", ConsoleColor.Green);
                 
                 CLIEngine.ShowMessage($"For the list & search commands, if [allVersions] is omitted it will list the current version, otherwise it will list all versions. If [forAllAvatars] is omitted it will list only your {subCommandPlural}'s otherwise it will list all published {subCommandPlural}'s as well as yours.", ConsoleColor.Green);
-                CLIEngine.ShowMessage($"For the list command, if [detailed] is included it will list detailed stats also such as all dependenices installed for OAPP's and OAPP Templates.", ConsoleColor.Green);
+                //CLIEngine.ShowMessage($"For the list command, if [detailed] is included it will list detailed stats also such as all dependenices installed for OAPP's and OAPP Templates.", ConsoleColor.Green);
+                CLIEngine.ShowMessage($"For the list command, if [detailed] is included it will list detailed stats also such as all dependenices installed.", ConsoleColor.Green);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
