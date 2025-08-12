@@ -7,10 +7,12 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Libs : STARNETUIBase<Library, DownloadedLibrary, InstalledLibrary, LibraryDNA>
+    //public class Libs : STARNETUIBase<Library, DownloadedLibrary, InstalledLibrary, LibraryDNA>
+    public class Libs : STARNETUIBase<Library, DownloadedLibrary, InstalledLibrary, STARNETDNA>
     {
         public Libs(Guid avatarId) : base(new LibraryManager(avatarId),
             "Welcome to the Library Wizard", new List<string> 

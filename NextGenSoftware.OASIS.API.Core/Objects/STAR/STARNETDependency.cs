@@ -1,9 +1,9 @@
 ﻿using System;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Objects.STARNET
+namespace NextGenSoftware.OASIS.API.Core.Objects
 {
-    public class STARNETHolonMetaData : ISTARNETDependency
+    public class STARNETDependency : ISTARNETDependency
     {
         public Guid HolonId { get; set; }
         public Guid STARNETHolonId { get; set; }

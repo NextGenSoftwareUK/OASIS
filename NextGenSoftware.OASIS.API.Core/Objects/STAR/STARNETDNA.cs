@@ -46,8 +46,11 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public int TotalDownloads { get; set; }
         public int TotalInstalls { get; set; }
         public int NumberOfVersions { get; set; }
-        public IList<ISTARNETDependency> RuntimeDependencies { get; set; } = new List<ISTARNETDependency>();
-        public IList<ISTARNETDependency> LibraryDependencies { get; set; } = new List<ISTARNETDependency>();
-        public IList<ISTARNETDependency> TemplateDependencies { get; set; } = new List<ISTARNETDependency>();
+        //public List<ISTARNETDependency> RuntimeDependencies { get; set; } = new List<ISTARNETDependency>();
+        //public List<ISTARNETDependency> LibraryDependencies { get; set; } = new List<ISTARNETDependency>();
+        //public List<ISTARNETDependency> TemplateDependencies { get; set; } = new List<ISTARNETDependency>();
+        public List<STARNETDependency> RuntimeDependencies { get; set; } = new List<STARNETDependency>();
+        public List<STARNETDependency> LibraryDependencies { get; set; } = new List<STARNETDependency>();
+        public List<STARNETDependency> TemplateDependencies { get; set; } = new List<STARNETDependency>();
     }
 }

@@ -360,10 +360,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (installedLib != null && installedLib.Result != null && !installedLib.IsError)
                 {
                     CLIEngine.ShowWorkingMessage($"Installing Library Into {result.Result.STARNETDNA.Name}...");
-                    OASISResult<T1> addLibResult = await STARNETManager.AddLibraryAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, (IInstalledLibrary)installedLib.Result, providerType);
+                    OASISResult<T1> addLibResult = await STARNETManager.AddLibraryAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, installedLib.Result, providerType);
 
                     if (addLibResult != null && addLibResult.Result != null && !addLibResult.IsError)
-                        CLIEngine.ShowSuccessMessage($"Library '{installedLib.Result.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
+                        CLIEngine.ShowSuccessMessage($"Library '{installedLib.Result.STARNETDNA.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
+                    //CLIEngine.ShowSuccessMessage($"Library '{installedLib.Result.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
                     else
                         OASISErrorHandling.HandleError(ref result, $"Failed to add library '{installedLib.Result.Name}' to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Reason: {addLibResult.Message}");
                 }
@@ -588,7 +589,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (installedLib != null && installedLib.Result != null && !installedLib.IsError)
                     {
                         CLIEngine.ShowWorkingMessage($"Installing Library Into {holonTypeToAddTo}...");
-                        OASISResult<T1> addLibResult = await STARNETManager.AddLibraryAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, (IInstalledLibrary)installedLib.Result, providerType);
+                        OASISResult<T1> addLibResult = await STARNETManager.AddLibraryAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedLib.Result, providerType);
 
                         if (addLibResult != null && addLibResult.Result != null && !addLibResult.IsError)
                         {
@@ -1510,6 +1511,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Name:".PadRight(displayFieldLength), !string.IsNullOrEmpty(starHolon.STARNETDNA.Name) ? starHolon.STARNETDNA.Name : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Description:".PadRight(displayFieldLength), !string.IsNullOrEmpty(starHolon.STARNETDNA.Description) ? starHolon.STARNETDNA.Description : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Type:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARNETHolonType), false);
+            //CLIEngine.ShowMessage(string.Concat($"Type:".PadRight(displayFieldLength), Enum.GetName(STARNETManager.STARNETHolonType.GetType(), starHolon.STARNETDNA.STARNETHolonType)), false);
             CLIEngine.ShowMessage(string.Concat($"Created On:".PadRight(displayFieldLength), starHolon.STARNETDNA.CreatedOn != DateTime.MinValue ? starHolon.STARNETDNA.CreatedOn.ToString() : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Created By:".PadRight(displayFieldLength), starHolon.STARNETDNA.CreatedByAvatarId != Guid.Empty ? string.Concat(starHolon.STARNETDNA.CreatedByAvatarUsername, " (", starHolon.STARNETDNA.CreatedByAvatarId.ToString(), ")") : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Modified On:".PadRight(displayFieldLength), starHolon.STARNETDNA.ModifiedOn != DateTime.MinValue ? starHolon.STARNETDNA.CreatedOn.ToString() : "None"), false);
@@ -1587,6 +1589,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         protected void ShowDependency(ISTARNETDependency metaData, int displayFieldLength)
         {
+            Console.WriteLine("");
             DisplayProperty("Id", metaData.STARNETHolonId.ToString(), displayFieldLength);
             DisplayProperty("Name", metaData.Name, displayFieldLength);
             DisplayProperty("Description", metaData.Description, displayFieldLength);
@@ -1594,10 +1597,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Version Sequence", metaData.VersionSequence.ToString(), displayFieldLength);
             DisplayProperty("Installed From", metaData.InstalledFrom, displayFieldLength);
             DisplayProperty("Installed To", metaData.InstalledTo, displayFieldLength);
-            Console.WriteLine("");
+            //Console.WriteLine("");
         }
 
-        protected void ShowDependenices(IList<ISTARNETDependency> dependencies, int displayFieldLength)
+        protected void ShowDependenices(IList<STARNETDependency> dependencies, int displayFieldLength)
         {
             if (dependencies.Count > 0)
             {
