@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects.STARNET;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
@@ -46,15 +46,13 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public int TotalDownloads { get; set; }
         public int TotalInstalls { get; set; }
         public int NumberOfVersions { get; set; }
-        //public List<ISTARNETDependency> RuntimeDependencies { get; set; }
-        //public List<ISTARNETDependency> LibraryDependencies { get; set; }
-        //public List<ISTARNETDependency> TemplateDependencies { get; set; }
-        public List<STARNETDependency> RuntimeDependencies { get; set; }
-        public List<STARNETDependency> LibraryDependencies { get; set; }
-        public List<STARNETDependency> TemplateDependencies { get; set; }
-        //public List<ISTARNETDependency> RuntimeDependencies { get; set; }
-        //public List<ISTARNETDependency> LibraryDependencies { get; set; }
-        //public List<ISTARNETDependency> TemplateDependencies { get; set; }
+        //public IList<ISTARNETDependency> RuntimeDependencies { get; set; }
+        //public IList<ISTARNETDependency> LibraryDependencies { get; set; }
+        //public IList<ISTARNETDependency> TemplateDependencies { get; set; }
+        //public List<STARNETDependency> RuntimeDependencies { get; set; }
+        //public List<STARNETDependency> LibraryDependencies { get; set; }
+        //public List<STARNETDependency> TemplateDependencies { get; set; }
 
+        STARNETDependencies Dependencies { get; set; }
     }
 }

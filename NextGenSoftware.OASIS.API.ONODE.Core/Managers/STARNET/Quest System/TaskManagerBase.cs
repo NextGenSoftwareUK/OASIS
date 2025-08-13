@@ -5,10 +5,10 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     loadResult.Result.CompletedOn = DateTime.Now;
                     loadResult.Result.CompletedBy = avatarId;
 
-                    OASISResult<T1> chapterResult = await UpdateAsync(avatarId, loadResult.Result, providerType);
+                    OASISResult<T1> chapterResult = await UpdateAsync(avatarId, loadResult.Result, providerType: providerType);
 
                     if (chapterResult != null && chapterResult.Result != null && !chapterResult.IsError)
                         result.Result = chapterResult.Result;
@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     loadResult.Result.CompletedOn = DateTime.Now;
                     loadResult.Result.CompletedBy = avatarId;
 
-                    OASISResult<T1> chapterResult = Update(avatarId, loadResult.Result, providerType);
+                    OASISResult<T1> chapterResult = Update(avatarId, loadResult.Result, providerType: providerType);
 
                     if (chapterResult != null && chapterResult.Result != null && !chapterResult.IsError)
                         result.Result = chapterResult.Result;

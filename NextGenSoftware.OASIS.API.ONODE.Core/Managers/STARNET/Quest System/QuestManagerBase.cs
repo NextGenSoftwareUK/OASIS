@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (parentChapterResult != null && parentChapterResult.Result != null && !parentChapterResult.IsError)
                 {
                     parentChapterResult.Result.Quests.Add(quest);
-                    OASISResult<T1> chapterResult = await UpdateAsync(avatarId, parentChapterResult.Result, providerType);
+                    OASISResult<T1> chapterResult = await UpdateAsync(avatarId, parentChapterResult.Result, providerType: providerType);
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(chapterResult, result);
 
                     if (chapterResult != null && chapterResult.Result != null && !chapterResult.IsError)
@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (parentChapterResult != null && parentChapterResult.Result != null && !parentChapterResult.IsError)
                 {
                     parentChapterResult.Result.Quests.Add(quest);
-                    OASISResult<T1> chapterResult = Update(avatarId, parentChapterResult.Result, providerType);
+                    OASISResult<T1> chapterResult = Update(avatarId, parentChapterResult.Result, providerType: providerType);
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(chapterResult, result);
 
                     if (chapterResult != null && chapterResult.Result != null && !chapterResult.IsError)
@@ -118,7 +118,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     if (quest != null)
                     {
                         parentChapterResult.Result.Quests.Remove(quest);
-                        OASISResult<T1> chapterResult = await UpdateAsync(avatarId, parentChapterResult.Result, providerType);
+                        OASISResult<T1> chapterResult = await UpdateAsync(avatarId, parentChapterResult.Result, providerType: providerType);
                         OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(chapterResult, result);
 
                         if (chapterResult != null && chapterResult.Result != null && !chapterResult.IsError)
@@ -164,7 +164,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     if (quest != null)
                     {
                         parentChapterResult.Result.Quests.Remove(quest);
-                        OASISResult<T1> chapterResult = Update(avatarId, parentChapterResult.Result, providerType);
+                        OASISResult<T1> chapterResult = Update(avatarId, parentChapterResult.Result, providerType: providerType);
                         OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(chapterResult, result);
 
                         if (chapterResult != null && chapterResult.Result != null && !chapterResult.IsError)
