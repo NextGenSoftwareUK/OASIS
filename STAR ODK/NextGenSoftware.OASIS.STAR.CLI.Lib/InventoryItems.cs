@@ -4,7 +4,8 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class InventoryItems : STARNETUIBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem, InventoryItemDNA>
+    //public class InventoryItems : STARNETUIBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem, InventoryItemDNA>
+    public class InventoryItems : STARNETUIBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem, STARNETDNA>
     {
         public InventoryItems(Guid avatarId) : base(new API.ONODE.Core.Managers.InventoryItemManager(avatarId),
             "Welcome to the Geo-HotSpot Wizard", new List<string> 

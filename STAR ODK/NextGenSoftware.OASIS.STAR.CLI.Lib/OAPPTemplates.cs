@@ -3,10 +3,12 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class OAPPTemplates : STARNETUIBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, OAPPTemplateDNA>
+    //public class OAPPTemplates : STARNETUIBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, OAPPTemplateDNA>
+    public class OAPPTemplates : STARNETUIBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, STARNETDNA>
     {
         public OAPPTemplates(Guid avatarId) : base(new OAPPTemplateManager(avatarId),
             "Welcome to the OAPP Template Wizard", new List<string> 

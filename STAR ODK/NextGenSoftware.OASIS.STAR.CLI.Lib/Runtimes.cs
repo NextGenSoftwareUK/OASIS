@@ -7,10 +7,12 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Runtimes : STARNETUIBase<Runtime, DownloadedRuntime, InstalledRuntime, RuntimeDNA>
+    //public class Runtimes : STARNETUIBase<Runtime, DownloadedRuntime, InstalledRuntime, RuntimeDNA>
+    public class Runtimes : STARNETUIBase<Runtime, DownloadedRuntime, InstalledRuntime, STARNETDNA>
     {
         public Runtimes(Guid avatarId) : base(new RuntimeManager(avatarId),
             "Welcome to the Runtime Wizard", new List<string> 

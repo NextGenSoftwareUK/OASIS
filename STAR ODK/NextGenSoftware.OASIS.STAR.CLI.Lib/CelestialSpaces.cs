@@ -1,9 +1,11 @@
-﻿using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+﻿using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class CelestialSpaces : STARNETUIBase<STARCelestialSpace, DownloadedCelestialSpace, InstalledCelestialSpace, CelestialSpaceDNA>
+    //public class CelestialSpaces : STARNETUIBase<STARCelestialSpace, DownloadedCelestialSpace, InstalledCelestialSpace, CelestialSpaceDNA>
+    public class CelestialSpaces : STARNETUIBase<STARCelestialSpace, DownloadedCelestialSpace, InstalledCelestialSpace, STARNETDNA>
     {
         public CelestialSpaces(Guid avatarId) : base(new API.ONODE.Core.Managers.CelestialSpaceManager(avatarId),
             "Welcome to the Celestial Spaces Wizard", new List<string> 

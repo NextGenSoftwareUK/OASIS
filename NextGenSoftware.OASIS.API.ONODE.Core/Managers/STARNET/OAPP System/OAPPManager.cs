@@ -6,18 +6,20 @@ using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
-using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class OAPPManager : STARNETManagerBase<OAPP, DownloadedOAPP, InstalledOAPP, OAPPDNA>, IOAPPManager
+    //public class OAPPManager : STARNETManagerBase<OAPP, DownloadedOAPP, InstalledOAPP, OAPPDNA>, IOAPPManager
+    public class OAPPManager : STARNETManagerBase<OAPP, DownloadedOAPP, InstalledOAPP, STARNETDNA>, IOAPPManager
     {
         public OAPPManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
              OASISDNA,

@@ -1,20 +1,20 @@
 ﻿using System;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.Common;
-using System.IO;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class RuntimeManager : STARNETManagerBase<Runtime, DownloadedRuntime, InstalledRuntime, RuntimeDNA>
+    //public class RuntimeManager : STARNETManagerBase<Runtime, DownloadedRuntime, InstalledRuntime, RuntimeDNA>
+    public class RuntimeManager : STARNETManagerBase<Runtime, DownloadedRuntime, InstalledRuntime, STARNETDNA>
     {
         public RuntimeManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, 
             OASISDNA,

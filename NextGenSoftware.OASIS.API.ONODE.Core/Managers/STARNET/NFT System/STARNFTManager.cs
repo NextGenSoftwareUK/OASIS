@@ -16,7 +16,8 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     /// Note: You can choose to use the base STARNETDNA (and other base classes) or extend them and inject them in here...
-    public class STARNFTManager : STARNETManagerBase<STARNFT, DownloadedNFT, InstalledNFT, NFTDNA>, ISTARNFTManager
+    //public class STARNFTManager : STARNETManagerBase<STARNFT, DownloadedNFT, InstalledNFT, NFTDNA>, ISTARNFTManager
+    public class STARNFTManager : STARNETManagerBase<STARNFT, DownloadedNFT, InstalledNFT, STARNETDNA>, ISTARNFTManager
     //public class STARNFTManager : STARNETManagerBase<STARNFT, DownloadedNFT, InstalledNFT, STARNETDNA>, ISTARNFTManager
     {
         public STARNFTManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,

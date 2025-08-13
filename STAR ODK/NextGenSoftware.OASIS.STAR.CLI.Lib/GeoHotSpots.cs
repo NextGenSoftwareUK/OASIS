@@ -1,9 +1,11 @@
-﻿using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+﻿using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class GeoHotSpots : STARNETUIBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot, GeoHotSpotDNA>
+    //public class GeoHotSpots : STARNETUIBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot, GeoHotSpotDNA>
+    public class GeoHotSpots : STARNETUIBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot, STARNETDNA>
     {
         public GeoHotSpots(Guid avatarId) : base(new API.ONODE.Core.Managers.GeoHotSpotManager(avatarId),
             "Welcome to the Geo-HotSpot Wizard", new List<string> 

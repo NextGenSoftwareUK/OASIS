@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class STARHolonManager : STARNETManagerBase<STARHolon, DownloadedHolon, InstalledHolon, HolonDNA>, ISTARHolonManager
+    //public class STARHolonManager : STARNETManagerBase<STARHolon, DownloadedHolon, InstalledHolon, HolonDNA>, ISTARHolonManager
+    public class STARHolonManager : STARNETManagerBase<STARHolon, DownloadedHolon, InstalledHolon, STARNETDNA>, ISTARHolonManager
     {
         public STARHolonManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
             OASISDNA,

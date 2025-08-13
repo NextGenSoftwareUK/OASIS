@@ -289,9 +289,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     OASISResult<T1> addRuntimeResult = await STARNETManager.AddRuntimeAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, (IInstalledRuntime)installedRuntime.Result, providerType);
 
                     if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
-                        CLIEngine.ShowSuccessMessage($"Runtime '{installedRuntime.Result.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
+                        CLIEngine.ShowSuccessMessage($"Runtime '{installedRuntime.Result.STARNETDNA.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
                     else
-                        CLIEngine.ShowErrorMessage($"Failed to add runtime '{installedRuntime.Result.Name}' to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {addRuntimeResult.Message}");
+                        CLIEngine.ShowErrorMessage($"Failed to add runtime '{installedRuntime.Result.STARNETDNA.Name}' to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {addRuntimeResult.Message}");
                 }
                 else
                     CLIEngine.ShowErrorMessage($"Failed to add runtime to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {installedRuntime.Message}");
@@ -310,8 +310,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     if (string.IsNullOrEmpty(idOrNameOfRuntime))
                     {
-                        //TODO: Need to list all installed runtimes for the given parent here and allow user to select one.
-                        foreach (ISTARNETDependency metaData in result.Result.STARNETDNA.RuntimeDependencies)
+                        foreach (ISTARNETDependency metaData in result.Result.STARNETDNA.Dependencies.Runtimes)
                         {
                             ShowDependency(metaData, DisplayFieldLength);
                             CLIEngine.ShowDivider();
@@ -338,9 +337,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 OASISResult<T1> removeResult = await STARNETManager.RemoveLibraryAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, selectedRuntime.STARNETDNA.Id, selectedRuntime.STARNETDNA.Version, providerType);
 
                 if (removeResult != null && removeResult.Result != null && !removeResult.IsError)
-                    CLIEngine.ShowSuccessMessage($"Runtime '{selectedRuntime.Name}' removed from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
+                    CLIEngine.ShowSuccessMessage($"Runtime '{selectedRuntime.STARNETDNA.Name}' removed from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
                 else
-                    CLIEngine.ShowErrorMessage($"Failed to remove runtime '{selectedRuntime.Name}' from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {removeResult.Message}");
+                    CLIEngine.ShowErrorMessage($"Failed to remove runtime '{selectedRuntime.STARNETDNA.Name}' from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {removeResult.Message}");
             }
             else
             {
@@ -366,7 +365,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         CLIEngine.ShowSuccessMessage($"Library '{installedLib.Result.STARNETDNA.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
                     //CLIEngine.ShowSuccessMessage($"Library '{installedLib.Result.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
                     else
-                        OASISErrorHandling.HandleError(ref result, $"Failed to add library '{installedLib.Result.Name}' to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Reason: {addLibResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to add library '{installedLib.Result.STARNETDNA.Name}' to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Reason: {addLibResult.Message}");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Failed to add library to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Reason: {installedLib.Message}");
@@ -385,8 +384,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     if (string.IsNullOrEmpty(idOrNameOfLib))
                     {
-                        //TODO: Need to list all installed runtimes for the given parent here and allow user to select one.
-                        foreach (ISTARNETDependency metaData in result.Result.STARNETDNA.LibraryDependencies)
+                        foreach (ISTARNETDependency metaData in result.Result.STARNETDNA.Dependencies.Libraries)
                         {
                             ShowDependency(metaData, DisplayFieldLength);
                             CLIEngine.ShowDivider();
@@ -413,9 +411,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 OASISResult<T1> removeResult = await STARNETManager.RemoveLibraryAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, selectedLib.STARNETDNA.Id, selectedLib.STARNETDNA.Version, providerType);
 
                 if (removeResult != null && removeResult.Result != null && !removeResult.IsError)
-                    CLIEngine.ShowSuccessMessage($"Library '{selectedLib.Name}' removed from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
+                    CLIEngine.ShowSuccessMessage($"Library '{selectedLib.STARNETDNA.Name}' removed from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
                 else
-                    CLIEngine.ShowErrorMessage($"Failed to remove library '{selectedLib.Name}' from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {removeResult.Message}");
+                    CLIEngine.ShowErrorMessage($"Failed to remove library '{selectedLib.STARNETDNA.Name}' from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {removeResult.Message}");
             }
             else
             {
@@ -438,9 +436,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     OASISResult<T1> addTemplateResult = await STARNETManager.AddOAPPTemplateAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, (IInstalledOAPPTemplate)installedTemplate.Result, providerType);
 
                     if (addTemplateResult != null && addTemplateResult.Result != null && !addTemplateResult.IsError)
-                        CLIEngine.ShowSuccessMessage($"Template '{installedTemplate.Result.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
+                        CLIEngine.ShowSuccessMessage($"Template '{installedTemplate.Result.STARNETDNA.Name}' added to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
                     else
-                        CLIEngine.ShowErrorMessage($"Failed to add template '{installedTemplate.Result.Name}' to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {addTemplateResult.Message}");
+                        CLIEngine.ShowErrorMessage($"Failed to add template '{installedTemplate.Result.STARNETDNA.Name}' to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {addTemplateResult.Message}");
                 }
                 else
                     CLIEngine.ShowErrorMessage($"Failed to add template to {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {installedTemplate.Message}");
@@ -461,7 +459,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (string.IsNullOrEmpty(idOrNameOfTemplate))
                     {
                         //TODO: Need to list all installed templates for the given parent here and allow user to select one.
-                        foreach (ISTARNETDependency metaData in result.Result.STARNETDNA.TemplateDependencies)
+                        foreach (ISTARNETDependency metaData in result.Result.STARNETDNA.Dependencies.Templates)
                         {
                             ShowDependency(metaData, DisplayFieldLength);
                             CLIEngine.ShowDivider();
@@ -488,9 +486,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 OASISResult<OAPPTemplate> removeResult = await STAR.STARAPI.OAPPTemplates.RemoveLibraryAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, selectedTemplate.STARNETDNA.Id, selectedTemplate.STARNETDNA.Version, providerType);
 
                 if (removeResult != null && removeResult.Result != null && !removeResult.IsError)
-                    CLIEngine.ShowSuccessMessage($"Template '{selectedTemplate.Name}' removed from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
+                    CLIEngine.ShowSuccessMessage($"Template '{selectedTemplate.STARNETDNA.Name}' removed from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
                 else
-                    CLIEngine.ShowErrorMessage($"Failed to remove template '{selectedTemplate.Name}' from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {removeResult.Message}");
+                    CLIEngine.ShowErrorMessage($"Failed to remove template '{selectedTemplate.STARNETDNA.Name}' from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {removeResult.Message}");
             }
             else
             {
@@ -810,19 +808,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<T1> publishResult = new OASISResult<T1>();
             OASISResult<string> prePubResult = await PreFininaliazePublishingAsync(simpleWizard, sourcePath, launchTarget, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
-            bool embedLibs = false;
-            bool embedRuntimes = false;
-            bool embedTemplates = false;
-
+            
             if (prePubResult != null && !string.IsNullOrEmpty(prePubResult.Result) && !prePubResult.IsError)
             {
-                if (STARNETManager.STARNETHolonType == HolonType.OAPPTemplate && CLIEngine.GetConfirmation("Do you wish to embed the libraries, runtimes & sub-templates in the template (say 'Y' if you only want to enbed one of these)? It is not recommended because will increase the storage space/cost & upload/download time. If you choose 'N' then they will be automatically downloaded and installed when someone installs your template. Only choose 'Y' if you want them embedded in case there is an issue downloading/installing them seperatley later (unlikely) or if you want the template to be fully self-contained with no external dependencies (useful if you wish to install it offline from the .oapptemplate file)."))
-                {
-                    embedTemplates = CLIEngine.GetConfirmation("Do you wish to embed the sub-templates?");
-                    embedRuntimes = CLIEngine.GetConfirmation("Do you wish to embed the runtimes?");
-                    embedLibs = CLIEngine.GetConfirmation("Do you wish to embed the libraries?");
-                }
-
                 publishResult = await STARNETManager.PublishAsync(STAR.BeamedInAvatar.Id, sourcePath, launchTarget, prePubResult.Result, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType, embedRuntimes, embedLibs, embedTemplates);
                 await PostFininaliazePublishingAsync(publishResult, sourcePath, providerType);
             }
@@ -855,6 +843,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         Console.WriteLine("");
                         publishPath = CLIEngine.GetValidFolder($"Where do you wish to publish the {STARNETManager.STARNETHolonUIName}?", true);
                     }
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish to embed any of the libraries, runtimes & sub-templates in the template? It is not recommended because will increase the storage space/cost & upload/download time. If you choose 'N' then they will be automatically downloaded and installed when someone installs your template. Only choose 'Y' if you want them embedded in case there is an issue downloading/installing them seperatley later (unlikely) or if you want the template to be fully self-contained with no external dependencies (useful if you wish to install it offline from the .oapptemplate file)."))
+                {
+                    embedTemplates = CLIEngine.GetConfirmation("Do you wish to embed the sub-templates?");
+                    embedRuntimes = CLIEngine.GetConfirmation("Do you wish to embed the runtimes?");
+                    embedLibs = CLIEngine.GetConfirmation("Do you wish to embed the libraries?");
                 }
             }
 
@@ -1619,30 +1614,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("RUNTIMES", "", displayFieldLength, false);
 
             if (showDetailed)
-                ShowDependenices(starHolon.STARNETDNA.RuntimeDependencies, displayFieldLength);
-            // else
+                ShowDependenices(starHolon.STARNETDNA.Dependencies.Runtimes, displayFieldLength);
 
-            //Console.WriteLine("");
-            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.RuntimeDependencies.Count} Found.", false);
+            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Runtimes.Count} Found.", false);
 
             Console.WriteLine("");
             DisplayProperty("LIBS", "", displayFieldLength, false);
 
             if (showDetailed)
-                ShowDependenices(starHolon.STARNETDNA.LibraryDependencies, displayFieldLength);
-            //else
+                ShowDependenices(starHolon.STARNETDNA.Dependencies.Libraries, displayFieldLength);
 
-            //Console.WriteLine("");
-            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.LibraryDependencies.Count} Found.", false);
+            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Libraries.Count} Found.", false);
 
             Console.WriteLine("");
             DisplayProperty("TEMPLATES", "", displayFieldLength, false);
 
             if (showDetailed)
-                ShowDependenices(starHolon.STARNETDNA.TemplateDependencies, displayFieldLength);
-            //else
-            //Console.WriteLine("");
-            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.TemplateDependencies.Count} Found.", false);
+                ShowDependenices(starHolon.STARNETDNA.Dependencies.Templates, displayFieldLength);
+
+            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Templates.Count} Found.", false);
         }
 
         public async Task<OASISResult<T1>> FindAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string STARNETHolonUIName = "Default", ProviderType providerType = ProviderType.Default)

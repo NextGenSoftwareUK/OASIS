@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects.STARNET;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
@@ -49,8 +50,10 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         //public List<ISTARNETDependency> RuntimeDependencies { get; set; } = new List<ISTARNETDependency>();
         //public List<ISTARNETDependency> LibraryDependencies { get; set; } = new List<ISTARNETDependency>();
         //public List<ISTARNETDependency> TemplateDependencies { get; set; } = new List<ISTARNETDependency>();
-        public List<STARNETDependency> RuntimeDependencies { get; set; } = new List<STARNETDependency>();
-        public List<STARNETDependency> LibraryDependencies { get; set; } = new List<STARNETDependency>();
-        public List<STARNETDependency> TemplateDependencies { get; set; } = new List<STARNETDependency>();
+        //public List<STARNETDependency> RuntimeDependencies { get; set; } = new List<STARNETDependency>();
+        //public List<STARNETDependency> LibraryDependencies { get; set; } = new List<STARNETDependency>();
+        //public List<STARNETDependency> TemplateDependencies { get; set; } = new List<STARNETDependency>();
+
+        public STARNETDependencies Dependencies { get; set; } = new STARNETDependencies();
     }
 }
