@@ -216,10 +216,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> UnpublishAsync(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> Update(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
-        OASISResult<T3> Update(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> UpdateAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T3>> UpdateAsync(Guid avatarId, T3 holon, ProviderType providerType = ProviderType.Default);
+        OASISResult<T1> Update(Guid avatarId, T1 holon, bool updateDNAJSONFile = false, ProviderType providerType = ProviderType.Default);
+        OASISResult<T3> Update(Guid avatarId, T3 holon, bool updateDNAJSONFile = false, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> UpdateAsync(Guid avatarId, T1 holon, bool updateDNAJSONFile = false, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T3>> UpdateAsync(Guid avatarId, T3 holon, bool updateDNAJSONFile = false, ProviderType providerType = ProviderType.Default);
         OASISResult<T2> UpdateDownloadCounts(Guid avatarId, T2 downloadedSTARNETHolon, T4 STARNETDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T2>> UpdateDownloadCountsAsync(Guid avatarId, T2 downloadedSTARNETHolon, T4 STARNETDNA, OASISResult<T2> result, string errorMessage, ProviderType providerType = ProviderType.Default);
         OASISResult<T3> UpdateInstallCounts(Guid avatarId, T3 installedSTARNETHolon, T4 STARNETDNA, OASISResult<T3> result, string errorMessage, ProviderType providerType = ProviderType.Default);

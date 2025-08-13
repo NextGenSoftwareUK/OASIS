@@ -6,10 +6,12 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
-    public class Holons : STARNETUIBase<STARHolon, DownloadedHolon, InstalledHolon, HolonDNA>
+    //public class Holons : STARNETUIBase<STARHolon, DownloadedHolon, InstalledHolon, HolonDNA>
+    public class Holons : STARNETUIBase<STARHolon, DownloadedHolon, InstalledHolon, STARNETDNA>
     {
         public Holons(Guid avatarId) : base(new API.ONODE.Core.Managers.STARHolonManager(avatarId),
             "Welcome to the Holon Wizard", new List<string> 

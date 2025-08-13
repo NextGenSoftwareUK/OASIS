@@ -4,16 +4,16 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class OAPPTemplateManager : STARNETManagerBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, OAPPTemplateDNA>
+    //public class OAPPTemplateManager : STARNETManagerBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, OAPPTemplateDNA>
+    public class OAPPTemplateManager : STARNETManagerBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, STARNETDNA>
     {
         public OAPPTemplateManager(Guid avatarId, OASISDNA OASISDNA = null) : base(
             avatarId, 
@@ -1140,7 +1140,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         private OASISResult<IOAPPTemplate> UpdateOAPPTemplate(Guid avatarId, IOAPPTemplate quest, OASISResult<IOAPPTemplate> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<OAPPTemplate> questResult = Update(avatarId, (OAPPTemplate)quest, providerType);
+            OASISResult<OAPPTemplate> questResult = Update(avatarId, (OAPPTemplate)quest, providerType: providerType);
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(questResult, result);
 
             if (questResult != null && questResult.Result != null && !questResult.IsError)
@@ -1153,7 +1153,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         private async Task<OASISResult<IOAPPTemplate>> UpdateOAPPTemplateAsync(Guid avatarId, IOAPPTemplate quest, OASISResult<IOAPPTemplate> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<OAPPTemplate> questResult = await UpdateAsync(avatarId, (OAPPTemplate)quest, providerType);
+            OASISResult<OAPPTemplate> questResult = await UpdateAsync(avatarId, (OAPPTemplate)quest, providerType: providerType);
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(questResult, result);
 
             if (questResult != null && questResult.Result != null && !questResult.IsError)

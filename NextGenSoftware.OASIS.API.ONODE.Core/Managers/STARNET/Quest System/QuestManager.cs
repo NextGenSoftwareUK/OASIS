@@ -5,17 +5,18 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class QuestManager : QuestManagerBase<Quest, DownloadedQuest, InstalledQuest, QuestDNA>, IQuestManager
+    //public class QuestManager : QuestManagerBase<Quest, DownloadedQuest, InstalledQuest, QuestDNA>, IQuestManager
+    public class QuestManager : QuestManagerBase<Quest, DownloadedQuest, InstalledQuest, STARNETDNA>, IQuestManager
     {
         NFTManager _nftManager = null;
 
@@ -519,7 +520,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         private OASISResult<IQuest> UpdateQuest(Guid avatarId, IQuest quest, OASISResult<IQuest> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<Quest> questResult = Update(avatarId, (Quest)quest, providerType);
+            OASISResult<Quest> questResult = Update(avatarId, (Quest)quest, providerType: providerType);
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(questResult, result);
 
             if (questResult != null && questResult.Result != null && !questResult.IsError)
@@ -532,7 +533,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         private async Task<OASISResult<IQuest>> UpdateQuestAsync(Guid avatarId, IQuest quest, OASISResult<IQuest> result, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<Quest> questResult = await UpdateAsync(avatarId, (Quest)quest, providerType);
+            OASISResult<Quest> questResult = await UpdateAsync(avatarId, (Quest)quest, providerType: providerType);
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(questResult, result);
 
             if (questResult != null && questResult.Result != null && !questResult.IsError)
