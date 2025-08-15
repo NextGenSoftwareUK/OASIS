@@ -23,7 +23,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
-using Neo4j.Driver;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
@@ -4815,7 +4815,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    return STARNETDNA;
         //}
 
-        public virtual async Task<OASISResult<bool>> WriteDNAAsync<T>(T STARNETDNA, string fullPathToSTARNETHolon) //where T : T4, new()
+        public virtual async Task<OASISResult<bool>> WriteDNAAsync<T>(T STARNETDNA, string fullPathToSTARNETHolon) //where T : ISTARNETHolon
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -4830,7 +4830,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 if (!Directory.Exists(fullPathToSTARNETHolon))
                     Directory.CreateDirectory(fullPathToSTARNETHolon);
 
+                OAPPDNA OAPPDNA = STARNETDNA as OAPPDNA;
+
+                //Temp need to remove CelestialBody parents and cores to prevent infinite recursion when serializing to json.
+                //if (OAPPDNA != null)
+                //    Data.RemoveCelesialBodies(OAPPDNA.Zomes);
+
                 await File.WriteAllTextAsync(Path.Combine(fullPathToSTARNETHolon, STARNETDNAFileName), JsonConvert.SerializeObject(STARNETDNA, Formatting.Indented));
+
+                //Restore the celestial bodies & cores back onto the zomes.
+                //if (OAPPDNA != null)
+                //    Data.RestoreCelesialBodies(OAPPDNA.Zomes);
+
                 result.Result = true;
             }
             catch (Exception ex)

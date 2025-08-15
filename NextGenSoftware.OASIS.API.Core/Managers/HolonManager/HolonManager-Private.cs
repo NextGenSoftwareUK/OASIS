@@ -788,7 +788,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return ids;
         }
 
-        private T RemoveCelesialBodies<T>(T holon) where T : IHolon
+        public T RemoveCelesialBodies<T>(T holon) where T : IHolon
         {
             //if (holon.Id == Guid.Empty)
             //{
@@ -881,7 +881,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return holon;
         }
 
-        private IEnumerable<IHolon> RemoveCelesialBodies(IEnumerable<IHolon> holons)
+        public IEnumerable<IHolon> RemoveCelesialBodies(IEnumerable<IHolon> holons)
         {
             List<IHolon> holonsList = holons.ToList();
 
@@ -891,7 +891,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return holonsList;
         }
 
-        private IEnumerable<T> RemoveCelesialBodies<T>(IEnumerable<T> holons) where T : IHolon
+        public IEnumerable<T> RemoveCelesialBodies<T>(IEnumerable<T> holons) where T : IHolon
         {
             List<T> holonsList = holons.ToList();
 
@@ -902,7 +902,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //private IHolon RestoreCelesialBodies(IHolon originalHolon)
-        private T RestoreCelesialBodies<T>(T originalHolon) where T : IHolon
+        public T RestoreCelesialBodies<T>(T originalHolon) where T : IHolon
         {
             if (originalHolon != null)
             {
@@ -1079,7 +1079,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return originalHolon;
         }
 
-        private IEnumerable<IHolon> RestoreCelesialBodies(IEnumerable<IHolon> holons)
+        public IEnumerable<IHolon> RestoreCelesialBodies(IEnumerable<IHolon> holons)
         {
             List<IHolon> restoredHolons = new List<IHolon>();
 
@@ -1094,7 +1094,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return restoredHolons;
         }
 
-        private IEnumerable<T> RestoreCelesialBodies<T>(IEnumerable<T> holons) where T : IHolon
+        public IEnumerable<T> RestoreCelesialBodies<T>(IEnumerable<T> holons) where T : IHolon
         {
             List<T> restoredHolons = new List<T>();
 
