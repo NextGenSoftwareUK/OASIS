@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -60,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects
         public Guid CelestialBodyId { get; set; }
         public string CelestialBodyName { get; set; }
         public HolonType CelestialBodyType { get; set; }
-        public IEnumerable<IZome> Zomes { get; set; }
+        //public IEnumerable<IZome> Zomes { get; set; }
 
         public int SelfContainedDownloads { get; set; } //Is IOAPP better place for these?
         public int SelfContainedFullDownloads { get; set; } //Is IOAPP better place for these?

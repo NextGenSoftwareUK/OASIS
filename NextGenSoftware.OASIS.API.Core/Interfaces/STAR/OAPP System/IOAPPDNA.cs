@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public Guid CelestialBodyId { get; set; }
         public string CelestialBodyName { get; set; }
         public HolonType CelestialBodyType { get; set; }
-        public IEnumerable<IZome> Zomes { get; set; }
+        //public IEnumerable<IZome> Zomes { get; set; }
 
         public int SelfContainedDownloads { get; set; } //Is IOAPP better place for these?
         public int SelfContainedFullDownloads { get; set; } //Is IOAPP better place for these?
