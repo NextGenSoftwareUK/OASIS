@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public virtual string InstalledSTARDNAKey { get; set; }
 
         public int DisplayFieldLength { get; set; } = DEFAULT_FIELD_LENGTH;
-        
+
 
         public STARNETUIBase(ISTARNETManagerBase<T1, T2, T3, T4> starManager, string createHeader, List<string> createIntroParagraphs, string sourcePath = "", string sourceSTARDNAKey = "", string publishedPath = "", string publishedSTARDNAKey = "", string downloadedPath = "", string downloadSTARDNAKey = "", string installedPath = "", string installedSTARDNAKey = "", int displayFieldLength = DEFAULT_FIELD_LENGTH)
         {
@@ -72,7 +72,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public virtual async Task<OASISResult<T1>> CreateAsync(object createParams, T1 newHolon = default, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            
+
             if (showHeaderAndInro)
                 ShowHeader();
 
@@ -83,7 +83,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 result.Message = "User Exited";
                 return result;
             }
-               
+
 
             string holonDesc = CLIEngine.GetValidInput($"What is the description of the {STARNETManager.STARNETHolonUIName}?");
 
@@ -550,12 +550,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //    }
         //}
 
-        public async Task AddLibsRuntimesAndTemplatesAsync(ISTARNETDNA STARNETDNA, string holonTypeToAddTo, ProviderType providerType = ProviderType.Default)
+        public async Task AddDependencies(ISTARNETDNA STARNETDNA, string holonTypeToAddTo, ProviderType providerType = ProviderType.Default)
         {
             if (CLIEngine.GetConfirmation("Do you wish to add any custom runtimes now? (you do not need to add the OASIS or STAR runtimes, they are added automatically)."))
             {
                 do
                 {
+                    Console.WriteLine("");
                     OASISResult<InstalledRuntime> installedRuntime = await STARCLI.Runtimes.FindAndInstallIfNotInstalledAsync("use", providerType: providerType);
 
                     if (installedRuntime != null && installedRuntime.Result != null && !installedRuntime.IsError)
@@ -582,6 +583,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 do
                 {
+                    Console.WriteLine("");
                     OASISResult<InstalledLibrary> installedLib = await STARCLI.Libs.FindAndInstallIfNotInstalledAsync("use", providerType: providerType);
 
                     if (installedLib != null && installedLib.Result != null && !installedLib.IsError)
@@ -608,6 +610,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 do
                 {
+                    Console.WriteLine("");
                     OASISResult<InstalledOAPPTemplate> installedTemplate = await STARCLI.OAPPTemplates.FindAndInstallIfNotInstalledAsync("use", providerType: providerType);
 
                     if (installedTemplate != null && installedTemplate.Result != null && !installedTemplate.IsError)
@@ -668,8 +671,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<T1> publishResult = new OASISResult<T1>();
             bool generateOAPP = true;
             bool uploadOAPPToCloud = true;
-            ProviderType OAPPBinaryProviderType = ProviderType.None;  
-           // string publishPath = "";
+            ProviderType OAPPBinaryProviderType = ProviderType.None;
+            // string publishPath = "";
 
             OASISResult<BeginPublishResult> beginPublishResult = await BeginPublishingAsync(sourcePath, defaultLaunchMode, providerType);
 
@@ -699,7 +702,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         Console.WriteLine("");
                 }
 
-                publishResult = await FininaliazePublishingAsync(beginPublishResult.Result.SimpleWizard, beginPublishResult.Result.SourcePath, beginPublishResult.Result.LaunchTarget, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+                publishResult = await FininaliazePublishingAsync(beginPublishResult.Result, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
             }
             else
                 CLIEngine.ShowErrorMessage($"Error Occured: {beginPublishResult.Message}");
@@ -709,16 +712,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         protected async Task<OASISResult<BeginPublishResult>> BeginPublishingAsync(string sourcePath, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<BeginPublishResult> result = new OASISResult<BeginPublishResult>();
+            OASISResult<BeginPublishResult> result = new OASISResult<BeginPublishResult>(new BeginPublishResult());
             bool generateOAPP = true;
             bool uploadOAPPToCloud = true;
             ProviderType OAPPBinaryProviderType = ProviderType.None;
-            string launchTarget = "";
             string launchTargetQuestion = $"What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the {STARNETManager.STARNETHolonUIName}? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)";
-            bool simpleWizard = false;
-
-            if (CLIEngine.GetConfirmation("Do you wish to launch the Simple or Advanced Wizard? The Simple Wizard will use defaults (recommended) but the Advanced Wizard will allow greater control and customisation. Press 'Y' for Simple or 'N' for Advanced."))
-                simpleWizard = true;
+            result.Result.SimpleWizard = CLIEngine.GetConfirmation("Do you wish to launch the Simple or Advanced Wizard? The Simple Wizard will use defaults (recommended) but the Advanced Wizard will allow greater control and customisation. Press 'Y' for Simple or 'N' for Advanced.");
 
             if (string.IsNullOrEmpty(sourcePath))
             {
@@ -727,6 +726,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 sourcePath = CLIEngine.GetValidFolder($"What is the full path to the {STARNETManager.STARNETHolonUIName} directory?", false);
             }
 
+            result.Result.SourcePath = sourcePath;
             OASISResult<STARNETDNA> DNAResult = await STARNETManager.ReadDNAFromSourceOrInstallFolderAsync<STARNETDNA>(sourcePath);
 
             if (DNAResult != null && DNAResult.Result != null && !DNAResult.IsError)
@@ -746,7 +746,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         return result;
                     }
 
-                    launchTarget = loadResult.Result.STARNETDNA.LaunchTarget;
+                    result.Result.LaunchTarget = loadResult.Result.STARNETDNA.LaunchTarget;
                     Console.WriteLine("");
 
                     //object templateType = Enum.Parse(STARNETManager.STARNETHolonSubType, DNAResult.Result.STARNETHolonType.ToString());
@@ -779,19 +779,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (hasDefaultLaunchTarget)
                         {
-                            if (!string.IsNullOrEmpty(launchTarget))
+                            if (!string.IsNullOrEmpty(result.Result.LaunchTarget))
                             {
-                                if (!CLIEngine.GetConfirmation($"{launchTargetQuestion} Do you wish to use the following default launch target: {launchTarget}?"))
+                                if (!CLIEngine.GetConfirmation($"{launchTargetQuestion} Do you wish to use the following default launch target: {result.Result.LaunchTarget}?"))
                                 {
                                     Console.WriteLine("");
-                                    launchTarget = CLIEngine.GetValidFile("What launch target do you wish to use? ", sourcePath);
+                                    result.Result.LaunchTarget = CLIEngine.GetValidFile("What launch target do you wish to use? ", sourcePath);
                                 }
                                 else
-                                    launchTarget = Path.Combine(sourcePath, launchTarget);
+                                    result.Result.LaunchTarget = Path.Combine(sourcePath, result.Result.LaunchTarget);
                             }
                             else
-                                launchTarget = CLIEngine.GetValidFile(launchTargetQuestion, sourcePath);
+                                result.Result.LaunchTarget = CLIEngine.GetValidFile(launchTargetQuestion, sourcePath);
                         }
+                    }
+
+                    if (!result.Result.SimpleWizard && CLIEngine.GetConfirmation("Do you wish to embed any of the libraries, runtimes & sub-templates in the template? It is not recommended because will increase the storage space/cost & upload/download time. If you choose 'N' then they will be automatically downloaded and installed when someone installs your template. Only choose 'Y' if you want them embedded in case there is an issue downloading/installing them seperatley later (unlikely) or if you want the template to be fully self-contained with no external dependencies (useful if you wish to install it offline from the .oapptemplate file)."))
+                    {
+                        result.Result.EmbedTemplates = CLIEngine.GetConfirmation("Do you wish to embed the sub-templates?");
+                        result.Result.EmbedRuntimes = CLIEngine.GetConfirmation("Do you wish to embed the runtimes?");
+                        result.Result.EmbedLibs = CLIEngine.GetConfirmation("Do you wish to embed the libraries?");
                     }
                 }
                 else
@@ -800,27 +807,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
                 CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETDNAFileName} file could not be found! Please ensure it is in the folder you specified.");
 
-            result.Result = new BeginPublishResult() { SourcePath = sourcePath, LaunchTarget = launchTarget, SimpleWizard = simpleWizard };
             return result;
         }
 
-        protected async Task<OASISResult<T1>> FininaliazePublishingAsync(bool simpleWizard, string sourcePath, string launchTarget, bool edit, bool registerOnSTARNET, bool generateOAPP, bool uploadOAPPToCloud, ProviderType providerType, ProviderType OAPPBinaryProviderType)
+        protected async Task<OASISResult<T1>> FininaliazePublishingAsync(BeginPublishResult pubParams, bool edit, bool registerOnSTARNET, bool generateOAPP, bool uploadOAPPToCloud, ProviderType providerType, ProviderType OAPPBinaryProviderType)
         {
             OASISResult<T1> publishResult = new OASISResult<T1>();
-            OASISResult<string> prePubResult = await PreFininaliazePublishingAsync(simpleWizard, sourcePath, launchTarget, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
-            
-            if (prePubResult != null && !string.IsNullOrEmpty(prePubResult.Result) && !prePubResult.IsError)
+            //OASISResult<string> pubPathResult = await GetPublishPathAsync(pubParams, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+            OASISResult<string> pubPathResult = await GetPublishPathAsync(pubParams.SourcePath, pubParams.SimpleWizard, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+
+            if (pubPathResult != null && !string.IsNullOrEmpty(pubPathResult.Result) && !pubPathResult.IsError)
             {
-                publishResult = await STARNETManager.PublishAsync(STAR.BeamedInAvatar.Id, sourcePath, launchTarget, prePubResult.Result, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType, embedRuntimes, embedLibs, embedTemplates);
-                await PostFininaliazePublishingAsync(publishResult, sourcePath, providerType);
+                publishResult = await STARNETManager.PublishAsync(STAR.BeamedInAvatar.Id, pubParams.SourcePath, pubParams.LaunchTarget, pubPathResult.Result, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType, pubParams.EmbedRuntimes, pubParams.EmbedLibs, pubParams.EmbedTemplates);
+                await PostFininaliazePublishingAsync(publishResult, pubParams.SourcePath, providerType);
             }
             else
-                OASISErrorHandling.HandleError(ref publishResult, $"Error occured in STARNETUIBase.FininaliazePublishingAsync calling PreFininaliazePublishingAsync. Reason: {prePubResult.Message}");
+                OASISErrorHandling.HandleError(ref publishResult, $"Error occured in STARNETUIBase.FininaliazePublishingAsync calling PreFininaliazePublishingAsync. Reason: {pubPathResult.Message}");
 
             return publishResult;
         }
 
-        protected async Task<OASISResult<string>> PreFininaliazePublishingAsync(bool simpleWizard, string sourcePath, string launchTarget, bool edit, bool registerOnSTARNET, bool generateOAPP, bool uploadOAPPToCloud, ProviderType providerType, ProviderType OAPPBinaryProviderType)
+        //protected async Task<OASISResult<string>> GetPublishPathAsync(BeginPublishResult pubParams, bool edit, bool registerOnSTARNET, bool generateOAPP, bool uploadOAPPToCloud, ProviderType providerType, ProviderType OAPPBinaryProviderType)
+        protected async Task<OASISResult<string>> GetPublishPathAsync(string sourcePath, bool simpleWizard, bool edit, bool registerOnSTARNET, bool generateOAPP, bool uploadOAPPToCloud, ProviderType providerType, ProviderType OAPPBinaryProviderType)
         {
             OASISResult<string> result = new OASISResult<string>();
             string publishPath = "";
@@ -844,18 +852,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         publishPath = CLIEngine.GetValidFolder($"Where do you wish to publish the {STARNETManager.STARNETHolonUIName}?", true);
                     }
                 }
-
-                if (CLIEngine.GetConfirmation("Do you wish to embed any of the libraries, runtimes & sub-templates in the template? It is not recommended because will increase the storage space/cost & upload/download time. If you choose 'N' then they will be automatically downloaded and installed when someone installs your template. Only choose 'Y' if you want them embedded in case there is an issue downloading/installing them seperatley later (unlikely) or if you want the template to be fully self-contained with no external dependencies (useful if you wish to install it offline from the .oapptemplate file)."))
-                {
-                    embedTemplates = CLIEngine.GetConfirmation("Do you wish to embed the sub-templates?");
-                    embedRuntimes = CLIEngine.GetConfirmation("Do you wish to embed the runtimes?");
-                    embedLibs = CLIEngine.GetConfirmation("Do you wish to embed the libraries?");
-                }
             }
 
             publishPath = new DirectoryInfo(publishPath).FullName;
 
-            Console.WriteLine("");
+            //Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Publishing {STARNETManager.STARNETHolonUIName}...");
             result.Result = publishPath;
             return result;
@@ -909,8 +910,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
         public virtual async Task RepublishAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
-            {
-                OASISResult<T1> result = await FindAsync("republish", idOrName, true, providerType: providerType);
+        {
+            OASISResult<T1> result = await FindAsync("republish", idOrName, true, providerType: providerType);
 
             if (result != null && !result.IsError && result.Result != null)
             {
@@ -946,7 +947,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
                 else
                     CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} is already activated!");
-            }   
+            }
         }
 
         public virtual async Task DeactivateAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
@@ -1034,7 +1035,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     if (result.MetaData != null && result.MetaData.ContainsKey("Reinstall") && !string.IsNullOrEmpty(result.MetaData["Reinstall"]) && result.MetaData["Reinstall"] == "1" && installMode == InstallMode.DownloadAndInstall)
                         installMode = InstallMode.DownloadAndReInstall;
-                    
+
                     installResult = await CheckIfInstalledAndInstallAsync(result.Result, downloadPath, installPath, installMode, "", providerType);
                 }
             }
@@ -1098,7 +1099,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (CLIEngine.GetConfirmation($"Do you wish to open the folder to the {STARNETManager.STARNETHolonUIName} now?"))
                         STARNETManager.OpenSTARNETHolonFolder(STAR.BeamedInAvatar.Id, installResult.Result);
-                        //await STARNETManager.OpenSTARNETHolonFolderAsync(STAR.BeamedInAvatar.Id, installResult.Result.STARNETDNA.Id, installResult.Result.STARNETDNA.Version);
+                    //await STARNETManager.OpenSTARNETHolonFolderAsync(STAR.BeamedInAvatar.Id, installResult.Result.STARNETDNA.Id, installResult.Result.STARNETDNA.Version);
                 }
                 else
                     CLIEngine.ShowErrorMessage($"Error {operation}ing {STARNETManager.STARNETHolonUIName}. Reason: {installResult.Message}");
@@ -1274,7 +1275,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName}'s...");
-            return  ListStarHolons(STARNETManager.LoadAll(STAR.BeamedInAvatar.Id, null, true, showAllVersions, version, providerType: providerType), showDetailedInfo: showDetailedInfo);
+            return ListStarHolons(STARNETManager.LoadAll(STAR.BeamedInAvatar.Id, null, true, showAllVersions, version, providerType: providerType), showDetailedInfo: showDetailedInfo);
         }
 
         public virtual async Task ListAllCreatedByBeamedInAvatarAsync(bool showAllVersions = false, bool showDetailedInfo = false, ProviderType providerType = ProviderType.Default)
@@ -1334,7 +1335,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (number > 0)
                     {
                         T3 template = result.Result.ElementAt(number - 1);
-    
+
                         if (template != null)
                         {
                             OASISResult<T3> installResult = await DownloadAndInstallAsync(template.STARNETDNA.Id.ToString(), InstallMode.DownloadAndReInstall, providerType);
@@ -1467,9 +1468,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
         public virtual async Task SearchsAsync(string searchTerm = "", bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
-        {            
+        {
             if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
-            { 
+            {
                 //Console.WriteLine("");
                 searchTerm = CLIEngine.GetValidInput($"What is the name of the {STARNETManager.STARNETHolonUIName} you wish to search for?");
             }
@@ -1489,7 +1490,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
-        public virtual void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = DEFAULT_FIELD_LENGTH, object customData = null) where T: ISTARNETHolon
+        public virtual void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = DEFAULT_FIELD_LENGTH, object customData = null) where T : ISTARNETHolon
         {
             if (DisplayFieldLength > displayFieldLength)
                 displayFieldLength = DisplayFieldLength;
@@ -1654,7 +1655,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage($"Loading {STARNETHolonUIName}'s...");
-                        
+
                         if (showOnlyForCurrentAvatar)
                             starHolonsResult = await STARNETManager.LoadAllForAvatarAsync(STAR.BeamedInAvatar.AvatarId);
                         else
@@ -1710,7 +1711,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 int number = CLIEngine.GetValidInputForInt($"What is the number of the {STARNETHolonUIName} you wish to {operationName}?");
 
                                 if (number > 0 && number <= searchResults.Result.Count())
-                                    result.Result = searchResults.Result.ElementAt(number - 1);                                 
+                                    result.Result = searchResults.Result.ElementAt(number - 1);
                                 else
                                     CLIEngine.ShowErrorMessage("Invalid number entered. Please try again.");
 

@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
     public class OAPPs : STARNETUIBase<OAPP, DownloadedOAPP, InstalledOAPP, STARNETDNA>
     {
         public OAPPs(Guid avatarId) : base(new OAPPManager(avatarId),
-            "Welcome to the OASIS Omniverse/MagicVerse Light Wizard!", new List<string> 
+            "Welcome to the OASIS Omniverse/MagicVerse Light Wizard!", new List<string>
             {
                 "This wizard will allow you create an OAPP (Moon, Planet, Star & More) which will appear in the MagicVerse within the OASIS Omniverse.",
                 "The OAPP will also optionally appear within the AR geo-location Our World/AR World platform/game in your desired geo-location.",
@@ -159,7 +159,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 }
                             }
                         }
-                        while (!templateInstalled);                  
+                        while (!templateInstalled);
                     }
                 }
             }
@@ -460,7 +460,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             if (cbDNA != null)
                             {
-                                celestialBodyMetaDataDNA = new InstalledCelestialBodyMetaDataDNA(){ STARNETDNA = cbDNA.STARNETDNA };
+                                celestialBodyMetaDataDNA = new InstalledCelestialBodyMetaDataDNA() { STARNETDNA = cbDNA.STARNETDNA };
 
                                 //Check if the user chose to install (after creating and publishing).
                                 CLIEngine.SupressConsoleLogging = true;
@@ -484,7 +484,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             Console.WriteLine("");
                             OASISResult<InstalledCelestialBodyMetaDataDNA> findResult = await STARCLI.CelestialBodiesMetaDataDNA.FindForProviderAndInstallIfNotInstalledAsync("use", providerType: providerType);
-                            
+
                             if (findResult != null && findResult.Result != null && !findResult.IsError)
                             {
                                 validDNA = true;
@@ -602,6 +602,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             lightResult.Message = installRuntimesResult.Message;
                         }
 
+                        //Temp need to remove CelestialBody parents and cores to prevent infinite recursion when serializing to json.
+                        //STARNETManager.Data.RemoveCelesialBodies(lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
+
                         //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
                         OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, new Dictionary<string, object>()
                         {
@@ -636,51 +639,55 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             { "OneWorld3dObjectURI", oneWorld3dObjectURI },
                             { "OneWorld2dSprite", oneWorld2dSprite },
                             { "OneWorld2dSpriteURI", oneWorld2dSpriteURI } },
-                           // { "Zomes", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes } },
-                            null, new OAPPDNA()
-                        {
-                            CelestialBodyId = lightResult.Result.CelestialBody.Id,
-                            CelestialBodyName = lightResult.Result.CelestialBody.Name,
-                            GenesisType = genesisType,
-                            OAPPTemplateId = installedOAPPTemplate.STARNETDNA.Id,
-                            OAPPTemplateName = installedOAPPTemplate.STARNETDNA.Name,
-                            OAPPTemplateDescription = installedOAPPTemplate.STARNETDNA.Description,
-                            OAPPTemplateType = OAPPTemplateType,
-                            OAPPTemplateVersion = installedOAPPTemplate.STARNETDNA.Version,
-                            OAPPTemplateVersionSequence = installedOAPPTemplate.STARNETDNA.VersionSequence,
-                            CelestialBodyMetaDataId = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Id : Guid.Empty,
-                            CelestialBodyMetaDataName = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Name : null,
-                            CelestialBodyMetaDataDescription = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Description : null,
-                            CelestialBodyMetaDataType = celestialBodyMetaDataDNA != null ? (CelestialBodyType)Enum.Parse(typeof(CelestialBodyType), celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType.ToString()) : CelestialBodyType.Moon,
-                            CelestialBodyMetaDataVersion = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Version : null,
-                            CelestialBodyMetaDataVersionSequence = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.VersionSequence : 0,
-                            CelestialBodyMetaDataGeneratedPath = celestialBodyMetaDataDNA != null ? cbMetaDataGeneratedPath : null,
-                            STARNETHolonType = OAPPType,
-                            OurWorldLat = ourWorldLat,
-                            OurWorldLong = ourWorldLong,
-                            OurWorld3dObject = ourWorld3dObject,
-                            OurWorld3dObjectURI = ourWorld3dObjectURI,
-                            OurWorld2dSprite = ourWorld2dSprite,
-                            OurWorld2dSpriteURI = ourWorld2dSpriteURI,
-                            OneWorldLat = oneWorlddLat,
-                            OneWorldLong = oneWorldLong,
-                            OneWorld3dObject = oneWorld3dObject,
-                            OneWorld3dObjectURI = oneWorld3dObjectURI,
-                            OneWorld2dSprite = oneWorld2dSprite,
-                            OneWorld2dSpriteURI = oneWorld2dSpriteURI,
-                            Zomes = lightResult.Result.CelestialBody.CelestialBodyCore.Zomes
-                        }, false, providerType);
+                            // { "Zomes", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes } },
+                            null, null, false, providerType);
+                            //null, new OAPPDNA() //TODO: We can pass in custom OAPPDNA when figure out how to resole the cast issues in STARNETManagerBase! ;-) This code does allow custom data to be added to the root of the OAPPDNA.json file but tbh it looks better if its just stored in the MetaData above! ;-)
+                            //{
+                            //    CelestialBodyId = lightResult.Result.CelestialBody.Id,
+                            //    CelestialBodyName = lightResult.Result.CelestialBody.Name,
+                            //    GenesisType = genesisType,
+                            //    OAPPTemplateId = installedOAPPTemplate.STARNETDNA.Id,
+                            //    OAPPTemplateName = installedOAPPTemplate.STARNETDNA.Name,
+                            //    OAPPTemplateDescription = installedOAPPTemplate.STARNETDNA.Description,
+                            //    OAPPTemplateType = OAPPTemplateType,
+                            //    OAPPTemplateVersion = installedOAPPTemplate.STARNETDNA.Version,
+                            //    OAPPTemplateVersionSequence = installedOAPPTemplate.STARNETDNA.VersionSequence,
+                            //    CelestialBodyMetaDataId = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Id : Guid.Empty,
+                            //    CelestialBodyMetaDataName = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Name : null,
+                            //    CelestialBodyMetaDataDescription = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Description : null,
+                            //    CelestialBodyMetaDataType = celestialBodyMetaDataDNA != null ? (CelestialBodyType)Enum.Parse(typeof(CelestialBodyType), celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType.ToString()) : CelestialBodyType.Moon,
+                            //    CelestialBodyMetaDataVersion = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Version : null,
+                            //    CelestialBodyMetaDataVersionSequence = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.VersionSequence : 0,
+                            //    CelestialBodyMetaDataGeneratedPath = celestialBodyMetaDataDNA != null ? cbMetaDataGeneratedPath : null,
+                            //    STARNETHolonType = OAPPType,
+                            //    OurWorldLat = ourWorldLat,
+                            //    OurWorldLong = ourWorldLong,
+                            //    OurWorld3dObject = ourWorld3dObject,
+                            //    OurWorld3dObjectURI = ourWorld3dObjectURI,
+                            //    OurWorld2dSprite = ourWorld2dSprite,
+                            //    OurWorld2dSpriteURI = ourWorld2dSpriteURI,
+                            //    OneWorldLat = oneWorlddLat,
+                            //    OneWorldLong = oneWorldLong,
+                            //    OneWorld3dObject = oneWorld3dObject,
+                            //    OneWorld3dObjectURI = oneWorld3dObjectURI,
+                            //    OneWorld2dSprite = oneWorld2dSprite,
+                            //    OneWorld2dSpriteURI = oneWorld2dSpriteURI
+                            //    //Zomes = lightResult.Result.CelestialBody.CelestialBodyCore.Zomes
+                            //}, false, providerType);
+
+                        //Restore the celestial bodies & cores back onto the zomes.
+                        //STARNETManager.Data.RestoreCelesialBodies(lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
 
                         if (createOAPPResult != null && createOAPPResult.Result != null && !createOAPPResult.IsError)
                         {
                             lightResult.Result.OAPP = createOAPPResult.Result;
-                            await AddLibsRuntimesAndTemplatesAsync(createOAPPResult.Result.STARNETDNA, "OAPP", providerType);
 
                             if (!string.IsNullOrEmpty(lightResult.Message))
                                 CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
                             else
                                 CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated.");
 
+                            await AddLibsRuntimesAndTemplatesAsync(createOAPPResult.Result.STARNETDNA, "OAPP", providerType);
                             Console.WriteLine("");
                             Show(lightResult.Result.OAPP, customData: lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
                             Console.WriteLine("");
@@ -709,7 +716,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return lightResult;
         }
 
-        
+
 
         public override async Task<OASISResult<OAPP>> PublishAsync(string sourcePath = "", bool edit = false, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, ProviderType providerType = ProviderType.Default)
         {
@@ -733,10 +740,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             ProviderType OAPPSelfContainedFullBinaryProviderType = ProviderType.None; //ProviderType.IPFSOASIS;
             bool registerOnSTARNET = false;
             string STARNETInfo = "If you select 'Y' to this question then your OAPP will be published to STARNET where others will be able to find, download and install. If you select 'N' then only the .oapp install file will be generated on your local device, which you can distribute as you please. This file will also be generated even if you publish to STARNET.";
-            bool embedLibs = false;
-            bool embedRuntimes = false;
-            bool embedTemplates = false;
-
 
             CLIEngine.ShowDivider();
             CLIEngine.ShowMessage("Welcome to the OAPP Publish Wizard!");
@@ -930,52 +933,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
 
+                //Console.WriteLine("");
                 Console.WriteLine("");
-                Console.WriteLine("");
-                OASISResult<string> prePubResult = await PreFininaliazePublishingAsync(beginPublishResult.Result.SimpleWizard, beginPublishResult.Result.SourcePath, beginPublishResult.Result.LaunchTarget, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+                //OASISResult<string> pubPathResult = await GetPublishPathAsync(beginPublishResult.Result, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
+                OASISResult<string> pubPathResult = await GetPublishPathAsync(beginPublishResult.Result.SourcePath, beginPublishResult.Result.SimpleWizard, edit, registerOnSTARNET, generateOAPP, uploadOAPPToCloud, providerType, OAPPBinaryProviderType);
 
-                if (prePubResult != null && !string.IsNullOrEmpty(prePubResult.Result) && !prePubResult.IsError)
+                if (pubPathResult != null && !string.IsNullOrEmpty(pubPathResult.Result) && !pubPathResult.IsError)
                 {
-
-                    //if (!CLIEngine.GetConfirmation("Do you wish to embed the libraries, runtimes & sub-templates in the template? (It is not recommended because will increase the storage space/cost & upload/download time). If you choose 'N' then they will be automatically downloaded and installed when someone installs your template. Only choose 'Y' if you want them embedded in case there is an issue downloading/installing them seperatley later (unlikely) or if you want the template to be fully self-contained with no external dependencies (useful if you wish to install it offline from the .oapptemplate file)."))
-                    //{
-                    //    if (!CLIEngine.GetConfirmation("Do you wish to embed the runtimes?"))
-                    //    {
-                    //        if (Directory.Exists(Path.Combine(sourcePath, "Runtimes")))
-                    //            Directory.Delete(Path.Combine(sourcePath, "Runtimes"), true);
-                    //    }
-
-                    //    if (!CLIEngine.GetConfirmation("Do you wish to embed the libraries?"))
-                    //    {
-                    //        if (Directory.Exists(Path.Combine(sourcePath, "Libs")))
-                    //            Directory.Delete(Path.Combine(sourcePath, "Libs"), true);
-                    //    }
-
-                    //    if (!CLIEngine.GetConfirmation("Do you wish to embed the sub-templates?"))
-                    //    {
-                    //        if (Directory.Exists(Path.Combine(sourcePath, "Templates")))
-                    //            Directory.Delete(Path.Combine(sourcePath, "Templates"), true);
-                    //    }
-                    //}
-
-                    if (CLIEngine.GetConfirmation("Do you wish to embed the libraries, runtimes & sub-templates in the oapp (say 'Y' if you only want to enbed one of these)? It is not recommended because will increase the storage space/cost & upload/download time. If you choose 'N' then they will be automatically downloaded and installed when someone installs your OAPP. Only choose 'Y' if you want them embedded in case there is an issue downloading/installing them seperatley later (unlikely) or if you want the OAPP to be fully self-contained with no external dependencies (useful if you wish to install it offline from the .oapp file)."))
-                    {
-                        embedTemplates = CLIEngine.GetConfirmation("Do you wish to embed the sub-templates?");
-                        embedRuntimes = CLIEngine.GetConfirmation("Do you wish to embed the runtimes?");
-                        embedLibs = CLIEngine.GetConfirmation("Do you wish to embed the libraries?");
-                    }
-
-                    result = await ((OAPPManager)STARNETManager).PublishOAPPAsync(STAR.BeamedInAvatar.Id, sourcePath, beginPublishResult.Result.LaunchTarget, prePubResult.Result, edit, registerOnSTARNET, dotNetPublish, generateOAPPSource, uploadOAPPSource, makeOAPPSourcePublic, generateOAPP, generateOAPPSelfContained, generateOAPPSelfContainedFull, uploadOAPPToCloud, uploadOAPPSelfContainedToCloud, uploadOAPPSelfContainedFullToCloud, providerType, OAPPBinaryProviderType, OAPPSelfContainedBinaryProviderType, OAPPSelfContainedFullBinaryProviderType, embedRuntimes, embedLibs, embedTemplates);
+                    result = await ((OAPPManager)STARNETManager).PublishOAPPAsync(STAR.BeamedInAvatar.Id, sourcePath, beginPublishResult.Result.LaunchTarget, pubPathResult.Result, edit, registerOnSTARNET, dotNetPublish, generateOAPPSource, uploadOAPPSource, makeOAPPSourcePublic, generateOAPP, generateOAPPSelfContained, generateOAPPSelfContainedFull, uploadOAPPToCloud, uploadOAPPSelfContainedToCloud, uploadOAPPSelfContainedFullToCloud, providerType, OAPPBinaryProviderType, OAPPSelfContainedBinaryProviderType, OAPPSelfContainedFullBinaryProviderType, beginPublishResult.Result.EmbedRuntimes, beginPublishResult.Result.EmbedLibs, beginPublishResult.Result.EmbedTemplates);
                     OASISResult<OAPP> publishResult = new OASISResult<OAPP>((OAPP)result.Result);
-
-                    //if (publishResult != null && publishResult.Result != null && !publishResult.IsError)
-                    //    CLIEngine.ShowSuccessMessage($"OAPP Successfully Published. ({publishResult.Message})"); //Temp till can fix the bs events not firing for some unknown reason?!
-                       
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(result, publishResult);
                     await PostFininaliazePublishingAsync(publishResult, sourcePath, providerType);
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETUIBase.FininaliazePublishingAsync calling PreFininaliazePublishingAsync. Reason: {prePubResult.Message}");   
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETUIBase.FininaliazePublishingAsync calling PreFininaliazePublishingAsync. Reason: {pubPathResult.Message}");
             }
             else
                 CLIEngine.ShowErrorMessage($"Error Occured: {beginPublishResult.Message}");
@@ -993,7 +964,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 OASISResult<bool> installRuntimesResult = await STARCLI.Runtimes.InstallDependentRuntimesAsync(installResult.Result.STARNETDNA, installResult.Result.InstalledPath, providerType);
 
                 if (!(installRuntimesResult != null && installRuntimesResult.Result && !installRuntimesResult.IsError))
-                { 
+                {
                     CLIEngine.ShowErrorMessage($"Error occured installing dependent runtimes for OAPP. Reason: {installRuntimesResult.Message}. Please install these manually using the sub-command 'runtime install'");
                     installResult.IsError = true;
                     installResult.Message = installRuntimesResult.Message;
@@ -1086,8 +1057,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Filesize", ParseMetaData(oapp.MetaData, "SourceFileSize"), displayFieldLength);
             DisplayProperty("Published On STARNET", ParseMetaData(oapp.MetaData, "SourcePublishedOnSTARNET", "False"), displayFieldLength);
             DisplayProperty("Public On STARNET", ParseMetaData(oapp.MetaData, "SourcePublicOnSTARNET", "False"), displayFieldLength);
-            
-            
+
+
             //DisplayProperty("OASIS Holon Version:                        ", oapp.Version), displayFieldLength);
             //DisplayProperty("OASIS Holon VersionId:                      ", oapp.VersionId), displayFieldLength);
             //DisplayProperty("OASIS Holon PreviousVersionId:              ", oapp.PreviousVersionId), displayFieldLength);

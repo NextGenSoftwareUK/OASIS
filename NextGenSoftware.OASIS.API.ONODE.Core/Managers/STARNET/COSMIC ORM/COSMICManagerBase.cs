@@ -5,10 +5,11 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
-    public abstract class COSMICManagerBase : OASISManager
+    public abstract class COSMICManagerBase : OASISManager//, ICOSMICManagerBase
     {
         public COSMICManagerBase(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
         {

@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public abstract class OASISManager : IOASISManager
+    //: IOASISManager
     {
         public HolonManager Data { get; set; }
         public OASISDNA OASISDNA { get; set; }

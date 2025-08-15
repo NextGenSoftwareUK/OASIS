@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
 {
-    public interface ISTARNETManagerBase<T1, T2, T3, T4>
+    public interface ISTARNETManagerBase<T1, T2, T3, T4> : IOASISManager //: ICOSMICManagerBase
         where T1 : ISTARNETHolon, new()
         where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()
