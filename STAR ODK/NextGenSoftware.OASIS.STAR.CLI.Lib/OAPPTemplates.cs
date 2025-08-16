@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<OAPPTemplate> createResult = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, providerType);
 
             if (createResult != null && createResult.Result != null && !createResult.IsError)
-                 await AddLibsRuntimesAndTemplatesAsync(createResult.Result.STARNETDNA, "OAPP Template", providerType);
+                 await AddDependenciesAsync(createResult.Result.STARNETDNA, "OAPP Template", providerType);
 
             return createResult;
         }

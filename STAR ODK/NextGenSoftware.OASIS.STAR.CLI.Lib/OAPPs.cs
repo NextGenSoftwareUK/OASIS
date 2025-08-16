@@ -597,7 +597,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (!(installRuntimesResult != null && installRuntimesResult.Result && !installRuntimesResult.IsError))
                         {
-                            CLIEngine.ShowErrorMessage($"Error occured installing dependent runtimes for OAPP. Reason: {installRuntimesResult.Message}. Please install these manually using the sub-command 'runtime install'");
+                            CLIEngine.ShowErrorMessage($"Error occured installing dependent runtimes for OAPP. Reason: {installRuntimesResult.Message}.\n\nPlease install these manually using the sub-command 'runtime install'");
                             lightResult.IsError = true;
                             lightResult.Message = installRuntimesResult.Message;
                         }
@@ -682,12 +682,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             lightResult.Result.OAPP = createOAPPResult.Result;
 
-                            if (!string.IsNullOrEmpty(lightResult.Message))
+                            if (!string.IsNullOrEmpty(lightResult.Message) && !lightResult.IsError)
                                 CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
                             else
                                 CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated.");
 
-                            await AddLibsRuntimesAndTemplatesAsync(createOAPPResult.Result.STARNETDNA, "OAPP", providerType);
+                            await AddDependenciesAsync(createOAPPResult.Result.STARNETDNA, "OAPP", providerType);
                             Console.WriteLine("");
                             Show(lightResult.Result.OAPP, customData: lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
                             Console.WriteLine("");
