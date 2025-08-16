@@ -550,7 +550,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //    }
         //}
 
-        public async Task AddDependencies(ISTARNETDNA STARNETDNA, string holonTypeToAddTo, ProviderType providerType = ProviderType.Default)
+        public async Task AddDependenciesAsync(ISTARNETDNA STARNETDNA, string holonTypeToAddTo, ProviderType providerType = ProviderType.Default)
         {
             if (CLIEngine.GetConfirmation("Do you wish to add any custom runtimes now? (you do not need to add the OASIS or STAR runtimes, they are added automatically)."))
             {
@@ -579,6 +579,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 while (CLIEngine.GetConfirmation("Do you wish to add another custom runtime?"));
             }
 
+            Console.WriteLine("");
             if (CLIEngine.GetConfirmation("Do you wish to add any libraries now?"))
             {
                 do
@@ -606,6 +607,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 while (CLIEngine.GetConfirmation("Do you wish to add another library?"));
             }
 
+            Console.WriteLine("");
             if (CLIEngine.GetConfirmation("Do you wish to add any sub-templates now?"))
             {
                 do
