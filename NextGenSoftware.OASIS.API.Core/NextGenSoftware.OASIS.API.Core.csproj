@@ -41,7 +41,7 @@
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.2" />
     <PackageReference Include="Cryptography.ECDSA.Secp256K1" Version="1.1.3" />
     <PackageReference Include="MailKit" Version="2.11.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="NLog" Version="4.7.9" />
     <PackageReference Include="Rijndael256.Core" Version="3.2.5" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.7.1" />
