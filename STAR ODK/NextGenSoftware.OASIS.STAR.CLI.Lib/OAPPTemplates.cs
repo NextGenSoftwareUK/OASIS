@@ -1,9 +1,10 @@
-﻿using NextGenSoftware.OASIS.Common;
+﻿using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -33,9 +34,41 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<OAPPTemplate> createResult = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, providerType);
 
             if (createResult != null && createResult.Result != null && !createResult.IsError)
-                 await AddDependenciesAsync(createResult.Result.STARNETDNA, "OAPP Template", providerType);
+            {
+                //Install any dependencies that are required for the OAPP Template to run (such as runtimes etc).
+                OASISResult<bool> installRuntimesResult = await STARCLI.Runtimes.InstallOASISAndSTARRuntimesAsync(createResult.Result.STARNETDNA, createResult.Result.STARNETDNA.SourcePath, InstallRuntimesFor.OAPPTemplate, providerType);
+
+                if (!(installRuntimesResult != null && installRuntimesResult.Result && !installRuntimesResult.IsError))
+                {
+                    CLIEngine.ShowErrorMessage($"Error occured installing dependent runtimes for OAPP Template. Reason: {installRuntimesResult.Message}. Please install these manually using the sub-command 'runtime install' or below when asked if you wish to install any custom runtimes.");
+                    //createResult.IsError = true;
+                    //createResult.Message = installRuntimesResult.Message;
+                }
+
+                await AddDependenciesAsync(createResult.Result.STARNETDNA, "OAPP Template", providerType);
+            }
 
             return createResult;
+        }
+
+        public override async Task<OASISResult<InstalledOAPPTemplate>> DownloadAndInstallAsync(string idOrName = "", InstallMode installMode = InstallMode.DownloadAndInstall, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<InstalledOAPPTemplate> installResult = await base.DownloadAndInstallAsync(idOrName, installMode, providerType);
+
+            if (installResult != null && installResult.Result != null && !installResult.IsError)
+            {
+                //Install any dependencies that are required for the OAPP Template to run (such as runtimes etc).
+                OASISResult<bool> installRuntimesResult = await STARCLI.Runtimes.InstallOASISAndSTARRuntimesAsync(installResult.Result.STARNETDNA, installResult.Result.InstalledPath, InstallRuntimesFor.OAPPTemplate, providerType);
+
+                if (!(installRuntimesResult != null && installRuntimesResult.Result && !installRuntimesResult.IsError))
+                {
+                    CLIEngine.ShowErrorMessage($"Error occured installing dependent runtimes for OAPP Template. Reason: {installRuntimesResult.Message}. Please install these manually using the sub-command 'runtime install'");
+                    installResult.IsError = true;
+                    installResult.Message = installRuntimesResult.Message;
+                }
+            }
+
+            return installResult;
         }
     }
 }
