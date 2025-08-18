@@ -265,20 +265,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatarDetail.Stats.HP.Max = 99;
                 avatarDetail.Stats.Mana.Current = 99;
                 avatarDetail.Stats.Mana.Max = 99;
-                avatarDetail.Stats.Staminia.Current = 99;
-                avatarDetail.Stats.Staminia.Max = 99;
+                avatarDetail.Stats.Stamina.Current = 99;
+                avatarDetail.Stats.Stamina.Max = 99;
 
                 avatarDetail.SuperPowers.AstralProjection = 99;
                 avatarDetail.SuperPowers.BioLocatation = 88;
                 avatarDetail.SuperPowers.Flight = 99;
                 avatarDetail.SuperPowers.FreezeBreath = 88;
                 avatarDetail.SuperPowers.HeatVision = 99;
-                avatarDetail.SuperPowers.Invulerability = 99;
+                avatarDetail.SuperPowers.Invulnerability = 99;
                 avatarDetail.SuperPowers.SuperSpeed = 99;
                 avatarDetail.SuperPowers.SuperStrength = 99;
                 avatarDetail.SuperPowers.XRayVision = 99;
                 avatarDetail.SuperPowers.Teleportation = 99;
-                avatarDetail.SuperPowers.Telekineseis = 99;
+                avatarDetail.SuperPowers.Telekinesis = 99;
 
                 avatarDetail.Skills.Computers = 99;
                 avatarDetail.Skills.Engineering = 99;

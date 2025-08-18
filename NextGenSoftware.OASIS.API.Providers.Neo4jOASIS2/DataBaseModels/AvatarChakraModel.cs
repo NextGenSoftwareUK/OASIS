@@ -81,7 +81,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.DataBaseModels{
                     item=new HeartChakra();
                     break;
                 case ChakraType.SolarPlexus:
-                    item=new SoloarPlexusChakra();
+                    item=new SolarPlexusChakra();
                     break;
                 case ChakraType.Throat:
                     item=new ThroatChakra();

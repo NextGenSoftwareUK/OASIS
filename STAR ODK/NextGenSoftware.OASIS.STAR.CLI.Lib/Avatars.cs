@@ -254,8 +254,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 avatarDetail.Chakras.Throat.Level = 5;
                 avatarDetail.Chakras.Heart.XP = 777;
                 avatarDetail.Chakras.Heart.Level = 7;
-                avatarDetail.Chakras.SoloarPlexus.Level = 9;
-                avatarDetail.Chakras.SoloarPlexus.XP = 896;
+                avatarDetail.Chakras.SolarPlexus.Level = 9;
+                avatarDetail.Chakras.SolarPlexus.XP = 896;
                 avatarDetail.Chakras.Sacral.Level = 7;
                 avatarDetail.Chakras.Sacral.XP = 707;
                 avatarDetail.Chakras.Root.Level = 5;
@@ -281,8 +281,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 avatarDetail.Stats.HP.Max = 99;
                 avatarDetail.Stats.Mana.Current = 77;
                 avatarDetail.Stats.Mana.Max = 99;
-                avatarDetail.Stats.Staminia.Current = 55;
-                avatarDetail.Stats.Staminia.Max = 99;
+                avatarDetail.Stats.Stamina.Current = 55;
+                avatarDetail.Stats.Stamina.Max = 99;
 
                 avatarDetail.Skills.Yoga = 77;
                 avatarDetail.Skills.Science = 88;
@@ -369,8 +369,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             Console.WriteLine(string.Concat(" Throat Level:                      ", avatarDetail.Chakras.Throat.Level));
             Console.WriteLine(string.Concat(" Heart XP:                          ", avatarDetail.Chakras.Heart.XP));
             Console.WriteLine(string.Concat(" Heart Level:                       ", avatarDetail.Chakras.Heart.Level));
-            Console.WriteLine(string.Concat(" Soloar Plexus XP:                  ", avatarDetail.Chakras.SoloarPlexus.XP));
-            Console.WriteLine(string.Concat(" Soloar Plexus Level:               ", avatarDetail.Chakras.SoloarPlexus.Level));
+            Console.WriteLine(string.Concat(" Solar Plexus XP:                  ", avatarDetail.Chakras.SolarPlexus.XP));
+            Console.WriteLine(string.Concat(" Solar Plexus Level:               ", avatarDetail.Chakras.SolarPlexus.Level));
             Console.WriteLine(string.Concat(" Sacral XP:                         ", avatarDetail.Chakras.Sacral.XP));
             Console.WriteLine(string.Concat(" Sacral Level:                      ", avatarDetail.Chakras.Sacral.Level));
 
@@ -392,7 +392,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             Console.WriteLine("");
-            Console.WriteLine(" AURUA:");
+            Console.WriteLine(" AURA:");
             Console.WriteLine("");
             Console.WriteLine(string.Concat(" Brightness:                        ", avatarDetail.Aura.Brightness));
             Console.WriteLine(string.Concat(" Size:                              ", avatarDetail.Aura.Size));
@@ -405,7 +405,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             Console.WriteLine("");
             Console.WriteLine("");
-            Console.WriteLine(" ATTTRIBUTES:");
+            Console.WriteLine(" ATTRIBUTES:");
             Console.WriteLine("");
             Console.WriteLine(string.Concat(" Strength:                          ", avatarDetail.Attributes.Strength));
             Console.WriteLine(string.Concat(" Speed:                             ", avatarDetail.Attributes.Speed));
@@ -424,7 +424,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             Console.WriteLine(string.Concat(" HP:                                ", avatarDetail.Stats.HP.Current, "/", avatarDetail.Stats.HP.Max));
             Console.WriteLine(string.Concat(" Mana:                              ", avatarDetail.Stats.Mana.Current, "/", avatarDetail.Stats.Mana.Max));
             Console.WriteLine(string.Concat(" Energy:                            ", avatarDetail.Stats.Energy.Current, "/", avatarDetail.Stats.Energy.Max));
-            Console.WriteLine(string.Concat(" Staminia:                          ", avatarDetail.Stats.Staminia.Current, "/", avatarDetail.Stats.Staminia.Max));
+            Console.WriteLine(string.Concat(" Stamina:                          ", avatarDetail.Stats.Stamina.Current, "/", avatarDetail.Stats.Stamina.Max));
 
             Console.WriteLine("");
             Console.WriteLine("");
@@ -434,11 +434,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             Console.WriteLine(string.Concat(" Astral Projection:                 ", avatarDetail.SuperPowers.AstralProjection));
             Console.WriteLine(string.Concat(" Bio-Locatation:                    ", avatarDetail.SuperPowers.BioLocatation));
             Console.WriteLine(string.Concat(" Heat Vision:                       ", avatarDetail.SuperPowers.HeatVision));
-            Console.WriteLine(string.Concat(" Invulerability:                    ", avatarDetail.SuperPowers.Invulerability));
+            Console.WriteLine(string.Concat(" Invulnerability:                    ", avatarDetail.SuperPowers.Invulnerability));
             Console.WriteLine(string.Concat(" Remote Viewing:                    ", avatarDetail.SuperPowers.RemoteViewing));
             Console.WriteLine(string.Concat(" Super Speed:                       ", avatarDetail.SuperPowers.SuperSpeed));
             Console.WriteLine(string.Concat(" Super Strength:                    ", avatarDetail.SuperPowers.SuperStrength));
-            Console.WriteLine(string.Concat(" Telekineseis:                      ", avatarDetail.SuperPowers.Telekineseis));
+            Console.WriteLine(string.Concat(" Telekinesis:                      ", avatarDetail.SuperPowers.Telekinesis));
             Console.WriteLine(string.Concat(" XRay Vision:                       ", avatarDetail.SuperPowers.XRayVision));
 
             Console.WriteLine("");
@@ -452,10 +452,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             Console.WriteLine(string.Concat(" Fishing:                           ", avatarDetail.Skills.Fishing));
             Console.WriteLine(string.Concat(" Languages:                         ", avatarDetail.Skills.Languages));
             Console.WriteLine(string.Concat(" Meditation:                        ", avatarDetail.Skills.Meditation));
-            Console.WriteLine(string.Concat(" Mellee Combat:                     ", avatarDetail.Skills.MelleeCombat));
+            Console.WriteLine(string.Concat(" Melee Combat:                     ", avatarDetail.Skills.MeleeCombat));
             Console.WriteLine(string.Concat(" Mindfulness:                       ", avatarDetail.Skills.Mindfulness));
             Console.WriteLine(string.Concat(" Negotiating:                       ", avatarDetail.Skills.Negotiating));
-            Console.WriteLine(string.Concat(" Ranged Combat:                     ", avatarDetail.Skills.RangeCombat));
+            Console.WriteLine(string.Concat(" Ranged Combat:                     ", avatarDetail.Skills.RangedCombat));
             Console.WriteLine(string.Concat(" Research:                          ", avatarDetail.Skills.Research));
             Console.WriteLine(string.Concat(" Science:                           ", avatarDetail.Skills.Science));
             Console.WriteLine(string.Concat(" Spell Casting:                     ", avatarDetail.Skills.SpellCasting));
@@ -530,7 +530,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowMessage($"Avatar Username:             {avatar.Username}");
                 CLIEngine.ShowMessage($"Avatar Type:                 {avatar.AvatarType.Name}");
                 CLIEngine.ShowMessage($"Avatar Created Date:         {avatar.CreatedDate}");
-                CLIEngine.ShowMessage($"Avatar Modifed Date:         {avatar.ModifiedDate}");
+                CLIEngine.ShowMessage($"Avatar Modified Date:         {avatar.ModifiedDate}");
                 CLIEngine.ShowMessage($"Avatar Last Beamed In Date:  {avatar.LastBeamedIn}");
                 CLIEngine.ShowMessage($"Avatar Last Beamed Out Date: {avatar.LastBeamedOut}");
                 CLIEngine.ShowMessage(String.Concat("Avatar Is Active:            ", avatar.IsActive ? "True" : "False"));
@@ -708,7 +708,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (avatarsResult.Result.Count() == 1)
                             CLIEngine.ShowMessage($"{avatarsResult.Result.Count()} Avatar Found:");
                         else
-                            CLIEngine.ShowMessage($"{avatarsResult.Result.Count()} Avatar's' Found:");
+                            CLIEngine.ShowMessage($"{avatarsResult.Result.Count()} Avatars Found:");
 
                         CLIEngine.ShowDivider();
 

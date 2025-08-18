@@ -8,6 +8,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         AvatarStat Energy { get; set; }
         AvatarStat HP { get; set; }
         AvatarStat Mana { get; set; }
-        AvatarStat Staminia { get; set; }
+        AvatarStat Stamina { get; set; }
     }
 }

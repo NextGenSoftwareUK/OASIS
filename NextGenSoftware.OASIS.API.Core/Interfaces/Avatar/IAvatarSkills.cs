@@ -10,10 +10,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         int Fishing { get; set; }
         int Languages { get; set; }
         int Meditation { get; set; }
-        int MelleeCombat { get; set; }
+        int MeleeCombat { get; set; }
         int Mindfulness { get; set; }
         int Negotiating { get; set; }
-        int RangeCombat { get; set; }
+        int RangedCombat { get; set; }
         int Research { get; set; }
         int Science { get; set; }
         int SpellCasting { get; set; }
