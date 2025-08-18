@@ -583,7 +583,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     Console.WriteLine("");
                     CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                    lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
+                    lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Id : Guid.Empty, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.VersionSequence : 0, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
                 }
 
                 if (lightResult != null)
@@ -591,33 +591,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (!lightResult.IsError && lightResult.Result != null)
                     {
                         oappPath = Path.Combine(oappPath, OAPPName);
-
-                        //Install any dependencies that are required for the OAPP to run (such as runtimes etc).
-                        OASISResult<bool> installRuntimesResult = await STARCLI.Runtimes.InstallDependentRuntimesAsync(installedOAPPTemplate.STARNETDNA, oappPath, providerType);
-
-                        if (!(installRuntimesResult != null && installRuntimesResult.Result && !installRuntimesResult.IsError))
-                        {
-                            CLIEngine.ShowErrorMessage($"Error occured installing dependent runtimes for OAPP. Reason: {installRuntimesResult.Message}.\n\nPlease install these manually using the sub-command 'runtime install'");
-                            lightResult.IsError = true;
-                            lightResult.Message = installRuntimesResult.Message;
-                        }
-
-                        //Temp need to remove CelestialBody parents and cores to prevent infinite recursion when serializing to json.
-                        //STARNETManager.Data.RemoveCelesialBodies(lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
-
+                        
                         //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
                         OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, new Dictionary<string, object>()
                         {
                             { "CelestialBodyId", lightResult.Result.CelestialBody.Id },
                             { "CelestialBodyName", lightResult.Result.CelestialBody.Name },
                             { "GenesisType", genesisType },
-                            { "OAPPTemplateId", installedOAPPTemplate.STARNETDNA.Id },
-                            { "OAPPTemplateName", installedOAPPTemplate.STARNETDNA.Name },
-                            { "OAPPTemplateDescription", installedOAPPTemplate.STARNETDNA.Description },
+                            { "OAPPTemplateId", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Id : null},
+                            { "OAPPTemplateName", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Name : null },
+                            { "OAPPTemplateDescription", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Description: null },
                             { "OAPPTemplateType", OAPPTemplateType },
-                            { "OAPPTemplateVersion", installedOAPPTemplate.STARNETDNA.Version },
-                            { "OAPPTemplateVersionSequence", installedOAPPTemplate.STARNETDNA.VersionSequence },
-                            { "OAPPTemplateInstalledPath", installedOAPPTemplate.InstalledPath },
+                            { "OAPPTemplateVersion", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Version : null },
+                            { "OAPPTemplateVersionSequence", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.VersionSequence: null },
+                            { "OAPPTemplateInstalledPath", installedOAPPTemplate != null ? installedOAPPTemplate.InstalledPath : null},
                             { "CelestialBodyMetaDataId", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Id : null },
                             { "CelestialBodyMetaDataName", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Name : null },
                             { "CelestialBodyMetaDataDescription", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Description : null },
@@ -675,12 +662,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             //    //Zomes = lightResult.Result.CelestialBody.CelestialBodyCore.Zomes
                             //}, false, providerType);
 
-                        //Restore the celestial bodies & cores back onto the zomes.
-                        //STARNETManager.Data.RestoreCelesialBodies(lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
-
                         if (createOAPPResult != null && createOAPPResult.Result != null && !createOAPPResult.IsError)
                         {
                             lightResult.Result.OAPP = createOAPPResult.Result;
+                            OASISResult<bool> installRuntimesResult = null;
+
+                            //Install any dependencies that are required for the OAPP to run (such as runtimes etc).
+                            //if (installedOAPPTemplate != null)
+                            //    installRuntimesResult = await STARCLI.Runtimes.InstallDependentRuntimesAsync(installedOAPPTemplate.STARNETDNA, oappPath, providerType);
+                            //else
+                            //    installRuntimesResult = await STARCLI.Runtimes.InstallDependentRuntimesAsync(lightResult.Result.OAPP.STARNETDNA, oappPath, providerType);
+
+                            installRuntimesResult = await STARCLI.Runtimes.InstallOASISAndSTARRuntimesAsync(lightResult.Result.OAPP.STARNETDNA, oappPath, InstallRuntimesFor.OAPP, providerType);
+
+                            if (!(installRuntimesResult != null && installRuntimesResult.Result && !installRuntimesResult.IsError))
+                            {
+                                CLIEngine.ShowErrorMessage($"Error occured installing dependent runtimes for OAPP. Reason: {installRuntimesResult.Message}.\n\nPlease install these manually using the sub-command 'runtime install'");
+                                lightResult.IsError = true;
+                                lightResult.Message = installRuntimesResult.Message;
+                            }
 
                             if (!string.IsNullOrEmpty(lightResult.Message) && !lightResult.IsError)
                                 CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
@@ -961,7 +961,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (installResult != null && installResult.Result != null && !installResult.IsError)
             {
                 //Install any dependencies that are required for the OAPP to run (such as runtimes etc).
-                OASISResult<bool> installRuntimesResult = await STARCLI.Runtimes.InstallDependentRuntimesAsync(installResult.Result.STARNETDNA, installResult.Result.InstalledPath, providerType);
+                OASISResult<bool> installRuntimesResult = await STARCLI.Runtimes.InstallOASISAndSTARRuntimesAsync(installResult.Result.STARNETDNA, installResult.Result.InstalledPath, InstallRuntimesFor.OAPP, providerType);
 
                 if (!(installRuntimesResult != null && installRuntimesResult.Result && !installRuntimesResult.IsError))
                 {
