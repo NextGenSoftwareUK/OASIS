@@ -199,7 +199,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManagerBase.GetCurentQuestAsync. Reason:";
 
-            OASISResult<T1> loadResult = await LoadAsync(avatarId, chapterId, version, providerType);
+            OASISResult<T1> loadResult = await LoadAsync(avatarId, chapterId, version, providerType: providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {
@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             OASISResult<IQuest> result = new OASISResult<IQuest>();
             string errorMessage = "Error occured in QuestManagerBase.GetCurentQuest. Reason:";
 
-            OASISResult<T1> loadResult = Load(avatarId, chapterId, version, providerType);
+            OASISResult<T1> loadResult = Load(avatarId, chapterId, version, providerType: providerType);
 
             if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
             {

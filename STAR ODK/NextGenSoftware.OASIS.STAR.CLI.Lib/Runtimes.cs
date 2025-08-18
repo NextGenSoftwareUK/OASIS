@@ -1,14 +1,14 @@
-﻿using NextGenSoftware.Utilities;
-using NextGenSoftware.CLI.Engine;
+﻿using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -33,16 +33,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         { }
 
 
-        public async Task<OASISResult<bool>> InstallDependentRuntimesAsync(ISTARNETDNA STARNETDNA, string OAPPFolder, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> InstallOASISAndSTARRuntimesAsync(ISTARNETDNA STARNETDNA, string OAPPFolder, InstallRuntimesFor installRunTimeFor, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "An error occured in InstallDependentRuntimes. Reason:";
-            string downloadPath = "";
+            string downloadPath = ""; 
             string installPath = "";
             string OASISRunTimePath = STAR.STARDNA.DefaultRuntimesInstalledOASISPath;
             string STARRunTimePath = STAR.STARDNA.DefaultRuntimesInstalledSTARPath;
             bool installedOASISRuntime = false;
             bool installedSTARRuntime = false;
+
+            string installRunTimeForDisplay = "OAPP";
+
+            if (installRunTimeFor == InstallRuntimesFor.OAPPTemplate)
+                installRunTimeForDisplay = "OAPP Template";
 
             if (!string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
             {
@@ -65,6 +70,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     
                     if (oasisRunTimeResult != null && oasisRunTimeResult.Result != null && !oasisRunTimeResult.IsError)
                     {
+                        installResult = new OASISResult<IInstalledRuntime>();
                         OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(oasisRunTimeResult, installResult);
                         installResult.Result = (IInstalledRuntime)oasisRunTimeResult.Result;
 
@@ -117,16 +123,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (installResult != null && installResult.Result != null && !installResult.IsError)
                 {
-                    CLIEngine.ShowWorkingMessage($"Installing OASIS Runtime v{STARNETDNA.OASISRuntimeVersion} Into OAPP...");
-                    OASISResult<Runtime> addRuntimeResult = await STARNETManager.AddRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installResult.Result, providerType);
+                    CLIEngine.ShowWorkingMessage($"Installing OASIS Runtime v{STARNETDNA.OASISRuntimeVersion} Into {installRunTimeForDisplay}...");
+                    //OASISResult<OAPP> addRuntimeResult = null;
 
-                    if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
+                    if (installRunTimeFor == InstallRuntimesFor.OAPP)
                     {
-                        CLIEngine.ShowSuccessMessage($"OASIS Runtime v{STARNETDNA.OASISRuntimeVersion} added to OAPP.");
-                        installedOASISRuntime = true;
+                        OASISResult<OAPP> addRuntimeResult = await STAR.STARAPI.OAPPs.AddRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installResult.Result, providerType);
+
+                        if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage($"OASIS Runtime v{STARNETDNA.OASISRuntimeVersion} added to {installRunTimeForDisplay}.");
+                            installedOASISRuntime = true;
+                        }
+                        else
+                            CLIEngine.ShowErrorMessage($"Failed to add OASIS Runtime v{STARNETDNA.OASISRuntimeVersion} to {installRunTimeForDisplay}. Error: {addRuntimeResult.Message}");
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"Failed to add OASIS Runtime v{STARNETDNA.OASISRuntimeVersion} to OAPP. Error: {addRuntimeResult.Message}");
+                    {
+                        OASISResult<OAPPTemplate> addRuntimeResult = await STAR.STARAPI.OAPPTemplates.AddRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installResult.Result, providerType);
+
+                        if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage($"OASIS Runtime v{STARNETDNA.OASISRuntimeVersion} added to {installRunTimeForDisplay}.");
+                            installedOASISRuntime = true;
+                        }
+                        else
+                            CLIEngine.ShowErrorMessage($"Failed to add OASIS Runtime v{STARNETDNA.OASISRuntimeVersion} to {installRunTimeForDisplay}. Error: {addRuntimeResult.Message}");
+                    }
                 }
             }
 
@@ -142,6 +165,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (starRunTimeResult != null && starRunTimeResult.Result != null && !starRunTimeResult.IsError)
                     {
+                        installResult = new OASISResult<IInstalledRuntime>();
                         OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(starRunTimeResult, installResult);
                         installResult.Result = (IInstalledRuntime)starRunTimeResult.Result;
 
@@ -188,15 +212,31 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (installResult != null && installResult.Result != null && !installResult.IsError)
                 {
                     CLIEngine.ShowWorkingMessage($"Installing STAR Runtime v{STARNETDNA.STARRuntimeVersion} Into OAPP...");
-                    OASISResult<Runtime> addRuntimeResult = await STARNETManager.AddRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installResult.Result, providerType);
 
-                    if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
+                    if (installRunTimeFor == InstallRuntimesFor.OAPP)
                     {
-                        installedSTARRuntime = true;
-                        CLIEngine.ShowSuccessMessage($"STAR Runtime v{STARNETDNA.STARRuntimeVersion} added to OAPP.");
+                        OASISResult<OAPP> addRuntimeResult = await STAR.STARAPI.OAPPs.AddRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installResult.Result, providerType);
+
+                        if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage($"STAR Runtime v{STARNETDNA.OASISRuntimeVersion} added to {installRunTimeForDisplay}.");
+                            installedSTARRuntime = true;
+                        }
+                        else
+                            CLIEngine.ShowErrorMessage($"Failed to add STAR Runtime v{STARNETDNA.OASISRuntimeVersion} to {installRunTimeForDisplay}. Error: {addRuntimeResult.Message}");
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"Failed to add STAR Runtime v{STARNETDNA.STARRuntimeVersion} to OAPP. Error: {addRuntimeResult.Message}");
+                    {
+                        OASISResult<OAPPTemplate> addRuntimeResult = await STAR.STARAPI.OAPPTemplates.AddRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installResult.Result, providerType);
+
+                        if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
+                        {
+                            CLIEngine.ShowSuccessMessage($"STAR Runtime v{STARNETDNA.OASISRuntimeVersion} added to {installRunTimeForDisplay}.");
+                            installedSTARRuntime = true;
+                        }
+                        else
+                            CLIEngine.ShowErrorMessage($"Failed to add STAR Runtime v{STARNETDNA.OASISRuntimeVersion} to {installRunTimeForDisplay}. Error: {addRuntimeResult.Message}");
+                    }
                 }
             }
 

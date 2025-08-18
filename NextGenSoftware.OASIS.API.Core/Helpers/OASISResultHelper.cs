@@ -52,6 +52,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
 
         public static OASISResult<T2> CopyOASISResultOnlyWithNoInnerResult<T1, T2>(OASISResult<T1> fromResult, OASISResult<T2> toResult, bool copyMessage = true)
         {
+            if (toResult == null)
+                toResult = new OASISResult<T2>();
+
             toResult.Exception = fromResult.Exception;
             toResult.IsError = fromResult.IsError;
             toResult.IsSaved = fromResult.IsSaved;
