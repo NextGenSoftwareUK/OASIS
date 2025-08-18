@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
     {
         public RootChakra Root { get; set; } = new RootChakra();
         public SacralChakra Sacral { get; set; } = new SacralChakra();
-        public SoloarPlexusChakra SoloarPlexus { get; set; } = new SoloarPlexusChakra();
+        public SolarPlexusChakra SolarPlexus { get; set; } = new SolarPlexusChakra();
         public HeartChakra Heart { get; set; } = new HeartChakra();
         public ThroatChakra Throat { get; set; } = new ThroatChakra();
         public ThirdEyeChakra ThirdEye { get; set; } = new ThirdEyeChakra();

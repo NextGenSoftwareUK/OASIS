@@ -20,8 +20,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.Science=source.Science;
             this.Negotiating=source.Negotiating;
             this.Translating=source.Translating;
-            this.MelleeCombat=source.MelleeCombat;
-            this.RangeCombat=source.RangeCombat;
+            this.MeleeCombat=source.MeleeCombat;
+            this.RangedCombat=source.RangedCombat;
             this.SpellCasting=source.SpellCasting;
             this.Meditation=source.Meditation;
             this.Yoga=source.Yoga;
@@ -42,8 +42,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             item.Science=this.Science;
             item.Negotiating=this.Negotiating;
             item.Translating=this.Translating;
-            item.MelleeCombat=this.MelleeCombat;
-            item.RangeCombat=this.RangeCombat;
+            item.MeleeCombat=this.MeleeCombat;
+            item.RangedCombat=this.RangedCombat;
             item.SpellCasting=this.SpellCasting;
             item.Meditation=this.Meditation;
             item.Yoga=this.Yoga;

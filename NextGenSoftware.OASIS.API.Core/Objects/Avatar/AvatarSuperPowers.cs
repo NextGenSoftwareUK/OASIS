@@ -11,8 +11,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public int Science { get; set; }
         public int Negotiating { get; set; }
         public int Translating { get; set; }
-        public int MelleeCombat { get; set; }
-        public int RangeCombat { get; set; }
+        public int MeleeCombat { get; set; }
+        public int RangedCombat { get; set; }
         public int SpellCasting { get; set; }
         public int Meditation { get; set; }
         public int Yoga { get; set; }

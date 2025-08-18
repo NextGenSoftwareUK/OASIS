@@ -220,7 +220,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 
             this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Root));
             this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Sacral));
-            this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.SoloarPlexus));
+            this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.SolarPlexus));
             this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Heart));
             this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Throat));
             this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.ThirdEye));
@@ -335,7 +335,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
                     item.Chakras.Throat = (ThroatChakra)chakra.GetAvatarChakra();
                 }
                 if(chakra.Type == ChakraType.SolarPlexus){
-                    item.Chakras.SoloarPlexus = (SoloarPlexusChakra)chakra.GetAvatarChakra();
+                    item.Chakras.SolarPlexus = (SolarPlexusChakra)chakra.GetAvatarChakra();
                 }
                 if(chakra.Type == ChakraType.ThirdEye){
                     item.Chakras.ThirdEye = (ThirdEyeChakra)chakra.GetAvatarChakra();

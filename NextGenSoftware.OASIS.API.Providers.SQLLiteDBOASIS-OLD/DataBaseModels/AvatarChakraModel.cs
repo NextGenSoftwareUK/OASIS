@@ -74,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels{
                     item=new HeartChakra();
                     break;
                 case ChakraType.SolarPlexus:
-                    item=new SoloarPlexusChakra();
+                    item=new SolarPlexusChakra();
                     break;
                 case ChakraType.Throat:
                     item=new ThroatChakra();
