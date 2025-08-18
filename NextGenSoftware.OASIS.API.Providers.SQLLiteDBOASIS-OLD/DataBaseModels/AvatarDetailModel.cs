@@ -395,7 +395,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.DataBaseModels
                     item.Chakras.Throat = (ThroatChakra)chakra.GetAvatarChakra();
                 }
                 if(chakra.Type == ChakraType.SolarPlexus){
-                    item.Chakras.SoloarPlexus = (SoloarPlexusChakra)chakra.GetAvatarChakra();
+                    item.Chakras.SoloarPlexus = (SolarPlexusChakra)chakra.GetAvatarChakra();
                 }
                 if(chakra.Type == ChakraType.ThirdEye){
                     item.Chakras.ThirdEye = (ThirdEyeChakra)chakra.GetAvatarChakra();

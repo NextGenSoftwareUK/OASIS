@@ -86,7 +86,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             InstalledCelestialBodyMetaDataDNA celestialBodyMetaDataDNA = null;
             long ourWorldLat = 0;
             long ourWorldLong = 0;
-            long oneWorlddLat = 0;
+            long oneWorldLat = 0;
             long oneWorldLong = 0;
             string ourWorld3dObjectPath = "";
             byte[] ourWorld3dObject = null;
@@ -172,7 +172,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             //}
 
-            if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the AR geo-location Our World/AR World game/platform? (recommeneded)"))
+            if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the AR geo-location Our World/AR World game/platform? (recommended)"))
             {
                 Console.WriteLine("");
                 ourWorldLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in Our World/AR World?");
@@ -254,12 +254,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
                 Console.WriteLine("");
 
-            if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the Open World MMORPG One World game/platform? (recommeneded)"))
+            if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the Open World MMORPG One World game/platform? (recommended)"))
             {
                 Console.WriteLine("");
-                oneWorlddLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in One World?");
+                oneWorldLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your OAPP to appear in One World?");
 
-                if (oneWorlddLat == -1)
+                if (oneWorldLat == -1)
                 {
                     lightResult.Message = "User Exited";
                     return lightResult;
@@ -335,7 +335,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             else
                 Console.WriteLine("");
 
-            enumValue = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create? (New avatars will only be able to create moons that orbit Our World until you reach karma level 33 where you will then be able to create planets, when you reach level 77 you can create stars & beyond 77 you can create Galaxies and even entire Universes in your jounrey to become fully God realised!.)", typeof(GenesisType));
+            enumValue = CLIEngine.GetValidInputForEnum("What type of GenesisType do you wish to create? (New avatars will only be able to create moons that orbit Our World until you reach karma level 33 where you will then be able to create planets, when you reach level 77 you can create stars & beyond 77 you can create Galaxies and even entire Universes in your journey to become fully God realised!.)", typeof(GenesisType));
 
             if (enumValue != null)
             {
@@ -620,7 +620,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             { "OurWorld3dObjectURI", ourWorld3dObjectURI },
                             { "OurWorld2dSprite", ourWorld2dSprite },
                             { "OurWorld2dSpriteURI", ourWorld2dSpriteURI },
-                            { "OneWorldLat", oneWorlddLat },
+                            { "OneWorldLat", oneWorldLat },
                             { "OneWorldLong", oneWorldLong },
                             { "OneWorld3dObject", oneWorld3dObject },
                             { "OneWorld3dObjectURI", oneWorld3dObjectURI },

@@ -1337,7 +1337,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     try
                     {
-                        string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp");
+                        string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp", string.Concat(STARNETDNA.Name, "_v", STARNETDNA.Version));
 
                         if (Directory.Exists(publishedPath))
                             Directory.Delete(publishedPath, true);
@@ -1351,10 +1351,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         if (!embedTemplates && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Templates")))
                             Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Templates"), true);
 
-                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Libs")))
+                        if (!embedLibs && Directory.Exists(Path.Combine(publishedPath, "Dependencies", "STARNET", "Libs")))
                             Directory.Delete(Path.Combine(publishedPath, "Dependencies", "STARNET", "Libs"), true);
 
-                        OASISResult<bool> compressedResult = GenerateCompressedFile(fullPathToSource, STARNETDNA.PublishedPath);
+                        OASISResult<bool> compressedResult = GenerateCompressedFile(publishedPath, STARNETDNA.PublishedPath);
 
                         if (!(compressedResult != null && compressedResult.Result != null && !compressedResult.IsError))
                         {

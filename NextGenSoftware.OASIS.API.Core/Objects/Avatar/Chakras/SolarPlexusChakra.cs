@@ -3,9 +3,9 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
-    public class SoloarPlexusChakra : Chakra
+    public class SolarPlexusChakra : Chakra
     {
-        public SoloarPlexusChakra()
+        public SolarPlexusChakra()
         {
             Type = new EnumValue<ChakraType>(ChakraType.SolarPlexus);
         }

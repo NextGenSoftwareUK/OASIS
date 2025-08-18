@@ -123,7 +123,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             catch (Exception ex)
             {
                 Console.WriteLine("");
-                CLIEngine.ShowErrorMessage(string.Concat("An unknown error has occured. Error Details: ", ex.ToString()));
+                CLIEngine.ShowErrorMessage(string.Concat("An unknown error has occurred. Error Details: ", ex.ToString()));
                 //AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
             }
         }
@@ -356,7 +356,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                     if (!lightResult.IsError && lightResult.Result != null)
                                                         CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
                                                     else
-                                                        CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                                                        CLIEngine.ShowErrorMessage($"Error Occurred: {lightResult.Message}");
                                                 }
                                             }
                                         }
@@ -419,7 +419,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                 string genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace?");
                                                 Guid parentId = Guid.Empty;
 
-                                                if (!CLIEngine.GetConfirmation("Do you wish to add support for all OASIS Providers (recommeneded) or only specefic ones?"))
+                                                if (!CLIEngine.GetConfirmation("Do you wish to add support for all OASIS Providers (recommended) or only specific ones?"))
                                                 {
                                                     bool providersSelected = false;
                                                     List<ProviderType> providers = new List<ProviderType>();
@@ -450,7 +450,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                     if (!lightResult.IsError && lightResult.Result != null)
                                                         CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
                                                     else
-                                                        CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
+                                                        CLIEngine.ShowErrorMessage($"Error Occurred: {lightResult.Message}");
                                                 }
                                             }
                                         }
@@ -861,7 +861,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 }
                 catch (Exception ex)
                 {
-                    OASISErrorHandling.HandleError($"An unknown error occured in STARCLI.ReadyPlayerOne. Reason: {ex}", ex);
+                    OASISErrorHandling.HandleError($"An unknown error occurred in STARCLI.ReadyPlayerOne. Reason: {ex}", ex);
                 }
             }
             while (!exit);
@@ -3082,7 +3082,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void STAR_OnCelestialSpacesError(object sender, CelestialSpacesErrorEventArgs e)
         {
-            CLIEngine.ShowErrorMessage($"Error occured loading/saving CelestialSpaces. Reason: {e.Reason}");
+            CLIEngine.ShowErrorMessage($"Error occurred loading/saving CelestialSpaces. Reason: {e.Reason}");
         }
 
         private static void STAR_OnCelestialSpaceLoaded(object sender, CelestialSpaceLoadedEventArgs e)
@@ -3099,7 +3099,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void STAR_OnCelestialSpaceError(object sender, CelestialSpaceErrorEventArgs e)
         {
-            CLIEngine.ShowErrorMessage($"Error occured loading/saving CelestialSpace. Reason: {e.Reason}");
+            CLIEngine.ShowErrorMessage($"Error occurred loading/saving CelestialSpace. Reason: {e.Reason}");
         }
 
         private static void STAR_OnCelestialBodyLoaded(object sender, CelestialBodyLoadedEventArgs e)
@@ -3115,7 +3115,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void STAR_OnCelestialBodyError(object sender, CelestialBodyErrorEventArgs e)
         {
-            CLIEngine.ShowErrorMessage($"Error occured loading/saving CelestialBody. Reason: {e.Reason}");
+            CLIEngine.ShowErrorMessage($"Error occurred loading/saving CelestialBody. Reason: {e.Reason}");
         }
 
         private static void STAR_OnCelestialBodiesLoaded(object sender, CelestialBodiesLoadedEventArgs e)
@@ -3132,7 +3132,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void STAR_OnCelestialBodiesError(object sender, CelestialBodiesErrorEventArgs e)
         {
-            CLIEngine.ShowErrorMessage($"Error occured loading/saving CelestialBodies. Reason: {e.Reason}");
+            CLIEngine.ShowErrorMessage($"Error occurred loading/saving CelestialBodies. Reason: {e.Reason}");
         }
 
         private static void STAR_OnZomeLoaded(object sender, ZomeLoadedEventArgs e)
@@ -3149,9 +3149,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void STAR_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
-            CLIEngine.ShowErrorMessage($"Error occured loading/saving Zome. Reason: {e.Reason}");
-            //Console.WriteLine(string.Concat("Star Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
-            //CLIEngine.ShowErrorMessage(string.Concat(" STAR Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
+            CLIEngine.ShowErrorMessage($"Error occurred loading/saving Zome. Reason: {e.Reason}");
+            //Console.WriteLine(string.Concat("Star Error Occurred. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+            //CLIEngine.ShowErrorMessage(string.Concat(" STAR Error Occurred. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
         private static void STAR_OnZomesLoaded(object sender, ZomesLoadedEventArgs e)
@@ -3168,7 +3168,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void STAR_OnZomesError(object sender, ZomesErrorEventArgs e)
         {
-            CLIEngine.ShowErrorMessage($"Error occured loading/saving Zomes. Reason: {e.Reason}");
+            CLIEngine.ShowErrorMessage($"Error occurred loading/saving Zomes. Reason: {e.Reason}");
         }
 
         private static void STAR_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
@@ -3186,7 +3186,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void STAR_OnHolonError(object sender, HolonErrorEventArgs e)
         {
-            CLIEngine.ShowErrorMessage($"Error occured loading/saving Holon. Reason: {e.Reason}");
+            CLIEngine.ShowErrorMessage($"Error occurred loading/saving Holon. Reason: {e.Reason}");
         }
 
         private static void STAR_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
@@ -3202,14 +3202,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void STAR_OnHolonsError(object sender, HolonsErrorEventArgs e)
         {
-            CLIEngine.ShowErrorMessage($"Error occured loading/saving Holons. Reason: {e.Reason}");
+            CLIEngine.ShowErrorMessage($"Error occurred loading/saving Holons. Reason: {e.Reason}");
         }
 
         private static void StarCore_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
-            CLIEngine.ShowErrorMessage($"Error occured loading/saving Zome For StarCore. Reason: {e.Reason}");
-            //Console.WriteLine(string.Concat("Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
-            //CLIEngine.ShowErrorMessage(string.Concat(" Star Core Error Occured. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
+            CLIEngine.ShowErrorMessage($"Error occurred loading/saving Zome For StarCore. Reason: {e.Reason}");
+            //Console.WriteLine(string.Concat("Star Core Error Occurred. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
+            //CLIEngine.ShowErrorMessage(string.Concat(" Star Core Error Occurred. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
         private static void DisplayCommand(string command, string args, string desc, int indent = 4, int commandColSize = 48, int argsColSize = 42)

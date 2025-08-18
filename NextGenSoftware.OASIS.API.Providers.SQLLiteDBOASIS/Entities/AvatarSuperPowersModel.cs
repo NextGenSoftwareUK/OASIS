@@ -15,14 +15,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public AvatarSuperPowersModel(IAvatarSuperPowers source){
 
             this.Flight = source.Flight;
-            this.Telekineseis = source.Telekineseis;
+            this.Telekinesis = source.Telekinesis;
             this.Telepathy = source.Telepathy;
             this.Teleportation = source.Teleportation;
             this.RemoteViewing = source.RemoteViewing;
             this.AstralProjection = source.AstralProjection;
             this.SuperStrength = source.SuperStrength;
             this.SuperSpeed = source.SuperSpeed;
-            this.Invulerability = source.Invulerability;
+            this.Invulnerability = source.Invulnerability;
             this.HeatVision = source.HeatVision;
             this.XRayVision = source.XRayVision;
             this.FreezeBreath = source.FreezeBreath;
@@ -34,14 +34,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             AvatarSuperPowers item=new AvatarSuperPowers();
 
             item.Flight = this.Flight;
-            item.Telekineseis = this.Telekineseis;
+            item.Telekinesis = this.Telekinesis;
             item.Telepathy = this.Telepathy;
             item.Teleportation = this.Teleportation;
             item.RemoteViewing = this.RemoteViewing;
             item.AstralProjection = this.AstralProjection;
             item.SuperStrength = this.SuperStrength;
             item.SuperSpeed = this.SuperSpeed;
-            item.Invulerability = this.Invulerability;
+            item.Invulnerability = this.Invulnerability;
             item.HeatVision = this.HeatVision;
             item.XRayVision = this.XRayVision;
             item.FreezeBreath = this.FreezeBreath;

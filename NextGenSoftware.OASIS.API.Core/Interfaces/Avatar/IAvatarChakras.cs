@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         HeartChakra Heart { get; set; }
         RootChakra Root { get; set; }
         SacralChakra Sacral { get; set; }
-        SoloarPlexusChakra SoloarPlexus { get; set; }
+        SolarPlexusChakra SolarPlexus { get; set; }
         ThirdEyeChakra ThirdEye { get; set; }
         ThroatChakra Throat { get; set; }
     }
