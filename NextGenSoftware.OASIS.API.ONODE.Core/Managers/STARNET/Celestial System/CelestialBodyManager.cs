@@ -6,13 +6,15 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     //public class CelestialBodyManager : STARNETManagerBase<STARCelestialBody, DownloadedCelestialBody, InstalledCelestialBody, CelestialBodyDNA>, ICelestialBodyManager
     public class CelestialBodyManager : STARNETManagerBase<STARCelestialBody, DownloadedCelestialBody, InstalledCelestialBody, STARNETDNA>, ICelestialBodyManager
     {
-        public CelestialBodyManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+        public CelestialBodyManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
+            STARDNA,
             OASISDNA,
             typeof(CelestialBodyType),
             HolonType.STARCelestialBody,
@@ -28,7 +30,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "STARCelestialBodyDNAJSON")
         { }
 
-        public CelestialBodyManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+        public CelestialBodyManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            STARDNA,
             OASISDNA,
             typeof(CelestialBodyType),
             HolonType.STARCelestialBody,

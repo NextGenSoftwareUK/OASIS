@@ -10,13 +10,15 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     //public class RuntimeManager : STARNETManagerBase<Runtime, DownloadedRuntime, InstalledRuntime, RuntimeDNA>
     public class RuntimeManager : STARNETManagerBase<Runtime, DownloadedRuntime, InstalledRuntime, STARNETDNA>
     {
-        public RuntimeManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, 
+        public RuntimeManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
+            STARDNA,
             OASISDNA,
             typeof(RuntimeType),
             HolonType.Runtime,
@@ -32,7 +34,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "RuntimeDNAJSON")
         { }
 
-        public RuntimeManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+        public RuntimeManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            STARDNA,
             OASISDNA,
             typeof(RuntimeType),
             HolonType.Runtime,

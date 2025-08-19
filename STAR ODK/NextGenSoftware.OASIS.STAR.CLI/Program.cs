@@ -24,7 +24,7 @@ using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
-{
+{ //test
     class Program
     {
         //All params defined in STARDNA now.

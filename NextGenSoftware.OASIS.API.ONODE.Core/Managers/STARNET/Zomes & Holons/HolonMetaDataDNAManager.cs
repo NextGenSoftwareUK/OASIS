@@ -5,12 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public class HolonMetaDataDNAManager : STARNETManagerBase<HolonMetaDataDNA, DownloadedHolonMetaDataDNA, InstalledHolonMetaDataDNA, STARNETDNA>
     {
-        public HolonMetaDataDNAManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+        public HolonMetaDataDNAManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
+            STARDNA,
             OASISDNA,
             typeof(STARHolonType),
             HolonType.HolonMetaDataDNA,
@@ -26,7 +28,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "HolonMetaDataDNAJSON")
         { }
 
-        public HolonMetaDataDNAManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+        public HolonMetaDataDNAManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            STARDNA,
             OASISDNA,
             typeof(STARHolonType),
             HolonType.HolonMetaDataDNA,

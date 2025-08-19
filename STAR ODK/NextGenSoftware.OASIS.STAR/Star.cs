@@ -211,7 +211,7 @@ namespace NextGenSoftware.OASIS.STAR
             get
             {
                 if (_STARAPI == null)
-                    _STARAPI = new STARAPI(OASISAPI);
+                    _STARAPI = new STARAPI(STARDNA, OASISAPI);
 
                 return _STARAPI;
             }

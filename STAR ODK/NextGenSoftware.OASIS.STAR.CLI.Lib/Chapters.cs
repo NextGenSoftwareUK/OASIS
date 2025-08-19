@@ -1,13 +1,14 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class Chapters : STARNETUIBase<Chapter, DownloadedChapter, InstalledChapter, ChapterDNA>
     public class Chapters : STARNETUIBase<Chapter, DownloadedChapter, InstalledChapter, STARNETDNA>
     {
-        public Chapters(Guid avatarId) : base(new API.ONODE.Core.Managers.ChapterManager(avatarId),
+        public Chapters(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.ChapterManager(avatarId, STARDNA),
             "Welcome to the Chapter Wizard", new List<string> 
             {
                 "This wizard will allow you create a Chapter which contain Quest's. Chapter's belong to Mission's and allow larger quest's to be broken into Chapter's.",

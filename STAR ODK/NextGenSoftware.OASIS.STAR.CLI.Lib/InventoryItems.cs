@@ -1,13 +1,14 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class InventoryItems : STARNETUIBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem, InventoryItemDNA>
     public class InventoryItems : STARNETUIBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem, STARNETDNA>
     {
-        public InventoryItems(Guid avatarId) : base(new API.ONODE.Core.Managers.InventoryItemManager(avatarId),
+        public InventoryItems(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.InventoryItemManager(avatarId, STARDNA),
             "Welcome to the Geo-HotSpot Wizard", new List<string> 
             {
                 "This wizard will allow you create a InventoryItem which are rewarded when you complete quest's, collect GeoNFT's or trigger GeoHotSpot's.",

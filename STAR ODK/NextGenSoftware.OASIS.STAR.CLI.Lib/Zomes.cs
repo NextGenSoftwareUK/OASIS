@@ -5,13 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class Zomes : STARNETUIBase<STARZome, DownloadedZome, InstalledZome, ZomeDNA>
     public class Zomes : STARNETUIBase<STARZome, DownloadedZome, InstalledZome, STARNETDNA>
     {
-        public Zomes(Guid avatarId) : base(new API.ONODE.Core.Managers.STARZomeManager(avatarId),
+        public Zomes(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.STARZomeManager(avatarId, STARDNA),
             "Welcome to the Zome Wizard", new List<string> 
             {
                 "This wizard will allow you create a Zome which contain Holon's. Zome's are like modules and Holon's are the basic building blocks of The OASIS and one of their functions is to act as data objects, everything in The OASIS is dervived from a Holon, Holon's can be made of other Holon's also.",

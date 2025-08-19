@@ -1,12 +1,13 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public class HolonsMetaDataDNA : STARNETUIBase<HolonMetaDataDNA, DownloadedHolonMetaDataDNA, InstalledHolonMetaDataDNA, STARNETDNA>
     {
-        public HolonsMetaDataDNA(Guid avatarId) : base(new API.ONODE.Core.Managers.HolonMetaDataDNAManager(avatarId),
+        public HolonsMetaDataDNA(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.HolonMetaDataDNAManager(avatarId, STARDNA),
             "Welcome to the Holons MetaData DNA Wizard", new List<string> 
             {
                 "This wizard will allow you create Holon MetaData DNA.",
