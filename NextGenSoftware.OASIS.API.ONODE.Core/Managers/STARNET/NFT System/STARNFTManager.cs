@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -20,7 +21,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
     public class STARNFTManager : STARNETManagerBase<STARNFT, DownloadedNFT, InstalledNFT, STARNETDNA>, ISTARNFTManager
     //public class STARNFTManager : STARNETManagerBase<STARNFT, DownloadedNFT, InstalledNFT, STARNETDNA>, ISTARNFTManager
     {
-        public STARNFTManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+        public STARNFTManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
+            STARDNA,
             OASISDNA,
             typeof(STARNFT),
             HolonType.STARNFT,
@@ -36,7 +38,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "NFTDNAJSON")
         { }
 
-        public STARNFTManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+        public STARNFTManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            STARDNA,
             OASISDNA,
             typeof(STARNFT),
             HolonType.NFT,

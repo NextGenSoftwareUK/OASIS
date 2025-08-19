@@ -8,13 +8,14 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class Libs : STARNETUIBase<Library, DownloadedLibrary, InstalledLibrary, LibraryDNA>
     public class Libs : STARNETUIBase<Library, DownloadedLibrary, InstalledLibrary, STARNETDNA>
     {
-        public Libs(Guid avatarId) : base(new LibraryManager(avatarId),
+        public Libs(Guid avatarId, STARDNA STARDNA) : base(new LibraryManager(avatarId, STARDNA),
             "Welcome to the Library Wizard", new List<string> 
             {
                 "This wizard will allow you create a Library which can be used in a OAPP from (along with a OAPP Template & Runtime).",

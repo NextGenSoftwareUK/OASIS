@@ -6,13 +6,15 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     //public class STARGeoNFTManager : STARNETManagerBase<STARGeoNFT, DownloadedGeoNFT, InstalledGeoNFT, GeoNFTDNA>, ISTARGeoNFTManager
     public class STARGeoNFTManager : STARNETManagerBase<STARGeoNFT, DownloadedGeoNFT, InstalledGeoNFT, STARNETDNA>, ISTARGeoNFTManager
     {
-        public STARGeoNFTManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+        public STARGeoNFTManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
+            STARDNA,
             OASISDNA,
             typeof(STARGeoNFT),
             HolonType.STARGeoNFT,
@@ -28,7 +30,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "GeoNFTDNAJSON")
         { }
 
-        public STARGeoNFTManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+        public STARGeoNFTManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            STARDNA,
             OASISDNA,
             typeof(STARGeoNFT),
             HolonType.STARGeoNFT,

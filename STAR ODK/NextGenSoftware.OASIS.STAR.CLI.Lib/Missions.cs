@@ -1,13 +1,14 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class Missions : STARNETUIBase<Mission, DownloadedMission, InstalledMission, MissionDNA>
     public class Missions : STARNETUIBase<Mission, DownloadedMission, InstalledMission, STARNETDNA>
     {
-        public Missions(Guid avatarId) : base(new API.ONODE.Core.Managers.MissionManager(avatarId),
+        public Missions(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.MissionManager(avatarId, STARDNA),
             "Welcome to the Mission Wizard", new List<string> 
             {
                 "This wizard will allow you create a Mission which contains Quest's. Larger Quest's can be broken into Chapter's.",

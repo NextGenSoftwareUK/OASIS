@@ -6,13 +6,15 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     //public class GeoHotSpotManager : STARNETManagerBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot, GeoHotSpotDNA>, IGeoHotSpotManager
     public class GeoHotSpotManager : STARNETManagerBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot, STARNETDNA>, IGeoHotSpotManager
     {
-        public GeoHotSpotManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+        public GeoHotSpotManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
+            STARDNA,
             OASISDNA,
             typeof(GeoHotSpot),
             HolonType.GeoHotSpot,
@@ -28,7 +30,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "GeoHotSpotDNAJSON")
         { }
 
-        public GeoHotSpotManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+        public GeoHotSpotManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            STARDNA,
             OASISDNA,
             typeof(GeoHotSpot),
             HolonType.GeoHotSpot,

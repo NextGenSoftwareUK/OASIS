@@ -1,12 +1,13 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class Quests : STARNETUIBase<Quest, DownloadedQuest, InstalledQuest, QuestDNA>
     public class Quests : STARNETUIBase<Quest, DownloadedQuest, InstalledQuest, STARNETDNA>
     {
-        public Quests(Guid avatarId) : base(new API.ONODE.Core.Managers.QuestManager(avatarId),
+        public Quests(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.QuestManager(avatarId, STARDNA),
             "Welcome to the Quest Wizard", new List<string> 
             {
                 "This wizard will allow you create a Quest which contains Sub-Quest's. Larger Quest's can be broken into Chapter's.",

@@ -1,12 +1,13 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public class CelestialBodiesMetaDataDNA : STARNETUIBase<CelestialBodyMetaDataDNA, DownloadedCelestialBodyMetaDataDNA, InstalledCelestialBodyMetaDataDNA, STARNETDNA>
     {
-        public CelestialBodiesMetaDataDNA(Guid avatarId) : base(new API.ONODE.Core.Managers.CelestialBodyMetaDataDNAManager(avatarId),
+        public CelestialBodiesMetaDataDNA(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.CelestialBodyMetaDataDNAManager(avatarId, STARDNA),
             "Welcome to the Celestial Body MetaData DNA Wizard", new List<string> 
             {
                 "This wizard will allow you create CelestialBody MetaData DNA which contain MetaData for Zomes's & Holon's.",

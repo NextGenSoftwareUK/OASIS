@@ -5,12 +5,14 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public class ZomeMetaDataDNAManager : STARNETManagerBase<ZomeMetaDataDNA, DownloadedZomeMetaDataDNA, InstalledZomeMetaDataDNA, STARNETDNA>
     {
-        public ZomeMetaDataDNAManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+        public ZomeMetaDataDNAManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
+            STARDNA,
             OASISDNA,
             typeof(ZomeType),
             HolonType.ZomeMetaDataDNA,
@@ -26,7 +28,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "ZomeMetaDataDNAJSON")
         { }
 
-        public ZomeMetaDataDNAManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+        public ZomeMetaDataDNAManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            STARDNA,
             OASISDNA,
             typeof(ZomeType),
             HolonType.ZomeMetaDataDNA,

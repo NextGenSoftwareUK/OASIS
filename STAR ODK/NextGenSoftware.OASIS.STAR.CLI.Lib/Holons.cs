@@ -7,13 +7,14 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class Holons : STARNETUIBase<STARHolon, DownloadedHolon, InstalledHolon, HolonDNA>
     public class Holons : STARNETUIBase<STARHolon, DownloadedHolon, InstalledHolon, STARNETDNA>
     {
-        public Holons(Guid avatarId) : base(new API.ONODE.Core.Managers.STARHolonManager(avatarId),
+        public Holons(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.STARHolonManager(avatarId, STARDNA),
             "Welcome to the Holon Wizard", new List<string> 
             {
                 "This wizard will allow you create a Holon. Holon's are the basic building blocks of The OASIS and one of their functions is to act as data objects, everything in The OASIS is dervived from a Holon, Holon's can be made of other Holon's also.",
