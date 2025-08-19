@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -17,7 +18,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
     {
         public NFTCommon NFTCommon { get; set; } = new NFTCommon();
 
-        public NFTs(Guid avatarId) : base(new STARNFTManager(avatarId),
+        public NFTs(Guid avatarId, STARDNA STARDNA) : base(new STARNFTManager(avatarId, STARDNA),
             "Welcome to the WEB5 STAR NFT Wizard", new List<string> 
             {
                 "This wizard will allow you create a WEB5 STAR NFT which wraps around a WEB4 OASIS NFT.",

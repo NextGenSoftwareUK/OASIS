@@ -5,13 +5,15 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     //public class InventoryItemManager : STARNETManagerBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem, InventoryItemDNA>
     public class InventoryItemManager : STARNETManagerBase<InventoryItem, DownloadedInventoryItem, InstalledInventoryItem, STARNETDNA>
     {
-        public InventoryItemManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+        public InventoryItemManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
+            STARDNA,
             OASISDNA,
             typeof(InventoryItemType),
             HolonType.InventoryItem,
@@ -27,7 +29,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "InventoryItemDNAJSON")
         { }
 
-        public InventoryItemManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+        public InventoryItemManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            STARDNA,
             OASISDNA,
             typeof(InventoryItemType),
             HolonType.InventoryItem,

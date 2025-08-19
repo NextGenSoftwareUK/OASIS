@@ -1,13 +1,14 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class Plugins : STARNETUIBase<Plugin, DownloadedPlugin, InstalledPlugin, PluginDNA>
     public class Plugins : STARNETUIBase<Plugin, DownloadedPlugin, InstalledPlugin, STARNETDNA>
     {
-        public Plugins(Guid avatarId) : base(new API.ONODE.Core.Managers.PluginManager(avatarId),
+        public Plugins(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.PluginManager(avatarId, STARDNA),
             "Welcome to the Plugin Wizard", new List<string> 
             {
                 "This wizard will allow you create a Plugin, that allow you to extend STAR & STARNET.",

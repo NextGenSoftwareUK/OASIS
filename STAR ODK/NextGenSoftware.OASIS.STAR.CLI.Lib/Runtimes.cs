@@ -9,13 +9,14 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class Runtimes : STARNETUIBase<Runtime, DownloadedRuntime, InstalledRuntime, RuntimeDNA>
     public class Runtimes : STARNETUIBase<Runtime, DownloadedRuntime, InstalledRuntime, STARNETDNA>
     {
-        public Runtimes(Guid avatarId) : base(new RuntimeManager(avatarId),
+        public Runtimes(Guid avatarId, STARDNA STARDNA) : base(new RuntimeManager(avatarId, STARDNA),
             "Welcome to the Runtime Wizard", new List<string> 
             {
                 "This wizard will allow you create an Runtime which can be used to create a OAPP from (along with a OAPP Template).",

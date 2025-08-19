@@ -15,14 +15,16 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     //public class OAPPManager : STARNETManagerBase<OAPP, DownloadedOAPP, InstalledOAPP, OAPPDNA>, IOAPPManager
     public class OAPPManager : STARNETManagerBase<OAPP, DownloadedOAPP, InstalledOAPP, STARNETDNA>, IOAPPManager
     {
-        public OAPPManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
-             OASISDNA,
+        public OAPPManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
+            STARDNA,
+            OASISDNA,
             typeof(OAPPType),
             HolonType.OAPP,
             HolonType.InstalledOAPP,
@@ -37,7 +39,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "OAPPDNAJSON")
         { }
 
-        public OAPPManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null, bool checkIfSourcePathExists = true) : base(OASISStorageProvider, avatarId,
+        public OAPPManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null, bool checkIfSourcePathExists = true) : base(OASISStorageProvider, avatarId,
+            STARDNA,
             OASISDNA,
             typeof(OAPPType),
             HolonType.OAPP,

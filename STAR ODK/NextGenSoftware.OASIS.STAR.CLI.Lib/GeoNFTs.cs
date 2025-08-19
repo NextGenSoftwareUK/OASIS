@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -18,7 +19,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
     {
         public NFTCommon NFTCommon { get; set; } = new NFTCommon();
 
-        public GeoNFTs(Guid avatarId) : base(new STARGeoNFTManager(avatarId),
+        public GeoNFTs(Guid avatarId, STARDNA STARDNA) : base(new STARGeoNFTManager(avatarId, STARDNA),
             "Welcome to the WEB5 STAR GeoNFT Wizard", new List<string> 
             {
                 "This wizard will allow you create a WEB5 STAR GeoNFT which wraps around a WEB4 OASIS GeoNFT, which in turn wraps around a WEB4 OASIS NFT.",

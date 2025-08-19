@@ -9,14 +9,16 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     //public class OAPPTemplateManager : STARNETManagerBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, OAPPTemplateDNA>
     public class OAPPTemplateManager : STARNETManagerBase<OAPPTemplate, DownloadedOAPPTemplate, InstalledOAPPTemplate, STARNETDNA>
     {
-        public OAPPTemplateManager(Guid avatarId, OASISDNA OASISDNA = null) : base(
-            avatarId, 
+        public OAPPTemplateManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(
+            avatarId,
+            STARDNA,
             OASISDNA,
             typeof(OAPPTemplateType),
             HolonType.OAPPTemplate, 
@@ -31,9 +33,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "OAPPTemplateDNA.json",
             "OAPPTemplateDNAJSON") { }
 
-        public OAPPTemplateManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(
+        public OAPPTemplateManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(
             OASISStorageProvider, 
             avatarId,
+            STARDNA,
             OASISDNA,
             typeof(OAPPTemplateType),
             HolonType.OAPPTemplate, 

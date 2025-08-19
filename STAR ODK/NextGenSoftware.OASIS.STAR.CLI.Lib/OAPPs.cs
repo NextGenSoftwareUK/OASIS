@@ -16,13 +16,14 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.Interfaces;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class OAPPs : STARNETUIBase<OAPP, DownloadedOAPP, InstalledOAPP, OAPPDNA>
     public class OAPPs : STARNETUIBase<OAPP, DownloadedOAPP, InstalledOAPP, STARNETDNA>
     {
-        public OAPPs(Guid avatarId) : base(new OAPPManager(avatarId),
+        public OAPPs(Guid avatarId, STARDNA STARDNA) : base(new OAPPManager(avatarId, STARDNA),
             "Welcome to the OASIS Omniverse/MagicVerse Light Wizard!", new List<string>
             {
                 "This wizard will allow you create an OAPP (Moon, Planet, Star & More) which will appear in the MagicVerse within the OASIS Omniverse.",

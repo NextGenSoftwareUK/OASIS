@@ -6,13 +6,14 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class CelestialBodies : STARNETUIBase<STARCelestialBody, DownloadedCelestialBody, InstalledCelestialBody, CelestialBodyDNA>
     public class CelestialBodies : STARNETUIBase<STARCelestialBody, DownloadedCelestialBody, InstalledCelestialBody, STARNETDNA>
     {
-        public CelestialBodies(Guid avatarId) : base(new API.ONODE.Core.Managers.CelestialBodyManager(avatarId),
+        public CelestialBodies(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.CelestialBodyManager(avatarId, STARDNA),
             "Welcome to the Celestial Bodies Wizard", new List<string> 
             {
                 "This wizard will allow you create a CelestialBody which contain Zomes's & Holon's.",

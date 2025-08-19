@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -31,7 +32,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
         }
 
-        public QuestManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+        public QuestManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
+            STARDNA,
             OASISDNA,
             typeof(QuestType),
             HolonType.Quest,
@@ -47,7 +49,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "QuestDNAJSON")
         { }
 
-        public QuestManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+        public QuestManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            STARDNA,
             OASISDNA,
             typeof(QuestType),
             HolonType.Quest,

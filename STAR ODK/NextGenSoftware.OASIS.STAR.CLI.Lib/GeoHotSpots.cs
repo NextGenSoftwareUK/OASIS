@@ -1,13 +1,14 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class GeoHotSpots : STARNETUIBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot, GeoHotSpotDNA>
     public class GeoHotSpots : STARNETUIBase<GeoHotSpot, DownloadedGeoHotSpot, InstalledGeoHotSpot, STARNETDNA>
     {
-        public GeoHotSpots(Guid avatarId) : base(new API.ONODE.Core.Managers.GeoHotSpotManager(avatarId),
+        public GeoHotSpots(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.GeoHotSpotManager(avatarId, STARDNA),
             "Welcome to the Geo-HotSpot Wizard", new List<string> 
             {
                 "This wizard will allow you create a Mission which contains Quest's. Larger Quest's can be broken into Chapter's.",

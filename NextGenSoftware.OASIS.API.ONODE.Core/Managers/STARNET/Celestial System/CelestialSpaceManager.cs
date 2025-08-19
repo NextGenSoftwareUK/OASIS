@@ -6,13 +6,15 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     //public class CelestialSpaceManager : STARNETManagerBase<STARCelestialSpace, DownloadedCelestialSpace, InstalledCelestialSpace, CelestialSpaceDNA>, ICelestialSpaceManager
     public class CelestialSpaceManager : STARNETManagerBase<STARCelestialSpace, DownloadedCelestialSpace, InstalledCelestialSpace, STARNETDNA>//, ICelestialSpaceManager
     {
-        public CelestialSpaceManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId,
+        public CelestialSpaceManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
+            STARDNA,
             OASISDNA,
             typeof(CelestialSpaceType),
             HolonType.STARCelestialSpace,
@@ -28,7 +30,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "STARCelestialSpaceDNAJSON")
         { }
 
-        public CelestialSpaceManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+        public CelestialSpaceManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId,
+            STARDNA,
             OASISDNA,
             typeof(CelestialSpaceType),
             HolonType.STARCelestialSpace,

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿
 using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.DNA
