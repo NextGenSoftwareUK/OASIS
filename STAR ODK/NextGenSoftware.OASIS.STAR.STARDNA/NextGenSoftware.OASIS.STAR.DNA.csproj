@@ -7,20 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="CelestialBodyDNA.json">
+    <None Remove="DNA\OASIS_DNA.json" />
+    <None Remove="DNA\STAR_DNA.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="DNA\OASIS_DNA.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <Content Include="OASIS_DNA.json">
+    <Content Include="DNA\STAR_DNA.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="STAR_DNA.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 

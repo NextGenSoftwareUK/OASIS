@@ -312,7 +312,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     if (uploadToCloud)
                     {
-                        OASISResult<bool> uploadToCloudResult = await UploadToCloudAsync((OAPPDNA)OAPPDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+                        //OASISResult<bool> uploadToCloudResult = await UploadToCloudAsync((OAPPDNA)OAPPDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
+                        OASISResult<bool> uploadToCloudResult = await UploadToCloudAsync((STARNETDNA)OAPPDNA, publishedFileName, registerOnSTARNET, binaryProviderType);
 
                         if (!(uploadToCloudResult != null && uploadToCloudResult.Result && !uploadToCloudResult.IsError))
                             OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToCloudAsync. Reason: {uploadToCloudResult.Message}");
@@ -320,7 +321,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                     if (binaryProviderType != ProviderType.None)
                     {
-                        OASISResult<OAPP> uploadToOASISResult = await UploadToOASISAsync(avatarId, (OAPPDNA)OAPPDNA, OAPPDNA.PublishedPath, registerOnSTARNET, uploadToCloud, binaryProviderType);
+                        //OASISResult<OAPP> uploadToOASISResult = await UploadToOASISAsync(avatarId, (OAPPDNA)OAPPDNA, OAPPDNA.PublishedPath, registerOnSTARNET, uploadToCloud, binaryProviderType);
+                        OASISResult<OAPP> uploadToOASISResult = await UploadToOASISAsync(avatarId, (STARNETDNA)OAPPDNA, OAPPDNA.PublishedPath, registerOnSTARNET, uploadToCloud, binaryProviderType);
 
                         if (uploadToOASISResult != null && uploadToOASISResult.Result != null && !uploadToOASISResult.IsError)
                             result.Result = uploadToOASISResult.Result;
@@ -328,12 +330,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToOASISAsync. Reason: {uploadToOASISResult.Message}");
                     }
                     else
+                    {
+                        //OAPP.PublishedProviderType = ProviderType.None;
                         OAPPDNA.PublishedProviderType = ProviderType.None;
+                    }
 
                     if (selfContainedBinaryProviderType != ProviderType.None)
                     {
-                        //OASISResult<OAPP> uploadToOASISResult = await UploadToOASISAsync(avatarId, OAPPDNA, OAPPDNA.SelfContainedPublishedPath, registerOnSTARNET, uploadToCloud, selfContainedBinaryProviderType);
-                        OASISResult<OAPP> uploadToOASISResult = await UploadToOASISAsync(avatarId, (OAPPDNA)OAPPDNA, OAPPDNA.MetaData["SelfContainedPublishedPath"].ToString(), registerOnSTARNET, uploadToCloud, selfContainedBinaryProviderType);
+                        OASISResult<OAPP> uploadToOASISResult = await UploadToOASISAsync(avatarId, (STARNETDNA)OAPPDNA, OAPP.SelfContainedPublishedPath, registerOnSTARNET, uploadToCloud, selfContainedBinaryProviderType);
+                        //OASISResult<OAPP> uploadToOASISResult = await UploadToOASISAsync(avatarId, (OAPPDNA)OAPPDNA, OAPPDNA.MetaData["SelfContainedPublishedPath"].ToString(), registerOnSTARNET, uploadToCloud, selfContainedBinaryProviderType);
 
                         if (uploadToOASISResult != null && uploadToOASISResult.Result != null && !uploadToOASISResult.IsError)
                             result.Result = uploadToOASISResult.Result;
@@ -341,13 +346,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToOASISAsync. Reason: {uploadToOASISResult.Message}");
                     }
                     else
-                        //OAPPDNA.SelfContainedPublishedProviderType = ProviderType.None;
+                    {
+                        OAPP.SelfContainedPublishedProviderType = ProviderType.None;
                         OAPPDNA.MetaData["SelfContainedPublishedProviderType"] = ProviderType.None;
+                    }
 
                     if (selfContainedFullBinaryProviderType != ProviderType.None)
                     {
-                        //OASISResult<OAPP> uploadToOASISResult = await UploadToOASISAsync(avatarId, OAPPDNA, OAPPDNA.SelfContainedFullPublishedPath, registerOnSTARNET, uploadToCloud, selfContainedFullBinaryProviderType);
-                        OASISResult<OAPP> uploadToOASISResult = await UploadToOASISAsync(avatarId, (OAPPDNA)OAPPDNA, OAPPDNA.MetaData["SelfContainedFullPublishedPath"].ToString(), registerOnSTARNET, uploadToCloud, selfContainedFullBinaryProviderType);
+                        OASISResult<OAPP> uploadToOASISResult = await UploadToOASISAsync(avatarId, (STARNETDNA)OAPPDNA, OAPP.SelfContainedFullPublishedPath, registerOnSTARNET, uploadToCloud, selfContainedFullBinaryProviderType);
+                        //OASISResult<OAPP> uploadToOASISResult = await UploadToOASISAsync(avatarId, (OAPPDNA)OAPPDNA, OAPPDNA.MetaData["SelfContainedFullPublishedPath"].ToString(), registerOnSTARNET, uploadToCloud, selfContainedFullBinaryProviderType);
 
                         if (uploadToOASISResult != null && uploadToOASISResult.Result != null && !uploadToOASISResult.IsError)
                             result.Result = uploadToOASISResult.Result;
@@ -355,8 +362,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToOASISAsync. Reason: {uploadToOASISResult.Message}");
                     }
                     else
-                        //OAPPDNA.SelfContainedFullPublishedProviderType = ProviderType.None;
+                    {
+                        OAPP.SelfContainedFullPublishedProviderType = ProviderType.None;
                         OAPPDNA.MetaData["SelfContainedFullPublishedProviderType"] = ProviderType.None;
+                    }
                 }
 
                 OASISResult<OAPP> finalResult = await FininalizePublishAsync(avatarId, validateResult.Result, edit, providerType);
