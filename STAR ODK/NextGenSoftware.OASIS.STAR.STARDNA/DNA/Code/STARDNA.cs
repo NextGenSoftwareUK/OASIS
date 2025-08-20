@@ -1,5 +1,4 @@
-﻿
-using NextGenSoftware.OASIS.API.Core.Enums;
+﻿using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.DNA
 {
@@ -59,22 +58,22 @@ namespace NextGenSoftware.OASIS.STAR.DNA
 
         //All paths below for STARNET can be releative to STARNETBasePath above or absolute (if STARNETBasePath is blank).
         //OAPP's are composed of Celestial Bodies, Zomes and Holons (which are all types of DNA) and can be used to create OAPPs (Omniverse/OASIS/Our World Applications) which are like Apps in the Omniverse/OASIS/Our World. OAPPs can be published, searched, downloaded, installed on the user's machine or downloaded from the OASIS/STARNET. They can also be published to the OASIS/STARNET for others to use and can be updated with new versions. The same applies for everything below here for STARNET.
-        public string DefaultOAPPsSourcePath { get; set; } = "OAPPs\\Source"; 
-        public string DefaultOAPPsPublishedPath { get; set; } = "OAPPs\\Published"; 
-        public string DefaultOAPPsDownloadedPath { get; set; } = "OAPPs\\Downloaded"; 
+        public string DefaultOAPPsSourcePath { get; set; } = "OAPPs\\Source";
+        public string DefaultOAPPsPublishedPath { get; set; } = "OAPPs\\Published";
+        public string DefaultOAPPsDownloadedPath { get; set; } = "OAPPs\\Downloaded";
         public string DefaultOAPPsInstalledPath { get; set; } = "OAPPs\\Installed";
 
-        
+
         //OAPP Templates are used to create OAPPs along with Runtimes.
-        public string DefaultOAPPTemplatesSourcePath { get; set; } = "OAPPTemplates\\Source"; 
-        public string DefaultOAPPTemplatesPublishedPath { get; set; } = "OAPPTemplates\\Published"; 
-        public string DefaultOAPPTemplatesDownloadedPath { get; set; } = "OAPPTemplates\\Downloaded"; 
+        public string DefaultOAPPTemplatesSourcePath { get; set; } = "OAPPTemplates\\Source";
+        public string DefaultOAPPTemplatesPublishedPath { get; set; } = "OAPPTemplates\\Published";
+        public string DefaultOAPPTemplatesDownloadedPath { get; set; } = "OAPPTemplates\\Downloaded";
         public string DefaultOAPPTemplatesInstalledPath { get; set; } = "OAPPTemplates\\Installed";
 
-        
+
         //Runtimes are used to run OAPPs and can be installed on the user's machine or downloaded from the OASIS. Different runtimes can be combined with different OAPP Templates making unique combinations for OAPPs.
-        public string DefaultRuntimesSourcePath { get; set; } = "Runtimes\\Source"; 
-        public string DefaultRuntimesPublishedPath { get; set; } = "Runtimes\\Published"; 
+        public string DefaultRuntimesSourcePath { get; set; } = "Runtimes\\Source";
+        public string DefaultRuntimesPublishedPath { get; set; } = "Runtimes\\Published";
         public string DefaultRuntimesDownloadedPath { get; set; } = "Runtimes\\Downloaded";
         //public string DefaultRuntimesInstalledPath { get; set; } = "Runtimes\\Installed\\Other"; 
         //public string DefaultRuntimesInstalledOASISPath { get; set; } = "Runtimes\\Installed\\OASIS"; 
@@ -92,100 +91,100 @@ namespace NextGenSoftware.OASIS.STAR.DNA
 
 
         //Chapters contain Quests and are used to break down big quests into seperate Chapters.
-        public string DefaultChaptersSourcePath { get; set; } = "Chapters\\Source"; 
-        public string DefaultChaptersPublishedPath { get; set; } = "Chapters\\Published"; 
-        public string DefaultChaptersDownloadedPath { get; set; } = "Chapters\\Downloaded"; 
+        public string DefaultChaptersSourcePath { get; set; } = "Chapters\\Source";
+        public string DefaultChaptersPublishedPath { get; set; } = "Chapters\\Published";
+        public string DefaultChaptersDownloadedPath { get; set; } = "Chapters\\Downloaded";
         public string DefaultChaptersInstalledPath { get; set; } = "Chapters\\Installed";
 
-        
+
         //Missions contain Quests and optionally Chapters.
-        public string DefaultMissionsSourcePath { get; set; } = "Missions\\Source"; 
-        public string DefaultMissionsPublishedPath { get; set; } = "Missions\\Published"; 
-        public string DefaultMissionsDownloadedPath { get; set; } = "Missions\\Downloaded"; 
+        public string DefaultMissionsSourcePath { get; set; } = "Missions\\Source";
+        public string DefaultMissionsPublishedPath { get; set; } = "Missions\\Published";
+        public string DefaultMissionsDownloadedPath { get; set; } = "Missions\\Downloaded";
         public string DefaultMissionsInstalledPath { get; set; } = "Missions\\Installed";
 
-        
+
         //Quests contain GeoNFTs, GeoHotSpots and InventoryItems (that are rewarded when you complete a quest).
-        public string DefaultQuestsSourcePath { get; set; } = "Quests\\Source"; 
-        public string DefaultQuestsPublishedPath { get; set; } = "Quests\\Published"; 
-        public string DefaultQuestsDownloadedPath { get; set; } = "Quests\\Downloaded"; 
+        public string DefaultQuestsSourcePath { get; set; } = "Quests\\Source";
+        public string DefaultQuestsPublishedPath { get; set; } = "Quests\\Published";
+        public string DefaultQuestsDownloadedPath { get; set; } = "Quests\\Downloaded";
         public string DefaultQuestsInstalledPath { get; set; } = "Quests\\Installed";
 
-        
+
         //OASIS NFTs (wrap around all types of web3 NFTs and form an abstraction layer to convert between standards and chains) are Non-Fungible Tokens that can be used to represent unique items, assets or collectibles in the Omniverse/OASIS/Our World.
-        public string DefaultNFTsSourcePath { get; set; } = "NFTs\\Source"; 
-        public string DefaultNFTsPublishedPath { get; set; } = "NFTs\\Published"; 
-        public string DefaultNFTsDownloadedPath { get; set; } = "NFTs\\Downloaded"; 
+        public string DefaultNFTsSourcePath { get; set; } = "NFTs\\Source";
+        public string DefaultNFTsPublishedPath { get; set; } = "NFTs\\Published";
+        public string DefaultNFTsDownloadedPath { get; set; } = "NFTs\\Downloaded";
         public string DefaultNFTsInstalledPath { get; set; } = "NFTs\\Installed";
 
-        
+
         //GeoNFTs are Geographical Non-Fungible Tokens that can be used to represent unique geographical locations or assets in the Omniverse/OASIS/Our World. (GeoNFTs can be created from OASIS NFTs).
-        public string DefaultGeoNFTsSourcePath { get; set; } = "GeoNFTs\\Source"; 
-        public string DefaultGeoNFTsPublishedPath { get; set; } = "GeoNFTs\\Published"; 
-        public string DefaultGeoNFTsDownloadedPath { get; set; } = "GeoNFTs\\Downloaded"; 
+        public string DefaultGeoNFTsSourcePath { get; set; } = "GeoNFTs\\Source";
+        public string DefaultGeoNFTsPublishedPath { get; set; } = "GeoNFTs\\Published";
+        public string DefaultGeoNFTsDownloadedPath { get; set; } = "GeoNFTs\\Downloaded";
         public string DefaultGeoNFTsInstalledPath { get; set; } = "GeoNFTs\\Installed";
 
 
         //GeoHotSpots are special geolocations within Our World/Omniverse that can be triggered when you arrive at the location, when you activate AR mode or interact with a virtual object at that location.
-        public string DefaultGeoHotSpotsSourcePath { get; set; } = "GeoHotSpots\\Source"; 
-        public string DefaultGeoHotSpotsPublishedPath { get; set; } = "GeoHotSpots\\Published"; 
-        public string DefaultGeoHotSpotsDownloadedPath { get; set; } = "GeoHotSpots\\Downloaded"; 
+        public string DefaultGeoHotSpotsSourcePath { get; set; } = "GeoHotSpots\\Source";
+        public string DefaultGeoHotSpotsPublishedPath { get; set; } = "GeoHotSpots\\Published";
+        public string DefaultGeoHotSpotsDownloadedPath { get; set; } = "GeoHotSpots\\Downloaded";
         public string DefaultGeoHotSpotsInstalledPath { get; set; } = "GeoHotSpots\\Installed";
 
 
         //InventoryItems are items that can be collected/rewarded, traded or used within the Omniverse/OASIS/Our World such as weapons, shields, armor, potions, power ups etc for your Avatar and much much more! ;-)
-        public string DefaultInventoryItemsSourcePath { get; set; } = "InventoryItems\\Source"; 
-        public string DefaultInventoryItemsPublishedPath { get; set; } = "InventoryItems\\Published"; 
-        public string DefaultInventoryItemsDownloadedPath { get; set; } = "InventoryItems\\Downloaded"; 
+        public string DefaultInventoryItemsSourcePath { get; set; } = "InventoryItems\\Source";
+        public string DefaultInventoryItemsPublishedPath { get; set; } = "InventoryItems\\Published";
+        public string DefaultInventoryItemsDownloadedPath { get; set; } = "InventoryItems\\Downloaded";
         public string DefaultInventoryItemsInstalledPath { get; set; } = "InventoryItems\\Installed";
 
 
         //CelestialSpaces (such as SolarSystem's, Galaxies, Universes etc) contain CelestialBodies.
-        public string DefaultCelestialSpacesSourcePath { get; set; } = "CelestialSpaces\\Source"; 
-        public string DefaultCelestialSpacesPublishedPath { get; set; } = "CelestialSpaces\\Published"; 
-        public string DefaultCelestialSpacesDownloadedPath { get; set; } = "CelestialSpaces\\Downloaded"; 
+        public string DefaultCelestialSpacesSourcePath { get; set; } = "CelestialSpaces\\Source";
+        public string DefaultCelestialSpacesPublishedPath { get; set; } = "CelestialSpaces\\Published";
+        public string DefaultCelestialSpacesDownloadedPath { get; set; } = "CelestialSpaces\\Downloaded";
         public string DefaultCelestialSpacesInstalledPath { get; set; } = "CelestialSpaces\\Installed";
 
 
         //CelestialBodies are the planets, moons, stars, galaxies etc in the Omniverse and can contain Zomes and Holons. They also represet your OAPP in the Omniverse.
-        public string DefaultCelestialBodiesSourcePath { get; set; } = "CelestialBodies\\Source"; 
-        public string DefaultCelestialBodiesPublishedPath { get; set; } = "CelestialBodies\\Published"; 
-        public string DefaultCelestialBodiesDownloadedPath { get; set; } = "CelestialBodies\\Downloaded"; 
+        public string DefaultCelestialBodiesSourcePath { get; set; } = "CelestialBodies\\Source";
+        public string DefaultCelestialBodiesPublishedPath { get; set; } = "CelestialBodies\\Published";
+        public string DefaultCelestialBodiesDownloadedPath { get; set; } = "CelestialBodies\\Downloaded";
         public string DefaultCelestialBodiesInstalledPath { get; set; } = "CelestialBodies\\Installed";
 
 
         //Zomes are the building blocks of Celestial Bodies and can contain Holons. They are like modules that can be used to build Celestial Bodies.
-        public string DefaultZomesSourcePath { get; set; } = "Zomes\\Source"; 
-        public string DefaultZomesPublishedPath { get; set; } = "Zomes\\Published"; 
-        public string DefaultZomesDownloadedPath { get; set; } = "Zomes\\Downloaded"; 
+        public string DefaultZomesSourcePath { get; set; } = "Zomes\\Source";
+        public string DefaultZomesPublishedPath { get; set; } = "Zomes\\Published";
+        public string DefaultZomesDownloadedPath { get; set; } = "Zomes\\Downloaded";
         public string DefaultZomesInstalledPath { get; set; } = "Zomes\\Installed";
 
 
         //Holons are the individual components of Zomes and can contain data, logic and functionality. They are like the building blocks of Zomes.//Holons are the individual components of Zomes and can contain data, logic and functionality. They are like the building blocks of Zomes.
-        public string DefaultHolonsSourcePath { get; set; } = "Holons\\Source"; 
-        public string DefaultHolonsPublishedPath { get; set; } = "Holons\\Published"; 
-        public string DefaultHolonsDownloadedPath { get; set; } = "Holons\\Downloaded"; 
+        public string DefaultHolonsSourcePath { get; set; } = "Holons\\Source";
+        public string DefaultHolonsPublishedPath { get; set; } = "Holons\\Published";
+        public string DefaultHolonsDownloadedPath { get; set; } = "Holons\\Downloaded";
         public string DefaultHolonsInstalledPath { get; set; } = "Holons\\Installed";
 
 
         //CelestialBodiesMetaDataDNA is the DNA that contains the metadata for Celestial Bodies.
-        public string DefaultCelestialBodiesMetaDataDNASourcePath { get; set; } = "CelestialBodies\\Source"; 
-        public string DefaultCelestialBodiesMetaDataDNAPublishedPath { get; set; } = "CelestialBodies\\Published"; 
-        public string DefaultCelestialBodiesMetaDataDNADownloadedPath { get; set; } = "CelestialBodies\\Downloaded"; 
+        public string DefaultCelestialBodiesMetaDataDNASourcePath { get; set; } = "CelestialBodies\\Source";
+        public string DefaultCelestialBodiesMetaDataDNAPublishedPath { get; set; } = "CelestialBodies\\Published";
+        public string DefaultCelestialBodiesMetaDataDNADownloadedPath { get; set; } = "CelestialBodies\\Downloaded";
         public string DefaultCelestialBodiesMetaDataDNAInstalledPath { get; set; } = "CelestialBodies\\Installed";
 
 
         //ZomesMetaDataDNA is the DNA that contains the metadata for Zomes.
-        public string DefaultZomesMetaDataDNASourcePath { get; set; } = "Zomes\\Source"; 
-        public string DefaultZomesMetaDataDNAPublishedPath { get; set; } = "Zomes\\Published"; 
-        public string DefaultZomesMetaDataDNADownloadedPath { get; set; } = "Zomes\\Downloaded"; 
+        public string DefaultZomesMetaDataDNASourcePath { get; set; } = "Zomes\\Source";
+        public string DefaultZomesMetaDataDNAPublishedPath { get; set; } = "Zomes\\Published";
+        public string DefaultZomesMetaDataDNADownloadedPath { get; set; } = "Zomes\\Downloaded";
         public string DefaultZomesMetaDataDNAInstalledPath { get; set; } = "Zomes\\Installed";
 
-        
+
         //HolonsMetaDataDNA is the DNA that contains the metadata for Holons.
-        public string DefaultHolonsMetaDataDNASourcePath { get; set; } = "Holons\\Source"; 
-        public string DefaultHolonsMetaDataDNAPublishedPath { get; set; } = "Holons\\Published"; 
-        public string DefaultHolonsMetaDataDNADownloadedPath { get; set; } = "Holons\\Downloaded"; 
+        public string DefaultHolonsMetaDataDNASourcePath { get; set; } = "Holons\\Source";
+        public string DefaultHolonsMetaDataDNAPublishedPath { get; set; } = "Holons\\Published";
+        public string DefaultHolonsMetaDataDNADownloadedPath { get; set; } = "Holons\\Downloaded";
         public string DefaultHolonsMetaDataDNAInstalledPath { get; set; } = "Holons\\Installed";
 
 

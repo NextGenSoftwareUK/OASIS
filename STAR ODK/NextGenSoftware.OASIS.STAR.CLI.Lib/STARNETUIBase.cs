@@ -809,10 +809,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETHolonUIName} could not be found for id {DNAResult.Result.Id} found in the {STARNETManager.STARNETDNAFileName} file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new {STARNETManager.STARNETHolonUIName}.");
+                    OASISErrorHandling.HandleError(ref result, $"The {STARNETManager.STARNETHolonUIName} could not be found for id {DNAResult.Result.Id} found in the {STARNETManager.STARNETDNAFileName} file. It could be corrupt, the id could be wrong or you may not have permission, please check and try again, or create a new {STARNETManager.STARNETHolonUIName}.");
             }
             else
-                CLIEngine.ShowErrorMessage($"The {STARNETManager.STARNETDNAFileName} file could not be found! Please ensure it is in the folder you specified.");
+                OASISErrorHandling.HandleError(ref result, $"The {STARNETManager.STARNETDNAFileName} file could not be found! Please ensure it is in the folder you specified.");
 
             return result;
         }
@@ -2755,28 +2755,32 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             switch (e.Status)
             {
                 case STARNETHolonInstallStatus.Downloading:
-                    CLIEngine.ShowMessage("Downloading...");
+                    CLIEngine.ShowMessage($"Downloading {e.STARNETDNA.Name} v{e.STARNETDNA.Version}...");
                     Console.WriteLine("");
                     break;
 
+                case STARNETHolonInstallStatus.Installing:
+                    CLIEngine.ShowWorkingMessage($"Installing {e.STARNETDNA.Name} v{e.STARNETDNA.Version}...");
+                    break;
+
                 case STARNETHolonInstallStatus.InstallingDependencies:
-                    CLIEngine.ShowMessage("Installing Dependencies...");
+                    CLIEngine.ShowWorkingMessage("Installing Dependencies...");
                     break;
 
                 case STARNETHolonInstallStatus.InstallingRuntimes:
-                    CLIEngine.ShowMessage("Installing Runtimes...");
+                    CLIEngine.ShowWorkingMessage("Installing Runtimes...");
                     break;
 
                 case STARNETHolonInstallStatus.InstallingLibs:
-                    CLIEngine.ShowMessage("Installing Libs...");
+                    CLIEngine.ShowWorkingMessage("Installing Libs...");
                     break;
 
                 case STARNETHolonInstallStatus.InstallingTemplates:
-                    CLIEngine.ShowMessage("Installing Templates...");
+                    CLIEngine.ShowWorkingMessage("Installing Templates...");
                     break;
 
                 case STARNETHolonInstallStatus.Installed:
-                    CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Installed Successfully");
+                    CLIEngine.ShowSuccessMessage($"{e.STARNETDNA.Name} v{e.STARNETDNA.Version} Installed Successfully");
                     break;
 
                 case STARNETHolonInstallStatus.Error:

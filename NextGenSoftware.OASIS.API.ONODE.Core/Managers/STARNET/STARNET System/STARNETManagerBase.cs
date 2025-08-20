@@ -25,6 +25,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.STAR.DNA;
+using Microsoft.Azure.Documents.SystemFunctions;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
@@ -1339,10 +1340,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 if (generateBinary)
                 {
+                    string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp", string.Concat(STARNETDNA.Name, "_v", STARNETDNA.Version));
+
                     try
                     {
-                        string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp", string.Concat(STARNETDNA.Name, "_v", STARNETDNA.Version));
-
                         if (Directory.Exists(publishedPath))
                             Directory.Delete(publishedPath, true);
 
@@ -1378,8 +1379,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     }
                     finally
                     {
-                        //TODO: Put back in once finished testing! ;-)
-                        //Directory.Delete(publishedPath, true);
+                        if (Directory.Exists(publishedPath))
+                            Directory.Delete(publishedPath, true);
                     }
                 }
 
@@ -1720,6 +1721,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
+        //public virtual async Task<OASISResult<bool>> UploadToCloudAsync(T4 STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType)
         public virtual async Task<OASISResult<bool>> UploadToCloudAsync(T4 STARNETDNA, string publishedSTARNETHolonFileName, bool registerOnSTARNET, ProviderType binaryProviderType)
         {
             OASISResult<bool> result = new OASISResult<bool>();
@@ -1992,7 +1994,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        //public virtual async Task<OASISResult<T1>> UploadToOASISAsync(Guid avatarId, T4 STARNETDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType, OASISResult<T1> result)
         public virtual async Task<OASISResult<T1>> UploadToOASISAsync(Guid avatarId, T4 STARNETDNA, string publishedPath, bool registerOnSTARNET, bool uploadToCloud, ProviderType binaryProviderType)
         {
             OASISResult<T1> result = new OASISResult<T1>();
@@ -6943,6 +6944,169 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
+        public async Task<OASISResult<T>> InstallDependencyAsync<T>(Guid avatarId, STARNETDependency dependency, string defaultDownloadPath, string defaultInstallPath, string dependencyDisplayName, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon
+        {
+            OASISResult<T> result = new OASISResult<T>();
+            string downloadPath = "";
+            string installPath = "";
+
+            if (Path.IsPathRooted(defaultDownloadPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
+                downloadPath = defaultDownloadPath;
+            else
+                downloadPath = Path.Combine(STARDNA.BaseSTARNETPath, defaultDownloadPath);
+
+
+            if (Path.IsPathRooted(defaultInstallPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
+                installPath = defaultInstallPath;
+            else
+                installPath = Path.Combine(STARDNA.BaseSTARNETPath, defaultInstallPath);
+
+            switch (dependencyDisplayName)
+            {
+                case "runtime":
+                    {
+                        RuntimeManager runtimeManager = new RuntimeManager(avatarId, STARDNA, OASISDNA);
+
+                        //runtimeManager.OnDownloadStatusChanged += (sender, e) =>
+                        //{
+                        //    OnDownloadStatusChanged?.Invoke(sender, e);
+                        //};
+
+                        //runtimeManager.OnInstallStatusChanged += (sender, e) =>
+                        //{
+                        //    OnInstallStatusChanged?.Invoke(sender, e);
+                        //};
+
+                        runtimeManager.OnDownloadStatusChanged += RuntimeManager_OnDownloadStatusChanged;
+                        runtimeManager.OnInstallStatusChanged += RuntimeManager_OnInstallStatusChanged;
+                        OASISResult<InstalledRuntime> installResult = await runtimeManager.DownloadAndInstallAsync(avatarId, dependency.STARNETHolonId, dependency.Version, installPath, downloadPath, providerType: providerType);
+                        runtimeManager.OnDownloadStatusChanged -= RuntimeManager_OnDownloadStatusChanged;
+                        runtimeManager.OnInstallStatusChanged -= RuntimeManager_OnInstallStatusChanged;
+                        result.Result = (T)(IInstalledSTARNETHolon)installResult.Result;
+                        OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installResult, result);
+
+                        //TODO: Wondering if this would properly unsubscribe the events above or would it cause a memory leak?!
+                        //runtimeManager.OnDownloadStatusChanged -= (sender, e) =>
+                        //{
+                        //    OnDownloadStatusChanged?.Invoke(sender, e);
+                        //};
+
+                        //runtimeManager.OnInstallStatusChanged -= (sender, e) =>
+                        //{
+                        //    OnInstallStatusChanged?.Invoke(sender, e);
+                        //};
+
+                        //if (!(installResult != null && installResult.Result != null && !installResult.IsError))
+                        //    OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.InstallDependencyAsync: installing the {dependencyDisplayName} dependency {dependency.Name}. Reason: {installResult.Message}.");
+
+                        runtimeManager = null;
+                    }
+                    break;
+
+                case "lib":
+                    {
+                        LibraryManager libManager = new LibraryManager(avatarId, STARDNA, OASISDNA);
+                        libManager.OnDownloadStatusChanged += LibManager_OnDownloadStatusChanged;
+                        libManager.OnInstallStatusChanged += LibManager_OnInstallStatusChanged;
+                        OASISResult<InstalledLibrary> installResult = await libManager.DownloadAndInstallAsync(avatarId, dependency.STARNETHolonId, dependency.Version, installPath, downloadPath, providerType: providerType);
+                        libManager.OnDownloadStatusChanged -= LibManager_OnDownloadStatusChanged;
+                        libManager.OnInstallStatusChanged -= LibManager_OnInstallStatusChanged;
+                        result.Result = (T)(IInstalledSTARNETHolon)installResult.Result;
+                        OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installResult, result);
+
+                        //if (!(installResult != null && installResult.Result != null && !installResult.IsError))
+                        //    OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.InstallDependencyAsync: installing the {dependencyDisplayName} dependency {dependency.Name}. Reason: {installResult.Message}.");
+
+                        libManager = null;
+                    }
+                    break;
+
+                case "template":
+                    {
+                        OAPPTemplateManager templateManager = new OAPPTemplateManager(avatarId, STARDNA, OASISDNA);
+                        templateManager.OnDownloadStatusChanged += TemplateManager_OnDownloadStatusChanged;
+                        templateManager.OnInstallStatusChanged += TemplateManager_OnInstallStatusChanged;
+                        OASISResult<InstalledOAPPTemplate> installResult = await templateManager.DownloadAndInstallAsync(avatarId, dependency.STARNETHolonId, dependency.Version, installPath, downloadPath, providerType: providerType);
+                        templateManager.OnDownloadStatusChanged -= TemplateManager_OnDownloadStatusChanged;
+                        templateManager.OnInstallStatusChanged -= TemplateManager_OnInstallStatusChanged;
+                        result.Result = (T)(IInstalledSTARNETHolon)installResult.Result;
+                        OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installResult, result);
+
+                        //if (!(installResult != null && installResult.Result != null && !installResult.IsError))
+                        //    OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.InstallDependencyAsync: installing the {dependencyDisplayName} dependency {dependency.Name}. Reason: {installResult.Message}.");
+
+                        templateManager = null;
+                    }
+                    break;
+            }
+
+            //OASISResult<T3> installResult = await DownloadAndInstallAsync(avatarId, dependency.STARNETHolonId, dependency.Version, installPath, downloadPath, providerType: providerType);
+
+            //if (!(installResult != null && installResult.Result != null && !installResult.IsError))
+            //    OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.InstallDependencyAsync: installing the {dependencyDisplayName} dependency {dependency.Name}. Reason: {installResult.Message}.");
+
+            return result;
+        }
+
+        public OASISResult<T3> InstallDependency(Guid avatarId, STARNETDependency dependency, string defaultDownloadPath, string defaultInstallPath, string dependencyDisplayName, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<T3> result = new OASISResult<T3>();
+            string downloadPath = "";
+            string installPath = "";
+
+            if (Path.IsPathRooted(defaultDownloadPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
+                downloadPath = defaultDownloadPath;
+            else
+                downloadPath = Path.Combine(STARDNA.BaseSTARNETPath, defaultDownloadPath);
+
+
+            if (Path.IsPathRooted(defaultInstallPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
+                installPath = defaultInstallPath;
+            else
+                installPath = Path.Combine(STARDNA.BaseSTARNETPath, defaultInstallPath);
+
+            switch (dependencyDisplayName)
+            {
+                case "runtime":
+                    {
+                        RuntimeManager runtimeManager = new RuntimeManager(avatarId, STARDNA, OASISDNA);
+                        OASISResult<InstalledRuntime> installResult = runtimeManager.DownloadAndInstall(avatarId, dependency.STARNETHolonId, dependency.Version, installPath, downloadPath, providerType: providerType);
+
+                        if (!(installResult != null && installResult.Result != null && !installResult.IsError))
+                            OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.InstallDependencyAsync: installing the {dependencyDisplayName} dependency {dependency.Name}. Reason: {installResult.Message}.");
+
+                        runtimeManager = null;
+                    }
+                    break;
+
+                case "lib":
+                    {
+                        LibraryManager libManager = new LibraryManager(avatarId, STARDNA, OASISDNA);
+                        OASISResult<InstalledLibrary> installResult = libManager.DownloadAndInstall(avatarId, dependency.STARNETHolonId, dependency.Version, installPath, downloadPath, providerType: providerType);
+
+                        if (!(installResult != null && installResult.Result != null && !installResult.IsError))
+                            OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.InstallDependencyAsync: installing the {dependencyDisplayName} dependency {dependency.Name}. Reason: {installResult.Message}.");
+
+                        libManager = null;
+                    }
+                    break;
+
+                case "template":
+                    {
+                        OAPPTemplateManager templateManager = new OAPPTemplateManager(avatarId, STARDNA, OASISDNA);
+                        OASISResult<InstalledOAPPTemplate> installResult = templateManager.DownloadAndInstall(avatarId, dependency.STARNETHolonId, dependency.Version, installPath, downloadPath, providerType: providerType);
+
+                        if (!(installResult != null && installResult.Result != null && !installResult.IsError))
+                            OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETManagerBase.InstallDependencyAsync: installing the {dependencyDisplayName} dependency {dependency.Name}. Reason: {installResult.Message}.");
+
+                        templateManager = null;
+                    }
+                    break;
+            }
+
+            return result;
+        }
+
         //public async Task<OASISResult<T1>> AddExternalDependencyAsync(Guid avatarId, T1 parent, IExternalDependency externalDependency, ProviderType providerType = ProviderType.Default)
         //{
         //    OASISResult<T1> result = new OASISResult<T1>();
@@ -7061,6 +7225,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             foreach (STARNETDependency library in STARNETHolon.STARNETDNA.Dependencies.Libraries)
             {
                 string libInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Libs", string.Concat(library.Name, "_v", library.Version));
+                bool installLib = false;
 
                 if (!Directory.Exists(libInstalledPath))
                 {
@@ -7080,29 +7245,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                             if (Directory.Exists(installedLibResult.Result.InstalledPath))
                                 DirectoryHelper.CopyFilesRecursively(installedLibResult.Result.InstalledPath, libInstalledPath);
                             else
-                            {
-                                string downloadPath = "";
-                                string installPath = "";
-
-                                if (Path.IsPathRooted(STARDNA.DefaultLibsDownloadedPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
-                                    downloadPath = STARDNA.DefaultLibsDownloadedPath;
-                                else
-                                    downloadPath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultLibsDownloadedPath);
-
-
-                                if (Path.IsPathRooted(STARDNA.DefaultLibsInstalledPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
-                                    installPath = STARDNA.DefaultLibsInstalledPath;
-                                else
-                                    installPath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultLibsInstalledPath);
-
-                                OASISResult<T3> installResult = await DownloadAndInstallAsync(avatarId, library.STARNETHolonId, library.Version, installPath, downloadPath, providerType: providerType);
-                                
-                                if (!(installResult != null && installResult.Result != null && !installResult.IsError))
-                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the library dependency {installedLibResult.Result.STARNETDNA.Name}. Reason: {installResult.Message}.");
-                            }
+                                installLib = true;
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the library dependency {library.Name}. Reason: {installedLibResult.Message}");
+                            installLib = true;
+                        //OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the runtime dependency {runtime.Name}. Reason: {installedRuntimeResult.Message}");
+
+                        if (installLib)
+                        {
+                            OASISResult<InstalledLibrary> installResult = await InstallDependencyAsync<InstalledLibrary>(avatarId, library, STARDNA.DefaultLibsDownloadedPath, STARDNA.DefaultLibsInstalledPath, "library", providerType);
+
+                            if (installResult != null && installResult.Result != null && !installResult.IsError)
+                            {
+                                if (Directory.Exists(installResult.Result.InstalledPath))
+                                    DirectoryHelper.CopyFilesRecursively(installResult.Result.InstalledPath, libInstalledPath);
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the library dependency {library.Name}. Reason: {installResult.Message}");
+                            }
+                        }
                     }
                 }
             }
@@ -7112,6 +7272,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             foreach (STARNETDependency runtime in STARNETHolon.STARNETDNA.Dependencies.Runtimes)
             {
                 string runtimeInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Runtimes", string.Concat(runtime.Name, "_v", runtime.Version));
+                bool installRuntime = false;
 
                 if (!Directory.Exists(runtimeInstalledPath))
                 {
@@ -7131,29 +7292,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                             if (Directory.Exists(installedRuntimeResult.Result.InstalledPath))
                                 DirectoryHelper.CopyFilesRecursively(installedRuntimeResult.Result.InstalledPath, runtimeInstalledPath);
                             else
-                            {
-                                string downloadPath = "";
-                                string installPath = "";
-
-                                if (Path.IsPathRooted(STARDNA.DefaultRuntimesDownloadedPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
-                                    downloadPath = STARDNA.DefaultRuntimesDownloadedPath;
-                                else
-                                    downloadPath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultRuntimesDownloadedPath);
-
-
-                                if (Path.IsPathRooted(STARDNA.DefaultRuntimesDownloadedPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
-                                    installPath = STARDNA.DefaultRuntimesDownloadedPath;
-                                else
-                                    installPath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultRuntimesDownloadedPath);
-
-                                OASISResult<T3> installResult = await DownloadAndInstallAsync(avatarId, runtime.STARNETHolonId, runtime.Version, installPath, downloadPath, providerType: providerType);
-
-                                if (!(installResult != null && installResult.Result != null && !installResult.IsError))
-                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the runtime dependency {installedRuntimeResult.Result.STARNETDNA.Name}. Reason: {installResult.Message}.");
-                            }
+                                installRuntime = true;
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the runtime dependency {runtime.Name}. Reason: {installedRuntimeResult.Message}");
+                            installRuntime = true;
+                            //OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the runtime dependency {runtime.Name}. Reason: {installedRuntimeResult.Message}");
+
+                        if (installRuntime)
+                        {
+                            OASISResult<InstalledRuntime> installResult = await InstallDependencyAsync<InstalledRuntime>(avatarId, runtime, STARDNA.DefaultRuntimesDownloadedPath, STARDNA.DefaultRuntimesInstalledPath, "runtime", providerType);
+
+                            if (installResult != null && installResult.Result != null && !installResult.IsError)
+                            {
+                                if (Directory.Exists(installResult.Result.InstalledPath))
+                                    DirectoryHelper.CopyFilesRecursively(installResult.Result.InstalledPath, runtimeInstalledPath);
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the runtime dependency {runtime.Name}. Reason: {installResult.Message}");
+                            }
+                        }
                     }
                 }
             }
@@ -7163,6 +7319,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             foreach (STARNETDependency template in STARNETHolon.STARNETDNA.Dependencies.Templates)
             {
                 string templateInstalledPath = Path.Combine(fullInstallPath, "Dependencies", "STARNET", "Templates", string.Concat(template.Name, "_v", template.Version));
+                bool installTemplate = false;
 
                 if (!Directory.Exists(templateInstalledPath))
                 {
@@ -7182,29 +7339,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                             if (Directory.Exists(installedTemplateResult.Result.InstalledPath))
                                 DirectoryHelper.CopyFilesRecursively(installedTemplateResult.Result.InstalledPath, templateInstalledPath);
                             else
-                            {
-                                string downloadPath = "";
-                                string installPath = "";
-
-                                if (Path.IsPathRooted(STARDNA.DefaultOAPPTemplatesDownloadedPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
-                                    downloadPath = STARDNA.DefaultOAPPTemplatesDownloadedPath;
-                                else
-                                    downloadPath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultOAPPTemplatesDownloadedPath);
-
-
-                                if (Path.IsPathRooted(STARDNA.DefaultOAPPTemplatesDownloadedPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
-                                    installPath = STARDNA.DefaultOAPPTemplatesDownloadedPath;
-                                else
-                                    installPath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultOAPPTemplatesDownloadedPath);
-
-                                OASISResult<T3> installResult = await DownloadAndInstallAsync(avatarId, template.STARNETHolonId, template.Version, installPath, downloadPath, providerType: providerType);
-
-                                if (!(installResult != null && installResult.Result != null && !installResult.IsError))
-                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the template dependency {installedTemplateResult.Result.STARNETDNA.Name}. Reason: {installResult.Message}.");
-                            }
+                                installTemplate = true;
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the template dependency {template.Name}. Reason: {installedTemplateResult.Message}");
+                            installTemplate = true;
+                            //OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the runtime dependency {runtime.Name}. Reason: {installedRuntimeResult.Message}");
+
+                        if (installTemplate)
+                        {
+                            OASISResult<InstalledOAPPTemplate> installResult = await InstallDependencyAsync<InstalledOAPPTemplate>(avatarId, template, STARDNA.DefaultOAPPTemplatesDownloadedPath, STARDNA.DefaultOAPPTemplatesInstalledPath, "template", providerType);
+
+                            if (installResult != null && installResult.Result != null && !installResult.IsError)
+                            {
+                                if (Directory.Exists(installResult.Result.InstalledPath))
+                                    DirectoryHelper.CopyFilesRecursively(installResult.Result.InstalledPath, templateInstalledPath);
+                                else
+                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured installing the template dependency {template.Name}. Reason: {installResult.Message}");
+                            }
+                        }
                     }
                 }
             }
@@ -7466,6 +7618,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     OnDownloadStatusChanged?.Invoke(this, new STARNETHolonDownloadProgressEventArgs() { Progress = _progress, Status = STARNETHolonDownloadStatus.Error, ErrorMessage = progress.Exception.ToString() });
                     break;
             }
+        }
+
+        private void TemplateManager_OnInstallStatusChanged(object sender, STARNETHolonInstallStatusEventArgs e)
+        {
+            OnInstallStatusChanged?.Invoke(sender, e);
+        }
+
+        private void LibManager_OnInstallStatusChanged(object sender, STARNETHolonInstallStatusEventArgs e)
+        {
+            OnInstallStatusChanged?.Invoke(sender, e);
+        }
+
+        private void RuntimeManager_OnInstallStatusChanged(object sender, STARNETHolonInstallStatusEventArgs e)
+        {
+            OnInstallStatusChanged?.Invoke(sender, e);
+        }
+
+        private void RuntimeManager_OnDownloadStatusChanged(object sender, STARNETHolonDownloadProgressEventArgs e)
+        {
+            OnDownloadStatusChanged?.Invoke(sender, e);
+        }
+
+        private void TemplateManager_OnDownloadStatusChanged(object sender, STARNETHolonDownloadProgressEventArgs e)
+        {
+            OnDownloadStatusChanged?.Invoke(sender, e);
+        }
+
+        private void LibManager_OnDownloadStatusChanged(object sender, STARNETHolonDownloadProgressEventArgs e)
+        {
+            OnDownloadStatusChanged?.Invoke(sender, e);
         }
     }
 }
