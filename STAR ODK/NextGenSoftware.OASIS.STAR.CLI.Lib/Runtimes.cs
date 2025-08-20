@@ -56,19 +56,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 STARRunTimePath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultRuntimesInstalledSTARPath);
             }
 
-            OASISRunTimePath = Path.Combine(OASISRunTimePath, string.Concat("OASIS Runtime_v", STARNETDNA.OASISRuntimeVersion));
-            STARRunTimePath = Path.Combine(STARRunTimePath, string.Concat("STAR Runtime_v", STARNETDNA.STARRuntimeVersion));
+            string OASISRuntimeFolderName = string.Concat("OASIS Runtime_v", STARNETDNA.OASISRuntimeVersion);
+            string STARRuntimeFolderName = string.Concat("STAR Runtime_v", STARNETDNA.STARRuntimeVersion);
+
+            OASISRunTimePath = Path.Combine(OASISRunTimePath, OASISRuntimeFolderName);
+            STARRunTimePath = Path.Combine(STARRunTimePath, STARRuntimeFolderName);
 
             //If the OASIS Runtime folder does not exist in the OAPP folder, then we need to copy it from the installed runtimes folder.
-            if (!Directory.Exists(Path.Combine(OAPPFolder, "Dependencies", "STARNET", "Runtimes", "OASIS Runtime")))
+            if (!Directory.Exists(Path.Combine(OAPPFolder, "Dependencies", "STARNET", "Runtimes", OASISRuntimeFolderName)))
             {
                 OASISResult<IInstalledRuntime> installResult = null;
-                
+
                 if (Directory.Exists(OASISRunTimePath))
                 {
                     //If its already installed then load the info now...
                     OASISResult<InstalledRuntime> oasisRunTimeResult = await STARNETManager.LoadInstalledAsync(STAR.BeamedInAvatar.Id, "OASIS Runtime", STARNETDNA.OASISRuntimeVersion, providerType);
-                    
+
                     if (oasisRunTimeResult != null && oasisRunTimeResult.Result != null && !oasisRunTimeResult.IsError)
                     {
                         installResult = new OASISResult<IInstalledRuntime>();
@@ -153,9 +156,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
             }
+            else
+                installedOASISRuntime = true;
 
             //If the STAR Runtime folder does not exist in the OAPP folder, then we need to copy it from the installed runtimes folder.
-            if (!Directory.Exists(Path.Combine(OAPPFolder, "Dependencies", "STARNET", "Runtimes", "STAR Runtime")))
+            if (!Directory.Exists(Path.Combine(OAPPFolder, "Dependencies", "STARNET", "Runtimes", STARRuntimeFolderName)))
             {
                 OASISResult<IInstalledRuntime> installResult = null;
 
@@ -191,7 +196,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         Console.WriteLine("");
                         installResult = await ((RuntimeManager)STARNETManager).DownloadAndInstallSTARRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.STARRuntimeVersion, downloadPath, installPath, providerType);
-                        
+
                         //if (installResult != null && installResult.Result != null && !installResult.IsError)
                         //{
                         //    CLIEngine.ShowWorkingMessage("Copying STAR Runtime files to OAPP folder...");
@@ -240,6 +245,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
             }
+            else
+                installedSTARRuntime = true;
 
             result.Result = installedOASISRuntime && installedSTARRuntime;
             return result;

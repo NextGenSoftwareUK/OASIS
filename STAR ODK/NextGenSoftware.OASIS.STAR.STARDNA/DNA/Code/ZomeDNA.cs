@@ -1,9 +1,7 @@
-﻿
-
-namespace NextGenSoftware.OASIS.STAR.DNA
+﻿namespace NextGenSoftware.OASIS.STAR.DNA
 {
     //TODO: Replace this with an attribue in ProxyClass
-    public abstract class HolonDNA
+    public abstract class ZomeDNA
     {
         //public ProxyZomeBase(string newNameSpace)
         //{

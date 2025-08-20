@@ -24,14 +24,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             HolonType.OAPPTemplate, 
             HolonType.InstalledOAPPTemplate, 
             "OAPP Template",
-            "OAPPTemplateId", 
-            //"STARNETHolonId",
+            //"OAPPTemplateId", 
+            "STARNETHolonId",
             "OAPPTemplateName", 
             "OAPPTemplateType", 
             "oapptemplate", 
             "oasis_oapptemplates", 
             "OAPPTemplateDNA.json",
-            "OAPPTemplateDNAJSON") { }
+            "OAPPTemplateDNAJSON")
+            //"STARNETDNAJSON")
+        { }
 
         public OAPPTemplateManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(
             OASISStorageProvider, 
@@ -42,14 +44,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             HolonType.OAPPTemplate, 
             HolonType.InstalledOAPPTemplate,
             "OAPP Template",
-            "OAPPTemplateId",
-            //"STARNETHolonId",
+            //"OAPPTemplateId",
+            "STARNETHolonId",
             "OAPPTemplateName",
             "OAPPTemplateType",
             "oapptemplate",
             "oasis_oapptemplates",
             "OAPPTemplateDNA.json",
             "OAPPTemplateDNAJSON")
+            //"STARNETDNAJSON")
         { }
 
         //public async Task<OASISResult<IOAPPTemplate>> AddRuntimeToOAPPTemplateAsync(Guid avatarId, Guid parentOAPPTemplateId, int templateVersion, Guid runtimeId, int runtimeVersion, ProviderType providerType = ProviderType.Default)
