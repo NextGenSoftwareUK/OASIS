@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Linq;
+using System.Diagnostics;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -11,7 +12,6 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -379,7 +379,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (result != null && !result.IsError && result.Result != null)
             {
-                ILibrary selectedLib = null;
+                //ILibrary selectedLib = null;
+                ISTARNETDependency selectedLib = null;
 
                 do
                 {
@@ -391,31 +392,66 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             CLIEngine.ShowDivider();
                         }
 
-                        idOrNameOfLib = CLIEngine.GetValidInput("What ID/Name of the Library do you wish to remove from STARNET? (or type 'exit' to cancel)");
+                        idOrNameOfLib = CLIEngine.GetValidInput("What is the ID/Name of the Library you wish to remove from STARNET? (or type 'exit' to cancel)");
                     }
 
                     if (Guid.TryParse(idOrNameOfLib, out Guid runtimeId))
                     {
-                        OASISResult<Library> libResult = await STAR.STARAPI.Libraries.LoadAsync(STAR.BeamedInAvatar.Id, runtimeId, providerType: providerType);
+                        selectedLib = result.Result.STARNETDNA.Dependencies.Libraries.FirstOrDefault(x => x.STARNETHolonId == runtimeId);
 
-                        if (libResult != null && libResult.Result != null && !libResult.IsError)
-                            selectedLib = libResult.Result;
-                        else
-                            CLIEngine.ShowErrorMessage($"Failed to load library with ID '{runtimeId}'. Error: {libResult.Message}");
+                        //OASISResult<Library> libResult = await STAR.STARAPI.Libraries.LoadAsync(STAR.BeamedInAvatar.Id, runtimeId, providerType: providerType);
+
+                        //if (libResult != null && libResult.Result != null && !libResult.IsError)
+                        //    selectedLib = libResult.Result;
+                        //else
+                        //    CLIEngine.ShowErrorMessage($"Failed to load library with ID '{runtimeId}'. Error: {libResult.Message}");
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"Invalid library ID '{idOrNameOfLib}'. Please provide a valid GUID.");
+                    {
+                        selectedLib = result.Result.STARNETDNA.Dependencies.Libraries.FirstOrDefault(x => x.Name == idOrNameOfLib);
+
+                        if (selectedLib == null)
+                        {
+                            IEnumerable<ISTARNETDependency> results = result.Result.STARNETDNA.Dependencies.Libraries.Where(x => x.Name.ToLower().Contains(idOrNameOfLib.ToLower()));
+                            CLIEngine.ShowWarningMessage("No exact match was found for that name, but the libraries below are similar:");
+
+                            foreach (ISTARNETDependency lib in results)
+                            {
+                                ShowDependency(lib, DisplayFieldLength);
+                                CLIEngine.ShowDivider();
+                            }
+
+                            idOrNameOfLib = CLIEngine.GetValidInput("Please make sure you enter the EXACT name (case sensitive) and try again!");
+                            selectedLib = result.Result.STARNETDNA.Dependencies.Libraries.FirstOrDefault(x => x.Name == idOrNameOfLib);
+                        }
+
+                        //CLIEngine.ShowErrorMessage($"Invalid library ID '{idOrNameOfLib}'. Please provide a valid GUID.");
+                    }
+
+                    if (selectedLib != null)
+                    {
+                        ShowDependency(selectedLib, DisplayFieldLength);
+
+                        if (!CLIEngine.GetConfirmation($"Please confirm you wish to remove the '{selectedLib.Name}' library from the {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'?", ConsoleColor.Magenta))
+                            selectedLib = null;
+
+                        Console.WriteLine("");
+                    }
+                    else
+                        CLIEngine.ShowErrorMessage("Library was not found, please try again!");
+
+                    idOrNameOfLib = "";
 
                 } while (selectedLib == null && idOrNameOfLib.ToLower() != "exit");
 
                 //Im super happy Im super happy Im super happy Im super happy! :) ;) :) :) :) :)
-                CLIEngine.ShowWorkingMessage($"Removing Library '{selectedLib.STARNETDNA.Name}' From {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'...");
-                OASISResult<T1> removeResult = await STARNETManager.RemoveLibraryAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, result.Result.HolonType, selectedLib.STARNETDNA.Id, selectedLib.STARNETDNA.Version, providerType);
+                CLIEngine.ShowWorkingMessage($"Removing Library '{selectedLib.Name}' From {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'...");
+                OASISResult<T1> removeResult = await STARNETManager.RemoveLibraryAsync(STAR.BeamedInAvatar.Id, result.Result.STARNETDNA.Id, result.Result.STARNETDNA.Version, result.Result.HolonType, selectedLib.STARNETHolonId, selectedLib.Version, providerType);
 
                 if (removeResult != null && removeResult.Result != null && !removeResult.IsError)
-                    CLIEngine.ShowSuccessMessage($"Library '{selectedLib.STARNETDNA.Name}' removed from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
+                    CLIEngine.ShowSuccessMessage($"Library '{selectedLib.Name}' removed from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'.");
                 else
-                    CLIEngine.ShowErrorMessage($"Failed to remove library '{selectedLib.STARNETDNA.Name}' from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {removeResult.Message}");
+                    CLIEngine.ShowErrorMessage($"Failed to remove library '{selectedLib.Name}' from {STARNETManager.STARNETHolonUIName} '{result.Result.STARNETDNA.Name}'. Error: {removeResult.Message}");
             }
             else
             {

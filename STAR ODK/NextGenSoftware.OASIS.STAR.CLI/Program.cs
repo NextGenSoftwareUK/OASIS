@@ -303,50 +303,50 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                 {
                                                     oappType = (OAPPType)oappTypeObj;
 
-                                                    if (inputArgs.Length > 3 && Enum.TryParse(typeof(OAPPTemplateType), inputArgs[4], true, out oappTypeObj))
-                                                    {
-                                                        oappTemplateType = (OAPPTemplateType)oappTypeObj;
+                                                    //if (inputArgs.Length > 3 && Enum.TryParse(typeof(OAPPTemplateType), inputArgs[4], true, out oappTypeObj))
+                                                    //{
+                                                    //    oappTemplateType = (OAPPTemplateType)oappTypeObj;
 
-                                                        if (inputArgs.Length > 4 && Guid.TryParse(inputArgs[5], out oappTemplateId))
+                                                        if (inputArgs.Length > 3 && Guid.TryParse(inputArgs[4], out oappTemplateId))
                                                         {
                                                             oappTemplateId = oappTemplateId;
 
-                                                            if (inputArgs.Length > 5 && int.TryParse(inputArgs[6], out oappTemplateVersion))
+                                                            if (inputArgs.Length > 4 && int.TryParse(inputArgs[5], out oappTemplateVersion))
                                                             {
                                                                 oappTemplateVersion = oappTemplateVersion;
 
-                                                                if (inputArgs.Length > 9)
+                                                                if (inputArgs.Length > 8)
                                                                 {
-                                                                    if (Enum.TryParse(typeof(GenesisType), inputArgs[10], true, out genesisTypeObj))
+                                                                    if (Enum.TryParse(typeof(GenesisType), inputArgs[9], true, out genesisTypeObj))
                                                                     {
                                                                         genesisType = (GenesisType)genesisTypeObj;
 
-                                                                        if (inputArgs.Length > 10)
+                                                                        if (inputArgs.Length > 9)
                                                                         {
                                                                             Guid parentId = Guid.Empty;
 
-                                                                            if (Guid.TryParse(inputArgs[11], out parentId))
-                                                                                lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateType, oappTemplateId, oappTemplateVersion, genesisType, inputArgs[7], inputArgs[8], inputArgs[9], parentId);
+                                                                            if (Guid.TryParse(inputArgs[10], out parentId))
+                                                                                lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateId, oappTemplateVersion, genesisType, inputArgs[6], inputArgs[7], inputArgs[8], parentId);
                                                                             else
                                                                                 CLIEngine.ShowErrorMessage($"The ParentCelestialBodyId Passed In ({inputArgs[6]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
                                                                         }
                                                                         else
-                                                                            lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateType, oappTemplateId, oappTemplateVersion, genesisType, inputArgs[7], inputArgs[8], inputArgs[9], ProviderType.Default);
+                                                                            lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateId, oappTemplateVersion, genesisType, inputArgs[6], inputArgs[7], inputArgs[8], ProviderType.Default);
                                                                     }
                                                                     else
                                                                         CLIEngine.ShowErrorMessage($"The GenesisType Passed In ({inputArgs[7]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
                                                                 }
                                                                 else
-                                                                    lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateType, oappTemplateId, oappTemplateVersion, inputArgs[7], inputArgs[8], inputArgs[9]);
+                                                                    lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateId, oappTemplateVersion, inputArgs[6], inputArgs[7], inputArgs[8]);
                                                             }
                                                             else
                                                                 CLIEngine.ShowErrorMessage($"The OAPPTemplateVersion Passed In ({inputArgs[6]}) Is Not Valid. .");
                                                         }
                                                         else
                                                             CLIEngine.ShowErrorMessage($"The OAPPTemplateId Passed In ({inputArgs[5]}) Is Not Valid. .");
-                                                    }
-                                                    else
-                                                        CLIEngine.ShowErrorMessage($"The OAPPTemplateType Passed In ({inputArgs[4]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.");
+                                                    //}
+                                                    //else
+                                                    //    CLIEngine.ShowErrorMessage($"The OAPPTemplateType Passed In ({inputArgs[4]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.");
                                                 }
                                                 else
                                                     CLIEngine.ShowErrorMessage($"The OAPPType Passed In ({inputArgs[3]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.");
@@ -803,7 +803,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     {
                                         object oappTypeObj = null;
                                         OAPPType OAPPType = DEFAULT_OAPP_TYPE;
-                                        OAPPTemplateType OAPPTemplateType = DEFAULT_OAPP_TEMPLATE_TYPE;
+                                        //OAPPTemplateType OAPPTemplateType = DEFAULT_OAPP_TEMPLATE_TYPE;
                                         Guid OAPPTemplateId = Guid.NewGuid(); //TODO: Replace with an existing built-in OAPP Template Id (or allow user to specify one?).
                                         int OAPPTemplateVersion = 1;
                                         string dnaFolder = DEFAULT_DNA_FOLDER;
@@ -837,7 +837,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         else
                                             CLIEngine.ShowWorkingMessage($"GenesisFolder Specified: {genesisFolder}");
 
-                                        await STARCLI.STARTests.RunCOSMICTests(OAPPType, OAPPTemplateType, OAPPTemplateId, OAPPTemplateVersion, dnaFolder, genesisFolder);
+                                        await STARCLI.STARTests.RunCOSMICTests(OAPPType, OAPPTemplateId, OAPPTemplateVersion, dnaFolder, genesisFolder);
                                     }
                                     break;
 
