@@ -125,19 +125,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation("Do you want to create the OAPP from an OAPP Template or do you want to generate the code only? Select 'Y' for OAPPTemplate or 'N' for Generated Code Only."))
             {
-                Console.WriteLine("");
-                enumValue = CLIEngine.GetValidInputForEnum("What type of OAPP Template do you wish to use?", typeof(OAPPTemplateType));
+                //Console.WriteLine("");
+                //enumValue = CLIEngine.GetValidInputForEnum("What type of OAPP Template do you wish to use?", typeof(OAPPTemplateType));
 
-                if (enumValue != null)
-                {
-                    if (enumValue.ToString() == "exit")
-                    {
-                        lightResult.Message = "User Exited";
-                        return lightResult;
-                    }
-                    else
-                    {
-                        OAPPTemplateType = (OAPPTemplateType)enumValue;
+                //if (enumValue != null)
+                //{
+                //    if (enumValue.ToString() == "exit")
+                //    {
+                //        lightResult.Message = "User Exited";
+                //        return lightResult;
+                //    }
+                //    else
+                //    {
+                        //OAPPTemplateType = (OAPPTemplateType)enumValue;
                         bool templateInstalled = false;
 
                         do
@@ -148,6 +148,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             {
                                 templateInstalled = true;
                                 installedOAPPTemplate = findResult.Result;
+                                OAPPTemplateType = (OAPPTemplateType)Enum.Parse(typeof(OAPPTemplateType), installedOAPPTemplate.STARNETDNA.STARNETHolonType.ToString());
                             }
                             else
                             {
@@ -161,8 +162,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             }
                         }
                         while (!templateInstalled);
-                    }
-                }
+                    //}
+                //}
             }
             else
                 OAPPType = OAPPType.GeneratedCodeOnly;
@@ -569,7 +570,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         }
 
                         CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, parentId, providerType);
+                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, parentId, providerType);
                     }
                     else
                     {
@@ -577,14 +578,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         CLIEngine.ShowErrorMessage($"You are only level {STAR.BeamedInAvatarDetail.Level}. You need to be at least level 33 to be able to change the parent celestialbody. Using the default of Our World.");
                         Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
+                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
                     }
                 }
                 else
                 {
                     Console.WriteLine("");
                     CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                    lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Id : Guid.Empty, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.VersionSequence : 0, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
+                    lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Id : Guid.Empty, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.VersionSequence : 0, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
                 }
 
                 if (lightResult != null)
@@ -592,7 +593,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (!lightResult.IsError && lightResult.Result != null)
                     {
                         oappPath = Path.Combine(oappPath, OAPPName);
-                        
+
                         //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
                         OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, new Dictionary<string, object>()
                         {
@@ -628,7 +629,41 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             { "OneWorld2dSprite", oneWorld2dSprite },
                             { "OneWorld2dSpriteURI", oneWorld2dSpriteURI } },
                             // { "Zomes", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes } },
-                            null, null, false, providerType);
+                            new OAPP() //TODO: For now we need to store the meta data here again otherwise when the holon is saved the blank props will override the metadata keyvalues above! Strongly typed overrides the keyvalue pairs but the metadata above is needed to store in the STARNETDNA, will try to remove this duplication later! ;-)
+                            {
+                                Name = OAPPName,
+                                Description = OAPPDesc,
+                                GenesisType = genesisType,
+                                CelestialBodyId = lightResult.Result.CelestialBody.Id,
+                                CelestialBodyName = lightResult.Result.CelestialBody.Name,
+                                OAPPTemplateId = installedOAPPTemplate.STARNETDNA.Id,
+                                OAPPTemplateName = installedOAPPTemplate.STARNETDNA.Name,
+                                OAPPTemplateDescription = installedOAPPTemplate.STARNETDNA.Description,
+                                OAPPTemplateType = OAPPTemplateType,
+                                OAPPTemplateVersion = installedOAPPTemplate.STARNETDNA.Version,
+                                OAPPTemplateVersionSequence = installedOAPPTemplate.STARNETDNA.VersionSequence,
+                                CelestialBodyMetaDataId = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Id : Guid.Empty,
+                                CelestialBodyMetaDataName = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Name : null,
+                                CelestialBodyMetaDataDescription = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Description : null,
+                                CelestialBodyMetaDataType = celestialBodyMetaDataDNA != null ? (CelestialBodyType)Enum.Parse(typeof(CelestialBodyType), celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType.ToString()) : CelestialBodyType.Moon,
+                                CelestialBodyMetaDataVersion = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Version : null,
+                                CelestialBodyMetaDataVersionSequence = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.VersionSequence : 0,
+                                CelestialBodyMetaDataGeneratedPath = cbMetaDataGeneratedPath,
+                                //STARNETHolonType = OAPPType,
+                                OurWorldLat = ourWorldLat,
+                                OurWorldLong = ourWorldLong,
+                                OurWorld3dObject = ourWorld3dObject,
+                                OurWorld3dObjectURI = ourWorld3dObjectURI,
+                                OurWorld2dSprite = ourWorld2dSprite,
+                                OurWorld2dSpriteURI = ourWorld2dSpriteURI,
+                                OneWorldLat = oneWorldLat,
+                                OneWorldLong = oneWorldLong,
+                                OneWorld3dObject = oneWorld3dObject,
+                                OneWorld3dObjectURI = oneWorld3dObjectURI,
+                                OneWorld2dSprite = oneWorld2dSprite,
+                                OneWorld2dSpriteURI = oneWorld2dSpriteURI
+                            }, null, false, providerType);
+                           
                             //null, new OAPPDNA() //TODO: We can pass in custom OAPPDNA when figure out how to resole the cast issues in STARNETManagerBase! ;-) This code does allow custom data to be added to the root of the OAPPDNA.json file but tbh it looks better if its just stored in the MetaData above! ;-)
                             //{
                             //    CelestialBodyId = lightResult.Result.CelestialBody.Id,
@@ -1161,8 +1196,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         try
                         {
                             DirectoryHelper.CopyFilesRecursively(generateResult.CelestialBodyMetaDataDNAPath, createResult.Result.STARNETDNA.SourcePath);
+                            CLIEngine.ShowSuccessMessage("CelestialBody MetaData DNA successfully created on STARNET!");
 
-                            if (CLIEngine.GetConfirmation("CelestialBody MetaData DNA successfully created on STARNET! Would you like to publish them now?"))
+                            if (CLIEngine.GetConfirmation("Would you like to publish it now?"))
                             {
                                 Console.WriteLine("");
                                 OASISResult<CelestialBodyMetaDataDNA> publishResult = await STARCLI.CelestialBodiesMetaDataDNA.PublishAsync(createResult.Result.STARNETDNA.SourcePath, false, DefaultLaunchMode.None, providerType: providerType);
@@ -1195,8 +1231,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         try
                         {
                             DirectoryHelper.CopyFilesRecursively(generateResult.ZomeMetaDataDNAPath, createResult.Result.STARNETDNA.SourcePath);
+                            CLIEngine.ShowSuccessMessage("Zome MetaData DNA successfully created on STARNET!");
 
-                            if (CLIEngine.GetConfirmation("Zome MetaData DNA successfully created on STARNET! Would you like to publish them now?"))
+                            if (CLIEngine.GetConfirmation("Would you like to publish it/them now?"))
                             {
                                 Console.WriteLine("");
                                 OASISResult<ZomeMetaDataDNA> publishResult = await STARCLI.ZomesMetaDataDNA.PublishAsync(createResult.Result.STARNETDNA.SourcePath, defaultLaunchMode: DefaultLaunchMode.None, providerType: providerType);
@@ -1229,8 +1266,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         try
                         {
                             DirectoryHelper.CopyFilesRecursively(generateResult.HolonMetaDataDNAPath, createResult.Result.STARNETDNA.SourcePath);
+                            CLIEngine.ShowSuccessMessage("Holon MetaData DNA successfully created on STARNET!");
 
-                            if (CLIEngine.GetConfirmation("Holon MetaData DNA successfully created on STARNET! Would you like to publish them now?"))
+                            if (CLIEngine.GetConfirmation("Would you like to publish it/them now?"))
                             {
                                 Console.WriteLine("");
                                 OASISResult<HolonMetaDataDNA> publishResult = await STARCLI.HolonsMetaDataDNA.PublishAsync(createResult.Result.STARNETDNA.SourcePath, defaultLaunchMode: DefaultLaunchMode.None, providerType: providerType);
@@ -1303,7 +1341,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (lightResult != null && lightResult.Result != null && !lightResult.IsError)
                         {
-                            if (CLIEngine.GetConfirmation("CelestialBody successfully created on STARNET! Would you like to publish them now?"))
+                            CLIEngine.ShowSuccessMessage("CelestialBody successfully created on STARNET!");
+
+                            if (CLIEngine.GetConfirmation("Would you like to publish it now?"))
                             {
                                 Console.WriteLine("");
                                 OASISResult<STARCelestialBody> publishResult = await STARCLI.CelestialBodies.PublishAsync(createResult.Result.STARNETDNA.SourcePath, defaultLaunchMode: DefaultLaunchMode.None, providerType: providerType);
@@ -1329,8 +1369,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
                         lightResult = CopyGeneratedCodeToSTARNET(lightResult, createResult, "Zomes", OAPPSourcePath, "Zomes", errorMessage, providerType);
+                        CLIEngine.ShowSuccessMessage("Zome(s) successfully created on STARNET!");
 
-                        if (CLIEngine.GetConfirmation("Zome(s) successfully created on STARNET! Would you like to publish them now?"))
+                        if (CLIEngine.GetConfirmation("Would you like to publish it/them now?"))
                         {
                             Console.WriteLine("");
                             OASISResult<STARZome> publishResult = await STARCLI.Zomes.PublishAsync(createResult.Result.STARNETDNA.SourcePath, defaultLaunchMode: DefaultLaunchMode.None, providerType: providerType);
@@ -1358,7 +1399,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (lightResult != null && lightResult.Result != null && !lightResult.IsError)
                         {
-                            if (CLIEngine.GetConfirmation("Holon(s) successfully created on STARNET! Would you like to publish them now?"))
+                            CLIEngine.ShowSuccessMessage("Holon(s) successfully created on STARNET!");
+
+                            if (CLIEngine.GetConfirmation("Would you like to publish it/them now?"))
                             {
                                 Console.WriteLine("");
                                 OASISResult<STARHolon> publishResult = await STARCLI.Holons.PublishAsync(createResult.Result.STARNETDNA.SourcePath, defaultLaunchMode: DefaultLaunchMode.None, providerType: providerType);

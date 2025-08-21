@@ -20,8 +20,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultHolonsMetaDataDNASourcePath, "DefaultHolonsMetaDataDNASourcePath",
             STAR.STARDNA.DefaultHolonsMetaDataDNAPublishedPath, "DefaultHolonsMetaDataDNAPublishedPath",
             STAR.STARDNA.DefaultHolonsMetaDataDNADownloadedPath, "DefaultHolonsMetaDataDNADownloadedPath",
-            STAR.STARDNA.DefaultHolonsMetaDataDNAInstalledPath, "DefaultHolonsMetaDataDNAInstalledPath",
-            50)
+            STAR.STARDNA.DefaultHolonsMetaDataDNAInstalledPath, "DefaultHolonsMetaDataDNAInstalledPath")
         { }
     }
 }

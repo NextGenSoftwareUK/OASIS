@@ -27,13 +27,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultZomesInstalledPath, "DefaultZomesInstalledPath")
         { }
 
-        public async Task<OASISResult<CoronalEjection>> GenerateZomesAndHolonsAsync(string OAPPName, string OAPPDesc, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, string zomesAndHolonsyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<CoronalEjection>> GenerateZomesAndHolonsAsync(string OAPPName, string OAPPDesc, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, string zomesAndHolonsyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ProviderType providerType = ProviderType.Default)
         {
             // Create (OApp) by generating dynamic template/scaffolding code.
             CLIEngine.ShowWorkingMessage($"Generating Zomes & Holons...");
 
             //OASISResult<CoronalEjection> lightResult = STAR.LightAsync(oAPPName, OAPPType, zomesAndHolonsyDNAFolder, genesisFolder, genesisNameSpace).Result;
-            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateType, OAPPTemplateId, OAPPTemplateVersion, zomesAndHolonsyDNAFolder, genesisFolder, genesisNameSpace).Result;
+            OASISResult<CoronalEjection> lightResult = STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, OAPPTemplateId, OAPPTemplateVersion, zomesAndHolonsyDNAFolder, genesisFolder, genesisNameSpace).Result;
 
             //Will use settings in the STARDNA.json file.
             //OASISResult<CoronalEjection> lightResult = STAR.LightAsync(oAPPName, OAPPType).Result;
