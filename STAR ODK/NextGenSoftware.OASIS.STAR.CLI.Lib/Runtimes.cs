@@ -67,6 +67,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 OASISResult<IInstalledRuntime> installResult = null;
 
+                if (STARNETDNA.Dependencies.Runtimes.FirstOrDefault(x => x.Name == "OASIS Runtime") == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The OASIS Runtime is not included in the STARNETDNA dependencies. Please add it to the STARNETDNA dependencies before installing.");
+                    return result;
+                }
+
                 if (Directory.Exists(OASISRunTimePath))
                 {
                     //If its already installed then load the info now...
@@ -157,7 +163,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
             }
             else
+            {
+
                 installedOASISRuntime = true;
+            }
 
             //If the STAR Runtime folder does not exist in the OAPP folder, then we need to copy it from the installed runtimes folder.
             if (!Directory.Exists(Path.Combine(OAPPFolder, "Dependencies", "STARNET", "Runtimes", STARRuntimeFolderName)))
