@@ -5797,7 +5797,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T1> RemoveRuntime(Guid avatarId, Guid parentId, int parentVersionSequence, Guid runtimeId, int runtimeVersionSequnce, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            string errorMessage = "Error occured in OAPPManagerBase.RemoveRuntimeAsync. Reason:";
+            string errorMessage = "Error occured in OAPPManagerBase.RemoveRuntime. Reason:";
 
             try
             {
@@ -5900,7 +5900,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T1> RemoveRuntime(Guid avatarId, Guid parentId, string parentVersion, Guid runtimeId, string runtimeVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            string errorMessage = "Error occured in OAPPManagerBase.RemoveRuntimeAsync. Reason:";
+            string errorMessage = "Error occured in OAPPManagerBase.RemoveRuntime. Reason:";
 
             try
             {
@@ -6181,7 +6181,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> AddLibrary(Guid avatarId, Guid parentId, int parentVersionSequence, HolonType parentHolonType, Guid libraryId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> AddLibrary(Guid avatarId, Guid parentId, int parentVersionSequence, Guid libraryId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.AddLibrary. Reason:";
@@ -6221,7 +6221,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> AddLibrary(Guid avatarId, Guid parentId, string parentVersion, HolonType parentHolonType, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> AddLibrary(Guid avatarId, Guid parentId, string parentVersion, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.AddLibrary. Reason:";
@@ -6291,10 +6291,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> RemoveLibrary(Guid avatarId, Guid parentId, int parentVersionSequence, HolonType parentHolonType, Guid libraryId, int libraryVersionSequnce, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> RemoveLibrary(Guid avatarId, Guid parentId, int parentVersionSequence, Guid libraryId, int libraryVersionSequnce, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            string errorMessage = "Error occured in OAPPManagerBase.RemoveLibraryAsync. Reason:";
+            string errorMessage = "Error occured in OAPPManagerBase.RemoveLibrary. Reason:";
 
             try
             {
@@ -6340,7 +6340,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public async Task<OASISResult<T1>> RemoveLibraryAsync(Guid avatarId, Guid parentId, string parentVersion, HolonType parentHolonType, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> RemoveLibraryAsync(Guid avatarId, Guid parentId, string parentVersion, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.RemoveLibraryAsync. Reason:";
@@ -6398,7 +6398,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T1> RemoveLibrary(Guid avatarId, Guid parentId, string parentVersion, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            string errorMessage = "Error occured in OAPPManagerBase.RemoveLibraryAsync. Reason:";
+            string errorMessage = "Error occured in OAPPManagerBase.RemoveLibrary. Reason:";
 
             try
             {
@@ -6679,7 +6679,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> AddOAPPTemplate(Guid avatarId, Guid parentId, int parentVersionSequence, HolonType parentHolonType, Guid templateId, int subTemplateVersionSequence, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> AddOAPPTemplate(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int subTemplateVersionSequence, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.AddOAPPTemplate. Reason:";
@@ -6719,7 +6719,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> AddOAPPTemplate(Guid avatarId, Guid parentId, string parentVersion, HolonType parentHolonType, Guid templateId, string subTemplateVersion, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> AddOAPPTemplate(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string subTemplateVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in OAPPManagerBase.AddOAPPTemplate. Reason:";
@@ -6791,7 +6791,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T1> RemoveOAPPTemplate(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int subTemplateVersionSequnce, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            string errorMessage = "Error occured in OAPPManagerBase.RemoveOAPPTemplateAsync. Reason:";
+            string errorMessage = "Error occured in OAPPManagerBase.RemoveOAPPTemplate. Reason:";
 
             try
             {
@@ -6894,7 +6894,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public OASISResult<T1> RemoveOAPPTemplate(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string subTemplateVersion, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            string errorMessage = "Error occured in OAPPManagerBase.RemoveOAPPTemplateAsync. Reason:";
+            string errorMessage = "Error occured in OAPPManagerBase.RemoveOAPPTemplate. Reason:";
 
             try
             {
@@ -7515,13 +7515,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result.Result = results.Result;
 
             //Filter out any templates that are not created by the avatar or published on STARNET.
-            foreach (T oappSystemHolon in result.Result)
+            if (results.Result != null)
             {
-                if (oappSystemHolon.STARNETDNA.CreatedByAvatarId == avatarId)
-                    templates.Add(oappSystemHolon);
+                foreach (T oappSystemHolon in result.Result)
+                {
+                    if (oappSystemHolon.STARNETDNA.CreatedByAvatarId == avatarId)
+                        templates.Add(oappSystemHolon);
 
-                else if (oappSystemHolon.STARNETDNA.PublishedOn != DateTime.MinValue)
-                    templates.Add(oappSystemHolon);
+                    else if (oappSystemHolon.STARNETDNA.PublishedOn != DateTime.MinValue)
+                        templates.Add(oappSystemHolon);
+                }
             }
 
             result.Result = templates;

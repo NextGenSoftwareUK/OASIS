@@ -328,7 +328,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     OASISResult<ISearchResults> holonResult = Task.Run(() => providerResult.Result.Search(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version)).WaitAsync(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds)).Result;
 
-                    if (holonResult != null && holonResult.IsError && holonResult.Result != null)
+                    if (holonResult != null && !holonResult.IsError && holonResult.Result != null)
                     {
                         result.IsLoaded = true;
                         result.Result = holonResult.Result;
