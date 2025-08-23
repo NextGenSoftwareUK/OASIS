@@ -724,6 +724,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated.");
 
                             await AddDependenciesAsync(createOAPPResult.Result.STARNETDNA, "OAPP", providerType);
+
+                            OASISResult<STARNETDNA> dnaResult = await STARNETManager.ReadDNAFromSourceOrInstallFolderAsync<STARNETDNA>(lightResult.Result.OAPP.STARNETDNA.SourcePath);
+
+                            if (dnaResult != null && dnaResult.Result != null && !dnaResult.IsError)
+                                lightResult.Result.OAPP.STARNETDNA = dnaResult.Result;
+                            else
+                            {
+                                CLIEngine.ShowErrorMessage($"Error occured reading STARNETDNA. Reason: {dnaResult.Message}.");
+                                lightResult.IsError = true;
+                                lightResult.Message = installRuntimesResult.Message;
+                            }
+
                             Console.WriteLine("");
                             Show(lightResult.Result.OAPP, customData: lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
                             Console.WriteLine("");
@@ -754,12 +766,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
 
 
-        public override async Task<OASISResult<OAPP>> PublishAsync(string sourcePath = "", bool edit = false, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<OAPP>> PublishAsync(string sourcePath = "", bool edit = false, DefaultLaunchMode defaultLaunchMode = DefaultLaunchMode.Optional, bool askToInstallAtEnd = true, ProviderType providerType = ProviderType.Default)
         {
-            return await PublishAsync(sourcePath, edit, defaultLaunchMode, providerType);
+            return await PublishAsync(sourcePath, edit, defaultLaunchMode, askToInstallAtEnd, providerType);
         }
 
-        public async Task<OASISResult<IOAPP>> PublishAsync(string sourcePath = "", bool edit = false, bool dotNetPublish = false, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOAPP>> PublishAsync(string sourcePath = "", bool edit = false, bool dotNetPublish = false, bool askToInstallAtEnd = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
             bool generateOAPPSource = false;
@@ -979,7 +991,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     result = await ((OAPPManager)STARNETManager).PublishOAPPAsync(STAR.BeamedInAvatar.Id, sourcePath, beginPublishResult.Result.LaunchTarget, pubPathResult.Result, edit, registerOnSTARNET, dotNetPublish, generateOAPPSource, uploadOAPPSource, makeOAPPSourcePublic, generateOAPP, generateOAPPSelfContained, generateOAPPSelfContainedFull, uploadOAPPToCloud, uploadOAPPSelfContainedToCloud, uploadOAPPSelfContainedFullToCloud, providerType, OAPPBinaryProviderType, OAPPSelfContainedBinaryProviderType, OAPPSelfContainedFullBinaryProviderType, beginPublishResult.Result.EmbedRuntimes, beginPublishResult.Result.EmbedLibs, beginPublishResult.Result.EmbedTemplates);
                     OASISResult<OAPP> publishResult = new OASISResult<OAPP>((OAPP)result.Result);
                     OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(result, publishResult);
-                    await PostFininaliazePublishingAsync(publishResult, sourcePath, providerType);
+                    await PostFininaliazePublishingAsync(publishResult, sourcePath, askToInstallAtEnd, providerType);
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error occured in STARNETUIBase.FininaliazePublishingAsync calling PreFininaliazePublishingAsync. Reason: {pubPathResult.Message}");

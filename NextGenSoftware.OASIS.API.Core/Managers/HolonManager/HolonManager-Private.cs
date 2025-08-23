@@ -619,13 +619,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         else if (propInfo.PropertyType == typeof(Color))
                             propInfo.SetValue(holon, ColorTranslator.FromHtml(holon.MetaData[key].ToString()));
+
+                        else if (propInfo.PropertyType == typeof(Enum))
+                            propInfo.SetValue(holon, holon.MetaData[key]);
                             //propInfo.SetValue(holon, (Color)(holon.MetaData[key]));
 
                         //else if (propInfo.Attributes.)
                         //    propInfo.SetValue(holon, holon.MetaData[key]);
-
+                            
                         else if (propInfo.PropertyType == typeof(string) && holon.MetaData[key] != null)
                             propInfo.SetValue(holon, holon.MetaData[key].ToString());
+
+                        else
+                            propInfo.SetValue(holon, holon.MetaData[key]);
                     }
                 }
                 catch (Exception ex)
