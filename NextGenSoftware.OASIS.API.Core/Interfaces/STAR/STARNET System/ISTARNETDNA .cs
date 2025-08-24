@@ -8,14 +8,16 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
     public interface ISTARNETDNA
     {
         Guid Id { get; set; } 
-        public bool IsPublic { get; set; }
+        //public bool IsPublic { get; set; }
         string Name { get; set; }
         string Description { get; set; }
         Guid CreatedByAvatarId { get; set; }
         string CreatedByAvatarUsername { get; set; }
         DateTime CreatedOn { get; set; }
         object STARNETHolonType { get; set; }
-        Dictionary<string, object> MetaData { get; set; }
+        public STARNETDependencies Dependencies { get; set; }
+        public Dictionary<string, object> MetaData { get; set; }
+        public Dictionary<string, string> MetaTagMappings { get; set; }
         string SourcePath { get; set; }
         string PublishedPath { get; set; }
         Guid PublishedByAvatarId { get; set; }
@@ -46,13 +48,5 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public int TotalDownloads { get; set; }
         public int TotalInstalls { get; set; }
         public int NumberOfVersions { get; set; }
-        //public IList<ISTARNETDependency> RuntimeDependencies { get; set; }
-        //public IList<ISTARNETDependency> LibraryDependencies { get; set; }
-        //public IList<ISTARNETDependency> TemplateDependencies { get; set; }
-        //public List<STARNETDependency> RuntimeDependencies { get; set; }
-        //public List<STARNETDependency> LibraryDependencies { get; set; }
-        //public List<STARNETDependency> TemplateDependencies { get; set; }
-
-        STARNETDependencies Dependencies { get; set; }
     }
 }

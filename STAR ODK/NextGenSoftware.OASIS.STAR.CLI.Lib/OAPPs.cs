@@ -102,6 +102,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             byte[] oneWorld2dSprite = null;
             Uri oneWorld2dSpriteURI = null;
             string cbMetaDataGeneratedPath = "";
+            List<INode> nodes = new List<INode>();
 
             ShowHeader();
 
@@ -405,8 +406,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                                 } while (addMoreProps);
 
+                                nodes.AddRange(holon.Nodes);
                                 zome.Children.Add(holon);
-                                //Console.WriteLine("");
+
                                 addMoreHolons = CLIEngine.GetConfirmation("Do you wish to add more Holon's to the Zome?");
                                 Console.WriteLine("");
 
@@ -416,31 +418,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             addMoreZomes = CLIEngine.GetConfirmation("Do you wish to add more Zome's to the Celestial Body/OAPP?");
 
                         } while (addMoreZomes);
-
-                        //CelestialBodyType celestialBodyType = CelestialBodyType.Moon;
-
-                        //switch (genesisType)
-                        //{
-                        //    case GenesisType.Moon:
-                        //        celestialBodyType = CelestialBodyType.Moon;
-                        //        break;
-
-                        //    case GenesisType.Planet:
-                        //        celestialBodyType = CelestialBodyType.Planet;
-                        //        break;
-
-                        //    case GenesisType.Star:
-                        //        celestialBodyType = CelestialBodyType.Star;
-                        //        break;
-
-                        //    case GenesisType.SuperStar:
-                        //        celestialBodyType = CelestialBodyType.SuperStar;
-                        //        break;
-
-                        //    case GenesisType.GrandSuperStar:
-                        //        celestialBodyType = CelestialBodyType.GrandSuperStar;
-                        //        break;
-                        //}
 
                         string OAPPMetaDataDNAFolder = STAR.STARDNA.OAPPMetaDataDNAFolder;
 
@@ -492,6 +469,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 validDNA = true;
                                 dnaFolder = findResult.Result.InstalledPath;
                                 celestialBodyMetaDataDNA = findResult.Result;
+
+                                //TODO: Need to extract the nodes/fields/props from the DNA (re-use the templating code in STAR (make generic function).
+                                //nodes = STAR.GetNodesFromCelestialBodyMetaDataDNA(dnaFolder);
                             }
                             else
                                 CLIEngine.ShowErrorMessage($"Error occured finding CelestialBody MetaData DNA. Reason: {findResult.Message}");
@@ -509,6 +489,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             if (Directory.Exists(dnaFolder) && Directory.GetFiles(dnaFolder).Length > 0)
                             {
+                                //TODO: Need to extract the nodes/fields/props from the DNA (re-use the templating code in STAR (make generic function).
+                                //nodes = STAR.GetNodesFromCelestialBodyMetaDataDNA(dnaFolder);
                                 cbMetaDataGeneratedPath = dnaFolder;
                                 validDNA = true;
                             }
@@ -518,84 +500,88 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 } while (!validDNA);
 
-                string oappPath = "";
+                OASISResult<Dictionary<string, string>> mappingsResult = MapCustomMetaTagsToTemplate(installedOAPPTemplate, nodes);
 
-                if (!string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
-                    oappPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultOAPPsSourcePath);
-                else
-                    oappPath = STAR.STARDNA.DefaultOAPPsSourcePath;
-
-                if (!CLIEngine.GetConfirmation($"Do you wish to create the OAPP in the default path defined in the STARDNA as 'DefaultOAPPsSourcePath'? The current path points to: {oappPath}"))
-                    oappPath = CLIEngine.GetValidFolder("Where do you wish to create the OAPP?");
-
-                if (oappPath == "exit")
+                if (mappingsResult != null && mappingsResult.Result != null && !mappingsResult.IsError)
                 {
-                    lightResult.Message = "User Exited";
-                    return lightResult;
-                }
+                    string oappPath = "";
 
-                //string genesisNamespace = OAPPName.Replace(" ", "");
-                string genesisNamespace = OAPPName.ToPascalCase();
+                    if (!string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+                        oappPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultOAPPsSourcePath);
+                    else
+                        oappPath = STAR.STARDNA.DefaultOAPPsSourcePath;
 
-                Console.WriteLine("");
-                if (!CLIEngine.GetConfirmation("Do you wish to use the OAPP Name for the Genesis Namespace (the OAPP namespace)? (Recommended)"))
-                {
-                    Console.WriteLine();
-                    genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace (the OAPP namespace)?");
+                    if (!CLIEngine.GetConfirmation($"Do you wish to create the OAPP in the default path defined in the STARDNA as 'DefaultOAPPsSourcePath'? The current path points to: {oappPath}"))
+                        oappPath = CLIEngine.GetValidFolder("Where do you wish to create the OAPP?");
 
-                    if (genesisNamespace == "exit")
+                    if (oappPath == "exit")
                     {
                         lightResult.Message = "User Exited";
                         return lightResult;
                     }
-                }
-                else
-                    Console.WriteLine();
 
-                Guid parentId = Guid.Empty;
+                    //string genesisNamespace = OAPPName.Replace(" ", "");
+                    string genesisNamespace = OAPPName.ToPascalCase();
 
-                //bool multipleHolonInstances = CLIEngine.GetConfirmation("Do you want holons to create multiple instances of themselves?");
-
-                if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody? (e.g. if it's a moon, what planet does it orbit or if it's a planet what star does it orbit? Only possible for avatars over level 33. Pressing N will add the OAPP (Moon) to the default planet (Our World))"))
-                {
-                    if (STAR.BeamedInAvatarDetail.Level > 33)
+                    Console.WriteLine("");
+                    if (!CLIEngine.GetConfirmation("Do you wish to use the OAPP Name for the Genesis Namespace (the OAPP namespace)? (Recommended)"))
                     {
-                        Console.WriteLine("");
-                        parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+                        Console.WriteLine();
+                        genesisNamespace = CLIEngine.GetValidInput("What is the Genesis Namespace (the OAPP namespace)?");
 
-                        if (parentId == Guid.Empty)
+                        if (genesisNamespace == "exit")
                         {
                             lightResult.Message = "User Exited";
                             return lightResult;
                         }
+                    }
+                    else
+                        Console.WriteLine();
 
-                        CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, parentId, providerType);
+                    Guid parentId = Guid.Empty;
+
+                    //bool multipleHolonInstances = CLIEngine.GetConfirmation("Do you want holons to create multiple instances of themselves?");
+
+                    if (CLIEngine.GetConfirmation("Does this OAPP belong to another CelestialBody? (e.g. if it's a moon, what planet does it orbit or if it's a planet what star does it orbit? Only possible for avatars over level 33. Pressing N will add the OAPP (Moon) to the default planet (Our World))"))
+                    {
+                        if (STAR.BeamedInAvatarDetail.Level > 33)
+                        {
+                            Console.WriteLine("");
+                            parentId = CLIEngine.GetValidInputForGuid("What is the Id (GUID) of the parent CelestialBody?");
+
+                            if (parentId == Guid.Empty)
+                            {
+                                lightResult.Message = "User Exited";
+                                return lightResult;
+                            }
+
+                            CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, parentId, providerType);
+                        }
+                        else
+                        {
+                            Console.WriteLine("");
+                            CLIEngine.ShowErrorMessage($"You are only level {STAR.BeamedInAvatarDetail.Level}. You need to be at least level 33 to be able to change the parent celestialbody. Using the default of Our World.");
+                            Console.WriteLine("");
+                            CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
+                        }
                     }
                     else
                     {
                         Console.WriteLine("");
-                        CLIEngine.ShowErrorMessage($"You are only level {STAR.BeamedInAvatarDetail.Level}. You need to be at least level 33 to be able to change the parent celestialbody. Using the default of Our World.");
-                        Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
+                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Id : Guid.Empty, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.VersionSequence : 0, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
                     }
-                }
-                else
-                {
-                    Console.WriteLine("");
-                    CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                    lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Id : Guid.Empty, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.VersionSequence : 0, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
-                }
 
-                if (lightResult != null)
-                {
-                    if (!lightResult.IsError && lightResult.Result != null)
+                    if (lightResult != null)
                     {
-                        oappPath = Path.Combine(oappPath, OAPPName);
+                        if (!lightResult.IsError && lightResult.Result != null)
+                        {
+                            oappPath = Path.Combine(oappPath, OAPPName);
 
-                        //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
-                        OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, new Dictionary<string, object>()
+                            //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
+                            OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, new Dictionary<string, object>()
                         {
                             { "CelestialBodyId", lightResult.Result.CelestialBody.Id },
                             { "CelestialBodyName", lightResult.Result.CelestialBody.Name },
@@ -628,42 +614,42 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             { "OneWorld3dObjectURI", oneWorld3dObjectURI },
                             { "OneWorld2dSprite", oneWorld2dSprite },
                             { "OneWorld2dSpriteURI", oneWorld2dSpriteURI } },
-                            // { "Zomes", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes } },
-                            new OAPP() //TODO: For now we need to store the meta data here again otherwise when the holon is saved the blank props will override the metadata keyvalues above! Strongly typed overrides the keyvalue pairs but the metadata above is needed to store in the STARNETDNA, will try to remove this duplication later! ;-)
-                            {
-                                Name = OAPPName,
-                                Description = OAPPDesc,
-                                GenesisType = genesisType,
-                                CelestialBodyId = lightResult.Result.CelestialBody.Id,
-                                CelestialBodyName = lightResult.Result.CelestialBody.Name,
-                                OAPPTemplateId = installedOAPPTemplate.STARNETDNA.Id,
-                                OAPPTemplateName = installedOAPPTemplate.STARNETDNA.Name,
-                                OAPPTemplateDescription = installedOAPPTemplate.STARNETDNA.Description,
-                                OAPPTemplateType = OAPPTemplateType,
-                                OAPPTemplateVersion = installedOAPPTemplate.STARNETDNA.Version,
-                                OAPPTemplateVersionSequence = installedOAPPTemplate.STARNETDNA.VersionSequence,
-                                CelestialBodyMetaDataId = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Id : Guid.Empty,
-                                CelestialBodyMetaDataName = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Name : null,
-                                CelestialBodyMetaDataDescription = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Description : null,
-                                CelestialBodyMetaDataType = celestialBodyMetaDataDNA != null ? (CelestialBodyType)Enum.Parse(typeof(CelestialBodyType), celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType.ToString()) : CelestialBodyType.Moon,
-                                CelestialBodyMetaDataVersion = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Version : null,
-                                CelestialBodyMetaDataVersionSequence = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.VersionSequence : 0,
-                                CelestialBodyMetaDataGeneratedPath = cbMetaDataGeneratedPath,
-                                //STARNETHolonType = OAPPType,
-                                OurWorldLat = ourWorldLat,
-                                OurWorldLong = ourWorldLong,
-                                OurWorld3dObject = ourWorld3dObject,
-                                OurWorld3dObjectURI = ourWorld3dObjectURI,
-                                OurWorld2dSprite = ourWorld2dSprite,
-                                OurWorld2dSpriteURI = ourWorld2dSpriteURI,
-                                OneWorldLat = oneWorldLat,
-                                OneWorldLong = oneWorldLong,
-                                OneWorld3dObject = oneWorld3dObject,
-                                OneWorld3dObjectURI = oneWorld3dObjectURI,
-                                OneWorld2dSprite = oneWorld2dSprite,
-                                OneWorld2dSpriteURI = oneWorld2dSpriteURI
-                            }, null, false, providerType);
-                           
+                                // { "Zomes", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes } },
+                                new OAPP() //TODO: For now we need to store the meta data here again otherwise when the holon is saved the blank props will override the metadata keyvalues above! Strongly typed overrides the keyvalue pairs but the metadata above is needed to store in the STARNETDNA, will try to remove this duplication later! ;-)
+                                {
+                                    Name = OAPPName,
+                                    Description = OAPPDesc,
+                                    GenesisType = genesisType,
+                                    CelestialBodyId = lightResult.Result.CelestialBody.Id,
+                                    CelestialBodyName = lightResult.Result.CelestialBody.Name,
+                                    OAPPTemplateId = installedOAPPTemplate.STARNETDNA.Id,
+                                    OAPPTemplateName = installedOAPPTemplate.STARNETDNA.Name,
+                                    OAPPTemplateDescription = installedOAPPTemplate.STARNETDNA.Description,
+                                    OAPPTemplateType = OAPPTemplateType,
+                                    OAPPTemplateVersion = installedOAPPTemplate.STARNETDNA.Version,
+                                    OAPPTemplateVersionSequence = installedOAPPTemplate.STARNETDNA.VersionSequence,
+                                    CelestialBodyMetaDataId = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Id : Guid.Empty,
+                                    CelestialBodyMetaDataName = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Name : null,
+                                    CelestialBodyMetaDataDescription = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Description : null,
+                                    CelestialBodyMetaDataType = celestialBodyMetaDataDNA != null ? (CelestialBodyType)Enum.Parse(typeof(CelestialBodyType), celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType.ToString()) : CelestialBodyType.Moon,
+                                    CelestialBodyMetaDataVersion = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Version : null,
+                                    CelestialBodyMetaDataVersionSequence = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.VersionSequence : 0,
+                                    CelestialBodyMetaDataGeneratedPath = cbMetaDataGeneratedPath,
+                                    //STARNETHolonType = OAPPType,
+                                    OurWorldLat = ourWorldLat,
+                                    OurWorldLong = ourWorldLong,
+                                    OurWorld3dObject = ourWorld3dObject,
+                                    OurWorld3dObjectURI = ourWorld3dObjectURI,
+                                    OurWorld2dSprite = ourWorld2dSprite,
+                                    OurWorld2dSpriteURI = ourWorld2dSpriteURI,
+                                    OneWorldLat = oneWorldLat,
+                                    OneWorldLong = oneWorldLong,
+                                    OneWorld3dObject = oneWorld3dObject,
+                                    OneWorld3dObjectURI = oneWorld3dObjectURI,
+                                    OneWorld2dSprite = oneWorld2dSprite,
+                                    OneWorld2dSpriteURI = oneWorld2dSpriteURI
+                                }, null, false, providerType);
+
                             //null, new OAPPDNA() //TODO: We can pass in custom OAPPDNA when figure out how to resole the cast issues in STARNETManagerBase! ;-) This code does allow custom data to be added to the root of the OAPPDNA.json file but tbh it looks better if its just stored in the MetaData above! ;-)
                             //{
                             //    CelestialBodyId = lightResult.Result.CelestialBody.Id,
@@ -698,67 +684,70 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             //    //Zomes = lightResult.Result.CelestialBody.CelestialBodyCore.Zomes
                             //}, false, providerType);
 
-                        if (createOAPPResult != null && createOAPPResult.Result != null && !createOAPPResult.IsError)
-                        {
-                            lightResult.Result.OAPP = createOAPPResult.Result;
-                            OASISResult<bool> installRuntimesResult = null;
-
-                            //Install any dependencies that are required for the OAPP to run (such as runtimes etc).
-                            //if (installedOAPPTemplate != null)
-                            //    installRuntimesResult = await STARCLI.Runtimes.InstallDependentRuntimesAsync(installedOAPPTemplate.STARNETDNA, oappPath, providerType);
-                            //else
-                            //    installRuntimesResult = await STARCLI.Runtimes.InstallDependentRuntimesAsync(lightResult.Result.OAPP.STARNETDNA, oappPath, providerType);
-
-                            installRuntimesResult = await STARCLI.Runtimes.InstallOASISAndSTARRuntimesAsync(lightResult.Result.OAPP.STARNETDNA, oappPath, InstallRuntimesFor.OAPP, providerType);
-
-                            if (!(installRuntimesResult != null && installRuntimesResult.Result && !installRuntimesResult.IsError))
+                            if (createOAPPResult != null && createOAPPResult.Result != null && !createOAPPResult.IsError)
                             {
-                                CLIEngine.ShowErrorMessage($"Error occured installing dependent runtimes for OAPP. Reason: {installRuntimesResult.Message}.\n\nPlease install these manually using the sub-command 'runtime install'");
-                                lightResult.IsError = true;
-                                lightResult.Message = installRuntimesResult.Message;
+                                lightResult.Result.OAPP = createOAPPResult.Result;
+                                OASISResult<bool> installRuntimesResult = null;
+
+                                //Install any dependencies that are required for the OAPP to run (such as runtimes etc).
+                                //if (installedOAPPTemplate != null)
+                                //    installRuntimesResult = await STARCLI.Runtimes.InstallDependentRuntimesAsync(installedOAPPTemplate.STARNETDNA, oappPath, providerType);
+                                //else
+                                //    installRuntimesResult = await STARCLI.Runtimes.InstallDependentRuntimesAsync(lightResult.Result.OAPP.STARNETDNA, oappPath, providerType);
+
+                                installRuntimesResult = await STARCLI.Runtimes.InstallOASISAndSTARRuntimesAsync(lightResult.Result.OAPP.STARNETDNA, oappPath, InstallRuntimesFor.OAPP, providerType);
+
+                                if (!(installRuntimesResult != null && installRuntimesResult.Result && !installRuntimesResult.IsError))
+                                {
+                                    CLIEngine.ShowErrorMessage($"Error occured installing dependent runtimes for OAPP. Reason: {installRuntimesResult.Message}.\n\nPlease install these manually using the sub-command 'runtime install'");
+                                    lightResult.IsError = true;
+                                    lightResult.Message = installRuntimesResult.Message;
+                                }
+
+                                if (!string.IsNullOrEmpty(lightResult.Message) && !lightResult.IsError)
+                                    CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                                else
+                                    CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated.");
+
+                                await AddDependenciesAsync(createOAPPResult.Result.STARNETDNA, "OAPP", providerType);
+
+                                OASISResult<STARNETDNA> dnaResult = await STARNETManager.ReadDNAFromSourceOrInstallFolderAsync<STARNETDNA>(lightResult.Result.OAPP.STARNETDNA.SourcePath);
+
+                                if (dnaResult != null && dnaResult.Result != null && !dnaResult.IsError)
+                                    lightResult.Result.OAPP.STARNETDNA = dnaResult.Result;
+                                else
+                                {
+                                    CLIEngine.ShowErrorMessage($"Error occured reading STARNETDNA. Reason: {dnaResult.Message}.");
+                                    lightResult.IsError = true;
+                                    lightResult.Message = installRuntimesResult.Message;
+                                }
+
+                                Console.WriteLine("");
+                                Show(lightResult.Result.OAPP, customData: lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
+                                Console.WriteLine("");
+
+                                if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
+                                    Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(genesisNamespace, ".csproj")));
+
+                                Console.WriteLine("");
+
+                                if (CLIEngine.GetConfirmation("Do you wish to open the OAPP folder now?"))
+                                    Process.Start("explorer.exe", oappPath);
+
+                                Console.WriteLine("");
+                                lightResult = await CreateOAPPComponentsOnSTARNETAsync(lightResult, oappPath, errorMessage, providerType);
+
+
                             }
-
-                            if (!string.IsNullOrEmpty(lightResult.Message) && !lightResult.IsError)
-                                CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
                             else
-                                CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated.");
-
-                            await AddDependenciesAsync(createOAPPResult.Result.STARNETDNA, "OAPP", providerType);
-
-                            OASISResult<STARNETDNA> dnaResult = await STARNETManager.ReadDNAFromSourceOrInstallFolderAsync<STARNETDNA>(lightResult.Result.OAPP.STARNETDNA.SourcePath);
-
-                            if (dnaResult != null && dnaResult.Result != null && !dnaResult.IsError)
-                                lightResult.Result.OAPP.STARNETDNA = dnaResult.Result;
-                            else
-                            {
-                                CLIEngine.ShowErrorMessage($"Error occured reading STARNETDNA. Reason: {dnaResult.Message}.");
-                                lightResult.IsError = true;
-                                lightResult.Message = installRuntimesResult.Message;
-                            }
-
-                            Console.WriteLine("");
-                            Show(lightResult.Result.OAPP, customData: lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
-                            Console.WriteLine("");
-
-                            if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
-                                Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(genesisNamespace, ".csproj")));
-
-                            Console.WriteLine("");
-
-                            if (CLIEngine.GetConfirmation("Do you wish to open the OAPP folder now?"))
-                                Process.Start("explorer.exe", oappPath);
-
-                            Console.WriteLine("");
-                            lightResult = await CreateOAPPComponentsOnSTARNETAsync(lightResult, oappPath, errorMessage, providerType);
-
-
+                                CLIEngine.ShowErrorMessage($"Error Occured Creating The OAPP. Reason: {createOAPPResult.Message}");
                         }
-                        else
-                            CLIEngine.ShowErrorMessage($"Error Occured Creating The OAPP. Reason: {createOAPPResult.Message}");
                     }
                     else
                         CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
                 }
+                else
+                    CLIEngine.ShowErrorMessage($"Error Occured Mapping MetaData To MetaTags: {mappingsResult.Result}");
             }
 
             return lightResult;
@@ -1442,5 +1431,112 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             return lightResult;
         }
+
+        private OASISResult<Dictionary<string, string>> MapCustomMetaTagsToTemplate(IInstalledOAPPTemplate oappTemplate, List<INode> nodes)
+        {
+            OASISResult<Dictionary<string, string>> result = new OASISResult<Dictionary<string, string>>(new Dictionary<string, string>());
+
+            try
+            {
+                OASISResult<List<string>> getCustomTagsResult = GetCustomTagsFromTemplate(oappTemplate, new List<string>());
+
+                if (getCustomTagsResult != null && getCustomTagsResult.Result != null && !getCustomTagsResult.IsError)
+                {
+                    CLIEngine.ShowMessage($"Found {getCustomTagsResult.Result.Count} custom tags in the OAPP Template '{oappTemplate.STARNETDNA.Name}':");
+
+                    foreach (string tag in getCustomTagsResult.Result)
+                        CLIEngine.ShowMessage(tag);
+
+                    CLIEngine.ShowMessage($"Found {nodes.Count} custom meta data fields/properties:");
+
+                    foreach (INode node in nodes)
+                        CLIEngine.ShowMessage(string.Concat("Name: ", node.NodeName.PadRight(20), "Type: ", Enum.GetName(typeof(NodeType), node.NodeType)));
+
+                    if (CLIEngine.GetConfirmation("Would you like to map any of these tags to your meta data?"))
+                    {
+                        string tag = "";
+                        string metaField = "";
+
+                        do
+                        {
+                            tag = CLIEngine.GetValidInput("Please enter the tag you wish to map (case sensitive):");
+
+                            if (string.IsNullOrEmpty(tag) || !getCustomTagsResult.Result.Contains(tag))
+                                CLIEngine.ShowErrorMessage($"The tag '{tag}' was not found. Please try again.");
+
+                        } while (!getCustomTagsResult.Result.Contains(tag));
+
+                        do
+                        {
+                            metaField = CLIEngine.GetValidInput("Please enter the meta data field/property you wish to map to this tag (case sensitive):");
+
+                            if (string.IsNullOrEmpty(metaField) || !nodes.Any(x => x.NodeName == metaField))
+                                CLIEngine.ShowErrorMessage($"The meta data field/property '{metaField}' was not found. Please try again.");
+
+                        } while (!nodes.Any(x => x.NodeName == metaField));
+
+                        if (CLIEngine.GetConfirmation($"Please confirm you wish to map the tag '{tag}' to the meta data field/property '{metaField}'?"))
+                            result.Result[tag] = metaField;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in OAPP.MapCustomMetaTagsToTemplate. Reason: {e.Message}");
+            }
+
+            return result;
+        }
+
+        private OASISResult<List<string>> GetCustomTagsFromTemplate(IInstalledOAPPTemplate oappTemplate, List<string> tags)
+        {
+            OASISResult<List<string>> result = new OASISResult<List<string>>();
+
+            try
+            {
+                foreach (DirectoryInfo dir in new DirectoryInfo(oappTemplate.InstalledPath).GetDirectories())
+                {
+                    if (dir.Name != "bin" && dir.Name != "obj")
+                    {
+                        OASISResult<List<string>> getTagsResult = GetCustomTagsFromTemplate(oappTemplate, tags);
+
+                        if (getTagsResult != null && getTagsResult.Result != null && !getTagsResult.IsError)
+                        {
+                            if (getTagsResult.Result.Count > 0)
+                                tags.AddRange(getTagsResult.Result);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error occured in OAPP.GetCustomTagsFromTemplate. Reason: {getTagsResult.Message}");
+                    }
+                }
+
+                foreach (FileInfo file in new DirectoryInfo(oappTemplate.InstalledPath).GetFiles("*.cs"))
+                {
+                    using (TextReader tr = File.OpenText(file.FullName))
+                    {
+                        string line;
+                        while ((line = tr.ReadLine()) != null)
+                        {
+                            if (line.Contains("{{}}"))
+                            {
+                                int start = line.IndexOf("{{");
+                                int end = line.IndexOf("}}", start);
+                                string tag = line.Substring(start, end - start);
+
+                                if (!tags.Contains(tag))
+                                    tags.Add(tag);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in OAPP.GetCustomTagsFromTemplate. Reason: {e.Message}");
+            }
+
+            result.Result = tags;
+            return result;
+        }            
     }
 }

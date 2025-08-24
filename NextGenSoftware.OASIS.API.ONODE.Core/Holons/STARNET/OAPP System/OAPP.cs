@@ -34,6 +34,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public string OAPPTemplateVersion { get; set; }
 
         [CustomOASISProperty]
+        //public Dictionary<string, string> MetaTagMappings { get; set; }
+
+        //[CustomOASISProperty]
         public Guid CelestialBodyMetaDataId { get; set; }
 
         [CustomOASISProperty]
