@@ -9,11 +9,12 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
     public class STARNETDNA : ISTARNETDNA
     {
         public Guid Id { get; set; }
-        public bool IsPublic { get; set; } //TODO: Need to implement ASAP! :)
         public string Name { get; set; }
         public string Description { get; set; }
         public object STARNETHolonType { get; set; }
+        public STARNETDependencies Dependencies { get; set; } = new STARNETDependencies();
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
+        public Dictionary<string, string> MetaTagMappings { get; set; } = new Dictionary<string, string>();
         public Guid CreatedByAvatarId { get; set; }
         public string CreatedByAvatarUsername { get; set; }
         public DateTime CreatedOn { get; set; }
@@ -47,13 +48,5 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public int TotalDownloads { get; set; }
         public int TotalInstalls { get; set; }
         public int NumberOfVersions { get; set; }
-        //public List<ISTARNETDependency> RuntimeDependencies { get; set; } = new List<ISTARNETDependency>();
-        //public List<ISTARNETDependency> LibraryDependencies { get; set; } = new List<ISTARNETDependency>();
-        //public List<ISTARNETDependency> TemplateDependencies { get; set; } = new List<ISTARNETDependency>();
-        //public List<STARNETDependency> RuntimeDependencies { get; set; } = new List<STARNETDependency>();
-        //public List<STARNETDependency> LibraryDependencies { get; set; } = new List<STARNETDependency>();
-        //public List<STARNETDependency> TemplateDependencies { get; set; } = new List<STARNETDependency>();
-
-        public STARNETDependencies Dependencies { get; set; } = new STARNETDependencies();
     }
 }
