@@ -24,5 +24,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultQuestsDownloadedPath, "DefaultQuestsDownloadedPath",
             STAR.STARDNA.DefaultQuestsInstalledPath, "DefaultQuestsInstalledPath")
         { }
+
+        public void AddNFTToQuest()
+        {
+
+        }
     }
 }
