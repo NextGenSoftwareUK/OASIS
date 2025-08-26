@@ -11,7 +11,8 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Double,
         ByteArray,
         Float,
-        Object
+        Object,
+        Unknown
         //List,
         //Link,
         //Set
