@@ -470,8 +470,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 dnaFolder = findResult.Result.InstalledPath;
                                 celestialBodyMetaDataDNA = findResult.Result;
 
-                                //TODO: Need to extract the nodes/fields/props from the DNA (re-use the templating code in STAR (make generic function).
-                                //nodes = STAR.GetNodesFromCelestialBodyMetaDataDNA(dnaFolder);
+                                OASISResult<List<INode>> nodesResult = STAR.ExtractNodesFromCelestialBodyMetaDataDNA(dnaFolder);
+
+                                if (nodesResult != null && nodesResult.Result != null && !nodesResult.IsError)
+                                    nodes = nodesResult.Result;
+                                else
+                                    CLIEngine.ShowErrorMessage($"Error occured extracting nodes from CelestialBody MetaData DNA. Reason: {nodesResult.Message}");
                             }
                             else
                                 CLIEngine.ShowErrorMessage($"Error occured finding CelestialBody MetaData DNA. Reason: {findResult.Message}");
@@ -489,8 +493,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             if (Directory.Exists(dnaFolder) && Directory.GetFiles(dnaFolder).Length > 0)
                             {
-                                //TODO: Need to extract the nodes/fields/props from the DNA (re-use the templating code in STAR (make generic function).
-                                //nodes = STAR.GetNodesFromCelestialBodyMetaDataDNA(dnaFolder);
+                                OASISResult<List<INode>> nodesResult = STAR.ExtractNodesFromCelestialBodyMetaDataDNA(dnaFolder);
+
+                                if (nodesResult != null && nodesResult.Result != null && !nodesResult.IsError)
+                                    nodes = nodesResult.Result;
+                                else
+                                    CLIEngine.ShowErrorMessage($"Error occured extracting nodes from CelestialBody MetaData DNA. Reason: {nodesResult.Message}");
+
                                 cbMetaDataGeneratedPath = dnaFolder;
                                 validDNA = true;
                             }
@@ -500,9 +509,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 } while (!validDNA);
 
-                OASISResult<Dictionary<string, string>> mappingsResult = MapCustomMetaTagsToTemplate(installedOAPPTemplate, nodes);
+                OASISResult<Dictionary<string, string>> metaTagMappingsResult = MapCustomMetaTagsToTemplate(installedOAPPTemplate, nodes);
 
-                if (mappingsResult != null && mappingsResult.Result != null && !mappingsResult.IsError)
+                if (metaTagMappingsResult != null && metaTagMappingsResult.Result != null && !metaTagMappingsResult.IsError)
                 {
                     string oappPath = "";
 
@@ -556,7 +565,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             }
 
                             CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, parentId, providerType);
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, metaTagMappingsResult.Result, parentId, providerType);
                         }
                         else
                         {
@@ -564,14 +573,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             CLIEngine.ShowErrorMessage($"You are only level {STAR.BeamedInAvatarDetail.Level}. You need to be at least level 33 to be able to change the parent celestialbody. Using the default of Our World.");
                             Console.WriteLine("");
                             CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
+                            lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate.STARNETDNA.Id, installedOAPPTemplate.STARNETDNA.VersionSequence, genesisType, dnaFolder, oappPath, genesisNamespace, metaTagMappingsResult.Result, providerType);
                         }
                     }
                     else
                     {
                         Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage("Generating OAPP...");
-                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Id : Guid.Empty, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.VersionSequence : 0, genesisType, dnaFolder, oappPath, genesisNamespace, providerType);
+                        lightResult = await STAR.LightAsync(OAPPName, OAPPDesc, OAPPType, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Id : Guid.Empty, installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.VersionSequence : 0, genesisType, dnaFolder, oappPath, genesisNamespace, metaTagMappingsResult.Result, providerType);
                     }
 
                     if (lightResult != null)
@@ -581,7 +590,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             oappPath = Path.Combine(oappPath, OAPPName);
 
                             //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
-                            OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, new Dictionary<string, object>()
+                            OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, metaTagMappingsResult.Result, new Dictionary<string, object>()
                         {
                             { "CelestialBodyId", lightResult.Result.CelestialBody.Id },
                             { "CelestialBodyName", lightResult.Result.CelestialBody.Name },
@@ -736,8 +745,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                                 Console.WriteLine("");
                                 lightResult = await CreateOAPPComponentsOnSTARNETAsync(lightResult, oappPath, errorMessage, providerType);
-
-
                             }
                             else
                                 CLIEngine.ShowErrorMessage($"Error Occured Creating The OAPP. Reason: {createOAPPResult.Message}");
@@ -747,7 +754,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         CLIEngine.ShowErrorMessage($"Error Occured: {lightResult.Message}");
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Error Occured Mapping MetaData To MetaTags: {mappingsResult.Result}");
+                    CLIEngine.ShowErrorMessage($"Error Occured Mapping MetaData To MetaTags: {metaTagMappingsResult.Result}");
             }
 
             return lightResult;
@@ -1040,6 +1047,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Version", ParseMetaData(oapp.MetaData, "OAPPTemplateVersion"), displayFieldLength);
             DisplayProperty("Version Sequence", ParseMetaData(oapp.MetaData, "OAPPTemplateVersionSequence"), displayFieldLength);
             DisplayProperty("Installed Path", ParseMetaData(oapp.MetaData, "OAPPTemplateInstalledPath"), displayFieldLength);
+
+            if (showDetailedInfo)
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage(string.Concat("Meta Tag Mappings", "(", oapp.STARNETDNA.MetaTagMappings != null ? oapp.STARNETDNA.MetaTagMappings.Count.ToString() : "0", "):"), false); 
+                ShowMetaTagMappings(oapp.STARNETDNA.MetaTagMappings);
+            }
+            else
+            {
+                DisplayProperty("Meta Tag Mappings", string.Concat(oapp.STARNETDNA.MetaTagMappings != null ? oapp.STARNETDNA.MetaTagMappings.Count.ToString() : "0", " (use show/list detailed to view)"), displayFieldLength);
+            }
 
             Console.WriteLine("");
             DisplayProperty("CELESTIAL BODY META DATA DNA", "", displayFieldLength, false);
@@ -1438,45 +1456,96 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             try
             {
-                OASISResult<List<string>> getCustomTagsResult = GetCustomTagsFromTemplate(oappTemplate, new List<string>());
+                OASISResult<List<string>> getCustomTagsResult = GetCustomTagsFromTemplate(oappTemplate.InstalledPath, new List<string>());
 
                 if (getCustomTagsResult != null && getCustomTagsResult.Result != null && !getCustomTagsResult.IsError)
                 {
-                    CLIEngine.ShowMessage($"Found {getCustomTagsResult.Result.Count} custom tags in the OAPP Template '{oappTemplate.STARNETDNA.Name}':");
+                    CLIEngine.ShowMessage(string.Concat($"Found {getCustomTagsResult.Result.Count} custom tags in the OAPP Template '{oappTemplate.STARNETDNA.Name}'", getCustomTagsResult.Result.Count > 0 ? ":" : "."));
+                    Console.WriteLine("");
 
                     foreach (string tag in getCustomTagsResult.Result)
-                        CLIEngine.ShowMessage(tag);
+                        CLIEngine.ShowMessage(tag, false);
 
-                    CLIEngine.ShowMessage($"Found {nodes.Count} custom meta data fields/properties:");
+                    CLIEngine.ShowMessage(string.Concat($"Found {nodes.Count} custom meta data fields/properties", nodes.Count > 0 ? ":" : "."));
+                    Console.WriteLine("");
 
                     foreach (INode node in nodes)
-                        CLIEngine.ShowMessage(string.Concat("Name: ", node.NodeName.PadRight(20), "Type: ", Enum.GetName(typeof(NodeType), node.NodeType)));
+                        CLIEngine.ShowMessage(string.Concat("Name: ", node.NodeName.PadRight(20), "Type: ", Enum.GetName(typeof(NodeType), node.NodeType)), false);
 
-                    if (CLIEngine.GetConfirmation("Would you like to map any of these tags to your meta data?"))
+                    if (getCustomTagsResult.Result.Count > 0 && nodes.Count > 0 && CLIEngine.GetConfirmation("Would you like to map any of these tags to your meta data?"))
                     {
-                        string tag = "";
-                        string metaField = "";
+                        bool mapTags = true;
+                        Console.WriteLine("");
 
                         do
                         {
-                            tag = CLIEngine.GetValidInput("Please enter the tag you wish to map (case sensitive):");
+                            string tag = "";
+                            string metaField = "";
 
-                            if (string.IsNullOrEmpty(tag) || !getCustomTagsResult.Result.Contains(tag))
-                                CLIEngine.ShowErrorMessage($"The tag '{tag}' was not found. Please try again.");
+                            do
+                            {
+                                tag = CLIEngine.GetValidInput("Please enter the tag you wish to map (case sensitive). Enter 'exit' to cancel:");
 
-                        } while (!getCustomTagsResult.Result.Contains(tag));
+                                if (tag == "exit")
+                                    break;
 
-                        do
-                        {
-                            metaField = CLIEngine.GetValidInput("Please enter the meta data field/property you wish to map to this tag (case sensitive):");
+                                if (string.IsNullOrEmpty(tag) || !getCustomTagsResult.Result.Contains(tag))
+                                    CLIEngine.ShowErrorMessage($"The tag '{tag}' was not found. Please try again.");
 
-                            if (string.IsNullOrEmpty(metaField) || !nodes.Any(x => x.NodeName == metaField))
-                                CLIEngine.ShowErrorMessage($"The meta data field/property '{metaField}' was not found. Please try again.");
+                                else if (result.Result.Keys.Contains(tag))
+                                {
+                                    CLIEngine.ShowErrorMessage($"The tag '{tag}' has already been mapped to '{result.Result[tag]}'. Please try again.");
+                                    tag = "";
+                                }
 
-                        } while (!nodes.Any(x => x.NodeName == metaField));
+                            } while (!getCustomTagsResult.Result.Contains(tag));
 
-                        if (CLIEngine.GetConfirmation($"Please confirm you wish to map the tag '{tag}' to the meta data field/property '{metaField}'?"))
-                            result.Result[tag] = metaField;
+                            if (tag != "exit")
+                            {
+                                do
+                                {
+                                    metaField = CLIEngine.GetValidInput("Please enter the meta data field/property you wish to map to this tag (case sensitive). Enter 'exit' to cancel:");
+
+                                    if (metaField == "exit")
+                                        break;
+
+                                    if (string.IsNullOrEmpty(metaField) || !nodes.Any(x => x.NodeName == metaField))
+                                        CLIEngine.ShowErrorMessage($"The meta data field/property '{metaField}' was not found. Please try again.");
+
+                                    else if (result.Result.Values.Contains(metaField))
+                                    {
+                                        string matchedKey = "";
+                                        foreach (string key in result.Result.Keys)
+                                        {
+                                            if (result.Result[key] == metaField)
+                                            {
+                                                matchedKey = key;
+                                                break;
+                                            }
+                                        }
+
+                                        CLIEngine.ShowErrorMessage($"The meta data '{metaField}' has already been mapped to '{matchedKey}'. Please try again.");
+                                        metaField = "";
+                                    }
+
+                                } while (!nodes.Any(x => x.NodeName == metaField));
+                            }
+
+                            if (tag != "exit" && metaField != "exit" && CLIEngine.GetConfirmation($"Please confirm you wish to map the tag '{tag}' to the meta data field/property '{metaField}'?"))
+                            {
+                                result.Result[tag] = metaField;
+                                Console.WriteLine("");
+                                CLIEngine.ShowSuccessMessage($"Meta tag '{tag}' mapped to meta data '{metaField}'");
+                                Console.WriteLine("");
+                                ShowMetaTagMappings(result.Result);
+                            }
+                            else
+                                Console.WriteLine("");
+
+                            mapTags = CLIEngine.GetConfirmation("Would you like to map more tags?");
+                            Console.WriteLine("");
+
+                        } while (mapTags);
                     }
                 }
             }
@@ -1488,17 +1557,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private OASISResult<List<string>> GetCustomTagsFromTemplate(IInstalledOAPPTemplate oappTemplate, List<string> tags)
+        private void ShowMetaTagMappings(Dictionary<string, string> metaTagMappings)
+        {
+            CLIEngine.ShowMessage(string.Concat("Tag".PadRight(22), "Meta Data".PadRight(22)), false);
+
+            foreach (string key in metaTagMappings.Keys)
+                CLIEngine.ShowMessage(string.Concat(key.PadRight(22), metaTagMappings[key].PadRight(22)), false);
+        }
+
+        private OASISResult<List<string>> GetCustomTagsFromTemplate(string pathToTemplate, List<string> tags)
         {
             OASISResult<List<string>> result = new OASISResult<List<string>>();
 
             try
             {
-                foreach (DirectoryInfo dir in new DirectoryInfo(oappTemplate.InstalledPath).GetDirectories())
+                foreach (DirectoryInfo dir in new DirectoryInfo(pathToTemplate).GetDirectories())
                 {
                     if (dir.Name != "bin" && dir.Name != "obj")
                     {
-                        OASISResult<List<string>> getTagsResult = GetCustomTagsFromTemplate(oappTemplate, tags);
+                        OASISResult<List<string>> getTagsResult = GetCustomTagsFromTemplate(dir.FullName, tags);
 
                         if (getTagsResult != null && getTagsResult.Result != null && !getTagsResult.IsError)
                         {
@@ -1510,16 +1587,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
 
-                foreach (FileInfo file in new DirectoryInfo(oappTemplate.InstalledPath).GetFiles("*.cs"))
+                foreach (FileInfo file in new DirectoryInfo(pathToTemplate).GetFiles("*.cs"))
                 {
                     using (TextReader tr = File.OpenText(file.FullName))
                     {
                         string line;
                         while ((line = tr.ReadLine()) != null)
                         {
-                            if (line.Contains("{{}}"))
+                            if (line.Contains("{{"))
                             {
                                 int start = line.IndexOf("{{");
+                                start += 2;
                                 int end = line.IndexOf("}}", start);
                                 string tag = line.Substring(start, end - start);
 

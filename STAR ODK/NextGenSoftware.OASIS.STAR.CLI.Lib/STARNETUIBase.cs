@@ -2023,13 +2023,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         protected void ShowAllDependencies(ISTARNETHolon starHolon, bool showDetailed, int displayFieldLength)
         {
+            string tip = "";
+
+            if (!showDetailed)
+                tip = "(use show/list detailed to view)";
+
             Console.WriteLine("");
             DisplayProperty("RUNTIMES", "", displayFieldLength, false);
 
             if (showDetailed)
                 ShowDependenices(starHolon.STARNETDNA.Dependencies.Runtimes, displayFieldLength);
 
-            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Runtimes.Count} Found.", false);
+            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Runtimes.Count} Found. {tip}", false);
 
             Console.WriteLine("");
             DisplayProperty("LIBS", "", displayFieldLength, false);
@@ -2037,7 +2042,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (showDetailed)
                 ShowDependenices(starHolon.STARNETDNA.Dependencies.Libraries, displayFieldLength);
 
-            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Libraries.Count} Found.", false);
+            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Libraries.Count} Found. {tip}", false);
 
             Console.WriteLine("");
             DisplayProperty("TEMPLATES", "", displayFieldLength, false);
@@ -2045,7 +2050,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (showDetailed)
                 ShowDependenices(starHolon.STARNETDNA.Dependencies.Templates, displayFieldLength);
 
-            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Templates.Count} Found.", false);
+            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Templates.Count} Found. {tip}", false);
         }
 
         public async Task<OASISResult<T1>> FindAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string STARNETHolonUIName = "Default", ProviderType providerType = ProviderType.Default)
