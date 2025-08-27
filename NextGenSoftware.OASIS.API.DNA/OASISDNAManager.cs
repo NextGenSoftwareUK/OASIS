@@ -12,93 +12,13 @@ namespace NextGenSoftware.OASIS.API.DNA
         private static string SYSTEMOASISDNAPath = "OASIS_DNA_SYSTEM.json";
         public static string OASISDNAPath = "OASIS_DNA.json";
         public static OASISDNA OASISDNA { get; set; }
-        //public static OASISDNA SYSTEMOASISDNA { get; set; }
 
-        // To mitigate the risk of exposing sensitive keys in open-source code, consider the following approaches:
-
-        // 1. Use environment variables to store the key securely and retrieve it at runtime.
-        // 2. Use a secure secrets management service (e.g., Azure Key Vault, AWS Secrets Manager).
-        // 3. Encrypt the key using a hardware security module (HSM) or a similar secure mechanism.
-        // 4. Avoid hardcoding sensitive keys in the source code entirely.
-        // 5. Implement runtime obfuscation techniques to make debugging harder, though this is not foolproof.
-
-        // Example: Using environment variables to retrieve the key securely.
-        //public static OASISResult<OASISDNA> GetSystemOASISDNA()
-        //{
-        //    OASISResult<OASISDNA> result = new OASISResult<OASISDNA>();
-        //    string systemKey = Environment.GetEnvironmentVariable("SYSTEM_OASIS_DNA_KEY");
-
-        //    if (string.IsNullOrEmpty(systemKey))
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, "System OASIS DNA key is not set in environment variables.");
-        //        return result;
-        //    }
-
-        //    try
-        //    {
-        //        using (StreamReader r = new StreamReader(SYSTEMOASISDNAPath))
-        //        {
-        //            string encryptedData = r.ReadToEnd();
-        //            result.Result = JsonConvert.DeserializeObject<OASISDNA>(FileEncryption.Decrypt(encryptedData, systemKey));
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"Error occurred while decrypting SYSTEMOASISDNA: {ex.Message}");
-        //    }
-
-        //    return result;
-        //}
-
-
-
-        //TODO: HOW DO WE STOP PEOPLE PUTTING A BREAKPOINT HERE AND GETTING THE KEY OR DECRYPTED FILE WHEN IT'S OPEN SOURCE?!?!?!?!
-        public static OASISResult<OASISDNA> GetSystemOASISDNA()
+        private static OASISResult<OASISDNA> GetSystemOASISDNA()
         {
             OASISResult<OASISDNA> result = new OASISResult<OASISDNA>();
             result.Result = JsonConvert.DeserializeObject<OASISDNA>(FileEncryption.DecryptFile(SYSTEMOASISDNAPath, DNALoader.DNALoader.GetSystemOASISDNAKey(), DNALoader.DNALoader.GetSystemOASISDNAIV()));
-
-            //using (StreamReader r = new StreamReader(SYSTEMOASISDNAPath))
-            //    result.Result = JsonConvert.DeserializeObject<OASISDNA>(FileEncryption.Decrypt(r.ReadToEnd(), DNALoader.DNALoader.GetSystemOASISDNAKey()));
-
             return result;
         }
-
-        //public static OASISResult<OASISDNA> EncryptSystemOASISDNA()
-        //{
-        //    OASISResult<OASISDNA> result = new OASISResult<OASISDNA>();
-
-        //    using (StreamReader r = new StreamReader(SYSTEMOASISDNAPath))
-        //    {
-        //        string json = r.ReadToEnd();
-
-        //        if (!string.IsNullOrEmpty(privateKey))
-        //        {
-        //            //Decrypt the JSON first before deserializing:
-        //            //json = CryptoHelper.DecryptStringFromBytes_Aes(, privateKey);
-
-        //            // Generate a random AES key and IV
-        //            using (Aes aes = Aes.Create())
-        //            {
-        //                byte[] key = aes.Key;
-        //                byte[] iv = aes.IV;
-
-        //                // Call the encryption method
-        //                FileEncryption.EncryptFile(OASISDNAPath, SYSTEMOASISDNAPath, key, iv);
-
-        //                Console.WriteLine("File encrypted successfully!");
-        //                Console.WriteLine($"Key: {Convert.ToBase64String(key)}");
-        //                Console.WriteLine($"IV: {Convert.ToBase64String(iv)}");
-        //            }
-
-        //        }
-
-        //        OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
-        //        result.Result = OASISDNA;
-        //    }
-
-        //    return result;
-        //}
 
         public static OASISResult<OASISDNA> LoadDNA()
         {
@@ -131,6 +51,50 @@ namespace NextGenSoftware.OASIS.API.DNA
                     {
                         string json = r.ReadToEnd();
                         OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
+
+                        //OASISResult<OASISDNA> OASISDNAResult = GetSystemOASISDNA();
+
+                        //if (OASISDNAResult != null && OASISDNAResult.Result != null && !OASISDNAResult.IsError)
+                        //{
+                        //    if (string.IsNullOrEmpty(OASISDNA.OASIS.Email.EmailFrom))
+                        //        OASISDNA.OASIS.Email.EmailFrom = OASISDNAResult.Result.OASIS.Email.EmailFrom;
+
+                        //    if (OASISDNA.OASIS.Email.SmtpPort == 0)
+                        //        OASISDNA.OASIS.Email.SmtpPort = OASISDNAResult.Result.OASIS.Email.SmtpPort;
+
+                        //    if (string.IsNullOrEmpty(OASISDNA.OASIS.Email.SmtpPass))
+                        //        OASISDNA.OASIS.Email.SmtpPass = OASISDNAResult.Result.OASIS.Email.SmtpPass;
+
+                        //    if (string.IsNullOrEmpty(OASISDNA.OASIS.Email.SmtpHost))
+                        //        OASISDNA.OASIS.Email.SmtpHost = OASISDNAResult.Result.OASIS.Email.SmtpHost;
+
+                        //    if (string.IsNullOrEmpty(OASISDNA.OASIS.Email.SmtpUser))
+                        //        OASISDNA.OASIS.Email.SmtpHost = OASISDNAResult.Result.OASIS.Email.SmtpUser;
+
+                        //    if (string.IsNullOrEmpty(OASISDNA.OASIS.Email.OASISWebSiteURL))
+                        //        OASISDNA.OASIS.Email.OASISWebSiteURL = OASISDNAResult.Result.OASIS.Email.OASISWebSiteURL;
+
+                        //    //TODO: Finish implementing for the rest of the properties! :)
+
+                        //    //if (string.IsNullOrEmpty(OASISDNA.OASIS.Provider))
+                        //    //    OASISDNA.OASIS.Provider = OASISDNAResult.Result.OASIS.Provider;
+                        //    //if (string.IsNullOrEmpty(OASISDNA.OASIS.DefaultStorageProvider))
+                        //    //    OASISDNA.OASIS.DefaultStorageProvider = OASISDNAResult.Result.OASIS.DefaultStorageProvider;
+                        //    //if (string.IsNullOrEmpty(OASISDNA.OASIS.FallbackStorageProvider))
+                        //    //    OASISDNA.OASIS.FallbackStorageProvider = OASISDNAResult.Result.OASIS.FallbackStorageProvider;
+                        //    //if (string.IsNullOrEmpty(OASISDNA.OASIS.AvailableProviders))
+                        //    //    OASISDNA.OASIS.AvailableProviders = OASISDNAResult.Result.OASIS.AvailableProviders;
+                        //}
+
+                        //if (string.IsNullOrEmpty(OASISDNA.OASIS.Email.EmailFrom))
+                        //    OASISDNA.OASIS.Email.EmailFrom = GetSystemOASISDNA().Result.OASIS.Email.EmailFrom;
+
+                        //if (OASISDNA.OASIS.Email.SmtpPort == 0)
+                        //    OASISDNA.OASIS.Email.SmtpPort = GetSystemOASISDNA().Result.OASIS.Email.SmtpPort;
+
+                        //if (string.IsNullOrEmpty(OASISDNA.OASIS.Email.SmtpPass))
+                        //    OASISDNA.OASIS.Email.SmtpPass = GetSystemOASISDNA().Result.OASIS.Email.SmtpPass;
+
                         result.Result = OASISDNA;
                     }
                 }
