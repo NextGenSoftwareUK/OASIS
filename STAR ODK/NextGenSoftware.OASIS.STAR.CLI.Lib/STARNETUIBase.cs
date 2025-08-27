@@ -1951,6 +1951,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($".NET Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.DotNetVersion), false);
 
             ShowAllDependencies(starHolon, showDetailedInfo, displayFieldLength);
+            ShowMetaTagMappings(starHolon.STARNETDNA.MetaTagMappings, showDetailedInfo, displayFieldLength);
 
             if (showFooter)
                 CLIEngine.ShowDivider();
@@ -2051,6 +2052,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 ShowDependenices(starHolon.STARNETDNA.Dependencies.Templates, displayFieldLength);
 
             CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Templates.Count} Found. {tip}", false);
+        }
+
+        protected void ShowMetaTagMappings(Dictionary<string, string> metaTagMappings, bool showDetailedInfo, int displayFieldLength = DEFAULT_FIELD_LENGTH)
+        {
+            if (showDetailedInfo)
+            {
+                Console.WriteLine("");
+                CLIEngine.ShowMessage(string.Concat("Meta Tag Mappings", "(", metaTagMappings != null ? metaTagMappings.Count.ToString() : "0", "):"), false);
+                CLIEngine.ShowMessage(string.Concat("Tag".PadRight(22), "Meta Data".PadRight(22)), false);
+
+                foreach (string key in metaTagMappings.Keys)
+                    CLIEngine.ShowMessage(string.Concat(key.PadRight(22), metaTagMappings[key].PadRight(22)), false);
+            }
+            else
+                DisplayProperty("Meta Tag Mappings", string.Concat(metaTagMappings != null ? metaTagMappings.Count.ToString() : "0", metaTagMappings != null && metaTagMappings.Count > 0 ? " (use show/list detailed to view)" : ""), displayFieldLength);
         }
 
         public async Task<OASISResult<T1>> FindAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string STARNETHolonUIName = "Default", ProviderType providerType = ProviderType.Default)

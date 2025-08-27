@@ -33,6 +33,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
+        public static OASISResult<bool> ExtinguishStar()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            if (STAR.IsStarIgnited)
+                result = STAR.ExtinguishStar();
+
+            return result;
+        }
+
+        public static async Task<OASISResult<bool>> ExtinguishStarAsync()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            if (STAR.IsStarIgnited)
+                result = await STAR.ExtinguishStarAsync();
+
+            return result;
+        }
+
         //public static Avatars Avatars { get; } = new Avatars(STAR.BeamedInAvatar?.Id ?? Guid.Empty);
         //public static Zomes Zomes { get; } = new Zomes(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
 

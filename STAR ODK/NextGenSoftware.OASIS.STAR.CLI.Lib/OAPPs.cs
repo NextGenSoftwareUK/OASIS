@@ -1047,17 +1047,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Version", ParseMetaData(oapp.MetaData, "OAPPTemplateVersion"), displayFieldLength);
             DisplayProperty("Version Sequence", ParseMetaData(oapp.MetaData, "OAPPTemplateVersionSequence"), displayFieldLength);
             DisplayProperty("Installed Path", ParseMetaData(oapp.MetaData, "OAPPTemplateInstalledPath"), displayFieldLength);
-
-            if (showDetailedInfo)
-            {
-                Console.WriteLine("");
-                CLIEngine.ShowMessage(string.Concat("Meta Tag Mappings", "(", oapp.STARNETDNA.MetaTagMappings != null ? oapp.STARNETDNA.MetaTagMappings.Count.ToString() : "0", "):"), false); 
-                ShowMetaTagMappings(oapp.STARNETDNA.MetaTagMappings);
-            }
-            else
-            {
-                DisplayProperty("Meta Tag Mappings", string.Concat(oapp.STARNETDNA.MetaTagMappings != null ? oapp.STARNETDNA.MetaTagMappings.Count.ToString() : "0", " (use show/list detailed to view)"), displayFieldLength);
-            }
+            ShowMetaTagMappings(oapp.STARNETDNA.MetaTagMappings, showDetailedInfo, displayFieldLength);
 
             Console.WriteLine("");
             DisplayProperty("CELESTIAL BODY META DATA DNA", "", displayFieldLength, false);
@@ -1557,13 +1547,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private void ShowMetaTagMappings(Dictionary<string, string> metaTagMappings)
-        {
-            CLIEngine.ShowMessage(string.Concat("Tag".PadRight(22), "Meta Data".PadRight(22)), false);
+        //private void ShowMetaTagMappings(Dictionary<string, string> metaTagMappings)
+        //{
+        //    CLIEngine.ShowMessage(string.Concat("Tag".PadRight(22), "Meta Data".PadRight(22)), false);
 
-            foreach (string key in metaTagMappings.Keys)
-                CLIEngine.ShowMessage(string.Concat(key.PadRight(22), metaTagMappings[key].PadRight(22)), false);
-        }
+        //    foreach (string key in metaTagMappings.Keys)
+        //        CLIEngine.ShowMessage(string.Concat(key.PadRight(22), metaTagMappings[key].PadRight(22)), false);
+        //}
 
         private OASISResult<List<string>> GetCustomTagsFromTemplate(string pathToTemplate, List<string> tags)
         {
