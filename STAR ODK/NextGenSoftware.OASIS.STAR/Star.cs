@@ -305,11 +305,11 @@ namespace NextGenSoftware.OASIS.STAR
             */
 
             if (File.Exists(STARDNAPath))
-                LoadDNA();
+                await STARDNAManager.LoadDNAAsync(STARDNAPath);
             else
             {
                 STARDNA = new STARDNA();
-                SaveDNA();
+                await STARDNAManager.SaveDNAAsync(STARDNAPath, STARDNA);
             }
 
             ValidateSTARDNA(STARDNA);
@@ -379,11 +379,11 @@ namespace NextGenSoftware.OASIS.STAR
             */
 
             if (File.Exists(STARDNAPath))
-                LoadDNA();
+                STARDNAManager.LoadDNA(STARDNAPath);
             else
             {
                 STARDNA = new STARDNA();
-                SaveDNA();
+                STARDNAManager.SaveDNA(STARDNAPath, STARDNA);
             }
 
             ValidateSTARDNA(STARDNA);
@@ -439,12 +439,12 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static OASISResult<bool> ExtinguishSuperStar()
+        public static OASISResult<bool> ExtinguishStar()
         {
             return OASISAPI.ShutdownOASIS();
         }
 
-        public static async Task<OASISResult<bool>> ExtinguishSuperStarAsync()
+        public static async Task<OASISResult<bool>> ExtinguishStarAsync()
         {
             return await OASISAPI.ShutdownOASISAsync();
         }
@@ -1962,7 +1962,8 @@ namespace NextGenSoftware.OASIS.STAR
                 if (string.IsNullOrEmpty(starDNA.DefaultRuntimesInstalledSTARPath))
                     starDNA.DefaultRuntimesInstalledSTARPath = "Runtimes\\Installed\\STAR";
 
-                SaveDNA();
+
+                STARDNAManager.SaveDNA(STARDNAPath, STARDNA);
 
                 ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPsSourcePath, "STARDNA.DefaultOAPPsSourcePath", false, true);
                 ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPsPublishedPath, "STARDNA.DefaultOAPPsPublishedPath", false, true);
@@ -2023,35 +2024,35 @@ namespace NextGenSoftware.OASIS.STAR
                 throw new FileNotFoundException(string.Concat("The ", fileParam, " file is not valid, the file does not exist, please double check and try again."), string.Concat(path, "\\", file));
         }
 
-        private static STARDNA LoadDNA()
-        {
-            using (StreamReader r = new StreamReader(STARDNAPath))
-            {
-                string json = r.ReadToEnd();
-                STARDNA = JsonConvert.DeserializeObject<STARDNA> (json);
-                return STARDNA;
-            }
-        }
-        private static bool SaveDNA()
-        {
-            try
-            {
-                string json = JsonConvert.SerializeObject(STARDNA);
+        //private static STARDNA LoadDNA()
+        //{
+        //    using (StreamReader r = new StreamReader(STARDNAPath))
+        //    {
+        //        string json = r.ReadToEnd();
+        //        STARDNA = JsonConvert.DeserializeObject<STARDNA> (json);
+        //        return STARDNA;
+        //    }
+        //}
+        //private static bool SaveDNA()
+        //{
+        //    try
+        //    {
+        //        string json = JsonConvert.SerializeObject(STARDNA);
 
-                if (!Directory.Exists(Path.GetDirectoryName(STARDNAPath)))
-                    Directory.CreateDirectory(Path.GetDirectoryName(STARDNAPath));
+        //        if (!Directory.Exists(Path.GetDirectoryName(STARDNAPath)))
+        //            Directory.CreateDirectory(Path.GetDirectoryName(STARDNAPath));
 
-                StreamWriter writer = new StreamWriter(STARDNAPath);
-                writer.Write(json);
-                writer.Close();
-            }
-            catch (Exception e)
-            {
+        //        StreamWriter writer = new StreamWriter(STARDNAPath);
+        //        writer.Write(json);
+        //        writer.Close();
+        //    }
+        //    catch (Exception e)
+        //    {
                 
-            }
+        //    }
 
-            return true;
-        }
+        //    return true;
+        //}
 
         private static void NewBody_OnZomeError(object sender, ZomeErrorEventArgs e)
         {
@@ -2564,7 +2565,7 @@ namespace NextGenSoftware.OASIS.STAR
             else
                 OnStarStatusChanged?.Invoke(null, new StarStatusChangedEventArgs() { MessageType = StarStatusMessageType.Error, Message = $"Error Creating Omniverse. Reason: {result.Message}." });
 
-            SaveDNA();
+            STARDNAManager.SaveDNA(STARDNAPath, STARDNA);
 
             if (!result.IsError)
             {
