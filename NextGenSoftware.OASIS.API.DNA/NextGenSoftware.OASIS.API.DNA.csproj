@@ -25,6 +25,16 @@
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="OASIS_DNA.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="OASIS_DNA.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 	<ItemGroup>
 		<None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg">
 			<Pack>True</Pack>
@@ -38,6 +48,15 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="EosSharp.Core">
+	    <HintPath>..\STAR ODK\STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\Runtimes\OASIS Runtime\EosSharp.Core.dll</HintPath>
+	  </Reference>
+	  <Reference Include="NextGenSoftware.OASIS.DNALoader">
+	    <HintPath>External\NextGenSoftware.OASIS.DNALoader.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
   <ItemGroup>
