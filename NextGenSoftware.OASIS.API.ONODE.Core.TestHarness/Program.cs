@@ -1,6 +1,7 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.Common;
 using System;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.TestHarness
@@ -12,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.TestHarness
             Console.WriteLine("NEXTGEN SOFTWARE ONODE Core TEST HARNESS V1.2");
             Console.WriteLine("");
 
-            SampleManager sampleManager = new SampleManager();
+            SampleManager sampleManager = new SampleManager(Guid.NewGuid());
 
             Console.WriteLine("Saving Sample Holon...");
             OASISResult<SampleHolon> saveSampleHolonResult = sampleManager.SaveSampleHolon("test wallet", "test avatar", Guid.NewGuid(), DateTime.Now, 77, 77777777777);
