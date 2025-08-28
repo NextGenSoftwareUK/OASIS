@@ -292,3 +292,8 @@ NextGenSoftware.OASIS.API.ONODE.WebUI.HTML/react-app/yarn.lock
 /STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/OASIS_DNA.json
 /STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
 /STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
+
+# External repositories (cloned for dependencies)
+NextGenSoftware-Libraries/
+holochain-client-csharp/
+
