@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.STAR.DNA;
+using EOSNewYork.EOSCore.Response.API;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -153,7 +154,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoSpatialNFTs.Add(nftResult.Result);
                         parentQuestResult.Result.GeoSpatialNFTIds.Add(nftResult.Result.Id.ToString());
-                        result = await UpdateQuestAsync(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
+
+                        //if (parentQuestResult.Result.STARNETDNA.MetaData["GeoNFTs"] != null)
+                        //{
+                        //    Dictionary<string, List<STARNETDependency> geoNFTs = parentQuestResult.Result.STARNETDNA.MetaData["GeoNFTs"] as Dictionary<string, string>;
+
+                        //    if (geoNFTs != null)
+                        //    {
+                        //        geoNFTs[]
+                        //    }
+                        //}
+
+                        result = await UpdateQuestAsync(avatarId, parentQuestResult.Result, result, errorMessage, providerType: providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the geo-nft with NFTManager.LoadGeoNftAsync. Reason: {nftResult.Message}");
@@ -186,7 +198,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoSpatialNFTs.Add(nftResult.Result);
                         parentQuestResult.Result.GeoSpatialNFTIds.Add(nftResult.Result.Id.ToString());
-                        result = UpdateQuest(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
+                        result = UpdateQuest(avatarId, parentQuestResult.Result, result, errorMessage, providerType: providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the geo-nft with NFTManager.LoadGeoNft. Reason: {nftResult.Message}");
@@ -219,7 +231,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoSpatialNFTs.Remove(geoNFT);
                         parentQuestResult.Result.GeoSpatialNFTIds.Remove(geoNFTId.ToString());
-                        result = await UpdateQuestAsync(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
+                        result = await UpdateQuestAsync(avatarId, parentQuestResult.Result, result, errorMessage, providerType: providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} No GeoNFT could be found for the id {geoNFTId}");
@@ -252,7 +264,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoSpatialNFTs.Remove(geoNFT);
                         parentQuestResult.Result.GeoSpatialNFTIds.Remove(geoNFTId.ToString());
-                        result = UpdateQuest(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
+                        result = UpdateQuest(avatarId, parentQuestResult.Result, result, errorMessage, providerType: providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} No GeoNFT could be found for the id {geoNFTId}");
@@ -285,7 +297,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoHotSpots.Add(geoHotSpotResult.Result);
                         parentQuestResult.Result.GeoHotSpotIds.Add(geoHotSpotResult.Result.Id.ToString());
-                        result = await UpdateQuestAsync(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
+                        result = await UpdateQuestAsync(avatarId, parentQuestResult.Result, result, errorMessage, providerType: providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the geo-hotspot with Data.LoadHolonAsync. Reason: {geoHotSpotResult.Message}");
@@ -318,7 +330,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoHotSpots.Add(geoHotSpotResult.Result);
                         parentQuestResult.Result.GeoHotSpotIds.Add(geoHotSpotResult.Result.Id.ToString());
-                        result = UpdateQuest(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
+                        result = UpdateQuest(avatarId, parentQuestResult.Result, result, errorMessage, providerType: providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the geo-hotspot with Data.LoadHolon. Reason: {geoHotSpotResult.Message}");
@@ -351,7 +363,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoHotSpots.Remove(geoHotSpot);
                         parentQuestResult.Result.GeoHotSpotIds.Remove(geoHotSpot.ToString());
-                        result = await UpdateQuestAsync(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
+                        result = await UpdateQuestAsync(avatarId, parentQuestResult.Result, result, errorMessage, providerType: providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} No GeoHotSpot could be found for the id {geoHotSpotId}");
@@ -384,7 +396,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         parentQuestResult.Result.GeoHotSpots.Remove(geoHotSpot);
                         parentQuestResult.Result.GeoHotSpotIds.Remove(geoHotSpot.ToString());
-                        result = UpdateQuest(avatarId, parentQuestResult.Result, result, errorMessage, providerType);
+                        result = UpdateQuest(avatarId, parentQuestResult.Result, result, errorMessage, providerType: providerType);
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} No GeoHotSpot could be found for the id {geoHotSpotId}");
@@ -523,26 +535,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private OASISResult<IQuest> UpdateQuest(Guid avatarId, IQuest quest, OASISResult<IQuest> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        private OASISResult<IQuest> UpdateQuest(Guid avatarId, IQuest quest, OASISResult<IQuest> result, string errorMessage, bool updateDNAJSONFile = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<Quest> questResult = Update(avatarId, (Quest)quest, providerType: providerType);
+            OASISResult<Quest> questResult = Update(avatarId, (Quest)quest, updateDNAJSONFile = updateDNAJSONFile, providerType: providerType);
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(questResult, result);
 
             if (questResult != null && questResult.Result != null && !questResult.IsError)
-                result.Result = (IQuest)questResult.Result;
+                result.Result = questResult.Result;
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with QuestManager.Update. Reason: {questResult.Message}");
-
             return result;
         }
 
-        private async Task<OASISResult<IQuest>> UpdateQuestAsync(Guid avatarId, IQuest quest, OASISResult<IQuest> result, string errorMessage, ProviderType providerType = ProviderType.Default)
+        private async Task<OASISResult<IQuest>> UpdateQuestAsync(Guid avatarId, IQuest quest, OASISResult<IQuest> result, string errorMessage, bool updateDNAJSONFile = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<Quest> questResult = await UpdateAsync(avatarId, (Quest)quest, providerType: providerType);
+            OASISResult<Quest> questResult = await UpdateAsync(avatarId, (Quest)quest, updateDNAJSONFile = updateDNAJSONFile, providerType: providerType);
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(questResult, result);
 
             if (questResult != null && questResult.Result != null && !questResult.IsError)
-                result.Result = (IQuest)questResult.Result;
+                result.Result = questResult.Result;
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with QuestManager.Update. Reason: {questResult.Message}");
 
