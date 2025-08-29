@@ -49,7 +49,18 @@ namespace NextGenSoftware.OASIS.STAR
 
         public static string STARDNAPath { get; set; } = STAR_DNA_DEFAULT_PATH;
         public static string OASISDNAPath { get; set; } = OASIS_DNA_DEFAULT_PATH;
-        public static STARDNA STARDNA { get; set; }
+
+        public static STARDNA STARDNA
+        {
+            get
+            {
+                return STARDNAManager.STARDNA;
+            }
+            set
+            {
+                STARDNAManager.STARDNA = value;
+            }
+        }
 
         public static OASISDNA OASISDNA
         {
