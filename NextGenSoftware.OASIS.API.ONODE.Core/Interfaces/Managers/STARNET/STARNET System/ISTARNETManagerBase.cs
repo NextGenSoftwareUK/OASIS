@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         Task<OASISResult<T1>> AddDependencyAsync<T>(Guid avatarId, Guid parentId, string parentVersion, T installedDependency, DependencyType dependencyType, bool installDependency = true, DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
         Task<OASISResult<T1>> AddDependencyAsync<T>(Guid avatarId, T1 parent, T installedDependency, DependencyType dependencyType, bool installDependency = true, DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
         OASISResult<T1> BeginPublish(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType);
-        Task<OASISResult<T1>> BeginPublishAsync(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType);
+        Task<OASISResult<T1>> BeginPublishAsync(Guid avatarId, string fullPathToSTARNETDNA, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType);
         OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> dependency = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, string> metaTagMappings = null, Dictionary<string, object> metaData = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Deactivate(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default);
@@ -129,7 +129,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         OASISResult<T1> LoadForPublishedFile(Guid avatarId, string publishedFilePath, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> LoadForPublishedFileAsync(Guid avatarId, string publishedFilePath, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> LoadForSourceOrInstalledFolder(Guid avatarId, string sourceOrInstallPath, HolonType holonType = HolonType.Default, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> LoadForSourceOrInstalledFolderAsync(Guid avatarId, string sourceOrInstallPath, HolonType holonType = HolonType.Default, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> LoadForSourceOrInstalledFolderAsync(Guid avatarId, string fullPathToSTARNETDNA, HolonType holonType = HolonType.Default, ProviderType providerType = ProviderType.Default);
         OASISResult<T3> LoadInstalled(Guid avatarId, Guid STARNETHolonId, bool active, int versionSequence, ProviderType providerType = ProviderType.Default);
         OASISResult<T3> LoadInstalled(Guid avatarId, Guid STARNETHolonId, int versionSequence, ProviderType providerType = ProviderType.Default);
         OASISResult<T3> LoadInstalled(Guid avatarId, Guid STARNETHolonId, string version, ProviderType providerType = ProviderType.Default);

@@ -14,7 +14,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         Guid CreatedByAvatarId { get; set; }
         string CreatedByAvatarUsername { get; set; }
         DateTime CreatedOn { get; set; }
-        object STARNETHolonType { get; set; }
+        HolonType STARNETHolonType { get; set; }
+        object STARNETCategory { get; set; }
         public STARNETDependencies Dependencies { get; set; }
         public Dictionary<string, object> MetaData { get; set; }
         public Dictionary<string, string> MetaTagMappings { get; set; }
