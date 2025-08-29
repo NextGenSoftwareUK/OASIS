@@ -1527,7 +1527,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 Console.WriteLine("");
                                 CLIEngine.ShowSuccessMessage($"Meta tag '{tag}' mapped to meta data '{metaField}'");
                                 Console.WriteLine("");
-                                ShowMetaTagMappings(result.Result);
+                                ShowMetaTagMappings(result.Result, true);
                             }
                             else
                                 Console.WriteLine("");
