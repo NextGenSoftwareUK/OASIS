@@ -1,21 +1,23 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using NextGenSoftware.OASIS.Common;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
 {
     public interface ISTARNETManagerBase<T1, T2, T3, T4>
-       where T1 : ISTARNETHolon, new()
-       where T2 : IDownloadedSTARNETHolon, new()
-       where T3 : IInstalledSTARNETHolon, new()
-       where T4 : ISTARNETDNA, new()
+        where T1 : ISTARNETHolon, new()
+        where T2 : IDownloadedSTARNETHolon, new()
+        where T3 : IInstalledSTARNETHolon, new()
+        where T4 : ISTARNETDNA, new()
     {
+        STARDNA STARDNA { get; set; }
         string STARNETDNAFileName { get; set; }
         string STARNETDNAJSONName { get; set; }
         string STARNETHolonFileExtention { get; set; }
@@ -39,40 +41,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         Task<OASISResult<T1>> ActivateAsync(Guid avatarId, Guid id, int version, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> ActivateAsync(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T1>> ActivateAsync(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddLibrary(Guid avatarId, Guid parentId, int parentVersionSequence, Guid libraryId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddLibrary(Guid avatarId, Guid parentId, int parentVersionSequence, InstalledLibrary installedLibrary, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddLibrary(Guid avatarId, Guid parentId, string parentVersion, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddLibrary(Guid avatarId, Guid parentId, string parentVersion, InstalledLibrary installedLibrary, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddLibrary(Guid avatarId, T1 parent, InstalledLibrary installedLibrary, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddLibraryAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid libraryId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddLibraryAsync(Guid avatarId, Guid parentId, int parentVersionSequence, InstalledLibrary installedLibrary, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddLibraryAsync(Guid avatarId, Guid parentId, string parentVersion, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddLibraryAsync(Guid avatarId, Guid parentId, string parentVersion, InstalledLibrary installedLibrary, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddLibraryAsync(Guid avatarId, T1 parent, InstalledLibrary installedLibrary, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddOAPPTemplate(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int subTemplateVersionSequence, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddOAPPTemplate(Guid avatarId, Guid parentId, int parentVersionSequence, IInstalledOAPPTemplate installedOAPPTemplate, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddOAPPTemplate(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string subTemplateVersion, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddOAPPTemplate(Guid avatarId, Guid parentId, string parentVersion, IInstalledOAPPTemplate installedOAPPTemplate, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddOAPPTemplate(Guid avatarId, T1 parent, IInstalledOAPPTemplate installedOAPPTemplate, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddOAPPTemplateAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int subTemplateVersionSequence, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddOAPPTemplateAsync(Guid avatarId, Guid parentId, int parentVersionSequence, IInstalledOAPPTemplate installedOAPPTemplate, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddOAPPTemplateAsync(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string subTemplateVersion, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddOAPPTemplateAsync(Guid avatarId, Guid parentId, string parentVersion, IInstalledOAPPTemplate installedOAPPTemplate, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddOAPPTemplateAsync(Guid avatarId, T1 parent, IInstalledOAPPTemplate installedOAPPTemplate, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddRuntime(Guid avatarId, Guid parentId, int parentVersionSequence, Guid runtimeId, int runtimeVersionSequence, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddRuntime(Guid avatarId, Guid parentId, int parentVersionSequence, IInstalledRuntime installedRuntime, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddRuntime(Guid avatarId, Guid parentId, string parentVersion, Guid runtimeId, string runtimeVersion, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddRuntime(Guid avatarId, Guid parentId, string parentVersion, IInstalledRuntime installedRuntime, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> AddRuntime(Guid avatarId, T1 parent, IInstalledRuntime installedRuntime, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddRuntimeAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid runtimeId, int runtimeVersionSequence, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddRuntimeAsync(Guid avatarId, Guid parentId, int parentVersionSequence, IInstalledRuntime installedRuntime, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddRuntimeAsync(Guid avatarId, Guid parentId, string parentVersion, Guid runtimeId, string runtimeVersion, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddRuntimeAsync(Guid avatarId, Guid parentId, string parentVersion, IInstalledRuntime installedRuntime, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> AddRuntimeAsync(Guid avatarId, T1 parent, IInstalledRuntime installedRuntime, ProviderType providerType = ProviderType.Default);
+        OASISResult<T1> AddDependency<T>(Guid avatarId, Guid parentId, int parentVersionSequence, Guid dependencyId, int dependencyVersionSequence, HolonType dependencyHolonType, DependencyType dependencyType, bool installDependency = true, DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        OASISResult<T1> AddDependency<T>(Guid avatarId, Guid parentId, int parentVersionSequence, T installedDependency, DependencyType dependencyType, bool installDependency = true, DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        OASISResult<T1> AddDependency<T>(Guid avatarId, Guid parentId, string parentVersion, Guid dependencyId, string dependencyVersion, HolonType dependencyHolonType, DependencyType dependencyType, bool installDependency = true, DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        OASISResult<T1> AddDependency<T>(Guid avatarId, Guid parentId, string parentVersion, T installedDependency, DependencyType dependencyType, bool installDependency = true, DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        OASISResult<T1> AddDependency<T>(Guid avatarId, T1 parent, T installedDependency, DependencyType dependencyType, bool installDependency = true, DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        Task<OASISResult<T1>> AddDependencyAsync<T>(Guid avatarId, Guid parentId, int parentVersionSequence, Guid dependencyId, int dependencyVersionSequence, HolonType dependencyHolonType, DependencyType dependencyType, bool installDependency = true, DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        Task<OASISResult<T1>> AddDependencyAsync<T>(Guid avatarId, Guid parentId, int parentVersionSequence, T installedDependency, DependencyType dependencyType, bool installDependency = true, DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        Task<OASISResult<T1>> AddDependencyAsync<T>(Guid avatarId, Guid parentId, string parentVersion, Guid dependencyId, string dependencyVersion, HolonType dependencyHolonType, DependencyType dependencyType, bool installDependency = true, DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        Task<OASISResult<T1>> AddDependencyAsync<T>(Guid avatarId, Guid parentId, string parentVersion, T installedDependency, DependencyType dependencyType, bool installDependency = true, DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        Task<OASISResult<T1>> AddDependencyAsync<T>(Guid avatarId, T1 parent, T installedDependency, DependencyType dependencyType, bool installDependency = true, DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
         OASISResult<T1> BeginPublish(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType);
         Task<OASISResult<T1>> BeginPublishAsync(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType);
         OASISResult<T1> Create(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, object> dependency = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, string> metaTagMappings = null, Dictionary<string, object> dependency = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, string> metaTagMappings = null, Dictionary<string, object> metaData = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Deactivate(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Deactivate(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Deactivate(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default);
@@ -110,6 +92,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         OASISResult<bool> GenerateCompressedFile(string sourcePath, string destinationPath);
         OASISResult<T3> Install(Guid avatarId, string fullPathToPublishedOrDownloadedSTARNETHolonFile, string fullInstallPath, bool createSTARNETHolonDirectory = true, IDownloadedSTARNETHolon downloadedSTARNETHolon = null, bool reInstall = false, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<T3>> InstallAsync(Guid avatarId, string fullPathToPublishedOrDownloadedSTARNETHolonFile, string fullInstallPath, bool createSTARNETHolonDirectory = true, IDownloadedSTARNETHolon downloadedSTARNETHolon = null, bool reInstall = false, ProviderType providerType = ProviderType.Default);
+        OASISResult<T> InstallDependency<T>(Guid avatarId, STARNETDependency dependency, string defaultDownloadPath, string defaultInstallPath, string dependencyDisplayName, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon;
+        Task<OASISResult<T>> InstallDependencyAsync<T>(Guid avatarId, STARNETDependency dependency, string defaultDownloadPath, string defaultInstallPath, string dependencyDisplayName, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon;
         OASISResult<bool> IsInstalled(Guid avatarId, Guid STARNETHolonId, int versionSequence, ProviderType providerType = ProviderType.Default);
         OASISResult<bool> IsInstalled(Guid avatarId, Guid STARNETHolonId, string version, ProviderType providerType = ProviderType.Default);
         OASISResult<bool> IsInstalled(Guid avatarId, string name, int versionSequence, ProviderType providerType = ProviderType.Default);
@@ -177,18 +161,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         Task<OASISResult<T>> ReadDNAFromPublishedFileAsync<T>(string fullPathToPublishedFile);
         OASISResult<T> ReadDNAFromSourceOrInstallFolder<T>(string fullPathToSTARNETHolonFolder);
         Task<OASISResult<T>> ReadDNAFromSourceOrInstallFolderAsync<T>(string fullPathToSTARNETHolonFolder);
-        OASISResult<T1> RemoveLibrary(Guid avatarId, Guid parentId, int parentVersionSequence, Guid libraryId, int libraryVersionSequnce, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> RemoveLibrary(Guid avatarId, Guid parentId, string parentVersion, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> RemoveLibraryAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid libraryId, int libraryVersionSequence, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> RemoveLibraryAsync(Guid avatarId, Guid parentId, string parentVersion, Guid libraryId, string libraryVersion, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> RemoveOAPPTemplate(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int subTemplateVersionSequnce, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> RemoveOAPPTemplate(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string subTemplateVersion, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> RemoveOAPPTemplateAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid templateId, int subTemplateVersionSequence, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> RemoveOAPPTemplateAsync(Guid avatarId, Guid parentId, string parentVersion, Guid templateId, string subTemplateVersion, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> RemoveRuntime(Guid avatarId, Guid parentId, int parentVersionSequence, Guid runtimeId, int runtimeVersionSequnce, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> RemoveRuntime(Guid avatarId, Guid parentId, string parentVersion, Guid runtimeId, string runtimeVersion, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> RemoveRuntimeAsync(Guid avatarId, Guid parentId, int parentVersionSequence, Guid runtimeId, int runtimeVersionSequence, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> RemoveRuntimeAsync(Guid avatarId, Guid parentId, string parentVersion, Guid runtimeId, string runtimeVersion, ProviderType providerType = ProviderType.Default);
+        OASISResult<T1> RemoveDependency<T>(Guid avatarId, Guid parentId, int parentVersionSequence, Guid dependencyId, int dependencyVersionSequence, HolonType dependencyHolonType, DependencyType dependencyType, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        OASISResult<T1> RemoveDependency<T>(Guid avatarId, Guid parentId, int parentVersionSequence, T installedDependency, DependencyType dependencyType, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        OASISResult<T1> RemoveDependency<T>(Guid avatarId, Guid parentId, string parentVersion, Guid dependencyId, string dependencyVersion, HolonType dependencyHolonType, DependencyType dependencyType, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        OASISResult<T1> RemoveDependency<T>(Guid avatarId, Guid parentId, string parentVersion, T installedDependency, DependencyType dependencyType, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        OASISResult<T1> RemoveDependency<T>(Guid avatarId, T1 parent, T installedDependency, DependencyType dependencyType, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        Task<OASISResult<T1>> RemoveDependencyAsync<T>(Guid avatarId, Guid parentId, int parentVersionSequence, Guid dependencyId, int dependencyVersionSequence, HolonType dependencyHolonType, DependencyType dependencyType, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        Task<OASISResult<T1>> RemoveDependencyAsync<T>(Guid avatarId, Guid parentId, int parentVersionSequence, T installedDependency, DependencyType dependencyType, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        Task<OASISResult<T1>> RemoveDependencyAsync<T>(Guid avatarId, Guid parentId, string parentVersion, Guid dependencyId, string dependencyVersion, HolonType dependencyHolonType, DependencyType dependencyType, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        Task<OASISResult<T1>> RemoveDependencyAsync<T>(Guid avatarId, Guid parentId, string parentVersion, T installedDependency, DependencyType dependencyType, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
+        Task<OASISResult<T1>> RemoveDependencyAsync<T>(Guid avatarId, T1 parent, T installedDependency, DependencyType dependencyType, ProviderType providerType = ProviderType.Default) where T : IInstalledSTARNETHolon, new();
         OASISResult<T1> Republish(Guid avatarId, Guid STARNETHolonId, int version, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Republish(Guid avatarId, T1 holon, ProviderType providerType = ProviderType.Default);
         OASISResult<T1> Republish(Guid avatarId, T4 STARNETDNA, ProviderType providerType = ProviderType.Default);
