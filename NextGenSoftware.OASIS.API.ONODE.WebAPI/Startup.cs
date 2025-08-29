@@ -86,7 +86,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // configure DI for application services
             services.AddScoped<IAvatarService, AvatarService>();
             //services.AddScoped<IEmailService, EmailService>();
-            //services.AddScoped<ISolanaService, SolanaService>(); //TODO: Not sure we need this? Want to remove this along with all other services ASAP! Use Managers in OASIS.API.Core and OASIS.API.ONODE.Core instead!
+            //services.AddScoped<ISolanaService, SolanaService>(); // No longer needed - using OASIS provider pattern
             //services.AddScoped<ICargoService, CargoService>();
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();

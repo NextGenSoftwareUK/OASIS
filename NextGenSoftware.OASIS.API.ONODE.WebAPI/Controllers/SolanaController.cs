@@ -1,7 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
@@ -15,11 +20,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Authorize]
     public class SolanaController : OASISControllerBase
     {
-        private readonly ISolanaService _solanaService;
+        private SolanaOASIS _solanaOASIS = null;
 
-        public SolanaController(ISolanaService solanaService)
+        private SolanaOASIS SolanaOASIS
         {
-            _solanaService = solanaService;
+            get
+            {
+                if (_solanaOASIS == null)
+                {
+                    OASISResult<IOASISStorageProvider> result = Task.Run(async () => await OASISBootLoader.OASISBootLoader.GetAndActivateStorageProviderAsync(ProviderType.SolanaOASIS)).Result;
+
+                    if (result.IsError)
+                        OASISErrorHandling.HandleError(ref result, string.Concat("Error calling OASISBootLoader.OASISBootLoader.GetAndActivateProvider(ProviderType.SolanaOASIS). Error details: ", result.Message));
+
+                    _solanaOASIS = (SolanaOASIS)result.Result;
+                }
+
+                return _solanaOASIS;
+            }
         }
 
         /// <summary>
@@ -31,7 +49,48 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("Mint")]
         public async Task<OASISResult<MintNftResult>> MintNft([FromBody] MintNFTTransactionRequestForProvider request)
         {
-            return await _solanaService.MintNftAsync(request);
+            // Convert the request to the format expected by SolanaOASIS
+            var nftRequest = new NextGenSoftware.OASIS.API.Core.Objects.NFT.Request.MintNFTTransactionRequestForProvider
+            {
+                Title = request.Title,
+                Description = request.Description ?? request.Symbol, // Use Description if provided, otherwise fallback to Symbol
+                Symbol = request.Symbol,
+                JSONUrl = request.JSONUrl,
+                // Add required fields that SolanaOASIS expects
+                MintWalletAddress = request.MintWalletAddress,
+                MintedByAvatarId = request.MintedByAvatarId,
+                ImageUrl = request.ImageUrl,
+                ThumbnailUrl = request.ThumbnailUrl,
+                Price = request.Price,
+                Discount = request.Discount,
+                MemoText = request.MemoText,
+                NumberToMint = request.NumberToMint,
+                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
+                MetaData = request.MetaData ?? new Dictionary<string, object> { { "symbol", request.Symbol }, { "jsonUrl", request.JSONUrl } }
+            };
+
+            var result = await SolanaOASIS.MintNFTAsync(nftRequest);
+            
+            if (result.IsError)
+            {
+                return new OASISResult<MintNftResult>
+                {
+                    IsError = true,
+                    Message = result.Message
+                };
+            }
+
+            // Convert the result to MintNftResult format
+            return new OASISResult<MintNftResult>
+            {
+                IsError = false,
+                Result = new MintNftResult
+                {
+                    MintAccount = result.Result?.TransactionResult ?? "Unknown",
+                    Network = "Solana",
+                    TransactionHash = result.Result?.TransactionResult ?? "Unknown"
+                }
+            };
         }
 
         /// <summary>
@@ -44,7 +103,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("Send")]
         public async Task<OASISResult<SendTransactionResult>> SendTransaction([FromBody] SendTransactionRequest request)
         {
-            return await _solanaService.SendTransaction(request);
+            // Convert the request to the format expected by SolanaOASIS
+            var nftRequest = new NextGenSoftware.OASIS.API.Core.Objects.NFT.Request.NFTWalletTransactionRequest
+            {
+                FromWalletAddress = request.FromAccount.PublicKey,
+                ToWalletAddress = request.ToAccount.PublicKey,
+                Amount = request.Lampposts,
+                MemoText = request.MemoText
+            };
+
+            var result = await SolanaOASIS.SendNFTAsync(nftRequest);
+            
+            if (result.IsError)
+            {
+                return new OASISResult<SendTransactionResult>
+                {
+                    IsError = true,
+                    Message = result.Message
+                };
+            }
+
+            // Convert the result to SendTransactionResult format
+            return new OASISResult<SendTransactionResult>
+            {
+                IsError = false,
+                Result = new SendTransactionResult
+                {
+                    TransactionHash = result.Result?.TransactionResult ?? "Unknown"
+                }
+            };
         }
     }
 }
