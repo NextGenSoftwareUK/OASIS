@@ -11,7 +11,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public object STARNETHolonType { get; set; }
+        public HolonType STARNETHolonType { get; set; }
+        public object STARNETCategory { get; set; }
         public STARNETDependencies Dependencies { get; set; } = new STARNETDependencies();
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
         public Dictionary<string, string> MetaTagMappings { get; set; } = new Dictionary<string, string>();
