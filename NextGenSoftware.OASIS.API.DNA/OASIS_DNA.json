@@ -90,7 +90,7 @@
             },
             "MongoDBOASIS": {
                 "DBName": "OASISAPI_DEV",
-                "ConnectionString": "mongodb://localhost:27017"
+                "ConnectionString": "mongodb+srv://OASISWEB4:Uppermall1!@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4"
             },
             "EOSIOOASIS": {
                 "AccountName": "oasis",
