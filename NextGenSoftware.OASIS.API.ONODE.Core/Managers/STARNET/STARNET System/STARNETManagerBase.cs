@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
         public STARNETManagerBase(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA) { }
         public STARNETManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(OASISStorageProvider, avatarId, OASISDNA) { }
-        public STARNETManagerBase(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null, Type STARNETHolonSubType = null, HolonType STARNETHolonType = HolonType.STARNETHolon, HolonType STARNETHolonInstalledHolonType = HolonType.InstalledSTARNETHolon, string STARNETHolonUIName = "OAPP System Holon", string STARNETHolonIdName = "STARNETHolonId", string STARNETHolonNameName = "STARNETHolonName", string STARNETHolonTypeName = "STARNETHolonType", string STARNETHolonFileExtention = "oappsystemholon", string STARNETHolonGoogleBucket = "oasis_oappsystemholons", string STARNETDNAFileName = "STARNETDNA.json", string STARNETDNAJSONName = "STARNETDNAJSON") : base(avatarId, OASISDNA)
+        public STARNETManagerBase(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null, Type STARNETCategory = null, HolonType STARNETHolonType = HolonType.STARNETHolon, HolonType STARNETHolonInstalledHolonType = HolonType.InstalledSTARNETHolon, string STARNETHolonUIName = "OAPP System Holon", string STARNETHolonIdName = "STARNETHolonId", string STARNETHolonNameName = "STARNETHolonName", string STARNETHolonTypeName = "STARNETHolonType", string STARNETHolonFileExtention = "oappsystemholon", string STARNETHolonGoogleBucket = "oasis_oappsystemholons", string STARNETDNAFileName = "STARNETDNA.json", string STARNETDNAJSONName = "STARNETDNAJSON") : base(avatarId, OASISDNA)
         {
             this.STARDNA = STARDNA;
             this.STARNETHolonType = STARNETHolonType;
@@ -52,10 +52,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             this.STARNETHolonGoogleBucket = STARNETHolonGoogleBucket;
             this.STARNETDNAFileName = STARNETDNAFileName;
             this.STARNETDNAJSONName = STARNETDNAJSONName;
-            this.STARNETHolonSubType = STARNETHolonSubType;
+            this.STARNETCategory = STARNETCategory;
         }
 
-        public STARNETManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null, Type STARNETHolonSubType = null, HolonType STARNETHolonType = HolonType.STARNETHolon, HolonType STARNETHolonInstalledHolonType = HolonType.InstalledSTARNETHolon, string STARNETHolonUIName = "OAPP System Holon", string STARNETHolonIdName = "STARNETHolonId", string STARNETHolonNameName = "STARNETHolonName", string STARNETHolonTypeName = "STARNETHolonType", string STARNETHolonFileExtention = "oappsystemholon", string STARNETHolonGoogleBucket = "oasis_oappsystemholons", string STARNETDNAFileName = "STARNETDNA.json", string STARNETDNAJSONName = "STARNETDNAJSON") : base(OASISStorageProvider, avatarId, OASISDNA)
+        public STARNETManagerBase(IOASISStorageProvider OASISStorageProvider, Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null, Type STARNETCategory = null, HolonType STARNETHolonType = HolonType.STARNETHolon, HolonType STARNETHolonInstalledHolonType = HolonType.InstalledSTARNETHolon, string STARNETHolonUIName = "OAPP System Holon", string STARNETHolonIdName = "STARNETHolonId", string STARNETHolonNameName = "STARNETHolonName", string STARNETHolonTypeName = "STARNETHolonType", string STARNETHolonFileExtention = "oappsystemholon", string STARNETHolonGoogleBucket = "oasis_oappsystemholons", string STARNETDNAFileName = "STARNETDNA.json", string STARNETDNAJSONName = "STARNETDNAJSON") : base(OASISStorageProvider, avatarId, OASISDNA)
         {
             this.STARDNA = STARDNA;
             this.STARNETHolonType = STARNETHolonType;
@@ -68,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             this.STARNETHolonGoogleBucket = STARNETHolonGoogleBucket;
             this.STARNETDNAFileName = STARNETDNAFileName;
             this.STARNETDNAJSONName = STARNETDNAJSONName;
-            this.STARNETHolonSubType = STARNETHolonSubType;
+            this.STARNETCategory = STARNETCategory;
         }
 
         public delegate void PublishStatusChanged(object sender, STARNETHolonPublishStatusEventArgs e);
@@ -107,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public string STARNETHolonGoogleBucket { get; set; } = "oasis_oappsystemholons";
         public string STARNETDNAFileName { get; set; } = "STARNETDNA.json";
         public string STARNETDNAJSONName { get; set; } = "STARNETDNAJSON";
-        public Type STARNETHolonSubType { get; set; }
+        public Type STARNETCategory { get; set; }
         public STARDNA STARDNA { get; set; }
 
         public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, string> metaTagMappings = null, Dictionary<string, object> metaData = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
@@ -191,7 +191,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.Id = holon.Id;
                     STARNETDNA.Name = name;
                     STARNETDNA.Description = description;
-                    STARNETDNA.STARNETHolonType = Enum.GetName(holonSubTypeType, holonSubType);
+                    STARNETDNA.STARNETHolonType = Enum.GetName(typeof(HolonType), STARNETHolonType);
+                    STARNETDNA.STARNETCategory = Enum.GetName(holonSubTypeType, holonSubType);
                     STARNETDNA.CreatedByAvatarId = avatarId;
                     STARNETDNA.CreatedByAvatarUsername = avatarResult.Result.Username;
                     STARNETDNA.CreatedOn = DateTime.Now;
@@ -336,7 +337,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.Id = holon.Id;
                     STARNETDNA.Name = name;
                     STARNETDNA.Description = description;
-                    STARNETDNA.STARNETHolonType = Enum.GetName(holonSubTypeType, holonSubType);
+                    STARNETDNA.STARNETHolonType = Enum.GetName(typeof(HolonType), STARNETHolonType);
+                    STARNETDNA.STARNETCategory = Enum.GetName(holonSubTypeType, holonSubType);
                     STARNETDNA.CreatedByAvatarId = avatarId;
                     STARNETDNA.CreatedByAvatarUsername = avatarResult.Result.Username;
                     STARNETDNA.CreatedOn = DateTime.Now;
@@ -619,10 +621,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public virtual async Task<OASISResult<T1>> LoadForSourceOrInstalledFolderAsync(Guid avatarId, string fullPathToSTARNETDNA, HolonType holonType = HolonType.Default, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> LoadForSourceOrInstalledFolderAsync(Guid avatarId, string sourceOrInstallPath, HolonType holonType = HolonType.Default, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T4> readDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<T4>(fullPathToSTARNETDNA);
+            OASISResult<T4> readDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<T4>(sourceOrInstallPath);
 
             if (readDNAResult != null && readDNAResult.Result != null && !readDNAResult.IsError)
                 result = await LoadAsync(avatarId, readDNAResult.Result.Id, readDNAResult.Result.VersionSequence, holonType, providerType);
@@ -632,10 +634,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<T1> LoadForSourceOrInstalledFolder(Guid avatarId, string fullPathToSTARNETDNA, HolonType holonType = HolonType.Default, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> LoadForSourceOrInstalledFolder(Guid avatarId, string sourceOrInstallPath, HolonType holonType = HolonType.Default, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISResult<T4> readDNAResult = ReadDNAFromSourceOrInstallFolder<T4>(fullPathToSTARNETDNA);
+            OASISResult<T4> readDNAResult = ReadDNAFromSourceOrInstallFolder<T4>(sourceOrInstallPath);
 
             if (readDNAResult != null && readDNAResult.Result != null && !readDNAResult.IsError)
                 result = Load(avatarId, readDNAResult.Result.Id, readDNAResult.Result.VersionSequence, holonType, providerType);
@@ -1331,7 +1333,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     STARNETDNA.PublishedPath = Path.Combine(fullPathToPublishTo, publishedFileName);
                     STARNETDNA.PublishedToCloud = registerOnSTARNET && uploadToCloud;
-                    STARNETDNA.PublishedProviderType = binaryProviderType;
+                    STARNETDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), binaryProviderType);
                 }
 
                 WriteDNA(STARNETDNA, fullPathToSource);
@@ -1406,7 +1408,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                             OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToOASISAsync. Reason: {uploadToOASISResult.Message}");
                     }
                     else
-                        STARNETDNA.PublishedProviderType = ProviderType.None;
+                        STARNETDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None);
                 }
 
                 OASISResult<T1> finalResult = await FininalizePublishAsync(avatarId, validateResult.Result, edit, providerType);
@@ -1438,7 +1440,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 {
                     STARNETDNA.PublishedPath = Path.Combine(fullPathToPublishTo, publishedFileName);
                     STARNETDNA.PublishedToCloud = registerOnSTARNET && uploadToCloud;
-                    STARNETDNA.PublishedProviderType = binaryProviderType;
+                    STARNETDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), binaryProviderType);
                 }
 
                 WriteDNA(STARNETDNA, fullPathToSource);
@@ -1483,7 +1485,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                             OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToOASIS. Reason: {uploadToOASISResult.Message}");
                     }
                     else
-                        STARNETDNA.PublishedProviderType = ProviderType.None;
+                        STARNETDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None); 
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in BeginPublish. Reason: {validateResult.Message}");
@@ -1544,7 +1546,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    }
         //}
 
-        public virtual async Task<OASISResult<T1>> BeginPublishAsync(Guid avatarId, string fullPathToSTARNETDNA, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType)
+        public virtual async Task<OASISResult<T1>> BeginPublishAsync(Guid avatarId, string fullPathToSource, string fullPathToPublishTo, string launchTarget, bool edit, ProviderType providerType)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string userName = "Unknown";
@@ -1552,7 +1554,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             try
             {
-                OASISResult<T4> readSTARNETDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<T4>(fullPathToSTARNETDNA);
+                OASISResult<T4> readSTARNETDNAResult = await ReadDNAFromSourceOrInstallFolderAsync<T4>(fullPathToSource);
 
                 if (readSTARNETDNAResult != null && !readSTARNETDNAResult.IsError && readSTARNETDNAResult.Result != null)
                 {
@@ -2011,7 +2013,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             {
                 OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published {STARNETHolonUIName} binary to STARNET using the {binaryProviderType} provider. Reason: {saveLargeSTARNETHolonResult.Message}");
                 STARNETDNA.PublishedOnSTARNET = registerOnSTARNET && uploadToCloud;
-                STARNETDNA.PublishedProviderType = ProviderType.None;
+                STARNETDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None);
             }
 
             return result;
@@ -2035,7 +2037,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             {
                 OASISErrorHandling.HandleWarning(ref result, $" Error occured saving the published {STARNETHolonUIName} binary to STARNET using the {binaryProviderType} provider. Reason: {saveLargeSTARNETHolonResult.Message}");
                 STARNETDNA.PublishedOnSTARNET = registerOnSTARNET && uploadToCloud;
-                STARNETDNA.PublishedProviderType = ProviderType.None;
+                STARNETDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None);
             }
 
             return result;
@@ -4839,7 +4841,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         //    return STARNETDNA;
         //}
 
-        public virtual async Task<OASISResult<bool>> WriteDNAAsync<T>(T STARNETDNA, string fullPathToSTARNETHolon) where T : ISTARNETDNA
+        public virtual async Task<OASISResult<bool>> WriteDNAAsync<T>(T STARNETDNA, string fullPathToSTARNETHolon) //where T : ISTARNETDNA
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -4860,8 +4862,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 //if (OAPPDNA != null)
                 //    Data.RemoveCelesialBodies(OAPPDNA.Zomes);
 
-                //await File.WriteAllTextAsync(Path.Combine(fullPathToSTARNETHolon, STARNETDNAFileName), JsonConvert.SerializeObject(STARNETDNA, Formatting.Indented));
-                await File.WriteAllTextAsync(Path.Combine(fullPathToSTARNETHolon, string.Concat(Enum.GetName(typeof(HolonType), STARNETDNA.STARNETHolonType), "_", STARNETDNA.Name, "_", "v", STARNETDNA.Version)), JsonConvert.SerializeObject(STARNETDNA, Formatting.Indented));
+                await File.WriteAllTextAsync(Path.Combine(fullPathToSTARNETHolon, STARNETDNAFileName), JsonConvert.SerializeObject(STARNETDNA, Formatting.Indented));
+                //await File.WriteAllTextAsync(Path.Combine(fullPathToSTARNETHolon, string.Concat(Enum.GetName(typeof(HolonType), STARNETDNA.STARNETHolonType), "_", STARNETDNA.Name, "_", "v", STARNETDNA.Version)), JsonConvert.SerializeObject(STARNETDNA, Formatting.Indented));
 
                 //Restore the celestial bodies & cores back onto the zomes.
                 //if (OAPPDNA != null)
@@ -4877,7 +4879,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
-        public OASISResult<bool> WriteDNA<T>(T STARNETDNA, string fullPathToSTARNETHolon) where T : ISTARNETDNA
+        public OASISResult<bool> WriteDNA<T>(T STARNETDNA, string fullPathToSTARNETHolon) //where T : ISTARNETDNA
         {
             OASISResult<bool> result = new OASISResult<bool>();
 
@@ -4887,8 +4889,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     Directory.CreateDirectory(fullPathToSTARNETHolon);
 
                 //File.WriteAllText(Path.Combine(fullPathToSTARNETHolon, STARNETDNAFileName), JsonSerializer.Serialize(STARNETDNA));
-                //File.WriteAllText(Path.Combine(fullPathToSTARNETHolon, STARNETDNAFileName), JsonConvert.SerializeObject(STARNETDNA, Formatting.Indented));
-                File.WriteAllText(Path.Combine(fullPathToSTARNETHolon, string.Concat(Enum.GetName(typeof(HolonType), STARNETDNA.STARNETHolonType), "_", STARNETDNA.Name, "_", "v", STARNETDNA.Version)), JsonConvert.SerializeObject(STARNETDNA, Formatting.Indented));
+                File.WriteAllText(Path.Combine(fullPathToSTARNETHolon, STARNETDNAFileName), JsonConvert.SerializeObject(STARNETDNA, Formatting.Indented));
+                //File.WriteAllText(Path.Combine(fullPathToSTARNETHolon, string.Concat(Enum.GetName(typeof(HolonType), STARNETDNA.STARNETHolonType), "_", STARNETDNA.Name, "_", "v", STARNETDNA.Version)), JsonConvert.SerializeObject(STARNETDNA, Formatting.Indented));
                 result.Result = true;
             }
             catch (Exception ex)
@@ -4900,7 +4902,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         }
 
         //public virtual async Task<OASISResult<T>> ReadDNAFromSourceOrInstallFolderAsync<T>(T STARNETDNA, string fullPathToSTARNETHolonFolder) where T : ISTARNETDNA
-        public virtual async Task<OASISResult<T>> ReadDNAFromSourceOrInstallFolderAsync<T>(string fullPathToSTARNETDNA)
+        public virtual async Task<OASISResult<T>> ReadDNAFromSourceOrInstallFolderAsync<T>(string fullPathToSTARNETHolonFolder)
         {
             OASISResult<T> result = new OASISResult<T>();
 
@@ -4918,41 +4920,42 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 //    }
                 //};
 
-                //result.Result = JsonConvert.DeserializeObject<T>(await File.ReadAllTextAsync(Path.Combine(fullPathToSTARNETHolonFolder, STARNETDNAFileName)));
+                result.Result = JsonConvert.DeserializeObject<T>(await File.ReadAllTextAsync(Path.Combine(fullPathToSTARNETHolonFolder, STARNETDNAFileName)));
                 //result.Result = JsonConvert.DeserializeObject<T>(await File.ReadAllTextAsync(Path.Combine(fullPathToSTARNETHolonFolder, string.Concat(Enum.GetName(typeof(HolonType), STARNETDNA.STARNETHolonType), "_", STARNETDNA.Name, "_", "v", STARNETDNA.Version))));
-                result.Result = JsonConvert.DeserializeObject<T>(await File.ReadAllTextAsync(fullPathToSTARNETDNA));
+                //result.Result = JsonConvert.DeserializeObject<T>(await File.ReadAllTextAsync(fullPathToSTARNETDNA));
 
                 //result.Result = JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(Path.Combine(fullPathToSTARNETHolonFolder, STARNETDNAFileName)), options);
                 //result.Result = JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(Path.Combine(fullPathToSTARNETHolonFolder, STARNETDNAFileName)));
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An error occured reading the {STARNETDNAFileName} in the {fullPathToSTARNETDNA} folder in ReadDNAFromSourceOrInstallFolderAsync: Reason: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured reading the {STARNETDNAFileName} in the {fullPathToSTARNETHolonFolder} folder in ReadDNAFromSourceOrInstallFolderAsync: Reason: {ex.Message}");
             }
 
             return result;
         }
 
-        //public OASISResult<T> ReadDNAFromSourceOrInstallFolder<T>(string fullPathToSTARNETHolonFolder)
-        public OASISResult<T> ReadDNAFromSourceOrInstallFolder<T>(string fullPathToSTARNETDNA)
+        public OASISResult<T> ReadDNAFromSourceOrInstallFolder<T>(string fullPathToSTARNETHolonFolder)
+        //public OASISResult<T> ReadDNAFromSourceOrInstallFolder<T>(string fullPathToSTARNETDNA)
         {
             OASISResult<T> result = new OASISResult<T>();
 
             try
             {
                 //result.Result = JsonSerializer.Deserialize<T>(File.ReadAllText(Path.Combine(fullPathToSTARNETHolonFolder, STARNETDNAFileName)));
-                result.Result = JsonConvert.DeserializeObject<T>(File.ReadAllText(fullPathToSTARNETDNA));
+                //result.Result = JsonConvert.DeserializeObject<T>(File.ReadAllText(fullPathToSTARNETDNA));
+                result.Result = JsonConvert.DeserializeObject<T>(File.ReadAllText(Path.Combine(fullPathToSTARNETHolonFolder, STARNETDNAFileName)));
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An error occured reading the {STARNETDNAFileName} in the {fullPathToSTARNETDNA} folder in ReadDNAFromSourceOrInstallFolder: Reason: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"An error occured reading the {STARNETDNAFileName} in the {fullPathToSTARNETHolonFolder} folder in ReadDNAFromSourceOrInstallFolder: Reason: {ex.Message}");
             }
 
             return result;
         }
 
-        //public virtual async Task<OASISResult<T>> ReadDNAFromPublishedFileAsync<T>(string fullPathToPublishedFile)
-        public virtual async Task<OASISResult<T>> ReadDNAFromPublishedFileAsync<T>(T STARNETDNA, string fullPathToPublishedFile) where T : ISTARNETDNA
+        public virtual async Task<OASISResult<T>> ReadDNAFromPublishedFileAsync<T>(string fullPathToPublishedFile)
+        //public virtual async Task<OASISResult<T>> ReadDNAFromPublishedFileAsync<T>(T STARNETDNA, string fullPathToPublishedFile) where T : ISTARNETDNA
         {
             OASISResult<T> result = new OASISResult<T>();
             string tempPath = "";
@@ -4968,7 +4971,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 ZipFile.ExtractToDirectory(fullPathToPublishedFile, tempPath, Encoding.Default, true);
 
                 //result.Result = JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(Path.Combine(tempPath, STARNETDNAFileName)));
-                result.Result = JsonConvert.DeserializeObject<T>(File.ReadAllText(Path.Combine(tempPath, string.Concat(Enum.GetName(typeof(HolonType), STARNETDNA.STARNETHolonType), "_", STARNETDNA.Name, "_", "v", STARNETDNA.Version))));
+                //result.Result = JsonConvert.DeserializeObject<T>(File.ReadAllText(Path.Combine(tempPath, string.Concat(Enum.GetName(typeof(HolonType), STARNETDNA.STARNETHolonType), "_", STARNETDNA.Name, "_", "v", STARNETDNA.Version))));
+                result.Result = JsonConvert.DeserializeObject<T>(File.ReadAllText(Path.Combine(tempPath, STARNETDNAFileName)));
             }
             catch (Exception e)
             {
@@ -4983,8 +4987,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
+        public OASISResult<T> ReadDNAFromPublishedFile<T>(string fullPathToPublishedFile)
         //public OASISResult<T> ReadDNAFromPublishedFile<T>(string fullPathToPublishedFile)
-        public OASISResult<T> ReadDNAFromPublishedFile<T>(T STARNETDNA, string fullPathToPublishedFile) where T : ISTARNETDNA
         {
             OASISResult<T> result = new OASISResult<T>();
             string tempPath = "";
@@ -5000,8 +5004,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 ZipFile.ExtractToDirectory(fullPathToPublishedFile, tempPath, Encoding.Default, true);
 
                 //result.Result = JsonSerializer.Deserialize<T>(File.ReadAllText(Path.Combine(tempPath, STARNETDNAFileName)));
-                //result.Result = JsonConvert.DeserializeObject<T>(File.ReadAllText(Path.Combine(tempPath, STARNETDNAFileName)));
-                result.Result = JsonConvert.DeserializeObject<T>(File.ReadAllText(Path.Combine(tempPath, string.Concat(Enum.GetName(typeof(HolonType), STARNETDNA.STARNETHolonType), "_", STARNETDNA.Name, "_", "v", STARNETDNA.Version))));
+                result.Result = JsonConvert.DeserializeObject<T>(File.ReadAllText(Path.Combine(tempPath, STARNETDNAFileName)));
+                //result.Result = JsonConvert.DeserializeObject<T>(File.ReadAllText(Path.Combine(tempPath, string.Concat(Enum.GetName(typeof(HolonType), STARNETDNA.STARNETHolonType), "_", STARNETDNA.Name, "_", "v", STARNETDNA.Version))));
             }
             catch (Exception e)
             {
@@ -7652,8 +7656,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 bool install = false;
 
                 //TODO: When the DNA files are switched over to use OAPPTemplate_SampleTemplate_v1.0.0.json format un-comment this line! :-)
-                if (!File.Exists(dependencyDNAFilePath) && dependency.Install)
-                //if (!Directory.Exists(installPath) && dependency.Install) //Currently ONLY supports Nested! above line supports both! ;-)
+                //if (!File.Exists(dependencyDNAFilePath) && dependency.Install)
+                if (!Directory.Exists(installPath) && dependency.Install) //Currently ONLY supports Nested! above line supports both! ;-)
                 {
                     if (Directory.Exists(dependency.InstalledFrom))
                         DirectoryHelper.CopyFilesRecursively(dependency.InstalledFrom, installPath);
@@ -7708,8 +7712,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 bool install = false;
 
                 //TODO: When the DNA files are switched over to use OAPPTemplate_SampleTemplate_v1.0.0.json format un-comment this line! :-)
-                if (!File.Exists(dependencyDNAFilePath) && dependency.Install)
-                //if (!Directory.Exists(installPath) && dependency.Install) //Currently ONLY supports Nested! above line supports both! ;-)
+                //if (!File.Exists(dependencyDNAFilePath) && dependency.Install)
+                if (!Directory.Exists(installPath) && dependency.Install) //Currently ONLY supports Nested! above line supports both! ;-)
                 {
                     if (Directory.Exists(dependency.InstalledFrom))
                         DirectoryHelper.CopyFilesRecursively(dependency.InstalledFrom, installPath);
@@ -7754,7 +7758,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         private OASISResult<IEnumerable<T>> FilterResultsForVersion<T>(Guid avatarId, OASISResult<IEnumerable<T>> results, bool showAllVersions = false, int version = 0) where T : ISTARNETHolon, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
-            List<T> templates = new List<T>();
+            List<T> holons = new List<T>();
 
             if (!showAllVersions)
             {
@@ -7801,20 +7805,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             else
                 result.Result = results.Result;
 
-            //Filter out any templates that are not created by the avatar or published on STARNET.
+            //Filter out any items that are not created by the avatar or published on STARNET.
             if (results.Result != null)
             {
+                holons = result.Result.ToList();
+
                 foreach (T oappSystemHolon in result.Result)
                 {
-                    if (oappSystemHolon.STARNETDNA.CreatedByAvatarId == avatarId)
-                        templates.Remove(oappSystemHolon);
-
-                    else if (oappSystemHolon.STARNETDNA.PublishedOn != DateTime.MinValue)
-                        templates.Remove(oappSystemHolon);
+                    if (oappSystemHolon.STARNETDNA.CreatedByAvatarId != avatarId)
+                    {
+                        if (oappSystemHolon.STARNETDNA.PublishedOn == DateTime.MinValue)
+                            holons.Remove(oappSystemHolon);
+                    }
                 }
             }
 
-            result.Result = templates;
+            result.Result = holons;
             result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(results, result);
             return result;
         }

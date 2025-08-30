@@ -56,17 +56,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "OAPPDNAJSON")
         { }
 
-        public async Task<OASISResult<IOAPP>> PublishOAPPAsync(Guid avatarId, string fullPathToSTARNETDNA, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool dotnetPublish = true, bool generateSource = true, bool uploadSourceToSTARNET = true, bool makeSourcePublic = false, bool generateBinary = true, bool generateSelfContainedBinary = false, bool generateSelfContainedFullBinary = false, bool uploadToCloud = false, bool uploadSelfContainedToCloud = false, bool uploadSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS, ProviderType selfContainedBinaryProviderType = ProviderType.None, ProviderType selfContainedFullBinaryProviderType = ProviderType.None, bool embedRuntimes = false, bool embedLibs = false, bool embedTemplates = false)
+        public async Task<OASISResult<IOAPP>> PublishOAPPAsync(Guid avatarId, string fullPathToSource, string launchTarget, string fullPathToPublishTo = "", bool edit = false, bool registerOnSTARNET = true, bool dotnetPublish = true, bool generateSource = true, bool uploadSourceToSTARNET = true, bool makeSourcePublic = false, bool generateBinary = true, bool generateSelfContainedBinary = false, bool generateSelfContainedFullBinary = false, bool uploadToCloud = false, bool uploadSelfContainedToCloud = false, bool uploadSelfContainedFullToCloud = false, ProviderType providerType = ProviderType.Default, ProviderType binaryProviderType = ProviderType.IPFSOASIS, ProviderType selfContainedBinaryProviderType = ProviderType.None, ProviderType selfContainedFullBinaryProviderType = ProviderType.None, bool embedRuntimes = false, bool embedLibs = false, bool embedTemplates = false)
         {
             OASISResult<IOAPP> result = new OASISResult<IOAPP>();
             //IOAPPDNA OAPPDNA = null;
             ISTARNETDNA OAPPDNA = null;
             IOAPP OAPP = null;
-            //string
             string originalFullPathToSource = fullPathToSource;
             string errorMessage = "Error occured in OAPPManager.PublishAsync. Reason:";
 
-            OASISResult<OAPP> validateResult = await BeginPublishAsync(avatarId, fullPathToSTARNETDNA, launchTarget, fullPathToPublishTo, edit, providerType);
+            OASISResult<OAPP> validateResult = await BeginPublishAsync(avatarId, fullPathToSource, launchTarget, fullPathToPublishTo, edit, providerType);
 
             if (validateResult != null && validateResult.Result != null && !validateResult.IsError)
             {
@@ -99,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     OAPPDNA.PublishedPath = Path.Combine(fullPathToPublishTo, publishedFileName);
                     OAPPDNA.PublishedToCloud = registerOnSTARNET && uploadToCloud;
-                    OAPPDNA.PublishedProviderType = binaryProviderType;
+                    OAPPDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), binaryProviderType);
                 }
 
                 if (generateSelfContainedBinary)
@@ -333,7 +332,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     else
                     {
                         //OAPP.PublishedProviderType = ProviderType.None;
-                        OAPPDNA.PublishedProviderType = ProviderType.None;
+                        OAPPDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None);
                     }
 
                     if (selfContainedBinaryProviderType != ProviderType.None)
@@ -422,7 +421,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     OAPPDNA.PublishedPath = Path.Combine(fullPathToPublishTo, publishedFileName);
                     OAPPDNA.PublishedToCloud = registerOnSTARNET && uploadToCloud;
-                    OAPPDNA.PublishedProviderType = binaryProviderType;
+                    OAPPDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None);
                 }
 
                 //if (generateSelfContainedBinary)
@@ -554,7 +553,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToOASISAsync. Reason: {uploadToOASISResult.Message}");
                     }
                     else
-                        OAPPDNA.PublishedProviderType = ProviderType.None;
+                        OAPPDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None);
 
                     if (selfContainedBinaryProviderType != ProviderType.None)
                     {

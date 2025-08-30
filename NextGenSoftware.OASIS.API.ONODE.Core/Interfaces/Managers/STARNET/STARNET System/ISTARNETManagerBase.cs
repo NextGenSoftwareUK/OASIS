@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         string STARNETHolonIdName { get; set; }
         HolonType STARNETHolonInstalledHolonType { get; set; }
         string STARNETHolonNameName { get; set; }
-        Type STARNETHolonSubType { get; set; }
+        Type STARNETCategory { get; set; }
         HolonType STARNETHolonType { get; set; }
         string STARNETHolonTypeName { get; set; }
         string STARNETHolonUIName { get; set; }

@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public HolonType STARNETHolonType { get; set; }
+        public string STARNETHolonType { get; set; }
         public object STARNETCategory { get; set; }
         public STARNETDependencies Dependencies { get; set; } = new STARNETDependencies();
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public bool PublishedToCloud { get; set; }
         public bool PublishedToPinata { get; set; }
         public string PinataIPFSHash { get; set; }
-        public ProviderType PublishedProviderType { get; set; }
+        public string PublishedProviderType { get; set; }
         public long FileSize { get; set; }
         public string Version { get; set; }
         public string OASISRuntimeVersion { get; set; }
