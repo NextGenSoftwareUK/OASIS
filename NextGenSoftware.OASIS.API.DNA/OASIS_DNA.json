@@ -49,12 +49,12 @@
             }
         },
         "Email": {
-            "EmailFrom": "",
-            "SmtpHost": "",
-            "SmtpPort": 25,
-            "SmtpUser": "",
-            "SmtpPass": "",
-            "DisableAllEmails": true,
+            "EmailFrom": "oasisweb4@gmail.com",
+            "SmtpHost": "smtp.gmail.com",
+            "SmtpPort": 587,
+            "SmtpUser": "oasisweb4@gmail.com",
+            "SmtpPass": "wera jvdk xoom sose",
+            "DisableAllEmails": false,
             "SendVerificationEmail": true,
             "OASISWebSiteURL": "https://oasisweb4.one/#"
         },

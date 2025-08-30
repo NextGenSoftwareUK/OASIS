@@ -34,6 +34,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.F
 EndProject
 
 # Provider Projects
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.MongoOASIS", "NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj", "{5F4C8F4C-8F4C-8F4C-8F4C-8F4C8F4C8F4C}"
+EndProject
+
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.EthereumOASIS", "NextGenSoftware.OASIS.API.Providers.EthereumOASIS\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj", "{1EB41E98-EBF8-436A-B5C3-CE711C539075}"
 EndProject
 
@@ -121,6 +124,10 @@ Global
 		{139E91B6-6CD0-46C1-8077-AD7008D5616D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{139E91B6-6CD0-46C1-8077-AD7008D5616D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{139E91B6-6CD0-46C1-8077-AD7008D5616D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F4C8F4C-8F4C-8F4C-8F4C-8F4C8F4C8F4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F4C8F4C-8F4C-8F4C-8F4C-8F4C8F4C8F4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F4C8F4C-8F4C-8F4C-8F4C-8F4C8F4C8F4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F4C8F4C-8F4C-8F4C-8F4C-8F4C8F4C8F4C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D3E5B9B7-5C94-44E3-BE10-2EE84BF2E067}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D3E5B9B7-5C94-44E3-BE10-2EE84BF2E067}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3E5B9B7-5C94-44E3-BE10-2EE84BF2E067}.Release|Any CPU.ActiveCfg = Release|Any CPU

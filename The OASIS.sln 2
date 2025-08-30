@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.WebAPI", "NextGenSoftware.OASIS.API.ONODE.WebAPI\NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj", "{A8131B22-06EC-424A-B689-9411C8176BE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.WebAPI", "NextGenSoftware.OASIS.API.ONode.WebAPI\NextGenSoftware.OASIS.API.ONode.WebAPI.csproj", "{A8131B22-06EC-424A-B689-9411C8176BE8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.FrontEnd.Web", "NextGenSoftware.OASIS.API.FrontEnd\NextGenSoftware.OASIS.API.FrontEnd.Web.csproj", "{C50D7EA1-3B3C-4529-9317-55A5083DB560}"
 EndProject
@@ -101,13 +101,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS", "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj", "{B0E187E1-F913-40D1-A5EE-0F371087F8B4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.ONixOS", "NextGenSoftware.OASIS.API.ONODE.ONIXOS\NextGenSoftware.OASIS.API.ONODE.ONixOS.csproj", "{9F36CE67-A2E1-4B47-8721-CF7B81F1337C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.ONixOS", "NextGenSoftware.OASIS.API.ONODE.ONIXOS\NextGenSoftware.OASIS.API.ONode.ONixOS.csproj", "{9F36CE67-A2E1-4B47-8721-CF7B81F1337C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.OPortal", "NextGenSoftware.OASIS.API.ONODE.OPORTAL\NextGenSoftware.OASIS.API.ONODE.OPortal.csproj", "{4176271D-9A21-4C8B-A551-93587AE1E6E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.OPortal", "NextGenSoftware.OASIS.API.ONODE.OPORTAL\NextGenSoftware.OASIS.API.ONode.OPortal.csproj", "{4176271D-9A21-4C8B-A551-93587AE1E6E1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor", "NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor\NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor.csproj", "{F8F83354-30D7-46EE-8C2D-C4FCB3C4DB0A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.WebUI.Blazor", "NextGenSoftware.OASIS.API.ONODE.WebUI.Blazor\NextGenSoftware.OASIS.API.ONode.WebUI.Blazor.csproj", "{F8F83354-30D7-46EE-8C2D-C4FCB3C4DB0A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.WebUI.Razor", "NextGenSoftware.OASIS.API.ONODE.WebUI.Razor\NextGenSoftware.OASIS.API.ONODE.WebUI.Razor.csproj", "{A86EB275-F2C7-458B-B1DF-3305B190925A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.WebUI.Razor", "NextGenSoftware.OASIS.API.ONODE.WebUI.Razor\NextGenSoftware.OASIS.API.ONode.WebUI.Razor.csproj", "{A86EB275-F2C7-458B-B1DF-3305B190925A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.TRONOASIS", "NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj", "{F20653EE-56B2-4E15-9CD5-F4366792BDA6}"
 EndProject
@@ -117,11 +117,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Native.Integrated.EndPoint", "NextGenSoftware.OASIS.API.Native.Integrated.EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj", "{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML", "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML\NextGenSoftware.OASIS.API.ONODE.WebUI.HTML.csproj", "{4DC61E07-A0C1-4952-9965-42B879C51BD5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.WebUI.HTML", "NextGenSoftware.OASIS.API.ONODE.WebUI.HTML\NextGenSoftware.OASIS.API.ONode.WebUI.HTML.csproj", "{4DC61E07-A0C1-4952-9965-42B879C51BD5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness.csproj", "{93E6533F-25BE-45C4-A2C8-4B699E29552F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.WebUI.MVC", "NextGenSoftware.OASIS.API.ONODE.WebUI.MVC\NextGenSoftware.OASIS.API.ONODE.WebUI.MVC.csproj", "{5FFF84E1-C79D-4A22-B480-1530F2F6C42D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.WebUI.MVC", "NextGenSoftware.OASIS.API.ONODE.WebUI.MVC\NextGenSoftware.OASIS.API.ONode.WebUI.MVC.csproj", "{5FFF84E1-C79D-4A22-B480-1530F2F6C42D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness.csproj", "{2CD2E03C-FCA1-4BD0-92D6-ABABA1B34E64}"
 EndProject
@@ -145,7 +145,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IpfsHttpClient", "External 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.Core", "NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj", "{3F69AB31-C967-424C-8F41-62476BFA56F8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.Core.TestHarness", "NextGenSoftware.OASIS.API.ONODE.Core.TestHarness\NextGenSoftware.OASIS.API.ONODE.Core.TestHarness.csproj", "{05D1141B-FA9D-42A2-9E32-8A9555AE0210}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.Core.TestHarness", "NextGenSoftware.OASIS.API.ONODE.Core.TestHarness\NextGenSoftware.OASIS.API.ONode.Core.TestHarness.csproj", "{05D1141B-FA9D-42A2-9E32-8A9555AE0210}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS", "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj", "{272D6882-9ADE-4587-82E7-C728E2B5DA61}"
 EndProject
@@ -197,7 +197,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS Providers", "OASIS Pr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS.API.Core", "OASIS.API.Core", "{1CD64ADE-1AFF-46CC-A531-DFC6240C74C8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS.API.ONODE", "OASIS.API.ONODE", "{C9ECD9F9-0707-4CD8-8D96-686FB1162C83}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS.API.ONode", "OASIS.API.ONode", "{C9ECD9F9-0707-4CD8-8D96-686FB1162C83}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Holochain", "Holochain", "{4A9AB918-E897-426E-9F5B-F03E974144D3}"
 EndProject

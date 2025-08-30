@@ -13,6 +13,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
         public string FromProviderType { get; set; }
         public string ToProviderType { get; set; }
         public string MintWalletAddress { get; set; }
+        public string TokenAddress { get; set; }
         public decimal Amount { get; set; }
         public string MemoText { get; set; }
     }

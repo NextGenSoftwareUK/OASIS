@@ -207,6 +207,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                  ToWalletAddress = request.ToWalletAddress,
                  FromProviderType = fromProviderType,
                  ToProviderType = toProviderType,
+                 TokenAddress = request.TokenAddress,  // Added missing field mapping
                  Amount = request.Amount,
                  MemoText = request.MemoText
             };
