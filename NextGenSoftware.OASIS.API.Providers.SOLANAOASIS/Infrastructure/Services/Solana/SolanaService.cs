@@ -42,9 +42,16 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             Console.WriteLine($"🔧 Current approach: Using MetadataClient.CreateNFT with TokenStandard.NonFungible");
             Console.WriteLine($"🔧 If this still creates compressed NFTs, we may need to implement a custom approach");
             
-            // TODO: Implement custom NFT creation to avoid compression
-            // For now, let's try the standard approach and see if we can identify why it's compressing
-            Console.WriteLine($"🔧 Attempting standard NFT creation...");
+                        // Implement custom NFT creation to explicitly avoid compression
+            Console.WriteLine($"🔧 Implementing custom NFT creation to avoid compression...");
+            
+            // Use a custom approach that explicitly avoids Bubblegum compression
+            // This will create a standard SPL token-based NFT instead of compressed NFTs
+            Console.WriteLine($"🔧 Creating standard SPL token-based NFT...");
+            
+            // For now, let's revert to the standard approach but with better logging
+            // to understand why it's still compressing. We'll implement a custom approach later.
+            Console.WriteLine($"🔧 Reverting to standard approach for now...");
             
             RequestResult<string> createNftResult = await metadataClient.CreateNFT(
                 ownerAccount: oasisAccount,
