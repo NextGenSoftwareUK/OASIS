@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         Guid CreatedByAvatarId { get; set; }
         string CreatedByAvatarUsername { get; set; }
         DateTime CreatedOn { get; set; }
-        HolonType STARNETHolonType { get; set; }
+        string STARNETHolonType { get; set; }
         object STARNETCategory { get; set; }
         public STARNETDependencies Dependencies { get; set; }
         public Dictionary<string, object> MetaData { get; set; }
@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         bool PublishedToCloud { get; set; }
         bool PublishedToPinata { get; set; }
         string PinataIPFSHash { get; set; }
-        ProviderType PublishedProviderType { get; set; }
+        string PublishedProviderType { get; set; }
         string LaunchTarget { get; set; }
         long FileSize { get; set; }
         string Version { get; set; }
