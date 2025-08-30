@@ -94,7 +94,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             if (holonSubType == null)
-                holonSubType = CLIEngine.GetValidInputForEnum($"What type of {STARNETManager.STARNETHolonUIName} do you wish to create?", STARNETManager.STARNETHolonSubType);
+                holonSubType = CLIEngine.GetValidInputForEnum($"What type of {STARNETManager.STARNETHolonUIName} do you wish to create?", STARNETManager.STARNETCategory);
 
             if (holonSubType != null)
             {
@@ -223,14 +223,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation($"Do you wish to edit the {STARNETManager.STARNETHolonUIName} Type?"))
                 {
                     Console.WriteLine("");
-                    object holonSubType = CLIEngine.GetValidInputForEnum($"What is the new type of the {STARNETManager.STARNETHolonUIName}?", STARNETManager.STARNETHolonSubType);
+                    object holonSubType = CLIEngine.GetValidInputForEnum($"What is the new type of the {STARNETManager.STARNETHolonUIName}?", STARNETManager.STARNETCategory);
 
                     if (holonSubType != null)
                     {
                         if (holonSubType.ToString() == "exit")
                             return;
 
-                        loadResult.Result.STARNETDNA.STARNETHolonType = holonSubType;
+                        loadResult.Result.STARNETDNA.STARNETCategory = holonSubType;
                         changesMade = true;
                     }
                 }
@@ -2042,7 +2042,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Filesize:".PadRight(displayFieldLength), starHolon.STARNETDNA.FileSize.ToString()), false);
             CLIEngine.ShowMessage(string.Concat($"Published On STARNET:".PadRight(displayFieldLength), starHolon.STARNETDNA.PublishedOnSTARNET ? "True" : "False"), false);
             CLIEngine.ShowMessage(string.Concat($"Published To Cloud:".PadRight(displayFieldLength), starHolon.STARNETDNA.PublishedToCloud ? "True" : "False"), false);
-            CLIEngine.ShowMessage(string.Concat($"Published To OASIS Provider:".PadRight(displayFieldLength), Enum.GetName(typeof(ProviderType), starHolon.STARNETDNA.PublishedProviderType)), false);
+            CLIEngine.ShowMessage(string.Concat($"Published To OASIS Provider:".PadRight(displayFieldLength), starHolon.STARNETDNA.PublishedProviderType), false);
             CLIEngine.ShowMessage(string.Concat($"Launch Target:".PadRight(displayFieldLength), !string.IsNullOrEmpty(starHolon.STARNETDNA.LaunchTarget) ? starHolon.STARNETDNA.LaunchTarget : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.Version), false);
             CLIEngine.ShowMessage(string.Concat($"Version Sequence:".PadRight(displayFieldLength), starHolon.STARNETDNA.VersionSequence), false);
@@ -2062,6 +2062,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($".NET Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.DotNetVersion), false);
 
             ShowAllDependencies(starHolon, showDetailedInfo, displayFieldLength);
+            Console.WriteLine("");
             ShowMetaTagMappings(starHolon.STARNETDNA.MetaTagMappings, showDetailedInfo, displayFieldLength);
 
             if (showFooter)
@@ -2146,7 +2147,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (showDetailed)
                 ShowDependenices(starHolon.STARNETDNA.Dependencies.Runtimes, displayFieldLength);
 
-            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Runtimes.Count} Found. {tip}", false);
+            CLIEngine.ShowMessage(string.Concat($"{starHolon.STARNETDNA.Dependencies.Runtimes.Count} Found.", starHolon.STARNETDNA.Dependencies.Runtimes.Count > 0 ? tip : ""), false);
 
             Console.WriteLine("");
             DisplayProperty("LIBS", "", displayFieldLength, false);
@@ -2154,7 +2155,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (showDetailed)
                 ShowDependenices(starHolon.STARNETDNA.Dependencies.Libraries, displayFieldLength);
 
-            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Libraries.Count} Found. {tip}", false);
+            CLIEngine.ShowMessage(string.Concat($"{starHolon.STARNETDNA.Dependencies.Libraries.Count} Found.", starHolon.STARNETDNA.Dependencies.Libraries.Count > 0 ? tip : ""), false);
 
             Console.WriteLine("");
             DisplayProperty("TEMPLATES", "", displayFieldLength, false);
@@ -2162,7 +2163,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (showDetailed)
                 ShowDependenices(starHolon.STARNETDNA.Dependencies.Templates, displayFieldLength);
 
-            CLIEngine.ShowMessage($"{starHolon.STARNETDNA.Dependencies.Templates.Count} Found. {tip}", false);
+            CLIEngine.ShowMessage(string.Concat($"{starHolon.STARNETDNA.Dependencies.Templates.Count} Found.", starHolon.STARNETDNA.Dependencies.Templates.Count > 0 ? tip : ""), false);
         }
 
         protected void ShowMetaTagMappings(Dictionary<string, string> metaTagMappings, bool showDetailedInfo, int displayFieldLength = DEFAULT_FIELD_LENGTH)
@@ -2170,14 +2171,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (showDetailedInfo)
             {
                 Console.WriteLine("");
-                CLIEngine.ShowMessage(string.Concat("Meta Tag Mappings", "(", metaTagMappings != null ? metaTagMappings.Count.ToString() : "0", "):"), false);
+                CLIEngine.ShowMessage(string.Concat("Meta Tag Mappings", "(", metaTagMappings != null && metaTagMappings.Count > 0 ? metaTagMappings.Count.ToString() : "None", "):"), false);
                 CLIEngine.ShowMessage(string.Concat("Tag".PadRight(22), "Meta Data".PadRight(22)), false);
 
                 foreach (string key in metaTagMappings.Keys)
                     CLIEngine.ShowMessage(string.Concat(key.PadRight(22), metaTagMappings[key].PadRight(22)), false);
             }
             else
-                DisplayProperty("Meta Tag Mappings", string.Concat(metaTagMappings != null ? metaTagMappings.Count.ToString() : "0", metaTagMappings != null && metaTagMappings.Count > 0 ? " (use show/list detailed to view)" : ""), displayFieldLength);
+                DisplayProperty("Meta Tag Mappings", string.Concat(metaTagMappings != null && metaTagMappings.Count > 0 ? metaTagMappings.Count.ToString() : "None", metaTagMappings != null && metaTagMappings.Count > 0 ? " (use show/list detailed to view)" : ""), displayFieldLength);
         }
 
         public async Task<OASISResult<T1>> FindAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string STARNETHolonUIName = "Default", ProviderType providerType = ProviderType.Default)
