@@ -18,6 +18,11 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         {
             MetadataClient metadataClient = new(rpcClient);
             Account mintAccount = new();
+            
+            // Log the minting attempt to help with debugging
+            Console.WriteLine($"🎨 Minting NFT: {mintNftRequest.Title} (Standard NFT - No Compression)");
+            Console.WriteLine($"🔧 Using TokenStandard: {TokenStandard.NonFungible}");
+            Console.WriteLine($"🔧 Using MetadataClient.CreateNFT method");
 
             Metadata tokenMetadata = new()
             {
@@ -28,6 +33,19 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 creators = _creators
             };
 
+            // Force standard NFT creation instead of compressed NFTs
+            // Use explicit parameters to ensure standard NFT minting
+            Console.WriteLine($"🔧 Attempting to force standard NFT creation...");
+            
+            // Since MetadataClient.CreateNFT is defaulting to compressed NFTs,
+            // let's try to use a different approach or check if we can force standard NFTs
+            Console.WriteLine($"🔧 Current approach: Using MetadataClient.CreateNFT with TokenStandard.NonFungible");
+            Console.WriteLine($"🔧 If this still creates compressed NFTs, we may need to implement a custom approach");
+            
+            // TODO: Implement custom NFT creation to avoid compression
+            // For now, let's try the standard approach and see if we can identify why it's compressing
+            Console.WriteLine($"🔧 Attempting standard NFT creation...");
+            
             RequestResult<string> createNftResult = await metadataClient.CreateNFT(
                 ownerAccount: oasisAccount,
                 mintAccount: mintAccount,
