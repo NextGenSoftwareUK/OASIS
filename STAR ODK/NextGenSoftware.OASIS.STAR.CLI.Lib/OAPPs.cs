@@ -1034,7 +1034,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Id:".PadRight(displayFieldLength), oapp.STARNETDNA.Id != Guid.Empty ? oapp.STARNETDNA.Id : "None"), false);
             DisplayProperty("Name", !string.IsNullOrEmpty(oapp.STARNETDNA.Name) ? oapp.STARNETDNA.Name : "None", displayFieldLength);
             DisplayProperty("Description", !string.IsNullOrEmpty(oapp.STARNETDNA.Description) ? oapp.STARNETDNA.Description : "None", displayFieldLength);
-            DisplayProperty($"OAPP Type", oapp.STARNETDNA.STARNETHolonType.ToString(), displayFieldLength);
+            DisplayProperty("Type", oapp.STARNETDNA.STARNETHolonType, displayFieldLength);
+            DisplayProperty("Category:", oapp.STARNETDNA.STARNETCategory.ToString(), displayFieldLength);
             DisplayProperty("Genesis Type", ParseMetaDataForEnum(oapp.MetaData, "GenesisType", typeof(GenesisType)), displayFieldLength);
             DisplayProperty("Celestial Body Id", ParseMetaData(oapp.MetaData, "CelestialBodyId"), displayFieldLength);
 

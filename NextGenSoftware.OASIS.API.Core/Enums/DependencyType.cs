@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Holon,
         CelestialBodyMetaDataDNA,
         ZomeMetaDataDNA,
-        HolonMetaDataDNA,
-        None
+        HolonMetaDataDNA
+        //None
     }
 }
