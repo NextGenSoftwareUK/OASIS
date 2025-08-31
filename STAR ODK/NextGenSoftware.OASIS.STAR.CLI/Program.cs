@@ -910,8 +910,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<ProviderType, Task> listUnpublishedPredicate = null,
             Func<ProviderType, Task> listDeactivatedPredicate = null,
             Func<string, bool, bool, ProviderType, Task> searchPredicate = null,
-            Func<string, string, DependencyType, ProviderType, Task> addDependencyPredicate = null,
-            Func<string, string, DependencyType, ProviderType, Task> removeDependencyPredicate = null,
+            Func<string, string, string, ProviderType, Task> addDependencyPredicate = null,
+            Func<string, string, string, ProviderType, Task> removeDependencyPredicate = null,
             //Func<string, string, ProviderType, Task> addRuntimePredicate = null,
             //Func<string, string, ProviderType, Task> removeRuntimePredicate = null,
             //Func<string, string, ProviderType, Task> addLibPredicate = null,
@@ -1151,13 +1151,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "adddependency":
                         {
-                            DependencyType dependencyType = DependencyType.None;
-
-                            if (string.IsNullOrEmpty(subCommandParam4))
-                                dependencyType = (DependencyType)Enum.Parse(typeof(DependencyType), subCommandParam4);
-
                             if (addDependencyPredicate != null)
-                                await addDependencyPredicate(id, subCommandParam3, dependencyType, providerType);
+                                await addDependencyPredicate(id, subCommandParam3, subCommandParam4, providerType);
                             else
                                 CLIEngine.ShowMessage("Coming Soon...");
                         }
@@ -1165,13 +1160,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "removedependency":
                         {
-                            DependencyType dependencyType = DependencyType.None;
-
-                            if (string.IsNullOrEmpty(subCommandParam4))
-                                dependencyType = (DependencyType)Enum.Parse(typeof(DependencyType), subCommandParam4);
-
                             if (removeDependencyPredicate != null)
-                                await removeDependencyPredicate(id, subCommandParam3, dependencyType, providerType);
+                                await removeDependencyPredicate(id, subCommandParam3, subCommandParam4, providerType);
                             else
                                 CLIEngine.ShowMessage("Coming Soon...");
                         }
