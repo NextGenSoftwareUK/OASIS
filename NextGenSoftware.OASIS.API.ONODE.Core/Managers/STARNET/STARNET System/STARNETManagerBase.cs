@@ -28,8 +28,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
-    public abstract class STARNETManagerBase<T1, T2, T3, T4> : COSMICManagerBase, ISTARNETManagerBase<T1, T2, T3, T4> 
-        where T1 : ISTARNETHolon, new()
+    public abstract class STARNETManagerBase<T1, T2, T3, T4> : COSMICManagerBase, ISTARNETManagerBase<T1, T2, T3, T4> where T1 : ISTARNETHolon, new()
         where T2 : IDownloadedSTARNETHolon, new()
         where T3 : IInstalledSTARNETHolon, new()
         where T4 : ISTARNETDNA, new()
@@ -1380,8 +1379,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     }
                     finally
                     {
-                        if (Directory.Exists(publishedPath))
-                            Directory.Delete(publishedPath, true);
+                        if (Directory.Exists(Path.Combine(fullPathToPublishTo, "Published Temp")))
+                            Directory.Delete(Path.Combine(fullPathToPublishTo, "Published Temp"), true);
                     }
                 }
 
@@ -1416,7 +1415,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result.Result = finalResult.Result;
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in BeginPublishAsync. Reason: {validateResult.Message}");
+            {
+                if (validateResult.Message.Contains(STARNETDNAFileName))
+                {
+                    result.Message = validateResult.Message;
+                    result.IsError = validateResult.IsError;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in BeginPublishAsync. Reason: {validateResult.Message}");
+            }
 
             return result;
         }
@@ -1485,7 +1492,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                             OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToOASIS. Reason: {uploadToOASISResult.Message}");
                     }
                     else
-                        STARNETDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None); 
+                        STARNETDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None);
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in BeginPublish. Reason: {validateResult.Message}");
@@ -1612,7 +1619,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                                     result.Result.STARNETDNA = STARNETDNA;
                                 }
                                 else
-                                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in ValidateVersion. Reason: {validateVersionResult.Message}");
+                                {
+                                    if (validateVersionResult.Message.Contains(STARNETDNAFileName))
+                                    {
+                                        result.Message = validateVersionResult.Message;
+                                        result.IsError = validateVersionResult.IsError;
+                                    }
+                                    else
+                                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured in ValidateVersion. Reason: {validateVersionResult.Message}");
+                                }
                             }
                             else
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} The Permssion Denied! The beamed in avatar id {avatarId} does not match the avatar id {loadOAPPResult.Result.STARNETDNA.CreatedByAvatarId} who created this {this.STARNETHolonUIName}.");
@@ -5064,6 +5079,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     }
                 }
             }
+            else if (dnaVersion != "1.0.0")
+            {
+                OASISErrorHandling.HandleError(ref result, $"The first version has to be 1.0.0! Please correct in the {STARNETDNAFileName} file found in the root of your {STARNETHolonUIName} folder.");
+                return result;
+            }
 
             result.Result = true;
             return result;
@@ -7544,6 +7564,40 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             return result;
         }
 
+        public bool IsThereDependencies(ISTARNETDNA STARNETDNA)
+        {
+            return ListAllDependencies(STARNETDNA).Count > 0;
+        }
+
+        public int GetNumberOfDependendies(ISTARNETDNA STARNETDNA)
+        {
+            return ListAllDependencies(STARNETDNA).Count;
+        }
+
+        public List<ISTARNETDependency> ListAllDependencies(ISTARNETDNA STARNETDNA)
+        {
+            List<ISTARNETDependency> dependencies = new List<ISTARNETDependency>();
+            dependencies.AddRange(STARNETDNA.Dependencies.CelestialBodies);
+            dependencies.AddRange(STARNETDNA.Dependencies.CelestialBodiesMetaDataDNA);
+            dependencies.AddRange(STARNETDNA.Dependencies.CelestialSpaces);
+            dependencies.AddRange(STARNETDNA.Dependencies.Chapters);
+            dependencies.AddRange(STARNETDNA.Dependencies.GeoHotSpots);
+            dependencies.AddRange(STARNETDNA.Dependencies.GeoNFTs);
+            dependencies.AddRange(STARNETDNA.Dependencies.Holons);
+            dependencies.AddRange(STARNETDNA.Dependencies.HolonsMetaDataDNA);
+            dependencies.AddRange(STARNETDNA.Dependencies.InventoryItems);
+            dependencies.AddRange(STARNETDNA.Dependencies.Libraries);
+            dependencies.AddRange(STARNETDNA.Dependencies.Missions);
+            dependencies.AddRange(STARNETDNA.Dependencies.NFTs);
+            dependencies.AddRange(STARNETDNA.Dependencies.OAPPs);
+            dependencies.AddRange(STARNETDNA.Dependencies.Quests);
+            dependencies.AddRange(STARNETDNA.Dependencies.Runtimes);
+            dependencies.AddRange(STARNETDNA.Dependencies.Templates);
+            dependencies.AddRange(STARNETDNA.Dependencies.Zomes);
+            dependencies.AddRange(STARNETDNA.Dependencies.ZomesMetaDataDNA);
+            return dependencies;
+        }
+
         protected void RaisePublishStatusChangedEvent(T4 STARNETDNA, STARNETHolonPublishStatus status, string errorMesssage = "")
         {
             OnPublishStatusChanged?.Invoke(this, new STARNETHolonPublishStatusEventArgs() { STARNETDNA = STARNETDNA, Status = status, ErrorMessage = errorMesssage });
@@ -7791,11 +7845,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     else
                     {
                         List<T> filteredList = new List<T>();
+                        //filteredList = results.Result.ToList();
 
                         foreach (T oappSystemHolon in results.Result)
                         {
                             if (oappSystemHolon.MetaData["VersionSequence"].ToString() == version.ToString())
-                                filteredList.Remove(oappSystemHolon);
+                                filteredList.Add(oappSystemHolon);
                         }
 
                         result.Result = filteredList;
@@ -7876,6 +7931,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                 case DependencyType.CelestialBody:
                     dependencyFolderName = "CelestialBodies";
+                    break;
+
+                default:
+                    dependencyFolderName = string.Concat(dependencyFolderName, "s");
                     break;
             }
 
@@ -7981,75 +8040,75 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 switch (dependencyType)
                 {
                     case DependencyType.CelestialBodyMetaDataDNA:
-                        parent.STARNETDNA.Dependencies.CelestialBodiesMetaDataDNA.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.CelestialBodiesMetaDataDNA.Add(dependency);
                         break;
 
                     case DependencyType.ZomeMetaDataDNA:
-                        parent.STARNETDNA.Dependencies.ZomesMetaDataDNA.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.ZomesMetaDataDNA.Add(dependency);
                         break;
 
                     case DependencyType.HolonMetaDataDNA:
-                        parent.STARNETDNA.Dependencies.HolonsMetaDataDNA.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.HolonsMetaDataDNA.Add(dependency);
                         break;
 
                     case DependencyType.Runtime:
-                        parent.STARNETDNA.Dependencies.Runtimes.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.Runtimes.Add(dependency);
                         break;
 
                     case DependencyType.Library:
-                        parent.STARNETDNA.Dependencies.Libraries.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.Libraries.Add(dependency);
                         break;
 
                     case DependencyType.Template:
-                        parent.STARNETDNA.Dependencies.Templates.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.Templates.Add(dependency);
                         break;
 
                     case DependencyType.OAPP:
-                        parent.STARNETDNA.Dependencies.OAPPs.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.OAPPs.Add(dependency);
                         break;
 
                     case DependencyType.Zome:
-                        parent.STARNETDNA.Dependencies.Zomes.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.Zomes.Add(dependency);
                         break;
 
                     case DependencyType.Holon:
-                        parent.STARNETDNA.Dependencies.Holons.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.Holons.Add(dependency);
                         break;
 
                     case DependencyType.CelestialBody:
-                        parent.STARNETDNA.Dependencies.CelestialBodies.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.CelestialBodies.Add(dependency);
                         break;
 
                     case DependencyType.CelestialSpace:
-                        parent.STARNETDNA.Dependencies.CelestialSpaces.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.CelestialSpaces.Add(dependency);
                         break;
 
                     case DependencyType.Quest:
-                        parent.STARNETDNA.Dependencies.Quests.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.Quests.Add(dependency);
                         break;
 
                     case DependencyType.Mission:
-                        parent.STARNETDNA.Dependencies.Missions.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.Missions.Add(dependency);
                         break;
 
                     case DependencyType.Chapter:
-                        parent.STARNETDNA.Dependencies.Chapters.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.Chapters.Add(dependency);
                         break;
 
                     case DependencyType.NFT:
-                        parent.STARNETDNA.Dependencies.NFTs.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.NFTs.Add(dependency);
                         break;
 
                     case DependencyType.GeoNFT:
-                        parent.STARNETDNA.Dependencies.GeoNFTs.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.GeoNFTs.Add(dependency);
                         break;
 
                     case DependencyType.GeoHotSpot:
-                        parent.STARNETDNA.Dependencies.GeoHotSpots.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.GeoHotSpots.Add(dependency);
                         break;
 
                     case DependencyType.InventoryItem:
-                        parent.STARNETDNA.Dependencies.InventoryItems.Remove(dependency);
+                        parent.STARNETDNA.Dependencies.InventoryItems.Add(dependency);
                         break;
                 }
             }

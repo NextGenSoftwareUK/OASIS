@@ -181,9 +181,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     }
                     finally
                     {
-                        //TODO: Put back in once finished testing! ;-)
-                        if (Directory.Exists(publishedPath))
-                            Directory.Delete(publishedPath, true);
+                        if (Directory.Exists(Path.Combine(fullPathToPublishTo, "Published Temp")))
+                            Directory.Delete(Path.Combine(fullPathToPublishTo, "Published Temp"), true);
                     }
                 }
 
@@ -225,9 +224,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     }
                     finally
                     {
-                        //TODO: Put back in once finished testing! ;-)
-                        if (Directory.Exists(publishedPath))
-                            Directory.Delete(publishedPath, true);
+                        if (Directory.Exists(Path.Combine(fullPathToPublishTo, "Published Temp")))
+                            Directory.Delete(Path.Combine(fullPathToPublishTo, "Published Temp"), true);
                     }
                 }
 
@@ -269,9 +267,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     }
                     finally
                     {
-                        //TODO: Put back in once finished testing! ;-)
-                        if (Directory.Exists(publishedPath))
-                            Directory.Delete(publishedPath, true);
+                        if (Directory.Exists(Path.Combine(fullPathToPublishTo, "Published Temp")))
+                            Directory.Delete(Path.Combine(fullPathToPublishTo, "Published Temp"), true);
                     }
                 }
 
