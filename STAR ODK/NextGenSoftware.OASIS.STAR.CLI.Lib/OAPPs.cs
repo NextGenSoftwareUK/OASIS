@@ -17,6 +17,7 @@ using NextGenSoftware.OASIS.STAR.Zomes;
 using NextGenSoftware.OASIS.STAR.Interfaces;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.STAR.DNA;
+using Ipfs.CoreApi;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -149,7 +150,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             {
                                 templateInstalled = true;
                                 installedOAPPTemplate = findResult.Result;
-                                OAPPTemplateType = (OAPPTemplateType)Enum.Parse(typeof(OAPPTemplateType), installedOAPPTemplate.STARNETDNA.STARNETHolonType.ToString());
+                                OAPPTemplateType = (OAPPTemplateType)Enum.Parse(typeof(OAPPTemplateType), installedOAPPTemplate.STARNETDNA.STARNETCategory.ToString());
                             }
                             else
                             {
@@ -466,16 +467,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             if (findResult != null && findResult.Result != null && !findResult.IsError)
                             {
-                                validDNA = true;
-                                dnaFolder = findResult.Result.InstalledPath;
-                                celestialBodyMetaDataDNA = findResult.Result;
+                                OASISResult<List<INode>> nodesResult = ValidateCelestialBodyDataDNA(findResult.Result.InstalledPath);
 
-                                OASISResult<List<INode>> nodesResult = STAR.ExtractNodesFromCelestialBodyMetaDataDNA(dnaFolder);
-
-                                if (nodesResult != null && nodesResult.Result != null && !nodesResult.IsError)
+                                if (nodesResult != null && nodesResult.Result != null && !nodesResult.IsError && nodesResult.Result.Count > 0)
+                                {
                                     nodes = nodesResult.Result;
-                                else
-                                    CLIEngine.ShowErrorMessage($"Error occured extracting nodes from CelestialBody MetaData DNA. Reason: {nodesResult.Message}");
+                                    validDNA = true;
+                                    dnaFolder = findResult.Result.InstalledPath;
+                                    celestialBodyMetaDataDNA = findResult.Result;
+                                }
                             }
                             else
                                 CLIEngine.ShowErrorMessage($"Error occured finding CelestialBody MetaData DNA. Reason: {findResult.Message}");
@@ -493,15 +493,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             if (Directory.Exists(dnaFolder) && Directory.GetFiles(dnaFolder).Length > 0)
                             {
-                                OASISResult<List<INode>> nodesResult = STAR.ExtractNodesFromCelestialBodyMetaDataDNA(dnaFolder);
+                                OASISResult<List<INode>> nodesResult = ValidateCelestialBodyDataDNA(dnaFolder);
 
-                                if (nodesResult != null && nodesResult.Result != null && !nodesResult.IsError)
+                                if (nodesResult != null && nodesResult.Result != null && !nodesResult.IsError && nodesResult.Result.Count > 0)
+                                {
                                     nodes = nodesResult.Result;
-                                else
-                                    CLIEngine.ShowErrorMessage($"Error occured extracting nodes from CelestialBody MetaData DNA. Reason: {nodesResult.Message}");
-
-                                cbMetaDataGeneratedPath = dnaFolder;
-                                validDNA = true;
+                                    cbMetaDataGeneratedPath = dnaFolder;
+                                    validDNA = true;
+                                }
                             }
                             else
                                 CLIEngine.ShowErrorMessage($"The DnaFolder {dnaFolder} is not valid, it does not contain any files! Please try again!");
@@ -698,53 +697,56 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 lightResult.Result.OAPP = createOAPPResult.Result;
                                 OASISResult<bool> installRuntimesResult = null;
 
-                                //Install any dependencies that are required for the OAPP to run (such as runtimes etc).
-                                //if (installedOAPPTemplate != null)
-                                //    installRuntimesResult = await STARCLI.Runtimes.InstallDependentRuntimesAsync(installedOAPPTemplate.STARNETDNA, oappPath, providerType);
-                                //else
-                                //    installRuntimesResult = await STARCLI.Runtimes.InstallDependentRuntimesAsync(lightResult.Result.OAPP.STARNETDNA, oappPath, providerType);
+                                //Copy the template dependencies to the OAPP.
+                                createOAPPResult.Result.STARNETDNA.Dependencies = installedOAPPTemplate.STARNETDNA.Dependencies;
+                                OASISResult<OAPP> saveResult = await STARNETManager.UpdateAsync(STAR.BeamedInAvatar.Id, createOAPPResult.Result, true, providerType: providerType);
 
-                                installRuntimesResult = await STARCLI.Runtimes.InstallOASISAndSTARRuntimesAsync(lightResult.Result.OAPP.STARNETDNA, oappPath, InstallRuntimesFor.OAPP, providerType);
-
-                                if (!(installRuntimesResult != null && installRuntimesResult.Result && !installRuntimesResult.IsError))
+                                if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
                                 {
-                                    CLIEngine.ShowErrorMessage($"Error occured installing dependent runtimes for OAPP. Reason: {installRuntimesResult.Message}.\n\nPlease install these manually using the sub-command 'runtime install'");
-                                    lightResult.IsError = true;
-                                    lightResult.Message = installRuntimesResult.Message;
+                                    installRuntimesResult = await STARCLI.Runtimes.InstallOASISAndSTARRuntimesAsync(lightResult.Result.OAPP.STARNETDNA, oappPath, InstallRuntimesFor.OAPP, providerType);
+
+                                    if (!(installRuntimesResult != null && installRuntimesResult.Result && !installRuntimesResult.IsError))
+                                    {
+                                        CLIEngine.ShowErrorMessage($"Error occured installing dependent runtimes for OAPP. Reason: {installRuntimesResult.Message}.\n\nPlease install these manually using the sub-command 'runtime install'");
+                                        lightResult.IsError = true;
+                                        lightResult.Message = installRuntimesResult.Message;
+                                    }
+
+                                    if (!string.IsNullOrEmpty(lightResult.Message) && !lightResult.IsError)
+                                        CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                                    else
+                                        CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated.");
+
+                                    await AddDependenciesAsync(createOAPPResult.Result.STARNETDNA, "OAPP", providerType);
+
+                                    OASISResult<STARNETDNA> dnaResult = await STARNETManager.ReadDNAFromSourceOrInstallFolderAsync<STARNETDNA>(lightResult.Result.OAPP.STARNETDNA.SourcePath);
+
+                                    if (dnaResult != null && dnaResult.Result != null && !dnaResult.IsError)
+                                        lightResult.Result.OAPP.STARNETDNA = dnaResult.Result;
+                                    else
+                                    {
+                                        CLIEngine.ShowErrorMessage($"Error occured reading STARNETDNA. Reason: {dnaResult.Message}.");
+                                        lightResult.IsError = true;
+                                        lightResult.Message = installRuntimesResult.Message;
+                                    }
+
+                                    Console.WriteLine("");
+                                    Show(lightResult.Result.OAPP, customData: lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
+                                    Console.WriteLine("");
+
+                                    if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
+                                        Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(genesisNamespace, ".csproj")));
+
+                                    Console.WriteLine("");
+
+                                    if (CLIEngine.GetConfirmation("Do you wish to open the OAPP folder now?"))
+                                        Process.Start("explorer.exe", oappPath);
+
+                                    Console.WriteLine("");
+                                    lightResult = await CreateOAPPComponentsOnSTARNETAsync(lightResult, oappPath, errorMessage, providerType);
                                 }
-
-                                if (!string.IsNullOrEmpty(lightResult.Message) && !lightResult.IsError)
-                                    CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
                                 else
-                                    CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated.");
-
-                                await AddDependenciesAsync(createOAPPResult.Result.STARNETDNA, "OAPP", providerType);
-
-                                OASISResult<STARNETDNA> dnaResult = await STARNETManager.ReadDNAFromSourceOrInstallFolderAsync<STARNETDNA>(lightResult.Result.OAPP.STARNETDNA.SourcePath);
-
-                                if (dnaResult != null && dnaResult.Result != null && !dnaResult.IsError)
-                                    lightResult.Result.OAPP.STARNETDNA = dnaResult.Result;
-                                else
-                                {
-                                    CLIEngine.ShowErrorMessage($"Error occured reading STARNETDNA. Reason: {dnaResult.Message}.");
-                                    lightResult.IsError = true;
-                                    lightResult.Message = installRuntimesResult.Message;
-                                }
-
-                                Console.WriteLine("");
-                                Show(lightResult.Result.OAPP, customData: lightResult.Result.CelestialBody.CelestialBodyCore.Zomes);
-                                Console.WriteLine("");
-
-                                if (CLIEngine.GetConfirmation("Do you wish to open the OAPP now?"))
-                                    Process.Start("explorer.exe", Path.Combine(oappPath, string.Concat(genesisNamespace, ".csproj")));
-
-                                Console.WriteLine("");
-
-                                if (CLIEngine.GetConfirmation("Do you wish to open the OAPP folder now?"))
-                                    Process.Start("explorer.exe", oappPath);
-
-                                Console.WriteLine("");
-                                lightResult = await CreateOAPPComponentsOnSTARNETAsync(lightResult, oappPath, errorMessage, providerType);
+                                    OASISErrorHandling.HandleError(ref lightResult, $"Error Occured Saving The OAPP. Reason: {saveResult.Message}");
                             }
                             else
                                 CLIEngine.ShowErrorMessage($"Error Occured Creating The OAPP. Reason: {createOAPPResult.Message}");
@@ -1035,7 +1037,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Name", !string.IsNullOrEmpty(oapp.STARNETDNA.Name) ? oapp.STARNETDNA.Name : "None", displayFieldLength);
             DisplayProperty("Description", !string.IsNullOrEmpty(oapp.STARNETDNA.Description) ? oapp.STARNETDNA.Description : "None", displayFieldLength);
             DisplayProperty("Type", oapp.STARNETDNA.STARNETHolonType, displayFieldLength);
-            DisplayProperty("Category:", oapp.STARNETDNA.STARNETCategory.ToString(), displayFieldLength);
+            DisplayProperty("Category", oapp.STARNETDNA.STARNETCategory.ToString(), displayFieldLength);
             DisplayProperty("Genesis Type", ParseMetaDataForEnum(oapp.MetaData, "GenesisType", typeof(GenesisType)), displayFieldLength);
             DisplayProperty("Celestial Body Id", ParseMetaData(oapp.MetaData, "CelestialBodyId"), displayFieldLength);
 
@@ -1044,7 +1046,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Id", ParseMetaData(oapp.MetaData, "OAPPTemplateId"), displayFieldLength);
             DisplayProperty("Name", ParseMetaData(oapp.MetaData, "OAPPTemplateName"), displayFieldLength);
             DisplayProperty("Description", ParseMetaData(oapp.MetaData, "OAPPTemplateDescription"), displayFieldLength);
-            DisplayProperty("Type", ParseMetaDataForEnum(oapp.MetaData, "OAPPTemplateType", typeof(OAPPTemplateType)), displayFieldLength);
+            DisplayProperty("Category", ParseMetaDataForEnum(oapp.MetaData, "OAPPTemplateType", typeof(OAPPTemplateType)), displayFieldLength);
             DisplayProperty("Version", ParseMetaData(oapp.MetaData, "OAPPTemplateVersion"), displayFieldLength);
             DisplayProperty("Version Sequence", ParseMetaData(oapp.MetaData, "OAPPTemplateVersionSequence"), displayFieldLength);
             DisplayProperty("Installed Path", ParseMetaData(oapp.MetaData, "OAPPTemplateInstalledPath"), displayFieldLength);
@@ -1452,10 +1454,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (getCustomTagsResult != null && getCustomTagsResult.Result != null && !getCustomTagsResult.IsError)
                 {
                     CLIEngine.ShowMessage(string.Concat($"Found {getCustomTagsResult.Result.Count} custom tags in the OAPP Template '{oappTemplate.STARNETDNA.Name}'", getCustomTagsResult.Result.Count > 0 ? ":" : "."));
-                    Console.WriteLine("");
 
-                    foreach (string tag in getCustomTagsResult.Result)
-                        CLIEngine.ShowMessage(tag, false);
+                    if (getCustomTagsResult.Result.Count > 0)
+                    {
+                        Console.WriteLine("");
+
+                        foreach (string tag in getCustomTagsResult.Result)
+                            CLIEngine.ShowMessage(tag, false);
+                    }
 
                     CLIEngine.ShowMessage(string.Concat($"Found {nodes.Count} custom meta data fields/properties", nodes.Count > 0 ? ":" : "."));
                     Console.WriteLine("");
@@ -1606,6 +1612,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             result.Result = tags;
             return result;
-        }            
+        }    
+        
+        private OASISResult<List<INode>> ValidateCelestialBodyDataDNA(string dnaFolder)
+        {
+            OASISResult<List<INode>> result = new OASISResult<List<INode>>();
+            OASISResult<List<INode>> nodesResult = STAR.ExtractNodesFromCelestialBodyMetaDataDNA(dnaFolder);
+
+            if (nodesResult != null && nodesResult.Result != null && !nodesResult.IsError)
+            {
+                if (nodesResult != null && nodesResult.Result != null && !nodesResult.IsError)
+                {
+                    result.Result = nodesResult.Result;
+
+                    if (result.Result.Count == 0)
+                        CLIEngine.ShowWarningMessage($"The CelestialBody MetaData DNA does not contain any valid data! Please try again!");
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error occured extracting nodes from CelestialBody MetaData DNA. Reason: {nodesResult.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Error occured extracting nodes from CelestialBody MetaData DNA. Reason: {nodesResult.Message}");
+
+            return result;
+        }
     }
 }
