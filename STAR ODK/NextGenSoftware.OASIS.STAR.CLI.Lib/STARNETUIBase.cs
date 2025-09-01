@@ -697,14 +697,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     if (CLIEngine.GetConfirmation($"Do you wish to install the {dependencyDisplayName} '{installedDependency.Result.STARNETDNA.Name}' (v{installedDependency.Result.STARNETDNA.Version}) into the {STARNETManager.STARNETHolonUIName} '{parentResult.Result.STARNETDNA.Name}'?"))
                     {
+                        Console.WriteLine("");
                         DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested;
-                        object dependencyInstallModeObj = CLIEngine.GetValidInputForEnum("Do you wish to install the dependency in the root of the {} or in the Dependencies sub-folder (Nested)?", typeof(DependencyInstallMode));
+                        object dependencyInstallModeObj = CLIEngine.GetValidInputForEnum($"Do you wish to install the dependency in the root of the {STARNETManager.STARNETHolonUIName} or in the Dependencies sub-folder (Nested)? (Recommended)", typeof(DependencyInstallMode));
 
                         if (dependencyInstallModeObj != null)
                             dependencyInstallMode = (DependencyInstallMode)dependencyInstallModeObj;
 
+                        if (dependencyInstallMode == DependencyInstallMode.Root)
+                        {
+                            CLIEngine.ShowWarningMessage("This feature is not yet fully implemented, please let us know if you would find this feature useful in future! Thank you! Defaulting to Nested...");
+                            dependencyInstallMode = DependencyInstallMode.Nested;
+                        }
+
                         bool installNow = CLIEngine.GetConfirmation($"Do you wish to install the {dependencyDisplayName} now? (Selecting 'No' will just add it as a dependency in the STARNETDNA and you can install it later)");
 
+                        if (!installNow)
+                        {
+                            Console.WriteLine("");
+                            CLIEngine.ShowWarningMessage("This feature is not yet fully implemented, please let us know if you would find this feature useful in future! Thank you! Installing now...");
+                            installNow = true;
+                        }
+
+                        Console.WriteLine("");
                         CLIEngine.ShowWorkingMessage($"Installing {dependencyDisplayName} '{installedDependency.Result.STARNETDNA.Name}' Into {STARNETManager.STARNETHolonUIName} '{parentResult.Result.STARNETDNA.Name}'...");
 
                         switch (dependencyTypeEnum)
@@ -798,8 +813,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public virtual async Task<OASISResult<T1>> RemoveDependencyAsync(string idOrNameOfParent = "", string idOrNameOfLib = "", string dependencyType = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            string dependencyDisplayName = Enum.GetName(typeof(DependencyType), dependencyType) ?? "Dependency";
-            string dependenciesDisplayName = $"{dependencyDisplayName}s";
             bool depSelected = false;
             DependencyType dependencyTypeEnum = DependencyType.Quest;
 
@@ -828,6 +841,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     dependencyTypeEnum = (DependencyType)depType;
                 }
             }
+
+            string dependencyDisplayName = Enum.GetName(typeof(DependencyType), dependencyTypeEnum) ?? "Dependency";
+            string dependenciesDisplayName = $"{dependencyDisplayName}s";
 
             if (dependencyTypeEnum == DependencyType.Library)
                 dependenciesDisplayName = "libraries";
@@ -860,16 +876,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         if (selectedLib == null)
                         {
                             IEnumerable<ISTARNETDependency> results = parentResult.Result.STARNETDNA.Dependencies.Libraries.Where(x => x.Name.ToLower().Contains(idOrNameOfLib.ToLower()));
-                            CLIEngine.ShowWarningMessage($"No exact match was found for that name, but the {dependenciesDisplayName} below are similar:");
 
-                            foreach (ISTARNETDependency lib in results)
+                            if (results != null && results.Count() > 0)
                             {
-                                ShowDependency(lib, DisplayFieldLength);
-                                CLIEngine.ShowDivider();
-                            }
+                                CLIEngine.ShowWarningMessage($"No exact match was found for that name, but the {dependenciesDisplayName} below are similar:");
 
-                            idOrNameOfLib = CLIEngine.GetValidInput("Please make sure you enter the EXACT name (case sensitive) and try again!");
-                            selectedLib = parentResult.Result.STARNETDNA.Dependencies.Libraries.FirstOrDefault(x => x.Name == idOrNameOfLib);
+                                foreach (ISTARNETDependency lib in results)
+                                {
+                                    ShowDependency(lib, DisplayFieldLength);
+                                    CLIEngine.ShowDivider();
+                                }
+
+
+                                idOrNameOfLib = CLIEngine.GetValidInput("Please make sure you enter the EXACT name (case sensitive) and try again!");
+                                selectedLib = parentResult.Result.STARNETDNA.Dependencies.Libraries.FirstOrDefault(x => x.Name == idOrNameOfLib);
+                            }
+                            //else
+                            //    CLIEngine.ShowWarningMessage("No match was found, please try again!");
                         }
                     }
 
@@ -2206,12 +2229,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             if (showDetailedInfo)
             {
-                Console.WriteLine("");
-                CLIEngine.ShowMessage(string.Concat("Meta Tag Mappings", "(", metaTagMappings != null && metaTagMappings.Count > 0 ? metaTagMappings.Count.ToString() : "None", "):"), false);
-                CLIEngine.ShowMessage(string.Concat("Tag".PadRight(22), "Meta Data".PadRight(22)), false);
+                if (metaTagMappings != null && metaTagMappings.Count > 0)
+                {
+                    Console.WriteLine("");
+                    CLIEngine.ShowMessage(string.Concat("Meta Tag Mappings", " (", metaTagMappings.Count.ToString(), "):"), false);
+                    CLIEngine.ShowMessage(string.Concat("Tag".PadRight(22), "Meta Data".PadRight(22)), false);
 
-                foreach (string key in metaTagMappings.Keys)
-                    CLIEngine.ShowMessage(string.Concat(key.PadRight(22), metaTagMappings[key].PadRight(22)), false);
+                    foreach (string key in metaTagMappings.Keys)
+                        CLIEngine.ShowMessage(string.Concat(key.PadRight(22), metaTagMappings[key].PadRight(22)), false);
+                }
+                else
+                    DisplayProperty("Meta Tag Mappings", "None", displayFieldLength);
             }
             else
                 DisplayProperty("Meta Tag Mappings", string.Concat(metaTagMappings != null && metaTagMappings.Count > 0 ? metaTagMappings.Count.ToString() : "None", metaTagMappings != null && metaTagMappings.Count > 0 ? " (use show/list detailed to view)" : ""), displayFieldLength);
