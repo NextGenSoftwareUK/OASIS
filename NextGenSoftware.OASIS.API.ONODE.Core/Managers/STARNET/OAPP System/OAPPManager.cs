@@ -146,7 +146,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (generateBinary)
                 {
-                    string publishedPath = Path.Combine(fullPathToPublishTo, string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version), "No Runtimes");
+                    string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp", string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version), "No Runtimes");
 
                     try
                     {
@@ -188,7 +188,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (generateSelfContainedBinary)
                 {
-                    string publishedPath = Path.Combine(fullPathToPublishTo, string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version), "Self Contained");
+                    string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp", string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version), "Self Contained");
 
                     try
                     {
@@ -231,7 +231,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (generateSelfContainedFullBinary)
                 {
-                    string publishedPath = Path.Combine(fullPathToPublishTo, string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version), "Self Contained Full");
+                    string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp", string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version), "Self Contained Full");
 
                     try
                     {

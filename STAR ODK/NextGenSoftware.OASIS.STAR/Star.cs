@@ -1310,38 +1310,46 @@ namespace NextGenSoftware.OASIS.STAR
         public static OASISResult<List<INode>> ExtractNodesFromCelestialBodyMetaDataDNA(string celestialBodyDNAFolder)
         {
             OASISResult<List<INode>> result = new OASISResult<List<INode>>(new List<INode>());
-            DirectoryInfo dirInfo = new DirectoryInfo(celestialBodyDNAFolder);
-            FileInfo[] files = dirInfo.GetFiles();
 
-            foreach (FileInfo file in files)
+            try
             {
-                if (file != null)
-                {
-                    using (StreamReader reader = file.OpenText())
-                    {
-                        while (!reader.EndOfStream)
-                        {
-                            string buffer = reader.ReadLine();
+                DirectoryInfo dirInfo = new DirectoryInfo(celestialBodyDNAFolder);
+                FileInfo[] files = dirInfo.GetFiles();
 
-                            if (buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
+                foreach (FileInfo file in files)
+                {
+                    if (file != null)
+                    {
+                        using (StreamReader reader = file.OpenText())
+                        {
+                            while (!reader.EndOfStream)
                             {
-                                string[] parts = buffer.Split(' ');
-                                string fieldName = parts[14].ToSnakeCase();
-                                result.Result.Add(new Node()
+                                string buffer = reader.ReadLine();
+
+                                if (buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
                                 {
-                                    NodeName = fieldName,
-                                    NodeType = parts[13].ToLower() switch
+                                    string[] parts = buffer.Split(' ');
+                                    string fieldName = parts[14].ToSnakeCase();
+                                    result.Result.Add(new Node()
                                     {
-                                        "string" => NodeType.String,
-                                        "int" => NodeType.Int,
-                                        "bool" => NodeType.Bool,
-                                        _ => NodeType.Unknown
-                                    }
-                                });
+                                        NodeName = fieldName,
+                                        NodeType = parts[13].ToLower() switch
+                                        {
+                                            "string" => NodeType.String,
+                                            "int" => NodeType.Int,
+                                            "bool" => NodeType.Bool,
+                                            _ => NodeType.Unknown
+                                        }
+                                    });
+                                }
                             }
                         }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in STAR.ExtractNodesFromCelestialBodyMetaDataDNA. Reason: {e.Message}");
             }
 
             return result;
