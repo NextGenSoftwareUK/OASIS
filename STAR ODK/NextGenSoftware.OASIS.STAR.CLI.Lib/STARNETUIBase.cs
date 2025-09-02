@@ -501,7 +501,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //    }
         //}
 
-        public virtual async Task<OASISResult<T1>> AddDependencyAsync(string idOrNameOfParent = "", string idOrNameOfTemplate = "", string dependencyType = "", ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> AddDependencyAsync(string idOrNameOfParent = "", string idOrNameOfTemplate = "", string dependencyType = "", ISTARNETDNA STARNETDNA = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             bool depSelected = false;
@@ -538,9 +538,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (dependencyTypeEnum == DependencyType.Library)
                 dependenciesDisplayName = "libraries";
 
-            OASISResult<T1> parentResult = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
+            if (STARNETDNA == null)
+            {
+                OASISResult<T1> parentResult = await FindAsync("use", idOrNameOfParent, true, providerType: providerType);
 
-            if (parentResult != null && !parentResult.IsError && parentResult.Result != null)
+                if (parentResult != null && !parentResult.IsError && parentResult.Result != null)
+                    STARNETDNA = parentResult.Result.STARNETDNA;
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"An error occured loading the {STARNETManager.STARNETHolonUIName} for id/name {idOrNameOfParent}. Reason: {parentResult.Message}");
+                    return result;
+                }
+            }
+
+            if (STARNETDNA != null)
             {
                 OASISResult<InstalledSTARNETHolon> installedDependency = new OASISResult<InstalledSTARNETHolon>();
                 Type installedDependencyType;
@@ -695,16 +706,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (installedDependency != null && installedDependency.Result != null && !installedDependency.IsError)
                 {
-                    if (CLIEngine.GetConfirmation($"Do you wish to install the {dependencyDisplayName} '{installedDependency.Result.STARNETDNA.Name}' (v{installedDependency.Result.STARNETDNA.Version}) into the {STARNETManager.STARNETHolonUIName} '{parentResult.Result.STARNETDNA.Name}'?"))
+                    if (CLIEngine.GetConfirmation($"Do you wish to install the {dependencyDisplayName} '{installedDependency.Result.STARNETDNA.Name}' (v{installedDependency.Result.STARNETDNA.Version}) into the {STARNETManager.STARNETHolonUIName} '{STARNETDNA.Name}'?"))
                     {
                         Console.WriteLine("");
                         DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested;
-                        object dependencyInstallModeObj = CLIEngine.GetValidInputForEnum($"Do you wish to install the dependency in the root of the {STARNETManager.STARNETHolonUIName} or in the Dependencies sub-folder (Nested)? (Recommended)", typeof(DependencyInstallMode));
+                        object dependencyInstallModeObj = CLIEngine.GetValidInputForEnum($"Do you wish to install the dependency in the root of the {STARNETManager.STARNETHolonUIName}, in the Dependencies sub-folder (Nested)? (Recommended) or would you like to flatten the dependencies so all sub-dependencies are placed in the same level?", typeof(DependencyInstallMode));
 
                         if (dependencyInstallModeObj != null)
                             dependencyInstallMode = (DependencyInstallMode)dependencyInstallModeObj;
 
-                        if (dependencyInstallMode == DependencyInstallMode.Root)
+                        if (dependencyInstallMode != DependencyInstallMode.Nested)
                         {
                             CLIEngine.ShowWarningMessage("This feature is not yet fully implemented, please let us know if you would find this feature useful in future! Thank you! Defaulting to Nested...");
                             dependencyInstallMode = DependencyInstallMode.Nested;
@@ -720,91 +731,91 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         }
 
                         Console.WriteLine("");
-                        CLIEngine.ShowWorkingMessage($"Installing {dependencyDisplayName} '{installedDependency.Result.STARNETDNA.Name}' Into {STARNETManager.STARNETHolonUIName} '{parentResult.Result.STARNETDNA.Name}'...");
+                        CLIEngine.ShowWorkingMessage($"Installing {dependencyDisplayName} '{installedDependency.Result.STARNETDNA.Name}' Into {STARNETManager.STARNETHolonUIName} '{STARNETDNA.Name}'...");
 
                         switch (dependencyTypeEnum)
                         {
                             case DependencyType.OAPP:
-                                result = await STARNETManager.AddDependencyAsync<InstalledOAPP>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledOAPP, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledOAPP>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledOAPP, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.Runtime:
-                                result = await STARNETManager.AddDependencyAsync<InstalledRuntime>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledRuntime, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledRuntime>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledRuntime, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.Library:
-                                result = await STARNETManager.AddDependencyAsync<InstalledLibrary>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledLibrary, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledLibrary>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledLibrary, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.Template:
-                                result = await STARNETManager.AddDependencyAsync<InstalledOAPPTemplate>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledOAPPTemplate, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledOAPPTemplate>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledOAPPTemplate, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.NFT:
-                                result = await STARNETManager.AddDependencyAsync<InstalledNFT>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledNFT, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledNFT>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledNFT, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.GeoNFT:
-                                result = await STARNETManager.AddDependencyAsync<InstalledGeoNFT>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledGeoNFT, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledGeoNFT>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledGeoNFT, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.GeoHotSpot:
-                                result = await STARNETManager.AddDependencyAsync<InstalledGeoHotSpot>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledGeoHotSpot, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledGeoHotSpot>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledGeoHotSpot, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.Quest:
-                                result = await STARNETManager.AddDependencyAsync<InstalledQuest>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledQuest, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledQuest>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledQuest, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.Mission:
-                                result = await STARNETManager.AddDependencyAsync<InstalledMission>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledMission, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledMission>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledMission, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.Chapter:
-                                result = await STARNETManager.AddDependencyAsync<InstalledChapter>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledChapter, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledChapter>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledChapter, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.InventoryItem:
-                                result = await STARNETManager.AddDependencyAsync<InstalledInventoryItem>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledInventoryItem, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledInventoryItem>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledInventoryItem, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.CelestialSpace:
-                                result = await STARNETManager.AddDependencyAsync<InstalledCelestialSpace>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledCelestialSpace, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledCelestialSpace>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledCelestialSpace, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.CelestialBody:
-                                result = await STARNETManager.AddDependencyAsync<InstalledCelestialBody>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledCelestialBody, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledCelestialBody>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledCelestialBody, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.Zome:
-                                result = await STARNETManager.AddDependencyAsync<InstalledZome>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledZome, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledZome>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledZome, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.Holon:
-                                result = await STARNETManager.AddDependencyAsync<InstalledHolon>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledHolon, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledHolon>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledHolon, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.CelestialBodyMetaDataDNA:
-                                result = await STARNETManager.AddDependencyAsync<InstalledCelestialBodyMetaDataDNA>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledCelestialBodyMetaDataDNA, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledCelestialBodyMetaDataDNA>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledCelestialBodyMetaDataDNA, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.ZomeMetaDataDNA:
-                                result = await STARNETManager.AddDependencyAsync<InstalledZomeMetaDataDNA>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledZomeMetaDataDNA, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledZomeMetaDataDNA>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledZomeMetaDataDNA, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
 
                             case DependencyType.HolonMetaDataDNA:
-                                result = await STARNETManager.AddDependencyAsync<InstalledHolonMetaDataDNA>(STAR.BeamedInAvatar.Id, parentResult.Result.STARNETDNA.Id, parentResult.Result.STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledHolonMetaDataDNA, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
+                                result = await STARNETManager.AddDependencyAsync<InstalledHolonMetaDataDNA>(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedDependency.Result.STARNETDNA.Id, installedDependency.Result.STARNETDNA.Version, HolonType.InstalledHolonMetaDataDNA, dependencyTypeEnum, installNow, dependencyInstallMode, providerType);
                                 break;
                         }
 
                         if (result != null && result.Result != null && !result.IsError)
-                            CLIEngine.ShowSuccessMessage($"{dependencyDisplayName} '{installedDependency.Result.STARNETDNA.Name}' added to {STARNETManager.STARNETHolonUIName} '{parentResult.Result.STARNETDNA.Name}'.");
+                            CLIEngine.ShowSuccessMessage($"{dependencyDisplayName} '{installedDependency.Result.STARNETDNA.Name}' added to {STARNETManager.STARNETHolonUIName} '{STARNETDNA.Name}'.");
                         else
-                            CLIEngine.ShowErrorMessage($"Failed to add {dependencyDisplayName} '{installedDependency.Result.STARNETDNA.Name}' to {STARNETManager.STARNETHolonUIName} '{parentResult.Result.STARNETDNA.Name}'. Error: {result.Message}");
+                            CLIEngine.ShowErrorMessage($"Failed to add {dependencyDisplayName} '{installedDependency.Result.STARNETDNA.Name}' to {STARNETManager.STARNETHolonUIName} '{STARNETDNA.Name}'. Error: {result.Message}");
                     }
                 }
                 else
-                    CLIEngine.ShowErrorMessage($"Failed to add {dependencyDisplayName} to {STARNETManager.STARNETHolonUIName} '{parentResult.Result.STARNETDNA.Name}'. Error: {installedDependency.Message}");
+                    CLIEngine.ShowErrorMessage($"Failed to add {dependencyDisplayName} to {STARNETManager.STARNETHolonUIName} '{STARNETDNA.Name}'. Error: {installedDependency.Message}");
             }
 
             return result;
@@ -1114,6 +1125,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<ISTARNETDNA> result = new OASISResult<ISTARNETDNA>();
 
+            if (CLIEngine.GetConfirmation("Do you wish to add any dependencies? (you do not need to add the OASIS or STAR runtimes, they are added automatically)"))
+            {
+                do
+                {
+                    Console.WriteLine("");
+                    OASISResult<T1> addResult = await AddDependencyAsync(STARNETDNA: STARNETDNA, providerType: providerType);
+
+                    if (addResult != null && addResult.Result != null && !addResult.IsError)
+                    {
+                        result.Result = STARNETDNA;
+                        OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(addResult, result);
+                    }
+                    else
+                    {
+                        result.IsError = true;
+                        result.Message = addResult.Message;
+                        //return result;
+                    }
+                }
+                while (CLIEngine.GetConfirmation("Do you wish to add another dependency?"));
+            }
+
+            /*
             if (CLIEngine.GetConfirmation("Do you wish to add any custom runtimes now? (you do not need to add the OASIS or STAR runtimes, they are added automatically)."))
             {
                 do
@@ -1195,7 +1229,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         CLIEngine.ShowErrorMessage($"Failed to add template to {holonTypeToAddTo} '{STARNETDNA.Name}'. Error: {installedTemplate.Message}");
                 }
                 while (CLIEngine.GetConfirmation("Do you wish to add another template?"));
-            }
+            }*/
 
             Console.WriteLine("");
             return result;
@@ -2119,10 +2153,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"STARNET Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARNETVersion), false);
             CLIEngine.ShowMessage(string.Concat($"STAR API Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARAPIVersion), false);
             CLIEngine.ShowMessage(string.Concat($".NET Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.DotNetVersion), false);
+            Console.WriteLine("");
+            ShowHolonMetaTagMappings(starHolon.STARNETDNA.MetaHolonTagMappings, showDetailedInfo, displayFieldLength);
+            ShowMetaTagMappings(starHolon.STARNETDNA.MetaTagMappings, showDetailedInfo, displayFieldLength);
 
             ShowAllDependencies(starHolon, showDetailedInfo, displayFieldLength);
-            Console.WriteLine("");
-            ShowMetaTagMappings(starHolon.STARNETDNA.MetaTagMappings, showDetailedInfo, displayFieldLength);
+            //Console.WriteLine("");
+            //ShowHolonMetaTagMappings(starHolon.STARNETDNA.MetaHolonTagMappings, showDetailedInfo, displayFieldLength);
+            //ShowMetaTagMappings(starHolon.STARNETDNA.MetaTagMappings, showDetailedInfo, displayFieldLength);
 
             if (showFooter)
                 CLIEngine.ShowDivider();
@@ -2223,6 +2261,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 ShowDependenices(starHolon.STARNETDNA.Dependencies.Templates, displayFieldLength);
 
             CLIEngine.ShowMessage(string.Concat($"{starHolon.STARNETDNA.Dependencies.Templates.Count} Found.", starHolon.STARNETDNA.Dependencies.Templates.Count > 0 ? tip : ""), false);
+        }
+
+        protected void ShowHolonMetaTagMappings(Dictionary<string, (string, string)> metaHolonTagMappings, bool showDetailedInfo, int displayFieldLength = DEFAULT_FIELD_LENGTH)
+        {
+            if (showDetailedInfo)
+            {
+                if (metaHolonTagMappings != null && metaHolonTagMappings.Count > 0)
+                {
+                    Console.WriteLine("");
+                    CLIEngine.ShowMessage(string.Concat("Holon Meta Tag Mappings", " (", metaHolonTagMappings.Count.ToString(), "):"), false);
+                    CLIEngine.ShowMessage(string.Concat("Tag".PadRight(22), "Holon".PadRight(22), "Field/Property".PadRight(22)), false);
+
+                    foreach (string key in metaHolonTagMappings.Keys)
+                        CLIEngine.ShowMessage(string.Concat(key.PadRight(22), metaHolonTagMappings[key].Item1.PadRight(22), metaHolonTagMappings[key].Item2.PadRight(22)), false);
+                }
+                else
+                    DisplayProperty("Holon Meta Tag Mappings", "None", displayFieldLength);
+            }
+            else
+                DisplayProperty("Holon Meta Tag Mappings", string.Concat(metaHolonTagMappings != null && metaHolonTagMappings.Count > 0 ? metaHolonTagMappings.Count.ToString() : "None", metaHolonTagMappings != null && metaHolonTagMappings.Count > 0 ? " (use show/list detailed to view)" : ""), displayFieldLength);
         }
 
         protected void ShowMetaTagMappings(Dictionary<string, string> metaTagMappings, bool showDetailedInfo, int displayFieldLength = DEFAULT_FIELD_LENGTH)

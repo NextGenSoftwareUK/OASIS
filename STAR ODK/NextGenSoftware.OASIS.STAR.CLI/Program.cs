@@ -326,12 +326,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                                             Guid parentId = Guid.Empty;
 
                                                                             if (Guid.TryParse(inputArgs[10], out parentId))
-                                                                                lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateId, oappTemplateVersion, genesisType, inputArgs[6], inputArgs[7], inputArgs[8], null, parentId);
+                                                                                lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateId, oappTemplateVersion, genesisType, inputArgs[6], inputArgs[7], inputArgs[8], null, null, parentId);
                                                                             else
                                                                                 CLIEngine.ShowErrorMessage($"The ParentCelestialBodyId Passed In ({inputArgs[6]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
                                                                         }
                                                                         else
-                                                                            lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateId, oappTemplateVersion, genesisType, inputArgs[6], inputArgs[7], inputArgs[8], null, ProviderType.Default);
+                                                                            lightResult = await STAR.LightAsync(inputArgs[1], inputArgs[2], oappType, oappTemplateId, oappTemplateVersion, genesisType, inputArgs[6], inputArgs[7], inputArgs[8], null, null, ProviderType.Default);
                                                                     }
                                                                     else
                                                                         CLIEngine.ShowErrorMessage($"The GenesisType Passed In ({inputArgs[7]}) Is Not Valid. Please Make Sure It Is One Of The Following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.");
@@ -910,7 +910,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<ProviderType, Task> listUnpublishedPredicate = null,
             Func<ProviderType, Task> listDeactivatedPredicate = null,
             Func<string, bool, bool, ProviderType, Task> searchPredicate = null,
-            Func<string, string, string, ProviderType, Task> addDependencyPredicate = null,
+            Func<string, string, string, ISTARNETDNA, ProviderType, Task> addDependencyPredicate = null,
             Func<string, string, string, ProviderType, Task> removeDependencyPredicate = null,
             //Func<string, string, ProviderType, Task> addRuntimePredicate = null,
             //Func<string, string, ProviderType, Task> removeRuntimePredicate = null,
@@ -1152,7 +1152,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "adddependency":
                         {
                             if (addDependencyPredicate != null)
-                                await addDependencyPredicate(id, subCommandParam3, subCommandParam4, providerType);
+                                await addDependencyPredicate(id, subCommandParam3, subCommandParam4, null, providerType);
                             else
                                 CLIEngine.ShowMessage("Coming Soon...");
                         }
