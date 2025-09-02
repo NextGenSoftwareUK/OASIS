@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects.STARNET;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
@@ -18,6 +17,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         object STARNETCategory { get; set; }
         public STARNETDependencies Dependencies { get; set; }
         public Dictionary<string, object> MetaData { get; set; }
+        public Dictionary<string, (string, string)> MetaHolonTagMappings { get; set; }
         public Dictionary<string, string> MetaTagMappings { get; set; }
         string SourcePath { get; set; }
         string PublishedPath { get; set; }
