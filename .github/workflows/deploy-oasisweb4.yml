@@ -1,0 +1,42 @@
+name: Deploy OASIS Web4 Site
+
+on:
+  push:
+    branches: [ max-build ]
+    paths: [ 'oasisweb4 site/**' ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: |
+        cd "oasisweb4 site"
+        if [ -f "package.json" ]; then
+          npm install
+        fi
+        
+    - name: Build site (if needed)
+      run: |
+        cd "oasisweb4 site"
+        if [ -f "package.json" ] && grep -q "\"build\"" package.json; then
+          npm run build
+        fi
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./oasisweb4 site
+        destination_dir: .
+        force_orphan: true
