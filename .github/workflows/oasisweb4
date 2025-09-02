@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>OASIS WEB4 - GitHub Pages Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+        }
+        .status {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            background: #7c3aed;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 OASIS WEB4</h1>
+        <p><strong>GitHub Pages Test Successful!</strong></p>
+        
+        <div class="status">
+            <h3>✅ GitHub Pages is Working!</h3>
+            <p>If you can see this page, the deployment is successful.</p>
+            <p>Next: Upload the full site files.</p>
+        </div>
+        
+        <div>
+            <a href="https://opencollective.com/oasis-web4" target="_blank" class="button">
+                Support OASIS
+            </a>
+            <a href="https://github.com/NextGenSoftwareUK/OASIS" target="_blank" class="button">
+                View Repository
+            </a>
+        </div>
+        
+        <div style="margin-top: 40px; font-size: 0.9rem;">
+            <p><strong>Next Steps:</strong></p>
+            <p>1. ✅ Basic deployment working</p>
+            <p>2. 🔄 Upload full site files</p>
+            <p>3. 🌐 Configure custom domain (oasisweb4.com)</p>
+        </div>
+    </div>
+</body>
+</html>
