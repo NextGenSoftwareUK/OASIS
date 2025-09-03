@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects.STARNET
+namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
 {
     public interface ISTARNETDependencies
     {

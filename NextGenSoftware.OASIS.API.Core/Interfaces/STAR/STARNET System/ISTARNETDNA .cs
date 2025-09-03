@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects.STARNET;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
@@ -17,7 +19,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         object STARNETCategory { get; set; }
         public STARNETDependencies Dependencies { get; set; }
         public Dictionary<string, object> MetaData { get; set; }
-        public Dictionary<string, (string, string)> MetaHolonTagMappings { get; set; }
+        //public Dictionary<string, (string, string)> MetaHolonTagMappings { get; set; }
+        //[JsonObjectAttribute]
+        public List<MetaHolonTag> MetaHolonTagMappings { get; set; }
         public Dictionary<string, string> MetaTagMappings { get; set; }
         string SourcePath { get; set; }
         string PublishedPath { get; set; }
