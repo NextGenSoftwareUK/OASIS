@@ -508,7 +508,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 } while (!validDNA);
 
-                OASISResult<Dictionary<string, (string, string)>> metaHolonTagMappingsResult = MapCustomHolonMetaTagsToTemplate(installedOAPPTemplate, nodes);
+                OASISResult<List<MetaHolonTag>> metaHolonTagMappingsResult = MapCustomHolonMetaTagsToTemplate(installedOAPPTemplate, nodes);
                 OASISResult<Dictionary<string, string>> metaTagMappingsResult = MapCustomMetaTagsToTemplate(installedOAPPTemplate);
 
                 if (metaTagMappingsResult != null && metaTagMappingsResult.Result != null && !metaTagMappingsResult.IsError)
@@ -1445,17 +1445,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return lightResult;
         }
 
-        private OASISResult<Dictionary<string, (string, string)>> MapCustomHolonMetaTagsToTemplate(IInstalledOAPPTemplate oappTemplate, Dictionary<string, IList<INode>> nodes)
+        //private OASISResult<Dictionary<string, (string, string)>> MapCustomHolonMetaTagsToTemplate(IInstalledOAPPTemplate oappTemplate, Dictionary<string, IList<INode>> nodes)
+        private OASISResult<List<MetaHolonTag>> MapCustomHolonMetaTagsToTemplate(IInstalledOAPPTemplate oappTemplate, Dictionary<string, IList<INode>> nodes)
         {
-            OASISResult<Dictionary<string, (string, string)>> result = new OASISResult<Dictionary<string, (string, string)>>(new Dictionary<string, (string, string)>());
+            //OASISResult<Dictionary<string, (string, string)>> result = new OASISResult<Dictionary<string, (string, string)>>(new Dictionary<string, (string, string)>());
+            OASISResult<List<MetaHolonTag>> result = new OASISResult<List<MetaHolonTag>>(new List<MetaHolonTag>());
 
             try
             {
+                int nodesTotal = CountNodes(nodes);
                 OASISResult<List<string>> getCustomTagsResult = GetCustomTagsFromTemplate(oappTemplate.InstalledPath, new List<string>(), "{{", "}}");
 
                 if (getCustomTagsResult != null && getCustomTagsResult.Result != null && !getCustomTagsResult.IsError)
                 {
-                    CLIEngine.ShowMessage(string.Concat($"Found {getCustomTagsResult.Result.Count} custom tags in the OAPP Template '{oappTemplate.STARNETDNA.Name}'", getCustomTagsResult.Result.Count > 0 ? ":" : "."));
+                    CLIEngine.ShowMessage(string.Concat($"Found {getCustomTagsResult.Result.Count} custom holon tag(s) in the OAPP Template '{oappTemplate.STARNETDNA.Name}'", getCustomTagsResult.Result.Count > 0 ? ":" : "."));
 
                     if (getCustomTagsResult.Result.Count > 0)
                     {
@@ -1465,17 +1468,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             CLIEngine.ShowMessage(tag, false);
                     }
 
-                    CLIEngine.ShowMessage(string.Concat($"Found {nodes.Count} custom meta data fields/properties", nodes.Count > 0 ? ":" : "."));
+                    CLIEngine.ShowMessage(string.Concat($"Found {nodesTotal} holon meta data node(s)", nodesTotal > 0 ? ":" : "."));
+                    Console.WriteLine("");
+                    CLIEngine.ShowMessage(string.Concat("HOLON".PadRight(20), "NODE".PadRight(20), "TYPE".PadRight(20)), false);
                     Console.WriteLine("");
 
                     foreach (string holonName in nodes.Keys)
                     {
-                        CLIEngine.ShowMessage(string.Concat("Holon".PadRight(20), "Field".PadRight(20), "Type".PadRight(20)), false);
                         foreach (INode node in nodes[holonName])
                             CLIEngine.ShowMessage(string.Concat(holonName.PadRight(20), node.NodeName.PadRight(20), Enum.GetName(typeof(NodeType), node.NodeType).PadRight(20)), false);
                     }
 
-                    if (getCustomTagsResult.Result.Count > 0 && nodes.Count > 0 && CLIEngine.GetConfirmation("Would you like to map any of these tags to your meta data?"))
+                    if (getCustomTagsResult.Result.Count > 0 && nodesTotal > 0 && CLIEngine.GetConfirmation("Would you like to map any of these tags to your holon meta data?"))
                     {
                         bool mapTags = true;
                         Console.WriteLine("");
@@ -1484,6 +1488,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             string tag = "";
                             string metaField = "";
+                            INode selectedNode = null;
 
                             do
                             {
@@ -1495,9 +1500,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 if (string.IsNullOrEmpty(tag) || !getCustomTagsResult.Result.Contains(tag))
                                     CLIEngine.ShowErrorMessage($"The tag '{tag}' was not found. Please try again.");
 
-                                else if (result.Result.Keys.Contains(tag))
+                                else if (result.Result.Any(x => x.MetaTag == tag))
                                 {
-                                    CLIEngine.ShowErrorMessage($"The tag '{tag}' has already been mapped to '{result.Result[tag]}'. Please try again.");
+                                    MetaHolonTag matchedTag = result.Result.FirstOrDefault(x => x.MetaTag == metaField);
+
+                                    if (matchedTag != null)
+                                        CLIEngine.ShowErrorMessage($"The tag '{tag}' has already been mapped to '{matchedTag.NodeName}'. Please try again.");
+                                    else
+                                        CLIEngine.ShowErrorMessage($"The tag '{tag}' has already been mapped. Please try again.");
+
                                     tag = "";
                                 }
 
@@ -1507,38 +1518,38 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             {
                                 do
                                 {
-                                    metaField = CLIEngine.GetValidInput("Please enter the meta data field/property you wish to map to this tag (case sensitive). Enter 'exit' to cancel:");
+                                    metaField = CLIEngine.GetValidInput("Please enter the holon meta data node (field) you wish to map to this tag (case sensitive). Enter 'exit' to cancel:");
 
                                     if (metaField == "exit")
                                         break;
 
-                                    if (string.IsNullOrEmpty(metaField) || !IsNodeFound(metaField, nodes))
-                                        CLIEngine.ShowErrorMessage($"The meta data field/property '{metaField}' was not found. Please try again.");
+                                    selectedNode = GetNode(metaField, nodes);
 
-                                    else if (IsMetaMatchFound(metaField, result.Result))
+                                    //if (string.IsNullOrEmpty(metaField) || !IsNodeFound(metaField, nodes))
+                                    if (string.IsNullOrEmpty(metaField) || selectedNode == null)
+                                        CLIEngine.ShowErrorMessage($"The holon meta data node '{metaField}' was not found. Please try again.");
+                                    
+                                    else if (result.Result.Any(x => x.MetaTag == metaField))
                                     {
-                                        string matchedKey = "";
-                                        foreach (string key in result.Result.Keys)
-                                        {
-                                            if (result.Result[key].Item2 == metaField)
-                                            {
-                                                matchedKey = key;
-                                                break;
-                                            }
-                                        }
+                                        MetaHolonTag matchedTag = result.Result.FirstOrDefault(x => x.MetaTag == metaField);
+                                        
+                                        if (matchedTag != null)
+                                            CLIEngine.ShowErrorMessage($"The holon meta data node '{metaField}' has already been mapped to '{matchedTag.NodeName}'. Please try again.");
+                                        else
+                                            CLIEngine.ShowErrorMessage($"The holon meta data node'{metaField}' has already been mapped. Please try again.");
 
-                                        CLIEngine.ShowErrorMessage($"The meta data '{metaField}' has already been mapped to '{matchedKey}'. Please try again.");
                                         metaField = "";
                                     }
-
                                 } while (!IsNodeFound(metaField, nodes));
                             }
 
-                            if (tag != "exit" && metaField != "exit" && CLIEngine.GetConfirmation($"Please confirm you wish to map the tag '{tag}' to the meta data field/property '{metaField}'?"))
+                            if (tag != "exit" && metaField != "exit" && CLIEngine.GetConfirmation($"Please confirm you wish to map the tag '{tag}' to the holon meta data node '{metaField}'?"))
                             {
-                                result.Result[tag] = (GetHolonThatNodeBelongsTo(metaField, nodes), metaField);
+                                //result.Result[tag] = (GetHolonThatNodeBelongsTo(metaField, nodes), metaField);
+                                //result.Result.Add(new MetaHolonTag() { HolonName = GetHolonThatNodeBelongsTo(metaField, nodes), NodeName = metaField, NodeType = new EnumValue<NodeType>(selectedNode.NodeType), MetaTag = tag });
+                                result.Result.Add(new MetaHolonTag() { HolonName = GetHolonThatNodeBelongsTo(metaField, nodes), NodeName = metaField, NodeType = Enum.GetName(typeof(NodeType), selectedNode.NodeType), MetaTag = tag });
                                 Console.WriteLine("");
-                                CLIEngine.ShowSuccessMessage($"Meta tag '{tag}' mapped to meta data '{metaField}'");
+                                CLIEngine.ShowSuccessMessage($"Meta tag '{tag}' mapped to holon meta data node '{metaField}'");
                                 Console.WriteLine("");
                                 ShowHolonMetaTagMappings(result.Result, true);
                             }
@@ -1566,11 +1577,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             try
             {
-                OASISResult<List<string>> getCustomTagsResult = GetCustomTagsFromTemplate(oappTemplate.InstalledPath, new List<string>(), "{{{", "}}}");
+                //OASISResult<List<string>> getCustomTagsResult = GetCustomTagsFromTemplate(oappTemplate.InstalledPath, new List<string>(), "{{{", "}}}");
+                OASISResult<List<string>> getCustomTagsResult = GetCustomTagsFromTemplate(oappTemplate.InstalledPath, new List<string>(), "[[", "]]");
 
                 if (getCustomTagsResult != null && getCustomTagsResult.Result != null && !getCustomTagsResult.IsError)
                 {
-                    CLIEngine.ShowMessage(string.Concat($"Found {getCustomTagsResult.Result.Count} custom tags in the OAPP Template '{oappTemplate.STARNETDNA.Name}'", getCustomTagsResult.Result.Count > 0 ? ":" : "."));
+                    Console.WriteLine("");
+                    CLIEngine.ShowMessage(string.Concat($"Found {getCustomTagsResult.Result.Count} custom tag(s) in the OAPP Template '{oappTemplate.STARNETDNA.Name}'", getCustomTagsResult.Result.Count > 0 ? ":" : "."));
 
                     if (getCustomTagsResult.Result.Count > 0)
                     {
@@ -1610,7 +1623,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                             if (tag != "exit")
                             {
-                                metaField = CLIEngine.GetValidInput("Please enter the meta data you wish to map to this tag (case sensitive). Enter 'exit' to cancel:");
+                                metaField = CLIEngine.GetValidInput("Please enter the meta data you wish to map to this tag. Enter 'exit' to cancel:");
 
                                 if (tag != "exit" && metaField != "exit" && CLIEngine.GetConfirmation($"Please confirm you wish to map the tag '{tag}' to the meta data '{metaField}'?"))
                                 {
@@ -1640,21 +1653,58 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private bool IsNodeFound(string nodeName, Dictionary<string, IList<INode>> nodes)
         {
-            foreach (string key in nodes.Keys)
+            if (nodes != null)
             {
-                if (nodes[key].Any(x => x.NodeName == nodeName))
-                    return true;
+                foreach (string key in nodes.Keys)
+                {
+                    if (nodes[key].Any(x => x.NodeName == nodeName))
+                        return true;
+                }
             }
 
             return false;
         }
 
+        private INode GetNode(string nodeName, Dictionary<string, IList<INode>> nodes)
+        {
+            INode node = null;
+
+            if (nodes != null)
+            {
+                foreach (string key in nodes.Keys)
+                {
+                    node = nodes[key].FirstOrDefault(x => x.NodeName == nodeName);
+
+                    if (node != null)
+                        break;
+                }
+            }
+
+            return node;
+        }
+
+        private int CountNodes(Dictionary<string, IList<INode>> nodes)
+        {
+            int total = 0;
+
+            if (nodes != null)
+            {
+                foreach (string key in nodes.Keys)
+                    total += nodes[key].Count;
+            }
+
+            return total;
+        }
+
         private string GetHolonThatNodeBelongsTo(string nodeName, Dictionary<string, IList<INode>> nodes)
         {
-            foreach (string key in nodes.Keys)
+            if (nodes != null)
             {
-                if (nodes[key].Any(x => x.NodeName == nodeName))
-                    return key;
+                foreach (string key in nodes.Keys)
+                {
+                    if (nodes[key].Any(x => x.NodeName == nodeName))
+                        return key;
+                }
             }
 
             return "";
@@ -1662,10 +1712,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private bool IsMetaMatchFound(string nodeName, Dictionary<string, (string, string)> nodes)
         {
-            foreach (string key in nodes.Keys)
+            if (nodes != null)
             {
-                if (nodes[key].Item2 == nodeName)
-                    return true;
+                foreach (string key in nodes.Keys)
+                {
+                    if (nodes[key].Item2 == nodeName)
+                        return true;
+                }
             }
 
             return false;
