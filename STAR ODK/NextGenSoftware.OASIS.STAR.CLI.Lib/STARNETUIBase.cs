@@ -2263,18 +2263,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"{starHolon.STARNETDNA.Dependencies.Templates.Count} Found.", starHolon.STARNETDNA.Dependencies.Templates.Count > 0 ? tip : ""), false);
         }
 
-        protected void ShowHolonMetaTagMappings(Dictionary<string, (string, string)> metaHolonTagMappings, bool showDetailedInfo, int displayFieldLength = DEFAULT_FIELD_LENGTH)
+        //protected void ShowHolonMetaTagMappings(Dictionary<string, (string, string)> metaHolonTagMappings, bool showDetailedInfo, int displayFieldLength = DEFAULT_FIELD_LENGTH)
+        protected void ShowHolonMetaTagMappings(List<MetaHolonTag> metaHolonTagMappings, bool showDetailedInfo, int displayFieldLength = DEFAULT_FIELD_LENGTH)
         {
             if (showDetailedInfo)
             {
                 if (metaHolonTagMappings != null && metaHolonTagMappings.Count > 0)
                 {
+                    int colWidth = 20;
                     Console.WriteLine("");
                     CLIEngine.ShowMessage(string.Concat("Holon Meta Tag Mappings", " (", metaHolonTagMappings.Count.ToString(), "):"), false);
-                    CLIEngine.ShowMessage(string.Concat("Tag".PadRight(22), "Holon".PadRight(22), "Field/Property".PadRight(22)), false);
+                    Console.WriteLine("");
+                    CLIEngine.ShowMessage(string.Concat("TAG".PadRight(20), "HOLON".PadRight(colWidth), "NODE".PadRight(colWidth), "TYPE".PadRight(colWidth)), false);
+                    //CLIEngine.ShowMessage(string.Concat("TAG".PadRight(22), "HOLON".PadRight(22), "HOLON TYPE".PadRight(22), "NODE".PadRight(22), "NODE TYPE".PadRight(22)), false);
+                    Console.WriteLine("");
 
-                    foreach (string key in metaHolonTagMappings.Keys)
-                        CLIEngine.ShowMessage(string.Concat(key.PadRight(22), metaHolonTagMappings[key].Item1.PadRight(22), metaHolonTagMappings[key].Item2.PadRight(22)), false);
+                    foreach (MetaHolonTag metaHolonTag in metaHolonTagMappings)
+                        CLIEngine.ShowMessage(string.Concat(metaHolonTag.MetaTag.PadRight(colWidth), metaHolonTag.HolonName.PadRight(colWidth), metaHolonTag.NodeName.PadRight(colWidth), metaHolonTag.NodeType.PadRight(colWidth)), false);
+                    //CLIEngine.ShowMessage(string.Concat(metaHolonTag.MetaTag.PadRight(22), metaHolonTag.HolonName.PadRight(22), metaHolonTag.NodeName.PadRight(22), metaHolonTag.NodeType.Name.PadRight(22)), false);
+                    //CLIEngine.ShowMessage(string.Concat(metaHolonTag.MetaTag.PadRight(22), metaHolonTag.HolonName.PadRight(22), metaHolonTag.NodeName, Enum.GetName(typeof(NodeType), metaHolonTag.NodeType).PadRight(22)), false);
+
+                    Console.WriteLine("");
                 }
                 else
                     DisplayProperty("Holon Meta Tag Mappings", "None", displayFieldLength);
@@ -2289,12 +2298,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (metaTagMappings != null && metaTagMappings.Count > 0)
                 {
+                    int colWidth = 20;
                     Console.WriteLine("");
                     CLIEngine.ShowMessage(string.Concat("Meta Tag Mappings", " (", metaTagMappings.Count.ToString(), "):"), false);
-                    CLIEngine.ShowMessage(string.Concat("Tag".PadRight(22), "Meta Data".PadRight(22)), false);
+                    Console.WriteLine("");
+                    CLIEngine.ShowMessage(string.Concat("TAG".PadRight(colWidth), "META DATA".PadRight(colWidth)), false);
+                    Console.WriteLine("");
 
                     foreach (string key in metaTagMappings.Keys)
-                        CLIEngine.ShowMessage(string.Concat(key.PadRight(22), metaTagMappings[key].PadRight(22)), false);
+                        CLIEngine.ShowMessage(string.Concat(key.PadRight(colWidth), metaTagMappings[key].PadRight(colWidth)), false);
+
+                    Console.WriteLine("");
                 }
                 else
                     DisplayProperty("Meta Tag Mappings", "None", displayFieldLength);

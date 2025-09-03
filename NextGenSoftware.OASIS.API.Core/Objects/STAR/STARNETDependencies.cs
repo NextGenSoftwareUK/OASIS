@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects.STARNET
 {

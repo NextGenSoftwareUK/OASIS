@@ -109,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public Type STARNETCategory { get; set; }
         public STARDNA STARDNA { get; set; }
 
-        public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, Dictionary<string, (string, string)> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, Dictionary<string, object> metaData = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, Dictionary<string, object> metaData = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in STARNETManagerBase.CreateAsync, Reason:";
