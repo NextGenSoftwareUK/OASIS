@@ -1051,8 +1051,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Version", ParseMetaData(oapp.MetaData, "OAPPTemplateVersion"), displayFieldLength);
             DisplayProperty("Version Sequence", ParseMetaData(oapp.MetaData, "OAPPTemplateVersionSequence"), displayFieldLength);
             DisplayProperty("Installed Path", ParseMetaData(oapp.MetaData, "OAPPTemplateInstalledPath"), displayFieldLength);
-            ShowHolonMetaTagMappings(oapp.STARNETDNA.MetaHolonTagMappings, showDetailedInfo, displayFieldLength);
-            ShowMetaTagMappings(oapp.STARNETDNA.MetaTagMappings, showDetailedInfo, displayFieldLength);
+            ShowHolonMetaTagMappings(oapp.STARNETDNA.MetaTagMappings.MetaHolonTags, showDetailedInfo, displayFieldLength);
+            ShowMetaTagMappings(oapp.STARNETDNA.MetaTagMappings.MetaTags, showDetailedInfo, displayFieldLength);
 
             Console.WriteLine("");
             DisplayProperty("CELESTIAL BODY META DATA DNA", "", displayFieldLength, false);
@@ -1556,6 +1556,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             else
                                 Console.WriteLine("");
 
+                            if (tag == "exit" || metaField == "exit")
+                                break;
+
                             mapTags = CLIEngine.GetConfirmation("Would you like to map more tags?");
                             Console.WriteLine("");
 
@@ -1639,6 +1642,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 mapTags = CLIEngine.GetConfirmation("Would you like to map more tags?");
                                 Console.WriteLine("");
                             }
+                            else
+                                break;
                         } while (mapTags);
                     }
                 }
@@ -1767,6 +1772,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 start += 2;
                                 int end = line.IndexOf(endTag, start);
                                 string tag = line.Substring(start, end - start);
+
+                                if (tag.Substring(0, 1) == "{")
+                                    tag = tag.Substring(1);
 
                                 if (!tags.Contains(tag))
                                     tags.Add(tag);

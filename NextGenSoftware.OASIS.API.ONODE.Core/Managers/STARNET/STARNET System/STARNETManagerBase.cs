@@ -206,8 +206,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
                     STARNETDNA.SourcePath = fullPathToSourceFolder;
                     STARNETDNA.MetaData = metaData; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
-                    STARNETDNA.MetaHolonTagMappings = metaHolonTagMappings;
-                    STARNETDNA.MetaTagMappings = metaTagMappings;
+                    STARNETDNA.MetaTagMappings.MetaHolonTags = metaHolonTagMappings;
+                    STARNETDNA.MetaTagMappings.MetaTags = metaTagMappings;
 
                     //STARNETDNA STARNETDNA = new STARNETDNA()
                     //{
