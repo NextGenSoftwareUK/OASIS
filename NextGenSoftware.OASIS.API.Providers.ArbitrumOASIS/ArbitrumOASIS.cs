@@ -376,11 +376,11 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             int avatarEntityId = HashUtility.GetNumericHash(id.ToString());
 
-            OASISResult<IProviderWallet> fromAccountWallet = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(id, this.ProviderType.Value);
-            if (fromAccountWallet.IsError)
+            // Use the configured _oasisAccount instead of WalletManager
+            if (_oasisAccount == null)
             {
                 OASISErrorHandling.HandleError(
-                    ref result, string.Concat(errorMessage, fromAccountWallet.Message), fromAccountWallet.Exception);
+                    ref result, string.Concat(errorMessage, "ArbitrumOASIS account not initialized. Please ensure the provider is activated."));
                 return result;
             }
 
@@ -457,11 +457,11 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             int avatarDetailEntityId = HashUtility.GetNumericHash(id.ToString());
 
-            OASISResult<IProviderWallet> fromAccountWallet = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(id, this.ProviderType.Value);
-            if (fromAccountWallet.IsError)
+            // Use the configured _oasisAccount instead of WalletManager
+            if (_oasisAccount == null)
             {
                 OASISErrorHandling.HandleError(
-                    ref result, string.Concat(errorMessage, fromAccountWallet.Message), fromAccountWallet.Exception);
+                    ref result, string.Concat(errorMessage, "ArbitrumOASIS account not initialized. Please ensure the provider is activated."));
                 return result;
             }
 
@@ -533,11 +533,11 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         {
             int holonEntityId = HashUtility.GetNumericHash(id.ToString());
 
-            OASISResult<IProviderWallet> fromAccountWallet = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(id, this.ProviderType.Value);
-            if (fromAccountWallet.IsError)
+            // Use the configured _oasisAccount instead of WalletManager
+            if (_oasisAccount == null)
             {
                 OASISErrorHandling.HandleError(
-                    ref result, string.Concat(errorMessage, fromAccountWallet.Message), fromAccountWallet.Exception);
+                    ref result, string.Concat(errorMessage, "ArbitrumOASIS account not initialized. Please ensure the provider is activated."));
                 return result;
             }
 
