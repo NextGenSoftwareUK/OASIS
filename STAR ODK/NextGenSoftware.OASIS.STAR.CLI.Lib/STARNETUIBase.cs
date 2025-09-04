@@ -2154,8 +2154,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"STAR API Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARAPIVersion), false);
             CLIEngine.ShowMessage(string.Concat($".NET Version:".PadRight(displayFieldLength), starHolon.STARNETDNA.DotNetVersion), false);
             Console.WriteLine("");
-            ShowHolonMetaTagMappings(starHolon.STARNETDNA.MetaHolonTagMappings, showDetailedInfo, displayFieldLength);
-            ShowMetaTagMappings(starHolon.STARNETDNA.MetaTagMappings, showDetailedInfo, displayFieldLength);
+
+            if (starHolon.STARNETDNA.MetaTagMappings != null)
+                ShowHolonMetaTagMappings(starHolon.STARNETDNA.MetaTagMappings.MetaHolonTags, showDetailedInfo, displayFieldLength);
+            else
+                DisplayProperty("Holon Meta Tag Mappings", "None", displayFieldLength);
+
+            if (starHolon.STARNETDNA.MetaTagMappings != null)
+                ShowMetaTagMappings(starHolon.STARNETDNA.MetaTagMappings.MetaTags, showDetailedInfo, displayFieldLength);
+            else
+                DisplayProperty("Meta Tag Mappings", "None", displayFieldLength);
 
             ShowAllDependencies(starHolon, showDetailedInfo, displayFieldLength);
             //Console.WriteLine("");
