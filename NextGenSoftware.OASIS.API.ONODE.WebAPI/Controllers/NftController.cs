@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class NftController : OASISControllerBase
     {
         NFTManager _NFTManager = null;
-
+       
         NFTManager NFTManager 
         {
             get 

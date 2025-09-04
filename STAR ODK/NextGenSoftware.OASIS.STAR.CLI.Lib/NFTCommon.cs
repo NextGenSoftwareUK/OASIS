@@ -61,6 +61,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             NFTOffChainMetaType NFTOffchainMetaType = NFTOffChainMetaType.OASIS;
             NFTStandardType NFTStandardType = NFTStandardType.Both;
             Dictionary<string, object> metaData = new Dictionary<string, object>();
+            long discount = 0;
 
             if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT or input a URI to an online image? (Press Y for local or N for online)"))
             {
@@ -89,7 +90,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             string mintWalletAddress = CLIEngine.GetValidInput("What is the mint wallet address?");
             long price = CLIEngine.GetValidInputForLong("What is the price for the NFT?");
-            long discount = CLIEngine.GetValidInputForLong("Is there any discount for the NFT? If so enter it now or leave blank. (This can always be changed later.)");
+
+            if (CLIEngine.GetConfirmation("Is there any discount for the NFT? (This can always be changed later.)"))
+            {
+                Console.WriteLine("");
+                discount = CLIEngine.GetValidInputForLong("What is the discount?");
+            }
+            else
+                Console.WriteLine("");
 
             object onChainProviderObj = CLIEngine.GetValidInputForEnum("What on-chain provider do you wish to mint on?", typeof(ProviderType));
             ProviderType onChainProvider = (ProviderType)onChainProviderObj;

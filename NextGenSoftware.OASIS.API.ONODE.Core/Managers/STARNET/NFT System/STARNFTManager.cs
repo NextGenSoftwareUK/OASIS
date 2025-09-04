@@ -65,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToNFTSource, null, null,
+            return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToNFTSource, null, null, null,
                 new STARNFT()
                 {
                     NFTType = nftType,
@@ -103,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             bool checkIfSourcePathExists = true,
             ProviderType providerType = ProviderType.Default)
         {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToNFTSource, null, null,
+            return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToNFTSource, null, null, null,
                 new STARNFT()
                 {
                     NFTType = nftType,

@@ -1,7 +1,6 @@
-﻿using NextGenSoftware.OASIS.API.Core.Objects;
+﻿using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
-using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {

@@ -1,0 +1,35 @@
+name: Deploy OASIS Web4 Site
+
+on:
+  push:
+    branches: [ max-build ]
+    paths: [ 'oasisweb4 site/**' ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Create deployment directory
+      run: |
+        mkdir -p deploy
+        cp -r "oasisweb4 site"/* deploy/
+        
+    - name: Remove large files
+      run: |
+        find deploy -name "*.mp4" -delete
+        find deploy -name "*.webm" -delete
+        find deploy -name "*.mov" -delete
+        find deploy -name "*.avi" -delete
+        find deploy -name "*.pdf" -size +5M -delete
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./deploy
+        force_orphan: true
