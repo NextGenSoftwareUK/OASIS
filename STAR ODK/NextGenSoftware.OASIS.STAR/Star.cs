@@ -29,6 +29,8 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using static NextGenSoftware.OASIS.API.Core.Events.EventDelegates;
 
 using NextGenSoftware.OASIS.STAR.Interfaces;
+using SevenZip.Buffer;
+using System.Linq;
 
 
 namespace NextGenSoftware.OASIS.STAR
@@ -49,7 +51,18 @@ namespace NextGenSoftware.OASIS.STAR
 
         public static string STARDNAPath { get; set; } = STAR_DNA_DEFAULT_PATH;
         public static string OASISDNAPath { get; set; } = OASIS_DNA_DEFAULT_PATH;
-        public static STARDNA STARDNA { get; set; }
+
+        public static STARDNA STARDNA
+        {
+            get
+            {
+                return STARDNAManager.STARDNA;
+            }
+            set
+            {
+                STARDNAManager.STARDNA = value;
+            }
+        }
 
         public static OASISDNA OASISDNA
         {
@@ -566,9 +579,9 @@ namespace NextGenSoftware.OASIS.STAR
             return result;
         }
 
-        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Dictionary<string, string> metaTagMappings = null, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, ProviderType providerType = ProviderType.Default)
         {
-            return Light(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, metaTagMappings, null, providerType);
+            return Light(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, metaHolonTagMappings, metaTagMappings, null, providerType);
         }
 
         //public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IStar starToAddPlanetTo = null, ProviderType providerType = ProviderType.Default)
@@ -581,19 +594,19 @@ namespace NextGenSoftware.OASIS.STAR
         //    return Light(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)planetToAddMoonTo, providerType);
         //}
 
-        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Dictionary<string, string> metaTagMappings = null, ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
+        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
         {
-            return LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, metaTagMappings, celestialBodyParent, providerType).Result;
+            return LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, metaHolonTagMappings, metaTagMappings, celestialBodyParent, providerType).Result;
         }
 
-        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Dictionary<string, string> metaTagMappings = null, Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
+        public static OASISResult<CoronalEjection> Light(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
-            return LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, metaTagMappings, null, celestialBodyParentId, providerType).Result;
+            return LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, metaHolonTagMappings, metaTagMappings, null, celestialBodyParentId, providerType).Result;
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Dictionary<string, string> metaTagMappings = null, ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, ProviderType providerType = ProviderType.Default)
         {
-            return await LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, metaTagMappings, (ICelestialBody)null, providerType);
+            return await LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, metaHolonTagMappings, metaTagMappings, (ICelestialBody)null, providerType);
         }
 
         //public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", IStar starToAddPlanetTo = null, ProviderType providerType = ProviderType.Default)
@@ -606,24 +619,24 @@ namespace NextGenSoftware.OASIS.STAR
         //    return await LightAsync(OAPPName, OAPPDescription, OAPPType, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, (ICelestialBody)planetToAddMoonTo, providerType);
         //}
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Dictionary<string, string> metaTagMappings = null, ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, string zomeAndHolonDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, ProviderType providerType = ProviderType.Default)
         {
-            return await LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, GenesisType.ZomesAndHolonsOnly, zomeAndHolonDNAFolder, genesisFolder, genesisNameSpace, metaTagMappings, providerType);
+            return await LightAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, GenesisType.ZomesAndHolonsOnly, zomeAndHolonDNAFolder, genesisFolder, genesisNameSpace, metaHolonTagMappings, metaTagMappings, providerType);
         }
 
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "",  Dictionary<string, string> metaTagMappings = null, Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
-            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, metaTagMappings, null, celestialBodyParentId, providerType);
+            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, metaHolonTagMappings, metaTagMappings, null, celestialBodyParentId, providerType);
         }
 
         //public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
-        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Dictionary<string, string> metaTagMappings = null, ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
+        public static async Task<OASISResult<CoronalEjection>> LightAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, ICelestialBody celestialBodyParent = null, ProviderType providerType = ProviderType.Default)
         {
-            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, metaTagMappings, celestialBodyParent, Guid.Empty, providerType);
+            return await LightInternalAsync(OAPPName, OAPPDescription, OAPPType, OAPPTemplateId, OAPPTemplateVersion, genesisType, celestialBodyDNAFolder, genesisFolder, genesisNameSpace, metaHolonTagMappings, metaTagMappings, celestialBodyParent, Guid.Empty, providerType);
         }
 
         //private static async Task<OASISResult<CoronalEjection>> LightInternalAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, OAPPTemplateType OAPPTemplateType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "",  string genesisNameSpace = "", ICelestialBody celestialBodyParent = null, Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
-        private static async Task<OASISResult<CoronalEjection>> LightInternalAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", Dictionary<string, string> metaTagMappings = null, ICelestialBody celestialBodyParent = null, Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
+        private static async Task<OASISResult<CoronalEjection>> LightInternalAsync(string OAPPName, string OAPPDescription, OAPPType OAPPType, Guid OAPPTemplateId, int OAPPTemplateVersion, GenesisType genesisType, string celestialBodyDNAFolder = "", string genesisFolder = "", string genesisNameSpace = "", List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, ICelestialBody celestialBodyParent = null, Guid celestialBodyParentId = new Guid(), ProviderType providerType = ProviderType.Default)
         {
             OASISResult<CoronalEjection> result = new OASISResult<CoronalEjection>(new CoronalEjection());
             ICelestialBody newBody = null;
@@ -1142,9 +1155,9 @@ namespace NextGenSoftware.OASIS.STAR
             // Currently the OApp Name is the same as the CelestialBody name (each CelestialBody is a seperate OApp), but in future a OApp may be able to contain more than one celestialBody...
             // TODO: Currently the OApp templates only contain sample load/save for one holon... this may change in future... likely will... ;-) Want to show for every zome/holon inside the celestialbody...
             if (holonNames.Count > 0)
-                ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, OAPPName, OAPPName, zomes[0].Name, holonNames[0], firstStringProperty, metaTagMappings);
+                ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, OAPPName, OAPPName, zomes[0].Name, holonNames[0], firstStringProperty, metaHolonTagMappings, metaTagMappings);
             else
-                ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, OAPPName, OAPPName, zomes[0].Name, "", firstStringProperty, metaTagMappings);
+                ApplyOAPPTemplate(genesisType, OAPPFolder, genesisNameSpace, OAPPName, OAPPName, zomes[0].Name, "", firstStringProperty, metaHolonTagMappings, metaTagMappings);
 
             //Generate any native code for the current provider.
             //TODO: Add option to pass into STAR which providers to generate native code for (can be more than one provider).
@@ -1284,53 +1297,71 @@ namespace NextGenSoftware.OASIS.STAR
                     break;
             }
 
-
-            //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
-            //OASISResult<IOAPP> OAPPResult = await STARAPI.OAPPs.CreateOAPPAsync(BeamedInAvatar.AvatarId, OAPPName, OAPPDescription, OAPPType, OAPPTemplateType, OAPPTemplateId, genesisType, OAPPFolder, newBody, zomes);
-
-            //if (OAPPResult != null && !OAPPResult.IsError && OAPPResult.Result != null)
-            //    result.Result.OAPP = OAPPResult.Result;
-            //else
-            //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An Error Occured Calling OASISAPI.OAPPs.CreateOAPPAsync. Reason: {OAPPResult.Message}");
-
             return result;
         }
 
-        public static OASISResult<List<INode>> ExtractNodesFromCelestialBodyMetaDataDNA(string celestialBodyDNAFolder)
+        public static OASISResult<Dictionary<string, IList<INode>>> ExtractNodesFromCelestialBodyMetaDataDNA(string celestialBodyDNAFolder)
         {
-            OASISResult<List<INode>> result = new OASISResult<List<INode>>(new List<INode>());
-            DirectoryInfo dirInfo = new DirectoryInfo(celestialBodyDNAFolder);
-            FileInfo[] files = dirInfo.GetFiles();
+            OASISResult<Dictionary<string, IList<INode>>> result = new OASISResult<Dictionary<string, IList<INode>>>(new Dictionary<string, IList<INode>>());
 
-            foreach (FileInfo file in files)
+            try
             {
-                if (file != null)
-                {
-                    using (StreamReader reader = file.OpenText())
-                    {
-                        while (!reader.EndOfStream)
-                        {
-                            string buffer = reader.ReadLine();
+                DirectoryInfo dirInfo = new DirectoryInfo(celestialBodyDNAFolder);
+                FileInfo[] files = dirInfo.GetFiles();
+                bool holonReached = false;
+                string holonName = "";
 
-                            if (buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
+                foreach (FileInfo file in files)
+                {
+                    if (file != null)
+                    {
+                        using (StreamReader reader = file.OpenText())
+                        {
+                            while (!reader.EndOfStream)
                             {
-                                string[] parts = buffer.Split(' ');
-                                string fieldName = parts[14].ToSnakeCase();
-                                result.Result.Add(new Node()
+                                string buffer = reader.ReadLine();
+
+                                if (holonReached && buffer.Length > 1 && buffer.Substring(buffer.Length - 1, 1) == "}" && !buffer.Contains("get;"))
                                 {
-                                    NodeName = fieldName,
-                                    NodeType = parts[13].ToLower() switch
+                                    holonReached = false;
+                                    holonName = "";
+                                }
+
+                                if (buffer.Contains("HolonDNA"))
+                                {
+                                    string[] parts = buffer.Split(' ');
+                                    holonName = parts[10].ToPascalCase();
+                                    holonReached = true;
+                                }
+
+                                if (buffer.Contains("string") || buffer.Contains("int") || buffer.Contains("bool"))
+                                {
+                                    string[] parts = buffer.Split(' ');
+                                    string fieldName = parts[14].ToPascalCase();
+
+                                    if (!result.Result.ContainsKey(holonName))
+                                        result.Result[holonName] = new List<INode>();
+
+                                    result.Result[holonName].Add(new Node()
                                     {
-                                        "string" => NodeType.String,
-                                        "int" => NodeType.Int,
-                                        "bool" => NodeType.Bool,
-                                        _ => NodeType.Unknown
-                                    }
-                                });
+                                        NodeName = fieldName,
+                                        NodeType = parts[13].ToLower() switch
+                                        {
+                                            "string" => NodeType.String,
+                                            "int" => NodeType.Int,
+                                            "bool" => NodeType.Bool,
+                                            _ => NodeType.Unknown
+                                        }
+                                    });
+                                }
                             }
                         }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Invalid CelesitalBodyMetaDataDNA! Please correct or use another!");
             }
 
             return result;
@@ -2840,15 +2871,15 @@ namespace NextGenSoftware.OASIS.STAR
             }
         }
 
-        private static void ApplyOAPPTemplate(GenesisType genesisType, string OAPPFolder, string oAppNameSpace, string oAppName, string celestialBodyName, string zomeName, string holonName, string firstStringProperty, Dictionary<string, string> metaTagMappings = null)
+        private static void ApplyOAPPTemplate(GenesisType genesisType, string OAPPFolder, string oAppNameSpace, string oAppName, string celestialBodyName, string zomeName, string holonName, string firstStringProperty, List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, bool root = true)
         {
             foreach (DirectoryInfo dir in new DirectoryInfo(OAPPFolder).GetDirectories())
             {
                 if (dir.Name != "bin" && dir.Name != "obj")
-                    ApplyOAPPTemplate(genesisType, dir.FullName, oAppNameSpace, oAppName, celestialBodyName, zomeName, holonName, firstStringProperty);
+                    ApplyOAPPTemplate(genesisType, dir.FullName, oAppNameSpace, oAppName, celestialBodyName, zomeName, holonName, firstStringProperty, metaHolonTagMappings, metaTagMappings, false);
             }
             
-            if (!OAPPFolder.Contains(STAR.STARDNA.OAPPGeneratedCodeFolder))
+            if (!OAPPFolder.Contains(STARDNA.OAPPGeneratedCodeFolder))
             {                
                 foreach (FileInfo file in new DirectoryInfo(OAPPFolder).GetFiles("*.csproj"))
                 {
@@ -2872,10 +2903,14 @@ namespace NextGenSoftware.OASIS.STAR
                 }
 
                 //TODO: use multiple file extention wildcards so only need one file loop...
+                bool foundOASISDNA = false;
                 foreach (FileInfo file in new DirectoryInfo(OAPPFolder).GetFiles("*.cs"))
                 {
                     int lineNumber = 1;
                     string line = null;
+
+                    if (file.FullName.Contains("OASIS_DNA.json"))
+                        foundOASISDNA = true;
 
                     using (TextReader tr = File.OpenText(file.FullName))
                     using (TextWriter tw = File.CreateText(string.Concat(file.FullName, ".temp")))
@@ -2884,12 +2919,31 @@ namespace NextGenSoftware.OASIS.STAR
 
                         while ((line = tr.ReadLine()) != null)
                         {
-                            if (metaTagMappings != null)
+                            if (metaHolonTagMappings != null && metaHolonTagMappings.Count > 0)
                             {
+                                string initHolons = "";
+                                foreach (MetaHolonTag metaHolonTag in metaHolonTagMappings)
+                                {
+                                    if (!string.IsNullOrEmpty(initHolons))
+                                        initHolons = string.Concat(initHolons, "\n");
+
+                                    initHolons = string.Concat(initHolons, metaHolonTag.HolonName.ToPascalCase(), " ", metaHolonTag.HolonName.ToCamelCase(), " = new ", metaHolonTag.HolonName.ToPascalCase(), "();");
+
+                                    if (line.Contains(metaHolonTag.MetaTag))
+                                        line = line.Replace(string.Concat("{{", metaHolonTag.MetaTag, "}}"), string.Concat(metaHolonTag.HolonName.ToCamelCase(), ".", metaHolonTag.NodeName));
+                                }
+
+                                if (!string.IsNullOrEmpty(initHolons) && line.Contains("{INITCUSTOMTAGHOLONS}"))
+                                    line = line.Replace("{INITCUSTOMTAGHOLONS}", initHolons);
+                            }
+
+                            if (metaTagMappings != null && metaTagMappings.Count > 0)
+                            {
+                                string initHolons = "";
                                 foreach (string key in metaTagMappings.Keys)
                                 {
                                     if (line.Contains(key))
-                                        line = line.Replace(key, metaTagMappings[key]).Replace("{{", "").Replace("}}", "");
+                                        line = line.Replace(string.Concat("[[", key, "]]"), metaTagMappings[key]);
                                 }
                             }
 
@@ -2929,9 +2983,10 @@ namespace NextGenSoftware.OASIS.STAR
                                         continue;
                                 }
 
-                                line = line.Replace("{ZOME}", zomeName.ToPascalCase());
-                                line = line.Replace("{HOLON}", holonName.ToPascalCase());
-                                line = line.Replace("{STRINGPROPERTY}", firstStringProperty.ToPascalCase());
+                                line = line.Replace("{ZOME1}", zomeName.ToPascalCase());
+                                line = line.Replace("{HOLON1}", holonName.ToPascalCase());
+                                line = line.Replace("{HOLON1_STRINGPROPERTY1}", firstStringProperty.ToPascalCase());
+                                //TODO: Add rest of the props, holons, zomes, etc...
                             }
 
                             tw.WriteLine(line);
@@ -2942,6 +2997,9 @@ namespace NextGenSoftware.OASIS.STAR
                     File.Delete(file.FullName);
                     File.Move(string.Concat(file.FullName, ".temp"), file.FullName);
                 }
+
+                if (!foundOASISDNA && root)
+                    File.Copy(OASISDNAPath, Path.Combine(OAPPFolder, "OASIS_DNA.json"));
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using NextGenSoftware.OASIS.API.Core.Enums;
+using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects.STARNET;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
@@ -14,9 +15,13 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         Guid CreatedByAvatarId { get; set; }
         string CreatedByAvatarUsername { get; set; }
         DateTime CreatedOn { get; set; }
-        object STARNETHolonType { get; set; }
+        string STARNETHolonType { get; set; }
+        object STARNETCategory { get; set; }
         public STARNETDependencies Dependencies { get; set; }
         public Dictionary<string, object> MetaData { get; set; }
+        //public Dictionary<string, (string, string)> MetaHolonTagMappings { get; set; }
+        //[JsonObjectAttribute]
+        public List<MetaHolonTag> MetaHolonTagMappings { get; set; }
         public Dictionary<string, string> MetaTagMappings { get; set; }
         string SourcePath { get; set; }
         string PublishedPath { get; set; }
@@ -30,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         bool PublishedToCloud { get; set; }
         bool PublishedToPinata { get; set; }
         string PinataIPFSHash { get; set; }
-        ProviderType PublishedProviderType { get; set; }
+        string PublishedProviderType { get; set; }
         string LaunchTarget { get; set; }
         long FileSize { get; set; }
         string Version { get; set; }

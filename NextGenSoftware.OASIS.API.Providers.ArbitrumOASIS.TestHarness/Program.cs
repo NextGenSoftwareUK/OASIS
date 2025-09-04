@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
             arbitrumOASIS.ActivateProvider();
 
             OASISResult<INFTTransactionRespone> result = await arbitrumOASIS.MintNFTAsync(
-                new MintNFTTransactionRequest()
+                new MintNFTTransactionRequestForProvider()
                 {
                     MintWalletAddress = _accountAddress,
                     MintedByAvatarId = Guid.NewGuid(),

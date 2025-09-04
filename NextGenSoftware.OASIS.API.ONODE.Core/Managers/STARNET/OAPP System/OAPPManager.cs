@@ -98,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     OAPPDNA.PublishedPath = Path.Combine(fullPathToPublishTo, publishedFileName);
                     OAPPDNA.PublishedToCloud = registerOnSTARNET && uploadToCloud;
-                    OAPPDNA.PublishedProviderType = binaryProviderType;
+                    OAPPDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), binaryProviderType);
                 }
 
                 if (generateSelfContainedBinary)
@@ -146,7 +146,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (generateBinary)
                 {
-                    string publishedPath = Path.Combine(fullPathToPublishTo, string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version), "No Runtimes");
+                    string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp", string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version), "No Runtimes");
 
                     try
                     {
@@ -181,15 +181,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     }
                     finally
                     {
-                        //TODO: Put back in once finished testing! ;-)
-                        if (Directory.Exists(publishedPath))
-                            Directory.Delete(publishedPath, true);
+                        if (Directory.Exists(Path.Combine(fullPathToPublishTo, "Published Temp")))
+                            Directory.Delete(Path.Combine(fullPathToPublishTo, "Published Temp"), true);
                     }
                 }
 
                 if (generateSelfContainedBinary)
                 {
-                    string publishedPath = Path.Combine(fullPathToPublishTo, string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version), "Self Contained");
+                    string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp", string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version), "Self Contained");
 
                     try
                     {
@@ -225,15 +224,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     }
                     finally
                     {
-                        //TODO: Put back in once finished testing! ;-)
-                        if (Directory.Exists(publishedPath))
-                            Directory.Delete(publishedPath, true);
+                        if (Directory.Exists(Path.Combine(fullPathToPublishTo, "Published Temp")))
+                            Directory.Delete(Path.Combine(fullPathToPublishTo, "Published Temp"), true);
                     }
                 }
 
                 if (generateSelfContainedFullBinary)
                 {
-                    string publishedPath = Path.Combine(fullPathToPublishTo, string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version), "Self Contained Full");
+                    string publishedPath = Path.Combine(fullPathToPublishTo, "Published Temp", string.Concat(OAPPDNA.Name, "_v", OAPPDNA.Version), "Self Contained Full");
 
                     try
                     {
@@ -269,9 +267,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     }
                     finally
                     {
-                        //TODO: Put back in once finished testing! ;-)
-                        if (Directory.Exists(publishedPath))
-                            Directory.Delete(publishedPath, true);
+                        if (Directory.Exists(Path.Combine(fullPathToPublishTo, "Published Temp")))
+                            Directory.Delete(Path.Combine(fullPathToPublishTo, "Published Temp"), true);
                     }
                 }
 
@@ -332,7 +329,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     else
                     {
                         //OAPP.PublishedProviderType = ProviderType.None;
-                        OAPPDNA.PublishedProviderType = ProviderType.None;
+                        OAPPDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None);
                     }
 
                     if (selfContainedBinaryProviderType != ProviderType.None)
@@ -421,7 +418,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     OAPPDNA.PublishedPath = Path.Combine(fullPathToPublishTo, publishedFileName);
                     OAPPDNA.PublishedToCloud = registerOnSTARNET && uploadToCloud;
-                    OAPPDNA.PublishedProviderType = binaryProviderType;
+                    OAPPDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None);
                 }
 
                 //if (generateSelfContainedBinary)
@@ -553,7 +550,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             OASISErrorHandling.HandleWarning(ref result, $" Error occured calling UploadToOASISAsync. Reason: {uploadToOASISResult.Message}");
                     }
                     else
-                        OAPPDNA.PublishedProviderType = ProviderType.None;
+                        OAPPDNA.PublishedProviderType = Enum.GetName(typeof(ProviderType), ProviderType.None);
 
                     if (selfContainedBinaryProviderType != ProviderType.None)
                     {

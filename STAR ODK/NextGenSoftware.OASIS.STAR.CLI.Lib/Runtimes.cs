@@ -134,7 +134,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (installRunTimeFor == InstallRuntimesFor.OAPP)
                         {
-                            OASISResult<OAPP> addRuntimeResult = await STAR.STARAPI.OAPPs.AddRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installResult.Result, providerType);
+                            OASISResult<OAPP> addRuntimeResult = await STAR.STARAPI.OAPPs.AddDependencyAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, (InstalledRuntime)installResult.Result, DependencyType.Runtime, providerType: providerType);
 
                             if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
                             {
@@ -146,7 +146,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         }
                         else
                         {
-                            OASISResult<OAPPTemplate> addRuntimeResult = await STAR.STARAPI.OAPPTemplates.AddRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installResult.Result, providerType);
+                            OASISResult<OAPPTemplate> addRuntimeResult = await STAR.STARAPI.OAPPTemplates.AddDependencyAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, (InstalledRuntime)installResult.Result, DependencyType.Runtime, providerType: providerType);
 
                             if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
                             {
@@ -225,7 +225,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (installRunTimeFor == InstallRuntimesFor.OAPP)
                     {
-                        OASISResult<OAPP> addRuntimeResult = await STAR.STARAPI.OAPPs.AddRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installResult.Result, providerType);
+                        OASISResult<OAPP> addRuntimeResult = await STAR.STARAPI.OAPPs.AddDependencyAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, (InstalledRuntime)installResult.Result, DependencyType.Runtime, providerType: providerType);
 
                         if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
                         {
@@ -237,7 +237,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                     else
                     {
-                        OASISResult<OAPPTemplate> addRuntimeResult = await STAR.STARAPI.OAPPTemplates.AddRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installResult.Result, providerType);
+                        OASISResult<OAPPTemplate> addRuntimeResult = await STAR.STARAPI.OAPPTemplates.AddDependencyAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, (InstalledRuntime)installResult.Result, DependencyType.Runtime, providerType: providerType);
 
                         if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
                         {
