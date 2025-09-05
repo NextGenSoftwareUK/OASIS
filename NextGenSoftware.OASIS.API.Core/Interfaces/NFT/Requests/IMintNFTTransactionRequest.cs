@@ -28,6 +28,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
         public NFTOffChainMetaType NFTOffChainMetaType { get; set; }
         public string Symbol { get; set; }
         //public bool SaveIPFSImageOnTheOASIS { get; set; }
-        //public string JsonUrl { get; set; }
+        public string JSONMetaDataUrl { get; set; }
     }
 }
