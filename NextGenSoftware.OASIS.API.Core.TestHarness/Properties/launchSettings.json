@@ -1,8 +1,7 @@
 {
-  "profiles": {
-    "WSL": {
-      "commandName": "WSL2",
-      "distributionName": ""
+    "profiles": {
+        "Test Harness": {
+            "commandName": "Project"
+        }
     }
-  }
 }

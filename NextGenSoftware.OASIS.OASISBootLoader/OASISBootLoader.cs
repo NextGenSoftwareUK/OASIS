@@ -279,7 +279,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                             //TODO: Need to make this more secure in future to prevent others creating similar accounts (but none will ever have AvatarType of System, this is the only place that can be created but we need to make sure a normal user accout is not hacked or changed to a system one. But currently it cannot do any harm because this system account is currently not used for anything, it simply creates the default OASIS Omniverse when STAR CLI first boots up on a running ONODE (before a avatar is created or logged in).
                             CLIEngine.SupressConsoleLogging = true;
-                            OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.RegisterAsync("", "OASIS", "SYSTEM", OASISDNA.OASIS.Email.SmtpUser, "", "root", AvatarType.System, OASISType.OASISBootLoader);
+                            //OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.RegisterAsync("", "OASIS", "SYSTEM", OASISDNA.OASIS.Email.SmtpUser, "", "root", AvatarType.System, OASISType.OASISBootLoader);
+                            OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.RegisterAsync("", "OASIS", "SYSTEM", "anorak@oasisweb4.com", "", "root", AvatarType.System, OASISType.OASISBootLoader);
                             CLIEngine.SupressConsoleLogging = false;
 
                             if (avatarResult != null && !avatarResult.IsError)

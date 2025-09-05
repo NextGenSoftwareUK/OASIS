@@ -20,16 +20,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty()]
         public QuestType QuestType { get; set; }
 
-        [CustomOASISProperty()]
-        public IList<IOASISGeoSpatialNFT> GeoSpatialNFTs { get; set; }
+        //[CustomOASISProperty()]
+        //public IList<IOASISGeoSpatialNFT> GeoSpatialNFTs { get; set; }
 
-        [CustomOASISProperty()]
-        public IList<string> GeoSpatialNFTIds { get; set; }
+        //[CustomOASISProperty()]
+        //public IList<string> GeoSpatialNFTIds { get; set; }
 
-        [CustomOASISProperty()]
-        public IList<string> GeoHotSpotIds { get; set; }
+        //[CustomOASISProperty()]
+        //public IList<string> GeoHotSpotIds { get; set; }
 
-        [CustomOASISProperty()]
-        public IList<IGeoHotSpot> GeoHotSpots { get; set; }
+        //[CustomOASISProperty()]
+        //public IList<IGeoHotSpot> GeoHotSpots { get; set; }
     }
 }
