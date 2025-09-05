@@ -501,7 +501,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //    }
         //}
 
-        public virtual async Task<OASISResult<T1>> AddDependencyAsync(string idOrNameOfParent = "", string idOrNameOfTemplate = "", string dependencyType = "", ISTARNETDNA STARNETDNA = null, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> AddDependencyAsync(string idOrNameOfParent = "", string idOrNameOfDependency = "", string dependencyType = "", ISTARNETDNA STARNETDNA = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             bool depSelected = false;
@@ -560,7 +560,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     case DependencyType.OAPP:
                         {
-                            OASISResult<InstalledOAPP> installedTemplate = await STARCLI.OAPPs.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledOAPP> installedTemplate = await STARCLI.OAPPs.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedTemplate.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedTemplate, installedDependency);
                             installedDependencyType = typeof(OAPP);
@@ -569,7 +569,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.Runtime:
                         {
-                            OASISResult<InstalledRuntime> installedHolon = await STARCLI.Runtimes.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledRuntime> installedHolon = await STARCLI.Runtimes.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -577,7 +577,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.Library:
                         {
-                            OASISResult<InstalledLibrary> installedHolon = await STARCLI.Libs.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledLibrary> installedHolon = await STARCLI.Libs.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -585,7 +585,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.Template:
                         {
-                            OASISResult<InstalledOAPPTemplate> installedHolon = await STARCLI.OAPPTemplates.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledOAPPTemplate> installedHolon = await STARCLI.OAPPTemplates.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -593,7 +593,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.NFT:
                         {
-                            OASISResult<InstalledNFT> installedHolon = await STARCLI.NFTs.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledNFT> installedHolon = await STARCLI.NFTs.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -601,7 +601,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.GeoNFT:
                         {
-                            OASISResult<InstalledGeoNFT> installedHolon = await STARCLI.GeoNFTs.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledGeoNFT> installedHolon = await STARCLI.GeoNFTs.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -609,7 +609,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.GeoHotSpot:
                         {
-                            OASISResult<InstalledGeoHotSpot> installedHolon = await STARCLI.GeoHotSpots.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledGeoHotSpot> installedHolon = await STARCLI.GeoHotSpots.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -617,7 +617,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.Quest:
                         {
-                            OASISResult<InstalledQuest> installedHolon = await STARCLI.Quests.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledQuest> installedHolon = await STARCLI.Quests.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -625,7 +625,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.Mission:
                         {
-                            OASISResult<InstalledMission> installedHolon = await STARCLI.Missions.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledMission> installedHolon = await STARCLI.Missions.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -633,7 +633,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.Chapter:
                         {
-                            OASISResult<InstalledChapter> installedHolon = await STARCLI.Chapters.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledChapter> installedHolon = await STARCLI.Chapters.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -641,7 +641,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.InventoryItem:
                         {
-                            OASISResult<InstalledInventoryItem> installedHolon = await STARCLI.InventoryItems.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledInventoryItem> installedHolon = await STARCLI.InventoryItems.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -649,7 +649,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.CelestialSpace:
                         {
-                            OASISResult<InstalledCelestialSpace> installedHolon = await STARCLI.CelestialSpaces.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledCelestialSpace> installedHolon = await STARCLI.CelestialSpaces.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -657,7 +657,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.CelestialBody:
                         {
-                            OASISResult<InstalledCelestialBody> installedHolon = await STARCLI.CelestialBodies.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledCelestialBody> installedHolon = await STARCLI.CelestialBodies.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -665,7 +665,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.Zome:
                         {
-                            OASISResult<InstalledZome> installedHolon = await STARCLI.Zomes.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledZome> installedHolon = await STARCLI.Zomes.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -673,7 +673,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.Holon:
                         {
-                            OASISResult<InstalledHolon> installedHolon = await STARCLI.Holons.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledHolon> installedHolon = await STARCLI.Holons.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -681,7 +681,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.CelestialBodyMetaDataDNA:
                         {
-                            OASISResult<InstalledCelestialBodyMetaDataDNA> installedHolon = await STARCLI.CelestialBodiesMetaDataDNA.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledCelestialBodyMetaDataDNA> installedHolon = await STARCLI.CelestialBodiesMetaDataDNA.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -689,7 +689,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.ZomeMetaDataDNA:
                         {
-                            OASISResult<InstalledZomeMetaDataDNA> installedHolon = await STARCLI.ZomesMetaDataDNA.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledZomeMetaDataDNA> installedHolon = await STARCLI.ZomesMetaDataDNA.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -697,7 +697,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     case DependencyType.HolonMetaDataDNA:
                         {
-                            OASISResult<InstalledHolonMetaDataDNA> installedHolon = await STARCLI.HolonsMetaDataDNA.FindAndInstallIfNotInstalledAsync("use", idOrNameOfTemplate, providerType: providerType);
+                            OASISResult<InstalledHolonMetaDataDNA> installedHolon = await STARCLI.HolonsMetaDataDNA.FindAndInstallIfNotInstalledAsync("use", idOrNameOfDependency, providerType: providerType);
                             installedDependency.Result = installedHolon.Result;
                             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(installedHolon, installedDependency);
                         }
@@ -1121,7 +1121,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //    }
         //}
 
-        public async Task<OASISResult<ISTARNETDNA>> AddDependenciesAsync(ISTARNETDNA STARNETDNA, string holonTypeToAddTo, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<ISTARNETDNA>> AddDependenciesAsync(ISTARNETDNA STARNETDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ISTARNETDNA> result = new OASISResult<ISTARNETDNA>();
 

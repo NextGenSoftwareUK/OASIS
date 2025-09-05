@@ -1,11 +1,7 @@
-﻿using Microsoft.Azure.Cosmos.Serialization.HybridRow;
-using NextGenSoftware.CLI.Engine;
+﻿using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.DNA;
 
@@ -31,6 +27,134 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultQuestsDownloadedPath, "DefaultQuestsDownloadedPath",
             STAR.STARDNA.DefaultQuestsInstalledPath, "DefaultQuestsInstalledPath")
         { }
+
+        public override async Task<OASISResult<Quest>> CreateAsync(object createParams, Quest newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<Quest> result = new OASISResult<Quest>();
+            Mission parentMission = null;
+            Quest parentQuest = null;
+            int order = 0;
+           // int currentMaxOrder = 0;
+            bool validOrder = false;
+
+            if (CLIEngine.GetConfirmation("Does this quest belong to a Mission?"))
+            {
+                OASISResult<InstalledMission> missionResult = await STARCLI.Missions.FindAndInstallIfNotInstalledAsync("use for the parent");
+
+                if (missionResult != null && missionResult.Result != null && !missionResult.IsError)
+                {
+                    OASISResult<Mission> loadResult = await STAR.STARAPI.Missions.LoadAsync(STAR.BeamedInAvatar.Id, missionResult.Result.Id, providerType: providerType);
+                    
+                    if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                        parentMission = loadResult.Result;
+                }
+            }
+            else if (CLIEngine.GetConfirmation("Does this quest belong to another quest?"))
+            {
+                OASISResult<InstalledQuest> questResult = await STARCLI.Quests.FindAndInstallIfNotInstalledAsync("use for the parent");
+
+                if (questResult != null && questResult.Result != null && !questResult.IsError)
+                {
+                    OASISResult<Quest> loadResult = await STAR.STARAPI.Quests.LoadAsync(STAR.BeamedInAvatar.Id, questResult.Result.Id, providerType: providerType);
+
+                    if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                        parentQuest = loadResult.Result;
+                }
+            }
+
+            if (parentMission != null)
+                order = parentMission.Quests.Count() + 1;
+
+            if (parentQuest != null)
+                order = parentQuest.Quests.Count() + 1;
+
+            //do
+            //{
+            //    order = CLIEngine.GetValidInputForInt("What order number in the sequence is this quest? (E.g. 1 for first, 2 for second etc)");
+
+            //    if (order > currentMaxOrder)
+            //        validOrder = true;
+            //    else
+            //        CLIEngine.ShowErrorMessage($"You must enter a valid order number (greater than {currentMaxOrder}).");
+            //}
+            //while (!validOrder)
+
+            if (newHolon == null)
+                newHolon = new Quest();
+
+            newHolon.ParentMissionId = parentMission.Id;
+            newHolon.ParentQuestId = parentQuest.Id;
+            newHolon.Order = order;
+
+            result = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, providerType);
+
+            if (result != null)
+            {
+                if (result.Result != null && result.Result != null && !result.IsError)
+                {
+                    if (CLIEngine.GetConfirmation("Do you want to add any GeoHotSpot's to this Quest now?"))
+                    {
+                        do
+                        {
+                            Guid geoHotSpotId = Guid.Empty;
+                            if (!CLIEngine.GetConfirmation("Does the GeoHotSpot already exist?"))
+                            {
+                                OASISResult<GeoHotSpot> geoHotSpotResult = await STARCLI.GeoHotSpots.CreateAsync(null, providerType: providerType);
+                                
+                                if (geoHotSpotResult != null && geoHotSpotResult.Result != null && !geoHotSpotResult.IsError)
+                                    geoHotSpotId = geoHotSpotResult.Result.Id;
+                            }
+
+                            Console.WriteLine("");
+                            OASISResult<Quest> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "GeoHotSpot", idOrNameOfDependency: geoHotSpotId.ToString(), providerType: providerType);
+                        }
+                        while (CLIEngine.GetConfirmation("Do you wish to add another GeoHotSpot?"));  
+                    }
+
+                    if (CLIEngine.GetConfirmation("Do you want to add any existing GeoNFT's to this Quest now?"))
+                    {
+                        do
+                        {
+                            Guid geoNFTId = Guid.Empty;
+                            if (!CLIEngine.GetConfirmation("Does the GeoNFT already exist?"))
+                            {
+                                OASISResult<STARGeoNFT> geoHotSpotResult = await STARCLI.GeoNFTs.CreateAsync(null, providerType: providerType);
+
+                                if (geoHotSpotResult != null && geoHotSpotResult.Result != null && !geoHotSpotResult.IsError)
+                                    geoNFTId = geoHotSpotResult.Result.Id;
+                            }
+
+                            Console.WriteLine("");
+                            OASISResult<Quest> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "GeoNFT", idOrNameOfDependency: geoNFTId.ToString(), providerType: providerType);
+                        }
+                        while (CLIEngine.GetConfirmation("Do you wish to add another GeoNFT?"));
+                    }
+
+                    if (CLIEngine.GetConfirmation("Do you want to add any existing sub-quest's to this Quest now?"))
+                    {
+                        do
+                        {
+                            Guid questId = Guid.Empty;
+                            if (!CLIEngine.GetConfirmation("Does the sub-quest already exist?"))
+                            {
+                                OASISResult<Quest> questResult = await STARCLI.Quests.CreateAsync(null, providerType: providerType);
+
+                                if (questResult != null && questResult.Result != null && !questResult.IsError)
+                                    questId = questResult.Result.Id;
+                            }
+
+                            Console.WriteLine("");
+                            OASISResult<Quest> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "Quest", idOrNameOfDependency: questId.ToString(), providerType: providerType);
+                        }
+                        while (CLIEngine.GetConfirmation("Do you wish to add another sub-quest?"));
+                    }
+
+                    await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
+                }
+            }
+            
+            return result;
+        }
 
         //public async Task<OASISResult<IQuest>> AddGeoNFTToQuestAsync(string idOrNameOfQuest, string idOrNameOfGeoNFT, ProviderType providerType = ProviderType.Default)
         //{
