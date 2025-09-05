@@ -34,6 +34,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
     public static class OASISBootLoader
     {
         //private static string _OASISVersion = null;
+        private const string SYSTEM_EMAIL = "anorak@oasisweb4.com";
         public static bool IsOASISBooted { get; private set; } = false;
         public static bool IsOASISBooting { get; private set; } = false;
 
@@ -253,8 +254,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         List<EnumValue<ProviderType>> currentProviderFailOverList = ProviderManager.Instance.GetProviderAutoFailOverList();
                         ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(ProviderManager.Instance.GetProviderAutoFailOverListForCheckIfOASISSystemAccountExists());
 
-                        LoggingManager.BeginLogAction($"Looking For OASIS System Account For Email {OASISDNA.OASIS.Email.SmtpUser}...", LogType.Info);
-                        OASISResult<IAvatar> oasisSystemAccountResult = await AvatarManager.Instance.LoadAvatarByEmailAsync(OASISDNA.OASIS.Email.SmtpUser);
+                        LoggingManager.BeginLogAction($"Looking For OASIS System Account For Email {SYSTEM_EMAIL}...", LogType.Info);
+                        OASISResult<IAvatar> oasisSystemAccountResult = await AvatarManager.Instance.LoadAvatarByEmailAsync(SYSTEM_EMAIL);
                         ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(currentProviderFailOverList);
 
                         //if (!string.IsNullOrEmpty(OASISDNA.OASIS.OASISSystemAccountId))
@@ -275,12 +276,12 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         else
                         {
                             LoggingManager.EndLogAction($"DONE", LogType.Info);
-                            LoggingManager.BeginLogAction($"OASIS System Account Not Found So Generating For Email {OASISDNA.OASIS.Email.SmtpUser} Now...", LogType.Info);
+                            LoggingManager.BeginLogAction($"OASIS System Account Not Found So Generating For Email {SYSTEM_EMAIL} Now...", LogType.Info);
 
                             //TODO: Need to make this more secure in future to prevent others creating similar accounts (but none will ever have AvatarType of System, this is the only place that can be created but we need to make sure a normal user accout is not hacked or changed to a system one. But currently it cannot do any harm because this system account is currently not used for anything, it simply creates the default OASIS Omniverse when STAR CLI first boots up on a running ONODE (before a avatar is created or logged in).
                             CLIEngine.SupressConsoleLogging = true;
                             //OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.RegisterAsync("", "OASIS", "SYSTEM", OASISDNA.OASIS.Email.SmtpUser, "", "root", AvatarType.System, OASISType.OASISBootLoader);
-                            OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.RegisterAsync("", "OASIS", "SYSTEM", "anorak@oasisweb4.com", "", "root", AvatarType.System, OASISType.OASISBootLoader);
+                            OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.RegisterAsync("", "OASIS", "SYSTEM", SYSTEM_EMAIL, "", "root", AvatarType.System, OASISType.OASISBootLoader);
                             CLIEngine.SupressConsoleLogging = false;
 
                             if (avatarResult != null && !avatarResult.IsError)
@@ -481,7 +482,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 break;
                         }
                         else
+                        {
+                            result.Result = providerManagerResult.Result;
                             break;
+                        }
                     }
 
                     result = ProcessResults(result);
