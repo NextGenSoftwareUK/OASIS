@@ -10,10 +10,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
         Guid ParentMissionId { get; set; }
         Guid ParentQuestId { get; set; }
         QuestType QuestType { get; set; }
-        IList<string> GeoSpatialNFTIds { get; set; }
-        IList<IOASISGeoSpatialNFT> GeoSpatialNFTs { get; set; }
-        IList<string> GeoHotSpotIds { get; set; }
-        IList<IGeoHotSpot> GeoHotSpots { get; set; }
+        //IList<string> GeoSpatialNFTIds { get; set; }
+        //IList<IOASISGeoSpatialNFT> GeoSpatialNFTs { get; set; }
+        //IList<string> GeoHotSpotIds { get; set; }
+        //IList<IGeoHotSpot> GeoHotSpots { get; set; }
         IQuest CurrentSubQuest { get; }
         int CurrentSubQuestNumber { get; }
         string Status { get; }
