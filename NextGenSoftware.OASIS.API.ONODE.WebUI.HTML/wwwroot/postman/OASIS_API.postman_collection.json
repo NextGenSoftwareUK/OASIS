@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "a1065653-d330-4549-b03c-3ada31c70def",
-		"name": "OASIS API v3.0.0",
+		"_postman_id": "b0d0e7ef-79a9-4930-a610-1beaea1a652b",
+		"name": "OASIS API v4.0.0",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "10731858"
+		"_exporter_id": "46169692"
 	},
 	"item": [
 		{
@@ -1479,7 +1479,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxZjNiZmE5LTAyOTAtNGRlYy1iMmQ5LTk0ZDZmNmU2ZmY1MiIsIm5iZiI6MTY1NDM4NzE3OCwiZXhwIjoxNjU0Mzg4MDc4LCJpYXQiOjE2NTQzODcxNzh9.Qpd99tCLNZS7MboXuu-2q-VRVqY5iJTr9zkt9z1txUE",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4YjJkZDBlLTMwYTAtNGZjNi04NmY1LTc0NTQ4MTZjMzU3NSIsIm5iZiI6MTc1NzE3OTI4OCwiZXhwIjoxNzU3MTgwMTg4LCJpYXQiOjE3NTcxNzkyODh9.EqqiStMgAeSARUyKoqv5LDL2TzsV9ZOeAsSZFrGjELw",
 									"type": "string"
 								}
 							]
@@ -1488,7 +1488,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"WalletID\": \"d449cc82-b113-4369-b794-581acaa06526\",\r\n    \"AvatarID\": \"81f3bfa9-0290-4dec-b2d9-94d6f6e6ff52\",\r\n    \"ProviderKey\": \"publickey\",\r\n    \"ProviderType\": \"MongoDBOASIS\"\r\n}",
+							"raw": "{\r\n    //\"WalletID\": \"d449cc82-b113-4369-b794-581acaa06526\",\r\n    \"AvatarID\": \"b8b2dd0e-30a0-4fc6-86f5-7454816c3575\",\r\n    \"ProviderKey\": \"publickey2\",\r\n    \"ProviderType\": \"ArbitrumOASIS\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -6652,11 +6652,21 @@
 				{
 					"name": "mint-nft",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImI4YjJkZDBlLTMwYTAtNGZjNi04NmY1LTc0NTQ4MTZjMzU3NSIsIm5iZiI6MTc1NzE5NTA2MCwiZXhwIjoxNzU3MTk1OTYwLCJpYXQiOjE3NTcxOTUwNjB9.GsyxWqRbj_u0hCBPmkQiAfbt9IquHRKhLZ_0aZKL9Lw",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"MintWalletAddress\": \"\",\r\n    \"MintedByAvatarId\": \"\",\r\n    \"Title\": \"\",\r\n    \"Description\": \"\",\r\n    \"Thumbnail\": null,\r\n    \"ThumbnailUrl\": \"\",\r\n    \"Price\": 77,\r\n    \"Discount\": 0,\r\n    \"NumberToMint\": 1,\r\n    \"MetaData\": null,\r\n    \"OnChainProvider\": \"SolanaOASIS\",\r\n    \"OffChainProvider\": \"HoloOASIS\"\r\n}",
+							"raw": "{\r\n    \"MintWalletAddress\": \"0x604b88BECeD9d6a02113fE1A0129f67fbD565D38\",\r\n    \"Title\": \"Test NFT\",\r\n    \"Description\": \"yay yay!\",\r\n    \"Thumbnail\": null,\r\n    \"ThumbnailUrl\": \"https://m.media-amazon.com/images/I/81DRKkl6oXL._SX3000_.jpg\",\r\n    \"Price\": 77,\r\n    \"Discount\": 0,\r\n    \"NumberToMint\": 1,\r\n    \"MetaData\": null,\r\n    \"OnChainProvider\": \"ArbitrumOASIS\",\r\n    \"OffChainProvider\": \"None\",\r\n    \"StoreNFTMetaDataOnChain\": false,\r\n    \"NFTOffChainMetaType\": \"ExternalJsonURL\",\r\n    \"JSONMetaDataURL\": \"https://example.com/metadata/sample-nft.json\",\r\n    \"NFTStandardType\": \"ERC721\",\r\n    \"ImageURL\": \"https://m.media-amazon.com/images/I/81DRKkl6oXL._SX3000_.jpg\"\r\n\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
