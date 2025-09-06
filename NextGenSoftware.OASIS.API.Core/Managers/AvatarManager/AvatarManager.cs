@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             get
             {
                 //If there is no logged in user then default to the OASIS System Account Id. //TODO: May need to look into this in more detail later to work out all use/edge cases etc...
-                if (_loggedInAvatar == null)
+                if (_loggedInAvatar == null && !string.IsNullOrEmpty(Instance.OASISDNA.OASIS.OASISSystemAccountId))
                     _loggedInAvatar = new Avatar() { Id = new Guid(Instance.OASISDNA.OASIS.OASISSystemAccountId) };
 
                 return _loggedInAvatar;

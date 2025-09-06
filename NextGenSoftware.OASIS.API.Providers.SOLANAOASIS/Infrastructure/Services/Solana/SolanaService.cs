@@ -24,7 +24,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 name = mintNftRequest.Title,
                 symbol = mintNftRequest.Symbol,
                 sellerFeeBasisPoints = SellerFeeBasisPoints,
-                uri = mintNftRequest.JSONUrl,
+                uri = mintNftRequest.JSONMetaDataUrl,
                 creators = _creators
             };
 

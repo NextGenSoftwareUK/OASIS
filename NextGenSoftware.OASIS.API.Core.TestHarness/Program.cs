@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Native.EndPoint;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.CLI.Engine;
 
 namespace NextGenSoftware.OASIS.API.Core.TestHarness
 {
@@ -35,7 +36,21 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
             //By default it will load the settings from OASIS_DNA.json in the current working dir but you can override using below:
             //OASISAPI.Initialize("OASIS_DNA_Override.json");
-            OASISAPI.BootOASIS();
+            //OASISAPI.BootOASIS();
+
+            OASISAPI OASISAPI = new OASISAPI();
+            await OASISAPI.BootOASISAsync();
+
+            TestHolon testHolon = new TestHolon();
+            testHolon.Description = "test!";
+            OASISResult<IHolon> saveResult = await testHolon.SaveAsync();
+
+            if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                CLIEngine.ShowSuccessMessage($"TestHolon saved successfully! Id: {saveResult.Result.Id}");
+            else
+                CLIEngine.ShowErrorMessage("Error saving TestHolon: " + saveResult.Message);
+
+            return;
 
             //Init with the Holochain Provider.
             await OASISBootLoader.OASISBootLoader.GetAndActivateStorageProviderAsync(ProviderType.HoloOASIS, null, false, true);
@@ -55,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
 
             //   await newAvatar.KarmaEarntAsync(KarmaTypePositive.HelpingTheEnvironment, KarmaSourceType.hApp, "Our World", "XR Educational Game To Make The World A Better Place");
-            OASISResult<IAvatar> savedAvatar = await OASISAPI.Avatar.SaveAvatarAsync(newAvatar);
+            OASISResult<IAvatar> savedAvatar = await OASISAPI.Avatars.SaveAvatarAsync(newAvatar);
             //IAvatar savedAvatar = await AvatarManager.SaveAvatarAsync(newAvatar);
 
             if (!savedAvatar.IsError && savedAvatar.Result != null)
@@ -76,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Core.TestHarness
 
             Console.WriteLine("\nLoading Avatar...");
             //IAvatar Avatar = await AvatarManager.LoadAvatarAsync("dellams", "1234");
-            OASISResult<IAvatar> avatarResult = await OASISAPI.Avatar.LoadAvatarAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
+            OASISResult<IAvatar> avatarResult = await OASISAPI.Avatars.LoadAvatarAsync("QmR6A1gkSmCsxnbDF7V9Eswnd4Kw9SWhuf8r4R643eDshg");
 
             if (!avatarResult.IsError && avatarResult.Result != null)
             {
