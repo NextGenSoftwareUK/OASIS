@@ -1,9 +1,9 @@
 {
   "profiles": {
-    "NextGenSoftware.Holochain.HoloNET.HDK.CLI": {
-      "commandName": "Project",
-      "commandLineArgs": "build C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.Holochain.HoloNET.HDK.CLI\\ProxyClasses"
-    },
+    //"NextGenSoftware.Holochain.HoloNET.HDK.CLI": {
+    //  "commandName": "Project",
+    //  "commandLineArgs": "build C:\\Users\\david\\source\\repos\\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\\NextGenSoftware.Holochain.HoloNET.HDK.CLI\\ProxyClasses"
+    //},
     "STAR CLI": {
       "commandName": "Project"
     }

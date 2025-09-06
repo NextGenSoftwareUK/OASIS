@@ -2930,7 +2930,8 @@ namespace NextGenSoftware.OASIS.STAR
                                     initHolons = string.Concat(initHolons, metaHolonTag.HolonName.ToPascalCase(), " ", metaHolonTag.HolonName.ToCamelCase(), " = new ", metaHolonTag.HolonName.ToPascalCase(), "();");
 
                                     if (line.Contains(metaHolonTag.MetaTag))
-                                        line = line.Replace(string.Concat("{{", metaHolonTag.MetaTag, "}}"), string.Concat(metaHolonTag.HolonName.ToCamelCase(), ".", metaHolonTag.NodeName));
+                                        line = line.Replace(string.Concat("{{", metaHolonTag.MetaTag, "}}"), string.Concat(metaHolonTag.HolonName.ToPascalCase(), ".Instance.", metaHolonTag.NodeName));
+                                        //line = line.Replace(string.Concat("{{", metaHolonTag.MetaTag, "}}"), string.Concat(metaHolonTag.HolonName.ToCamelCase(), ".", metaHolonTag.NodeName));
                                 }
 
                                 if (!string.IsNullOrEmpty(initHolons) && line.Contains("{INITCUSTOMTAGHOLONS}"))
