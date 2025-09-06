@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.TestHarness
 
             NFTManager NFTManager = new NFTManager(Guid.NewGuid());
 
-            CLIEngine.ShowWorkingMessage("Minting NFT...");
+            CLIEngine.ShowWorkingMessage("Minting NFT With External MetaData...");
             OASISResult<INFTTransactionRespone> mintResult = NFTManager.MintNft(new MintNFTTransactionRequest()
             {
                 MintWalletAddress = "0x604b88BECeD9d6a02113fE1A0129f67fbD565D38",
@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.TestHarness
                 Price = 1m, // Price in whatever currency the system uses, e.g., Ether
                 Discount = 1m, // 5% discount
                 MemoText = "Thank you for purchasing this NFT!",
-                NumberToMint = 100,
+                NumberToMint = 1,
                 MetaData = new Dictionary<string, object>
                     {
                         { "Creator", "John Doe" },
@@ -52,13 +52,54 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.TestHarness
                 OffChainProvider = new EnumValue<ProviderType>(ProviderType.None),
                 StoreNFTMetaDataOnChain = false,
                 NFTOffChainMetaType = NFTOffChainMetaType.ExternalJsonURL,
-                JSONMetaDataUrl = "https://example.com/metadata/sample-nft.json",
+                JSONMetaDataURL = "https://example.com/metadata/sample-nft.json",
                 NFTStandardType = NFTStandardType.ERC721,
                 Symbol = "ONFT"
             });
 
             if (mintResult != null && mintResult.Result != null && !mintResult.IsError)
-                CLIEngine.ShowSuccessMessage($"NFT Minted Successfully!\nTransaction ID: {mintResult.Result.TransactionResult}\nOASIS NFT ID: {mintResult.Result.OASISNFT.Id} \nHash: {mintResult.Result.OASISNFT.Hash} \nMintedByAddress: {mintResult.Result.OASISNFT.MintedByAddress} \nMinted Date: {mintResult.Result.OASISNFT.MintedOn} ");
+                CLIEngine.ShowSuccessMessage($"Transaction ID: {mintResult.Result.TransactionResult}\nOASIS NFT ID: {mintResult.Result.OASISNFT.Id} \nHash: {mintResult.Result.OASISNFT.Hash} \nMintedByAddress: {mintResult.Result.OASISNFT.MintedByAddress} \nMinted Date: {mintResult.Result.OASISNFT.MintedOn}\nMeta Data JSON URL:{mintResult.Result.OASISNFT.JSONMetaDataURL}\nImage URL:{mintResult.Result.OASISNFT.ImageUrl}");
+            else
+                CLIEngine.ShowErrorMessage($"Error Minting NFT: {mintResult.Message}");
+
+
+            CLIEngine.ShowWorkingMessage("Minting NFT With MetaData Stored On OASIS...");
+            mintResult = NFTManager.MintNft(new MintNFTTransactionRequest()
+            {
+                MintWalletAddress = "0x604b88BECeD9d6a02113fE1A0129f67fbD565D38",
+                MintedByAvatarId = Guid.NewGuid(),
+                Title = "Sample NFT Title",
+                Description = "This is a description of the sample NFT. It includes all the unique attributes and features.",
+                //Image = [0x01, 0x02, 0x03, 0x04], // Mock byte array for the image
+                ImageUrl = "https://example.com/images/sample-nft.jpg",
+                //Thumbnail = [0x05, 0x06, 0x07, 0x08], // Mock byte array for the thumbnail
+                ThumbnailUrl = "https://example.com/thumbnails/sample-nft-thumb.jpg",
+                Price = 1m, // Price in whatever currency the system uses, e.g., Ether
+                Discount = 1m, // 5% discount
+                MemoText = "Thank you for purchasing this NFT!",
+                NumberToMint = 1,
+                MetaData = new Dictionary<string, object>
+                    {
+                        { "Creator", "John Doe" },
+                        { "Attributes", new Dictionary<string, string>
+                            {
+                                { "BackgroundColor", "Blue" },
+                                { "Rarity", "Rare" }
+                            }
+                        },
+                        { "Edition", "First Edition" }
+                    },
+                OnChainProvider = new EnumValue<ProviderType>(ProviderType.ArbitrumOASIS),
+                OffChainProvider = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),
+                StoreNFTMetaDataOnChain = false,
+                NFTOffChainMetaType = NFTOffChainMetaType.OASIS,
+                //JSONMetaDataUrl = "https://example.com/metadata/sample-nft.json",
+                NFTStandardType = NFTStandardType.ERC721,
+                Symbol = "ONFT"
+            });
+
+            if (mintResult != null && mintResult.Result != null && !mintResult.IsError)
+                CLIEngine.ShowSuccessMessage(mintResult.Message);
             else
                 CLIEngine.ShowErrorMessage($"Error Minting NFT: {mintResult.Message}");
 

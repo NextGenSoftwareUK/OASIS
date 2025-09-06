@@ -19,6 +19,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
+using Nethereum.Contracts.Standards.ERC721;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -171,6 +172,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                     break;
                                 }
                             }
+
+                            if (string.IsNullOrEmpty(request.MintWalletAddress))
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} No wallet was found for avatar {request.MintedByAvatarId} and provider {request.OnChainProvider.Value}. Please make sure you like a valid wallet to the avatar using the Wallet API.");
+                                return result;
+                            }
                         }
                         else
                         {
@@ -178,6 +185,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             return result;
                         }
                     }
+                }
+
+                if (string.IsNullOrEmpty(request.MintWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} MintWalletAddress is null! Please make sure a valid MintWalletAddress is set or a valid MintedByAvatarId.");
+                    return result;
                 }
 
                 OASISResult<IOASISNFTProvider> nftProviderResult = GetNFTProvider(request.OnChainProvider.Value, errorMessage);
@@ -1239,8 +1252,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                     case NFTOffChainMetaType.ExternalJsonURL:
                         {
-                            if (!string.IsNullOrEmpty(request.JSONMetaDataUrl))
-                                providerRequest = CreateNFTTransactionRequestForProvider(request, request.JSONMetaDataUrl);
+                            if (!string.IsNullOrEmpty(request.JSONMetaDataURL))
+                                providerRequest = CreateNFTTransactionRequestForProvider(request, request.JSONMetaDataURL);
                             else
                             {
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} When setting NFTOffChainMetaType to ExternalJsonURL, the JSONUrl cannot be empty!");
@@ -1361,8 +1374,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                     case NFTOffChainMetaType.ExternalJsonURL:
                         {
-                            if (!string.IsNullOrEmpty(request.JSONMetaDataUrl))
-                                providerRequest = CreateNFTTransactionRequestForProvider(request, request.JSONMetaDataUrl);
+                            if (!string.IsNullOrEmpty(request.JSONMetaDataURL))
+                                providerRequest = CreateNFTTransactionRequestForProvider(request, request.JSONMetaDataURL);
                             else
                             {
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} When setting NFTOffChainMetaType to ExternalJsonURL, the JSONUrl cannot be empty!");
@@ -1390,7 +1403,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
                     }
                     else
-                        result.Message = $"Successfully minted the NFT on the {request.OnChainProvider.Name} provider with hash {result.Result.TransactionResult} and title '{request.Title}' by AvatarId {request.MintedByAvatarId} for price {request.Price}. The OASIS metadata is stored on the {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)} provider with the id {result.Result.OASISNFT.Id}.";
+                        result.Message = $"Successfully minted the NFT on the {request.OnChainProvider.Name} provider with hash {result.Result.TransactionResult} and title '{request.Title}' by AvatarId {request.MintedByAvatarId} (wallet address: {request.MintWalletAddress}) for price {request.Price}. The OASIS metadata is stored on the {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)} provider with the id {result.Result.OASISNFT.Id} and JSON URL {result.Result.OASISNFT.JSONMetaDataURL}. ImageURL: {result.Result.OASISNFT.ImageUrl}, Mint Date: {result.Result.OASISNFT.MintedOn}";
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured minting the OASISNFT: Reason: {result.Message}");
@@ -1538,7 +1551,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 Thumbnail = request.Thumbnail,
                 ThumbnailUrl = request.ThumbnailUrl,
                 Title = request.Title,
-                JSONMetaDataUrl = jsonUrl
+                JSONMetaDataURL = jsonUrl
             };
 
             return providerRequest;
@@ -1563,7 +1576,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 OnChainProvider = request.OnChainProvider,
                 OffChainProvider = request.OffChainProvider,
                 MintedOn = DateTime.Now,
-                MemoText = request.MemoText
+                MemoText = request.MemoText,
+                JSONMetaDataURL = request.JSONMetaDataURL
                 //OffChainProviderHolonId = Guid.NewGuid(),
                 //Token= request.Token
             };
@@ -1580,7 +1594,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 GeoNFTMetaDataOffChainProvider = new EnumValue<ProviderType>(request.ProviderType),
                 //OriginalOASISNFTProviderType = request.OriginalOASISNFTOffChainProviderType,
                 Hash = originalNftMetaData.Hash,
-                URL = originalNftMetaData.URL,
+                JSONMetaDataURL = originalNftMetaData.JSONMetaDataURL,
                 MintedByAddress = originalNftMetaData.MintedByAddress,
                 MintedByAvatarId = originalNftMetaData.MintedByAvatarId,
                 Title = originalNftMetaData.Title,
@@ -1633,6 +1647,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             holonNFT.MetaData["NFT.ImageUrl"] = nftMetaData.ImageUrl;
             holonNFT.MetaData["NFT.Thumbnail"] = nftMetaData.Thumbnail;
             holonNFT.MetaData["NFT.ThumbnailUrl"] = nftMetaData.ThumbnailUrl;
+            holonNFT.MetaData["NFT.JSONMetaDataURL"] = nftMetaData.JSONMetaDataURL;
             holonNFT.MetaData["NFT.MintedOn"] = nftMetaData.MintedOn.ToShortDateString();
             holonNFT.MetaData["NFT.MetaData"] = JsonSerializer.Serialize(nftMetaData.MetaData);
             holonNFT.ParentHolonId = nftMetaData.MintedByAvatarId;
@@ -1677,6 +1692,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.ImageUrl"] = geoNFTMetaData.ImageUrl;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.Thumbnail"] = geoNFTMetaData.Thumbnail;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.ThumbnailUrl"] = geoNFTMetaData.ThumbnailUrl;
+            holonNFT.MetaData["GEONFT.OriginalOASISNFT.JSONMetaDataURL"] = geoNFTMetaData.JSONMetaDataURL;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.MintedOn"] = geoNFTMetaData.MintedOn.ToShortDateString();
 
             return holonNFT;
@@ -1700,7 +1716,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 NumberToMint = mintAndPlaceGeoSpatialNFTRequest.NumberToMint,
                 MetaData = mintAndPlaceGeoSpatialNFTRequest.MetaData,
                 OffChainProvider = mintAndPlaceGeoSpatialNFTRequest.OffChainProvider,
-                OnChainProvider = mintAndPlaceGeoSpatialNFTRequest.OnChainProvider
+                OnChainProvider = mintAndPlaceGeoSpatialNFTRequest.OnChainProvider,
+                JSONMetaDataURL = mintAndPlaceGeoSpatialNFTRequest.JSONMetaDataURL
             };
         }
 
