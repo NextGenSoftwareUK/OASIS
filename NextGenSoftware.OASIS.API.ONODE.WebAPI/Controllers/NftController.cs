@@ -221,8 +221,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             ProviderType onChainProvider = ProviderType.None;
             ProviderType offChainProvider = ProviderType.None;
+            NFTOffChainMetaType NFTOffChainMetaType = NFTOffChainMetaType.OASIS;
+            NFTStandardType NFTStandardType = NFTStandardType.Both;
             Object onChainProviderObject = null;
             Object offChainProviderObject = null;
+            object NFTOffChainMetaTypeObject = null;
+            object NFTStandardTypeObject = null;
 
             if (Enum.TryParse(typeof(ProviderType), request.OnChainProvider, out onChainProviderObject))
                 onChainProvider = (ProviderType)onChainProviderObject;
@@ -235,9 +239,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             else
                 return new OASISResult<INFTTransactionRespone>() { IsError = true, Message = $"The OffChainProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
+
+            if (Enum.TryParse(typeof(NFTOffChainMetaType), request.NFTOffChainMetaType, out NFTOffChainMetaTypeObject))
+                NFTOffChainMetaType = (NFTOffChainMetaType)NFTOffChainMetaTypeObject;
+            else
+                return new OASISResult<INFTTransactionRespone>() { IsError = true, Message = $"The NFTOffChainMetaType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTOffChainMetaType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+
+            if (Enum.TryParse(typeof(NFTStandardType), request.NFTStandardType, out NFTStandardTypeObject))
+                NFTStandardType = (NFTStandardType)NFTStandardTypeObject;
+            else
+                return new OASISResult<INFTTransactionRespone>() { IsError = true, Message = $"The NFTStandardType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTStandardType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+
             API.Core.Objects.NFT.Request.MintNFTTransactionRequest mintRequest = new API.Core.Objects.NFT.Request.MintNFTTransactionRequest()
             {
-                //MintWalletAddress = request.MintWalletAddress,
+                MintWalletAddress = request.MintWalletAddress,
                 //MintedByAvatarId = request.MintedByAvatarId,
                 MintedByAvatarId = AvatarId,
                 Title = request.Title,
@@ -247,12 +264,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Thumbnail = request.Thumbnail,
                 ThumbnailUrl = request.ThumbnailUrl,
                 Price = request.Price,
+                Symbol = request.Symbol,
                 Discount = request.Discount,
                 MemoText = request.MemoText,
                 NumberToMint = request.NumberToMint,
                 MetaData = request.MetaData,
                 OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
-                OffChainProvider = new EnumValue<ProviderType>(offChainProvider)
+                OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
+                JSONMetaDataURL = request.JSONMetaDataURL,
+                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
+                NFTOffChainMetaType = NFTOffChainMetaType,
+                NFTStandardType = NFTStandardType
             };
 
             return await NFTManager.MintNftAsync(mintRequest);
@@ -303,8 +325,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             ProviderType onChainProvider = ProviderType.None;
             ProviderType offChainProvider = ProviderType.None;
+            NFTOffChainMetaType NFTOffChainMetaType = NFTOffChainMetaType.OASIS;
+            NFTStandardType NFTStandardType = NFTStandardType.Both;
             Object onChainProviderObject = null;
             Object offChainProviderObject = null;
+            object NFTOffChainMetaTypeObject = null;
+            object NFTStandardTypeObject = null;
 
             if (Enum.TryParse(typeof(ProviderType), request.OnChainProvider, out onChainProviderObject))
                 onChainProvider = (ProviderType)onChainProviderObject;
@@ -317,6 +343,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             else
                 return new OASISResult<IOASISGeoSpatialNFT>() { IsError = true, Message = $"The OffChainProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
+
+            if (Enum.TryParse(typeof(NFTOffChainMetaType), request.NFTOffChainMetaType, out NFTOffChainMetaTypeObject))
+                NFTOffChainMetaType = (NFTOffChainMetaType)NFTOffChainMetaTypeObject;
+            else
+                return new OASISResult<IOASISGeoSpatialNFT>() { IsError = true, Message = $"The NFTOffChainMetaType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTOffChainMetaType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
+
+            if (Enum.TryParse(typeof(NFTStandardType), request.NFTStandardType, out NFTStandardTypeObject))
+                NFTStandardType = (NFTStandardType)NFTStandardTypeObject;
+            else
+                return new OASISResult<IOASISGeoSpatialNFT>() { IsError = true, Message = $"The NFTStandardType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTStandardType), EnumHelperListType.ItemsSeperatedByComma)}" };
+
             API.Core.Objects.NFT.Request.MintAndPlaceGeoSpatialNFTRequest mintRequest = new API.Core.Objects.NFT.Request.MintAndPlaceGeoSpatialNFTRequest()
             {
                 MintedByAvatarId = AvatarId,
@@ -327,12 +365,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Thumbnail = request.Thumbnail,
                 ThumbnailUrl = request.ThumbnailUrl,
                 Price = request.Price,
+                Symbol = request.Symbol,
                 Discount = request.Discount,
                 MemoText = request.MemoText,
                 NumberToMint = request.NumberToMint,
                 MetaData = request.MetaData,
                 OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
                 OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
+                JSONMetaDataURL = request.JSONMetaDataURL,
+                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
+                NFTOffChainMetaType = NFTOffChainMetaType,
+                NFTStandardType = NFTStandardType,
                 Lat = request.Lat,
                 Long = request.Long,
                 AllowOtherPlayersToAlsoCollect = request.AllowOtherPlayersToAlsoCollect,
