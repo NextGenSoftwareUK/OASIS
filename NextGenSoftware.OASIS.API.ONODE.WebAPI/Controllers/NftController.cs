@@ -237,9 +237,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             API.Core.Objects.NFT.Request.MintNFTTransactionRequest mintRequest = new API.Core.Objects.NFT.Request.MintNFTTransactionRequest()
             {
-                //MintWalletAddress = request.MintWalletAddress,
-                //MintedByAvatarId = request.MintedByAvatarId,
-                MintedByAvatarId = AvatarId,
+                MintWalletAddress = request.WalletAddress,
+                MintedByAvatarId = request.AvatarId ?? AvatarId,
                 Title = request.Title,
                 Description = request.Description,
                 Image = request.Image,
