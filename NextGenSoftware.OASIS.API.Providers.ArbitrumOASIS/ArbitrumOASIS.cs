@@ -82,16 +82,19 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
         try
         {
-            if (_hostURI is { Length: > 0 } &&
+            if (!this.IsProviderActivated)
+            {
+                if (_hostURI is { Length: > 0 } &&
                 _chainPrivateKey is { Length: > 0 } &&
                 _chainId > 0)
-            {
-                _oasisAccount = new Account(_chainPrivateKey, _chainId);
-                _web3Client = new Web3(_oasisAccount, _hostURI);
-                _contract = _web3Client.Eth.GetContract(ArbitrumContractHelper.Abi, _contractAddress);
-                _contractHandler = _web3Client.Eth.GetContractHandler(_contractAddress);
+                {
+                    _oasisAccount = new Account(_chainPrivateKey, _chainId);
+                    _web3Client = new Web3(_oasisAccount, _hostURI);
+                    _contract = _web3Client.Eth.GetContract(ArbitrumContractHelper.Abi, _contractAddress);
+                    _contractHandler = _web3Client.Eth.GetContractHandler(_contractAddress);
 
-                this.IsProviderActivated = true;
+                    this.IsProviderActivated = true;
+                }
             }
         }
         catch (Exception ex)
@@ -1182,7 +1185,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 gas: null,
                 value: null,
                 transaction.MintWalletAddress,
-                transaction.JSONUrl
+                transaction.JSONMetaDataUrl
             );
             HexBigInteger gasPrice = await _web3Client.Eth.GasPrice.SendRequestAsync();
 
@@ -1192,7 +1195,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 value: gasPrice,
                 receiptRequestCancellationToken: null,
                 transaction.MintWalletAddress,
-                transaction.JSONUrl
+                transaction.JSONMetaDataUrl
             );
 
             if (txReceipt.HasErrors() is true && txReceipt.Logs.Count > 0)

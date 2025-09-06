@@ -256,7 +256,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
                         { "Edition", "First Edition" }
                     },
                     OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS),
-                    OnChainProvider = new EnumValue<ProviderType>(ProviderType.EthereumOASIS)
+                    OnChainProvider = new EnumValue<ProviderType>(ProviderType.ArbitrumOASIS),
+                    JSONMetaDataUrl = "https://example.com/metadata/sample-nft.json"
                 }
             );
 
@@ -266,7 +267,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
 
         private static async Task Main(string[] args)
         {
-            Console.WriteLine("NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS - TEST HARNESS");
+            Console.WriteLine("NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS - TEST HARNESS v1.2");
 
             // TODO: Uncomment one of example method to start testing ethereum provider CRUD
             //await ExecuteAvatarProviderExample(_contractAddress);
