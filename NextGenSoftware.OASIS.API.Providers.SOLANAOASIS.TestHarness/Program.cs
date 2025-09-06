@@ -59,7 +59,7 @@ internal static class Program
         WriteColored("Title", result.Title, ConsoleColor.Green);
         WriteColored("Symbol", result.Symbol, ConsoleColor.Cyan);
         WriteColored("SellerFeeBasisPoints", result.SellerFeeBasisPoints.ToString(), ConsoleColor.Magenta);
-        WriteColored("URL", result.URL, ConsoleColor.Blue);
+        WriteColored("URL", result.JSONMetaDataURL, ConsoleColor.Blue);
         WriteColored("OnChainProvider", result.OnChainProvider?.Value.ToString(), ConsoleColor.DarkGreen);
         WriteColored("OffChainProvider", result.OffChainProvider?.Value.ToString(), ConsoleColor.DarkYellow);
 
@@ -121,7 +121,7 @@ internal static class Program
 
         IMintNFTTransactionRequestForProvider mintNftRequest = new MintNFTTransactionRequestForProvider()
         {
-            JSONUrl = "https://example.com/metadata.json-#1",
+            JSONMetaDataURL = "https://example.com/metadata.json-#1",
             Title = "Test data for LoadNft #1",
             Symbol = "LOADNFT!#1",
         };
