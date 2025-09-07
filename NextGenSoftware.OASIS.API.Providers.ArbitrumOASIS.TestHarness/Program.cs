@@ -257,7 +257,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
                     },
                     OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS),
                     OnChainProvider = new EnumValue<ProviderType>(ProviderType.ArbitrumOASIS),
-                    JSONMetaDataUrl = "https://example.com/metadata/sample-nft.json"
+                    JSONMetaDataURL = "https://example.com/metadata/sample-nft.json"
                 }
             );
 

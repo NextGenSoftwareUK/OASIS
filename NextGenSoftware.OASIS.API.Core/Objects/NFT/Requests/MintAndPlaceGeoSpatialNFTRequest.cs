@@ -30,6 +30,6 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         public NFTStandardType NFTStandardType { get; set; }
         public NFTOffChainMetaType NFTOffChainMetaType { get; set; }
         public string Symbol { get; set; }
-        public string JSONMetaDataUrl { get; set; }
+        public string JSONMetaDataURL { get; set; }
     }
 }
