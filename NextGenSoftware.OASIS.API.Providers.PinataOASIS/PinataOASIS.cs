@@ -634,26 +634,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> LoadHolon(Guid id, int version = 0)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolon not implemented for PinataOASIS - use LoadHolonAsync");
-            return result;
-        }
-
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, int version = 0)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonAsync not implemented for PinataOASIS - Pinata requires IPFS hash to load data");
-            return result;
-        }
-
-        public override OASISResult<IHolon> LoadHolon(string providerKey, int version = 0)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolon not implemented for PinataOASIS - use LoadHolonAsync");
-            return result;
-        }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, int version = 0)
         {
@@ -699,19 +679,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, string propertyName, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, string propertyName, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParentAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
-        }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
@@ -815,17 +782,244 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             return result;
         }
 
-        public override OASISResult<IEnumerable<ISearchResult>> Search(ISearchParams searchParams)
+        // IOASISNETProvider implementation
+        public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
         {
-            OASISResult<IEnumerable<ISearchResult>> result = new OASISResult<IEnumerable<ISearchResult>>();
+            OASISResult<IEnumerable<IPlayer>> result = new OASISResult<IEnumerable<IPlayer>>();
+            OASISErrorHandling.HandleError(ref result, "GetPlayersNearMe not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "GetHolonsNearMe not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
             OASISErrorHandling.HandleError(ref result, "Search not implemented for PinataOASIS - Pinata is primarily for file storage");
             return result;
         }
 
-        public override async Task<OASISResult<IEnumerable<ISearchResult>>> SearchAsync(ISearchParams searchParams)
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            OASISResult<IEnumerable<ISearchResult>> result = new OASISResult<IEnumerable<ISearchResult>>();
+            OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
             OASISErrorHandling.HandleError(ref result, "SearchAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        // Missing abstract method implementations
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            OASISErrorHandling.HandleError(ref result, "LoadHolon not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            OASISErrorHandling.HandleError(ref result, "LoadHolonAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            OASISErrorHandling.HandleError(ref result, "LoadHolon not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            OASISErrorHandling.HandleError(ref result, "LoadHolonAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParentAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParentAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaData not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaDataAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaData not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaDataAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "LoadAllHolons not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "LoadAllHolonsAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
+        {
+            OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
+            OASISErrorHandling.HandleError(ref result, "LoadAllAvatarDetails not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
+            OASISErrorHandling.HandleError(ref result, "LoadAllAvatarDetailsAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
+        {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailByEmail not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailByEmailAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
+        {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailByUsername not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
+            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailByUsernameAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISErrorHandling.HandleError(ref result, "DeleteAvatar not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISErrorHandling.HandleError(ref result, "DeleteAvatarAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISErrorHandling.HandleError(ref result, "DeleteAvatar not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISErrorHandling.HandleError(ref result, "DeleteAvatarAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByEmail not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByEmailAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByUsername not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByUsernameAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "ExportAll not implemented for PinataOASIS - Pinata is primarily for file storage");
+            return result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            OASISErrorHandling.HandleError(ref result, "ExportAllAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
             return result;
         }
     }
