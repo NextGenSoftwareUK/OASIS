@@ -48,6 +48,7 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloOASIS\NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloWeb\NextGenSoftware.OASIS.API.Providers.HoloWebOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.PinataOASIS\NextGenSoftware.OASIS.API.Providers.PinataOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.csproj" />
