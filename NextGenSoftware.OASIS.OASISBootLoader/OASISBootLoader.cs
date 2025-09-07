@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
+using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
@@ -863,6 +864,25 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
+                        case ProviderType.PinataOASIS:
+                            {
+                                PinataOASIS PinataOASIS = null;
+
+                                //Example of how to pass in OASISDNA if the Provider needs to update the DNA.
+                                if (overrideConnectionString != null)
+                                {
+                                    OASISDNA overrideDNA = OASISDNA;
+                                    overrideDNA.OASIS.StorageProviders.PinataOASIS.ConnectionString = overrideConnectionString;
+                                    PinataOASIS = new PinataOASIS(overrideDNA, OASISDNAPath);
+                                }
+                                else
+                                    PinataOASIS = new PinataOASIS(OASISDNA, OASISDNAPath);
+
+                                PinataOASIS.OnStorageProviderError += PinataOASIS_StorageProviderError;
+                                result.Result = PinataOASIS;
+                            }
+                            break;
+
                         case ProviderType.EthereumOASIS:
                             {
                                 EthereumOASIS EthereumOASIS = new(
@@ -1102,6 +1122,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         private static void IPFSOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {
             HandleProviderError("IPFSOASIS", e);
+        }
+
+        private static void PinataOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
+        {
+            HandleProviderError("PinataOASIS", e);
         }
 
         private static void Neo4jOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
