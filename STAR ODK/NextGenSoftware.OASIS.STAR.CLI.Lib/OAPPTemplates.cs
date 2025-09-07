@@ -72,7 +72,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     //createResult.Message = installRuntimesResult.Message;
                 }
 
-                await AddDependenciesAsync(createResult.Result.STARNETDNA, "OAPP Template", providerType);
+                //await AddDependenciesAsync(createResult.Result.STARNETDNA, "OAPP Template", providerType);
+                await AddDependenciesAsync(createResult.Result.STARNETDNA, providerType);
             }
 
             return createResult;
