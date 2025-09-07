@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Text.Json;
@@ -1281,7 +1281,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
                     }
                     else
-                        result.Message = $"Successfully minted the NFT on the {request.OnChainProvider.Name} provider with hash {result.Result.TransactionResult} and title '{request.Title}' by AvatarId {request.MintedByAvatarId} for price {request.Price}. The OASIS metadata is stored on the {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)} provider with the id {result.Result.OASISNFT.Id}.";
+                        result.Message = $"Successfully minted the NFT on the {request.OnChainProvider.Name} provider with hash {result.Result.TransactionResult} and title '{request.Title}' by AvatarId {request.MintedByAvatarId} (wallet address: {request.MintWalletAddress}) for price {request.Price}. The OASIS metadata is stored on the {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)} provider with the id {result.Result.OASISNFT.Id} and JSON URL {result.Result.OASISNFT.JSONMetaDataURL}. ImageURL: {result.Result.OASISNFT.ImageUrl}, Mint Date: {result.Result.OASISNFT.MintedOn}";
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured minting the OASISNFT: Reason: {result.Message}");

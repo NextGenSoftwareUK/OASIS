@@ -86,7 +86,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             {
                 if (_hostURI is { Length: > 0 } &&
                 _chainPrivateKey is { Length: > 0 } &&
-                _chainId > 0)
+                _chainId > 0 &&
+                _contractAddress is { Length: > 0 })
                 {
                     _oasisAccount = new Account(_chainPrivateKey, _chainId);
                     _web3Client = new Web3(_oasisAccount, _hostURI);
@@ -1181,6 +1182,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             Function mintFunction = _contract.GetFunction(ArbitrumContractHelper.MintFuncName);
 
             HexBigInteger gasEstimate = await mintFunction.EstimateGasAsync(
+                //from: _oasisAccount.Address,
                 from: transaction.MintWalletAddress,
                 gas: null,
                 value: null,
@@ -1190,6 +1192,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             HexBigInteger gasPrice = await _web3Client.Eth.GasPrice.SendRequestAsync();
 
             TransactionReceipt txReceipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
+                //_oasisAccount.Address,
                 transaction.MintWalletAddress,
                 gas: gasEstimate,
                 value: gasPrice,
