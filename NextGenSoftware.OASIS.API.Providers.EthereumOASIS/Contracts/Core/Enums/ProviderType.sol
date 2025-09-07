@@ -16,6 +16,7 @@ enum ProviderType {
     HashgraphOASIS,
     SOLIDOASIS,
     IPFSOASIS,
+    PinataOASIS,
     ActivityPubOASIS,
     ScuttlebuttOASIS,
     MongoDBOASIS,
