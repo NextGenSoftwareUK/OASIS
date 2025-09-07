@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Data;
 using System.Text;
 using System.Linq;
 using Newtonsoft.Json;
@@ -8,7 +6,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Microsoft.Extensions.Configuration;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
@@ -16,8 +13,6 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
@@ -495,7 +490,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Store the IPFS hash as the provider key
-                avatar.ProviderKey[ProviderType.PinataOASIS] = uploadResult.Result;
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = uploadResult.Result;
                 
                 result.Result = avatar;
                 result.Message = "Avatar saved to Pinata successfully";
@@ -531,7 +526,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Store the IPFS hash as the provider key
-                avatarDetail.ProviderKey[ProviderType.PinataOASIS] = uploadResult.Result;
+                avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = uploadResult.Result;
                 
                 result.Result = avatarDetail;
                 result.Message = "Avatar detail saved to Pinata successfully";
@@ -567,7 +562,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Store the IPFS hash as the provider key
-                holon.ProviderKey[ProviderType.PinataOASIS] = uploadResult.Result;
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = uploadResult.Result;
                 
                 result.Result = holon;
                 result.Message = "Holon saved to Pinata successfully";
@@ -635,49 +630,49 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         }
 
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, int version = 0)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
+        //public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, int version = 0)
+        //{
+        //    OASISResult<IHolon> result = new OASISResult<IHolon>();
             
-            try
-            {
-                // Download holon data from Pinata using providerKey as IPFS hash
-                var downloadResult = await DownloadFileFromPinataAsync(providerKey);
+        //    try
+        //    {
+        //        // Download holon data from Pinata using providerKey as IPFS hash
+        //        var downloadResult = await DownloadFileFromPinataAsync(providerKey);
                 
-                if (downloadResult.IsError || downloadResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Pinata. Reason: {downloadResult.Message}");
-                    return result;
-                }
+        //        if (downloadResult.IsError || downloadResult.Result == null)
+        //        {
+        //            OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Pinata. Reason: {downloadResult.Message}");
+        //            return result;
+        //        }
 
-                // Deserialize holon data
-                var holonJson = Encoding.UTF8.GetString(downloadResult.Result);
-                var holon = JsonConvert.DeserializeObject<Holon>(holonJson);
+        //        // Deserialize holon data
+        //        var holonJson = Encoding.UTF8.GetString(downloadResult.Result);
+        //        var holon = JsonConvert.DeserializeObject<Holon>(holonJson);
                 
-                result.Result = holon;
-                result.Message = "Holon loaded from Pinata successfully";
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Pinata. Reason: {e}");
-            }
+        //        result.Result = holon;
+        //        result.Message = "Holon loaded from Pinata successfully";
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"Error loading holon from Pinata. Reason: {e}");
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, string propertyName, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
-        }
+        //public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, string propertyName, int version = 0)
+        //{
+        //    OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+        //    OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent not implemented for PinataOASIS - Pinata is primarily for file storage");
+        //    return result;
+        //}
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, string propertyName, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParentAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
-        }
+        //public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, string propertyName, int version = 0)
+        //{
+        //    OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+        //    OASISErrorHandling.HandleError(ref result, "LoadHolonsForParentAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+        //    return result;
+        //}
 
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
