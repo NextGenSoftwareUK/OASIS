@@ -151,6 +151,6 @@
             "PinataOASIS": { "ConnectionString": "" }
         },
         "OASISSystemAccountId": "",
-        "OASISAPIURL": "https://oasisweb4.one"
+        "OASISAPIURL": "https://oasisweb4.one/api"
     }
 }

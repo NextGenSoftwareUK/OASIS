@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
         DateTime MintedOn { get; set; }
         string MintedByAddress { get; set; }
         string Hash { get; set; }
-        string URL { get; set; }
+        string JSONMetaDataURL { get; set; }
         string Title { get; set; }
 
         string Description { get; set; }
