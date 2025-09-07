@@ -191,7 +191,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage($"MintedOn: {nft.MintedOn}");
             CLIEngine.ShowMessage($"OnChainProvider: {nft.OnChainProvider.Name}");
             CLIEngine.ShowMessage($"OffChainProvider: {nft.OffChainProvider.Name}");
-            CLIEngine.ShowMessage(string.Concat($"URL: ", !string.IsNullOrEmpty(nft.URL) ? nft.URL : "None"));
+            CLIEngine.ShowMessage(string.Concat($"JSONMetaDataURL: ", !string.IsNullOrEmpty(nft.JSONMetaDataURL) ? nft.JSONMetaDataURL : "None"));
             CLIEngine.ShowMessage(string.Concat($"ImageUrl: ", !string.IsNullOrEmpty(nft.ImageUrl) ? nft.ImageUrl : "None"));
             CLIEngine.ShowMessage(string.Concat("Image: ", nft.Image != null ? "Yes" : "No"));
             CLIEngine.ShowMessage(string.Concat($"ThumbnailUrl: ", !string.IsNullOrEmpty(nft.ThumbnailUrl) ? nft.ThumbnailUrl : "None"));
