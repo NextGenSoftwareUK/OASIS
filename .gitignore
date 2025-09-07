@@ -292,5 +292,7 @@ NextGenSoftware.OASIS.API.ONODE.WebUI.HTML/react-app/yarn.lock
 /STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/OASIS_DNA.json
 /STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
 /STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
+
+# Test harness DNA files
 /NextGenSoftware.OASIS.API.ONODE.Core.TestHarness/OASIS_DNA.json
 /NextGenSoftware.OASIS.API.ONode.WebAPI/OASIS_DNA.json
