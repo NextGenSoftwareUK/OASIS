@@ -718,7 +718,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                     else
                                         CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated.");
 
-                                    await AddDependenciesAsync(createOAPPResult.Result.STARNETDNA, "OAPP", providerType);
+                                    //await AddDependenciesAsync(createOAPPResult.Result.STARNETDNA, "OAPP", providerType);
+                                    await AddDependenciesAsync(createOAPPResult.Result.STARNETDNA, providerType);
 
                                     OASISResult<STARNETDNA> dnaResult = await STARNETManager.ReadDNAFromSourceOrInstallFolderAsync<STARNETDNA>(lightResult.Result.OAPP.STARNETDNA.SourcePath);
 
