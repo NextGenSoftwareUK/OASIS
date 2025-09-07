@@ -298,3 +298,4 @@ holochain-client-csharp/
 
 # Test harness DNA files
 /NextGenSoftware.OASIS.API.ONODE.Core.TestHarness/OASIS_DNA.json
+/NextGenSoftware.OASIS.API.ONode.WebAPI/OASIS_DNA.json

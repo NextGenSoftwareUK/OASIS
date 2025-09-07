@@ -64,7 +64,7 @@ public static class OasisEntitiesExtensions
             SellerFeeBasisPoints = nft.SellerFeeBasisPoints,
             UpdateAuthority = nft.UpdateAuthority,
             MintAddress = nft.Mint,
-            URL = nft.Url,
+            JSONMetaDataURL = nft.Url,
             OnChainProvider = new EnumValue<ProviderType>(ProviderType.SolanaOASIS),
             OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS)
         };
@@ -76,7 +76,7 @@ public static class OasisEntitiesExtensions
             Title = nft.Name,
             Symbol = nft.Symbol,
             SellerFeeBasisPoints = nft.SellerFeeBasisPoints,
-            URL = nft.Url,
+            JSONMetaDataURL = nft.Url,
             OnChainProvider = new EnumValue<ProviderType>(ProviderType.SolanaOASIS),
             OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS)
         };
