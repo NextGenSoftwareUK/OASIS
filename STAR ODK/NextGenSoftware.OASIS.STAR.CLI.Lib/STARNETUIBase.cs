@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -1124,11 +1125,100 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<ISTARNETDNA>> AddDependenciesAsync(ISTARNETDNA STARNETDNA, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<ISTARNETDNA> result = new OASISResult<ISTARNETDNA>();
+            DependencyType dependencyTypeEnum = DependencyType.OAPP;
 
             if (CLIEngine.GetConfirmation("Do you wish to add any dependencies? (you do not need to add the OASIS or STAR runtimes, they are added automatically)"))
             {
                 do
                 {
+                    object depType = CLIEngine.GetValidInputForEnum("What type of dependency do you wish to add?", typeof(DependencyType));
+                    if (depType != null)
+                    {
+                        if (depType.ToString() == "exit" || depType.ToString() == "None")
+                        {
+                            result.Message = "User Exited";
+                            return result;
+                        }
+                        dependencyTypeEnum = (DependencyType)depType;
+                    }
+
+
+                    Guid questId = Guid.Empty;
+                    Console.WriteLine("");
+                    if (!CLIEngine.GetConfirmation($"Does the {Enum.GetName(typeof(DependencyType), dependencyTypeEnum)} already exist?"))
+                    {
+                        switch (dependencyTypeEnum)
+                        {
+                            case DependencyType.OAPP:
+                                await STARCLI.OAPPs.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.Template:
+                                await STARCLI.OAPPTemplates.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.Zome:
+                                await STARCLI.Zomes.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.NFT:
+                                await STARCLI.NFTs.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.GeoNFT:
+                                await STARCLI.GeoNFTs.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.Chapter:
+                                await STARCLI.Chapters.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.CelestialBody:
+                                await STARCLI.CelestialBodies.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.CelestialBodyMetaDataDNA:
+                                await STARCLI.CelestialBodiesMetaDataDNA.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.CelestialSpace:
+                                await STARCLI.CelestialSpaces.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.Holon:
+                                await STARCLI.Holons.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.HolonMetaDataDNA:
+                                await STARCLI.HolonsMetaDataDNA.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.InventoryItem:
+                                await STARCLI.InventoryItems.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.Library:
+                                await STARCLI.Libs.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.Mission:
+                                await STARCLI.Missions.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.Quest:
+                                await STARCLI.Quests.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.Runtime:
+                                await STARCLI.Runtimes.CreateAsync(null, providerType: providerType);
+                                break;
+
+                            case DependencyType.ZomeMetaDataDNA:
+                                await STARCLI.ZomesMetaDataDNA.CreateAsync(null, providerType: providerType);
+                                break;
+                        }
+                    }
+                   
                     Console.WriteLine("");
                     OASISResult<T1> addResult = await AddDependencyAsync(STARNETDNA: STARNETDNA, providerType: providerType);
 
@@ -1146,90 +1236,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
                 while (CLIEngine.GetConfirmation("Do you wish to add another dependency?"));
             }
-
-            /*
-            if (CLIEngine.GetConfirmation("Do you wish to add any custom runtimes now? (you do not need to add the OASIS or STAR runtimes, they are added automatically)."))
-            {
-                do
-                {
-                    Console.WriteLine("");
-                    OASISResult<InstalledRuntime> installedRuntime = await STARCLI.Runtimes.FindAndInstallIfNotInstalledAsync("use", providerType: providerType);
-
-                    if (installedRuntime != null && installedRuntime.Result != null && !installedRuntime.IsError)
-                    {
-                        CLIEngine.ShowWorkingMessage($"Installing Runtime Into {holonTypeToAddTo}...");
-                        OASISResult<T1> addRuntimeResult = await STARNETManager.AddDependencyAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedRuntime.Result, DependencyType.Runtime, providerType : providerType);
-
-                        if (addRuntimeResult != null && addRuntimeResult.Result != null && !addRuntimeResult.IsError)
-                        {
-                            //DirectoryHelper.CopyFilesRecursively(installedRuntime.Result.InstalledPath, Path.Combine(STARNETDNA.SourcePath, "Dependencies", "STARNET", "Runtimes"));
-                            //CLIEngine.ShowMessage($"You can now use the runtime in your OAPP Template '{createResult.Result.Name}' by using the reserved tags in your OAPP Template files. For more information on how to do this, please refer to the documentation for the runtime you just added.");
-                            CLIEngine.ShowSuccessMessage($"Runtime '{installedRuntime.Result.Name}' added to {holonTypeToAddTo} '{STARNETDNA.Name}'.");
-                        }
-                        else
-                            CLIEngine.ShowErrorMessage($"Failed to add runtime '{installedRuntime.Result.Name}' to {holonTypeToAddTo} '{STARNETDNA.Name}'. Error: {addRuntimeResult.Message}");
-                    }
-                    else
-                        CLIEngine.ShowErrorMessage($"Failed to add runtime to {holonTypeToAddTo} '{STARNETDNA.Name}'. Error: {installedRuntime.Message}");
-                }
-                while (CLIEngine.GetConfirmation("Do you wish to add another custom runtime?"));
-            }
-
-            Console.WriteLine("");
-            if (CLIEngine.GetConfirmation("Do you wish to add any libraries now?"))
-            {
-                do
-                {
-                    Console.WriteLine("");
-                    OASISResult<InstalledLibrary> installedLib = await STARCLI.Libs.FindAndInstallIfNotInstalledAsync("use", providerType: providerType);
-
-                    if (installedLib != null && installedLib.Result != null && !installedLib.IsError)
-                    {
-                        CLIEngine.ShowWorkingMessage($"Installing Library Into {holonTypeToAddTo}...");
-                        OASISResult<T1> addLibResult = await STARNETManager.AddDependencyAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedLib.Result, DependencyType.Library, providerType: providerType);
-
-                        if (addLibResult != null && addLibResult.Result != null && !addLibResult.IsError)
-                        {
-                            //DirectoryHelper.CopyFilesRecursively(installedLib.Result.InstalledPath, Path.Combine(STARNETDNA.SourcePath, "Dependencies", "STARNET", "Libs"));
-                            CLIEngine.ShowSuccessMessage($"Library '{installedLib.Result.Name}' added to {holonTypeToAddTo} '{STARNETDNA.Name}'.");
-                            //CLIEngine.ShowMessage($"You can now use the library in your OAPP Template '{createResult.Result.Name}' by using the reserved tags in your OAPP Template files. For more information on how to do this, please refer to the documentation for the library you just added.");
-                        }
-                        else
-                            CLIEngine.ShowErrorMessage($"Failed to add library '{installedLib.Result.Name}' to {holonTypeToAddTo} '{STARNETDNA.Name}'. Error: {addLibResult.Message}");
-                    }
-                    else
-                        CLIEngine.ShowErrorMessage($"Failed to add library to {holonTypeToAddTo} '{STARNETDNA.Name}'. Error: {installedLib.Message}");
-                }
-                while (CLIEngine.GetConfirmation("Do you wish to add another library?"));
-            }
-
-            Console.WriteLine("");
-            if (CLIEngine.GetConfirmation("Do you wish to add any sub-templates now?"))
-            {
-                do
-                {
-                    Console.WriteLine("");
-                    OASISResult<InstalledOAPPTemplate> installedTemplate = await STARCLI.OAPPTemplates.FindAndInstallIfNotInstalledAsync("use", providerType: providerType);
-
-                    if (installedTemplate != null && installedTemplate.Result != null && !installedTemplate.IsError)
-                    {
-                        CLIEngine.ShowWorkingMessage($"Installing Library Into {holonTypeToAddTo}...");
-                        OASISResult<T1> addTemplateResult = await STARNETManager.AddDependencyAsync(STAR.BeamedInAvatar.Id, STARNETDNA.Id, STARNETDNA.Version, installedTemplate.Result, DependencyType.Template, providerType: providerType);
-
-                        if (addTemplateResult != null && addTemplateResult.Result != null && !addTemplateResult.IsError)
-                        {
-                            //DirectoryHelper.CopyFilesRecursively(installedTemplate.Result.InstalledPath, Path.Combine(STARNETDNA.SourcePath, "Dependencies", "STARNET", "Templates"));
-                            CLIEngine.ShowSuccessMessage($"Template '{installedTemplate.Result.Name}' added to {holonTypeToAddTo} '{STARNETDNA.Name}'.");
-                            //CLIEngine.ShowMessage($"You can now use the library in your OAPP Template '{createResult.Result.Name}' by using the reserved tags in your OAPP Template files. For more information on how to do this, please refer to the documentation for the library you just added.");
-                        }
-                        else
-                            CLIEngine.ShowErrorMessage($"Failed to add template '{installedTemplate.Result.Name}' to {holonTypeToAddTo} '{STARNETDNA.Name}'. Error: {addTemplateResult.Message}");
-                    }
-                    else
-                        CLIEngine.ShowErrorMessage($"Failed to add template to {holonTypeToAddTo} '{STARNETDNA.Name}'. Error: {installedTemplate.Message}");
-                }
-                while (CLIEngine.GetConfirmation("Do you wish to add another template?"));
-            }*/
 
             Console.WriteLine("");
             return result;
@@ -3067,6 +3073,72 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
 
+        protected async Task<OASISResult<ImageObjectResult>> ProcessImageOrObjectAsync(string holonType)
+        {
+            OASISResult<ImageObjectResult> result = new OASISResult<ImageObjectResult>();
+
+            if (CLIEngine.GetConfirmation($"Would you rather use a 3D object or a 2D sprite/image to represent your {holonType}? Press Y for 3D or N for 2D."))
+            {
+                Console.WriteLine("");
+
+                if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
+                {
+                    Console.WriteLine("");
+                    string objPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                    if (objPath == "exit")
+                    {
+                        result.Message = "User Exited";
+                        return result;
+                    }
+
+                    result.Result.Object3D = File.ReadAllBytes(objPath);
+
+                }
+                else
+                {
+                    Console.WriteLine("");
+                    result.Result.Object3DURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
+
+                    if (result.Result.Object3DURI == null)
+                    {
+                        result.Message = "User Exited";
+                        return result;
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("");
+
+                if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
+                {
+                    Console.WriteLine("");
+                    string imgPath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                    if (imgPath == "exit")
+                    {
+                        result.Message = "User Exited";
+                        return result;
+                    }
+
+                    result.Result.Image2D = File.ReadAllBytes(imgPath);
+                }
+                else
+                {
+                    Console.WriteLine("");
+                    result.Result.Image2DURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the default image instead. You can always change this later.)");
+
+                    if (result.Result.Image2DURI == null)
+                    {
+                        result.Message = "User Exited";
+                        return result;
+                    }
+                }
+            }
+
+            return result;
+        }
 
         private OASISResult<IEnumerable<T>> ListStarHolons<T>(OASISResult<IEnumerable<T>> starHolons, bool showNumbers = false, bool showDetailedInfo = false) where T : ISTARNETHolon, new()
         {
