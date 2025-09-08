@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public GeoHotSpotManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
             STARDNA,
             OASISDNA,
-            typeof(GeoHotSpot),
+            typeof(GeoHotSpotType),
             HolonType.GeoHotSpot,
             HolonType.InstalledGeoHotSpot,
             "GeoHotSpot",

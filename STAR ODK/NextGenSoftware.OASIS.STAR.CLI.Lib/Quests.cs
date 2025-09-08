@@ -34,8 +34,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             Mission parentMission = null;
             Quest parentQuest = null;
             int order = 0;
-           // int currentMaxOrder = 0;
-            bool validOrder = false;
 
             if (CLIEngine.GetConfirmation("Does this quest belong to a Mission?"))
             {
@@ -49,7 +47,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         parentMission = loadResult.Result;
                 }
             }
-            else if (CLIEngine.GetConfirmation("Does this quest belong to another quest?"))
+            else if (CLIEngine.GetConfirmation("\n Does this quest belong to another quest?"))
             {
                 OASISResult<InstalledQuest> questResult = await STARCLI.Quests.FindAndInstallIfNotInstalledAsync("use for the parent");
 
@@ -68,22 +66,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (parentQuest != null)
                 order = parentQuest.Quests.Count() + 1;
 
-            //do
-            //{
-            //    order = CLIEngine.GetValidInputForInt("What order number in the sequence is this quest? (E.g. 1 for first, 2 for second etc)");
-
-            //    if (order > currentMaxOrder)
-            //        validOrder = true;
-            //    else
-            //        CLIEngine.ShowErrorMessage($"You must enter a valid order number (greater than {currentMaxOrder}).");
-            //}
-            //while (!validOrder)
-
             if (newHolon == null)
                 newHolon = new Quest();
 
-            newHolon.ParentMissionId = parentMission.Id;
-            newHolon.ParentQuestId = parentQuest.Id;
+            if (parentMission != null)
+                newHolon.ParentMissionId = parentMission.Id;
+            
+            if (parentQuest != null)
+                newHolon.ParentQuestId = parentQuest.Id;
+ 
             newHolon.Order = order;
 
             result = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, providerType);
@@ -97,6 +88,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         do
                         {
                             Guid geoHotSpotId = Guid.Empty;
+                            Console.WriteLine("");
                             if (!CLIEngine.GetConfirmation("Does the GeoHotSpot already exist?"))
                             {
                                 OASISResult<GeoHotSpot> geoHotSpotResult = await STARCLI.GeoHotSpots.CreateAsync(null, providerType: providerType);
@@ -116,6 +108,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         do
                         {
                             Guid geoNFTId = Guid.Empty;
+                            Console.WriteLine("");
                             if (!CLIEngine.GetConfirmation("Does the GeoNFT already exist?"))
                             {
                                 OASISResult<STARGeoNFT> geoHotSpotResult = await STARCLI.GeoNFTs.CreateAsync(null, providerType: providerType);
@@ -135,6 +128,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         do
                         {
                             Guid questId = Guid.Empty;
+                            Console.WriteLine("");
                             if (!CLIEngine.GetConfirmation("Does the sub-quest already exist?"))
                             {
                                 OASISResult<Quest> questResult = await STARCLI.Quests.CreateAsync(null, providerType: providerType);
