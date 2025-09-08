@@ -176,6 +176,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             //}
 
+
+
             if (CLIEngine.GetConfirmation("Do you wish for your OAPP to appear in the AR geo-location Our World/AR World game/platform? (recommended)"))
             {
                 Console.WriteLine("");
