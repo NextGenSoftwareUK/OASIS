@@ -30,9 +30,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public override async Task<OASISResult<GeoHotSpot>> CreateAsync(object createParams, GeoHotSpot newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<GeoHotSpot> result = new OASISResult<GeoHotSpot>();
-            Mission parentMission = null;
-            Quest parentQuest = null;
-            int order = 0;
 
             //if (CLIEngine.GetConfirmation("Does this GeoHotSpot belong to a quest?"))
             //{
@@ -94,6 +91,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (result.Result != null && result.Result != null && !result.IsError)
                 {
+                    //if (CLIEngine.GetConfirmation("Do you want to add any Reward's (InventoryItem's) to this GeoHotSpot now (These are rewarded once the GeoHotSpot has been triggered)?"))
+                    //{
+                    //    do
+                    //    {
+                    //        Guid inventoryId = Guid.Empty;
+                    //        Console.WriteLine("");
+                    //        if (!CLIEngine.GetConfirmation("Does the InventoryItem/Reward already exist?"))
+                    //        {
+                    //            OASISResult<InventoryItem> inventoryResult = await STARCLI.InventoryItems.CreateAsync(null, providerType: providerType);
+
+                    //            if (inventoryResult != null && inventoryResult.Result != null && !inventoryResult.IsError)
+                    //                inventoryId = inventoryResult.Result.Id;
+                    //        }
+
+                    //        Console.WriteLine("");
+                    //        OASISResult<GeoHotSpot> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "InventoryItem", idOrNameOfDependency: inventoryId.ToString(), providerType: providerType);
+                    //    }
+                    //    while (CLIEngine.GetConfirmation("Do you wish to add another InventoryItem/Reward?"));
+                    //}
+
+                    //TODO: Not sure which is better? This message or the above commented out code?
                     CLIEngine.ShowMessage("Add any dependencies to the GeoHotSpot below. If for example you want items to be rewarded when it is triggered then add a InventoryItem dependency, if you want it to unlock a new quest then add a Quest dependency and so on. If however this GeoHotSpot belongs to another Quest then you will need to add it as a dependency to that Quest (or use the quest create/edit sub-command).", ConsoleColor.Yellow);
                     await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
                 }
