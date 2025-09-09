@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (missionResult != null && missionResult.Result != null && !missionResult.IsError)
                 {
                     OASISResult<Mission> loadResult = await STAR.STARAPI.Missions.LoadAsync(STAR.BeamedInAvatar.Id, missionResult.Result.Id, providerType: providerType);
-                    
+
                     if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                         parentMission = loadResult.Result;
                 }
@@ -83,6 +83,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (result.Result != null && result.Result != null && !result.IsError)
                 {
+                    if (parentMission != null)
+                    {
+                        //TODO: Need to find way to add dependency without it being installed first! ;-)
+                        //await STAR.STARAPI.Missions.AddDependencyAsync<InstalledQuest>(STAR.BeamedInAvatar.Id, parentMission, result.Result, DependencyType.Quest, providerType: providerType);
+                    }
+
+                    if (parentQuest != null)
+                    {
+                        //TODO: Need to find way to add dependency without it being installed first! ;-)
+                        //await STAR.STARAPI.Quests.AddDependencyAsync<InstalledQuest>(STAR.BeamedInAvatar.Id, parentQuest, result.Result, DependencyType.Quest, providerType: providerType);
+                    }
+
                     if (CLIEngine.GetConfirmation("Do you want to add any GeoHotSpot's to this Quest now?"))
                     {
                         do
@@ -103,7 +115,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         while (CLIEngine.GetConfirmation("Do you wish to add another GeoHotSpot?"));  
                     }
 
-                    if (CLIEngine.GetConfirmation("Do you want to add any existing GeoNFT's to this Quest now?"))
+                    if (CLIEngine.GetConfirmation("Do you want to add any GeoNFT's to this Quest now?"))
                     {
                         do
                         {
@@ -123,7 +135,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         while (CLIEngine.GetConfirmation("Do you wish to add another GeoNFT?"));
                     }
 
-                    if (CLIEngine.GetConfirmation("Do you want to add any existing sub-quest's to this Quest now?"))
+                    if (CLIEngine.GetConfirmation("Do you want to add any sub-quest's to this Quest now?"))
                     {
                         do
                         {
