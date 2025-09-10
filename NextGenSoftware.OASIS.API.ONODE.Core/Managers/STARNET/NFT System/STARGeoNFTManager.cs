@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public STARGeoNFTManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
             STARDNA,
             OASISDNA,
-            typeof(STARGeoNFT),
+            typeof(NFTType),
             HolonType.STARGeoNFT,
             HolonType.InstalledGeoNFT,
             "GeoNFT",
