@@ -743,11 +743,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "nft":
-                                    await ShowNftSubCommandAsync(inputArgs);
+                                    //await ShowNftSubCommandAsync(inputArgs);
+                                    await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.EditAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchsAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, providerType: providerType);
                                     break;
 
                                 case "geonft":
-                                    await ShowGeoNftSubCommandAsync(inputArgs, providerType);
+                                    //await ShowGeoNftSubCommandAsync(inputArgs, providerType);
+                                    await ShowSubCommandAsync<STARGeoNFT>(inputArgs, "geo-nft", "geo-nft's", STARCLI.GeoNFTs.CreateAsync, STARCLI.GeoNFTs.EditAsync, STARCLI.GeoNFTs.DeleteAsync, STARCLI.GeoNFTs.DownloadAndInstallAsync, STARCLI.GeoNFTs.UninstallAsync, STARCLI.GeoNFTs.PublishAsync, STARCLI.GeoNFTs.UnpublishAsync, STARCLI.GeoNFTs.RepublishAsync, STARCLI.GeoNFTs.ActivateAsync, STARCLI.GeoNFTs.DeactivateAsync, STARCLI.GeoNFTs.ShowAsync, STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllAsync, STARCLI.GeoNFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTs.SearchsAsync, STARCLI.GeoNFTs.AddDependencyAsync, STARCLI.GeoNFTs.RemoveDependencyAsync, providerType: providerType);
                                     break;
 
                                 case "geohotspot":
@@ -985,6 +987,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 switch (subCommandParam)
                 {
                     case "create":
+                    case "mint":
                         {
                             if (showCreate)
                             {
@@ -1167,59 +1170,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         }
                         break;
 
-                    //case "addlib":
-                    //    {
-                    //        if (addLibPredicate != null)
-                    //            await addLibPredicate(id, subCommandParam3, providerType);
-                    //        else
-                    //            CLIEngine.ShowMessage("Coming Soon...");
-                    //    }
-                    //    break;
+                    case "send":
+                        {
+                            if (subCommand.ToUpper() == "NFT")
+                                await STARCLI.NFTs.SendNFTAsync();
 
-                    //case "removelib":
-                    //    {
-                    //        if (removeLibPredicate != null)
-                    //            await removeLibPredicate(id, subCommandParam3, providerType);
-                    //        else
-                    //            CLIEngine.ShowMessage("Coming Soon...");
-                    //    }
-                    //    break;
+                            else if (subCommand.ToUpper() == "GEONFT")
+                                await STARCLI.GeoNFTs.SendGeoNFTAsync();
+                            
+                            else
+                                CLIEngine.ShowWarningMessage("This sub-command is only supported for the command 'geonft' or 'nft'.");
+                        }
+                        break;
 
-                    //case "addruntime":
-                    //    {
-                    //        if (addRuntimePredicate != null)
-                    //            await addRuntimePredicate(id, subCommandParam3, providerType);
-                    //        else
-                    //            CLIEngine.ShowMessage("Coming Soon...");
-                    //    }
-                    //    break;
+                    case "place":
+                        {
+                            if (subCommand.ToUpper() == "GEONFT")
+                                await STARCLI.GeoNFTs.PublishAsync();
+                            else
+                                CLIEngine.ShowWarningMessage("This sub-command is only supported for the command 'geonft'.");
+                        }
+                        break;
 
-                    //case "removeruntime":
-                    //    {
-                    //        if (removeRuntimePredicate != null)
-                    //            await removeRuntimePredicate(id, subCommandParam3, providerType);
-                    //        else
-                    //            CLIEngine.ShowMessage("Coming Soon...");
-                    //    }
-                    //    break;
-
-                    //case "addtemplate":
-                    //    {
-                    //        if (addTemplatePredicate != null)
-                    //            await addTemplatePredicate(id, subCommandParam3,  providerType);
-                    //        else
-                    //            CLIEngine.ShowMessage("Coming Soon...");
-                    //    }
-                    //    break;
-
-                    //case "removetemplate":
-                    //    {
-                    //        if (removeTemplatePredicate != null)
-                    //            await removeTemplatePredicate(id, subCommandParam3, providerType);
-                    //        else
-                    //            CLIEngine.ShowMessage("Coming Soon...");
-                    //    }
-                    //    break;
+                    case "burn":
+                        {
+                            CLIEngine.ShowMessage("Coming soon...");
+                        }
+                        break;
 
                     case "list":
                         {
@@ -1312,7 +1289,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 string paramDivider = "  ";
 
                 if (showCreate)
-                    CLIEngine.ShowMessage(string.Concat("    create".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Create a ", subCommand, "."), ConsoleColor.Green, false);
+                {
+                    if (subCommand.ToUpper() == "GEONFT")
+                        CLIEngine.ShowMessage(string.Concat("    create/mint".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Mints a OASIS Geo-NFT and places in Our World/AR World for the currently beamed in avatar."), ConsoleColor.Green, false);
+                    
+                    else if (subCommand.ToUpper() == "NFT")
+                        CLIEngine.ShowMessage(string.Concat("    create/mint".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Mints a OASIS NFT."), ConsoleColor.Green, false);
+
+                    else
+                        CLIEngine.ShowMessage(string.Concat("    create".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Create a ", subCommand, "."), ConsoleColor.Green, false);
+                }
 
                 if (showUpdate)
                     CLIEngine.ShowMessage(string.Concat("    update".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Update an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
@@ -1320,12 +1306,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 if (showDelete)
                     CLIEngine.ShowMessage(string.Concat("    delete".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Delete an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
 
-                CLIEngine.ShowMessage(string.Concat("    addruntime".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Adds a runtime to the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    removeruntime".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Removes a runtime from the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    addlib".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Adds a library to the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    removelib".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Removes a library from the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    addtemplate".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Adds a sub-template to the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    removetemplate".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Removes a sub-template from the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                if (subCommand.ToUpper() == "NFT")
+                {
+                    CLIEngine.ShowMessage(string.Concat("    burn".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Burn's a OASIS NFT for the given {id} or {name}"), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    send".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Send a OASIS NFT for the given {id} or {name} to another wallet cross-chain."), ConsoleColor.Green, false);
+                }
+
+                if (subCommand.ToUpper() == "GEONFT")
+                {
+                    CLIEngine.ShowMessage(string.Concat("    burn".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Burn's a OASIS Geo-NFT for the given {id} or {name}"), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    send".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Send a OASIS Geo-NFT for the given {id} or {name} to another wallet cross-chain."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    place".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Create a OASIS Geo-NFT from an existing OASIS NFT for the given {id} or {name} and place within Our World.}"), ConsoleColor.Green, false);
+                }
+
+                CLIEngine.ShowMessage(string.Concat("    adddependency".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Adds a runtime to the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    removedependency".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Removes a runtime from the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    download".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Download a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    install".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Install/download a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    uninstall".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Uninstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
@@ -1599,15 +1594,40 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static async Task ShowGeoNftSubCommandAsync(string[] inputArgs, ProviderType providerType)
         {
+            string subCommand = "";
+            string subCommandParam = "";
+            string subCommandParam2 = "";
+            string subCommandParam3 = "";
+            string subCommandParam4 = "";
+            bool showAllVersions = false;
+            bool showForAllAvatars = false;
+            bool showDetailed = false;
+
             if (inputArgs.Length > 1)
             {
-                //Guid id = Guid.Empty;
+                if (inputArgs.Length > 1 && !string.IsNullOrEmpty(inputArgs[1]))
+                    subCommandParam = inputArgs[1].ToLower();
 
-                //if (inputArgs.Length > 2)
-                //{
-                //    if (!Guid.TryParse(inputArgs[2], out id))
-                //        CLIEngine.ShowErrorMessage($"The id ({inputArgs[2]}) passed in is not a valid GUID!");
-                //}
+                if (inputArgs.Length > 2 && !string.IsNullOrEmpty(inputArgs[2]))
+                    subCommandParam2 = inputArgs[2].ToLower();
+
+                if (inputArgs.Length > 3 && !string.IsNullOrEmpty(inputArgs[3]))
+                    subCommandParam3 = inputArgs[3].ToLower();
+
+                if (inputArgs.Length > 4 && !string.IsNullOrEmpty(inputArgs[4]))
+                    subCommandParam4 = inputArgs[4].ToLower();
+
+                if (string.IsNullOrEmpty(subCommand))
+                    subCommand = inputArgs[0];
+
+                if (subCommandParam2.ToLower() == "allversions" || subCommandParam3.ToLower() == "allversions")
+                    showAllVersions = true;
+
+                if (subCommandParam2.ToLower() == "forallavatars" || subCommandParam3.ToLower() == "forallavatars")
+                    showForAllAvatars = true;
+
+                if (subCommandParam == "detailed" || subCommandParam2 == "detailed" || subCommandParam3 == "detailed")
+                    showDetailed = true;
 
                 switch (inputArgs[1].ToLower())
                 {
@@ -1648,10 +1668,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "list":
                         {
-                            if (inputArgs.Length > 2 && inputArgs[2] != null && inputArgs[2].ToLower() == "all")
-                                await STARCLI.GeoNFTs.ListAllAsync();
-                            else
-                                await STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync();
+                            switch (subCommandParam2.ToLower())
+                            {
+                                case "installed":
+                                    await STARCLI.GeoNFTs.ListAllInstalledForBeamedInAvatarAsync();
+                                    break;
+
+                                case "uninstalled":
+                                    await STARCLI.GeoNFTs.ListAllUninstalledForBeamedInAvatarAsync();
+                                    break;
+
+                                case "unpublished":
+                                    await STARCLI.GeoNFTs.ListAllUnpublishedForBeamedInAvatarAsync();
+                                    break;
+
+                                case "deactivated":
+                                    await STARCLI.GeoNFTs.ListAllDeactivatedForBeamedInAvatarAsync();
+                                    break;
+
+                                default:
+                                    {
+                                        if (showForAllAvatars)
+                                            await STARCLI.GeoNFTs.ListAllAsync(showAllVersions, showDetailed, 0, providerType);
+                                        else
+                                            await STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync(showAllVersions, showDetailed, providerType);
+                                    }
+                                    break;
+                            }
                         }
                         break;
 
@@ -1673,6 +1716,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    update      {id/name}  Updates a OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    burn        {id/name}  Burn's a OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    send        {id/name}  Send a OASIS Geo-NFT for the given {id} or {name} to another wallet cross-chain.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    place       {id/name}  Create a OASIS Geo-NFT from an existing OASIS NFT for the given {id} or {name} and place within Our World.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    publish     {id/name}  Publishes a OASIS Geo-NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    unpublish   {id/name}  Unpublishes a OASIS Geo-NFT for the given {id} or {name} from the STARNET store.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    show        {id/name}  Shows the OASIS Geo-NFT for the given {id} or {name}.", ConsoleColor.Green, false);
