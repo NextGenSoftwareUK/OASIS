@@ -37,6 +37,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation("Does this quest belong to a Mission?"))
             {
+                Console.WriteLine("");
                 OASISResult<InstalledMission> missionResult = await STARCLI.Missions.FindAndInstallIfNotInstalledAsync("use for the parent");
 
                 if (missionResult != null && missionResult.Result != null && !missionResult.IsError)
@@ -49,6 +50,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else if (CLIEngine.GetConfirmation("\n Does this quest belong to another quest?"))
             {
+                Console.WriteLine("");
                 OASISResult<InstalledQuest> questResult = await STARCLI.Quests.FindAndInstallIfNotInstalledAsync("use for the parent");
 
                 if (questResult != null && questResult.Result != null && !questResult.IsError)
@@ -103,6 +105,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             Console.WriteLine("");
                             if (!CLIEngine.GetConfirmation("Does the GeoHotSpot already exist?"))
                             {
+                                Console.WriteLine("");
                                 OASISResult<GeoHotSpot> geoHotSpotResult = await STARCLI.GeoHotSpots.CreateAsync(null, providerType: providerType);
                                 
                                 if (geoHotSpotResult != null && geoHotSpotResult.Result != null && !geoHotSpotResult.IsError)
@@ -115,6 +118,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         while (CLIEngine.GetConfirmation("Do you wish to add another GeoHotSpot?"));  
                     }
 
+                    Console.WriteLine("");
                     if (CLIEngine.GetConfirmation("Do you want to add any GeoNFT's to this Quest now?"))
                     {
                         do
@@ -123,6 +127,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             Console.WriteLine("");
                             if (!CLIEngine.GetConfirmation("Does the GeoNFT already exist?"))
                             {
+                                Console.WriteLine("");
                                 OASISResult<STARGeoNFT> geoHotSpotResult = await STARCLI.GeoNFTs.CreateAsync(null, providerType: providerType);
 
                                 if (geoHotSpotResult != null && geoHotSpotResult.Result != null && !geoHotSpotResult.IsError)
@@ -143,6 +148,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             Console.WriteLine("");
                             if (!CLIEngine.GetConfirmation("Does the sub-quest already exist?"))
                             {
+                                Console.WriteLine("");
                                 OASISResult<Quest> questResult = await STARCLI.Quests.CreateAsync(null, providerType: providerType);
 
                                 if (questResult != null && questResult.Result != null && !questResult.IsError)

@@ -2339,6 +2339,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (STARNETHolonUIName == "Default")
                 STARNETHolonUIName = STARNETManager.STARNETHolonUIName;
 
+            if (idOrName == Guid.Empty.ToString())
+                idOrName = "";
+
             do
             {
                 if (string.IsNullOrEmpty(idOrName))
@@ -2522,6 +2525,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     Console.WriteLine("");
                 }
+
+                idOrName = "";
             }
             while (result.Result == null || result.IsError);
 
@@ -3075,7 +3080,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         protected async Task<OASISResult<ImageObjectResult>> ProcessImageOrObjectAsync(string holonType)
         {
-            OASISResult<ImageObjectResult> result = new OASISResult<ImageObjectResult>();
+            OASISResult<ImageObjectResult> result = new OASISResult<ImageObjectResult>(new ImageObjectResult());
 
             if (CLIEngine.GetConfirmation($"Would you rather use a 3D object or a 2D sprite/image to represent your {holonType}? Press Y for 3D or N for 2D."))
             {
