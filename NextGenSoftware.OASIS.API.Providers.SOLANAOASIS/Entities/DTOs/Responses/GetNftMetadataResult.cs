@@ -2,7 +2,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Response
 
 public sealed class GetNftMetadataResult
 {
-    public string Owner { get; set; }
+    public string Owner { get; set; } // should be Metadata program
     public string UpdateAuthority { get; set; }
     public string Mint { get; set; }
     public string Name { get; set; }
@@ -15,7 +15,7 @@ public sealed class GetNftMetadataResult
     {
         ArgumentNullException.ThrowIfNull(metadataAccount);
 
-        Owner = metadataAccount.owner.Key;
+        Owner = metadataAccount.owner.Key;  // should be Metadata program
         UpdateAuthority = metadataAccount.updateAuthority.Key;
         Mint = metadataAccount.mint;
         Name = metadataAccount.metadata.name;

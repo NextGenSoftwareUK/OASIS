@@ -49,7 +49,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //        CLIEngine.ShowErrorMessage("No GeoNFT Found For That Id!");
         //}
 
-        public override async Task<OASISResult<STARGeoNFT>> CreateAsync(object createParams, STARGeoNFT newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<STARGeoNFT>> CreateAsync(object createParams, STARGeoNFT newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARGeoNFT> result = new OASISResult<STARGeoNFT>();
 
@@ -59,7 +59,39 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IOASISGeoSpatialNFT> mintResult = await MintGeoNFTAsync(); //Mint WEB4 GeoNFT (mints and wraps around a WEB4 OASIS NFT).
 
             if (mintResult != null && mintResult.Result != null && !mintResult.IsError)
-                result = await base.CreateAsync(createParams, new STARGeoNFT() { GeoNFTId = mintResult.Result.Id }, showHeaderAndInro, checkIfSourcePathExists,  providerType);
+            {
+                result = await base.CreateAsync(createParams, new STARGeoNFT()
+                {
+                    GeoNFTId = mintResult.Result.Id
+                }, showHeaderAndInro, checkIfSourcePathExists, metaData: mintResult.Result.MetaData, providerType: providerType);
+
+                //result = await base.CreateAsync(createParams, new STARGeoNFT()
+                //{
+                //    GeoNFTId = mintResult.Result.Id
+                //}, showHeaderAndInro, checkIfSourcePathExists, metaData: new Dictionary<string, object>() 
+                //{
+                //    { "OASISGeoNFTId", mintResult.Result.Id },
+                //    { "OriginalOASISNFTId", mintResult.Result.OriginalOASISNFTId },
+                //    { "OnChainProviderType", mintResult.Result.OnChainProvider.Name },
+                //    { "OffChainProviderType", mintResult.Result.OffChainProvider.Name },
+                //    { "MintAddress", mintResult.Result.MintAddress },
+                //    { "MintAddress", mintResult.Result.MintedByAddress },
+                //    { "MintedByAvatarId", mintResult.Result.MintedByAvatarId },
+                //    { "MintedOn", mintResult.Result.MintedOn },
+                //    { "Hash", mintResult.Result.Hash },
+                //    { "Title", mintResult.Result.Title },
+                //    { "Description", mintResult.Result.Description },
+                //    { "MemoText", mintResult.Result.MemoText },
+                //    { "Price", mintResult.Result.Price },
+                //    { "Discount", mintResult.Result.Discount },
+                //    { "ImageURL", mintResult.Result.ImageUrl },
+                //    { "ThumbnailUrl", mintResult.Result.ThumbnailUrl },
+                //    { "JSONMetaDataURL", mintResult.Result.JSONMetaDataURL },
+
+                //    { "MintAddress", mintResult.Result.MintAddress },
+
+                //}, providerType: providerType);
+            }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured minting GeoNFT in MintGeoNFTAsync method. Reason: {mintResult.Message}");
 
