@@ -1564,6 +1564,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 Id = Guid.NewGuid(),
                 Hash = mintNFTResponse.TransactionResult,
                 MintedByAddress = request.MintWalletAddress,
+                NFTTokenAddress = mintNFTResponse.OASISNFT.NFTTokenAddress, //TODO: Need to pull this from the provider mint functions...
                 MintedByAvatarId = request.MintedByAvatarId,
                 Title = request.Title,
                 Description = request.Description,
@@ -1575,6 +1576,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 ThumbnailUrl = request.ThumbnailUrl,
                 OnChainProvider = request.OnChainProvider,
                 OffChainProvider = request.OffChainProvider,
+                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
+                NFTOffChainMetaType = request.NFTOffChainMetaType,
+                NFTStandardType = request.NFTStandardType,
+                Symbol = request.Symbol,
                 MintedOn = DateTime.Now,
                 MemoText = request.MemoText,
                 JSONMetaDataURL = request.JSONMetaDataURL
@@ -1596,6 +1601,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 Hash = originalNftMetaData.Hash,
                 JSONMetaDataURL = originalNftMetaData.JSONMetaDataURL,
                 MintedByAddress = originalNftMetaData.MintedByAddress,
+                NFTTokenAddress = originalNftMetaData.NFTTokenAddress,
                 MintedByAvatarId = originalNftMetaData.MintedByAvatarId,
                 Title = originalNftMetaData.Title,
                 Description = originalNftMetaData.Description,
@@ -1608,6 +1614,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 MetaData = originalNftMetaData.MetaData,
                 OnChainProvider = originalNftMetaData.OnChainProvider,
                 OffChainProvider = originalNftMetaData.OffChainProvider,
+                StoreNFTMetaDataOnChain = originalNftMetaData.StoreNFTMetaDataOnChain,
+                NFTOffChainMetaType = originalNftMetaData.NFTOffChainMetaType,
+                NFTStandardType = originalNftMetaData.NFTStandardType,
+                Symbol = originalNftMetaData.Symbol,
                 MintedOn = originalNftMetaData.MintedOn,
                 MemoText = originalNftMetaData.MemoText,
                 PlacedByAvatarId = request.PlacedByAvatarId,
@@ -1635,6 +1645,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             holonNFT.MetaData["NFT.Id"] = nftMetaData.Id;
             holonNFT.MetaData["NFT.MintedByAvatarId"] = nftMetaData.MintedByAvatarId.ToString();
             holonNFT.MetaData["NFT.MintWalletAddress"] = nftMetaData.MintedByAddress;
+            holonNFT.MetaData["NFT.NFTTokenAddress"] = nftMetaData.NFTTokenAddress;
             holonNFT.MetaData["NFT.MemoText"] = nftMetaData.MemoText;
             holonNFT.MetaData["NFT.Title"] = nftMetaData.Title;
             holonNFT.MetaData["NFT.Description"] = nftMetaData.Description;
@@ -1643,6 +1654,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             holonNFT.MetaData["NFT.NumberToMint"] = request.NumberToMint.ToString();
             holonNFT.MetaData["NFT.OnChainProvider"] = nftMetaData.OnChainProvider.Name;
             holonNFT.MetaData["NFT.OffChainProvider"] = nftMetaData.OffChainProvider.Name;
+            holonNFT.MetaData["NFT.StoreNFTMetaDataOnChain"] = nftMetaData.StoreNFTMetaDataOnChain ? "True" : "False";
+            holonNFT.MetaData["NFT.NFTOffChainMetaType"] = Enum.GetName(typeof(NFTOffChainMetaType), nftMetaData.NFTOffChainMetaType);
+            holonNFT.MetaData["NFT.NFTStandardType"] = Enum.GetName(typeof(NFTStandardType), nftMetaData.NFTStandardType);
+            holonNFT.MetaData["NFT.Symbol"] = nftMetaData.Symbol;
             holonNFT.MetaData["NFT.Image"] = nftMetaData.Image;
             holonNFT.MetaData["NFT.ImageUrl"] = nftMetaData.ImageUrl;
             holonNFT.MetaData["NFT.Thumbnail"] = nftMetaData.Thumbnail;
@@ -1683,11 +1698,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.Title"] = geoNFTMetaData.Title;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.Description"] = geoNFTMetaData.Description;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.MintedByAvatarId"] = geoNFTMetaData.MintedByAvatarId.ToString();
+            holonNFT.MetaData["GEONFT.OriginalOASISNFT.NFTTokenAddress"] = geoNFTMetaData.NFTTokenAddress; //geoNFTMetaData.MintWalletAddress;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.MintWalletAddress"] = geoNFTMetaData.MintedByAddress; //geoNFTMetaData.MintWalletAddress;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.Price"] = geoNFTMetaData.Price.ToString();
             //holonNFT.MetaData["GEONFT.NumberToMint"] = geoNFTMetaData.NumberToMint.ToString();
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.OnChainProvider"] = geoNFTMetaData.OnChainProvider.Name;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.OffChainProvider"] = geoNFTMetaData.OffChainProvider.Name;
+            holonNFT.MetaData["GEONFT.OriginalOASISNFT.StoreNFTMetaDataOnChain"] = geoNFTMetaData.StoreNFTMetaDataOnChain ? "True" : "False";
+            holonNFT.MetaData["GEONFT.OriginalOASISNFT.NFTOffChainMetaType"] = Enum.GetName(typeof(NFTOffChainMetaType), geoNFTMetaData.NFTOffChainMetaType);
+            holonNFT.MetaData["GEONFT.OriginalOASISNFT.NFTStandardType"] = Enum.GetName(typeof(NFTStandardType), geoNFTMetaData.NFTStandardType);
+            holonNFT.MetaData["GEONFT.OriginalOASISNFT.Symbol"] = geoNFTMetaData.Symbol;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.Image"] = geoNFTMetaData.Image;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.ImageUrl"] = geoNFTMetaData.ImageUrl;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.Thumbnail"] = geoNFTMetaData.Thumbnail;
