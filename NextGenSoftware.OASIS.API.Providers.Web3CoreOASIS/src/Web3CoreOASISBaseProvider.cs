@@ -1110,7 +1110,8 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         try
         {
             string metadataJson = JsonSerializer.Serialize(transaction);
-            string transactionHash = await _web3CoreOASIS.MintAsync(transaction.MintWalletAddress, metadataJson);
+            //string transactionHash = await _web3CoreOASIS.MintAsync(transaction.MintWalletAddress, metadataJson);
+            string transactionHash = await _web3CoreOASIS.MintAsync(transaction.SendToAddressAfterMinting, metadataJson);
 
             INFTTransactionRespone response = new NFTTransactionRespone
             {

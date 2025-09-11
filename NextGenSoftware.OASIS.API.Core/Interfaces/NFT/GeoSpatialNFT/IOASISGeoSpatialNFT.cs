@@ -1,7 +1,6 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+﻿using System;
 using NextGenSoftware.Utilities;
-using System;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT
 {
@@ -18,6 +17,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT
         bool PermSpawn { get; set; }
         int GlobalSpawnQuantity { get; set; }
         int PlayerSpawnQuantity { get; set; }
-        int RepawnDurationInSeconds { get; set; }
+        int RespawnDurationInSeconds { get; set; }
+        byte[] Nft3DObject { get; set; }
+        string Nft3DObjectURI { get; set; }
+        byte[] Nft2DSprite { get; set; }
+        string Nft2DSpriteURI { get; set; }
     }
 }

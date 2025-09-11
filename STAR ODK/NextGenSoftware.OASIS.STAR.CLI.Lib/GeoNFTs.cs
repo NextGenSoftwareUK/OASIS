@@ -112,7 +112,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Image = request.Image,
                 ImageUrl = request.ImageUrl,
                 MintedByAvatarId = request.MintedByAvatarId,
-                MintWalletAddress = request.MintWalletAddress,
+                //MintWalletAddress = request.MintWalletAddress,
                 Thumbnail = request.Thumbnail,
                 ThumbnailUrl = request.ThumbnailUrl,
                 Price = request.Price,
@@ -130,13 +130,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Lat = geoRequest.Lat,
                 Long = geoRequest.Long,
                 Nft2DSprite = geoRequest.Nft2DSprite,
-                Nft3DSpriteURI = geoRequest.Nft3DSpriteURI,
+                Nft2DSpriteURI = geoRequest.Nft2DSpriteURI,
                 Nft3DObject = geoRequest.Nft3DObject,
                 Nft3DObjectURI = geoRequest.Nft3DObjectURI
             });
 
             if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
-                CLIEngine.ShowSuccessMessage($"OASIS Geo-NFT Successfully Minted. {nftResult.Message} Id: {nftResult.Result.Id}, Hash: {nftResult.Result.Hash} Minted On: {nftResult.Result.MintedOn}, Minted By Avatar Id: {nftResult.Result.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.MintedByAddress}.");
+                //CLIEngine.ShowSuccessMessage($"OASIS Geo-NFT Successfully Minted. {nftResult.Message} Id: {nftResult.Result.Id}, Hash: {nftResult.Result.Hash} Minted On: {nftResult.Result.MintedOn}, Minted By Avatar Id: {nftResult.Result.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.MintedByAddress}.");
+                CLIEngine.ShowSuccessMessage(nftResult.Message);
             else
             {
                 string msg = nftResult != null ? nftResult.Message : "";
@@ -153,7 +154,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IOASISGeoSpatialNFT> nftResult = await STAR.OASISAPI.NFTs.PlaceGeoNFTAsync(geoRequest);
 
             if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
-                CLIEngine.ShowSuccessMessage($"OASIS Geo-NFT Successfully Created. {nftResult.Message} OriginalOASISNFTId: {nftResult.Result.OriginalOASISNFTId}, Id: {nftResult.Result.Id}, Hash: {nftResult.Result.Hash} Minted On: {nftResult.Result.MintedOn}, Minted By Avatar Id: {nftResult.Result.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.MintedByAddress}.");
+                //CLIEngine.ShowSuccessMessage($"OASIS Geo-NFT Successfully Created. {nftResult.Message} OriginalOASISNFTId: {nftResult.Result.OriginalOASISNFTId}, Id: {nftResult.Result.Id}, Hash: {nftResult.Result.Hash} Minted On: {nftResult.Result.MintedOn}, Minted By Avatar Id: {nftResult.Result.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.MintedByAddress}.");
+                CLIEngine.ShowSuccessMessage(nftResult.Message);
             else
             {
                 string msg = nftResult != null ? nftResult.Message : "";
@@ -219,7 +221,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage($"Id: {nft.Id}");
             CLIEngine.ShowMessage(string.Concat($"Hash: ", !string.IsNullOrEmpty(nft.Hash) ? nft.Hash : "None"));
             CLIEngine.ShowMessage($"MintedByAvatarId: {nft.MintedByAvatarId}");
-            CLIEngine.ShowMessage(string.Concat($"MintedByAddress: ", !string.IsNullOrEmpty(nft.MintedByAddress) ? nft.MintedByAddress : "None"));
+            CLIEngine.ShowMessage(string.Concat($"OASISMintWalletAddress: ", !string.IsNullOrEmpty(nft.OASISMintWalletAddress) ? nft.OASISMintWalletAddress : "None"));
             CLIEngine.ShowMessage($"MintedOn: {nft.MintedOn}");
             CLIEngine.ShowMessage($"OnChainProvider: {nft.OnChainProvider.Name}");
             CLIEngine.ShowMessage($"OffChainProvider: {nft.OffChainProvider.Name}");
@@ -237,7 +239,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage($"AllowOtherPlayersToAlsoCollect: {nft.AllowOtherPlayersToAlsoCollect}");
             CLIEngine.ShowMessage($"GlobalSpawnQuantity: {nft.GlobalSpawnQuantity}");
             CLIEngine.ShowMessage($"PlayerSpawnQuantity: {nft.PlayerSpawnQuantity}");
-            CLIEngine.ShowMessage($"RepawnDurationInSeconds: {nft.RepawnDurationInSeconds}");
+            CLIEngine.ShowMessage($"RespawnDurationInSeconds: {nft.RespawnDurationInSeconds}");
 
             if (nft.MetaData.Count > 0)
             {
@@ -337,7 +339,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Lat = nftLat,
                 Long = nftLong,
                 Nft2DSprite = nft2dSprite,
-                Nft3DSpriteURI = nft2dSpriteURI != null ? nft2dSpriteURI.AbsoluteUri : "",
+                Nft2DSpriteURI = nft2dSpriteURI != null ? nft2dSpriteURI.AbsoluteUri : "",
                 Nft3DObject = nft3dObject,
                 Nft3DObjectURI = nft3dObjectURI != null ? nft3dObjectURI.AbsoluteUri : "",
                 OriginalOASISNFTId = originalOASISNFTId,
