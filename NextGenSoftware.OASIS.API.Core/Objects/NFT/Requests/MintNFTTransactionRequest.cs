@@ -8,7 +8,11 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
 {
     public class MintNFTTransactionRequest : IMintNFTTransactionRequest
     {
-        public string MintWalletAddress { get; set; }
+        //public string MintWalletAddress { get; set; } The address that will actually mint the NFT (i.e. pay the gas fees etc). This will use the built-in OASIS accounts defined in the Smart Contracts.
+        public string SendToAddressAfterMinting { get; set; }
+        public Guid SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
+        public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
+        public string SendToAvatarAfterMintingEmail { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public Guid MintedByAvatarId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }

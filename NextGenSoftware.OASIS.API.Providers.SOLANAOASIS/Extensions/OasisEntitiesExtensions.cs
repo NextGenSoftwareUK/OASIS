@@ -59,7 +59,7 @@ public static class OasisEntitiesExtensions
         new OASISNFT
         {
             Title = nft.Name,
-            MintedByAddress = nft.Owner,
+            OASISMintWalletAddress = nft.Owner,
             Symbol = nft.Symbol,
             SellerFeeBasisPoints = nft.SellerFeeBasisPoints,
             UpdateAuthority = nft.UpdateAuthority,
