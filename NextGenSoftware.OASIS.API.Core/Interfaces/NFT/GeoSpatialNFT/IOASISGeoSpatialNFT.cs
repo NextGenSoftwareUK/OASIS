@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT
     {
         Guid PlacedByAvatarId { get; set; }
         Guid OriginalOASISNFTId { get; set; }
-        EnumValue<ProviderType> GeoNFTMetaDataOffChainProvider { get; set; }
+        EnumValue<ProviderType> GeoNFTMetaDataProvider { get; set; }
         //EnumValue<ProviderType> OriginalOASISNFTProviderType { get; set; }
         DateTime PlacedOn { get; set; }
         long Lat { get; set; }

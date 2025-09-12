@@ -1089,7 +1089,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     {
         ArgumentNullException.ThrowIfNull(transaction);
 
-        OASISResult<INFTTransactionRespone> result = new();
+        OASISResult<INFTTransactionRespone> result = new(new NFTTransactionRespone());
 
         try
         {
@@ -1124,14 +1124,30 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 oasisNFT.Result.NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount;
                 oasisNFT.Result.Hash = solanaNftTransactionResult.Result.TransactionHash;
                 oasisNFT.Result.OASISMintWalletAddress = _oasisSolanaAccount.PublicKey;
-                OASISNFT = (OASISNFT)result.Result;
+                OASISNFT = (OASISNFT)oasisNFT.Result;
             }
 
-            result.Result = new NFTTransactionRespone
+            if (!string.IsNullOrEmpty(transaction.SendToAddressAfterMinting))
             {
-                OASISNFT = OASISNFT,
-                TransactionResult = solanaNftTransactionResult.Result.TransactionHash
-            };
+                OASISResult<INFTTransactionRespone> sendNftResult = await SendNFTAsync(new NFTWalletTransactionRequest()
+                {
+                    FromWalletAddress = _oasisSolanaAccount.PublicKey,
+                    ToWalletAddress = transaction.SendToAddressAfterMinting,
+                    TokenAddress = solanaNftTransactionResult.Result.MintAccount,
+                    Amount = 1
+                });
+                if (sendNftResult.IsError)
+                {
+                    OASISErrorHandling.HandleWarning(ref result,
+                        $"Error occured sending minted NFT to {transaction.SendToAddressAfterMinting}. Reason: {sendNftResult.Message}");
+                }
+                else
+                    result.Result.SendNFTTransactionResult = sendNftResult.Result.TransactionResult;
+            }
+
+            result.Result.OASISNFT = OASISNFT;
+            result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
+           
         }
         catch (Exception e)
         {
@@ -1140,7 +1156,6 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
         return result;
     }
-
 
     public OASISResult<IOASISNFT> LoadNft(string accountAddress)
         => LoadNftAsync(accountAddress).Result;
