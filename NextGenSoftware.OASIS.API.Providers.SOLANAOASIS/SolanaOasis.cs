@@ -1079,13 +1079,13 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         throw new NotImplementedException();
     }
 
-    public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequestForProvider transation)
+    public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
     {
         return MintNFTAsync(transation).Result;
     }
 
     public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(
-        IMintNFTTransactionRequestForProvider transaction)
+        IMintNFTTransactionRequest transaction)
     {
         ArgumentNullException.ThrowIfNull(transaction);
 
@@ -1094,7 +1094,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         try
         {
             OASISResult<MintNftResult> solanaNftTransactionResult
-                = await _solanaService.MintNftAsync(transaction as MintNFTTransactionRequestForProvider);
+                = await _solanaService.MintNftAsync(transaction as MintNFTTransactionRequest);
 
             if (solanaNftTransactionResult.IsError ||
                 string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
@@ -1107,8 +1107,29 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
             result.IsError = false;
             result.IsSaved = true;
+
+            OASISNFT OASISNFT = new OASISNFT()
+            {
+                Hash = solanaNftTransactionResult.Result.TransactionHash,
+                NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount,
+                OASISMintWalletAddress = _oasisSolanaAccount.PublicKey,
+                JSONMetaDataURL = transaction.JSONMetaDataURL,
+                Symbol = transaction.Symbol
+            };
+
+            OASISResult<IOASISNFT> oasisNFT = await LoadNftAsync(solanaNftTransactionResult.Result.MintAccount);
+
+            if (oasisNFT != null && oasisNFT.Result != null && !oasisNFT.IsError)
+            {
+                oasisNFT.Result.NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount;
+                oasisNFT.Result.Hash = solanaNftTransactionResult.Result.TransactionHash;
+                oasisNFT.Result.OASISMintWalletAddress = _oasisSolanaAccount.PublicKey;
+                OASISNFT = (OASISNFT)result.Result;
+            }
+
             result.Result = new NFTTransactionRespone
             {
+                OASISNFT = OASISNFT,
                 TransactionResult = solanaNftTransactionResult.Result.TransactionHash
             };
         }

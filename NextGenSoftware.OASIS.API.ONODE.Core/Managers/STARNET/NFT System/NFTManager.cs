@@ -1333,7 +1333,39 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     }
                 }
 
-                IMintNFTTransactionRequestForProvider providerRequest = null;
+                //IMintNFTTransactionRequestForProvider providerRequest = null;
+
+                //switch (request.NFTOffChainMetaType)
+                //{
+                //    case NFTOffChainMetaType.Pinata:
+                //        {
+                //            //TODO: Save to Pinata here...
+                //            result.Message = "Pinata Support Coming Soon...";
+                //            result.IsError = true;
+                //            return result;
+                //        }
+                //        break;
+
+                //    case NFTOffChainMetaType.IPFS:
+                //        providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, jsonSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]));
+                //        break;
+
+                //    case NFTOffChainMetaType.OASIS:
+                //        providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/load-file/", jsonSaveResult.Result.Id));
+                //        break;
+
+                //    case NFTOffChainMetaType.ExternalJsonURL:
+                //        {
+                //            if (!string.IsNullOrEmpty(request.JSONMetaDataURL))
+                //                providerRequest = CreateNFTTransactionRequestForProvider(request, request.JSONMetaDataURL);
+                //            else
+                //            {
+                //                OASISErrorHandling.HandleError(ref result, $"{errorMessage} When setting NFTOffChainMetaType to ExternalJsonURL, the JSONUrl cannot be empty!");
+                //                return result;
+                //            }
+                //            break;
+                //        }
+                //}
 
                 switch (request.NFTOffChainMetaType)
                 {
@@ -1347,19 +1379,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         break;
 
                     case NFTOffChainMetaType.IPFS:
-                        providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, jsonSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]));
+                        request.JSONMetaDataURL = string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, jsonSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
                         break;
 
                     case NFTOffChainMetaType.OASIS:
-                        providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/load-file/", jsonSaveResult.Result.Id));
+                        request.JSONMetaDataURL = string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/load-file/", jsonSaveResult.Result.Id);
                         break;
 
                     case NFTOffChainMetaType.ExternalJsonURL:
                         {
-                            if (!string.IsNullOrEmpty(request.JSONMetaDataURL))
-                                providerRequest = CreateNFTTransactionRequestForProvider(request, request.JSONMetaDataURL);
-                            else
-                            {
+                            if (string.IsNullOrEmpty(request.JSONMetaDataURL))
+                            { 
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} When setting NFTOffChainMetaType to ExternalJsonURL, the JSONUrl cannot be empty!");
                                 return result;
                             }
@@ -1367,7 +1397,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         }
                 }
 
-                result = await nftProviderResult.Result.MintNFTAsync(providerRequest);
+                if (string.IsNullOrEmpty(request.Symbol))
+                    request.Symbol = "OASISNFT";
+
+                //result = await nftProviderResult.Result.MintNFTAsync(providerRequest);
+                result = await nftProviderResult.Result.MintNFTAsync(request);
 
                 if (result != null && !result.IsError && result.Result != null)
                 {
@@ -1457,7 +1491,39 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     }
                 }
 
-                IMintNFTTransactionRequestForProvider providerRequest = null;
+                //IMintNFTTransactionRequestForProvider providerRequest = null;
+
+                //switch (request.NFTOffChainMetaType)
+                //{
+                //    case NFTOffChainMetaType.Pinata:
+                //        {
+                //            //TODO: Save to Pinata here...
+                //            result.Message = "Pinata Support Coming Soon...";
+                //            result.IsError = true;
+                //            return result;
+                //        }
+                //        break;
+
+                //    case NFTOffChainMetaType.IPFS:
+                //        providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, jsonSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]));
+                //        break;
+
+                //    case NFTOffChainMetaType.OASIS:
+                //        providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/load-file/", jsonSaveResult.Result.Id));
+                //        break;
+
+                //    case NFTOffChainMetaType.ExternalJsonURL:
+                //        {
+                //            if (!string.IsNullOrEmpty(request.JSONMetaDataURL))
+                //                providerRequest = CreateNFTTransactionRequestForProvider(request, request.JSONMetaDataURL);
+                //            else
+                //            {
+                //                OASISErrorHandling.HandleError(ref result, $"{errorMessage} When setting NFTOffChainMetaType to ExternalJsonURL, the JSONUrl cannot be empty!");
+                //                return result;
+                //            }
+                //            break;
+                //        }
+                //}
 
                 switch (request.NFTOffChainMetaType)
                 {
@@ -1471,18 +1537,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         break;
 
                     case NFTOffChainMetaType.IPFS:
-                        providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, jsonSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]));
+                        request.JSONMetaDataURL = string.Concat(OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString, jsonSaveResult.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
                         break;
 
                     case NFTOffChainMetaType.OASIS:
-                        providerRequest = CreateNFTTransactionRequestForProvider(request, string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/load-file/", jsonSaveResult.Result.Id));
+                        request.JSONMetaDataURL = string.Concat(OASISDNA.OASIS.OASISAPIURL, "/data/load-file/", jsonSaveResult.Result.Id);
                         break;
 
                     case NFTOffChainMetaType.ExternalJsonURL:
                         {
-                            if (!string.IsNullOrEmpty(request.JSONMetaDataURL))
-                                providerRequest = CreateNFTTransactionRequestForProvider(request, request.JSONMetaDataURL);
-                            else
+                            if (string.IsNullOrEmpty(request.JSONMetaDataURL))
                             {
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} When setting NFTOffChainMetaType to ExternalJsonURL, the JSONUrl cannot be empty!");
                                 return result;
@@ -1491,7 +1555,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         }
                 }
 
-                result = nftProviderResult.Result.MintNFT(providerRequest);
+                if (string.IsNullOrEmpty(request.Symbol))
+                    request.Symbol = "OASISNFT";
+
+                //result = await nftProviderResult.Result.MintNFTAsync(providerRequest);
+                result = nftProviderResult.Result.MintNFT(request);
 
                 if (result != null && !result.IsError && result.Result != null)
                 {
@@ -1635,38 +1703,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
         }
 
-        private IMintNFTTransactionRequestForProvider CreateNFTTransactionRequestForProvider(IMintNFTTransactionRequest request, string jsonUrl)
-        {
-            MintNFTTransactionRequestForProvider providerRequest = new MintNFTTransactionRequestForProvider()
-            {
-                Description = request.Description,
-                Image = request.Image,
-                Discount = request.Discount,
-                ImageUrl = request.ImageUrl,
-                MemoText = request.MemoText,
-                MetaData = request.MetaData,
-                MintedByAvatarId = request.MintedByAvatarId,
-                //MintWalletAddress = request.MintWalletAddress,
-                Symbol = request.Symbol,
-                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
-                SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
-                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
-                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
-                NFTOffChainMetaType = request.NFTOffChainMetaType,
-                NFTStandardType = request.NFTStandardType,
-                NumberToMint = request.NumberToMint,
-                OffChainProvider = request.OffChainProvider,
-                OnChainProvider = request.OnChainProvider,
-                Price = request.Price,
-                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
-                Thumbnail = request.Thumbnail,
-                ThumbnailUrl = request.ThumbnailUrl,
-                Title = request.Title,
-                JSONMetaDataURL = jsonUrl
-            };
+        //private IMintNFTTransactionRequestForProvider CreateNFTTransactionRequestForProvider(IMintNFTTransactionRequest request, string jsonUrl)
+        //{
+        //    MintNFTTransactionRequestForProvider providerRequest = new MintNFTTransactionRequestForProvider()
+        //    {
+        //        Description = request.Description,
+        //        Image = request.Image,
+        //        Discount = request.Discount,
+        //        ImageUrl = request.ImageUrl,
+        //        MemoText = request.MemoText,
+        //        MetaData = request.MetaData,
+        //        MintedByAvatarId = request.MintedByAvatarId,
+        //        //MintWalletAddress = request.MintWalletAddress,
+        //        Symbol = request.Symbol,
+        //        SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+        //        SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
+        //        SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+        //        SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+        //        NFTOffChainMetaType = request.NFTOffChainMetaType,
+        //        NFTStandardType = request.NFTStandardType,
+        //        NumberToMint = request.NumberToMint,
+        //        OffChainProvider = request.OffChainProvider,
+        //        OnChainProvider = request.OnChainProvider,
+        //        Price = request.Price,
+        //        StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
+        //        Thumbnail = request.Thumbnail,
+        //        ThumbnailUrl = request.ThumbnailUrl,
+        //        Title = request.Title,
+        //        JSONMetaDataURL = jsonUrl
+        //    };
 
-            return providerRequest;
-        }
+        //    return providerRequest;
+        //}
 
         private OASISNFT CreateOASISNFT(IMintNFTTransactionRequest request, INFTTransactionRespone mintNFTResponse)
         {
@@ -1674,16 +1742,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 Id = Guid.NewGuid(),
                 Hash = mintNFTResponse.TransactionResult,
-                SellerFeeBasisPoints = mintNFTResponse.OASISNFT.SellerFeeBasisPoints,
-                MetaData = mintNFTResponse.OASISNFT.MetaData,
-                OASISMintWalletAddress = mintNFTResponse.OASISNFT.OASISMintWalletAddress,
-                MintedByAvatarId = mintNFTResponse.OASISNFT.MintedByAvatarId,
-                SendToAddressAfterMinting = mintNFTResponse.OASISNFT.SendToAddressAfterMinting,
-                SendToAvatarAfterMintingId = mintNFTResponse.OASISNFT.SendToAvatarAfterMintingId,
-                SendToAvatarAfterMintingUsername = mintNFTResponse.OASISNFT.SendToAvatarAfterMintingUsername,
-                //OffChainProviderHolonId = mintNFTResponse.OASISNFT.OffChainProviderHolonId,
-                UpdateAuthority = mintNFTResponse.OASISNFT.UpdateAuthority,
-                NFTTokenAddress = mintNFTResponse.OASISNFT.NFTTokenAddress, //TODO: Need to pull this from the provider mint functions...
+                SellerFeeBasisPoints = mintNFTResponse.OASISNFT != null ? mintNFTResponse.OASISNFT.SellerFeeBasisPoints : 0,
+                MetaData = mintNFTResponse.OASISNFT != null ? mintNFTResponse.OASISNFT.MetaData : null,
+                OASISMintWalletAddress = mintNFTResponse.OASISNFT != null ? mintNFTResponse.OASISNFT.OASISMintWalletAddress : null,
+                UpdateAuthority = mintNFTResponse.OASISNFT != null ? mintNFTResponse.OASISNFT.UpdateAuthority : null,
+                NFTTokenAddress = mintNFTResponse.OASISNFT != null ? mintNFTResponse.OASISNFT.NFTTokenAddress : null, //TODO: Need to pull this from the provider mint functions...
+                MintedByAvatarId = request.MintedByAvatarId,
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
                 Title = request.Title,
                 Description = request.Description,
                 Price = request.Price,
