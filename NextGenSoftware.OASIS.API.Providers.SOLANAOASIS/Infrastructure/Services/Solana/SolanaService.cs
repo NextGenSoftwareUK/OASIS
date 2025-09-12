@@ -12,7 +12,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     ];
 
 
-    public async Task<OASISResult<MintNftResult>> MintNftAsync(MintNFTTransactionRequestForProvider mintNftRequest)
+    public async Task<OASISResult<MintNftResult>> MintNftAsync(MintNFTTransactionRequest mintNftRequest)
     {
         try
         {
