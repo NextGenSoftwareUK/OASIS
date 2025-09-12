@@ -119,7 +119,7 @@ internal static class Program
         WriteInfo("Activating Solana provider...");
         await solanaOasis.ActivateProviderAsync();
 
-        IMintNFTTransactionRequestForProvider mintNftRequest = new MintNFTTransactionRequestForProvider()
+        IMintNFTTransactionRequest mintNftRequest = new MintNFTTransactionRequest()
         {
             JSONMetaDataURL = "https://example.com/metadata.json-#1",
             Title = "Test data for LoadNft #1",
@@ -190,8 +190,8 @@ internal static class Program
         WriteInfo("=== Starting SolanaOASIS Test Harness ===");
 
 
-        //ok// await Run_MintNFTAsync();
-        //ok// await Run_LoadNftAsync();
+        //await Run_MintNFTAsync();
+        await Run_LoadNftAsync();
         //ok// await Run_SendNFTAsync();
 
         // await Run_SaveAndLoadAvatar();
