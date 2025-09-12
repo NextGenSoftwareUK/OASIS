@@ -1011,7 +1011,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (loadNftResult != null && !loadNftResult.IsError && loadNftResult.Result != null)
                 {
                     result.Result = CreateGeoSpatialNFT(request, loadNftResult.Result);
-                    OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateGeoSpatialNFTMetaDataHolon(result.Result), request.PlacedByAvatarId, true, true, 0, true, false, request.GeoNFTMetaDataProvider);
+                    OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateGeoSpatialNFTMetaDataHolon(result.Result), request.PlacedByAvatarId, true, true, 0, true, false, request.GeoNFTMetaDataProvider.Value);
 
                     if ((saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result == null)) || saveHolonResult == null)
                     {
@@ -1044,7 +1044,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (loadNftResult != null && !loadNftResult.IsError && loadNftResult.Result != null)
                 {
                     result.Result = CreateGeoSpatialNFT(request, loadNftResult.Result);
-                    OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateGeoSpatialNFTMetaDataHolon(result.Result), request.PlacedByAvatarId, true, true, 0, true, false, request.GeoNFTMetaDataProvider);
+                    OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateGeoSpatialNFTMetaDataHolon(result.Result), request.PlacedByAvatarId, true, true, 0, true, false, request.GeoNFTMetaDataProvider.Value);
 
                     if ((saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result == null)) || saveHolonResult == null)
                     {
@@ -1080,7 +1080,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         OriginalOASISNFTId = mintNftResult.Result.OASISNFT.Id,
                         OriginalOASISNFTOffChainProviderType = request.OffChainProvider.Value,
-                        ProviderType = request.OffChainProvider.Value,
+                        GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider,
                         PlacedByAvatarId = request.MintedByAvatarId,
                         Lat = request.Lat,
                         Long = request.Long,
@@ -1127,7 +1127,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         OriginalOASISNFTId = mintNftResult.Result.OASISNFT.Id,
                         OriginalOASISNFTOffChainProviderType = request.OffChainProvider.Value,
-                        ProviderType = request.OffChainProvider.Value,
+                        GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider,
                         PlacedByAvatarId = request.MintedByAvatarId,
                         Lat = request.Lat,
                         Long = request.Long,
@@ -1928,7 +1928,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 //Id = request.OASISNFTId,
                 Id = Guid.NewGuid(),  //The NFT could be placed many times so we need a new ID for each time
                 OriginalOASISNFTId = request.OriginalOASISNFTId, //We need to link back to the orignal NFT (but we copy across the NFT properties making it quicker and easier to get at the data). TODO: Do we want to copy the data across? Pros and Cons? Need to think about this... for now it's fine... ;-)
-                GeoNFTMetaDataProvider = new EnumValue<ProviderType>(request.GeoNFTMetaDataProvider),
+                GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider,
                 //OriginalOASISNFTProviderType = request.OriginalOASISNFTOffChainProviderType,
                 Hash = originalNftMetaData.Hash,
                 JSONMetaDataURL = originalNftMetaData.JSONMetaDataURL,

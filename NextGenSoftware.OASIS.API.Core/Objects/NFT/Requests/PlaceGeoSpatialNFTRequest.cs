@@ -12,6 +12,6 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         //public string NFTHash { get; set; } //The hash generated when the NFT was minted.
         //public string NFTURL { get; set; } //The URL the NFT is on (if applicable).
         //public Guid PlacedByAvatarId { get; set; } //The Avatar ID that is placing this GeoNFT.
-        public ProviderType ProviderType { get; set; }
+        //public ProviderType GeoNFTMetaDataProvider { get; set; }
     }
 }

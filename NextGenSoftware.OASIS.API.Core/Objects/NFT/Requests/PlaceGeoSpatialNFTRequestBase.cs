@@ -1,10 +1,13 @@
 ﻿using System;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
 {
     public class PlaceGeoSpatialNFTRequestBase : IPlaceGeoSpatialNFTRequestBase
     {
+        public EnumValue<ProviderType> GeoNFTMetaDataProvider { get; set; }
         public Guid PlacedByAvatarId { get; set; }  //The Avatar ID that is placing this GeoNFT.
         public long Lat { get; set; }
         public long Long { get; set; }
