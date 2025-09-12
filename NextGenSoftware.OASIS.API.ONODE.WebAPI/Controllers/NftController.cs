@@ -282,7 +282,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 NFTStandardType = NFTStandardType
             };
 
-            return await NFTManager.MintNftAsync(mintRequest);
+            return await NFTManager.MintNftAsync(mintRequest, false, Core.Enums.ResponseFormatType.SimpleText);
         }
 
         [Authorize]
