@@ -316,7 +316,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 PermSpawn = request.PermSpawn,
                 GlobalSpawnQuantity = request.GlobalSpawnQuantity,
                 PlayerSpawnQuantity = request.PlayerSpawnQuantity,
-                ProviderType = providerType,
+                GeoNFTMetaDataProvider = new EnumValue<ProviderType>(providerType),
                 PlacedByAvatarId = AvatarId
             };
 
