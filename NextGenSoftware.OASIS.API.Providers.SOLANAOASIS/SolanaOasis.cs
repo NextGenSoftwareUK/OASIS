@@ -1110,40 +1110,41 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
             OASISNFT OASISNFT = new OASISNFT()
             {
-                Hash = solanaNftTransactionResult.Result.TransactionHash,
+                MintTransactionHash = solanaNftTransactionResult.Result.TransactionHash,
                 NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount,
                 OASISMintWalletAddress = _oasisSolanaAccount.PublicKey,
                 JSONMetaDataURL = transaction.JSONMetaDataURL,
                 Symbol = transaction.Symbol
             };
 
-            OASISResult<IOASISNFT> oasisNFT = await LoadNftAsync(solanaNftTransactionResult.Result.MintAccount);
+            OASISResult<IOASISNFT> oasisNFT = await LoadOnChainNFTDataAsync(solanaNftTransactionResult.Result.MintAccount);
 
             if (oasisNFT != null && oasisNFT.Result != null && !oasisNFT.IsError)
             {
                 oasisNFT.Result.NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount;
-                oasisNFT.Result.Hash = solanaNftTransactionResult.Result.TransactionHash;
+                oasisNFT.Result.MintTransactionHash = solanaNftTransactionResult.Result.TransactionHash;
                 oasisNFT.Result.OASISMintWalletAddress = _oasisSolanaAccount.PublicKey;
                 OASISNFT = (OASISNFT)oasisNFT.Result;
             }
 
-            if (!string.IsNullOrEmpty(transaction.SendToAddressAfterMinting))
-            {
-                OASISResult<INFTTransactionRespone> sendNftResult = await SendNFTAsync(new NFTWalletTransactionRequest()
-                {
-                    FromWalletAddress = _oasisSolanaAccount.PublicKey,
-                    ToWalletAddress = transaction.SendToAddressAfterMinting,
-                    TokenAddress = solanaNftTransactionResult.Result.MintAccount,
-                    Amount = 1
-                });
-                if (sendNftResult.IsError)
-                {
-                    OASISErrorHandling.HandleWarning(ref result,
-                        $"Error occured sending minted NFT to {transaction.SendToAddressAfterMinting}. Reason: {sendNftResult.Message}");
-                }
-                else
-                    result.Result.SendNFTTransactionResult = sendNftResult.Result.TransactionResult;
-            }
+            //This is now handled by NFTManager! ;-)
+            //if (!string.IsNullOrEmpty(transaction.SendToAddressAfterMinting))
+            //{
+            //    OASISResult<INFTTransactionRespone> sendNftResult = await SendNFTAsync(new NFTWalletTransactionRequest()
+            //    {
+            //        FromWalletAddress = _oasisSolanaAccount.PublicKey,
+            //        ToWalletAddress = transaction.SendToAddressAfterMinting,
+            //        TokenAddress = solanaNftTransactionResult.Result.MintAccount,
+            //        Amount = 1
+            //    });
+            //    if (sendNftResult.IsError)
+            //    {
+            //        OASISErrorHandling.HandleWarning(ref result,
+            //            $"Error occured sending minted NFT to {transaction.SendToAddressAfterMinting}. Reason: {sendNftResult.Message}");
+            //    }
+            //    else
+            //        result.Result.SendNFTTransactionResult = sendNftResult.Result.TransactionResult;
+            //}
 
             result.Result.OASISNFT = OASISNFT;
             result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
@@ -1157,17 +1158,19 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<IOASISNFT> LoadNft(string accountAddress)
-        => LoadNftAsync(accountAddress).Result;
+    public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+    {
+        return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
+    }
 
-    public async Task<OASISResult<IOASISNFT>> LoadNftAsync(string accountAddress)
+    public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
     {
         OASISResult<IOASISNFT> result = new();
 
         try
         {
             OASISResult<GetNftResult> response =
-                await _solanaService.LoadNftAsync(new(accountAddress));
+                await _solanaService.LoadNftAsync(new(nftTokenAddress));
 
             result.IsLoaded = true;
             result.IsError = false;

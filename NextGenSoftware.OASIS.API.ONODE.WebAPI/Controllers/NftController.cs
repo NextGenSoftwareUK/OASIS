@@ -257,10 +257,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             API.Core.Objects.NFT.Request.MintNFTTransactionRequest mintRequest = new API.Core.Objects.NFT.Request.MintNFTTransactionRequest()
             {
-                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
-                SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
-                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
-                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
                 MintedByAvatarId = AvatarId,
                 Title = request.Title,
                 Description = request.Description,
@@ -278,8 +274,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
                 JSONMetaDataURL = request.JSONMetaDataURL,
                 StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
-                NFTOffChainMetaType = NFTOffChainMetaType,
-                NFTStandardType = NFTStandardType
+                NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType),
+                NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType),
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                WaitSeconds = request.WaitSeconds,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds
             };
 
             return await NFTManager.MintNftAsync(mintRequest, false, Core.Enums.ResponseFormatType.SimpleText);
@@ -325,7 +328,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 GeoNFTMetaDataProvider = new EnumValue<ProviderType>(geoNFTMetaDataProvider)
             };
 
-            return await NFTManager.PlaceGeoNFTAsync(placeRequest);
+            return await NFTManager.PlaceGeoNFTAsync(placeRequest, Core.Enums.ResponseFormatType.SimpleText);
         }
 
         [Authorize]
@@ -381,10 +384,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             API.Core.Objects.NFT.Request.MintAndPlaceGeoSpatialNFTRequest mintRequest = new API.Core.Objects.NFT.Request.MintAndPlaceGeoSpatialNFTRequest()
             {
                 MintedByAvatarId = AvatarId,
-                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
-                SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
-                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
-                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
                 Title = request.Title,
                 Description = request.Description,
                 Image = request.Image,
@@ -401,8 +400,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
                 JSONMetaDataURL = request.JSONMetaDataURL,
                 StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
-                NFTOffChainMetaType = NFTOffChainMetaType,
-                NFTStandardType = NFTStandardType,
+                NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType),
+                NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType),
                 Lat = request.Lat,
                 Long = request.Long,
                 AllowOtherPlayersToAlsoCollect = request.AllowOtherPlayersToAlsoCollect,
@@ -415,7 +414,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Nft3DObject = request.Nft3DObject,
                 Nft3DObjectURI = request.Nft3DObjectURI,
                 PlacedByAvatarId = AvatarId,
-                GeoNFTMetaDataProvider = new EnumValue<ProviderType>(geoNFTMetaDataProvider)
+                GeoNFTMetaDataProvider = new EnumValue<ProviderType>(geoNFTMetaDataProvider),
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                WaitSeconds = request.WaitSeconds,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds
             };
 
             return await NFTManager.MintAndPlaceGeoNFTAsync(mintRequest, Core.Enums.ResponseFormatType.SimpleText);

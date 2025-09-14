@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
         public Guid SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         //public string SendToAvatarAfterMintingEmail { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
+        public string SendNFTTransactionHash { get; set; }
         public Guid MintedByAvatarId { get; set; }
         public string OASISMintWalletAddress { get; set; } //The OASIS System account that minted the NFT.
         public string NFTTokenAddress { get; set; } //The address of the actual minted NFT on the chain.
@@ -19,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
         uint SellerFeeBasisPoints { get; set; } //     Seller cut
         Guid Id { get; set; }
         DateTime MintedOn { get; set; }
-        string Hash { get; set; }
+        string MintTransactionHash { get; set; }
         string JSONMetaDataURL { get; set; }
         string Title { get; set; }
         string Description { get; set; }
@@ -36,8 +37,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
         EnumValue<ProviderType> OffChainProvider { get; set; }
         EnumValue<ProviderType> OnChainProvider { get; set; }
         public bool StoreNFTMetaDataOnChain { get; set; }
-        public NFTStandardType NFTStandardType { get; set; }
-        public NFTOffChainMetaType NFTOffChainMetaType { get; set; }
+        public EnumValue<NFTStandardType> NFTStandardType { get; set; }
+        public EnumValue<NFTOffChainMetaType> NFTOffChainMetaType { get; set; }
 
     }
 }
