@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 {
@@ -526,6 +527,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         }
 
         public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
             throw new NotImplementedException();
         }

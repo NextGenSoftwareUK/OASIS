@@ -5,10 +5,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
 {
     public class MintNFTTransactionRequest
     {
-        public string SendToAddressAfterMinting { get; set; }
-        public string SendToAvatarAfterMintingId { get; set; }
-        public string SendToAvatarAfterMintingUsername { get; set; }
-        public string SendToAvatarAfterMintingEmail { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public byte[] Image { get; set; }
@@ -28,5 +24,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
         public string NFTOffChainMetaType { get; set; }
         public string JSONMetaDataURL { get; set; }
         public string NFTStandardType { get; set; }
+        public string SendToAddressAfterMinting { get; set; } //optionally send to this wallet after it has been minted.
+        public string SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
+        public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
+        public string SendToAvatarAfterMintingEmail { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
+        public bool WaitTillNFTSent { get; set; } = true;
+        public int WaitSeconds { get; set; } = 60;
+        public int AttemptToSendEveryXSeconds { get; set; } = 5;
     }
 }

@@ -24,6 +24,7 @@ using Nethereum.Contracts;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using System.Numerics;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
@@ -1067,7 +1068,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
                 OASISNFT = new OASISNFT()
                 {
                     MemoText = transaction.MemoText,
-                    Hash = transactionHash
+                    MintTransactionHash = transactionHash
                 },
                 TransactionResult = transactionHash
             };
@@ -1118,7 +1119,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
                 OASISNFT = new OASISNFT()
                 {
                     MemoText = transaction.MemoText,
-                    Hash = transactionHash
+                    MintTransactionHash = transactionHash
                 },
                 TransactionResult = transactionHash
             };
@@ -1141,6 +1142,16 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         }
 
         return result;
+    }
+
+    public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+    {
+        throw new NotImplementedException();
     }
 }
 

@@ -614,6 +614,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             throw new NotImplementedException();
         }
 
+        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         /*
