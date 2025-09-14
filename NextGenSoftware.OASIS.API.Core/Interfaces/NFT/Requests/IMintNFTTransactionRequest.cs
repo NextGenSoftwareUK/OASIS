@@ -8,10 +8,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
     public interface IMintNFTTransactionRequest
     {
         //public string MintWalletAddress { get; set; } The address that will actually mint the NFT (i.e. pay the gas fees etc). This will use the built-in OASIS accounts defined in the Smart Contracts.
-        public string SendToAddressAfterMinting{ get; set; } 
-        public Guid SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
-        public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
-        public string SendToAvatarAfterMintingEmail { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public Guid MintedByAvatarId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
@@ -28,10 +24,17 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
         public Dictionary<string, object> MetaData { get; set; }
         public EnumValue<ProviderType> OffChainProvider { get; set; }
         public EnumValue<ProviderType> OnChainProvider { get; set; }
-        public NFTStandardType NFTStandardType { get; set; }
-        public NFTOffChainMetaType NFTOffChainMetaType { get; set; }
+        public EnumValue<NFTStandardType> NFTStandardType { get; set; }
+        public EnumValue<NFTOffChainMetaType> NFTOffChainMetaType { get; set; }
         public string Symbol { get; set; }
         //public bool SaveIPFSImageOnTheOASIS { get; set; }
         public string JSONMetaDataURL { get; set; }
+        public string SendToAddressAfterMinting { get; set; } //optionally send to this wallet after it has been minted.
+        public Guid SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
+        public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
+        public string SendToAvatarAfterMintingEmail { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
+        public bool WaitTillNFTSent { get; set; }
+        public int WaitSeconds { get; set; }
+        public int AttemptToSendEveryXSeconds { get; set; }
     }
 }

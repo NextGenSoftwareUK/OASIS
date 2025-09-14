@@ -615,6 +615,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             throw new NotImplementedException();
         }
 
+        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
         /*
         #region IOASISLocalStorageProvider

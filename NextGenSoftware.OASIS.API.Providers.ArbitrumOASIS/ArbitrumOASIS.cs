@@ -28,6 +28,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using Nethereum.Hex.HexTypes;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
 
 namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
@@ -1144,7 +1145,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 OASISNFT = new OASISNFT()
                 {
                     MemoText = transaction.MemoText,
-                    Hash = txReceipt.TransactionHash
+                    MintTransactionHash = txReceipt.TransactionHash
                 },
                 TransactionResult = txReceipt.TransactionHash
             };
@@ -1214,7 +1215,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 OASISNFT = new OASISNFT()
                 {
                     MemoText = transaction.MemoText,
-                    Hash = txReceipt.TransactionHash
+                    MintTransactionHash = txReceipt.TransactionHash
                 },
                 TransactionResult = txReceipt.TransactionHash
             };
@@ -1237,6 +1238,16 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         }
 
         return result;
+    }
+
+    public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+    {
+        throw new NotImplementedException();
     }
 }
 
