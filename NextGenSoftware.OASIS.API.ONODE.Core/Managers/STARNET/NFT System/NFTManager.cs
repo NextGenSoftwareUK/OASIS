@@ -207,21 +207,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                if (request.NFTStandardType.Value == NFTStandardType.SPL && request.OnChainProvider.Value != ProviderType.SolanaOASIS)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} NFTStandardType is set to SPL but OnChainProvider is not set to SolanaOASIS! Please make sure you set the OnChainProvider to SolanaOASIS when minting SPL NFTs.");
-                    return result;
-                }
+                OASISResult<bool> nftStandardValid = IsNFTStandardTypeValid(request, errorMessage);
 
-                if (request.NFTStandardType.Value != NFTStandardType.SPL && request.OnChainProvider.Value == ProviderType.SolanaOASIS)
+                if (nftStandardValid != null && nftStandardValid.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} OnChainProvider is set to SolanaOASIS but NFTStandardType is not set to SPL! Please make sure you set the NFTStandardType to SPL when minting NFTs on SolanaOASIS.");
-                    return result;
-                }
-
-                if ((request.NFTStandardType.Value == NFTStandardType.ERC721 || request.NFTStandardType.Value == NFTStandardType.ERC1155) && (request.OnChainProvider.Value == ProviderType.ArbitrumOASIS || request.OnChainProvider.Value == ProviderType.EthereumOASIS || request.OnChainProvider.Value == ProviderType.PolygonOASIS))
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} When selecting NFTStandardType ERC721 or ERC1155 then the OnChainProvider needs to be set to a supported EVM chain such as ArbitrumOASIS, EthereumOASIS or PolygonOASIS.");
+                    result.IsError = true;
+                    result.Message = nftStandardValid.Message;
                     return result;
                 }
 
@@ -368,9 +359,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                if ((request.NFTStandardType.Value == NFTStandardType.ERC721 || request.NFTStandardType.Value == NFTStandardType.ERC1155) && (request.OnChainProvider.Value == ProviderType.ArbitrumOASIS || request.OnChainProvider.Value == ProviderType.EthereumOASIS || request.OnChainProvider.Value == ProviderType.PolygonOASIS))
+                OASISResult<bool> nftStandardValid = IsNFTStandardTypeValid(request, errorMessage);
+
+                if (nftStandardValid != null && nftStandardValid.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} When selecting NFTStandardType ERC721 or ERC1155 then the OnChainProvider needs to be set to a supported EVM chain such as ArbitrumOASIS, EthereumOASIS or PolygonOASIS.");
+                    result.IsError = true;
+                    result.Message = nftStandardValid.Message;
                     return result;
                 }
 
@@ -504,6 +498,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             catch (Exception e)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public OASISResult<bool> IsNFTStandardTypeValid(IMintNFTTransactionRequest request, string errorMessage = "")
+        {
+            return IsNFTStandardTypeValid(request.NFTStandardType.Value, request.OnChainProvider.Value, errorMessage);
+        }
+
+        public OASISResult<bool> IsNFTStandardTypeValid(NFTStandardType NFTStandardType, ProviderType onChainProvider, string errorMessage = "")
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+
+            if (NFTStandardType == NFTStandardType.SPL && onChainProvider != ProviderType.SolanaOASIS)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} NFTStandardType is set to SPL but OnChainProvider is not set to SolanaOASIS! Please make sure you set the OnChainProvider to SolanaOASIS when minting SPL NFTs.");
+                return result;
+            }
+
+            if (NFTStandardType != NFTStandardType.SPL && onChainProvider == ProviderType.SolanaOASIS)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} OnChainProvider is set to SolanaOASIS but NFTStandardType is not set to SPL! Please make sure you set the NFTStandardType to SPL when minting NFTs on SolanaOASIS.");
+                return result;
+            }
+
+            if ((NFTStandardType == NFTStandardType.ERC721 || NFTStandardType == NFTStandardType.ERC1155) && (onChainProvider == ProviderType.ArbitrumOASIS || onChainProvider == ProviderType.EthereumOASIS || onChainProvider == ProviderType.PolygonOASIS))
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} When selecting NFTStandardType ERC721 or ERC1155 then the OnChainProvider needs to be set to a supported EVM chain such as ArbitrumOASIS, EthereumOASIS or PolygonOASIS.");
+                return result;
             }
 
             return result;
