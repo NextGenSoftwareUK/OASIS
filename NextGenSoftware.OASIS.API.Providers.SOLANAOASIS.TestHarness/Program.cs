@@ -46,7 +46,7 @@ internal static class Program
         await solanaOasis.ActivateProviderAsync();
 
         WriteInfo($"Loading NFT metadata for address: {address} ...");
-        OASISResult<IOASISNFT> response = await solanaOasis.LoadNftAsync(address);
+        OASISResult<IOASISNFT> response = await solanaOasis.LoadOnChainNFTDataAsync(address);
 
         if (response.IsError)
         {
@@ -166,9 +166,9 @@ internal static class Program
         INFTWalletTransactionRequest request = new NFTWalletTransactionRequest()
         {
             FromWalletAddress = TestData.PublicKey.Key,
-            TokenAddress = "46SPSK3KbLUVmwPbqbx1PiC6hpqSpBqe5GUeUzsfmZVN",
+            TokenAddress = "13V6P1dJ3femi13d3gTEot6G6VpR9VHPS6SY8GzvDZPL",
             Amount = 1,
-            ToWalletAddress = "2Gtzh4ywuvxNWmtLkS8zqJ3CJpbguquuqRWJCdeZF1Jm"
+            ToWalletAddress = "FXD4ebDGGDG3L345MD2DYRQ4rxhuswJFZ1o3EASsQxhS"
         };
 
         OASISResult<INFTTransactionRespone> response = await solanaOasis.SendNFTAsync(request);
@@ -191,8 +191,8 @@ internal static class Program
 
 
         //await Run_MintNFTAsync();
-        await Run_LoadNftAsync();
-        //ok// await Run_SendNFTAsync();
+        //await Run_LoadNftAsync();
+        await Run_SendNFTAsync();
 
         // await Run_SaveAndLoadAvatar();
 
