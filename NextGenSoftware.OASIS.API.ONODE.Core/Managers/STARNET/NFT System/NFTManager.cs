@@ -1436,6 +1436,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                 {
                                     FromWalletAddress = result.Result.OASISNFT.OASISMintWalletAddress,
                                     ToWalletAddress = request.SendToAddressAfterMinting,
+                                    TokenAddress = result.Result.OASISNFT.NFTTokenAddress,
                                     FromProvider = request.OnChainProvider,
                                     ToProvider = request.OnChainProvider,
                                     Amount = 1,
@@ -1622,6 +1623,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                     ToWalletAddress = request.SendToAddressAfterMinting,
                                     FromProvider = request.OnChainProvider,
                                     ToProvider = request.OnChainProvider,
+                                    TokenAddress = result.Result.OASISNFT.NFTTokenAddress,
                                     Amount = 1,
                                     MemoText = $"Sending NFT from OASIS Wallet {result.Result.OASISNFT.OASISMintWalletAddress} to {request.SendToAddressAfterMinting} on chain {request.OnChainProvider.Name}.",
                                 });
