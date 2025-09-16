@@ -11,8 +11,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
 {
     public interface INFTManager : IOASISManager
     {
-        Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest request);
-        OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest request);
+        Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
+        OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
         //Task<OASISResult<INFTTransactionRespone>> CreateNftTransactionAsync(INFTWalletTransactionRequest request);
         //OASISResult<INFTTransactionRespone> CreateNftTransaction(INFTWalletTransactionRequest request);
         Task<OASISResult<INFTTransactionRespone>> MintNftAsync(IMintNFTTransactionRequest request, bool isGeoNFT = false, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);

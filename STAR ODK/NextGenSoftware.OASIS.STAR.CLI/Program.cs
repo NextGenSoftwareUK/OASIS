@@ -893,7 +893,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static async Task ShowSubCommandAsync<T>(string[] inputArgs, 
             string subCommand = "",
             string subCommandPlural = "",
-            Func<object, T, bool, bool, object, ProviderType, Task> createPredicate = null, 
+            Func<object, T, bool, bool, object, Dictionary<string, object>, STARNETDNA, ProviderType, Task> createPredicate = null, 
             Func<string, object, ProviderType, Task> updatePredicate = null, 
             Func<string, bool, ProviderType, Task> deletePredicate = null,
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
@@ -992,7 +992,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             if (showCreate)
                             {
                                 if (createPredicate != null)
-                                    await createPredicate(null, default, true, true, null, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                    await createPredicate(null, default, true, true, null, null, null, providerType); //TODO: Pass in params in a object or dynamic obj.
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }

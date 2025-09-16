@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos.Serialization.HybridRow;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
@@ -327,6 +328,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<PurchaseOlandResponse>> PurchaseOlandAsync(PurchaseOlandRequest request)
         {
             var response = new OASISResult<PurchaseOlandResponse>();
+            string errorMessage = "Error occured in PurchaseOlandAsync. Reason:";
+
             try
             {
                 if (request == null)
@@ -338,58 +341,72 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return response;
                 }
 
-                OASISResult<INFTTransactionRespone> nftTransactionResponse = await _nftManager.SendNFTAsync(new NFTWalletTransactionRequest()
-                {
-                    Amount = Convert.ToDecimal(await GetOlandPriceAsync(request.OlandIds.Count)), //TODO:Currently only fixed sizes of OLANDS are supported, need to make dyanmic so any number of OLANDs can be used...
-                    //Date = DateTime.Now,
-                    FromWalletAddress = null, //TODO: Need to either pre-mint OLAND NFT's and then use FromWalletAddress of the NFT or mint on the fly and then use the new address...
-                    MemoText = $"{request.OlandIds.Count} OLAND(s) with OLANDID's {ListHelper.ConvertFromList(request.OlandIds)} for Avatar {request.AvatarUsername} with AvatarID {request.AvatarId}", //TODO: Need to dervive from the tiles selected.
-                    MintWalletAddress = null, //TODO: Need to either pre-mint OLAND NFT's and then use FromWalletAddress of the NFT or mint on the fly and then use the new address...
-                    ToWalletAddress = request.WalletAddress,
-                    FromProviderType = request.ProviderType,
-                    //FromToken = "POLY" //TODO: Currently OLAND's are minted on Polgon via OpenSea, this may change in future... This will also be dynamic in future...
-                });
+                OASISResult<int> priceResult = await GetOlandPriceAsync(request.OlandIds.Count);
 
-                //var cargoPurchaseResponse = await _cargoService.PurchaseCargoSale(new PurchaseRequestModel(request.CargoSaleId));
-                //if (cargoPurchaseResponse.IsError)
-                //{
-                //    response.IsError = true;
-                //    response.IsSaved = false;
-                //    response.Message = cargoPurchaseResponse.Message;
-                //    OASISErrorHandling.HandleError(ref response, response.Message);
-                //    return response;
-                //}
-
-                if (nftTransactionResponse.Result != null && !nftTransactionResponse.IsError)
+                if (priceResult != null && priceResult.Result != null && !priceResult.IsError)
                 {
-                    var purchaseOlandResult = await PurchaseOlandAsync(new OLandPurchase()
+                    OASISResult<INFTTransactionRespone> mintResult = await _nftManager.MintNftAsync(new MintNFTTransactionRequest()
                     {
-                        PurchaseDate = DateTime.Now,
-                        Tiles = request.Tiles,
-                        AvatarId = request.AvatarId,
-                        AvatarUsername = request.AvatarUsername,
-                        WalletAddress = request.WalletAddress,
-                        OlandIds = request.OlandIds,
-                        TransactionHash = nftTransactionResponse.Result.TransactionResult,
-                        IsSucceedPurchase = true
+                        NumberToMint = priceResult.Result, //TODO:Currently only fixed sizes of OLANDS are supported, need to make dyanmic so any number of OLANDs can be used...
+                        MemoText = $"{request.OlandIds.Count} OLAND(s) with OLANDID's {ListHelper.ConvertFromList(request.OlandIds)} for Avatar {request.AvatarUsername} with AvatarID {request.AvatarId}", //TODO: Need to dervive from the tiles selected.                                                                                                                                                                                //MintWalletAddress = null, //TODO: Need to either pre-mint OLAND NFT's and then use FromWalletAddress of the NFT or mint on the fly and then use the new address...
+                        SendToAddressAfterMinting = request.WalletAddress,
+                        OnChainProvider = new EnumValue<API.Core.Enums.ProviderType>(request.ProviderType)
                     });
 
-                    response.Result = new PurchaseOlandResponse()
+                    //OASISResult<INFTTransactionRespone> nftTransactionResponse = await _nftManager.SendNFTAsync(new NFTWalletTransactionRequest()
+                    //{
+                    //    Amount = Convert.ToDecimal(await GetOlandPriceAsync(request.OlandIds.Count)), //TODO:Currently only fixed sizes of OLANDS are supported, need to make dyanmic so any number of OLANDs can be used...
+                    //    //Date = DateTime.Now,
+                    //    FromWalletAddress = null, //TODO: Need to either pre-mint OLAND NFT's and then use FromWalletAddress of the NFT or mint on the fly and then use the new address...
+                    //    MemoText = $"{request.OlandIds.Count} OLAND(s) with OLANDID's {ListHelper.ConvertFromList(request.OlandIds)} for Avatar {request.AvatarUsername} with AvatarID {request.AvatarId}", //TODO: Need to dervive from the tiles selected.
+                    //    //MintWalletAddress = null, //TODO: Need to either pre-mint OLAND NFT's and then use FromWalletAddress of the NFT or mint on the fly and then use the new address...
+                    //    ToWalletAddress = request.WalletAddress,
+                    //    FromProviderType = request.ProviderType,
+                    //    //FromToken = "POLY" //TODO: Currently OLAND's are minted on Polgon via OpenSea, this may change in future... This will also be dynamic in future...
+                    //});
+
+                    //var cargoPurchaseResponse = await _cargoService.PurchaseCargoSale(new PurchaseRequestModel(request.CargoSaleId));
+                    //if (cargoPurchaseResponse.IsError)
+                    //{
+                    //    response.IsError = true;
+                    //    response.IsSaved = false;
+                    //    response.Message = cargoPurchaseResponse.Message;
+                    //    OASISErrorHandling.HandleError(ref response, response.Message);
+                    //    return response;
+                    //}
+
+                    if (mintResult.Result != null && !mintResult.IsError)
                     {
-                        OLandPurchaseId = purchaseOlandResult.Result,
-                        OlandIds = request.OlandIds,
-                        TransactionHash = nftTransactionResponse.Result.TransactionResult
-                    };
+                        var purchaseOlandResult = await PurchaseOlandAsync(new OLandPurchase()
+                        {
+                            PurchaseDate = DateTime.Now,
+                            Tiles = request.Tiles,
+                            AvatarId = request.AvatarId,
+                            AvatarUsername = request.AvatarUsername,
+                            WalletAddress = request.WalletAddress,
+                            OlandIds = request.OlandIds,
+                            TransactionHash = mintResult.Result.TransactionResult,
+                            IsSucceedPurchase = true
+                        });
+
+                        response.Result = new PurchaseOlandResponse()
+                        {
+                            OLandPurchaseId = purchaseOlandResult.Result,
+                            OlandIds = request.OlandIds,
+                            TransactionHash = mintResult.Result.TransactionResult
+                        };
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref response, $"{errorMessage} Error occured in MintNftAsync: {mintResult.Message}");
                 }
+                else
+                    OASISErrorHandling.HandleError(ref response, $"{errorMessage} Error occured in GetOlandPriceAsync: {priceResult.Message}");
             }
             catch (Exception e)
             {
-                response.IsError = true;
-                response.IsError = false;
-                response.Message = e.Message;
-                response.Exception = e;
-                OASISErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, $"{errorMessage} Unknown occured: {e.Message}");
             }
+
             return response;
         }
     }

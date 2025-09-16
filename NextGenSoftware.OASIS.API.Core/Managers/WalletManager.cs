@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
             string errorMessage = "Error Occured in SendTokenAsync function. Reason: ";
 
-            IOASISBlockchainStorageProvider oasisBlockchainProvider =  ProviderManager.Instance.GetProvider(request.FromProviderType) as IOASISBlockchainStorageProvider;
+            IOASISBlockchainStorageProvider oasisBlockchainProvider =  ProviderManager.Instance.GetProvider(request.FromProvider.Value) as IOASISBlockchainStorageProvider;
 
             if (oasisBlockchainProvider != null)
             {
@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error whilst calling the SendTransactionAsync function. Reason: {result.Message}");
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProviderType)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProvider)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
 
             return result;
         }
@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
             string errorMessage = "Error Occured in SendTokenAsync function. Reason: ";
 
-            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.FromProviderType) as IOASISBlockchainStorageProvider;
+            IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.FromProvider.Value) as IOASISBlockchainStorageProvider;
 
             if (oasisBlockchainProvider != null)
             {
@@ -72,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error whilst calling the SendTransactionAsync function. Reason: {result.Message}");
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProviderType)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProvider)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
 
             return result;
         }
