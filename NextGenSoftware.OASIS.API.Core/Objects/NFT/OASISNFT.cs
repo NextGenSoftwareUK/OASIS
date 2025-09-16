@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         public string Title { get; set; }
         public string Description { get; set; }
         public string MintTransactionHash { get; set; }
-        string JSONMetaData { get; set; }
+        public string JSONMetaData { get; set; }
         public string JSONMetaDataURL { get; set; }
         public Guid JSONMetaDataURLHolonId { get; set; }
         public decimal Price { get; set; }
