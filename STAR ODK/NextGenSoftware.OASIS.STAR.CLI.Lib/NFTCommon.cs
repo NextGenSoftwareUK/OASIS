@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             string memotext = CLIEngine.GetValidInput("What is the NFT's memotext? (optional)");
             ProviderType offChainProvider = ProviderType.None;
             NFTOffChainMetaType NFTOffchainMetaType = NFTOffChainMetaType.OASIS;
-            NFTStandardType NFTStandardType = NFTStandardType.Both;
+            NFTStandardType NFTStandardType = NFTStandardType.ERC1155;
             Dictionary<string, object> metaData = new Dictionary<string, object>();
             long discount = 0;
 
@@ -151,7 +151,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Image = imageLocal,
                 ImageUrl = imageURI != null ? imageURI.AbsoluteUri : null,
                 MintedByAvatarId = STAR.BeamedInAvatar.Id,
-                MintWalletAddress = mintWalletAddress,
+                SendToAddressAfterMinting = mintWalletAddress,
                 Thumbnail = imageThumbnailLocal,
                 ThumbnailUrl = imageThumbnailURI != null ? imageThumbnailURI.AbsoluteUri : null,
                 Price = price,

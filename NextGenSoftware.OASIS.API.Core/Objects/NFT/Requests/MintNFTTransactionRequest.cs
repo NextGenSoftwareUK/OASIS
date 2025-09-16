@@ -29,12 +29,15 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         public EnumValue<NFTOffChainMetaType> NFTOffChainMetaType { get; set; }
         public string Symbol { get; set; }
         public string JSONMetaDataURL { get; set; }
+        public bool WaitTillNFTMinted { get; set; } = true;
+        public int WaitForNFTToMintInSeconds { get; set; } = 60;
+        public int AttemptToMintEveryXSeconds { get; set; } = 5;
         public string SendToAddressAfterMinting { get; set; } //optionally send to this wallet after it has been minted.
         public Guid SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public string SendToAvatarAfterMintingEmail { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public bool WaitTillNFTSent { get; set; } = true;
-        public int WaitSeconds { get; set; } = 60;
+        public int WaitForNFTToSendInSeconds { get; set; } = 60;
         public int AttemptToSendEveryXSeconds { get; set; } = 5;
     }
 }

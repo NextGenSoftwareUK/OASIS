@@ -1113,8 +1113,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 transaction.FromWalletAddress,
                 transaction.ToWalletAddress,
                 transaction.TokenId,
-                transaction.FromProviderType.ToString(),
-                transaction.ToProviderType.ToString(),
+                transaction.FromProvider.Value.ToString(),
+                transaction.ToProvider.Value.ToString(),
                 transaction.Amount,
                 transaction.MemoText
             );
@@ -1128,8 +1128,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 transaction.FromWalletAddress,
                 transaction.ToWalletAddress,
                 transaction.TokenId,
-                transaction.FromProviderType.ToString(),
-                transaction.ToProviderType.ToString(),
+                transaction.FromProvider.Value.ToString(),
+                transaction.ToProvider.Value.ToString(),
                 transaction.Amount,
                 transaction.MemoText
             );

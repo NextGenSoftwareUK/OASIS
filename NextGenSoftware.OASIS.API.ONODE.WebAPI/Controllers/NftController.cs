@@ -189,26 +189,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             Object fromProviderTypeObject = null;
             Object toProviderTypeObject = null;
 
-            if (Enum.TryParse(typeof(ProviderType), request.FromProviderType, out fromProviderTypeObject))
+            if (Enum.TryParse(typeof(ProviderType), request.FromProvider, out fromProviderTypeObject))
                 fromProviderType = (ProviderType)fromProviderTypeObject;
             else
-                return new OASISResult<INFTTransactionRespone>() { IsError = true, Message = $"The FromProviderType is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+                return new OASISResult<INFTTransactionRespone>() { IsError = true, Message = $"The FromProvider is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            if (Enum.TryParse(typeof(ProviderType), request.ToProviderType, out toProviderTypeObject))
+            if (Enum.TryParse(typeof(ProviderType), request.ToProvider, out toProviderTypeObject))
                 toProviderType = (ProviderType)toProviderTypeObject;
             else
-                return new OASISResult<INFTTransactionRespone>() { IsError = true, Message = $"The ToProviderType is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+                return new OASISResult<INFTTransactionRespone>() { IsError = true, Message = $"The ToProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
             API.Core.Objects.NFT.Request.NFTWalletTransactionRequest nftRequest = new API.Core.Objects.NFT.Request.NFTWalletTransactionRequest()
             {
-                 MintWalletAddress = request.MintWalletAddress,
+                 //MintWalletAddress = request.MintWalletAddress,
                  FromWalletAddress = request.FromWalletAddress,
                  ToWalletAddress = request.ToWalletAddress,
                  FromProviderType = fromProviderType,
                  ToProviderType = toProviderType,
                  Amount = request.Amount,
-                 MemoText = request.MemoText
+                 MemoText = request.MemoText,
+                 WaitTillNFTSent = request.WaitTillNFTSent,
+                 WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                 AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds
             };
 
             return await NFTManager.SendNFTAsync(nftRequest);
@@ -276,12 +279,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
                 NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType),
                 NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType),
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
                 SendToAddressAfterMinting = request.SendToAddressAfterMinting,
                 SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
                 SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
                 SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
                 WaitTillNFTSent = request.WaitTillNFTSent,
-                WaitSeconds = request.WaitSeconds,
+                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
                 AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds
             };
 
@@ -402,6 +408,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
                 NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType),
                 NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType),
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
                 Lat = request.Lat,
                 Long = request.Long,
                 AllowOtherPlayersToAlsoCollect = request.AllowOtherPlayersToAlsoCollect,
@@ -414,14 +430,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Nft3DObject = request.Nft3DObject,
                 Nft3DObjectURI = request.Nft3DObjectURI,
                 PlacedByAvatarId = AvatarId,
-                GeoNFTMetaDataProvider = new EnumValue<ProviderType>(geoNFTMetaDataProvider),
-                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
-                SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
-                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
-                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
-                WaitTillNFTSent = request.WaitTillNFTSent,
-                WaitSeconds = request.WaitSeconds,
-                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds
+                GeoNFTMetaDataProvider = new EnumValue<ProviderType>(geoNFTMetaDataProvider)
             };
 
             return await NFTManager.MintAndPlaceGeoNFTAsync(mintRequest, Core.Enums.ResponseFormatType.SimpleText);

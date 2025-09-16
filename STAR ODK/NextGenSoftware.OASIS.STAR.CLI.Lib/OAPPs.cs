@@ -64,9 +64,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //    base.Dispose();
         //}
 
-        public override async Task<OASISResult<OAPP>> CreateAsync(object createParams, OAPP newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<OAPP>> CreateAsync(object createParams, OAPP newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<CoronalEjection> result = await LightWizardAsync(createParams, providerType);
+            OASISResult<CoronalEjection> result = await LightWizardAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, metaData, STARNETDNA, providerType);
 
             return new OASISResult<OAPP>
             {
@@ -76,7 +76,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             };
         }
 
-        public async Task<OASISResult<CoronalEjection>> LightWizardAsync(object createParams, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<CoronalEjection>> LightWizardAsync(object createParams, OAPP newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
         {
             //OASISResult<OAPP> result = new OASISResult<OAPP>();
             OASISResult<CoronalEjection> lightResult = new OASISResult<CoronalEjection>();
@@ -1204,7 +1204,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             break;
                     }
 
-                    OASISResult<CelestialBodyMetaDataDNA> createResult = await STARCLI.CelestialBodiesMetaDataDNA.CreateAsync(null, null, true, false, celestialBodyType, providerType);
+                    OASISResult<CelestialBodyMetaDataDNA> createResult = await STARCLI.CelestialBodiesMetaDataDNA.CreateAsync(null, null, true, false, celestialBodyType, providerType : providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {

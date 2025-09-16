@@ -21,10 +21,12 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
         Guid Id { get; set; }
         DateTime MintedOn { get; set; }
         string MintTransactionHash { get; set; }
+        string JSONMetaData { get; set; }
         string JSONMetaDataURL { get; set; }
+        Guid JSONMetaDataURLHolonId { get; set; }
         string Title { get; set; }
         string Description { get; set; }
-        Guid JSONMetaDataURIHolonId { get; set; }
+        
         decimal Price { get; set; }
         decimal Discount { get; set; }
         public byte[] Image { get; set; }

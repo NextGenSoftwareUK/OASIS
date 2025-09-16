@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultChaptersInstalledPath, "DefaultChaptersInstalledPath")
         { }
 
-        public override async Task<OASISResult<Chapter>> CreateAsync(object createParams, Chapter newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<Chapter>> CreateAsync(object createParams, Chapter newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Chapter> result = new OASISResult<Chapter>();
             Mission parentMission = null;
@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             newHolon.Order = order;
 
-            result = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, providerType);
+            result = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, metaData, STARNETDNA, providerType);
 
             if (result != null)
             {
