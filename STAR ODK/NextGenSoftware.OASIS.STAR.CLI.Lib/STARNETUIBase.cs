@@ -3087,7 +3087,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<ImageObjectResult> result = new OASISResult<ImageObjectResult>(new ImageObjectResult());
 
-            if (CLIEngine.GetConfirmation($"Would you rather use a 3D object or a 2D sprite/image to represent your {holonType}? Press Y for 3D or N for 2D."))
+            if (CLIEngine.GetConfirmation($"Would you rather use a 3D object or a 2D sprite/image to represent your {holonType} in Our World and other UI's? Press Y for 3D or N for 2D."))
             {
                 Console.WriteLine("");
 

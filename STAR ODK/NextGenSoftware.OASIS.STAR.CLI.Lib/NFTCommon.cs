@@ -44,35 +44,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public async Task<IMintNFTTransactionRequest> GenerateNFTRequestAsync()
         {
-            string nft3dObjectPath = "";
-            byte[] nft3dObject = null;
-            Uri nft3dObjectURI = null;
-            string nft2dSpritePath = "";
-            byte[] nft2dSprite = null;
-            Uri nft2dSpriteURI = null;
-            byte[] imageLocal = null;
-            byte[] imageThumbnailLocal = null;
-            Uri imageURI = null;
-            Uri imageThumbnailURI = null;
-            string title = CLIEngine.GetValidInput("What is the NFT's title?");
-            string desc = CLIEngine.GetValidInput("What is the NFT's description?");
-            string memotext = CLIEngine.GetValidInput("What is the NFT's memotext? (optional)");
-            ProviderType offChainProvider = ProviderType.None;
-            NFTOffChainMetaType NFTOffchainMetaType = NFTOffChainMetaType.OASIS;
-            NFTStandardType NFTStandardType = NFTStandardType.ERC1155;
-            Dictionary<string, object> metaData = new Dictionary<string, object>();
-            long discount = 0;
+            MintNFTTransactionRequest request = new MintNFTTransactionRequest();
+
+            request.Title = CLIEngine.GetValidInput("What is the NFT's title?");
+            request.Description = CLIEngine.GetValidInput("What is the NFT's description?");
+            request.MemoText = CLIEngine.GetValidInput("What is the NFT's memotext? (optional)");
 
             if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT or input a URI to an online image? (Press Y for local or N for online)"))
             {
                 Console.WriteLine("");
                 string localImagePath = CLIEngine.GetValidFile("What is the full path to the local image you want to represent the NFT?");
-                imageLocal = File.ReadAllBytes(localImagePath);
+                request.Image = File.ReadAllBytes(localImagePath);
             }
             else
             {
                 Console.WriteLine("");
-                imageURI = await CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT?");
+                request.ImageUrl = CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT?").Result.AbsoluteUri;
             }
 
 
@@ -80,60 +67,70 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 Console.WriteLine("");
                 string localImagePath = CLIEngine.GetValidFile("What is the full path to the local image you want to represent the NFT Thumbnail?");
-                imageThumbnailLocal = File.ReadAllBytes(localImagePath);
+                request.Thumbnail = File.ReadAllBytes(localImagePath);
             }
             else
             {
                 Console.WriteLine("");
-                imageThumbnailURI = await CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT Thumbnail?");
+                request.ThumbnailUrl = CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT Thumbnail?").Result.AbsoluteUri;
             }
 
-            string mintWalletAddress = CLIEngine.GetValidInput("What is the mint wallet address?");
-            long price = CLIEngine.GetValidInputForLong("What is the price for the NFT?");
+            request.Price = CLIEngine.GetValidInputForLong("What is the price for the NFT?");
 
-            if (CLIEngine.GetConfirmation("Is there any discount for the NFT? (This can always be changed later.)"))
+            if (CLIEngine.GetConfirmation("Is there any discount for the NFT? (This can always be changed later)"))
             {
                 Console.WriteLine("");
-                discount = CLIEngine.GetValidInputForLong("What is the discount?");
+                request.Discount = CLIEngine.GetValidInputForLong("What is the discount?");
             }
             else
                 Console.WriteLine("");
 
             object onChainProviderObj = CLIEngine.GetValidInputForEnum("What on-chain provider do you wish to mint on?", typeof(ProviderType));
-            ProviderType onChainProvider = (ProviderType)onChainProviderObj;
+            request.OnChainProvider = new EnumValue<ProviderType>((ProviderType)onChainProviderObj);
 
-            bool storeMetaDataOnChain = CLIEngine.GetConfirmation("Do you wish to store the NFT metadata on-chain or off-chain? (Press Y for on-chain or N for off-chain)");
+            request.StoreNFTMetaDataOnChain = CLIEngine.GetConfirmation("Do you wish to store the NFT metadata on-chain or off-chain? (Press Y for on-chain or N for off-chain)");
             Console.WriteLine("");
 
-            if (!storeMetaDataOnChain)
+            if (!request.StoreNFTMetaDataOnChain)
             {
-                object offChainMetaDataTypeObj = CLIEngine.GetValidInputForEnum("How do you wish to store the offchain meta data/image? IPFS, OASIS or Pinata? If you choose OASIS, it will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive. If you choose OASIS and then IPFSOASIS for the next question for the OASIS Provider it will store it on IPFS via The OASIS and then benefit from the OASIS HyperDrive feature to provide more reliable service and up-time etc. If you choose IPFS or Pinata for this question then it will store it directly on IPFS/Pinata without any additional benefits of The OASIS.", typeof(NFTOffChainMetaType));
-                NFTOffchainMetaType = (NFTOffChainMetaType)offChainMetaDataTypeObj;
+                object offChainMetaDataTypeObj = CLIEngine.GetValidInputForEnum("How do you wish to store the offchain meta data/image? OASIS, IPFS, Pinata or External JSON URI (for the last option you will need to generate the meta data yourself and host somewhere like Pinata and then enter the URI, for the first three options the metadata will be generated automatically)? If you choose OASIS, it will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive. If you choose OASIS and then IPFSOASIS for the next question for the OASIS Provider it will store it on IPFS via The OASIS and then benefit from the OASIS HyperDrive feature to provide more reliable service and up-time etc. If you choose IPFS or Pinata for this question then it will store it directly on IPFS/Pinata without any additional benefits of The OASIS.", typeof(NFTOffChainMetaType));
+                request.NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>((NFTOffChainMetaType)offChainMetaDataTypeObj);
 
-                if (NFTOffchainMetaType == NFTOffChainMetaType.OASIS)
+                if (request.NFTOffChainMetaType.Value == NFTOffChainMetaType.OASIS)
                 {
                     object offChainProviderObj = CLIEngine.GetValidInputForEnum("What OASIS off-chain provider do you wish to store the metadata on? (NOTE: It will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive)", typeof(ProviderType));
-                    offChainProvider = (ProviderType)offChainProviderObj;
+                    request.OffChainProvider = new EnumValue<ProviderType>((ProviderType)offChainProviderObj);
+                }
+                else if (request.NFTOffChainMetaType.Value == NFTOffChainMetaType.ExternalJsonURL)
+                {
+                    Uri uriResult = await CLIEngine.GetValidURIAsync("What is the URI to the JSON meta data you have created for this NFT?");
+                    request.JSONMetaDataURL = uriResult.AbsoluteUri;
                 }
             }
 
-            if (onChainProvider != ProviderType.SolanaOASIS)
+            bool validStandard = false;
+            do
             {
-                object nftStandardObj = CLIEngine.GetValidInputForEnum("What NFT ERC standard do you wish to support? ERC721, ERC1155 or both?", typeof(NFTStandardType));
-                NFTStandardType = (NFTStandardType)nftStandardObj;
-            }
-            //else
-            //    NFTStandardType = NFTStandardType.Metaplex;
+                object nftStandardObj = CLIEngine.GetValidInputForEnum("What NFT standard do you wish to use? ERC721, ERC1155 or SPN? (ERC standards are only supported by EVM chains such as EthereumOASIS, PolygonsOASIS & ArbitrumOASIS. SPN is only supported by SolanaOASIS)", typeof(NFTStandardType));
+                request.NFTStandardType = new EnumValue<NFTStandardType>((NFTStandardType)nftStandardObj);
+
+                OASISResult<bool> nftStandardValid = NFTManager.IsNFTStandardTypeValid(request.NFTStandardType.Value, request.OnChainProvider.Value);
+
+                if (!nftStandardValid.IsError)
+                    validStandard = true;
+
+            } while (!validStandard);
+
 
             if (CLIEngine.GetConfirmation("Do you wish to add any metadata to this NFT?"))
             {
-                metaData = AddMetaDataToNFT(metaData);
+                request.MetaData = AddMetaDataToNFT(request.MetaData);
                 bool metaDataDone = false;
 
                 do
                 {
                     if (CLIEngine.GetConfirmation("Do you wish to add more metadata?"))
-                        metaData = AddMetaDataToNFT(metaData);
+                        request.MetaData = AddMetaDataToNFT(request.MetaData);
                     else
                         metaDataDone = true;
                 }
@@ -141,27 +138,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             Console.WriteLine("");
-            int numberToMint = CLIEngine.GetValidInputForInt("How many NFT's do you wish to mint?");
+            request.NumberToMint = CLIEngine.GetValidInputForInt("How many NFT's do you wish to mint?");
 
-            return new MintNFTTransactionRequest()
+            if (CLIEngine.GetConfirmation("Do you wish to send the NFT to yourself after it is minted?"))
+                request.SendToAvatarAfterMintingId = STAR.BeamedInAvatar.Id;
+            else
+                request.SendToAddressAfterMinting = CLIEngine.GetValidInput("What is the wallet address you want to send the NFT after it is minted?");
+
+            if (CLIEngine.GetConfirmation("Do you wish to view the Advanced Options?"))
             {
-                Title = title,
-                Description = desc,
-                MemoText = memotext,
-                Image = imageLocal,
-                ImageUrl = imageURI != null ? imageURI.AbsoluteUri : null,
-                MintedByAvatarId = STAR.BeamedInAvatar.Id,
-                SendToAddressAfterMinting = mintWalletAddress,
-                Thumbnail = imageThumbnailLocal,
-                ThumbnailUrl = imageThumbnailURI != null ? imageThumbnailURI.AbsoluteUri : null,
-                Price = price,
-                Discount = discount,
-                OnChainProvider = new EnumValue<ProviderType>(onChainProvider),
-                OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
-                StoreNFTMetaDataOnChain = storeMetaDataOnChain,
-                NumberToMint = numberToMint,
-                MetaData = metaData
-            };
+                request.WaitTillNFTMinted = CLIEngine.GetConfirmation("Do you wish to wait till the NFT has been minted before continuing? If you select yes it will continue to attempt minting for X seconds (defined in next question). Default is Yes.");
+                request.WaitForNFTToMintInSeconds = CLIEngine.GetValidInputForInt("How many seconds do you wish to wait for the NFT to mint before timing out? (default is 60 seconds)");
+                request.AttemptToMintEveryXSeconds = CLIEngine.GetValidInputForInt("How often (in seconds) do you wish to attempt to mint? (default is every 5 seconds)");
+
+                request.WaitTillNFTSent = CLIEngine.GetConfirmation("Do you wish to wait till the NFT has been sent before continuing? If you select yes it will continue to attempt sending for X seconds (defined in next question). Default is Yes.");
+                request.WaitForNFTToSendInSeconds = CLIEngine.GetValidInputForInt("How many seconds do you wish to wait for the NFT to send before timing out? (default is 60 seconds)");
+                request.AttemptToSendEveryXSeconds = CLIEngine.GetValidInputForInt("How often (in seconds) do you wish to attempt to send? (default is every 5 seconds)");
+            }
+
+            return request;
         }
     }
 }
