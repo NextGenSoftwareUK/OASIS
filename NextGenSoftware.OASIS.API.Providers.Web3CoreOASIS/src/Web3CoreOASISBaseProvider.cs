@@ -1057,8 +1057,8 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
                 transaction.FromWalletAddress,
                 transaction.ToWalletAddress,
                 transaction.TokenId,
-                transaction.FromProviderType.ToString(),
-                transaction.ToProviderType.ToString(),
+                transaction.FromProvider.Value.ToString(),
+                transaction.ToProvider.Value.ToString(),
                 amount: new BigInteger(transaction.Amount),
                 transaction.MemoText
             );

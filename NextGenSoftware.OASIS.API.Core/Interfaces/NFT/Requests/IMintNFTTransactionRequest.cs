@@ -29,12 +29,15 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
         public string Symbol { get; set; }
         //public bool SaveIPFSImageOnTheOASIS { get; set; }
         public string JSONMetaDataURL { get; set; }
+        public bool WaitTillNFTMinted { get; set; }
+        public int WaitForNFTToMintInSeconds { get; set; }
+        public int AttemptToMintEveryXSeconds { get; set; }
         public string SendToAddressAfterMinting { get; set; } //optionally send to this wallet after it has been minted.
         public Guid SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public string SendToAvatarAfterMintingEmail { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public bool WaitTillNFTSent { get; set; }
-        public int WaitSeconds { get; set; }
+        public int WaitForNFTToSendInSeconds { get; set; }
         public int AttemptToSendEveryXSeconds { get; set; }
     }
 }

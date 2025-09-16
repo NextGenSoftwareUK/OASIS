@@ -3035,6 +3035,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return metaData != null && metaData.ContainsKey(key) && metaData[key] != null ? Enum.GetName(enumType, metaData[key]) : notFoundDefaultValue;
         }
 
+        protected string ParseMetaDataForByteArray(Dictionary<string, object> metaData, string key, string foundDefaultValue = "Yes", string notFoundDefaultValue = "No")
+        {
+            return metaData != null && metaData.ContainsKey(key) && metaData[key] != null ? foundDefaultValue : notFoundDefaultValue;
+        }
+
         protected string ParseMetaDataForPositiveNumber(Dictionary<string, object> metaData, string key)
         {
             int number;
