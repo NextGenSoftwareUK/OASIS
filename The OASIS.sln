@@ -3,9 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.WebAPI", "NextGenSoftware.OASIS.API.ONode.WebAPI\NextGenSoftware.OASIS.API.ONode.WebAPI.csproj", "{A8131B22-06EC-424A-B689-9411C8176BE8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.FrontEnd.Web", "NextGenSoftware.OASIS.API.FrontEnd\NextGenSoftware.OASIS.API.FrontEnd.Web.csproj", "{C50D7EA1-3B3C-4529-9317-55A5083DB560}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.WebAPI", "ONODE\NextGenSoftware.OASIS.API.ONode.WebAPI\NextGenSoftware.OASIS.API.ONode.WebAPI.csproj", "{A8131B22-06EC-424A-B689-9411C8176BE8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Core", "NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj", "{9AA01072-4D3A-4EA2-80C6-CCEC2AB41BEE}"
 EndProject
@@ -53,8 +51,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.h
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness.csproj", "{703F8880-7815-4B49-B0A0-4EBF923AB0FC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.FrontEnd.Unity", "NextGenSoftware.OASIS.API.FrontEnd.Unity\NextGenSoftware.OASIS.API.FrontEnd.Unity.csproj", "{3AA65896-B6DC-440B-B07E-19DAA644B4E0}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Core.TestHarness", "NextGenSoftware.OASIS.API.Core.TestHarness\NextGenSoftware.OASIS.API.Core.TestHarness.csproj", "{3CFB81E4-97D2-43E8-8F17-C4CA11E97772}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HoloOASIS", "NextGenSoftware.OASIS.API.Providers.HoloOASIS\NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj", "{7A33FBFF-2CA4-4C65-B04A-3A3AA694CAB1}"
@@ -95,87 +91,81 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.TelosOASIS", "NextGenSoftware.OASIS.API.Providers.TelosOASIS\NextGenSoftware.OASIS.API.Providers.TelosOASIS.csproj", "{17DAE1F2-4356-423F-BBC3-262BF8AAEAB8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SEEDSOASIS", "NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj", "{AACDBEC1-F337-4228-8A3B-B473E1A7352D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SEEDSOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj", "{AACDBEC1-F337-4228-8A3B-B473E1A7352D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HashgraphOASIS", "NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj", "{77F40B1C-BB07-47F1-890F-6CD493D5A0AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.HashgraphOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj", "{77F40B1C-BB07-47F1-890F-6CD493D5A0AB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS", "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj", "{B0E187E1-F913-40D1-A5EE-0F371087F8B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj", "{B0E187E1-F913-40D1-A5EE-0F371087F8B4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.TRONOASIS", "NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj", "{F20653EE-56B2-4E15-9CD5-F4366792BDA6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.TRONOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj", "{F20653EE-56B2-4E15-9CD5-F4366792BDA6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS", "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj", "{F64B496C-0DD6-481B-A816-665927962F1A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness.csproj", "{26D52161-E6E6-49C0-91F5-B0FBBF4610ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness", "Providers\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness.csproj", "{26D52161-E6E6-49C0-91F5-B0FBBF4610ED}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Native.Integrated.EndPoint", "NextGenSoftware.OASIS.API.Native.Integrated.EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj", "{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Native.Integrated.EndPoint", "Native EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj", "{583B4F3F-91A7-4D89-9430-98CD0DDA48D5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.OPORTAL", "NextGenSoftware.OASIS.API.ONODE.OPORTAL\NextGenSoftware.OASIS.API.ONODE.OPORTAL.csproj", "{4DC61E07-A0C1-4952-9965-42B879C51BD5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.OPORTAL", "ONODE\NextGenSoftware.OASIS.API.ONODE.OPORTAL\NextGenSoftware.OASIS.API.ONODE.OPORTAL.csproj", "{4DC61E07-A0C1-4952-9965-42B879C51BD5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness.csproj", "{93E6533F-25BE-45C4-A2C8-4B699E29552F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness", "Providers\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness.csproj", "{93E6533F-25BE-45C4-A2C8-4B699E29552F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness.csproj", "{2CD2E03C-FCA1-4BD0-92D6-ABABA1B34E64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness", "Providers\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness.csproj", "{2CD2E03C-FCA1-4BD0-92D6-ABABA1B34E64}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ElrondOASIS", "NextGenSoftware.OASIS.API.Providers.ElrondOASIS\NextGenSoftware.OASIS.API.Providers.ElrondOASIS.csproj", "{D319C961-ADCA-4943-B68F-E9F96DCAAD83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ElrondOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.ElrondOASIS\NextGenSoftware.OASIS.API.Providers.ElrondOASIS.csproj", "{D319C961-ADCA-4943-B68F-E9F96DCAAD83}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.OASISBootLoader", "NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj", "{31C911F1-4B19-42BA-B48F-628CB3A9C574}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.OASISBootLoader", "OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj", "{31C911F1-4B19-42BA-B48F-628CB3A9C574}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.DNA", "NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj", "{F220B28D-A9A8-4329-92CE-208C87EF1AF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.DNA", "OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj", "{F220B28D-A9A8-4329-92CE-208C87EF1AF0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spectre.Console", "Spectre.Console\Spectre.Console\Spectre.Console.csproj", "{C784D458-E0EE-4194-98A6-87517ACA68B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spectre.Console", "External Libs\Spectre.Console\Spectre.Console\Spectre.Console.csproj", "{C784D458-E0EE-4194-98A6-87517ACA68B0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.CargoOASIS", "NextGenSoftware.OASIS.API.Providers.CargoOASIS\NextGenSoftware.OASIS.API.Providers.CargoOASIS.csproj", "{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.CargoOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.CargoOASIS\NextGenSoftware.OASIS.API.Providers.CargoOASIS.csproj", "{B7D3D535-E1E9-4669-8A9B-00CF192DC87C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.MapboxOASIS", "NextGenSoftware.OASIS.API.Providers.MapboxOASIS\NextGenSoftware.OASIS.API.Providers.MapboxOASIS.csproj", "{FBCC3EE5-0AAA-4612-B221-FEDC9F87EB6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.MapboxOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.MapboxOASIS\NextGenSoftware.OASIS.API.Providers.MapboxOASIS.csproj", "{FBCC3EE5-0AAA-4612-B221-FEDC9F87EB6D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS", "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj", "{4761B1CB-CBAD-4CDA-A4A2-5E2109969061}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj", "{4761B1CB-CBAD-4CDA-A4A2-5E2109969061}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External Libs", "External Libs", "{775BCCA2-C058-465A-88A3-665AE490CE97}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IpfsHttpClient", "External Libs\net-ipfs-http-client-master\src\IpfsHttpClient.csproj", "{BED5A5DF-4F4C-46F0-BCAE-08838FC6671A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.Core", "NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj", "{3F69AB31-C967-424C-8F41-62476BFA56F8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONODE.Core", "ONODE\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj", "{3F69AB31-C967-424C-8F41-62476BFA56F8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.Core.TestHarness", "NextGenSoftware.OASIS.API.ONODE.Core.TestHarness\NextGenSoftware.OASIS.API.ONode.Core.TestHarness.csproj", "{05D1141B-FA9D-42A2-9E32-8A9555AE0210}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.ONode.Core.TestHarness", "ONODE\NextGenSoftware.OASIS.API.ONODE.Core.TestHarness\NextGenSoftware.OASIS.API.ONode.Core.TestHarness.csproj", "{05D1141B-FA9D-42A2-9E32-8A9555AE0210}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS", "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj", "{272D6882-9ADE-4587-82E7-C728E2B5DA61}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj", "{272D6882-9ADE-4587-82E7-C728E2B5DA61}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS", "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj", "{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj", "{585A0A10-884C-46FD-8AD3-65DFF3BA7D65}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2", "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.csproj", "{9F9F7951-472A-4667-9BD7-6FDE02FF575F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2", "Providers\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.csproj", "{9F9F7951-472A-4667-9BD7-6FDE02FF575F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness.csproj", "{70714199-3387-419E-81E8-D44EB49D24C2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness", "Providers\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness.csproj", "{70714199-3387-419E-81E8-D44EB49D24C2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS", "NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS\NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS.csproj", "{04384F17-4372-4A87-BC8F-B032825FD0A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS\NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS.csproj", "{04384F17-4372-4A87-BC8F-B032825FD0A3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura", "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.csproj", "{788ADBA3-7BC1-4485-9715-7AC70875F7A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura", "Providers\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.csproj", "{788ADBA3-7BC1-4485-9715-7AC70875F7A3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.TestHarness", "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.TestHarness\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.TestHarness.csproj", "{9680B2D0-1ACE-4EE6-AC02-50EBF4DEB876}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.TestHarness", "Providers\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.TestHarness\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.TestHarness.csproj", "{9680B2D0-1ACE-4EE6-AC02-50EBF4DEB876}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS-OLD", "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS-OLD\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS-OLD.csproj", "{6AD4B94E-A985-4E7A-9745-F9607C27D862}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS-OLD", "Providers\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS-OLD\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS-OLD.csproj", "{6AD4B94E-A985-4E7A-9745-F9607C27D862}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS", "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj", "{535C6117-9E69-459C-A725-0194F07EAB82}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj", "{535C6117-9E69-459C-A725-0194F07EAB82}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness.csproj", "{BF70AEBD-22A3-4A31-8680-6580BEF8AD60}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness", "Providers\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness.csproj", "{BF70AEBD-22A3-4A31-8680-6580BEF8AD60}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness.csproj", "{5F56C3D3-EE6C-4864-A346-600E99C1519D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness", "Providers\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness.csproj", "{5F56C3D3-EE6C-4864-A346-600E99C1519D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness.csproj", "{3E06DEA5-7FA7-410C-978D-67311F49B95B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness", "Providers\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness.csproj", "{3E06DEA5-7FA7-410C-978D-67311F49B95B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS", "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj", "{169D9468-B97B-4778-A21D-E567EA2AA4FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.EOSIOOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj", "{169D9468-B97B-4778-A21D-E567EA2AA4FF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.LocalFileOASIS", "NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj", "{F02EADE3-44B5-4448-9BCC-8C507A7033C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.LocalFileOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj", "{F02EADE3-44B5-4448-9BCC-8C507A7033C9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.TestHarness", "NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.TestHarness\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.TestHarness.csproj", "{87FE919E-F2EE-49E0-B54B-FD12DAE59E81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.TestHarness", "Native EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.TestHarness\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.TestHarness.csproj", "{87FE919E-F2EE-49E0-B54B-FD12DAE59E81}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS Runtime", "OASIS Runtime", "{942850A0-AB9D-4E39-A87C-D046CD2737EA}"
-	ProjectSection(SolutionItems) = preProject
-		OASIS Runtime\OASIS Runtime (With Holochain Conductors Embedded) v2.3.1.zip = OASIS Runtime\OASIS Runtime (With Holochain Conductors Embedded) v2.3.1.zip
-		OASIS Runtime\OASIS Runtime (With Holochain Conductors Not Embedded) v2.3.1.zip = OASIS Runtime\OASIS Runtime (With Holochain Conductors Not Embedded) v2.3.1.zip
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS\NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.csproj", "{3D2DAE7B-8EDC-4499-8325-0A8E2151D05B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS", "NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS\NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.csproj", "{3D2DAE7B-8EDC-4499-8325-0A8E2151D05B}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS", "NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS\NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS.csproj", "{79E9900A-9F7D-498E-96EE-5FA2C24EB8C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS\NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS.csproj", "{79E9900A-9F7D-498E-96EE-5FA2C24EB8C1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS Provider Template", "OASIS Provider Template", "{1E5E288F-133D-4ADC-B669-97FD8E5E67BC}"
 EndProject
@@ -185,15 +175,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS.API.Core", "OASIS.API
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS.API.ONode", "OASIS.API.ONode", "{C9ECD9F9-0707-4CD8-8D96-686FB1162C83}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Holochain", "Holochain", "{4A9AB918-E897-426E-9F5B-F03E974144D3}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Archive", "Archive", "{4A9AB918-E897-426E-9F5B-F03E974144D3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS Architecture", "OASIS Architecture", "{28253D06-0CBD-4C5B-B4E0-7D7F04256521}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OASIS Native", "OASIS Native", "{D0A23F65-3AF0-481B-AA2F-1ED5A477DFE0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FrontEnd", "FrontEnd", "{7CDAFD20-8010-4E06-91BC-AFDA9BD64805}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.TestHarness.csproj", "{BA30124B-393E-4DA6-A31F-963F385B6FA7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Providers\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.TestHarness.csproj", "{BA30124B-393E-4DA6-A31F-963F385B6FA7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Logos", "Logos", "{DCBD628A-D094-43E4-8FA5-13A2B0F44C23}"
 	ProjectSection(SolutionItems) = preProject
@@ -232,21 +220,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "STAR Runtime", "STAR Runtim
 		Runtimes\STAR Runtime\STAR Runtime (With Holochain Conductors Embedded) v3.1.0.zip = Runtimes\STAR Runtime\STAR Runtime (With Holochain Conductors Embedded) v3.1.0.zip
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS", "NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj", "{443709F2-4574-456B-98C5-42BB600046FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj", "{443709F2-4574-456B-98C5-42BB600046FD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness.csproj", "{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness", "Providers\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness.csproj", "{1DB16B42-4F81-462B-BD0D-D6D3D5540EC4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Utilities", "..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj", "{DBBCDB6A-17D0-4F0B-A779-90BCF7B8A93C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS", "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj", "{8A99F2F7-47C3-46AA-9C9C-6CBAEDF2349C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj", "{8A99F2F7-47C3-46AA-9C9C-6CBAEDF2349C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness.csproj", "{F1762DDD-98E4-4DA5-9812-3BD565DEC60A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness", "Providers\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness.csproj", "{F1762DDD-98E4-4DA5-9812-3BD565DEC60A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.PolygonOASIS", "NextGenSoftware.OASIS.API.Providers.PolygonOASIS\NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj", "{4CC098A6-5937-4E04-8B4A-5AC23F88DA42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.PolygonOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj", "{4CC098A6-5937-4E04-8B4A-5AC23F88DA42}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.RootstockOASIS", "NextGenSoftware.OASIS.API.Providers.RootstockOASIS\NextGenSoftware.OASIS.API.Providers.RootstockOASIS.csproj", "{94B4CF11-76DD-40FB-8238-43E551B1DB5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.RootstockOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.RootstockOASIS\NextGenSoftware.OASIS.API.Providers.RootstockOASIS.csproj", "{94B4CF11-76DD-40FB-8238-43E551B1DB5E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS", "NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.csproj", "{11717B86-1C33-4F1C-A43E-4467A2F377E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.csproj", "{11717B86-1C33-4F1C-A43E-4467A2F377E2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR", "STAR ODK\NextGenSoftware.OASIS.STAR\NextGenSoftware.OASIS.STAR.csproj", "{D3E5B9B7-5C94-44E3-BE10-2EE84BF2E067}"
 EndProject
@@ -258,23 +246,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "STAR OAPP DNA Templates", "STAR OAPP DNA Templates", "{CBD1E6E3-7BBC-4BCA-8B9E-724933AC9F0A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL", "STAR ODK\STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL.csproj", "{EBAB4853-1A03-47EA-9030-06EB5B2B6318}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Console.NuGet", "STAR ODK\STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.NuGet\NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Console.NuGet.csproj", "{EDCC09BF-7D89-4B30-B6F8-21B044417C9B}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Client", "STAR ODK\STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor\Client\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Client.csproj", "{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Server", "STAR ODK\STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor\Server\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Server.csproj", "{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Shared", "STAR ODK\STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor\Shared\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.WebBlazor.Shared.csproj", "{C23AE376-C354-4B70-A108-BD0526B51BD5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.STAR.DNA", "STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\NextGenSoftware.OASIS.STAR.DNA.csproj", "{05CFFA7D-F74E-4F30-ABC7-32CC21967139}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.STAR.CLI.Lib.TestHarness", "STAR ODK\NextGenSoftware.OASIS.STAR.CLI.Lib.TestHarness\NextGenSoftware.OASIS.STAR.CLI.Lib.TestHarness.csproj", "{47FA7267-8EF9-4785-BE51-DCBCA85E8734}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.PinataOASIS", "NextGenSoftware.OASIS.API.Providers.PinataOASIS\NextGenSoftware.OASIS.API.Providers.PinataOASIS.csproj", "{C6986534-BFAB-4243-98CD-2788B7FE30D3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.PinataOASIS", "Providers\NextGenSoftware.OASIS.API.Providers.PinataOASIS\NextGenSoftware.OASIS.API.Providers.PinataOASIS.csproj", "{C6986534-BFAB-4243-98CD-2788B7FE30D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.PinataOASIS.TestHarness", "NextGenSoftware.OASIS.API.Providers.PinataOASIS.TestHarnes\NextGenSoftware.OASIS.API.Providers.PinataOASIS.TestHarness.csproj", "{6AC91DCC-E060-44B9-BF60-3D455AE51060}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.PinataOASIS.TestHarness", "Providers\NextGenSoftware.OASIS.API.Providers.PinataOASIS.TestHarnes\NextGenSoftware.OASIS.API.Providers.PinataOASIS.TestHarness.csproj", "{6AC91DCC-E060-44B9-BF60-3D455AE51060}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL", "STAR ODK\STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL.csproj", "{A4A55395-4D26-42AA-BF23-29A677519D38}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -307,24 +289,6 @@ Global
 		{A8131B22-06EC-424A-B689-9411C8176BE8}.Release|x64.Build.0 = Release|Any CPU
 		{A8131B22-06EC-424A-B689-9411C8176BE8}.Release|x86.ActiveCfg = Release|Any CPU
 		{A8131B22-06EC-424A-B689-9411C8176BE8}.Release|x86.Build.0 = Release|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Debug|x64.Build.0 = Debug|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Debug|x86.Build.0 = Debug|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Linux|Any CPU.ActiveCfg = Release|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Linux|Any CPU.Build.0 = Release|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Linux|x64.ActiveCfg = Release|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Linux|x64.Build.0 = Release|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Linux|x86.ActiveCfg = Release|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Linux|x86.Build.0 = Release|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Release|x64.ActiveCfg = Release|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Release|x64.Build.0 = Release|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Release|x86.ActiveCfg = Release|Any CPU
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560}.Release|x86.Build.0 = Release|Any CPU
 		{9AA01072-4D3A-4EA2-80C6-CCEC2AB41BEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9AA01072-4D3A-4EA2-80C6-CCEC2AB41BEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9AA01072-4D3A-4EA2-80C6-CCEC2AB41BEE}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -379,24 +343,6 @@ Global
 		{703F8880-7815-4B49-B0A0-4EBF923AB0FC}.Release|x64.Build.0 = Release|Any CPU
 		{703F8880-7815-4B49-B0A0-4EBF923AB0FC}.Release|x86.ActiveCfg = Release|Any CPU
 		{703F8880-7815-4B49-B0A0-4EBF923AB0FC}.Release|x86.Build.0 = Release|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Debug|x64.Build.0 = Debug|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Debug|x86.Build.0 = Debug|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Linux|x64.ActiveCfg = Release|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Linux|x64.Build.0 = Release|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Linux|x86.ActiveCfg = Release|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Linux|x86.Build.0 = Release|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Release|x64.ActiveCfg = Release|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Release|x64.Build.0 = Release|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Release|x86.ActiveCfg = Release|Any CPU
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0}.Release|x86.Build.0 = Release|Any CPU
 		{3CFB81E4-97D2-43E8-8F17-C4CA11E97772}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3CFB81E4-97D2-43E8-8F17-C4CA11E97772}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3CFB81E4-97D2-43E8-8F17-C4CA11E97772}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -1800,24 +1746,6 @@ Global
 		{A99CEC03-D5C9-4A6B-B29F-A251AEC8221D}.Release|x64.Build.0 = Release|Any CPU
 		{A99CEC03-D5C9-4A6B-B29F-A251AEC8221D}.Release|x86.ActiveCfg = Release|Any CPU
 		{A99CEC03-D5C9-4A6B-B29F-A251AEC8221D}.Release|x86.Build.0 = Release|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Debug|x64.Build.0 = Debug|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Debug|x86.Build.0 = Debug|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Linux|x64.Build.0 = Debug|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Linux|x86.Build.0 = Debug|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Release|x64.ActiveCfg = Release|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Release|x64.Build.0 = Release|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Release|x86.ActiveCfg = Release|Any CPU
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318}.Release|x86.Build.0 = Release|Any CPU
 		{EDCC09BF-7D89-4B30-B6F8-21B044417C9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EDCC09BF-7D89-4B30-B6F8-21B044417C9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDCC09BF-7D89-4B30-B6F8-21B044417C9B}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -1836,60 +1764,6 @@ Global
 		{EDCC09BF-7D89-4B30-B6F8-21B044417C9B}.Release|x64.Build.0 = Release|Any CPU
 		{EDCC09BF-7D89-4B30-B6F8-21B044417C9B}.Release|x86.ActiveCfg = Release|Any CPU
 		{EDCC09BF-7D89-4B30-B6F8-21B044417C9B}.Release|x86.Build.0 = Release|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Debug|x64.Build.0 = Debug|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Debug|x86.Build.0 = Debug|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Linux|x64.Build.0 = Debug|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Linux|x86.Build.0 = Debug|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Release|x64.ActiveCfg = Release|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Release|x64.Build.0 = Release|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Release|x86.ActiveCfg = Release|Any CPU
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5}.Release|x86.Build.0 = Release|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Debug|x64.Build.0 = Debug|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Debug|x86.Build.0 = Debug|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Linux|x64.Build.0 = Debug|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Linux|x86.Build.0 = Debug|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Release|x64.ActiveCfg = Release|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Release|x64.Build.0 = Release|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Release|x86.ActiveCfg = Release|Any CPU
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D}.Release|x86.Build.0 = Release|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Debug|x64.Build.0 = Debug|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Debug|x86.Build.0 = Debug|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Linux|Any CPU.Build.0 = Debug|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Linux|x64.ActiveCfg = Debug|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Linux|x64.Build.0 = Debug|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Linux|x86.ActiveCfg = Debug|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Linux|x86.Build.0 = Debug|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Release|x64.ActiveCfg = Release|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Release|x64.Build.0 = Release|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Release|x86.ActiveCfg = Release|Any CPU
-		{C23AE376-C354-4B70-A108-BD0526B51BD5}.Release|x86.Build.0 = Release|Any CPU
 		{05CFFA7D-F74E-4F30-ABC7-32CC21967139}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{05CFFA7D-F74E-4F30-ABC7-32CC21967139}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{05CFFA7D-F74E-4F30-ABC7-32CC21967139}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -1962,13 +1836,30 @@ Global
 		{6AC91DCC-E060-44B9-BF60-3D455AE51060}.Release|x64.Build.0 = Release|Any CPU
 		{6AC91DCC-E060-44B9-BF60-3D455AE51060}.Release|x86.ActiveCfg = Release|Any CPU
 		{6AC91DCC-E060-44B9-BF60-3D455AE51060}.Release|x86.Build.0 = Release|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Debug|x64.Build.0 = Debug|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Debug|x86.Build.0 = Debug|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Linux|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Linux|Any CPU.Build.0 = Debug|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Linux|x64.ActiveCfg = Debug|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Linux|x64.Build.0 = Debug|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Linux|x86.ActiveCfg = Debug|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Linux|x86.Build.0 = Debug|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Release|x64.ActiveCfg = Release|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Release|x64.Build.0 = Release|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Release|x86.ActiveCfg = Release|Any CPU
+		{A4A55395-4D26-42AA-BF23-29A677519D38}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A8131B22-06EC-424A-B689-9411C8176BE8} = {C9ECD9F9-0707-4CD8-8D96-686FB1162C83}
-		{C50D7EA1-3B3C-4529-9317-55A5083DB560} = {7CDAFD20-8010-4E06-91BC-AFDA9BD64805}
 		{9AA01072-4D3A-4EA2-80C6-CCEC2AB41BEE} = {1CD64ADE-1AFF-46CC-A531-DFC6240C74C8}
 		{B1CB8DBD-3775-40B9-A5AF-88E71EAC6BC1} = {4A9AB918-E897-426E-9F5B-F03E974144D3}
 		{22D7D26A-D922-497A-9337-2B127D2B80FF} = {B1CB8DBD-3775-40B9-A5AF-88E71EAC6BC1}
@@ -1981,7 +1872,6 @@ Global
 		{5ADDA805-8196-4CB7-BA1C-7CD4BBEAF90B} = {556BCE07-1BF4-4D8E-8CA1-6653380AE73A}
 		{DFB7DC31-2226-41EE-B3D5-1887AB2C762C} = {4A9AB918-E897-426E-9F5B-F03E974144D3}
 		{703F8880-7815-4B49-B0A0-4EBF923AB0FC} = {B302F84B-2A07-453B-B148-DC9649BF335E}
-		{3AA65896-B6DC-440B-B07E-19DAA644B4E0} = {7CDAFD20-8010-4E06-91BC-AFDA9BD64805}
 		{3CFB81E4-97D2-43E8-8F17-C4CA11E97772} = {1CD64ADE-1AFF-46CC-A531-DFC6240C74C8}
 		{7A33FBFF-2CA4-4C65-B04A-3A3AA694CAB1} = {B302F84B-2A07-453B-B148-DC9649BF335E}
 		{E209D94E-8D60-4089-912A-8FFF30509080} = {1CD64ADE-1AFF-46CC-A531-DFC6240C74C8}
@@ -2066,15 +1956,12 @@ Global
 		{C34507CF-3F4C-4607-A5C7-A92C853BAA23} = {ECBEF6E7-0E8F-42AF-836F-180B187D8BA6}
 		{A99CEC03-D5C9-4A6B-B29F-A251AEC8221D} = {ECBEF6E7-0E8F-42AF-836F-180B187D8BA6}
 		{CBD1E6E3-7BBC-4BCA-8B9E-724933AC9F0A} = {ECBEF6E7-0E8F-42AF-836F-180B187D8BA6}
-		{EBAB4853-1A03-47EA-9030-06EB5B2B6318} = {CBD1E6E3-7BBC-4BCA-8B9E-724933AC9F0A}
 		{EDCC09BF-7D89-4B30-B6F8-21B044417C9B} = {CBD1E6E3-7BBC-4BCA-8B9E-724933AC9F0A}
-		{D862E9B3-6750-4AB8-A538-469AC2FBD3D5} = {CBD1E6E3-7BBC-4BCA-8B9E-724933AC9F0A}
-		{3847EA6C-AB27-421E-B5EE-65C61AF32B6D} = {CBD1E6E3-7BBC-4BCA-8B9E-724933AC9F0A}
-		{C23AE376-C354-4B70-A108-BD0526B51BD5} = {CBD1E6E3-7BBC-4BCA-8B9E-724933AC9F0A}
 		{05CFFA7D-F74E-4F30-ABC7-32CC21967139} = {ECBEF6E7-0E8F-42AF-836F-180B187D8BA6}
 		{47FA7267-8EF9-4785-BE51-DCBCA85E8734} = {ECBEF6E7-0E8F-42AF-836F-180B187D8BA6}
 		{C6986534-BFAB-4243-98CD-2788B7FE30D3} = {B302F84B-2A07-453B-B148-DC9649BF335E}
 		{6AC91DCC-E060-44B9-BF60-3D455AE51060} = {B302F84B-2A07-453B-B148-DC9649BF335E}
+		{A4A55395-4D26-42AA-BF23-29A677519D38} = {CBD1E6E3-7BBC-4BCA-8B9E-724933AC9F0A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5D3FB15A-71BF-4A92-B497-C6A29E6A486C}
