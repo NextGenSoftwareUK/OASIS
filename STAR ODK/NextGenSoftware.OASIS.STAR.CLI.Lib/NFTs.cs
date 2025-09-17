@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IOASISNFT> mintResult = await MintNFTAsync(); //Mint WEB4 NFT
 
             if (mintResult != null && mintResult.Result != null && !mintResult.IsError)
-                result = await base.CreateAsync(createParams, new STARNFT() { OASISNFTId = mintResult.Result.Id }, showHeaderAndInro, checkIfSourcePathExists, metaData: mintResult.Result.MetaData, providerType: providerType);
+                result = await base.CreateAsync(createParams, new STARNFT() { OASISNFTId = mintResult.Result.Id }, showHeaderAndInro, checkIfSourcePathExists, metaData: new Dictionary<string, object>() { { "NFT.MetaData", result.Result.MetaData } }, providerType: providerType);
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured minting NFT in MintNFTAsync method. Reason: {mintResult.Message}");
 
@@ -152,12 +152,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Send To Avatar After Minting Username", ParseMetaData(starHolon.MetaData, "NFT.SendToAvatarAfterMintingUsername"), displayFieldLength);
             DisplayProperty("Send NFT Transaction Hash", ParseMetaData(starHolon.MetaData, "NFT.SendNFTTransactionHash"), displayFieldLength);
 
-            if (starHolon.MetaData.Count > 0)
+            if (starHolon.MetaData != null && starHolon.MetaData.ContainsKey("NFT.MetaData") && starHolon.MetaData["NFT.MetaData"] != null)
             {
-                CLIEngine.ShowMessage($"MetaData:");
+                Dictionary<string, object> metaData = starHolon.MetaData["NFT.MetaData"] as Dictionary<string, object>;
 
-                foreach (string key in starHolon.MetaData.Keys)
-                    CLIEngine.ShowMessage($"          {key} = {starHolon.MetaData[key]}");
+                if (metaData != null)
+                {
+                    CLIEngine.ShowMessage($"MetaData:");
+
+                    foreach (string key in metaData.Keys)
+                        CLIEngine.ShowMessage($"          {key} = {starHolon.MetaData[key]}");
+                }
+                else
+                    CLIEngine.ShowMessage($"MetaData: None");
             }
             else
                 CLIEngine.ShowMessage($"MetaData: None");
