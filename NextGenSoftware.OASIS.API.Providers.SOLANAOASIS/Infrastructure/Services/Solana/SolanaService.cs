@@ -54,6 +54,9 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 return HandleError<MintNftResult>(createNftResult.Reason);
             }
 
+            // Log successful NFT creation
+            Console.WriteLine($"✅ Successfully minted NFT: {mintNftRequest.Title} (Address: {mintAccount.PublicKey.Key})");
+            
             return SuccessResult(
                 new(mintAccount.PublicKey.Key,
                     Solana,
@@ -124,17 +127,24 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             response.IsError = false;
             response.IsLoaded = true;
             response.Result = new(metadataAccount);
+            
+            // Log successful metadata retrieval
+            Console.WriteLine($"✅ Successfully loaded NFT metadata for {address}");
         }
         catch (ArgumentNullException)
         {
+            // This is often expected during NFT creation process - metadata may not be immediately available
+            Console.WriteLine($"ℹ️ NFT metadata not yet available for {address} (this is normal during creation)");
             response.IsError = true;
-            response.Message = "Account address is not correct or metadata not exists";
+            response.Message = "NFT metadata lookup failed - account may not exist yet or metadata not available";
             OASISErrorHandling.HandleError(ref response, response.Message);
         }
         catch (NullReferenceException)
         {
+            // This is often expected during NFT creation process - metadata may not be immediately available
+            Console.WriteLine($"ℹ️ NFT metadata not yet available for {address} (this is normal during creation)");
             response.IsError = true;
-            response.Message = "Account address is not correct or metadata not exists";
+            response.Message = "NFT metadata lookup failed - account may not exist yet or metadata not available";
             OASISErrorHandling.HandleError(ref response, response.Message);
         }
         catch (Exception e)
@@ -210,7 +220,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                     return new OASISResult<SendTransactionResult>
                     {
                         IsError = true,
-                        Message = "Failed to create associated token account: " + sendCreateAccountResult.Reason
+                        Message = "Token account creation failed (may already exist or insufficient funds): " + sendCreateAccountResult.Reason
                     };
                 }
             }
@@ -254,6 +264,9 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 return response;
             }
 
+            // Log successful NFT transfer
+            Console.WriteLine($"✅ Successfully transferred NFT to {mintNftRequest.ToWalletAddress} (Tx: {sendTransferResult.Result})");
+            
             response.IsError = false;
             response.Result = new SendTransactionResult
             {
