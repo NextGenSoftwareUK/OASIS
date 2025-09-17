@@ -14,8 +14,4 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.NodeManager\NextGenSoftware.NodeManager.csproj" />
-  </ItemGroup>
-
 </Project>

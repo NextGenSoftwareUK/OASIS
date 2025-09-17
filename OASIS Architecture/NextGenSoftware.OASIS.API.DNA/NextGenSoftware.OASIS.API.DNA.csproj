@@ -51,9 +51,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Reference Include="EosSharp.Core">
-	    <HintPath>..\STAR ODK\STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\Runtimes\OASIS Runtime\EosSharp.Core.dll</HintPath>
-	  </Reference>
 	  <Reference Include="NextGenSoftware.OASIS.DNALoader">
 	    <HintPath>External\NextGenSoftware.OASIS.DNALoader.dll</HintPath>
 	  </Reference>
