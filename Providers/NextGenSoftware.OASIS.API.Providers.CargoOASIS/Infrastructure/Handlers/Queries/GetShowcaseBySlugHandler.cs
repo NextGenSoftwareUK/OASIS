@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Services.HttpHandler;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Request;
 using NextGenSoftware.OASIS.API.Providers.CargoOASIS.Models.Response;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers.Queries
 {

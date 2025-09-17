@@ -26,11 +26,6 @@
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
-    <ProjectReference Include="..\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\NextGenSoftware.OASIS.STAR.DNA.csproj" />
-  </ItemGroup>
-
 	<ItemGroup>
 		<None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg">
 			<Pack>True</Pack>
@@ -62,6 +57,12 @@
 
 	<ItemGroup>
 	  <Folder Include="Interfaces\Managers\COSMIC ORM\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+	  <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+	  <ProjectReference Include="..\..\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\NextGenSoftware.OASIS.STAR.DNA.csproj" />
 	</ItemGroup>
 
 </Project>
