@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
+using Newtonsoft.Json;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -58,40 +59,24 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //OASISResult<IOASISGeoSpatialNFT> geoNFTResult = await NFTManager.LoadGeoNftAsync(geoNFTId);
 
             OASISResult<IOASISGeoSpatialNFT> mintResult = await MintGeoNFTAsync(); //Mint WEB4 GeoNFT (mints and wraps around a WEB4 OASIS NFT).
-
+            
             if (mintResult != null && mintResult.Result != null && !mintResult.IsError)
             {
+                IOASISGeoSpatialNFT geoNFT = mintResult.Result;
+
+                if (metaData == null)
+                    metaData = new Dictionary<string, object>();
+
+                metaData["GeoNFTJSON"] = JsonConvert.SerializeObject(result.Result);
+                File.WriteAllText($"OASISGeoNFT_{mintResult.Result.Id}.json", metaData["GeoNFTJSON"].ToString());
+                
+                if (!string.IsNullOrEmpty(mintResult.Result.JSONMetaData))
+                    File.WriteAllText($"JSONMetaData_{mintResult.Result.Id}.json", mintResult.Result.JSONMetaData);
+
                 result = await base.CreateAsync(createParams, new STARGeoNFT()
                 {
                     GeoNFTId = mintResult.Result.Id
-                }, showHeaderAndInro, checkIfSourcePathExists, metaData: mintResult.Result.MetaData, providerType: providerType);
-
-                //result = await base.CreateAsync(createParams, new STARGeoNFT()
-                //{
-                //    GeoNFTId = mintResult.Result.Id
-                //}, showHeaderAndInro, checkIfSourcePathExists, metaData: new Dictionary<string, object>() 
-                //{
-                //    { "OASISGeoNFTId", mintResult.Result.Id },
-                //    { "OriginalOASISNFTId", mintResult.Result.OriginalOASISNFTId },
-                //    { "OnChainProviderType", mintResult.Result.OnChainProvider.Name },
-                //    { "OffChainProviderType", mintResult.Result.OffChainProvider.Name },
-                //    { "MintAddress", mintResult.Result.MintAddress },
-                //    { "MintAddress", mintResult.Result.MintedByAddress },
-                //    { "MintedByAvatarId", mintResult.Result.MintedByAvatarId },
-                //    { "MintedOn", mintResult.Result.MintedOn },
-                //    { "Hash", mintResult.Result.Hash },
-                //    { "Title", mintResult.Result.Title },
-                //    { "Description", mintResult.Result.Description },
-                //    { "MemoText", mintResult.Result.MemoText },
-                //    { "Price", mintResult.Result.Price },
-                //    { "Discount", mintResult.Result.Discount },
-                //    { "ImageURL", mintResult.Result.ImageUrl },
-                //    { "ThumbnailUrl", mintResult.Result.ThumbnailUrl },
-                //    { "JSONMetaDataURL", mintResult.Result.JSONMetaDataURL },
-
-                //    { "MintAddress", mintResult.Result.MintAddress },
-
-                //}, providerType: providerType);
+                }, showHeaderAndInro, checkIfSourcePathExists, metaData: metaData, providerType: providerType);
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured minting GeoNFT in MintGeoNFTAsync method. Reason: {mintResult.Message}");
@@ -209,12 +194,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public override void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 35, object customData = null)
+        public override void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 44, object customData = null)
         {
             base.Show(starHolon, showHeader, false, showNumbers, number, showDetailedInfo, displayFieldLength, customData);
 
             Console.WriteLine("");
             DisplayProperty("GEO-NFT DETAILS", "", displayFieldLength, false);
+            Console.WriteLine("");
             DisplayProperty("Geo-NFT Id", ParseMetaData(starHolon.MetaData, "GEONFT.Id"), displayFieldLength);
             DisplayProperty("NFT Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Id"), displayFieldLength);
             DisplayProperty("Title", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Title"), displayFieldLength);
@@ -256,12 +242,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("3D Object", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.Nft3DObject"), displayFieldLength);
             DisplayProperty("3D Object URI", ParseMetaData(starHolon.MetaData, "GEONFT.Nft3DObjectURI"), displayFieldLength);
 
-            if (starHolon.MetaData.Count > 0)
+            if (starHolon.MetaData != null && starHolon.MetaData.ContainsKey("GeoNFT.MetaData") && starHolon.MetaData["GeoNFT.MetaData"] != null)
             {
-                CLIEngine.ShowMessage($"MetaData:");
+                Dictionary<string, object> metaData = starHolon.MetaData["GeoNFT.MetaData"] as Dictionary<string, object>;
 
-                foreach (string key in starHolon.MetaData.Keys)
-                    CLIEngine.ShowMessage($"          {key} = {starHolon.MetaData[key]}");
+                if (metaData != null)
+                {
+                    CLIEngine.ShowMessage($"MetaData:");
+
+                    foreach (string key in metaData.Keys)
+                        CLIEngine.ShowMessage($"          {key} = {starHolon.MetaData[key]}");
+                }
+                else
+                    CLIEngine.ShowMessage($"MetaData: None");
             }
             else
                 CLIEngine.ShowMessage($"MetaData: None");

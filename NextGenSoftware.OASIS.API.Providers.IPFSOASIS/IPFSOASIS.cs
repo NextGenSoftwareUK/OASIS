@@ -20,6 +20,8 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.Utilities;
+using Ipfs.CoreApi;
+using System.Xml.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -163,6 +165,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
             string text = await IPFSClient.FileSystem.ReadAllTextAsync((Cid) address);
             return text;
+        }
+
+        public string GetFileUrl(string ipfsHash, string fileName = "")
+        {
+            return $"{_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString}/ipfs/{ipfsHash}/{fileName}";
         }
 
         /******************************/
@@ -323,10 +330,72 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         //}
         /************************************************************/
 
-        public async Task<string> SaveTextToFile(string text)
+        public async Task<OASISResult<IFileSystemNode>> SaveTextAsync(string text, AddFileOptions options = null)
         {
-            var fsn = await IPFSClient.FileSystem.AddTextAsync(text);
-            return fsn.Id;
+            OASISResult<IFileSystemNode> result = new OASISResult<IFileSystemNode>();
+
+            try
+            {
+                result.Result = await IPFSClient.FileSystem.AddTextAsync(text, options);
+
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SaveText method in IPFSOASIS Provider. Reason: {e}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IFileSystemNode>> SaveFileAsync(string fileName, AddFileOptions options = null)
+        {
+            OASISResult<IFileSystemNode> result = new OASISResult<IFileSystemNode>();
+
+            try
+            {
+                result.Result = await IPFSClient.FileSystem.AddFileAsync(fileName, options);
+
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SaveFile method in IPFSOASIS Provider. Reason: {e}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IFileSystemNode>> SaveDirectoryAsync(string path, bool recursive = true, AddFileOptions options = null)
+        {
+            OASISResult<IFileSystemNode> result = new OASISResult<IFileSystemNode>();
+
+            try
+            {
+                result.Result = await IPFSClient.FileSystem.AddDirectoryAsync(path, recursive, options);
+
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SaveDirectory method in IPFSOASIS Provider. Reason: {e}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IFileSystemNode>> SaveStreamAsync(Stream stream, string name = "", AddFileOptions options = null)
+        {
+            OASISResult<IFileSystemNode> result = new OASISResult<IFileSystemNode>();
+
+            try
+            {
+                result.Result = await IPFSClient.FileSystem.AddAsync(stream, name, options);
+                
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured in SaveStream method in IPFSOASIS Provider. Reason: {e}");
+            }
+
+            return result;
         }
 
 
