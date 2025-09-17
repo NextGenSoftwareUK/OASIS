@@ -111,7 +111,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             bool validStandard = false;
             do
             {
-                object nftStandardObj = CLIEngine.GetValidInputForEnum("What NFT standard do you wish to use? ERC721, ERC1155 or SPN? (ERC standards are only supported by EVM chains such as EthereumOASIS, PolygonsOASIS & ArbitrumOASIS. SPN is only supported by SolanaOASIS)", typeof(NFTStandardType));
+                object nftStandardObj = CLIEngine.GetValidInputForEnum("What NFT standard do you wish to use? ERC721, ERC1155 or SPL? (ERC standards are only supported by EVM chains such as EthereumOASIS, PolygonsOASIS & ArbitrumOASIS. SPL is only supported by SolanaOASIS)", typeof(NFTStandardType));
                 request.NFTStandardType = new EnumValue<NFTStandardType>((NFTStandardType)nftStandardObj);
 
                 OASISResult<bool> nftStandardValid = NFTManager.IsNFTStandardTypeValid(request.NFTStandardType.Value, request.OnChainProvider.Value);
@@ -124,6 +124,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation("Do you wish to add any metadata to this NFT?"))
             {
+                request.MetaData = new Dictionary<string, object>();
                 request.MetaData = AddMetaDataToNFT(request.MetaData);
                 bool metaDataDone = false;
 
@@ -143,17 +144,31 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (CLIEngine.GetConfirmation("Do you wish to send the NFT to yourself after it is minted?"))
                 request.SendToAvatarAfterMintingId = STAR.BeamedInAvatar.Id;
             else
+            {
+                Console.WriteLine("");
                 request.SendToAddressAfterMinting = CLIEngine.GetValidInput("What is the wallet address you want to send the NFT after it is minted?");
+            }
 
             if (CLIEngine.GetConfirmation("Do you wish to view the Advanced Options?"))
             {
+                Console.WriteLine("");
                 request.WaitTillNFTMinted = CLIEngine.GetConfirmation("Do you wish to wait till the NFT has been minted before continuing? If you select yes it will continue to attempt minting for X seconds (defined in next question). Default is Yes.");
-                request.WaitForNFTToMintInSeconds = CLIEngine.GetValidInputForInt("How many seconds do you wish to wait for the NFT to mint before timing out? (default is 60 seconds)");
-                request.AttemptToMintEveryXSeconds = CLIEngine.GetValidInputForInt("How often (in seconds) do you wish to attempt to mint? (default is every 5 seconds)");
+
+                if (request.WaitTillNFTMinted)
+                {
+                    Console.WriteLine("");
+                    request.WaitForNFTToMintInSeconds = CLIEngine.GetValidInputForInt("How many seconds do you wish to wait for the NFT to mint before timing out? (default is 60 seconds)");
+                    request.AttemptToMintEveryXSeconds = CLIEngine.GetValidInputForInt("How often (in seconds) do you wish to attempt to mint? (default is every 5 seconds)");
+                }
 
                 request.WaitTillNFTSent = CLIEngine.GetConfirmation("Do you wish to wait till the NFT has been sent before continuing? If you select yes it will continue to attempt sending for X seconds (defined in next question). Default is Yes.");
-                request.WaitForNFTToSendInSeconds = CLIEngine.GetValidInputForInt("How many seconds do you wish to wait for the NFT to send before timing out? (default is 60 seconds)");
-                request.AttemptToSendEveryXSeconds = CLIEngine.GetValidInputForInt("How often (in seconds) do you wish to attempt to send? (default is every 5 seconds)");
+
+                if (request.WaitTillNFTSent)
+                {
+                    Console.WriteLine("");
+                    request.WaitForNFTToSendInSeconds = CLIEngine.GetValidInputForInt("How many seconds do you wish to wait for the NFT to send before timing out? (default is 60 seconds)");
+                    request.AttemptToSendEveryXSeconds = CLIEngine.GetValidInputForInt("How often (in seconds) do you wish to attempt to send? (default is every 5 seconds)");
+                }
             }
 
             return request;
