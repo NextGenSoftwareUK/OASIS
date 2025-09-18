@@ -318,7 +318,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             API.Core.Objects.NFT.Request.PlaceGeoSpatialNFTRequest placeRequest = new API.Core.Objects.NFT.Request.PlaceGeoSpatialNFTRequest()
             {
                 OriginalOASISNFTId = request.OriginalOASISNFTId,
-                OriginalOASISNFTOffChainProvider = originalOASISNFTProviderType,
+                OriginalOASISNFTOffChainProvider = new EnumValue<ProviderType>(originalOASISNFTProviderType),
                 Lat = request.Lat,
                 Long = request.Long,
                 AllowOtherPlayersToAlsoCollect = request.AllowOtherPlayersToAlsoCollect,
