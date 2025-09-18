@@ -16,6 +16,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
         public string MemoText { get; set; }
         public bool WaitTillNFTSent { get; set; } = true;
         public int WaitForNFTToSendInSeconds { get; set; } = 60;
-        public int AttemptToSendEveryXSeconds { get; set; } = 5;
+        public int AttemptToSendEveryXSeconds { get; set; } = 1;
     }
 }

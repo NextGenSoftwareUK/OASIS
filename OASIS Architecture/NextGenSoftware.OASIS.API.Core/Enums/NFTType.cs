@@ -10,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Collectible,
         Avatar,
         AvatarItem,
+        Quest,
         Other
     }
 }

@@ -25,12 +25,14 @@ using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using System.IO;
 using Ipfs;
+using NextGenSoftware.CLI.Engine;
 
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public class NFTManager : COSMICManagerBase, INFTManager
     {
+        private const int FORMAT_SUCCESS_MESSAGE_COL_WIDTH = 30;
         IPFSOASIS _ipfs = new IPFSOASIS();
         PinataOASIS _pinata = new PinataOASIS();
 
@@ -1112,7 +1114,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                OASISResult<IOASISNFT> loadNftResult = await LoadNftAsync(request.OriginalOASISNFTId, request.OriginalOASISNFTOffChainProvider);
+                OASISResult<IOASISNFT> loadNftResult = await LoadNftAsync(request.OriginalOASISNFTId, request.OriginalOASISNFTOffChainProvider.Value);
 
                 if (loadNftResult != null && !loadNftResult.IsError && loadNftResult.Result != null)
                 {
@@ -1145,7 +1147,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             try
             {
-                OASISResult<IOASISNFT> loadNftResult = LoadNft(request.OriginalOASISNFTId, request.OriginalOASISNFTOffChainProvider);
+                OASISResult<IOASISNFT> loadNftResult = LoadNft(request.OriginalOASISNFTId, request.OriginalOASISNFTOffChainProvider.Value);
 
                 if (loadNftResult != null && !loadNftResult.IsError && loadNftResult.Result != null)
                 {
@@ -1185,7 +1187,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     PlaceGeoSpatialNFTRequest placeGeoSpatialNFTRequest = new PlaceGeoSpatialNFTRequest()
                     {
                         OriginalOASISNFTId = mintNftResult.Result.OASISNFT.Id,
-                        OriginalOASISNFTOffChainProvider = request.OffChainProvider.Value,
+                        OriginalOASISNFTOffChainProvider = request.OffChainProvider != null ? request.OffChainProvider : new EnumValue<ProviderType>(ProviderType.None),
                         GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider,
                         PlacedByAvatarId = request.MintedByAvatarId,
                         Lat = request.Lat,
@@ -1202,7 +1204,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     };
 
                     result.Result = CreateGeoSpatialNFT(placeGeoSpatialNFTRequest, mintNftResult.Result.OASISNFT);
-                    OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(CreateGeoSpatialNFTMetaDataHolon(result.Result), request.MintedByAvatarId, true, true, 0, true, false, request.OffChainProvider.Value);
+                    OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(CreateGeoSpatialNFTMetaDataHolon(result.Result), request.MintedByAvatarId, true, true, 0, true, false, request.GeoNFTMetaDataProvider.Value);
 
                     if (saveHolonResult != null && (saveHolonResult.IsError || saveHolonResult.Result == null) || saveHolonResult == null)
                     {
@@ -1237,7 +1239,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     PlaceGeoSpatialNFTRequest placeGeoSpatialNFTRequest = new PlaceGeoSpatialNFTRequest()
                     {
                         OriginalOASISNFTId = mintNftResult.Result.OASISNFT.Id,
-                        OriginalOASISNFTOffChainProvider = request.OffChainProvider.Value,
+                        OriginalOASISNFTOffChainProvider = request.OffChainProvider,
                         GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider,
                         PlacedByAvatarId = request.MintedByAvatarId,
                         Lat = request.Lat,
@@ -1458,6 +1460,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 bool attemptingToMint = true;
                 DateTime startTime = DateTime.Now;
+                CLIEngine.SupressConsoleLogging = true;
 
                 do
                 {
@@ -1479,6 +1482,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         break;
 
                 } while (attemptingToMint);
+
+                CLIEngine.SupressConsoleLogging = false;
 
                 if (result != null && !result.IsError && result.Result != null)
                 {
@@ -1502,6 +1507,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         {
                             bool attemptingToSend = true;
                             startTime = DateTime.Now;
+                            CLIEngine.SupressConsoleLogging = true;
 
                             do
                             {
@@ -1539,6 +1545,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                 }
 
                             } while (attemptingToSend);
+
+                            CLIEngine.SupressConsoleLogging = false;
                         }
                     }
                     else
@@ -1777,19 +1785,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private string FormatSuccessMessage(IMintNFTTransactionRequest request, OASISResult<INFTTransactionRespone> response, EnumValue<ProviderType> metaDataProviderType, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = 20)
+        private string FormatSuccessMessage(IMintNFTTransactionRequest request, OASISResult<INFTTransactionRespone> response, EnumValue<ProviderType> metaDataProviderType, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = FORMAT_SUCCESS_MESSAGE_COL_WIDTH)
         {
             string lineBreak = "";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
                 string JSONMetaDataURIHolonId = "";
-                string sendNFTMessage = GenerateSendMessage(response.Result.OASISNFT, request, "", colWidth);
+                string sendNFTMessage = GenerateSendMessage(response.Result.OASISNFT, request, "", 2);
 
                 if (response.Result.OASISNFT.JSONMetaDataURLHolonId != Guid.Empty)
                     JSONMetaDataURIHolonId = string.Concat("JSON MetaData URI Holon Id: ", response.Result.OASISNFT.JSONMetaDataURLHolonId, " ");
 
-                return $"Successfully minted the NFT on the {request.OnChainProvider.Name} provider with hash {response.Result.TransactionResult} and title '{request.Title}' by AvatarId {request.MintedByAvatarId} using OASIS Minting Account {response.Result.OASISNFT.OASISMintWalletAddress} for price {request.Price}. NFT Address: {response.Result.OASISNFT.NFTTokenAddress}. The OASIS metadata is stored on the {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)} provider with the id {response.Result.OASISNFT.Id} and JSON URL {response.Result.OASISNFT.JSONMetaDataURL}. {JSONMetaDataURIHolonId}Image URL: {response.Result.OASISNFT.ImageUrl}, Mint Date: {response.Result.OASISNFT.MintedOn}. {sendNFTMessage}";
+                return $"Successfully minted the NFT on the {request.OnChainProvider.Name} provider with hash {response.Result.TransactionResult} and title '{request.Title}' by AvatarId {request.MintedByAvatarId} using OASIS Minting Account {response.Result.OASISNFT.OASISMintWalletAddress} for price {request.Price}. NFT Address: {response.Result.OASISNFT.NFTTokenAddress}. The OASIS metadata is stored on the {metaDataProviderType.Name} provider with the id {response.Result.OASISNFT.Id} and JSON URL {response.Result.OASISNFT.JSONMetaDataURL}. {JSONMetaDataURIHolonId}Image URL: {response.Result.OASISNFT.ImageUrl}, Mint Date: {response.Result.OASISNFT.MintedOn}. {sendNFTMessage}";
             }
 
             if (responseFormatType == ResponseFormatType.HTML)
@@ -1801,19 +1809,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             message = string.Concat(message, GenerateNFTSummary(response.Result.OASISNFT, request, lineBreak, colWidth));
 
             if (response.IsWarning)
-                message = string.Concat(message, "Warning:".PadRight(colWidth), response.Message, lineBreak);
+                message = string.Concat(message, " Warning:".PadRight(colWidth), response.Message, lineBreak);
 
             return message;
         }
 
-        private string FormatSuccessMessage(IMintNFTTransactionRequest request, OASISResult<IOASISGeoSpatialNFT> response, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = 20)
+        private string FormatSuccessMessage(IMintNFTTransactionRequest request, OASISResult<IOASISGeoSpatialNFT> response, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = 40)
         {
             string lineBreak = "\n";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
                 string JSONMetaDataURIHolonId = "";
-                string sendNFTMessage = GenerateSendMessage(response.Result, request, "", colWidth);
+                string sendNFTMessage = GenerateSendMessage(response.Result, request, "", 2);
 
                 if (response.Result.JSONMetaDataURLHolonId != Guid.Empty)
                     JSONMetaDataURIHolonId = string.Concat("JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, " ");
@@ -1831,12 +1839,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             message = string.Concat(message, GenerateGeoNFTSummary(response.Result, lineBreak, colWidth));
 
             if (response.IsWarning)
-                message = string.Concat(message, "Warning:".PadRight(colWidth), response.Message, lineBreak);
+                message = string.Concat(message, " Warning:".PadRight(colWidth), response.Message, lineBreak);
 
             return message;
         }
 
-        private string FormatSuccessMessage(OASISResult<IOASISGeoSpatialNFT> response, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = 20)
+        private string FormatSuccessMessage(OASISResult<IOASISGeoSpatialNFT> response, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = 40)
         {
             string lineBreak = "\n";
 
@@ -1865,7 +1873,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return message;
         }
 
-        private string FormatSuccessMessage(INFTWalletTransactionRequest request, OASISResult<INFTTransactionRespone> response, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = 20)
+        private string FormatSuccessMessage(INFTWalletTransactionRequest request, OASISResult<INFTTransactionRespone> response, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = FORMAT_SUCCESS_MESSAGE_COL_WIDTH)
         {
             string lineBreak = "\n";
 
@@ -1876,15 +1884,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 lineBreak = "<br>";
 
             string message = "";
-            message = string.Concat(message, $"NFT Successfully Sent!{lineBreak}");
+            message = string.Concat(message, $" NFT Successfully Sent!{lineBreak}");
             message = string.Concat(message, lineBreak);
-            message = string.Concat(message, "From Wallet:".PadRight(colWidth), request.FromWalletAddress, lineBreak);
-            message = string.Concat(message, "To Wallet:".PadRight(colWidth), request.ToWalletAddress, lineBreak);
-            message = string.Concat(message, "From Provider:".PadRight(colWidth), request.FromProvider.Name, lineBreak);
-            message = string.Concat(message, "To Provider:".PadRight(colWidth), request.ToProvider.Name, lineBreak);
-            message = string.Concat(message, "Amount:".PadRight(colWidth), request.Amount, lineBreak);
-            message = string.Concat(message, "Memo:".PadRight(colWidth), request.MemoText, lineBreak);
-            message = string.Concat(message, "Transaction Hash:".PadRight(colWidth), response.Result.TransactionResult, lineBreak);
+            message = string.Concat(message, " From Wallet:".PadRight(colWidth), request.FromWalletAddress, lineBreak);
+            message = string.Concat(message, " To Wallet:".PadRight(colWidth), request.ToWalletAddress, lineBreak);
+            message = string.Concat(message, " From Provider:".PadRight(colWidth), request.FromProvider.Name, lineBreak);
+            message = string.Concat(message, " To Provider:".PadRight(colWidth), request.ToProvider.Name, lineBreak);
+            message = string.Concat(message, " Amount:".PadRight(colWidth), request.Amount, lineBreak);
+            message = string.Concat(message, " Memo:".PadRight(colWidth), request.MemoText, lineBreak);
+            message = string.Concat(message, " Transaction Hash:".PadRight(colWidth), response.Result.TransactionResult, lineBreak);
 
             return message;
         }
@@ -1892,29 +1900,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private string GenerateNFTSummary(IOASISNFT OASISNFT, IMintNFTTransactionRequest request, string lineBreak, int colWidth)
         {
             string message = "";
-            message = string.Concat(message, "Onchain Provider:".PadRight(colWidth), OASISNFT.OnChainProvider.Name, lineBreak);
-            message = string.Concat(message, "Offchain Provider:".PadRight(colWidth), OASISNFT.OffChainProvider.Name, lineBreak);
-            message = string.Concat(message, "MintTransactionHash:".PadRight(colWidth), OASISNFT.MintTransactionHash, lineBreak);
-            message = string.Concat(message, "Title:".PadRight(colWidth), OASISNFT.Title, lineBreak);
-            message = string.Concat(message, "Description:".PadRight(colWidth), OASISNFT.Description, lineBreak);
-            message = string.Concat(message, "Price:".PadRight(colWidth), OASISNFT.Price, lineBreak);
-            message = string.Concat(message, "Symbol:".PadRight(colWidth), OASISNFT.Symbol, lineBreak);
-            message = string.Concat(message, "NFT Standard Type:".PadRight(colWidth), Enum.GetName(typeof(NFTStandardType), OASISNFT.NFTStandardType));
-            message = string.Concat(message, "Minted By Avatar Id:".PadRight(colWidth), OASISNFT.MintedByAvatarId, lineBreak);
-            message = string.Concat(message, "Minted Date:".PadRight(colWidth), OASISNFT.MintedOn, lineBreak);
-            message = string.Concat(message, "OASIS Minting Account:".PadRight(colWidth), OASISNFT.OASISMintWalletAddress, lineBreak);
-            message = string.Concat(message, "NFT Address:".PadRight(colWidth), OASISNFT.NFTTokenAddress, lineBreak);
-            message = string.Concat(message, "OASIS NFT Id:".PadRight(colWidth), OASISNFT.Id, lineBreak);
-            message = string.Concat(message, "JSON MetaData URL:".PadRight(colWidth), OASISNFT.JSONMetaDataURL, lineBreak);
+            message = string.Concat(message, " Onchain Provider:".PadRight(colWidth), OASISNFT.OnChainProvider.Name, lineBreak);
+            message = string.Concat(message, " Offchain Provider:".PadRight(colWidth), OASISNFT.OffChainProvider.Name, lineBreak);
+            message = string.Concat(message, " Mint Transaction Hash:".PadRight(colWidth), OASISNFT.MintTransactionHash, lineBreak);
+            message = string.Concat(message, " Title:".PadRight(colWidth), OASISNFT.Title, lineBreak);
+            message = string.Concat(message, " Description:".PadRight(colWidth), OASISNFT.Description, lineBreak);
+            message = string.Concat(message, " Price:".PadRight(colWidth), OASISNFT.Price, lineBreak);
+            message = string.Concat(message, " Symbol:".PadRight(colWidth), OASISNFT.Symbol, lineBreak);
+            message = string.Concat(message, " NFT Standard Type:".PadRight(colWidth), OASISNFT.NFTStandardType.Name, lineBreak);
+            message = string.Concat(message, " Minted By Avatar Id:".PadRight(colWidth), OASISNFT.MintedByAvatarId, lineBreak);
+            message = string.Concat(message, " Minted Date:".PadRight(colWidth), OASISNFT.MintedOn, lineBreak);
+            message = string.Concat(message, " OASIS Minting Account:".PadRight(colWidth), OASISNFT.OASISMintWalletAddress, lineBreak);
+            message = string.Concat(message, " NFT Address:".PadRight(colWidth), OASISNFT.NFTTokenAddress, lineBreak);
+            message = string.Concat(message, " OASIS NFT Id:".PadRight(colWidth), OASISNFT.Id, lineBreak);
+            message = string.Concat(message, " JSON MetaData URL:".PadRight(colWidth), OASISNFT.JSONMetaDataURL, lineBreak);
 
             if (OASISNFT.JSONMetaDataURLHolonId != Guid.Empty)
-                message = string.Concat(message, "JSON MetaData URL Holon Id:".PadRight(colWidth), OASISNFT.JSONMetaDataURLHolonId, lineBreak);
+                message = string.Concat(message, " JSON MetaData URL Holon Id:".PadRight(colWidth), OASISNFT.JSONMetaDataURLHolonId, lineBreak);
             
-            message = string.Concat(message, "Image URL:".PadRight(colWidth), OASISNFT.ImageUrl, lineBreak);
-            message = string.Concat(message, "Thumbnail URL:".PadRight(colWidth), OASISNFT.ThumbnailUrl, lineBreak);
+            message = string.Concat(message, " Image URL:".PadRight(colWidth), OASISNFT.ImageUrl, lineBreak);
+            message = string.Concat(message, " Thumbnail URL:".PadRight(colWidth), OASISNFT.ThumbnailUrl, lineBreak);
 
             if (request != null)
-                message = string.Concat(message, "Number To Mint:".PadRight(colWidth), request.NumberToMint, lineBreak);
+                message = string.Concat(message, " Number To Mint:".PadRight(colWidth), request.NumberToMint, lineBreak);
 
             message = string.Concat(message, GenerateSendMessage(OASISNFT, request, lineBreak, colWidth));
 
@@ -1924,17 +1932,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private string GenerateGeoNFTSummary(IOASISGeoSpatialNFT OASISNFT, string lineBreak, int colWidth)
         {
             string message = "";
-            message = string.Concat(message, "Lat/Long:".PadRight(colWidth), OASISNFT.Lat, "/", OASISNFT.Long, lineBreak);
-            message = string.Concat(message, "Global Spawn Quantity:".PadRight(colWidth), OASISNFT.GlobalSpawnQuantity, lineBreak);
-            message = string.Concat(message, "AllowOtherPlayersToAlsoCollect:".PadRight(colWidth), OASISNFT.AllowOtherPlayersToAlsoCollect, lineBreak);
-            message = string.Concat(message, "Player Spawn Quantity:".PadRight(colWidth), OASISNFT.PlayerSpawnQuantity, lineBreak);
-            message = string.Concat(message, "PermSpawn:".PadRight(colWidth), OASISNFT.PermSpawn, lineBreak);
-            message = string.Concat(message, "Respawn Duration In Seconds:".PadRight(colWidth), OASISNFT.RespawnDurationInSeconds, lineBreak);
-            message = string.Concat(message, "2D Sprite URI:".PadRight(colWidth), OASISNFT.Nft2DSpriteURI, lineBreak);
-            message = string.Concat(message, "2D Sprite:".PadRight(colWidth), OASISNFT.Nft2DSprite != null ? "Yes" : "No", lineBreak);
-            message = string.Concat(message, "3D Object URI:".PadRight(colWidth), OASISNFT.Nft3DObjectURI, lineBreak);
-            message = string.Concat(message, "3D Object:".PadRight(colWidth), OASISNFT.Nft3DObject != null ? "Yes" : "No", lineBreak);
-            message = string.Concat(message, "GeoNFT MetaData Provider:".PadRight(colWidth), OASISNFT.GeoNFTMetaDataProvider.Name, lineBreak);
+            message = string.Concat(message, " Lat/Long:".PadRight(colWidth), OASISNFT.Lat, "/", OASISNFT.Long, lineBreak);
+            message = string.Concat(message, " Global Spawn Quantity:".PadRight(colWidth), OASISNFT.GlobalSpawnQuantity, lineBreak);
+            message = string.Concat(message, " Allow Other Players To Also Collect:".PadRight(colWidth), OASISNFT.AllowOtherPlayersToAlsoCollect, lineBreak);
+            message = string.Concat(message, " Player Spawn Quantity:".PadRight(colWidth), OASISNFT.PlayerSpawnQuantity, lineBreak);
+            message = string.Concat(message, " Perm Spawn:".PadRight(colWidth), OASISNFT.PermSpawn, lineBreak);
+            message = string.Concat(message, " Respawn Duration In Seconds:".PadRight(colWidth), OASISNFT.RespawnDurationInSeconds, lineBreak);
+            message = string.Concat(message, " 2D Sprite URI:".PadRight(colWidth), !string.IsNullOrEmpty(OASISNFT.Nft2DSpriteURI) ? OASISNFT.Nft2DSpriteURI : "None", lineBreak);
+            message = string.Concat(message, " 2D Sprite:".PadRight(colWidth), OASISNFT.Nft2DSprite != null ? "Yes" : "None", lineBreak);
+            message = string.Concat(message, " 3D Object URI:".PadRight(colWidth), !string.IsNullOrEmpty(OASISNFT.Nft3DObjectURI) ? OASISNFT.Nft3DObjectURI : "None", lineBreak);
+            message = string.Concat(message, " 3D Object:".PadRight(colWidth), OASISNFT.Nft3DObject != null ? "Yes" : "None", lineBreak);
+            message = string.Concat(message, " GeoNFT MetaData Provider:".PadRight(colWidth), OASISNFT.GeoNFTMetaDataProvider.Name, lineBreak);
 
             return message;
         }
@@ -1944,22 +1952,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             string sendNFTMessage = "";
 
             if (!string.IsNullOrEmpty(OASISNFT.SendToAddressAfterMinting))
-                sendNFTMessage = string.Concat("Send To Address After Minting: ", OASISNFT.SendToAddressAfterMinting, $". {lineBreak}");
+                sendNFTMessage = string.Concat(" Send To Address After Minting: ".PadRight(colWidth), OASISNFT.SendToAddressAfterMinting, $". {lineBreak}");
            
             if (!string.IsNullOrEmpty(OASISNFT.SendToAvatarAfterMintingId.ToString()) && OASISNFT.SendToAvatarAfterMintingId.ToString() != Guid.Empty.ToString())
-                sendNFTMessage = string.Concat(sendNFTMessage, "Send To Avatar After Minting Id: ", OASISNFT.SendToAvatarAfterMintingId, $". {lineBreak}");
+                sendNFTMessage = string.Concat(sendNFTMessage, " Send To Avatar After Minting Id: ".PadRight(colWidth), OASISNFT.SendToAvatarAfterMintingId, $". {lineBreak}");
            
             if (!string.IsNullOrEmpty(OASISNFT.SendToAvatarAfterMintingUsername))
-                sendNFTMessage = string.Concat(sendNFTMessage, "Send To Avatar After Minting Username: ".PadRight(colWidth), OASISNFT.SendToAvatarAfterMintingUsername, $". {lineBreak}");
+                sendNFTMessage = string.Concat(sendNFTMessage, " Send To Avatar After Minting Username: ".PadRight(colWidth), OASISNFT.SendToAvatarAfterMintingUsername, $". {lineBreak}");
 
             if (request != null)
             {
                 if (!string.IsNullOrEmpty(request.SendToAvatarAfterMintingEmail))
-                    sendNFTMessage = string.Concat(sendNFTMessage, "Send To Avatar After Minting Email: ", request.SendToAvatarAfterMintingEmail, $". {lineBreak}");
+                    sendNFTMessage = string.Concat(sendNFTMessage, " Send To Avatar After Minting Email: ".PadRight(colWidth), request.SendToAvatarAfterMintingEmail, $". {lineBreak}");
             }
 
             if (!string.IsNullOrEmpty(OASISNFT.SendNFTTransactionHash))
-                sendNFTMessage = string.Concat(sendNFTMessage, "Send NFT Hash: ", OASISNFT.SendNFTTransactionHash, $". {lineBreak}");
+                sendNFTMessage = string.Concat(sendNFTMessage, " Send NFT Hash: ".PadRight(colWidth), OASISNFT.SendNFTTransactionHash, $". {lineBreak}");
 
             return sendNFTMessage;
         }
