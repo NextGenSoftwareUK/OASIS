@@ -1117,15 +1117,15 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 Symbol = transaction.Symbol
             };
 
-            OASISResult<IOASISNFT> oasisNFT = await LoadOnChainNFTDataAsync(solanaNftTransactionResult.Result.MintAccount);
+            //OASISResult<IOASISNFT> oasisNFT = await LoadOnChainNFTDataAsync(solanaNftTransactionResult.Result.MintAccount);
 
-            if (oasisNFT != null && oasisNFT.Result != null && !oasisNFT.IsError)
-            {
-                oasisNFT.Result.NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount;
-                oasisNFT.Result.MintTransactionHash = solanaNftTransactionResult.Result.TransactionHash;
-                oasisNFT.Result.OASISMintWalletAddress = _oasisSolanaAccount.PublicKey;
-                OASISNFT = (OASISNFT)oasisNFT.Result;
-            }
+            //if (oasisNFT != null && oasisNFT.Result != null && !oasisNFT.IsError)
+            //{
+            //    oasisNFT.Result.NFTTokenAddress = solanaNftTransactionResult.Result.MintAccount;
+            //    oasisNFT.Result.MintTransactionHash = solanaNftTransactionResult.Result.TransactionHash;
+            //    oasisNFT.Result.OASISMintWalletAddress = _oasisSolanaAccount.PublicKey;
+            //    OASISNFT = (OASISNFT)oasisNFT.Result;
+            //}
 
             //This is now handled by NFTManager! ;-)
             //if (!string.IsNullOrEmpty(transaction.SendToAddressAfterMinting))

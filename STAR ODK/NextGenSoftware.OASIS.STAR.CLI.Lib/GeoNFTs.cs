@@ -1,4 +1,5 @@
-﻿using NextGenSoftware.CLI.Engine;
+﻿using Newtonsoft.Json;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
@@ -11,7 +12,6 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
-using Newtonsoft.Json;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -26,9 +26,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 "This wizard will allow you create a WEB5 STAR GeoNFT which wraps around a WEB4 OASIS GeoNFT, which in turn wraps around a WEB4 OASIS NFT.",
                 "You can mint a WEB4 OASIS NFT using the 'nft mint' sub-command.",
                 "You can mint a WEB4 GeoNFT using the 'geonft mint' sub-command. This will automatically create the WEB4 OASIS NFT to wrap around or it can wrap around an existing WEB4 OASIS NFT.",
-                "You then convert or wrap around the WEB4 OASIS GeoNFT using the sub-command 'geonft create'.",
+                "You can then convert or wrap around the WEB4 OASIS GeoNFT using the sub-command 'geonft create'.",
                 "A WEB5 GeoNFT can then be published to STARNET in much the same way as everything else within STAR using the same sub-commands such as publish, download, install etc.",
-                "Both WEB4 and WEB5 STAR GeoNFT's can be placed in any location within Our World as part of Quest's. The main difference is WEB5 STAR GeoNFT's can be published to STARNET, version controlled, shared, etc whereas WEB4 GeoNFT's cannot.",
+                "Both WEB4 and WEB5 STAR GeoNFT's can be placed in any location within Our World as part of Quest's. The main difference is WEB5 STAR GeoNFT's can be published to STARNET, version controlled, shared, used in Our World (support for Web4 GeoNFT's may be added later), Quests etc whereas WEB4 GeoNFT's cannot.",
                 "The wizard will create an empty folder with a GeoNFTDNA.json file in it. You then simply place any files/folders you need for the assets (optional) for the GeoNFT into this folder.",
                 "Finally you run the sub-command 'geonft publish' to convert the folder containing the GeoNFT (can contain any number of files and sub-folders) into a OASIS GeoNFT file (.ogeonft) as well as optionally upload to STARNET.",
                 "You can then share the .ogeonft file with others across any platform or OS, who can then install the GeoNFT from the file using the sub-command 'geonft install'.",
@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultGeoNFTsSourcePath, "DefaultGeoNFTsSourcePath",
             STAR.STARDNA.DefaultGeoNFTsPublishedPath, "DefaultGeoNFTsPublishedPath",
             STAR.STARDNA.DefaultGeoNFTsDownloadedPath, "DefaultGeoNFTsDownloadedPath",
-            STAR.STARDNA.DefaultGeoNFTsInstalledPath, "DefaultGeoNFTsInstalledPath")
+            STAR.STARDNA.DefaultGeoNFTsInstalledPath, "DefaultGeoNFTsInstalledPath", 44)
         { }
 
         //public override async Task CreateAsync(object createParams, STARGeoNFT newHolon = null, ProviderType providerType = ProviderType.Default)
@@ -54,32 +54,56 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public override async Task<OASISResult<STARGeoNFT>> CreateAsync(object createParams, STARGeoNFT newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARGeoNFT> result = new OASISResult<STARGeoNFT>();
+            OASISResult<IOASISGeoSpatialNFT> geoNFTResult = null;
+            bool mint = false;
 
-            //Guid geoNFTId = CLIEngine.GetValidInputForGuid("Please enter the ID of the GeoNFT you wish to upload to STARNET: ");
-            //OASISResult<IOASISGeoSpatialNFT> geoNFTResult = await NFTManager.LoadGeoNftAsync(geoNFTId);
+            ShowHeader();
 
-            OASISResult<IOASISGeoSpatialNFT> mintResult = await MintGeoNFTAsync(); //Mint WEB4 GeoNFT (mints and wraps around a WEB4 OASIS NFT).
-            
-            if (mintResult != null && mintResult.Result != null && !mintResult.IsError)
+            if (CLIEngine.GetConfirmation("Do you have an existing WEB4 OASIS Geo-NFT you wish to create a WEB5 Geo-NFT from?"))
             {
-                IOASISGeoSpatialNFT geoNFT = mintResult.Result;
+                Guid geoNFTId = CLIEngine.GetValidInputForGuid("Please enter the ID of the WEB4 GeoNFT you wish to upload to STARNET: ");
+                geoNFTResult = await STAR.OASISAPI.NFTs.LoadGeoNftAsync(geoNFTId);
+            }
+            else
+            {
+                Console.WriteLine("");
+                geoNFTResult = await MintGeoNFTAsync(); //Mint WEB4 GeoNFT (mints and wraps around a WEB4 OASIS NFT).
+                mint = true;
+            }
+
+            if (geoNFTResult != null && geoNFTResult.Result != null && !geoNFTResult.IsError)
+            {
+                IOASISGeoSpatialNFT geoNFT = geoNFTResult.Result;
 
                 if (metaData == null)
                     metaData = new Dictionary<string, object>();
 
                 metaData["GeoNFTJSON"] = JsonConvert.SerializeObject(result.Result);
-                File.WriteAllText($"OASISGeoNFT_{mintResult.Result.Id}.json", metaData["GeoNFTJSON"].ToString());
-                
-                if (!string.IsNullOrEmpty(mintResult.Result.JSONMetaData))
-                    File.WriteAllText($"JSONMetaData_{mintResult.Result.Id}.json", mintResult.Result.JSONMetaData);
 
-                result = await base.CreateAsync(createParams, new STARGeoNFT()
+                if (!mint || (mint && CLIEngine.GetConfirmation("Would you like to submit the WEB4 OASIS Geo-NFT to WEB5 STARNET which will create a WEB5 STAR GeoNFT that wraps around the WEB4 GeoNFT allowing you to version control, publish, share, use in Our World, Quests, etc? (recommended). Selecting 'Y' will also create a WEB3 JSONMetaData and a WEB4 OASIS GeoNFT json file in the WEB5 STAR GeoNFT folder. Currently if you select 'N' then it will not show up for the 'geonft list' or 'geonft show' sub-command's since these only support WEB5 GeoNFTs. Future support may be added to list/show WEB4 GeoNFT's and NFT's.")))
                 {
-                    GeoNFTId = mintResult.Result.Id
-                }, showHeaderAndInro, checkIfSourcePathExists, metaData: metaData, providerType: providerType);
+                    Console.WriteLine("");
+                    result = await base.CreateAsync(createParams, new STARGeoNFT()
+                    {
+                        GeoNFTId = geoNFTResult.Result.Id
+                    }, false, checkIfSourcePathExists, metaData: metaData, providerType: providerType);
+
+                    if (result != null && result.Result != null && !result.IsError)
+                    {
+                        File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"OASISGeoNFT_{geoNFTResult.Result.Id}.json"), metaData["GeoNFTJSON"].ToString());
+
+                        if (!string.IsNullOrEmpty(geoNFTResult.Result.JSONMetaData))
+                            File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"JSONMetaData_{geoNFTResult.Result.Id}.json"), geoNFTResult.Result.JSONMetaData);
+                    }
+                }
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured minting GeoNFT in MintGeoNFTAsync method. Reason: {mintResult.Message}");
+            {
+                if (mint)
+                    OASISErrorHandling.HandleError(ref result, $"Error occured minting GeoNFT in MintGeoNFTAsync method. Reason: {geoNFTResult.Message}");
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured loading GeoNFT in LoadGeoNftAsync method. Reason: {geoNFTResult.Message}");
+            }
 
             return result;
         }
@@ -270,10 +294,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (isExistingNFT)
             {
                 request.OriginalOASISNFTId = CLIEngine.GetValidInputForGuid("What is the original WEB4 OASIS NFT ID?");
-                request.GeoNFTMetaDataProvider = new Utilities.EnumValue<ProviderType>((ProviderType)CLIEngine.GetValidInputForEnum("What provider would you like to store the Geo-NFT metadata on? (NOTE: It will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive)", typeof(ProviderType)));
-                request.OriginalOASISNFTOffChainProvider = (ProviderType)CLIEngine.GetValidInputForEnum("What provider did you choose to store the off-chain metadata for the original OASIS NFT? (if you cannot remember, then enter 'All' and the OASIS HyperDrive will attempt to find it through auto-replication).", typeof(ProviderType));
+                request.OriginalOASISNFTOffChainProvider = new Utilities.EnumValue<ProviderType>((ProviderType)CLIEngine.GetValidInputForEnum("What provider did you choose to store the off-chain metadata for the original OASIS NFT? (if you cannot remember, then enter 'All' and the OASIS HyperDrive will attempt to find it through auto-replication).", typeof(ProviderType)));
             }
 
+            request.GeoNFTMetaDataProvider = new Utilities.EnumValue<ProviderType>((ProviderType)CLIEngine.GetValidInputForEnum("What provider would you like to store the Geo-NFT metadata on? (NOTE: It will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive)", typeof(ProviderType)));
             long nftLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your NFT to appear in Our World/AR World?");
             long nftLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your NFT to appear in Our World/AR World?");
 
