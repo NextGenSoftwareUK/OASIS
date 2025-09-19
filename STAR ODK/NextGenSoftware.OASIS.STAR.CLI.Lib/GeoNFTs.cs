@@ -12,6 +12,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -37,21 +40,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultGeoNFTsSourcePath, "DefaultGeoNFTsSourcePath",
             STAR.STARDNA.DefaultGeoNFTsPublishedPath, "DefaultGeoNFTsPublishedPath",
             STAR.STARDNA.DefaultGeoNFTsDownloadedPath, "DefaultGeoNFTsDownloadedPath",
-            STAR.STARDNA.DefaultGeoNFTsInstalledPath, "DefaultGeoNFTsInstalledPath", 44)
+            STAR.STARDNA.DefaultGeoNFTsInstalledPath, "DefaultGeoNFTsInstalledPath", 50)
         { }
 
-        //public override async Task CreateAsync(object createParams, STARGeoNFT newHolon = null, ProviderType providerType = ProviderType.Default)
-        //{
-        //    Guid geoNFTId = CLIEngine.GetValidInputForGuid("Please enter the ID of the GeoNFT you wish to upload to STARNET: ");
-        //    OASISResult<IOASISGeoSpatialNFT> geoNFTResult = await NFTManager.LoadGeoNftAsync(geoNFTId);
+        //public override async Task<OASISResult<STARGeoNFT>> CreateAsync(object createParams, STARGeoNFT newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        //public override async Task<OASISResult<STARGeoNFT>> CreateAsync(object createParams, STARGeoNFT newHolon = null, STARNETDNA STARNETDNA = default, object holonSubType = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        
+    
 
-        //    if (geoNFTResult != null && !geoNFTResult.IsError && geoNFTResult.Result != null)
-        //        await base.CreateAsync(createParams, new STARGeoNFT() { GeoNFTId = geoNFTId }, providerType);
-        //    else
-        //        CLIEngine.ShowErrorMessage("No GeoNFT Found For That Id!");
-        //}
-
-        public override async Task<OASISResult<STARGeoNFT>> CreateAsync(object createParams, STARGeoNFT newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<STARGeoNFT>> CreateAsync(ISTARNETCreateOptions<STARGeoNFT, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARGeoNFT> result = new OASISResult<STARGeoNFT>();
             OASISResult<IOASISGeoSpatialNFT> geoNFTResult = null;
@@ -61,8 +58,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.GetConfirmation("Do you have an existing WEB4 OASIS Geo-NFT you wish to create a WEB5 Geo-NFT from?"))
             {
+                Console.WriteLine("");
                 Guid geoNFTId = CLIEngine.GetValidInputForGuid("Please enter the ID of the WEB4 GeoNFT you wish to upload to STARNET: ");
-                geoNFTResult = await STAR.OASISAPI.NFTs.LoadGeoNftAsync(geoNFTId);
+
+                if (geoNFTId != Guid.Empty)
+                    geoNFTResult = await STAR.OASISAPI.NFTs.LoadGeoNftAsync(geoNFTId);
+                else
+                {
+                    result.IsWarning = true;
+                    result.Message = "User Exited";
+                    return result;
+                }
             }
             else
             {
@@ -75,22 +81,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 IOASISGeoSpatialNFT geoNFT = geoNFTResult.Result;
 
-                if (metaData == null)
-                    metaData = new Dictionary<string, object>();
-
-                metaData["GeoNFTJSON"] = JsonConvert.SerializeObject(result.Result);
-
                 if (!mint || (mint && CLIEngine.GetConfirmation("Would you like to submit the WEB4 OASIS Geo-NFT to WEB5 STARNET which will create a WEB5 STAR GeoNFT that wraps around the WEB4 GeoNFT allowing you to version control, publish, share, use in Our World, Quests, etc? (recommended). Selecting 'Y' will also create a WEB3 JSONMetaData and a WEB4 OASIS GeoNFT json file in the WEB5 STAR GeoNFT folder. Currently if you select 'N' then it will not show up for the 'geonft list' or 'geonft show' sub-command's since these only support WEB5 GeoNFTs. Future support may be added to list/show WEB4 GeoNFT's and NFT's.")))
                 {
                     Console.WriteLine("");
-                    result = await base.CreateAsync(createParams, new STARGeoNFT()
+
+                    result = await base.CreateAsync(new STARNETCreateOptions<STARGeoNFT, STARNETDNA>()
                     {
-                        GeoNFTId = geoNFTResult.Result.Id
-                    }, false, checkIfSourcePathExists, metaData: metaData, providerType: providerType);
+                        STARNETDNA = new STARNETDNA()
+                        {
+                            MetaData = new Dictionary<string, object>() { { "GeoNFT", geoNFT } }
+                        },
+                        STARNETHolon = new STARGeoNFT() 
+                        { 
+                            GeoNFTId = geoNFTResult.Result.Id 
+                        }
+                    }, holonSubType, showHeaderAndInro, providerType);
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
-                        File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"OASISGeoNFT_{geoNFTResult.Result.Id}.json"), metaData["GeoNFTJSON"].ToString());
+                        File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"OASISGeoNFT_{geoNFTResult.Result.Id}.json"), JsonConvert.SerializeObject(geoNFT));
 
                         if (!string.IsNullOrEmpty(geoNFTResult.Result.JSONMetaData))
                             File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"JSONMetaData_{geoNFTResult.Result.Id}.json"), geoNFTResult.Result.JSONMetaData);
@@ -218,70 +227,156 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public override void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 44, object customData = null)
+        public override void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 60, object customData = null)
         {
             base.Show(starHolon, showHeader, false, showNumbers, number, showDetailedInfo, displayFieldLength, customData);
 
-            Console.WriteLine("");
-            DisplayProperty("GEO-NFT DETAILS", "", displayFieldLength, false);
-            Console.WriteLine("");
-            DisplayProperty("Geo-NFT Id", ParseMetaData(starHolon.MetaData, "GEONFT.Id"), displayFieldLength);
-            DisplayProperty("NFT Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Id"), displayFieldLength);
-            DisplayProperty("Title", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Title"), displayFieldLength);
-            DisplayProperty("Description", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Description"), displayFieldLength);
-            DisplayProperty("Price", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Price"), displayFieldLength);
-            DisplayProperty("Discount", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Discount"), displayFieldLength);
-            DisplayProperty("OASIS MintWallet Address", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.OASISMintWalletAddress"), displayFieldLength);
-            DisplayProperty("Mint Transaction Hash", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.MintTransactionHash"), displayFieldLength);
-            DisplayProperty("NFT Token Address", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.NFTTokenAddress"), displayFieldLength);
-            DisplayProperty("Minted By Avatar Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.MintedByAvatarId"), displayFieldLength);
-            DisplayProperty("Minted On", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.MintedOn"), displayFieldLength);
-            DisplayProperty("OnChain Provider", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.OnChainProvider"), displayFieldLength);
-            DisplayProperty("OffChain Provider", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.OffChainProvider"), displayFieldLength);
-            DisplayProperty("Store NFT Meta Data OnChain", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.StoreNFTMetaDataOnChain"), displayFieldLength);
-            DisplayProperty("NFT OffChain Meta Type", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.NFTOffChainMetaType"), displayFieldLength);
-            DisplayProperty("NFT Standard Type", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.NFTStandardType"), displayFieldLength);
-            DisplayProperty("Symbol", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Symbol"), displayFieldLength);
-            DisplayProperty("Image", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Image"), displayFieldLength);
-            DisplayProperty("Image Url", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.ImageUrl"), displayFieldLength);
-            DisplayProperty("Thumbnail", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Thumbnail"), displayFieldLength);
-            DisplayProperty("Thumbnail Url", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.ThumbnailUrl"), displayFieldLength);
-            DisplayProperty("JSON MetaData URL", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.JSONMetaDataURL"), displayFieldLength);
-            DisplayProperty("JSON MetaData URL Holon Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.JSONMetaDataURLHolonId"), displayFieldLength);            
-            DisplayProperty("Seller Fee Basis Points", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SellerFeeBasisPoints"), displayFieldLength);
-            DisplayProperty("Update Authority", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.UpdateAuthority"), displayFieldLength);
-            DisplayProperty("Send To Address After Minting", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SendToAddressAfterMinting"), displayFieldLength);
-            DisplayProperty("Send To Avatar After Minting Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SendToAvatarAfterMintingId"), displayFieldLength);
-            DisplayProperty("Send To Avatar After Minting Username", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SendToAvatarAfterMintingUsername"), displayFieldLength);
-            DisplayProperty("Send NFT Transaction Hash", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SendNFTTransactionHash"), displayFieldLength);
-            DisplayProperty("Lat/Long", ParseMetaData(starHolon.MetaData, "GEONFT.LatLong"), displayFieldLength);
-            DisplayProperty("Perm Spawn", ParseMetaData(starHolon.MetaData, "GEONFT.PermSpawn"), displayFieldLength);            
-            DisplayProperty("Allow Other Players To Also Collect", ParseMetaData(starHolon.MetaData, "GEONFT.AllowOtherPlayersToAlsoCollect"), displayFieldLength);
-            DisplayProperty("Player Spawn Quantity", ParseMetaData(starHolon.MetaData, "GEONFT.PlayerSpawnQuantity"), displayFieldLength);
-            DisplayProperty("Global Spawn Quantity", ParseMetaData(starHolon.MetaData, "GEONFT.GlobalSpawnQuantity"), displayFieldLength);
-            DisplayProperty("Global Spawn Quantity", ParseMetaData(starHolon.MetaData, "GEONFT.GlobalSpawnQuantity"), displayFieldLength);
-            DisplayProperty("Respawn Duration In Seconds", ParseMetaData(starHolon.MetaData, "GEONFT.RespawnDurationInSeconds"), displayFieldLength);
-            DisplayProperty("2D Sprite", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.Nft2DSprite"), displayFieldLength);
-            DisplayProperty("2D Sprite URI", ParseMetaData(starHolon.MetaData, "GEONFT.Nft2DSpriteURI"), displayFieldLength);
-            DisplayProperty("3D Object", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.Nft3DObject"), displayFieldLength);
-            DisplayProperty("3D Object URI", ParseMetaData(starHolon.MetaData, "GEONFT.Nft3DObjectURI"), displayFieldLength);
-
-            if (starHolon.MetaData != null && starHolon.MetaData.ContainsKey("GeoNFT.MetaData") && starHolon.MetaData["GeoNFT.MetaData"] != null)
+            //if (starHolon.MetaData != null && starHolon.MetaData.ContainsKey("GeoNFT") && starHolon.MetaData["GeoNFT"] != null)
+            if (starHolon.STARNETDNA != null && starHolon.STARNETDNA.MetaData != null && starHolon.STARNETDNA.MetaData.ContainsKey("GeoNFT") && starHolon.STARNETDNA.MetaData["GeoNFT"] != null)
             {
-                Dictionary<string, object> metaData = starHolon.MetaData["GeoNFT.MetaData"] as Dictionary<string, object>;
+                object geoNFTObj = starHolon.STARNETDNA.MetaData["GeoNFT"];
+                IOASISGeoSpatialNFT geoNFT = starHolon.STARNETDNA.MetaData["GeoNFT"] as IOASISGeoSpatialNFT;
+                IOASISGeoSpatialNFT geoNFT2 = JsonConvert.DeserializeObject<OASISGeoSpatialNFT>(starHolon.STARNETDNA.MetaData["GeoNFT"].ToString()) as IOASISGeoSpatialNFT;
+                IOASISGeoSpatialNFT geoNFT3 = JsonConvert.DeserializeObject<OASISGeoSpatialNFT>(starHolon.MetaData["GeoNFT"].ToString()) as IOASISGeoSpatialNFT;
 
-                if (metaData != null)
+
+                if (geoNFT != null)
                 {
-                    CLIEngine.ShowMessage($"MetaData:");
+                    Console.WriteLine("");
+                    DisplayProperty("GEO-NFT DETAILS", "", displayFieldLength, false);
+                    Console.WriteLine("");
+                    DisplayProperty("Geo-NFT Id", geoNFT.Id.ToString(), displayFieldLength);
+                    DisplayProperty("NFT Id", geoNFT.OriginalOASISNFTId.ToString(), displayFieldLength);
+                    DisplayProperty("Title", geoNFT.Title, displayFieldLength);
+                    DisplayProperty("Description", geoNFT.Description, displayFieldLength);
+                    DisplayProperty("Price", geoNFT.Price.ToString(), displayFieldLength);
+                    DisplayProperty("Discount", geoNFT.Discount.ToString(), displayFieldLength);
+                    DisplayProperty("OASIS MintWallet Address", geoNFT.OASISMintWalletAddress, displayFieldLength);
+                    DisplayProperty("Mint Transaction Hash", geoNFT.MintTransactionHash, displayFieldLength);
+                    DisplayProperty("NFT Token Address", geoNFT.NFTTokenAddress, displayFieldLength);
+                    DisplayProperty("Minted By Avatar Id", geoNFT.MintedByAvatarId.ToString(), displayFieldLength);
+                    DisplayProperty("Minted On", geoNFT.MintedOn.ToString(), displayFieldLength);
+                    DisplayProperty("OnChain Provider", geoNFT.OnChainProvider.Name, displayFieldLength);
+                    DisplayProperty("OffChain Provider", geoNFT.OffChainProvider.Name, displayFieldLength);
+                    DisplayProperty("Store NFT Meta Data OnChain", geoNFT.StoreNFTMetaDataOnChain.ToString(), displayFieldLength);
+                    DisplayProperty("NFT OffChain Meta Type", geoNFT.NFTOffChainMetaType.Name, displayFieldLength);
+                    DisplayProperty("NFT Standard Type", geoNFT.NFTStandardType.Name, displayFieldLength);
+                    DisplayProperty("Symbol", geoNFT.Symbol, displayFieldLength);
+                    DisplayProperty("Image", geoNFT.Image != null ? "Yes" : "None", displayFieldLength);
+                    DisplayProperty("Image Url", geoNFT.ImageUrl, displayFieldLength);
+                    DisplayProperty("Thumbnail", geoNFT.Thumbnail != null ? "Yes" : "None", displayFieldLength);
+                    DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(geoNFT.ThumbnailUrl) ? geoNFT.ThumbnailUrl : "None", displayFieldLength);
+                    DisplayProperty("JSON MetaData URL", geoNFT.JSONMetaDataURL, displayFieldLength);
+                    DisplayProperty("JSON MetaData URL Holon Id", geoNFT.JSONMetaDataURLHolonId != Guid.Empty ? geoNFT.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
+                    DisplayProperty("Seller Fee Basis Points", geoNFT.SellerFeeBasisPoints.ToString(), displayFieldLength);
+                    DisplayProperty("Update Authority", geoNFT.UpdateAuthority, displayFieldLength);
+                    DisplayProperty("Send To Address After Minting", geoNFT.SendToAddressAfterMinting, displayFieldLength);
+                    DisplayProperty("Send To Avatar After Minting Id", geoNFT.SendToAvatarAfterMintingId != Guid.Empty ? geoNFT.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
+                    DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(geoNFT.SendToAvatarAfterMintingUsername) ? geoNFT.SendToAvatarAfterMintingUsername : "None" , displayFieldLength);
+                    DisplayProperty("Send NFT Transaction Hash", geoNFT.SendNFTTransactionHash, displayFieldLength);
+                    DisplayProperty("Lat/Long", $"{geoNFT.Lat}/{geoNFT.Long}", displayFieldLength);
+                    DisplayProperty("Perm Spawn", geoNFT.PermSpawn.ToString(), displayFieldLength);
 
-                    foreach (string key in metaData.Keys)
-                        CLIEngine.ShowMessage($"          {key} = {starHolon.MetaData[key]}");
+                    if (!geoNFT.PermSpawn)
+                    {
+                        DisplayProperty("Allow Other Players To Also Collect", geoNFT.AllowOtherPlayersToAlsoCollect.ToString(), displayFieldLength);
+
+                        if (geoNFT.AllowOtherPlayersToAlsoCollect)
+                        {
+                            DisplayProperty("Global Spawn Quantity", geoNFT.GlobalSpawnQuantity.ToString(), displayFieldLength);
+                            DisplayProperty("Player Spawn Quantity", geoNFT.PlayerSpawnQuantity.ToString(), displayFieldLength);
+                            DisplayProperty("Respawn Duration In Seconds", geoNFT.RespawnDurationInSeconds.ToString(), displayFieldLength);
+                        }
+                        else
+                        {
+                            DisplayProperty("Global Spawn Quantity", "N/A", displayFieldLength);
+                            DisplayProperty("Player Spawn Quantity", "N/A", displayFieldLength);
+                            DisplayProperty("Respawn Duration In Seconds", "N/A", displayFieldLength);
+                        }
+                    }
+                    else
+                    {
+                        DisplayProperty("Allow Other Players To Also Collect", "N/A", displayFieldLength);
+                        DisplayProperty("Global Spawn Quantity", "N/A", displayFieldLength);
+                        DisplayProperty("Player Spawn Quantity", "N/A", displayFieldLength);
+                        DisplayProperty("Respawn Duration In Seconds", "N/A", displayFieldLength);
+                    }
+
+                    DisplayProperty("2D Sprite", geoNFT.Nft2DSprite != null ? "Yes" : "None", displayFieldLength);
+                    DisplayProperty("2D Sprite URL", !string.IsNullOrEmpty(geoNFT.Nft2DSpriteURI) ? geoNFT.Nft2DSpriteURI : "None", displayFieldLength);
+                    DisplayProperty("3D Object", geoNFT.Nft2DSprite != null ? "Yes" : "None", displayFieldLength);
+                    DisplayProperty("3D Object URL", !string.IsNullOrEmpty(geoNFT.Nft3DObjectURI) ? geoNFT.Nft3DObjectURI : "None", displayFieldLength);
+
+                    if (geoNFT.MetaData != null)
+                    {
+                        CLIEngine.ShowMessage($"MetaData:");
+
+                        foreach (string key in geoNFT.MetaData.Keys)
+                            CLIEngine.ShowMessage($"          {key} = {geoNFT.MetaData[key]}", false);
+                    }
+                    else
+                        CLIEngine.ShowMessage($"MetaData: None");
+
+
+                    //DisplayProperty("Geo-NFT Id", ParseMetaData(starHolon.MetaData, "GEONFT.Id"), displayFieldLength);
+                    //DisplayProperty("NFT Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Id"), displayFieldLength);
+                    //DisplayProperty("Title", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Title"), displayFieldLength);
+                    //DisplayProperty("Description", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Description"), displayFieldLength);
+                    //DisplayProperty("Price", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Price"), displayFieldLength);
+                    //DisplayProperty("Discount", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Discount"), displayFieldLength);
+                    //DisplayProperty("OASIS MintWallet Address", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.OASISMintWalletAddress"), displayFieldLength);
+                    //DisplayProperty("Mint Transaction Hash", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.MintTransactionHash"), displayFieldLength);
+                    //DisplayProperty("NFT Token Address", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.NFTTokenAddress"), displayFieldLength);
+                    //DisplayProperty("Minted By Avatar Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.MintedByAvatarId"), displayFieldLength);
+                    //DisplayProperty("Minted On", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.MintedOn"), displayFieldLength);
+                    //DisplayProperty("OnChain Provider", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.OnChainProvider"), displayFieldLength);
+                    //DisplayProperty("OffChain Provider", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.OffChainProvider"), displayFieldLength);
+                    //DisplayProperty("Store NFT Meta Data OnChain", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.StoreNFTMetaDataOnChain"), displayFieldLength);
+                    //DisplayProperty("NFT OffChain Meta Type", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.NFTOffChainMetaType"), displayFieldLength);
+                    //DisplayProperty("NFT Standard Type", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.NFTStandardType"), displayFieldLength);
+                    //DisplayProperty("Symbol", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Symbol"), displayFieldLength);
+                    //DisplayProperty("Image", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Image"), displayFieldLength);
+                    //DisplayProperty("Image Url", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.ImageUrl"), displayFieldLength);
+                    //DisplayProperty("Thumbnail", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Thumbnail"), displayFieldLength);
+                    //DisplayProperty("Thumbnail Url", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.ThumbnailUrl"), displayFieldLength);
+                    //DisplayProperty("JSON MetaData URL", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.JSONMetaDataURL"), displayFieldLength);
+                    //DisplayProperty("JSON MetaData URL Holon Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.JSONMetaDataURLHolonId"), displayFieldLength);
+                    //DisplayProperty("Seller Fee Basis Points", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SellerFeeBasisPoints"), displayFieldLength);
+                    //DisplayProperty("Update Authority", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.UpdateAuthority"), displayFieldLength);
+                    //DisplayProperty("Send To Address After Minting", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SendToAddressAfterMinting"), displayFieldLength);
+                    //DisplayProperty("Send To Avatar After Minting Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SendToAvatarAfterMintingId"), displayFieldLength);
+                    //DisplayProperty("Send To Avatar After Minting Username", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SendToAvatarAfterMintingUsername"), displayFieldLength);
+                    //DisplayProperty("Send NFT Transaction Hash", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SendNFTTransactionHash"), displayFieldLength);
+                    //DisplayProperty("Lat/Long", ParseMetaData(starHolon.MetaData, "GEONFT.LatLong"), displayFieldLength);
+                    //DisplayProperty("Perm Spawn", ParseMetaData(starHolon.MetaData, "GEONFT.PermSpawn"), displayFieldLength);
+                    //DisplayProperty("Allow Other Players To Also Collect", ParseMetaData(starHolon.MetaData, "GEONFT.AllowOtherPlayersToAlsoCollect"), displayFieldLength);
+                    //DisplayProperty("Player Spawn Quantity", ParseMetaData(starHolon.MetaData, "GEONFT.PlayerSpawnQuantity"), displayFieldLength);
+                    //DisplayProperty("Global Spawn Quantity", ParseMetaData(starHolon.MetaData, "GEONFT.GlobalSpawnQuantity"), displayFieldLength);
+                    //DisplayProperty("Global Spawn Quantity", ParseMetaData(starHolon.MetaData, "GEONFT.GlobalSpawnQuantity"), displayFieldLength);
+                    //DisplayProperty("Respawn Duration In Seconds", ParseMetaData(starHolon.MetaData, "GEONFT.RespawnDurationInSeconds"), displayFieldLength);
+                    //DisplayProperty("2D Sprite", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.Nft2DSprite"), displayFieldLength);
+                    //DisplayProperty("2D Sprite URI", ParseMetaData(starHolon.MetaData, "GEONFT.Nft2DSpriteURI"), displayFieldLength);
+                    //DisplayProperty("3D Object", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.Nft3DObject"), displayFieldLength);
+                    //DisplayProperty("3D Object URI", ParseMetaData(starHolon.MetaData, "GEONFT.Nft3DObjectURI"), displayFieldLength);
+
+                    //if (starHolon.MetaData != null && starHolon.MetaData.ContainsKey("GeoNFT.MetaData") && starHolon.MetaData["GeoNFT.MetaData"] != null)
+                    //{
+                    //    Dictionary<string, object> metaData = starHolon.MetaData["GeoNFT.MetaData"] as Dictionary<string, object>;
+
+                    //    if (metaData != null)
+                    //    {
+                    //        CLIEngine.ShowMessage($"MetaData:");
+
+                    //        foreach (string key in metaData.Keys)
+                    //            CLIEngine.ShowMessage($"          {key} = {starHolon.MetaData[key]}");
+                    //    }
+                    //    else
+                    //        CLIEngine.ShowMessage($"MetaData: None");
+                    //}
+                    //else
+                    //    CLIEngine.ShowMessage($"MetaData: None");
                 }
-                else
-                    CLIEngine.ShowMessage($"MetaData: None");
             }
-            else
-                CLIEngine.ShowMessage($"MetaData: None");
 
             CLIEngine.ShowDivider();
         }
@@ -298,8 +393,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             request.GeoNFTMetaDataProvider = new Utilities.EnumValue<ProviderType>((ProviderType)CLIEngine.GetValidInputForEnum("What provider would you like to store the Geo-NFT metadata on? (NOTE: It will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive)", typeof(ProviderType)));
-            long nftLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your NFT to appear in Our World/AR World?");
-            long nftLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your NFT to appear in Our World/AR World?");
+            request.Lat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your NFT to appear in Our World/AR World?");
+            request.Long = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your NFT to appear in Our World/AR World?");
 
             OASISResult<ImageObjectResult> imageObjectResult = await ProcessImageOrObjectAsync("Geo-NFT");
 
@@ -325,6 +420,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     request.RespawnDurationInSeconds = CLIEngine.GetValidInputForInt("How long will it take (in seconds) for the NFT to re-spawn once it has been collected?");
                     request.PlayerSpawnQuantity = CLIEngine.GetValidInputForInt("How many times can the NFT re-spawn once it has been collected for a given player/avatar? (If you want to enforce that players/avatars can only collect each NFT once then set this to 0.)");
                 }
+                else
+                    Console.WriteLine("");
             }
 
             return request;

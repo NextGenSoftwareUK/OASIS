@@ -16,7 +16,7 @@ using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
     [BsonDiscriminator("OAPPDNA")]
-    //[BsonDiscriminator("OAPPDNAJSON")]
+    [BsonIgnoreExtraElements()]
     public class HolonBase : IHolonBase// Equvilant to the HolonBase object in OASIS.API.Core.
     {
         [BsonId]  
@@ -35,6 +35,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
         //[BsonElement("MetaData2")]
+
+        //[BsonDiscriminator("OASISGeoSpatialNFT")]
+        
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>(); // Key/Value pair meta data can be stored here that applies globally across ALL providers.
 
         public Guid HolonId { get; set; } //Unique id within the OASIS.

@@ -497,18 +497,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         private async Task<OASISResult<IQuest>> CreateQuestInternalAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, questType, fullPathToQuest, null, null, new Dictionary<string, object>()
+            OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, questType, fullPathToQuest, new Objects.STARNETCreateOptions<Quest, STARNETDNA>()
             {
-                //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
-                //{ "ParentMissionId", parentMissionId.ToString() },
-                //{ "ParentQuestId", parentQuestId.ToString() }
-            }, new Quest
-            {
-                QuestType = questType,
-                ParentMissionId = parentMissionId,
-                ParentQuestId = parentQuestId
-            }, null, checkIfSourcePathExists,
-            providerType);
+                CheckIfSourcePathExists = checkIfSourcePathExists,
+                STARNETHolon = new Quest
+                {
+                    QuestType = questType,
+                    ParentMissionId = parentMissionId,
+                    ParentQuestId = parentQuestId
+                }
+            }, providerType);
+           
+
+            //OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, questType, fullPathToQuest, null, null, new Dictionary<string, object>()
+            //{
+            //    //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
+            //    //{ "ParentMissionId", parentMissionId.ToString() },
+            //    //{ "ParentQuestId", parentQuestId.ToString() }
+            //}, new Quest
+            //{
+            //    QuestType = questType,
+            //    ParentMissionId = parentMissionId,
+            //    ParentQuestId = parentQuestId
+            //}, null, checkIfSourcePathExists,
+            //providerType);
 
             OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);

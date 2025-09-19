@@ -9,6 +9,10 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using Newtonsoft.Json;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -47,19 +51,71 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //        CLIEngine.ShowErrorMessage("No NFT Found For That Id!");
         //}
 
-        public override async Task<OASISResult<STARNFT>> CreateAsync(object createParams, STARNFT newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<STARNFT>> CreateAsync(ISTARNETCreateOptions<STARNFT, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARNFT> result = new OASISResult<STARNFT>();
+            OASISResult<IOASISNFT> NFTResult = null;
+            bool mint = false;
 
-            //Guid geoNFTId = CLIEngine.GetValidInputForGuid("Please enter the ID of the GeoNFT you wish to upload to STARNET: ");
-            //OASISResult<IOASISGeoSpatialNFT> geoNFTResult = await NFTManager.LoadGeoNftAsync(geoNFTId);
+            ShowHeader();
 
-            OASISResult<IOASISNFT> mintResult = await MintNFTAsync(); //Mint WEB4 NFT
+            if (CLIEngine.GetConfirmation("Do you have an existing WEB4 OASIS NFT you wish to create a WEB5 NFT from?"))
+            {
+                Console.WriteLine("");
+                Guid geoNFTId = CLIEngine.GetValidInputForGuid("Please enter the ID of the WEB4 NFT you wish to upload to STARNET: ");
 
-            if (mintResult != null && mintResult.Result != null && !mintResult.IsError)
-                result = await base.CreateAsync(createParams, new STARNFT() { OASISNFTId = mintResult.Result.Id }, showHeaderAndInro, checkIfSourcePathExists, metaData: new Dictionary<string, object>() { { "NFT.MetaData", result.Result.MetaData } }, providerType: providerType);
+                if (geoNFTId != Guid.Empty)
+                    NFTResult = await STAR.OASISAPI.NFTs.LoadNftAsync(geoNFTId);
+                else
+                {
+                    result.IsWarning = true;
+                    result.Message = "User Exited";
+                    return result;
+                }
+            }
             else
-                OASISErrorHandling.HandleError(ref result, $"Error occured minting NFT in MintNFTAsync method. Reason: {mintResult.Message}");
+            {
+                Console.WriteLine("");
+                NFTResult = await MintNFTAsync(); //Mint WEB4 GeoNFT (mints and wraps around a WEB4 OASIS NFT).
+                mint = true;
+            }
+
+            if (NFTResult != null && NFTResult.Result != null && !NFTResult.IsError)
+            {
+                IOASISNFT NFT = NFTResult.Result;
+
+                if (!mint || (mint && CLIEngine.GetConfirmation("Would you like to submit the WEB4 OASIS NFT to WEB5 STARNET which will create a WEB5 STAR NFT that wraps around the WEB4 OASISNFT allowing you to version control, publish, share, use in Our World, Quests, etc? (recommended). Selecting 'Y' will also create a WEB3 JSONMetaData and a WEB4 OASISNFT json file in the WEB5 STAR NFT folder. Currently if you select 'N' then it will not show up for the 'nft list' or 'nft show' sub-command's since these only support WEB5 NFTs. Future support may be added to list/show WEB4 GeoNFT's and NFT's.")))
+                {
+                    Console.WriteLine("");
+
+                    result = await base.CreateAsync(new STARNETCreateOptions<STARNFT, STARNETDNA>()
+                    {
+                        STARNETDNA = new STARNETDNA()
+                        {
+                            MetaData = new Dictionary<string, object>() { { "NFT", NFT } }
+                        },
+                        STARNETHolon = new STARNFT()
+                        {
+                            OASISNFTId = NFTResult.Result.Id
+                        }
+                    }, holonSubType, showHeaderAndInro, providerType);
+
+                    if (result != null && result.Result != null && !result.IsError)
+                    {
+                        File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"OASISNFT_{NFTResult.Result.Id}.json"), JsonConvert.SerializeObject(NFT));
+
+                        if (!string.IsNullOrEmpty(NFTResult.Result.JSONMetaData))
+                            File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"JSONMetaData_{NFTResult.Result.Id}.json"), NFTResult.Result.JSONMetaData);
+                    }
+                }
+            }
+            else
+            {
+                if (mint)
+                    OASISErrorHandling.HandleError(ref result, $"Error occured minting GeoNFT in MintGeoNFTAsync method. Reason: {NFTResult.Message}");
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured loading GeoNFT in LoadGeoNftAsync method. Reason: {NFTResult.Message}");
+            }
 
             return result;
         }
