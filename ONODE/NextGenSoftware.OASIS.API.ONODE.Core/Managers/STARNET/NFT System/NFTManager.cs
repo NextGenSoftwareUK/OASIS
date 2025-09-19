@@ -1900,6 +1900,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private string GenerateNFTSummary(IOASISNFT OASISNFT, IMintNFTTransactionRequest request, string lineBreak, int colWidth)
         {
             string message = "";
+            message = string.Concat(message, " OASIS NFT Id:".PadRight(colWidth), OASISNFT.Id, lineBreak);
             message = string.Concat(message, " Onchain Provider:".PadRight(colWidth), OASISNFT.OnChainProvider.Name, lineBreak);
             message = string.Concat(message, " Offchain Provider:".PadRight(colWidth), OASISNFT.OffChainProvider.Name, lineBreak);
             message = string.Concat(message, " Mint Transaction Hash:".PadRight(colWidth), OASISNFT.MintTransactionHash, lineBreak);
@@ -1912,7 +1913,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             message = string.Concat(message, " Minted Date:".PadRight(colWidth), OASISNFT.MintedOn, lineBreak);
             message = string.Concat(message, " OASIS Minting Account:".PadRight(colWidth), OASISNFT.OASISMintWalletAddress, lineBreak);
             message = string.Concat(message, " NFT Address:".PadRight(colWidth), OASISNFT.NFTTokenAddress, lineBreak);
-            message = string.Concat(message, " OASIS NFT Id:".PadRight(colWidth), OASISNFT.Id, lineBreak);
+            message = string.Concat(message, " Store NFT MetaData OnChain:".PadRight(colWidth), OASISNFT.StoreNFTMetaDataOnChain, lineBreak);
+            message = string.Concat(message, " NFT OffChain MetaType:".PadRight(colWidth), OASISNFT.NFTOffChainMetaType, lineBreak);
             message = string.Concat(message, " JSON MetaData URL:".PadRight(colWidth), OASISNFT.JSONMetaDataURL, lineBreak);
 
             if (OASISNFT.JSONMetaDataURLHolonId != Guid.Empty)
@@ -1933,11 +1935,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         {
             string message = "";
             message = string.Concat(message, " Lat/Long:".PadRight(colWidth), OASISNFT.Lat, "/", OASISNFT.Long, lineBreak);
-            message = string.Concat(message, " Global Spawn Quantity:".PadRight(colWidth), OASISNFT.GlobalSpawnQuantity, lineBreak);
-            message = string.Concat(message, " Allow Other Players To Also Collect:".PadRight(colWidth), OASISNFT.AllowOtherPlayersToAlsoCollect, lineBreak);
-            message = string.Concat(message, " Player Spawn Quantity:".PadRight(colWidth), OASISNFT.PlayerSpawnQuantity, lineBreak);
             message = string.Concat(message, " Perm Spawn:".PadRight(colWidth), OASISNFT.PermSpawn, lineBreak);
-            message = string.Concat(message, " Respawn Duration In Seconds:".PadRight(colWidth), OASISNFT.RespawnDurationInSeconds, lineBreak);
+
+            if (!OASISNFT.PermSpawn)
+            {
+                message = string.Concat(message, " Allow Other Players To Also Collect:".PadRight(colWidth), OASISNFT.AllowOtherPlayersToAlsoCollect, lineBreak);
+
+                if (OASISNFT.AllowOtherPlayersToAlsoCollect)
+                {
+                    message = string.Concat(message, " Global Spawn Quantity:".PadRight(colWidth), OASISNFT.GlobalSpawnQuantity, lineBreak);
+                    message = string.Concat(message, " Player Spawn Quantity:".PadRight(colWidth), OASISNFT.PlayerSpawnQuantity, lineBreak);
+                    message = string.Concat(message, " Respawn Duration In Seconds:".PadRight(colWidth), OASISNFT.RespawnDurationInSeconds, lineBreak);
+                }
+                else
+                {
+                    message = string.Concat(message, " Global Spawn Quantity:".PadRight(colWidth), "N/A", lineBreak);
+                    message = string.Concat(message, " Player Spawn Quantity:".PadRight(colWidth), "N/A", lineBreak);
+                    message = string.Concat(message, " Respawn Duration In Seconds:".PadRight(colWidth), "N/A", lineBreak);
+                }
+            }
+            else
+            {
+                message = string.Concat(message, " Allow Other Players To Also Collect:".PadRight(colWidth), "N/A", lineBreak);
+                message = string.Concat(message, " Global Spawn Quantity:".PadRight(colWidth), "N/A", lineBreak);
+                message = string.Concat(message, " Player Spawn Quantity:".PadRight(colWidth), "N/A", lineBreak);
+                message = string.Concat(message, " Respawn Duration In Seconds:".PadRight(colWidth), "N/A", lineBreak);
+            }
+
             message = string.Concat(message, " 2D Sprite URI:".PadRight(colWidth), !string.IsNullOrEmpty(OASISNFT.Nft2DSpriteURI) ? OASISNFT.Nft2DSpriteURI : "None", lineBreak);
             message = string.Concat(message, " 2D Sprite:".PadRight(colWidth), OASISNFT.Nft2DSprite != null ? "Yes" : "None", lineBreak);
             message = string.Concat(message, " 3D Object URI:".PadRight(colWidth), !string.IsNullOrEmpty(OASISNFT.Nft3DObjectURI) ? OASISNFT.Nft3DObjectURI : "None", lineBreak);
@@ -2107,7 +2131,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 Id = Guid.NewGuid(),
                 MintTransactionHash = mintNFTResponse.TransactionResult,
                 SellerFeeBasisPoints = mintNFTResponse.OASISNFT != null ? mintNFTResponse.OASISNFT.SellerFeeBasisPoints : 0,
-                MetaData = mintNFTResponse.OASISNFT != null ? mintNFTResponse.OASISNFT.MetaData : null,
+                //MetaData = mintNFTResponse.OASISNFT != null ? mintNFTResponse.OASISNFT.MetaData : null,
+                MetaData = request.MetaData,
                 OASISMintWalletAddress = mintNFTResponse.OASISNFT != null ? mintNFTResponse.OASISNFT.OASISMintWalletAddress : null,
                 UpdateAuthority = mintNFTResponse.OASISNFT != null ? mintNFTResponse.OASISNFT.UpdateAuthority : null,
                 NFTTokenAddress = mintNFTResponse.OASISNFT != null ? mintNFTResponse.OASISNFT.NFTTokenAddress : null, //TODO: Need to pull this from the provider mint functions...

@@ -25,6 +25,9 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Events.STARNETHolon;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects.STARNET;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 {
@@ -109,16 +112,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         public Type STARNETCategory { get; set; }
         public STARDNA STARDNA { get; set; }
 
-        public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, Dictionary<string, object> metaData = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, STARNETCreateOptions<T1, T4> createOptions = null)
+        //{
+        //    //return CreateAsync(avatarId, name, description, holonSubType, fullPathToSourceFolder, createOptions != null ? createOptions.ProviderType : ProviderType.Default, createOptions != null ? createOptions.MetaHolonTagMappings : null, createOptions != null ? createOptions.MetaTagMappings : null, createOptions != null ? createOptions.NewHolon : null, createOptions != null ? createOptions.STARNETDNA : null, createOptions != null ? createOptions.CheckIfSourcePathExists : true);
+        //}
+
+        //public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, Dictionary<string, object> metaData = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, List<MetaHolonTag> metaHolonTagMappings = null, Dictionary<string, string> metaTagMappings = null, T1 newHolon = default, T4 STARNETDNA = default, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<T1>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, ISTARNETCreateOptions<T1, T4> createOptions = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in STARNETManagerBase.CreateAsync, Reason:";
             T1 holon;
+            T4 STARNETDNA;
 
             try
             {
                 //TODO: Dont want UI in the backend!
-                if (Directory.Exists(fullPathToSourceFolder) && checkIfSourcePathExists)
+                if (Directory.Exists(fullPathToSourceFolder) && createOptions != null && createOptions.CheckIfSourcePathExists)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToSourceFolder} already exists! Please either delete it or choose a different name.");
                     return result;
@@ -136,9 +147,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     //}
                 }
 
-                if (newHolon != null)
+                if (createOptions != null && createOptions.STARNETHolon != null)
                 {
-                    holon = newHolon;
+                    holon = createOptions.STARNETHolon;
 
                     if (holon.Id == Guid.Empty)
                         holon.Id = Guid.NewGuid();
@@ -170,21 +181,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 holon.MetaData["Active"] = "1";
                 holon.MetaData["CreatedByAvatarId"] = avatarId.ToString();
 
-                foreach (string key in metaData?.Keys ?? new Dictionary<string, object>().Keys)
-                {
-                    if (!holon.MetaData.ContainsKey(key))
-                        holon.MetaData.Add(key, metaData[key]);
-                    else
-                        holon.MetaData[key] = metaData[key];
-                }
+                //foreach (string key in metaData?.Keys ?? new Dictionary<string, object>().Keys)
+                //{
+                //    if (!holon.MetaData.ContainsKey(key))
+                //        holon.MetaData.Add(key, metaData[key]);
+                //    else
+                //        holon.MetaData[key] = metaData[key];
+                //}
 
-                //T.MetaData["LatestVersion"] = "1";
 
                 OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId, false, true, providerType);
 
                 if (avatarResult != null && avatarResult.Result != null && !avatarResult.IsError)
                 {
-                    if (STARNETDNA == null)
+                    if (createOptions != null && createOptions.STARNETDNA != null)
+                        STARNETDNA = createOptions.STARNETDNA;
+                    else
                         STARNETDNA = new T4();
 
                     STARNETDNA.Id = holon.Id;
@@ -205,9 +217,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion;
                     STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
                     STARNETDNA.SourcePath = fullPathToSourceFolder;
-                    STARNETDNA.MetaData = metaData; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
-                    STARNETDNA.MetaTagMappings.MetaHolonTags = metaHolonTagMappings;
-                    STARNETDNA.MetaTagMappings.MetaTags = metaTagMappings;
+                    //STARNETDNA.MetaData = metaData; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
+                    //STARNETDNA.MetaTagMappings.MetaHolonTags = createOptions != null ? createOptions.MetaTagMappings
+                    //STARNETDNA.MetaTagMappings.MetaTags = metaTagMappings;
+                    STARNETDNA.MetaTagMappings = createOptions != null ? createOptions.MetaTagMappings : new MetaTagMappings();
 
                     //STARNETDNA STARNETDNA = new STARNETDNA()
                     //{
