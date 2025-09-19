@@ -22,6 +22,7 @@ using NextGenSoftware.OASIS.STAR.Enums;
 using NextGenSoftware.OASIS.STAR.CLI.Lib;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 { //test
@@ -830,7 +831,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static async Task ShowSubCommandAsync<T>(string[] inputArgs, 
             string subCommand = "",
             string subCommandPlural = "",
-            Func<object, T, bool, bool, object, Dictionary<string, object>, STARNETDNA, ProviderType, Task> createPredicate = null, 
+            Func<ISTARNETCreateOptions<T, STARNETDNA>, object, bool, ProviderType, Task> createPredicate = null, 
             Func<string, object, ProviderType, Task> updatePredicate = null, 
             Func<string, bool, ProviderType, Task> deletePredicate = null,
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
@@ -857,7 +858,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             bool showCreate = true,
             bool showUpdate = true,
             bool showDelete = true,
-            ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon
+            ProviderType providerType = ProviderType.Default) where T : ISTARNETHolon, new()
         {
             string subCommandParam = "";
             string subCommandParam2 = "";
@@ -923,7 +924,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             if (showCreate)
                             {
                                 if (createPredicate != null)
-                                    await createPredicate(null, default, true, true, null, null, null, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                    await createPredicate(null, null, true, providerType); //TODO: Pass in params in a object or dynamic obj.
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }

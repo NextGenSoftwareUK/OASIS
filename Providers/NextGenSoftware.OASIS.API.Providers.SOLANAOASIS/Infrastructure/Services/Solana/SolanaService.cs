@@ -28,7 +28,15 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 creators = _creators
             };
 
-            RequestResult<string> createNftResult = await metadataClient.CreateNFT(
+            // Save the original Console.Out
+            var originalConsoleOut = Console.Out;
+
+            try
+            {
+                // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
+                Console.SetOut(new NullTextWriter());
+
+                RequestResult<string> createNftResult = await metadataClient.CreateNFT(
                 ownerAccount: oasisAccount,
                 mintAccount: mintAccount,
                 TokenStandard.NonFungible,
@@ -36,28 +44,34 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 isMasterEdition: true,
                 isMutable: true);
 
-            if (!createNftResult.WasSuccessful)
-            {
-                bool isBalanceError =
-                    createNftResult.ErrorData?.Error.Type is TransactionErrorType.InsufficientFundsForFee
-                        or TransactionErrorType.InvalidRentPayingAccount;
-
-                bool isLamportError = createNftResult.ErrorData?.Logs?.Any(log =>
-                    log.Contains("insufficient lamports", StringComparison.OrdinalIgnoreCase)) == true;
-
-                if (isBalanceError || isLamportError)
+                if (!createNftResult.WasSuccessful)
                 {
-                    return HandleError<MintNftResult>(
-                        $"{createNftResult.Reason}.\n Insufficient SOL to cover the transaction fee or rent.");
+                    bool isBalanceError =
+                        createNftResult.ErrorData?.Error.Type is TransactionErrorType.InsufficientFundsForFee
+                            or TransactionErrorType.InvalidRentPayingAccount;
+
+                    bool isLamportError = createNftResult.ErrorData?.Logs?.Any(log =>
+                        log.Contains("insufficient lamports", StringComparison.OrdinalIgnoreCase)) == true;
+
+                    if (isBalanceError || isLamportError)
+                    {
+                        return HandleError<MintNftResult>(
+                            $"{createNftResult.Reason}.\n Insufficient SOL to cover the transaction fee or rent.");
+                    }
+
+                    return HandleError<MintNftResult>(createNftResult.Reason);
                 }
 
-                return HandleError<MintNftResult>(createNftResult.Reason);
+                return SuccessResult(
+                    new(mintAccount.PublicKey.Key,
+                        Solana,
+                        createNftResult.Result));
             }
-
-            return SuccessResult(
-                new(mintAccount.PublicKey.Key,
-                    Solana,
-                    createNftResult.Result));
+            finally
+            {
+                // Restore the original Console.Out
+                Console.SetOut(originalConsoleOut);
+            } 
         }
         catch (Exception ex)
         {

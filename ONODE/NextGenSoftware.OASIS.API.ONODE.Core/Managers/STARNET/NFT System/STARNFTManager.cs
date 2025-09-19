@@ -55,88 +55,88 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "NFTDNAJSON")
         { }
 
-        public async Task<OASISResult<ISTARNFT>> CreateNFTAsync(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToNFTSource,
-            NFTType nftType,
-            IOASISNFT OASISNFT,
-            bool checkIfSourcePathExists = true,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToNFTSource, null, null, null,
-                new STARNFT()
-                {
-                    NFTType = nftType,
-                    OASISNFT = OASISNFT
-                }, null, checkIfSourcePathExists: checkIfSourcePathExists,
-            providerType));
-        }
+        //public async Task<OASISResult<ISTARNFT>> CreateNFTAsync(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToNFTSource,
+        //    NFTType nftType,
+        //    IOASISNFT OASISNFT,
+        //    bool checkIfSourcePathExists = true,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToNFTSource, null, null, null,
+        //        new STARNFT()
+        //        {
+        //            NFTType = nftType,
+        //            OASISNFT = OASISNFT
+        //        }, null, checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        public OASISResult<ISTARNFT> CreateNFT(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToNFTSource,
-            NFTType nftType,
-            IOASISNFT OASISNFT,
-            bool checkIfSourcePathExists = true,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(base.Create(avatarId, name, description, nftType, fullPathToNFTSource, null,
-                new STARNFT()
-                {
-                    NFTType = nftType,
-                    OASISNFT = OASISNFT
-                }, null, checkIfSourcePathExists: checkIfSourcePathExists,
-            providerType));
-        }
+        //public OASISResult<ISTARNFT> CreateNFT(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToNFTSource,
+        //    NFTType nftType,
+        //    IOASISNFT OASISNFT,
+        //    bool checkIfSourcePathExists = true,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.Create(avatarId, name, description, nftType, fullPathToNFTSource, null,
+        //        new STARNFT()
+        //        {
+        //            NFTType = nftType,
+        //            OASISNFT = OASISNFT
+        //        }, null, checkIfSourcePathExists: checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        public async Task<OASISResult<ISTARNFT>> CreateNFTAsync(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToNFTSource,
-            NFTType nftType,
-            Guid OASISNFTId,
-            bool checkIfSourcePathExists = true,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToNFTSource, null, null, null,
-                new STARNFT()
-                {
-                    NFTType = nftType,
-                    OASISNFTId = OASISNFTId
-                }, null, checkIfSourcePathExists: checkIfSourcePathExists,
-            providerType));
-        }
+        //public async Task<OASISResult<ISTARNFT>> CreateNFTAsync(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToNFTSource,
+        //    NFTType nftType,
+        //    Guid OASISNFTId,
+        //    bool checkIfSourcePathExists = true,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(await base.CreateAsync(avatarId, name, description, nftType, fullPathToNFTSource, null, null, null,
+        //        new STARNFT()
+        //        {
+        //            NFTType = nftType,
+        //            OASISNFTId = OASISNFTId
+        //        }, null, checkIfSourcePathExists: checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        public OASISResult<ISTARNFT> CreateNFT(
-            Guid avatarId,
-            string name,
-            string description,
-            string fullPathToNFTSource,
-            NFTType nftType,
-            Guid OASISNFTId,
-            bool checkIfSourcePathExists = true,
-            ProviderType providerType = ProviderType.Default)
-        {
-            return ProcessResult(base.Create(avatarId, name, description, nftType, fullPathToNFTSource, null,
-                new STARNFT()
-                {
-                    NFTType = nftType,
-                    OASISNFTId = OASISNFTId
-                }, null, checkIfSourcePathExists: checkIfSourcePathExists,
-            providerType));
-        }
+        //public OASISResult<ISTARNFT> CreateNFT(
+        //    Guid avatarId,
+        //    string name,
+        //    string description,
+        //    string fullPathToNFTSource,
+        //    NFTType nftType,
+        //    Guid OASISNFTId,
+        //    bool checkIfSourcePathExists = true,
+        //    ProviderType providerType = ProviderType.Default)
+        //{
+        //    return ProcessResult(base.Create(avatarId, name, description, nftType, fullPathToNFTSource, null,
+        //        new STARNFT()
+        //        {
+        //            NFTType = nftType,
+        //            OASISNFTId = OASISNFTId
+        //        }, null, checkIfSourcePathExists: checkIfSourcePathExists,
+        //    providerType));
+        //}
 
-        private OASISResult<ISTARNFT> ProcessResult(OASISResult<STARNFT> operationResult)
-        {
-            OASISResult<ISTARNFT> result = new OASISResult<ISTARNFT>();
-            result.Result = operationResult.Result;
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
-            return result;
-        }
+        //private OASISResult<ISTARNFT> ProcessResult(OASISResult<STARNFT> operationResult)
+        //{
+        //    OASISResult<ISTARNFT> result = new OASISResult<ISTARNFT>();
+        //    result.Result = operationResult.Result;
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(operationResult, result);
+        //    return result;
+        //}
     }
 }

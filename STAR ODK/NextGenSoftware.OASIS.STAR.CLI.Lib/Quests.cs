@@ -2,6 +2,8 @@
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.DNA;
 
@@ -28,7 +30,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultQuestsInstalledPath, "DefaultQuestsInstalledPath")
         { }
 
-        public override async Task<OASISResult<Quest>> CreateAsync(object createParams, Quest newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<Quest>> CreateAsync(ISTARNETCreateOptions<Quest, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Quest> result = new OASISResult<Quest>();
             Mission parentMission = null;
@@ -68,18 +70,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (parentQuest != null)
                 order = parentQuest.Quests.Count() + 1;
 
-            if (newHolon == null)
-                newHolon = new Quest();
+            if (createOptions == null)
+                createOptions = new STARNETCreateOptions<Quest, STARNETDNA>() { STARNETHolon = new Quest() };
 
             if (parentMission != null)
-                newHolon.ParentMissionId = parentMission.Id;
+                createOptions.STARNETHolon.ParentMissionId = parentMission.Id;
             
             if (parentQuest != null)
-                newHolon.ParentQuestId = parentQuest.Id;
- 
-            newHolon.Order = order;
+                createOptions.STARNETHolon.ParentQuestId = parentQuest.Id;
 
-            result = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, metaData, STARNETDNA, providerType);
+            createOptions.STARNETHolon.Order = order;
+
+            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
 
             if (result != null)
             {
