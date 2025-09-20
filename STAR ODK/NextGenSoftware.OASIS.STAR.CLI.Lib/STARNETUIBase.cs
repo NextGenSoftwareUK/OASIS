@@ -2088,7 +2088,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public virtual async Task SearchsAsync(string searchTerm = "", bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task SearchAsync(string searchTerm = "", bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
         {
             if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
             {
@@ -2111,10 +2111,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             OASISResult<T1> result = await FindAsync("view", idOrName, true, providerType: providerType);
 
-            if (result != null && !result.IsError && result.Result != null)
-                Show(result.Result, showDetailedInfo: showDetailed);
-            else
-                CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
+            //if (result != null && !result.IsError && result.Result != null)
+            //    Show(result.Result, showDetailedInfo: showDetailed);
+            //else
+            //    CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {result.Message}");
         }
 
         public virtual void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = DEFAULT_FIELD_LENGTH, object customData = null) where T : ISTARNETHolon
