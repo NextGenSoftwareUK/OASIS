@@ -1914,7 +1914,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             message = string.Concat(message, " OASIS Minting Account:".PadRight(colWidth), OASISNFT.OASISMintWalletAddress, lineBreak);
             message = string.Concat(message, " NFT Address:".PadRight(colWidth), OASISNFT.NFTTokenAddress, lineBreak);
             message = string.Concat(message, " Store NFT MetaData OnChain:".PadRight(colWidth), OASISNFT.StoreNFTMetaDataOnChain, lineBreak);
-            message = string.Concat(message, " NFT OffChain MetaType:".PadRight(colWidth), OASISNFT.NFTOffChainMetaType, lineBreak);
+            message = string.Concat(message, " NFT OffChain MetaType:".PadRight(colWidth), OASISNFT.NFTOffChainMetaType.Name, lineBreak);
             message = string.Concat(message, " JSON MetaData URL:".PadRight(colWidth), OASISNFT.JSONMetaDataURL, lineBreak);
 
             if (OASISNFT.JSONMetaDataURLHolonId != Guid.Empty)

@@ -13,6 +13,8 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -102,10 +104,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
-                        File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"OASISNFT_{NFTResult.Result.Id}.json"), JsonConvert.SerializeObject(NFT));
+                        result.Result.NFTType = (NFTType)result.Result.STARNETDNA.STARNETCategory;
+                        OASISResult<STARNFT> saveResult = await result.Result.SaveAsync<STARNFT>();
 
-                        if (!string.IsNullOrEmpty(NFTResult.Result.JSONMetaData))
-                            File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"JSONMetaData_{NFTResult.Result.Id}.json"), NFTResult.Result.JSONMetaData);
+                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                        {
+                            File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"OASISNFT_{NFTResult.Result.Id}.json"), JsonConvert.SerializeObject(NFT));
+
+                            if (!string.IsNullOrEmpty(NFTResult.Result.JSONMetaData))
+                                File.WriteAllText(Path.Combine(result.Result.STARNETDNA.SourcePath, $"JSONMetaData_{NFTResult.Result.Id}.json"), NFTResult.Result.JSONMetaData);
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"Error occured saving STARNFT after creation in CreateAsync method. Reason: {saveResult.Message}");
                     }
                 }
             }
@@ -176,139 +186,303 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public override void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 35, object customData = null)
         {
+            displayFieldLength = DEFAULT_FIELD_LENGTH;
             base.Show(starHolon, showHeader, false, showNumbers, number, showDetailedInfo, displayFieldLength, customData);
 
-            DisplayProperty("NFT DETAILS", "", displayFieldLength, false);
-            DisplayProperty("NFT Id", ParseMetaData(starHolon.MetaData, "NFT.Id"), displayFieldLength);
-            DisplayProperty("Title", ParseMetaData(starHolon.MetaData, "NFT.Title"), displayFieldLength);
-            DisplayProperty("Description", ParseMetaData(starHolon.MetaData, "NFT.Description"), displayFieldLength);
-            DisplayProperty("Price", ParseMetaData(starHolon.MetaData, "NFT.Price"), displayFieldLength);
-            DisplayProperty("Discount", ParseMetaData(starHolon.MetaData, "NFT.Discount"), displayFieldLength);
-            DisplayProperty("OASIS MintWallet Address", ParseMetaData(starHolon.MetaData, "NFT.OASISMintWalletAddress"), displayFieldLength);
-            DisplayProperty("Mint Transaction Hash", ParseMetaData(starHolon.MetaData, "NFT.MintTransactionHash"), displayFieldLength);
-            DisplayProperty("NFT Token Address", ParseMetaData(starHolon.MetaData, "NFT.NFTTokenAddress"), displayFieldLength);
-            DisplayProperty("Minted By Avatar Id", ParseMetaData(starHolon.MetaData, "NFT.MintedByAvatarId"), displayFieldLength);
-            DisplayProperty("Minted On", ParseMetaData(starHolon.MetaData, "NFT.MintedOn"), displayFieldLength);
-            DisplayProperty("OnChain Provider", ParseMetaData(starHolon.MetaData, "NFT.OnChainProvider"), displayFieldLength);
-            DisplayProperty("OffChain Provider", ParseMetaData(starHolon.MetaData, "NFT.OffChainProvider"), displayFieldLength);
-            DisplayProperty("Store NFT Meta Data OnChain", ParseMetaData(starHolon.MetaData, "NFT.StoreNFTMetaDataOnChain"), displayFieldLength);
-            DisplayProperty("NFT OffChain Meta Type", ParseMetaData(starHolon.MetaData, "NFT.NFTOffChainMetaType"), displayFieldLength);
-            DisplayProperty("NFT Standard Type", ParseMetaData(starHolon.MetaData, "NFT.NFTStandardType"), displayFieldLength);
-            DisplayProperty("Symbol", ParseMetaData(starHolon.MetaData, "NFT.Symbol"), displayFieldLength);
-            DisplayProperty("Image", ParseMetaDataForByteArray(starHolon.MetaData, "NFT.Image"), displayFieldLength);
-            DisplayProperty("Image Url", ParseMetaData(starHolon.MetaData, "NFT.ImageUrl"), displayFieldLength);
-            DisplayProperty("Thumbnail", ParseMetaDataForByteArray(starHolon.MetaData, "NFT.Thumbnail"), displayFieldLength);
-            DisplayProperty("Thumbnail Url", ParseMetaData(starHolon.MetaData, "NFT.ThumbnailUrl"), displayFieldLength);
-            DisplayProperty("JSON MetaData URL", ParseMetaData(starHolon.MetaData, "NFT.JSONMetaDataURL"), displayFieldLength);
-            DisplayProperty("JSON MetaData URL Holon Id", ParseMetaData(starHolon.MetaData, "NFT.JSONMetaDataURLHolonId"), displayFieldLength);
-            DisplayProperty("Seller Fee Basis Points", ParseMetaData(starHolon.MetaData, "NFT.SellerFeeBasisPoints"), displayFieldLength);
-            DisplayProperty("Update Authority", ParseMetaData(starHolon.MetaData, "NFT.UpdateAuthority"), displayFieldLength);
-            DisplayProperty("Send To Address After Minting", ParseMetaData(starHolon.MetaData, "NFT.SendToAddressAfterMinting"), displayFieldLength);
-            DisplayProperty("Send To Avatar After Minting Id", ParseMetaData(starHolon.MetaData, "NFT.SendToAvatarAfterMintingId"), displayFieldLength);
-            DisplayProperty("Send To Avatar After Minting Username", ParseMetaData(starHolon.MetaData, "NFT.SendToAvatarAfterMintingUsername"), displayFieldLength);
-            DisplayProperty("Send NFT Transaction Hash", ParseMetaData(starHolon.MetaData, "NFT.SendNFTTransactionHash"), displayFieldLength);
-
-            if (starHolon.MetaData != null && starHolon.MetaData.ContainsKey("NFT.MetaData") && starHolon.MetaData["NFT.MetaData"] != null)
+            if (starHolon.STARNETDNA != null && starHolon.STARNETDNA.MetaData != null && starHolon.STARNETDNA.MetaData.ContainsKey("NFT") && starHolon.STARNETDNA.MetaData["NFT"] != null)
             {
-                Dictionary<string, object> metaData = starHolon.MetaData["NFT.MetaData"] as Dictionary<string, object>;
+                IOASISNFT nft = starHolon.STARNETDNA.MetaData["NFT"] as IOASISGeoSpatialNFT;
 
-                if (metaData != null)
-                {
-                    CLIEngine.ShowMessage($"MetaData:");
+                if (nft == null)
+                    nft = JsonConvert.DeserializeObject<OASISNFT>(starHolon.STARNETDNA.MetaData["NFT"].ToString());
 
-                    foreach (string key in metaData.Keys)
-                        CLIEngine.ShowMessage($"          {key} = {starHolon.MetaData[key]}");
-                }
-                else
-                    CLIEngine.ShowMessage($"MetaData: None");
+                if (nft != null)
+                    ShowNFT(nft, displayFieldLength);
             }
-            else
-                CLIEngine.ShowMessage($"MetaData: None");
 
             CLIEngine.ShowDivider();
         }
 
-        //public async Task ShowNFTAsync(Guid id = new Guid(), ProviderType providerType = ProviderType.Default)
-        //{
-        //    if (id == Guid.Empty)
-        //        id = CLIEngine.GetValidInputForGuid("What is the GUID/ID to the NFT you wish to view?");
+        public virtual async Task<OASISResult<IEnumerable<IOASISNFT>>> ListAllWeb4NFTsAsync(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Loading WEB4 NFT's...");
+            return ListWeb4NFTs(await NFTCommon.NFTManager.LoadAllNFTsAsync(providerType));
+        }
 
-        //    CLIEngine.ShowWorkingMessage("Loading NFT...");
-        //    OASISResult<IOASISNFT> nft = await STAR.OASISAPI.NFTs.LoadNftAsync(id);
+        public virtual OASISResult<IEnumerable<IOASISNFT>> ListAllWeb4NFTs(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Loading WEB4 NFT's...");
+            return ListWeb4NFTs(NFTCommon.NFTManager.LoadAllNFTs(providerType));
+        }
 
-        //    if (nft != null && !nft.IsError && nft.Result != null)
-        //    {
-        //        CLIEngine.ShowDivider();
-        //        ShowNFT(nft.Result);
-        //    }
-        //    else
-        //        CLIEngine.ShowErrorMessage("No NFT Found.");
-        //}
+        public virtual async Task<OASISResult<IEnumerable<IOASISNFT>>> ListAllWeb4NFTForAvatarsAsync(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Loading WEB4 NFT's...");
+            return ListWeb4NFTs(await NFTCommon.NFTManager.LoadAllNFTsForAvatarAsync(STAR.BeamedInAvatar.Id, providerType));
+        }
 
-        //public void ShowNFT(IOASISNFT nft)
-        //{
-        //    string image = nft.Image != null ? "Yes" : "No";
+        public virtual OASISResult<IEnumerable<IOASISNFT>> ListAllWeb4NFTsForAvatar(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Loading WEB4 NFT's...");
+            return ListWeb4NFTs(NFTCommon.NFTManager.LoadAllNFTsForAvatar(STAR.BeamedInAvatar.Id, providerType));
+        }
 
-        //    CLIEngine.ShowMessage(string.Concat($"Title: ", !string.IsNullOrEmpty(nft.Title) ? nft.Title : "None"));
-        //    CLIEngine.ShowMessage(string.Concat($"Description: ", !string.IsNullOrEmpty(nft.Description) ? nft.Description : "None"));
-        //    CLIEngine.ShowMessage($"Price: {nft.Price}");
-        //    CLIEngine.ShowMessage($"Discount: {nft.Discount}");
-        //    CLIEngine.ShowMessage(string.Concat($"MemoText: ", !string.IsNullOrEmpty(nft.MemoText) ? nft.MemoText : "None"));
-        //    CLIEngine.ShowMessage($"Id: {nft.Id}");
-        //    CLIEngine.ShowMessage(string.Concat($"Hash: ", !string.IsNullOrEmpty(nft.Hash) ? nft.Hash : "None"));
-        //    CLIEngine.ShowMessage($"MintedByAvatarId: {nft.MintedByAvatarId}");
-        //    CLIEngine.ShowMessage(string.Concat($"MintedByAddress: ", !string.IsNullOrEmpty(nft.MintedByAddress) ? nft.MintedByAddress : "None"));
-        //    CLIEngine.ShowMessage($"MintedOn: {nft.MintedOn}");
-        //    CLIEngine.ShowMessage($"OnChainProvider: {nft.OnChainProvider.Name}");
-        //    CLIEngine.ShowMessage($"OffChainProvider: {nft.OffChainProvider.Name}");
-        //    CLIEngine.ShowMessage(string.Concat($"URL: ", !string.IsNullOrEmpty(nft.URL) ? nft.URL : "None"));
-        //    CLIEngine.ShowMessage(string.Concat($"ImageUrl: ", !string.IsNullOrEmpty(nft.ImageUrl) ? nft.ImageUrl : "None"));
-        //    CLIEngine.ShowMessage(string.Concat("Image: ", nft.Image != null ? "Yes" : "No"));
-        //    CLIEngine.ShowMessage(string.Concat($"ThumbnailUrl: ", !string.IsNullOrEmpty(nft.ThumbnailUrl) ? nft.ThumbnailUrl : "None"));
-        //    CLIEngine.ShowMessage(string.Concat("Thumbnail: ", nft.Thumbnail != null ? "Yes" : "No"));
+        public virtual async Task<OASISResult<IOASISNFT>> ShowWeb4NFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
 
-        //    if (nft.MetaData.Count > 0)
-        //    {
-        //        CLIEngine.ShowMessage($"MetaData:");
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Loading WEB4 NFT's...");
 
-        //        foreach (string key in nft.MetaData.Keys)
-        //            CLIEngine.ShowMessage($"          {key} = {nft.MetaData[key]}");
-        //    }
-        //    else
-        //        CLIEngine.ShowMessage($"MetaData: None");
+            result = await FindWeb4NFTAsync("view", idOrName, true, providerType: providerType);
 
-        //    CLIEngine.ShowDivider();
-        //}
+            if (result != null && result.Result != null && !result.IsError)
+                ShowNFT(result.Result, DEFAULT_FIELD_LENGTH);
+            else
+                OASISErrorHandling.HandleError(ref result, "No WEB4 NFT Found For That Id or Name!");
 
+            return result;
+        }
 
-        //private void ListNFTs(OASISResult<IEnumerable<IOASISNFT>> nftsResult)
-        //{
-        //    if (nftsResult != null)
-        //    {
-        //        if (!nftsResult.IsError)
-        //        {
-        //            if (nftsResult.Result != null && nftsResult.Result.Count() > 0)
-        //            {
-        //                Console.WriteLine();
+        public virtual async Task SearchWeb4NFTAsync(string searchTerm = "", bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
+        {
+            if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
+                searchTerm = CLIEngine.GetValidInput($"What is the name of the WEB4 NFT you wish to search for?");
 
-        //                if (nftsResult.Result.Count() == 1)
-        //                    CLIEngine.ShowMessage($"{nftsResult.Result.Count()} NFT Found:");
-        //                else
-        //                    CLIEngine.ShowMessage($"{nftsResult.Result.Count()} NFT's' Found:");
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Searching WEB4 NFT's...");
+            ListWeb4NFTs(await NFTCommon.NFTManager.SearchNFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType: providerType));
+        }
 
-        //                CLIEngine.ShowDivider();
+        private async Task<OASISResult<IOASISNFT>> FindWeb4NFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string STARNETHolonUIName = "Default", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+            Guid id = Guid.Empty;
 
-        //                foreach (IOASISGeoSpatialNFT geoNFT in nftsResult.Result)
-        //                    ShowNFT(geoNFT);
-        //            }
-        //            else
-        //                CLIEngine.ShowWarningMessage("No NFT's Found.");
-        //        }
-        //        else
-        //            CLIEngine.ShowErrorMessage($"Error occured loading NFT's. Reason: {nftsResult.Message}");
-        //    }
-        //    else
-        //        CLIEngine.ShowErrorMessage($"Unknown error occured loading NFT's.");
-        //}
+            if (STARNETHolonUIName == "Default")
+                STARNETHolonUIName = STARNETManager.STARNETHolonUIName;
+
+            if (idOrName == Guid.Empty.ToString())
+                idOrName = "";
+
+            do
+            {
+                if (string.IsNullOrEmpty(idOrName))
+                {
+                    bool cont = true;
+                    OASISResult<IEnumerable<IOASISNFT>> starHolonsResult = null;
+
+                    if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the {STARNETHolonUIName} you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
+                    {
+                        Console.WriteLine("");
+                        CLIEngine.ShowWorkingMessage($"Loading {STARNETHolonUIName}'s...");
+
+                        if (showOnlyForCurrentAvatar)
+                            starHolonsResult = await NFTCommon.NFTManager.LoadAllNFTsForAvatarAsync(STAR.BeamedInAvatar.AvatarId, providerType);
+                        else
+                            starHolonsResult = await NFTCommon.NFTManager.LoadAllNFTsAsync(providerType);
+
+                        ListWeb4NFTs(starHolonsResult);
+
+                        if (!(starHolonsResult != null && starHolonsResult.Result != null && !starHolonsResult.IsError && starHolonsResult.Result.Count() > 0))
+                            cont = false;
+                    }
+                    else
+                        Console.WriteLine("");
+
+                    if (cont)
+                        idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the {STARNETHolonUIName} you wish to {operationName}?");
+                    else
+                    {
+                        idOrName = "nonefound";
+                        break;
+                    }
+
+                    if (idOrName == "exit")
+                        break;
+                }
+
+                if (addSpace)
+                    Console.WriteLine("");
+
+                if (Guid.TryParse(idOrName, out id))
+                {
+                    CLIEngine.ShowWorkingMessage($"Loading {STARNETHolonUIName}...");
+                    result = await NFTCommon.NFTManager.LoadNftAsync(id, providerType);
+
+                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.MintedByAvatarId != STAR.BeamedInAvatar.AvatarId)
+                    {
+                        CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this {STARNETHolonUIName}. It was minted by another avatar.");
+                        result.Result = default;
+                    }
+                }
+                else
+                {
+                    CLIEngine.ShowWorkingMessage($"Searching {STARNETHolonUIName}s...");
+                    OASISResult<IEnumerable<IOASISNFT>> searchResults = await NFTCommon.NFTManager.SearchNFTsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+
+                    if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
+                    {
+                        if (searchResults.Result.Count() > 1)
+                        {
+                            ListWeb4NFTs(searchResults);
+
+                            if (CLIEngine.GetConfirmation("Are any of these correct?"))
+                            {
+                                Console.WriteLine("");
+
+                                do
+                                {
+                                    int number = CLIEngine.GetValidInputForInt($"What is the number of the {STARNETHolonUIName} you wish to {operationName}?");
+
+                                    if (number > 0 && number <= searchResults.Result.Count())
+                                        result.Result = searchResults.Result.ElementAt(number - 1);
+                                    else
+                                        CLIEngine.ShowErrorMessage("Invalid number entered. Please try again.");
+
+                                } while (result.Result == null || result.IsError);
+                            }
+                            else
+                            {
+                                Console.WriteLine("");
+                                idOrName = "";
+                            }
+                        }
+                        else if (searchResults.Result.Count() == 1)
+                            result.Result = searchResults.Result.FirstOrDefault();
+                        else
+                        {
+                            idOrName = "";
+                            CLIEngine.ShowWarningMessage($"No {STARNETHolonUIName} Found!");
+                        }
+                    }
+                    else
+                        CLIEngine.ShowErrorMessage($"An error occured calling STARNETManager.SearchsAsync. Reason: {searchResults.Message}");
+                }
+
+                if (result.Result != null)
+                    ShowNFT(result.Result, DEFAULT_FIELD_LENGTH);
+
+                if (idOrName == "exit")
+                    break;
+
+                if (result.Result != null && operationName != "view")
+                {
+                    if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {STARNETHolonUIName}?"))
+                    {
+
+                    }
+                    else
+                    {
+                        Console.WriteLine("");
+                        result.Result = default;
+                        idOrName = "";
+
+                        if (!CLIEngine.GetConfirmation($"Do you wish to search for another {STARNETHolonUIName}?"))
+                        {
+                            idOrName = "exit";
+                            break;
+                        }
+                    }
+
+                    Console.WriteLine("");
+                }
+
+                idOrName = "";
+            }
+            while (result.Result == null || result.IsError);
+
+            if (idOrName == "exit")
+            {
+                result.IsError = true;
+                result.Message = "User Exited";
+            }
+            else if (idOrName == "nonefound")
+            {
+                result.IsError = true;
+                result.Message = "None Found";
+            }
+
+            return result;
+        }
+
+        private OASISResult<IEnumerable<IOASISNFT>> ListWeb4NFTs(OASISResult<IEnumerable<IOASISNFT>> nfts)
+        {
+            if (nfts != null)
+            {
+                if (!nfts.IsError)
+                {
+                    if (nfts.Result != null && nfts.Result.Count() > 0)
+                    {
+                        Console.WriteLine();
+
+                        if (nfts.Result.Count() == 1)
+                            CLIEngine.ShowMessage($"{nfts.Result.Count()} WEB4 NFT Found:");
+                        else
+                            CLIEngine.ShowMessage($"{nfts.Result.Count()} WEB4 NFT's Found:");
+
+                        foreach (IOASISNFT nft in nfts.Result)
+                            ShowNFT(nft, DEFAULT_FIELD_LENGTH);
+                    }
+                    else
+                        CLIEngine.ShowWarningMessage($"No WEB4 NFT's Found.");
+                }
+                else
+                    CLIEngine.ShowErrorMessage($"Error occured loading WEB4 NFT's. Reason: {nfts.Message}");
+            }
+            else
+                CLIEngine.ShowErrorMessage($"Unknown error occured loading WEB4 NFT's.");
+
+            return nfts;
+        }
+
+        private void ShowNFT(IOASISNFT nft, int displayFieldLength)
+        {
+            Console.WriteLine("");
+            DisplayProperty("NFT DETAILS", "", displayFieldLength, false);
+            Console.WriteLine("");
+            DisplayProperty("NFT Id", nft.Id.ToString(), displayFieldLength);
+            DisplayProperty("Title", nft.Title, displayFieldLength);
+            DisplayProperty("Description", nft.Description, displayFieldLength);
+            DisplayProperty("Price", nft.Price.ToString(), displayFieldLength);
+            DisplayProperty("Discount", nft.Discount.ToString(), displayFieldLength);
+            DisplayProperty("OASIS MintWallet Address", nft.OASISMintWalletAddress, displayFieldLength);
+            DisplayProperty("Mint Transaction Hash", nft.MintTransactionHash, displayFieldLength);
+            DisplayProperty("NFT Token Address", nft.NFTTokenAddress, displayFieldLength);
+            DisplayProperty("Minted By Avatar Id", nft.MintedByAvatarId.ToString(), displayFieldLength);
+            DisplayProperty("Minted On", nft.MintedOn.ToString(), displayFieldLength);
+            DisplayProperty("OnChain Provider", nft.OnChainProvider.Name, displayFieldLength);
+            DisplayProperty("OffChain Provider", nft.OffChainProvider.Name, displayFieldLength);
+            DisplayProperty("Store NFT Meta Data OnChain", nft.StoreNFTMetaDataOnChain.ToString(), displayFieldLength);
+            DisplayProperty("NFT OffChain Meta Type", nft.NFTOffChainMetaType.Name, displayFieldLength);
+            DisplayProperty("NFT Standard Type", nft.NFTStandardType.Name, displayFieldLength);
+            DisplayProperty("Symbol", nft.Symbol, displayFieldLength);
+            DisplayProperty("Image", nft.Image != null ? "Yes" : "None", displayFieldLength);
+            DisplayProperty("Image Url", nft.ImageUrl, displayFieldLength);
+            DisplayProperty("Thumbnail", nft.Thumbnail != null ? "Yes" : "None", displayFieldLength);
+            DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(nft.ThumbnailUrl) ? nft.ThumbnailUrl : "None", displayFieldLength);
+            DisplayProperty("JSON MetaData URL", nft.JSONMetaDataURL, displayFieldLength);
+            DisplayProperty("JSON MetaData URL Holon Id", nft.JSONMetaDataURLHolonId != Guid.Empty ? nft.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
+            DisplayProperty("Seller Fee Basis Points", nft.SellerFeeBasisPoints.ToString(), displayFieldLength);
+            DisplayProperty("Update Authority", nft.UpdateAuthority, displayFieldLength);
+            DisplayProperty("Send To Address After Minting", nft.SendToAddressAfterMinting, displayFieldLength);
+            DisplayProperty("Send To Avatar After Minting Id", nft.SendToAvatarAfterMintingId != Guid.Empty ? nft.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
+            DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(nft.SendToAvatarAfterMintingUsername) ? nft.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
+            DisplayProperty("Send NFT Transaction Hash", nft.SendNFTTransactionHash, displayFieldLength);
+
+            if (nft.MetaData != null)
+            {
+                CLIEngine.ShowMessage($"MetaData:");
+
+                foreach (string key in nft.MetaData.Keys)
+                    CLIEngine.ShowMessage($"          {key} = {nft.MetaData[key]}", false);
+            }
+            else
+                CLIEngine.ShowMessage($"MetaData: None");
+        }
     }
 }
