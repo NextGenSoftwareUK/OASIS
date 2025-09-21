@@ -8,5 +8,6 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response
     public class NFTTransactionRespone : TransactionRespone, INFTTransactionRespone
     {
         public IOASISNFT OASISNFT { get; set; }
+        public string SendNFTTransactionResult { get; set; }
     }
 }

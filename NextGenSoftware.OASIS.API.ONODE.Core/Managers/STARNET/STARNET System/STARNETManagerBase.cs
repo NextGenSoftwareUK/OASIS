@@ -4293,7 +4293,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "Error occured in STARNETManagerBase.IsPublishedAsync. Reason: ";
 
-            OASISResult<T3> loadSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T3>(new Dictionary<string, string>()
+            OASISResult<T1> loadSTARNETHolonsResult = await Data.LoadHolonByMetaDataAsync<T1>(new Dictionary<string, string>()
             {
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
                 { "Version", version },
@@ -4317,7 +4317,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             OASISResult<bool> result = new OASISResult<bool>();
             string errorMessage = "Error occured in STARNETManagerBase.IsPublished. Reason: ";
 
-            OASISResult<T3> loadSTARNETHolonsResult = Data.LoadHolonByMetaData<T3>(new Dictionary<string, string>()
+            OASISResult<T1> loadSTARNETHolonsResult = Data.LoadHolonByMetaData<T1>(new Dictionary<string, string>()
             {
                 { STARNETHolonIdName, STARNETHolonId.ToString() },
                 { "Version", version },

@@ -1,6 +1,10 @@
-﻿using NextGenSoftware.OASIS.API.Core.Objects;
+﻿using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
 using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
@@ -11,19 +15,110 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public GeoHotSpots(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.GeoHotSpotManager(avatarId, STARDNA),
             "Welcome to the Geo-HotSpot Wizard", new List<string> 
             {
-                "This wizard will allow you create a Mission which contains Quest's. Larger Quest's can be broken into Chapter's.",
-                "Mission's can contain both Quest's and Chapter's. Quest's can also have sub-quests.",
+                "This wizard will allow you create a GeoHotSpot which are triggered at the desired location in Our World or any other game.",
                 "Quest's contain GeoNFT's & GeoHotSpot's which can reward you various InventoryItem's for the avatar who completes the quest, triggers the GeoHotSpot or collects the GeoNFT.",
-                "Mission's can optionally be linked to OAPP's.",
-                "The wizard will create an empty folder with a MissionDNA.json file in it. You then simply place any files/folders you need for the assets (optional) for the mission into this folder.",
-                "Finally you run the sub-command 'mission publish' to convert the folder containing the mission (can contain any number of files and sub-folders) into a OASIS Mission file (.omission) as well as optionally upload to STARNET.",
-                "You can then share the .omission file with others across any platform or OS, who can then install the Mission from the file using the sub-command 'mission install'.",
-                "You can also optionally choose to upload the .omission file to the STARNET store so others can search, download and install the mission."
+                "The wizard will create an empty folder with a GeoHotSpot.json file in it. You then simply place any files/folders you need for the assets (optional) for the geohotspot into this folder.",
+                "Finally you run the sub-command 'geohotspot publish' to convert the folder containing the geohotspot (can contain any number of files and sub-folders) into a OASIS GeoHotSpot file (.ogeohotspot) as well as optionally upload to STARNET.",
+                "You can then share the .ogeohotspot file with others across any platform or OS, who can then install the GeoHotSpot from the file using the sub-command 'geohotspot install'.",
+                "You can also optionally choose to upload the .ogeohotspot file to the STARNET store so others can search, download and install the geohotspot."
             },
-            STAR.STARDNA.DefaultMissionsSourcePath, "DefaultMissionsSourcePath",
-            STAR.STARDNA.DefaultMissionsPublishedPath, "DefaultMissionsPublishedPath",
-            STAR.STARDNA.DefaultMissionsDownloadedPath, "DefaultMissionsDownloadedPath",
-            STAR.STARDNA.DefaultMissionsInstalledPath, "DefaultMissionsInstalledPath")
+            STAR.STARDNA.DefaultGeoHotSpotsSourcePath, "DefaultGeoHotSpotsSourcePath",
+            STAR.STARDNA.DefaultGeoHotSpotsPublishedPath, "DefaultGeoHotSpotsPublishedPath",
+            STAR.STARDNA.DefaultGeoHotSpotsDownloadedPath, "DefaultGeoHotSpotsDownloadedPath",
+            STAR.STARDNA.DefaultGeoHotSpotsInstalledPath, "DefaultGeoHotSpotsInstalledPath")
         { }
+
+        public override async Task<OASISResult<GeoHotSpot>> CreateAsync(object createParams, GeoHotSpot newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<GeoHotSpot> result = new OASISResult<GeoHotSpot>();
+
+            //if (CLIEngine.GetConfirmation("Does this GeoHotSpot belong to a quest?"))
+            //{
+            //    OASISResult<InstalledQuest> questResult = await STARCLI.Quests.FindAndInstallIfNotInstalledAsync("use for the parent");
+
+            //    if (questResult != null && questResult.Result != null && !questResult.IsError)
+            //    {
+            //        OASISResult<Quest> loadResult = await STAR.STARAPI.Quests.LoadAsync(STAR.BeamedInAvatar.Id, questResult.Result.Id, providerType: providerType);
+
+            //        if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+            //            parentQuest = loadResult.Result;
+            //    }
+            //}
+
+            if (newHolon == null)
+                newHolon = new GeoHotSpot();
+
+            //if (parentQuest != null)
+            //    newHolon.ParentQuestId = parentQuest.Id;
+
+            newHolon.Lat = CLIEngine.GetValidInputForDouble("Enter the latitude co-ordinates for the GeoHotSpot (i.e. the north-south position): ");
+            newHolon.Long = CLIEngine.GetValidInputForDouble("Enter the longitude co-ordinates for the GeoHotSpot (i.e. the east-west position): ");
+            newHolon.HotSpotRadiusInMetres = CLIEngine.GetValidInputForInt("Enter the radius in metres for the GeoHotSpot (i.e. how close you need to be to the lat/long co-ords to trigger the hot-spot): ");
+            object triggerTypeObj = CLIEngine.GetValidInputForEnum("Select the trigger type for the GeoHotSpot:", typeof(GeoHotSpotTriggeredType));
+
+            if (triggerTypeObj.ToString() != "exit")
+                newHolon.TriggerType = (GeoHotSpotTriggeredType)triggerTypeObj;
+
+            switch (newHolon.TriggerType)
+            {
+                case GeoHotSpotTriggeredType.WhenAtGeoLocationForXSeconds:
+                    newHolon.TimeInSecondsNeedToBeAtLocationToTriggerHotSpot = CLIEngine.GetValidInputForInt("Enter the time in seconds you need to be at the location to trigger the GeoHotSpot: ");
+                    break;
+
+                case GeoHotSpotTriggeredType.WhenLookingAtObjectOrImageForXSecondsInARMode:
+                    newHolon.TimeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot = CLIEngine.GetValidInputForInt("Enter the time in seconds you need to look at the 3D object or 2D image to trigger the GeoHotSpot: ");
+                    break;
+            }
+
+            OASISResult<ImageObjectResult> imageObjectResult = await ProcessImageOrObjectAsync("GeoHotSpot");
+
+            if (imageObjectResult != null && imageObjectResult.Result != null && !imageObjectResult.IsError)
+            {
+                newHolon.Image2D = imageObjectResult.Result.Image2D;
+                newHolon.Image2DURI = imageObjectResult.Result.Image2DURI;
+                newHolon.Object3D = imageObjectResult.Result.Object3D;
+                newHolon.Object3DURI = imageObjectResult.Result.Object3DURI;
+            }
+            else
+            {
+                result.IsError = true;
+                result.Message = "Error processing image or object!";
+                return result;
+            }
+
+            result = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, metaData, STARNETDNA, providerType);
+
+            if (result != null)
+            {
+                if (result.Result != null && result.Result != null && !result.IsError)
+                {
+                    //if (CLIEngine.GetConfirmation("Do you want to add any Reward's (InventoryItem's) to this GeoHotSpot now (These are rewarded once the GeoHotSpot has been triggered)?"))
+                    //{
+                    //    do
+                    //    {
+                    //        Guid inventoryId = Guid.Empty;
+                    //        Console.WriteLine("");
+                    //        if (!CLIEngine.GetConfirmation("Does the InventoryItem/Reward already exist?"))
+                    //        {
+                    //            OASISResult<InventoryItem> inventoryResult = await STARCLI.InventoryItems.CreateAsync(null, providerType: providerType);
+
+                    //            if (inventoryResult != null && inventoryResult.Result != null && !inventoryResult.IsError)
+                    //                inventoryId = inventoryResult.Result.Id;
+                    //        }
+
+                    //        Console.WriteLine("");
+                    //        OASISResult<GeoHotSpot> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "InventoryItem", idOrNameOfDependency: inventoryId.ToString(), providerType: providerType);
+                    //    }
+                    //    while (CLIEngine.GetConfirmation("Do you wish to add another InventoryItem/Reward?"));
+                    //}
+
+                    //TODO: Not sure which is better? This message or the above commented out code?
+                    CLIEngine.ShowMessage("Add any dependencies to the GeoHotSpot below. If for example you want items to be rewarded when it is triggered then add a InventoryItem dependency, if you want it to unlock a new quest then add a Quest dependency and so on. If however this GeoHotSpot belongs to another Quest then you will need to add it as a dependency to that Quest (or use the quest create/edit sub-command).", ConsoleColor.Yellow);
+                    await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
+                }
+            }
+
+            return result;
+        }
     }
 }

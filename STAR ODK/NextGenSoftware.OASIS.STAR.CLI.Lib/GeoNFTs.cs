@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -49,7 +50,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //        CLIEngine.ShowErrorMessage("No GeoNFT Found For That Id!");
         //}
 
-        public override async Task<OASISResult<STARGeoNFT>> CreateAsync(object createParams, STARGeoNFT newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<STARGeoNFT>> CreateAsync(object createParams, STARGeoNFT newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARGeoNFT> result = new OASISResult<STARGeoNFT>();
 
@@ -59,7 +60,39 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IOASISGeoSpatialNFT> mintResult = await MintGeoNFTAsync(); //Mint WEB4 GeoNFT (mints and wraps around a WEB4 OASIS NFT).
 
             if (mintResult != null && mintResult.Result != null && !mintResult.IsError)
-                result = await base.CreateAsync(createParams, new STARGeoNFT() { GeoNFTId = mintResult.Result.Id }, showHeaderAndInro, checkIfSourcePathExists,  providerType);
+            {
+                result = await base.CreateAsync(createParams, new STARGeoNFT()
+                {
+                    GeoNFTId = mintResult.Result.Id
+                }, showHeaderAndInro, checkIfSourcePathExists, metaData: mintResult.Result.MetaData, providerType: providerType);
+
+                //result = await base.CreateAsync(createParams, new STARGeoNFT()
+                //{
+                //    GeoNFTId = mintResult.Result.Id
+                //}, showHeaderAndInro, checkIfSourcePathExists, metaData: new Dictionary<string, object>() 
+                //{
+                //    { "OASISGeoNFTId", mintResult.Result.Id },
+                //    { "OriginalOASISNFTId", mintResult.Result.OriginalOASISNFTId },
+                //    { "OnChainProviderType", mintResult.Result.OnChainProvider.Name },
+                //    { "OffChainProviderType", mintResult.Result.OffChainProvider.Name },
+                //    { "MintAddress", mintResult.Result.MintAddress },
+                //    { "MintAddress", mintResult.Result.MintedByAddress },
+                //    { "MintedByAvatarId", mintResult.Result.MintedByAvatarId },
+                //    { "MintedOn", mintResult.Result.MintedOn },
+                //    { "Hash", mintResult.Result.Hash },
+                //    { "Title", mintResult.Result.Title },
+                //    { "Description", mintResult.Result.Description },
+                //    { "MemoText", mintResult.Result.MemoText },
+                //    { "Price", mintResult.Result.Price },
+                //    { "Discount", mintResult.Result.Discount },
+                //    { "ImageURL", mintResult.Result.ImageUrl },
+                //    { "ThumbnailUrl", mintResult.Result.ThumbnailUrl },
+                //    { "JSONMetaDataURL", mintResult.Result.JSONMetaDataURL },
+
+                //    { "MintAddress", mintResult.Result.MintAddress },
+
+                //}, providerType: providerType);
+            }
             else
                 OASISErrorHandling.HandleError(ref result, $"Error occured minting GeoNFT in MintGeoNFTAsync method. Reason: {mintResult.Message}");
 
@@ -80,7 +113,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Image = request.Image,
                 ImageUrl = request.ImageUrl,
                 MintedByAvatarId = request.MintedByAvatarId,
-                MintWalletAddress = request.MintWalletAddress,
+                //MintWalletAddress = request.MintWalletAddress,
+                SendToAddressAfterMinting = request.SendToAddressAfterMinting,
                 Thumbnail = request.Thumbnail,
                 ThumbnailUrl = request.ThumbnailUrl,
                 Price = request.Price,
@@ -98,13 +132,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Lat = geoRequest.Lat,
                 Long = geoRequest.Long,
                 Nft2DSprite = geoRequest.Nft2DSprite,
-                Nft3DSpriteURI = geoRequest.Nft3DSpriteURI,
+                Nft2DSpriteURI = geoRequest.Nft2DSpriteURI,
                 Nft3DObject = geoRequest.Nft3DObject,
-                Nft3DObjectURI = geoRequest.Nft3DObjectURI
+                Nft3DObjectURI = geoRequest.Nft3DObjectURI,
+                PlacedByAvatarId = geoRequest.PlacedByAvatarId,
+                GeoNFTMetaDataProvider = geoRequest.GeoNFTMetaDataProvider,
+                JSONMetaDataURL = request.JSONMetaDataURL,
+                NFTOffChainMetaType = request.NFTOffChainMetaType,
+                NFTStandardType = request.NFTStandardType,
+                Symbol = request.Symbol,
+                SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
+                SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                WaitTillNFTSent = request.WaitTillNFTSent,
+                AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds
             });
 
             if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
-                CLIEngine.ShowSuccessMessage($"OASIS Geo-NFT Successfully Minted. {nftResult.Message} Id: {nftResult.Result.Id}, Hash: {nftResult.Result.Hash} Minted On: {nftResult.Result.MintedOn}, Minted By Avatar Id: {nftResult.Result.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.MintedByAddress}.");
+                //CLIEngine.ShowSuccessMessage($"OASIS Geo-NFT Successfully Minted. {nftResult.Message} Id: {nftResult.Result.Id}, Hash: {nftResult.Result.Hash} Minted On: {nftResult.Result.MintedOn}, Minted By Avatar Id: {nftResult.Result.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.MintedByAddress}.");
+                CLIEngine.ShowSuccessMessage(nftResult.Message);
             else
             {
                 string msg = nftResult != null ? nftResult.Message : "";
@@ -121,7 +171,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IOASISGeoSpatialNFT> nftResult = await STAR.OASISAPI.NFTs.PlaceGeoNFTAsync(geoRequest);
 
             if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
-                CLIEngine.ShowSuccessMessage($"OASIS Geo-NFT Successfully Created. {nftResult.Message} OriginalOASISNFTId: {nftResult.Result.OriginalOASISNFTId}, Id: {nftResult.Result.Id}, Hash: {nftResult.Result.Hash} Minted On: {nftResult.Result.MintedOn}, Minted By Avatar Id: {nftResult.Result.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.MintedByAddress}.");
+                //CLIEngine.ShowSuccessMessage($"OASIS Geo-NFT Successfully Created. {nftResult.Message} OriginalOASISNFTId: {nftResult.Result.OriginalOASISNFTId}, Id: {nftResult.Result.Id}, Hash: {nftResult.Result.Hash} Minted On: {nftResult.Result.MintedOn}, Minted By Avatar Id: {nftResult.Result.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.MintedByAddress}.");
+                CLIEngine.ShowSuccessMessage(nftResult.Message);
             else
             {
                 string msg = nftResult != null ? nftResult.Message : "";
@@ -134,6 +185,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //string mintWalletAddress = CLIEngine.GetValidInput("What is the original mint address?");
             string fromWalletAddress = CLIEngine.GetValidInput("What address are you sending the GeoNFT from?");
             string toWalletAddress = CLIEngine.GetValidInput("What address are you sending the GeoNFT to?");
+            string tokenAddress = CLIEngine.GetValidInput("What is the token address of the NFT?");
             string memoText = CLIEngine.GetValidInput("What is the memo text?");
             //decimal amount = CLIEngine.GetValidInputForDecimal("What is the amount?");
 
@@ -143,13 +195,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 FromWalletAddress = fromWalletAddress,
                 ToWalletAddress = toWalletAddress,
-                //MintWalletAddress = mintWalletAddress,
+                TokenAddress = tokenAddress,
                 MemoText = memoText,
-                //Amount = amount,
             });
 
             if (response != null && response.Result != null && !response.IsError)
-                CLIEngine.ShowSuccessMessage($"GeoNFT Successfully Sent. {response.Message} Hash: {response.Result.TransactionResult}");
+                //CLIEngine.ShowSuccessMessage($"GeoNFT Successfully Sent. {response.Message} Hash: {response.Result.TransactionResult}");
+                CLIEngine.ShowSuccessMessage(response.Message);
             else
             {
                 string msg = response != null ? response.Message : "";
@@ -157,62 +209,59 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public async Task ShowGeoNFTAsync(Guid id = new Guid(), ProviderType providerType = ProviderType.Default)
+        public override void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 35, object customData = null)
         {
-            if (id == Guid.Empty)
-                id = CLIEngine.GetValidInputForGuid("What is the GUID/ID to the NFT you wish to view?");
+            base.Show(starHolon, showHeader, false, showNumbers, number, showDetailedInfo, displayFieldLength, customData);
 
-            CLIEngine.ShowWorkingMessage("Loading Geo-NFT...");
-            OASISResult<IOASISGeoSpatialNFT> nft = await STAR.OASISAPI.NFTs.LoadGeoNftAsync(id);
+            Console.WriteLine("");
+            DisplayProperty("GEO-NFT DETAILS", "", displayFieldLength, false);
+            DisplayProperty("Geo-NFT Id", ParseMetaData(starHolon.MetaData, "GEONFT.Id"), displayFieldLength);
+            DisplayProperty("NFT Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Id"), displayFieldLength);
+            DisplayProperty("Title", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Title"), displayFieldLength);
+            DisplayProperty("Description", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Description"), displayFieldLength);
+            DisplayProperty("Price", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Price"), displayFieldLength);
+            DisplayProperty("Discount", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Discount"), displayFieldLength);
+            DisplayProperty("OASIS MintWallet Address", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.OASISMintWalletAddress"), displayFieldLength);
+            DisplayProperty("Mint Transaction Hash", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.MintTransactionHash"), displayFieldLength);
+            DisplayProperty("NFT Token Address", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.NFTTokenAddress"), displayFieldLength);
+            DisplayProperty("Minted By Avatar Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.MintedByAvatarId"), displayFieldLength);
+            DisplayProperty("Minted On", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.MintedOn"), displayFieldLength);
+            DisplayProperty("OnChain Provider", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.OnChainProvider"), displayFieldLength);
+            DisplayProperty("OffChain Provider", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.OffChainProvider"), displayFieldLength);
+            DisplayProperty("Store NFT Meta Data OnChain", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.StoreNFTMetaDataOnChain"), displayFieldLength);
+            DisplayProperty("NFT OffChain Meta Type", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.NFTOffChainMetaType"), displayFieldLength);
+            DisplayProperty("NFT Standard Type", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.NFTStandardType"), displayFieldLength);
+            DisplayProperty("Symbol", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Symbol"), displayFieldLength);
+            DisplayProperty("Image", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Image"), displayFieldLength);
+            DisplayProperty("Image Url", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.ImageUrl"), displayFieldLength);
+            DisplayProperty("Thumbnail", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.OriginalOASISNFT.Thumbnail"), displayFieldLength);
+            DisplayProperty("Thumbnail Url", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.ThumbnailUrl"), displayFieldLength);
+            DisplayProperty("JSON MetaData URL", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.JSONMetaDataURL"), displayFieldLength);
+            DisplayProperty("JSON MetaData URL Holon Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.JSONMetaDataURLHolonId"), displayFieldLength);            
+            DisplayProperty("Seller Fee Basis Points", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SellerFeeBasisPoints"), displayFieldLength);
+            DisplayProperty("Update Authority", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.UpdateAuthority"), displayFieldLength);
+            DisplayProperty("Send To Address After Minting", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SendToAddressAfterMinting"), displayFieldLength);
+            DisplayProperty("Send To Avatar After Minting Id", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SendToAvatarAfterMintingId"), displayFieldLength);
+            DisplayProperty("Send To Avatar After Minting Username", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SendToAvatarAfterMintingUsername"), displayFieldLength);
+            DisplayProperty("Send NFT Transaction Hash", ParseMetaData(starHolon.MetaData, "GEONFT.OriginalOASISNFT.SendNFTTransactionHash"), displayFieldLength);
+            DisplayProperty("Lat/Long", ParseMetaData(starHolon.MetaData, "GEONFT.LatLong"), displayFieldLength);
+            DisplayProperty("Perm Spawn", ParseMetaData(starHolon.MetaData, "GEONFT.PermSpawn"), displayFieldLength);            
+            DisplayProperty("Allow Other Players To Also Collect", ParseMetaData(starHolon.MetaData, "GEONFT.AllowOtherPlayersToAlsoCollect"), displayFieldLength);
+            DisplayProperty("Player Spawn Quantity", ParseMetaData(starHolon.MetaData, "GEONFT.PlayerSpawnQuantity"), displayFieldLength);
+            DisplayProperty("Global Spawn Quantity", ParseMetaData(starHolon.MetaData, "GEONFT.GlobalSpawnQuantity"), displayFieldLength);
+            DisplayProperty("Global Spawn Quantity", ParseMetaData(starHolon.MetaData, "GEONFT.GlobalSpawnQuantity"), displayFieldLength);
+            DisplayProperty("Respawn Duration In Seconds", ParseMetaData(starHolon.MetaData, "GEONFT.RespawnDurationInSeconds"), displayFieldLength);
+            DisplayProperty("2D Sprite", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.Nft2DSprite"), displayFieldLength);
+            DisplayProperty("2D Sprite URI", ParseMetaData(starHolon.MetaData, "GEONFT.Nft2DSpriteURI"), displayFieldLength);
+            DisplayProperty("3D Object", ParseMetaDataForByteArray(starHolon.MetaData, "GEONFT.Nft3DObject"), displayFieldLength);
+            DisplayProperty("3D Object URI", ParseMetaData(starHolon.MetaData, "GEONFT.Nft3DObjectURI"), displayFieldLength);
 
-            if (nft != null && !nft.IsError && nft.Result != null)
-            {
-                CLIEngine.ShowDivider();
-                ShowGeoNFT(nft.Result);
-            }
-            else
-                CLIEngine.ShowErrorMessage("No Geo-NFT Found.");
-        }
-
-        public void ShowGeoNFT(IOASISGeoSpatialNFT nft)
-        {
-            string image = nft.Image != null ? "Yes" : "No";
-            string thumbnail = nft.Thumbnail != null ? "Yes" : "No";
-
-            CLIEngine.ShowMessage(string.Concat($"Title: ", !string.IsNullOrEmpty(nft.Title) ? nft.Title : "None"));
-            CLIEngine.ShowMessage(string.Concat($"Description: ", !string.IsNullOrEmpty(nft.Description) ? nft.Description : "None"));
-            CLIEngine.ShowMessage($"Price: {nft.Price}");
-            CLIEngine.ShowMessage($"Discount: {nft.Discount}");
-            CLIEngine.ShowMessage(string.Concat($"MemoText: ", !string.IsNullOrEmpty(nft.MemoText) ? nft.MemoText : "None"));
-            CLIEngine.ShowMessage($"Id: {nft.Id}");
-            CLIEngine.ShowMessage(string.Concat($"Hash: ", !string.IsNullOrEmpty(nft.Hash) ? nft.Hash : "None"));
-            CLIEngine.ShowMessage($"MintedByAvatarId: {nft.MintedByAvatarId}");
-            CLIEngine.ShowMessage(string.Concat($"MintedByAddress: ", !string.IsNullOrEmpty(nft.MintedByAddress) ? nft.MintedByAddress : "None"));
-            CLIEngine.ShowMessage($"MintedOn: {nft.MintedOn}");
-            CLIEngine.ShowMessage($"OnChainProvider: {nft.OnChainProvider.Name}");
-            CLIEngine.ShowMessage($"OffChainProvider: {nft.OffChainProvider.Name}");
-            CLIEngine.ShowMessage(string.Concat($"URL: ", !string.IsNullOrEmpty(nft.URL) ? nft.URL : "None"));
-            CLIEngine.ShowMessage(string.Concat($"ImageUrl: ", !string.IsNullOrEmpty(nft.ImageUrl) ? nft.ImageUrl : "None"));
-            CLIEngine.ShowMessage(string.Concat("Image: ", nft.Image != null ? "Yes" : "No"));
-            CLIEngine.ShowMessage(string.Concat($"ThumbnailUrl: ", !string.IsNullOrEmpty(nft.ThumbnailUrl) ? nft.ThumbnailUrl : "None"));
-            CLIEngine.ShowMessage(string.Concat("Thumbnail: ", nft.Thumbnail != null ? "Yes" : "No"));
-            CLIEngine.ShowMessage($"Lat: {nft.Lat}");
-            CLIEngine.ShowMessage($"Long: {nft.Long}");
-            CLIEngine.ShowMessage($"PlacedByAvatarId: {nft.PlacedByAvatarId}");
-            CLIEngine.ShowMessage($"PlacedOn: {nft.PlacedOn}");
-            CLIEngine.ShowMessage($"GeoNFTMetaDataOffChainProvider: {nft.GeoNFTMetaDataOffChainProvider.Name}");
-            CLIEngine.ShowMessage($"PermSpawn: {nft.PermSpawn}");
-            CLIEngine.ShowMessage($"AllowOtherPlayersToAlsoCollect: {nft.AllowOtherPlayersToAlsoCollect}");
-            CLIEngine.ShowMessage($"GlobalSpawnQuantity: {nft.GlobalSpawnQuantity}");
-            CLIEngine.ShowMessage($"PlayerSpawnQuantity: {nft.PlayerSpawnQuantity}");
-            CLIEngine.ShowMessage($"RepawnDurationInSeconds: {nft.RepawnDurationInSeconds}");
-
-            if (nft.MetaData.Count > 0)
+            if (starHolon.MetaData.Count > 0)
             {
                 CLIEngine.ShowMessage($"MetaData:");
 
-                foreach (string key in nft.MetaData.Keys)
-                    CLIEngine.ShowMessage($"          {key} = {nft.MetaData[key]}");
+                foreach (string key in starHolon.MetaData.Keys)
+                    CLIEngine.ShowMessage($"          {key} = {starHolon.MetaData[key]}");
             }
             else
                 CLIEngine.ShowMessage($"MetaData: None");
@@ -222,128 +271,46 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private async Task<IPlaceGeoSpatialNFTRequest> GenerateGeoNFTRequestAsync(bool isExistingNFT)
         {
-            Guid originalOASISNFTId = Guid.Empty;
-            ProviderType providerType = ProviderType.None;
-            ProviderType originalOffChainProviderType = ProviderType.All;
-            string nft3dObjectPath = "";
-            string nft2dSpritePath = "";
-            byte[] nft3dObject = null;
-            byte[] nft2dSprite = null;
-            Uri nft3dObjectURI = null;
-            Uri nft2dSpriteURI = null;
-            int globalSpawnQuanity = 0;
-            int respawnDurationInSeconds = 0;
-            int playerSpawnQuanity = 0;
-            bool allowOtherPlayersToAlsoCollect = false;
+            PlaceGeoSpatialNFTRequest request = new PlaceGeoSpatialNFTRequest();
+            request.PlacedByAvatarId = STAR.BeamedInAvatar.Id;
 
             if (isExistingNFT)
             {
-                originalOASISNFTId = CLIEngine.GetValidInputForGuid("What is the original WEB4 OASIS NFT ID?");
-                providerType = (ProviderType)CLIEngine.GetValidInputForEnum("What provider would you like to store the Geo-NFT metadata on? (NOTE: It will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive)", typeof(ProviderType));
-                originalOffChainProviderType = (ProviderType)CLIEngine.GetValidInputForEnum("What provider did you choose to store the off-chain metadata for the original OASIS NFT? (if you cannot remember, then enter 'All' and the OASIS HyperDrive will attempt to find it through auto-replication).", typeof(ProviderType));
+                request.OriginalOASISNFTId = CLIEngine.GetValidInputForGuid("What is the original WEB4 OASIS NFT ID?");
+                request.GeoNFTMetaDataProvider = new Utilities.EnumValue<ProviderType>((ProviderType)CLIEngine.GetValidInputForEnum("What provider would you like to store the Geo-NFT metadata on? (NOTE: It will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive)", typeof(ProviderType)));
+                request.OriginalOASISNFTOffChainProvider = (ProviderType)CLIEngine.GetValidInputForEnum("What provider did you choose to store the off-chain metadata for the original OASIS NFT? (if you cannot remember, then enter 'All' and the OASIS HyperDrive will attempt to find it through auto-replication).", typeof(ProviderType));
             }
 
             long nftLat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your NFT to appear in Our World/AR World?");
             long nftLong = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your NFT to appear in Our World/AR World?");
 
-            if (CLIEngine.GetConfirmation("Would you rather use a 3D object or a 2D sprite/image to represent your NFT within Our World/AR World? Press Y for 3D or N for 2D."))
-            {
-                Console.WriteLine("");
+            OASISResult<ImageObjectResult> imageObjectResult = await ProcessImageOrObjectAsync("Geo-NFT");
 
-                if (CLIEngine.GetConfirmation("Would you like to upload a local 3D object from your device or input a URI to an online object? (Press Y for local or N for online)"))
-                {
-                    Console.WriteLine("");
-                    nft3dObjectPath = CLIEngine.GetValidFile("What is the full path to the local 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
-                    nft3dObject = File.ReadAllBytes(nft3dObjectPath);
-                }
-                else
-                {
-                    Console.WriteLine("");
-                    nft3dObjectURI = await CLIEngine.GetValidURIAsync("What is the URI to the 3D object? (Press Enter if you wish to skip and use a default 3D object instead. You can always change this later.)");
-                }
-            }
-            else
+            if (imageObjectResult != null && imageObjectResult.Result != null && !imageObjectResult.IsError)
             {
-                Console.WriteLine("");
-
-                if (CLIEngine.GetConfirmation("Would you like to upload a local 2D sprite/image from your device or input a URI to an online sprite/image? (Press Y for local or N for online)"))
-                {
-                    Console.WriteLine("");
-                    nft2dSpritePath = CLIEngine.GetValidFile("What is the full path to the local 2d sprite/image? (Press Enter if you wish to skip and use the NFT Image instead. You can always change this later.)");
-                    nft2dSprite = File.ReadAllBytes(nft2dSpritePath);
-                }
-                else
-                {
-                    Console.WriteLine("");
-                    nft2dSpriteURI = await CLIEngine.GetValidURIAsync("What is the URI to the 2D sprite/image? (Press Enter if you wish to skip and use the NFT Image instead. You can always change this later.)");
-                }
+                request.Nft3DObject = imageObjectResult.Result.Object3D;
+                request.Nft3DObjectURI = imageObjectResult.Result.Object3DURI != null ? imageObjectResult.Result.Object3DURI.AbsoluteUri : "";
+                request.Nft2DSprite = imageObjectResult.Result.Image2D;
+                request.Nft2DSpriteURI = imageObjectResult.Result.Image2DURI != null ? imageObjectResult.Result.Image2DURI.AbsoluteUri : "";
             }
 
-            bool permSpawn = CLIEngine.GetConfirmation("Will the NFT be permantly spawned allowing infinite number of players to collect as many times as they wish? If you select Y to this then the NFT will always be available with zero re-spawn time.");
+            request.PermSpawn = CLIEngine.GetConfirmation("Will the NFT be permantly spawned allowing infinite number of players to collect as many times as they wish? If you select Y to this then the NFT will always be available with zero re-spawn time.");
             Console.WriteLine("");
 
-            if (!permSpawn)
+            if (!request.PermSpawn)
             {
-                allowOtherPlayersToAlsoCollect = CLIEngine.GetConfirmation("Once the NFT has been collected by a given player/avatar, do you want it to also still be collectable by other players/avatars?");
+                request.AllowOtherPlayersToAlsoCollect = CLIEngine.GetConfirmation("Once the NFT has been collected by a given player/avatar, do you want it to also still be collectable by other players/avatars?");
 
-                if (allowOtherPlayersToAlsoCollect)
+                if (request.AllowOtherPlayersToAlsoCollect)
                 {
                     Console.WriteLine("");
-                    globalSpawnQuanity = CLIEngine.GetValidInputForInt("How many times can the NFT re-spawn once it has been collected?");
-                    respawnDurationInSeconds = CLIEngine.GetValidInputForInt("How long will it take (in seconds) for the NFT to re-spawn once it has been collected?");
-                    playerSpawnQuanity = CLIEngine.GetValidInputForInt("How many times can the NFT re-spawn once it has been collected for a given player/avatar? (If you want to enforce that players/avatars can only collect each NFT once then set this to 0.)");
+                    request.GlobalSpawnQuantity = CLIEngine.GetValidInputForInt("How many times can the NFT re-spawn once it has been collected?");
+                    request.RespawnDurationInSeconds = CLIEngine.GetValidInputForInt("How long will it take (in seconds) for the NFT to re-spawn once it has been collected?");
+                    request.PlayerSpawnQuantity = CLIEngine.GetValidInputForInt("How many times can the NFT re-spawn once it has been collected for a given player/avatar? (If you want to enforce that players/avatars can only collect each NFT once then set this to 0.)");
                 }
             }
 
-            return new PlaceGeoSpatialNFTRequest()
-            {
-                AllowOtherPlayersToAlsoCollect = allowOtherPlayersToAlsoCollect,
-                PermSpawn = permSpawn,
-                GlobalSpawnQuantity = globalSpawnQuanity,
-                PlayerSpawnQuantity = playerSpawnQuanity,
-                RespawnDurationInSeconds = respawnDurationInSeconds,
-                Lat = nftLat,
-                Long = nftLong,
-                Nft2DSprite = nft2dSprite,
-                Nft3DSpriteURI = nft2dSpriteURI != null ? nft2dSpriteURI.AbsoluteUri : "",
-                Nft3DObject = nft3dObject,
-                Nft3DObjectURI = nft3dObjectURI != null ? nft3dObjectURI.AbsoluteUri : "",
-                OriginalOASISNFTId = originalOASISNFTId,
-                ProviderType = providerType,
-                OriginalOASISNFTOffChainProviderType = originalOffChainProviderType,
-                PlacedByAvatarId = STAR.BeamedInAvatar.Id
-            };
+            return request;
         }
-
-        //private void ListGeoNFTs(OASISResult<IEnumerable<IOASISGeoSpatialNFT>> geonftsResult)
-        //{
-        //    if (geonftsResult != null)
-        //    {
-        //        if (!geonftsResult.IsError)
-        //        {
-        //            if (geonftsResult.Result != null && geonftsResult.Result.Count() > 0)
-        //            {
-        //                Console.WriteLine();
-
-        //                if (geonftsResult.Result.Count() == 1)
-        //                    CLIEngine.ShowMessage($"{geonftsResult.Result.Count()} Geo-NFT Found:");
-        //                else
-        //                    CLIEngine.ShowMessage($"{geonftsResult.Result.Count()} Geo-NFT's' Found:");
-
-        //                CLIEngine.ShowDivider();
-
-        //                foreach (IOASISGeoSpatialNFT geoNFT in geonftsResult.Result)
-        //                    ShowGeoNFT(geoNFT);
-        //            }
-        //            else
-        //                CLIEngine.ShowWarningMessage("No Geo-NFT's Found.");
-        //        }
-        //        else
-        //            CLIEngine.ShowErrorMessage($"Error occured loading Geo-NFT's. Reason: {geonftsResult.Message}");
-        //    }
-        //    else
-        //        CLIEngine.ShowErrorMessage($"Unknown error occured loading Geo-NFT's.");
-        //}
-
     }
 }

@@ -19,7 +19,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.TestHarness
             Console.WriteLine("NEXTGEN SOFTWARE ONODE CORE TEST HARNESS V1.3");
             Console.WriteLine("");
 
-
             NFTManager NFTManager = new NFTManager(Guid.NewGuid());
 
             CLIEngine.ShowWorkingMessage("Minting NFT With External MetaData...");

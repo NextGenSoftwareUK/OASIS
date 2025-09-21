@@ -1,6 +1,8 @@
-﻿using NextGenSoftware.OASIS.API.Core.Objects;
+﻿using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
@@ -24,5 +26,74 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultChaptersDownloadedPath, "DefaultChaptersDownloadedPath",
             STAR.STARDNA.DefaultChaptersInstalledPath, "DefaultChaptersInstalledPath")
         { }
+
+        public override async Task<OASISResult<Chapter>> CreateAsync(object createParams, Chapter newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<Chapter> result = new OASISResult<Chapter>();
+            Mission parentMission = null;
+            int order = 0;
+
+            if (CLIEngine.GetConfirmation("Does this chapter belong to a Mission?"))
+            {
+                OASISResult<InstalledMission> missionResult = await STARCLI.Missions.FindAndInstallIfNotInstalledAsync("use for the parent");
+
+                if (missionResult != null && missionResult.Result != null && !missionResult.IsError)
+                {
+                    OASISResult<Mission> loadResult = await STAR.STARAPI.Missions.LoadAsync(STAR.BeamedInAvatar.Id, missionResult.Result.Id, providerType: providerType);
+
+                    if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
+                        parentMission = loadResult.Result;
+                }
+            }
+
+            if (parentMission != null)
+                order = parentMission.Chapters.Count() + 1;
+
+            if (newHolon == null)
+                newHolon = new Chapter();
+
+            if (parentMission != null)
+                newHolon.ParentMissionId = parentMission.Id;
+
+            newHolon.Order = order;
+
+            result = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, metaData, STARNETDNA, providerType);
+
+            if (result != null)
+            {
+                if (result.Result != null && result.Result != null && !result.IsError)
+                {
+                    if (parentMission != null)
+                    {
+                        //TODO: Need to find way to add dependency without it being installed first! ;-)
+                        //await STAR.STARAPI.Missions.AddDependencyAsync<InstalledChapter>(STAR.BeamedInAvatar.Id, parentMission, result.Result, DependencyType.Chapter, providerType: providerType);
+                    }
+
+                    if (CLIEngine.GetConfirmation("Do you want to add any Quest's to this Chapter now?"))
+                    {
+                        do
+                        {
+                            Guid questId = Guid.Empty;
+                            Console.WriteLine("");
+                            if (!CLIEngine.GetConfirmation("Does the Quest already exist?"))
+                            {
+                                OASISResult<Quest> questResult = await STARCLI.Quests.CreateAsync(null, providerType: providerType);
+
+                                if (questResult != null && questResult.Result != null && !questResult.IsError)
+                                    questId = questResult.Result.Id;
+                            }
+
+                            Console.WriteLine("");
+                            OASISResult<Chapter> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "Quest", idOrNameOfDependency: questId.ToString(), providerType: providerType);
+                        }
+                        while (CLIEngine.GetConfirmation("Do you wish to add another Quest?"));
+                    }
+
+                    await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
+                }
+            }
+
+            return result;
+        }
     }
 }

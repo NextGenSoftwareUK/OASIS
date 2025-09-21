@@ -209,11 +209,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
 
             OASISResult<INFTTransactionRespone> result = await arbitrumOASIS.SendNFTAsync(new NFTWalletTransactionRequest()
             {
-                MintWalletAddress = _contractAddress,
+                //MintWalletAddress = _contractAddress,
                 FromWalletAddress = _contractAddress,
                 ToWalletAddress = _contractAddress,
-                FromProviderType = ProviderType.IPFSOASIS, // Example provider type
-                ToProviderType = ProviderType.EthereumOASIS, // Example provider type
+                FromProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS), // Example provider type
+                ToProvider = new EnumValue<ProviderType>(ProviderType.EthereumOASIS), // Example provider type
                 Amount = 1m, // Example amount
                 MemoText = "Sending NFT to a new owner.",
                 TokenId = 10
@@ -229,9 +229,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
             arbitrumOASIS.ActivateProvider();
 
             OASISResult<INFTTransactionRespone> result = await arbitrumOASIS.MintNFTAsync(
-                new MintNFTTransactionRequestForProvider()
+                new MintNFTTransactionRequest()
                 {
-                    MintWalletAddress = _accountAddress,
+                    //MintWalletAddress = _accountAddress,
                     MintedByAvatarId = Guid.NewGuid(),
                     Title = "Sample NFT Title",
                     Description = "This is a description of the sample NFT. It includes all the unique attributes and features.",
