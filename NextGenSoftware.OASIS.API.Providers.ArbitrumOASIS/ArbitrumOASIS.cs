@@ -28,6 +28,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using Nethereum.Hex.HexTypes;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
 
 namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
@@ -86,7 +87,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             {
                 if (_hostURI is { Length: > 0 } &&
                 _chainPrivateKey is { Length: > 0 } &&
-                _chainId > 0)
+                _chainId > 0 &&
+                _contractAddress is { Length: > 0 })
                 {
                     _oasisAccount = new Account(_chainPrivateKey, _chainId);
                     _web3Client = new Web3(_oasisAccount, _hostURI);
@@ -1111,8 +1113,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 transaction.FromWalletAddress,
                 transaction.ToWalletAddress,
                 transaction.TokenId,
-                transaction.FromProviderType.ToString(),
-                transaction.ToProviderType.ToString(),
+                transaction.FromProvider.Value.ToString(),
+                transaction.ToProvider.Value.ToString(),
                 transaction.Amount,
                 transaction.MemoText
             );
@@ -1126,8 +1128,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 transaction.FromWalletAddress,
                 transaction.ToWalletAddress,
                 transaction.TokenId,
-                transaction.FromProviderType.ToString(),
-                transaction.ToProviderType.ToString(),
+                transaction.FromProvider.Value.ToString(),
+                transaction.ToProvider.Value.ToString(),
                 transaction.Amount,
                 transaction.MemoText
             );
@@ -1143,7 +1145,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 OASISNFT = new OASISNFT()
                 {
                     MemoText = transaction.MemoText,
-                    Hash = txReceipt.TransactionHash
+                    MintTransactionHash = txReceipt.TransactionHash
                 },
                 TransactionResult = txReceipt.TransactionHash
             };
@@ -1168,10 +1170,10 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequestForProvider transation)
+    public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
         => MintNFTAsync(transation).Result;
 
-    public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequestForProvider transaction)
+    public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transaction)
     {
         OASISResult<INFTTransactionRespone> result = new();
         string errorMessage = "Error in MintNFTAsync method in ArbitrumOASIS while minting nft. Reason: ";
@@ -1181,20 +1183,24 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             Function mintFunction = _contract.GetFunction(ArbitrumContractHelper.MintFuncName);
 
             HexBigInteger gasEstimate = await mintFunction.EstimateGasAsync(
-                from: transaction.MintWalletAddress,
+                from: _oasisAccount.Address,
+                //from: transaction.MintWalletAddress,
                 gas: null,
                 value: null,
-                transaction.MintWalletAddress,
+                //transaction.MintWalletAddress,
+                _oasisAccount.Address,
                 transaction.JSONMetaDataURL
             );
             HexBigInteger gasPrice = await _web3Client.Eth.GasPrice.SendRequestAsync();
 
             TransactionReceipt txReceipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
-                transaction.MintWalletAddress,
+                _oasisAccount.Address,
+                //transaction.MintWalletAddress,
                 gas: gasEstimate,
                 value: gasPrice,
                 receiptRequestCancellationToken: null,
-                transaction.MintWalletAddress,
+                //transaction.MintWalletAddress,
+                _oasisAccount.Address,
                 transaction.JSONMetaDataURL
             );
 
@@ -1209,7 +1215,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 OASISNFT = new OASISNFT()
                 {
                     MemoText = transaction.MemoText,
-                    Hash = txReceipt.TransactionHash
+                    MintTransactionHash = txReceipt.TransactionHash
                 },
                 TransactionResult = txReceipt.TransactionHash
             };
@@ -1232,6 +1238,16 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         }
 
         return result;
+    }
+
+    public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+    {
+        throw new NotImplementedException();
     }
 }
 

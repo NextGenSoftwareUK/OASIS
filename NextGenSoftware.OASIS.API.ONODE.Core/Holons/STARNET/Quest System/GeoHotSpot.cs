@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using System;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
@@ -33,7 +34,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public byte[] Object3D { get; set; } //If TriggerType is WhenLookingAtObjectOrImageInARMode or WhenObjectOrImageIsTouchedInARMode then this will appear once they enter AR Mode otherwise it will appear on the map.
 
         [CustomOASISProperty]
+        public Uri Object3DURI { get; set; } //If TriggerType is WhenLookingAtObjectOrImageInARMode or WhenObjectOrImageIsTouchedInARMode then this will appear once they enter AR Mode otherwise it will appear on the map.
+
+        [CustomOASISProperty]
         public byte[] Image2D { get; set; } //If TriggerType is WhenLookingAtObjectOrImageInARMode or WhenObjectOrImageIsTouchedInARMode then this will appear once they enter AR Mode otherwise it will appear on the map.
+
+        [CustomOASISProperty]
+        public Uri Image2DURI { get; set; } //If TriggerType is WhenLookingAtObjectOrImageInARMode or WhenObjectOrImageIsTouchedInARMode then this will appear once they enter AR Mode otherwise it will appear on the map.
+
 
         [CustomOASISProperty]
         public int TimeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot { get; set; } = 3;

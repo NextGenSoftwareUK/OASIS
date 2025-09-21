@@ -5,17 +5,18 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
 {
     public interface INFTManager : IOASISManager
     {
-        Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest request);
-        OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest request);
+        Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
+        OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
         //Task<OASISResult<INFTTransactionRespone>> CreateNftTransactionAsync(INFTWalletTransactionRequest request);
         //OASISResult<INFTTransactionRespone> CreateNftTransaction(INFTWalletTransactionRequest request);
-        Task<OASISResult<INFTTransactionRespone>> MintNftAsync(IMintNFTTransactionRequest request, bool isGeoNFT = false);
-        OASISResult<INFTTransactionRespone> MintNft(IMintNFTTransactionRequest request, bool isGeoNFT = false);
+        Task<OASISResult<INFTTransactionRespone>> MintNftAsync(IMintNFTTransactionRequest request, bool isGeoNFT = false, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
+        OASISResult<INFTTransactionRespone> MintNft(IMintNFTTransactionRequest request, bool isGeoNFT = false, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText);
         Task<OASISResult<IOASISNFT>> LoadNftAsync(Guid id, ProviderType providerType);
         OASISResult<IOASISNFT> LoadNft(Guid id, ProviderType providerType);
         Task<OASISResult<IOASISNFT>> LoadNftAsync(string hash, ProviderType providerType);

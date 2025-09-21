@@ -59,11 +59,12 @@ public static class OasisEntitiesExtensions
         new OASISNFT
         {
             Title = nft.Name,
-            MintedByAddress = nft.Owner,
+            OASISMintWalletAddress = nft.Owner,
             Symbol = nft.Symbol,
             SellerFeeBasisPoints = nft.SellerFeeBasisPoints,
             UpdateAuthority = nft.UpdateAuthority,
-            MintAddress = nft.Mint,
+            //MintAddress = nft.Owner, //TODO: What is MintAddress?! How is it different to MintByAddress?!
+            NFTTokenAddress = nft.Mint, //TODO: What is MintAddress?! How is it different to MintByAddress?!
             JSONMetaDataURL = nft.Url,
             OnChainProvider = new EnumValue<ProviderType>(ProviderType.SolanaOASIS),
             OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS)
