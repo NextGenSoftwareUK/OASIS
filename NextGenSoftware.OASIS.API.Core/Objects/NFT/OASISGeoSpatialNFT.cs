@@ -11,7 +11,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         public Guid PlacedByAvatarId { get; set; }
         public Guid OriginalOASISNFTId { get; set; }
         //public ProviderType OriginalOASISNFTProviderType { get; set; }
-        public EnumValue<ProviderType> GeoNFTMetaDataOffChainProvider { get; set; }
+        //public EnumValue<ProviderType> GeoNFTMetaDataOffChainProvider { get; set; }
+        public EnumValue<ProviderType> GeoNFTMetaDataProvider { get; set; }
         public DateTime PlacedOn { get; set; }
         public long Lat { get; set; }
         public long Long { get; set; }
@@ -35,6 +36,11 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         /// The number of times this NFT can be collected per player. Set to -1 for infinite. GlobalSpawnQuantity takes priority (if it is 0 then PlayerSpawnQuantity is used).
         /// </summary>
         public int PlayerSpawnQuantity { get; set; } = 0;
-        public int RepawnDurationInSeconds { get; set; } = 60;
+        public int RespawnDurationInSeconds { get; set; } = 60;
+
+        public byte[] Nft3DObject { get; set; }
+        public string Nft3DObjectURI { get; set; }
+        public byte[] Nft2DSprite { get; set; }
+        public string Nft2DSpriteURI { get; set; }
     }
 }

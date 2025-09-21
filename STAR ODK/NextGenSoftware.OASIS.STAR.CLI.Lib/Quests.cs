@@ -28,29 +28,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultQuestsInstalledPath, "DefaultQuestsInstalledPath")
         { }
 
-        public override async Task<OASISResult<Quest>> CreateAsync(object createParams, Quest newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<Quest>> CreateAsync(object createParams, Quest newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Quest> result = new OASISResult<Quest>();
             Mission parentMission = null;
             Quest parentQuest = null;
             int order = 0;
-           // int currentMaxOrder = 0;
-            bool validOrder = false;
 
             if (CLIEngine.GetConfirmation("Does this quest belong to a Mission?"))
             {
+                Console.WriteLine("");
                 OASISResult<InstalledMission> missionResult = await STARCLI.Missions.FindAndInstallIfNotInstalledAsync("use for the parent");
 
                 if (missionResult != null && missionResult.Result != null && !missionResult.IsError)
                 {
                     OASISResult<Mission> loadResult = await STAR.STARAPI.Missions.LoadAsync(STAR.BeamedInAvatar.Id, missionResult.Result.Id, providerType: providerType);
-                    
+
                     if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                         parentMission = loadResult.Result;
                 }
             }
-            else if (CLIEngine.GetConfirmation("Does this quest belong to another quest?"))
+            else if (CLIEngine.GetConfirmation("\n Does this quest belong to another quest?"))
             {
+                Console.WriteLine("");
                 OASISResult<InstalledQuest> questResult = await STARCLI.Quests.FindAndInstallIfNotInstalledAsync("use for the parent");
 
                 if (questResult != null && questResult.Result != null && !questResult.IsError)
@@ -68,37 +68,44 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (parentQuest != null)
                 order = parentQuest.Quests.Count() + 1;
 
-            //do
-            //{
-            //    order = CLIEngine.GetValidInputForInt("What order number in the sequence is this quest? (E.g. 1 for first, 2 for second etc)");
-
-            //    if (order > currentMaxOrder)
-            //        validOrder = true;
-            //    else
-            //        CLIEngine.ShowErrorMessage($"You must enter a valid order number (greater than {currentMaxOrder}).");
-            //}
-            //while (!validOrder)
-
             if (newHolon == null)
                 newHolon = new Quest();
 
-            newHolon.ParentMissionId = parentMission.Id;
-            newHolon.ParentQuestId = parentQuest.Id;
+            if (parentMission != null)
+                newHolon.ParentMissionId = parentMission.Id;
+            
+            if (parentQuest != null)
+                newHolon.ParentQuestId = parentQuest.Id;
+ 
             newHolon.Order = order;
 
-            result = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, providerType);
+            result = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, metaData, STARNETDNA, providerType);
 
             if (result != null)
             {
                 if (result.Result != null && result.Result != null && !result.IsError)
                 {
+                    if (parentMission != null)
+                    {
+                        //TODO: Need to find way to add dependency without it being installed first! ;-)
+                        //await STAR.STARAPI.Missions.AddDependencyAsync<InstalledQuest>(STAR.BeamedInAvatar.Id, parentMission, result.Result, DependencyType.Quest, providerType: providerType);
+                    }
+
+                    if (parentQuest != null)
+                    {
+                        //TODO: Need to find way to add dependency without it being installed first! ;-)
+                        //await STAR.STARAPI.Quests.AddDependencyAsync<InstalledQuest>(STAR.BeamedInAvatar.Id, parentQuest, result.Result, DependencyType.Quest, providerType: providerType);
+                    }
+
                     if (CLIEngine.GetConfirmation("Do you want to add any GeoHotSpot's to this Quest now?"))
                     {
                         do
                         {
                             Guid geoHotSpotId = Guid.Empty;
+                            Console.WriteLine("");
                             if (!CLIEngine.GetConfirmation("Does the GeoHotSpot already exist?"))
                             {
+                                Console.WriteLine("");
                                 OASISResult<GeoHotSpot> geoHotSpotResult = await STARCLI.GeoHotSpots.CreateAsync(null, providerType: providerType);
                                 
                                 if (geoHotSpotResult != null && geoHotSpotResult.Result != null && !geoHotSpotResult.IsError)
@@ -111,13 +118,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         while (CLIEngine.GetConfirmation("Do you wish to add another GeoHotSpot?"));  
                     }
 
-                    if (CLIEngine.GetConfirmation("Do you want to add any existing GeoNFT's to this Quest now?"))
+                    Console.WriteLine("");
+                    if (CLIEngine.GetConfirmation("Do you want to add any GeoNFT's to this Quest now?"))
                     {
                         do
                         {
                             Guid geoNFTId = Guid.Empty;
+                            Console.WriteLine("");
                             if (!CLIEngine.GetConfirmation("Does the GeoNFT already exist?"))
                             {
+                                Console.WriteLine("");
                                 OASISResult<STARGeoNFT> geoHotSpotResult = await STARCLI.GeoNFTs.CreateAsync(null, providerType: providerType);
 
                                 if (geoHotSpotResult != null && geoHotSpotResult.Result != null && !geoHotSpotResult.IsError)
@@ -130,13 +140,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         while (CLIEngine.GetConfirmation("Do you wish to add another GeoNFT?"));
                     }
 
-                    if (CLIEngine.GetConfirmation("Do you want to add any existing sub-quest's to this Quest now?"))
+                    if (CLIEngine.GetConfirmation("Do you want to add any sub-quest's to this Quest now?"))
                     {
                         do
                         {
                             Guid questId = Guid.Empty;
+                            Console.WriteLine("");
                             if (!CLIEngine.GetConfirmation("Does the sub-quest already exist?"))
                             {
+                                Console.WriteLine("");
                                 OASISResult<Quest> questResult = await STARCLI.Quests.CreateAsync(null, providerType: providerType);
 
                                 if (questResult != null && questResult.Result != null && !questResult.IsError)

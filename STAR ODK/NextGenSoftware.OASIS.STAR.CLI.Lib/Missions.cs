@@ -1,6 +1,9 @@
-﻿using NextGenSoftware.OASIS.API.Core.Objects;
+﻿using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
@@ -25,5 +28,62 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultMissionsDownloadedPath, "DefaultMissionsDownloadedPath",
             STAR.STARDNA.DefaultMissionsInstalledPath, "DefaultMissionsInstalledPath")
         { }
+
+        public override async Task<OASISResult<Mission>> CreateAsync(object createParams, Mission newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<Mission> result = new OASISResult<Mission>();
+
+            result = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, metaData, STARNETDNA, providerType);
+
+            if (result != null)
+            {
+                if (result.Result != null && result.Result != null && !result.IsError)
+                {
+                    if (CLIEngine.GetConfirmation("Do you want to add any Chapter's to this Mission now?"))
+                    {
+                        do
+                        {
+                            Guid chapterId = Guid.Empty;
+                            Console.WriteLine("");
+                            if (!CLIEngine.GetConfirmation("Does the Chapter already exist?"))
+                            {
+                                OASISResult<Chapter> chapterResult = await STARCLI.Chapters.CreateAsync(null, providerType: providerType);
+
+                                if (chapterResult != null && chapterResult.Result != null && !chapterResult.IsError)
+                                    chapterId = chapterResult.Result.Id;
+                            }
+
+                            Console.WriteLine("");
+                            OASISResult<Mission> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "Chapter", idOrNameOfDependency: chapterId.ToString(), providerType: providerType);
+                        }
+                        while (CLIEngine.GetConfirmation("Do you wish to add another Chapter?"));
+                    }
+
+                    if (CLIEngine.GetConfirmation("Do you want to add any Quest's to this Mission now?"))
+                    {
+                        do
+                        {
+                            Guid questId = Guid.Empty;
+                            Console.WriteLine("");
+                            if (!CLIEngine.GetConfirmation("Does the Quest already exist?"))
+                            {
+                                OASISResult<Quest> questResult = await STARCLI.Quests.CreateAsync(null, providerType: providerType);
+
+                                if (questResult != null && questResult.Result != null && !questResult.IsError)
+                                    questId = questResult.Result.Id;
+                            }
+
+                            Console.WriteLine("");
+                            OASISResult<Mission> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "Quest", idOrNameOfDependency: questId.ToString(), providerType: providerType);
+                        }
+                        while (CLIEngine.GetConfirmation("Do you wish to add another Quest?"));
+                    }
+
+                    await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
+                }
+            }
+
+            return result;
+        }
     }
 }

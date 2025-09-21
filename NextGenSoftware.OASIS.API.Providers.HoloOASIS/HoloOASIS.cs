@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories;
 using DataHelper = NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers.DataHelper;
 using static System.Net.WebRequestMethods;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -1098,12 +1099,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             throw new NotImplementedException();
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequestForProvider transation)
+        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequestForProvider transation)
+        public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
         {
             throw new NotImplementedException();
         }
@@ -1229,6 +1230,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             //OnStorageProviderError?.Invoke(this, new OASISErrorEventArgs { EndPoint = HoloNETClientAppAgent.EndPoint.AbsoluteUri, Reason = string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), Exception = errorDetails });
             //OnStorageProviderError?.Invoke(this, new AvatarManagerErrorEventArgs { EndPoint = this.HoloNETClientAppAgent.EndPoint, Reason = string.Concat(reason, holoNETEventArgs != null ? string.Concat(" - HoloNET Error: ", holoNETEventArgs.Reason, " - ", holoNETEventArgs.ErrorDetails.ToString()) : ""), ErrorDetails = errorDetails });
             // OnHoloOASISError?.Invoke(this, new HoloOASISErrorEventArgs() { EndPoint = HoloNETClientAppAgent.EndPoint.AbsoluteUri, Reason = reason, ErrorDetails = errorDetails, HoloNETErrorDetails = holoNETEventArgs });
+        }
+
+        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
