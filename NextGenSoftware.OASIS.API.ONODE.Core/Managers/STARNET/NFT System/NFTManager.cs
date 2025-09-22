@@ -1145,7 +1145,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         OriginalOASISNFTId = mintNftResult.Result.OASISNFT.Id,
                         OriginalOASISNFTOffChainProvider = request.OffChainProvider.Value,
-                        GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider,
+                        GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider.Value,
                         PlacedByAvatarId = request.MintedByAvatarId,
                         Lat = request.Lat,
                         Long = request.Long,
@@ -1197,7 +1197,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         OriginalOASISNFTId = mintNftResult.Result.OASISNFT.Id,
                         OriginalOASISNFTOffChainProvider = request.OffChainProvider.Value,
-                        GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider,
+                        GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider.Value,
                         PlacedByAvatarId = request.MintedByAvatarId,
                         Lat = request.Lat,
                         Long = request.Long,
