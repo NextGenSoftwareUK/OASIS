@@ -568,16 +568,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                     break;
 
                                                 case "template":
-                                                    await ShowSubCommandAsync<OAPPTemplate>(inputArgs, "OAPP TEMPLATE", "", STARCLI.OAPPTemplates.CreateAsync, STARCLI.OAPPTemplates.EditAsync, STARCLI.OAPPTemplates.DeleteAsync, STARCLI.OAPPTemplates.DownloadAndInstallAsync, STARCLI.OAPPTemplates.UninstallAsync, STARCLI.OAPPTemplates.PublishAsync, STARCLI.OAPPTemplates.UnpublishAsync, STARCLI.OAPPTemplates.RepublishAsync, STARCLI.OAPPTemplates.ActivateAsync, STARCLI.OAPPTemplates.DeactivateAsync, STARCLI.OAPPTemplates.ShowAsync, STARCLI.OAPPTemplates.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllAsync, STARCLI.OAPPTemplates.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.SearchAsync, STARCLI.OAPPTemplates.AddDependencyAsync, STARCLI.OAPPTemplates.RemoveDependencyAsync, null, null, null, null, null, true, providerType: providerType);
+                                                    await ShowSubCommandAsync<OAPPTemplate>(inputArgs, "OAPP TEMPLATE", "", STARCLI.OAPPTemplates.CreateAsync, STARCLI.OAPPTemplates.EditAsync, STARCLI.OAPPTemplates.DeleteAsync, STARCLI.OAPPTemplates.DownloadAndInstallAsync, STARCLI.OAPPTemplates.UninstallAsync, STARCLI.OAPPTemplates.PublishAsync, STARCLI.OAPPTemplates.UnpublishAsync, STARCLI.OAPPTemplates.RepublishAsync, STARCLI.OAPPTemplates.ActivateAsync, STARCLI.OAPPTemplates.DeactivateAsync, STARCLI.OAPPTemplates.ShowAsync, STARCLI.OAPPTemplates.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllAsync, STARCLI.OAPPTemplates.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.SearchAsync, STARCLI.OAPPTemplates.AddDependencyAsync, STARCLI.OAPPTemplates.RemoveDependencyAsync, providerType: providerType);
                                                     break;
 
                                                 default:
-                                                    await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, null, null, null, null, null, true, providerType: providerType);
+                                                    await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, providerType: providerType);
                                                     break;
                                             }
                                         }
                                         else
-                                            await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, null, null, null, null, null, true, providerType: providerType);
+                                            await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, providerType: providerType);
 
                                         break;
                                     }
@@ -606,7 +606,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         }
 
                                         //TODO: Make a hAPP STARManager ASAP! ;-) I think!
-                                        await ShowSubCommandAsync<OAPP>(inputArgs, "hApp", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, null, null, null, null, null, true, providerType: providerType);
+                                        await ShowSubCommandAsync<OAPP>(inputArgs, "hApp", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, providerType: providerType);
                                         break;
                                     }
 
@@ -686,11 +686,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "nft":
-                                    await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.EditAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, STARCLI.NFTs.MintNFTAsync, STARCLI.NFTs.ListAllWeb4NFTsAsync, STARCLI.NFTs.ListAllWeb4NFTForAvatarsAsync, STARCLI.NFTs.ShowWeb4NFTAsync, STARCLI.NFTs.SearchWeb4NFTAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.EditAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, STARCLI.NFTs.MintNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.CloneNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ListAllWeb4NFTsAsync, STARCLI.NFTs.ListAllWeb4NFTForAvatarsAsync, STARCLI.NFTs.ShowWeb4NFTAsync, STARCLI.NFTs.SearchWeb4NFTAsync, providerType: providerType);
                                     break;
 
                                 case "geonft":
-                                    await ShowSubCommandAsync<STARGeoNFT>(inputArgs, "geo-nft", "geo-nft's", STARCLI.GeoNFTs.CreateAsync, STARCLI.GeoNFTs.EditAsync, STARCLI.GeoNFTs.DeleteAsync, STARCLI.GeoNFTs.DownloadAndInstallAsync, STARCLI.GeoNFTs.UninstallAsync, STARCLI.GeoNFTs.PublishAsync, STARCLI.GeoNFTs.UnpublishAsync, STARCLI.GeoNFTs.RepublishAsync, STARCLI.GeoNFTs.ActivateAsync, STARCLI.GeoNFTs.DeactivateAsync, STARCLI.GeoNFTs.ShowAsync, STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllAsync, STARCLI.GeoNFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTs.SearchAsync, STARCLI.GeoNFTs.AddDependencyAsync, STARCLI.GeoNFTs.RemoveDependencyAsync, STARCLI.GeoNFTs.MintGeoNFTAsync, STARCLI.GeoNFTs.ListAllWeb4GeoNFTsAsync, STARCLI.GeoNFTs.ListAllWeb4GeoNFTForAvatarsAsync, STARCLI.GeoNFTs.ShowWeb4GeoNFTAsync, STARCLI.GeoNFTs.SearchWeb4GeoNFTAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<STARGeoNFT>(inputArgs, "geo-nft", "geo-nft's", STARCLI.GeoNFTs.CreateAsync, STARCLI.GeoNFTs.EditAsync, STARCLI.GeoNFTs.DeleteAsync, STARCLI.GeoNFTs.DownloadAndInstallAsync, STARCLI.GeoNFTs.UninstallAsync, STARCLI.GeoNFTs.PublishAsync, STARCLI.GeoNFTs.UnpublishAsync, STARCLI.GeoNFTs.RepublishAsync, STARCLI.GeoNFTs.ActivateAsync, STARCLI.GeoNFTs.DeactivateAsync, STARCLI.GeoNFTs.ShowAsync, STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllAsync, STARCLI.GeoNFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTs.SearchAsync, STARCLI.GeoNFTs.AddDependencyAsync, STARCLI.GeoNFTs.RemoveDependencyAsync, STARCLI.GeoNFTs.MintGeoNFTAsync, STARCLI.GeoNFTs.BurnGeoNFTAsync, STARCLI.GeoNFTs.ImportGeoNFTAsync, STARCLI.GeoNFTs.ExportGeoNFTAsync, STARCLI.GeoNFTs.CloneGeoNFTAsync, STARCLI.GeoNFTs.ConvertGeoNFTAsync, STARCLI.GeoNFTs.ListAllWeb4GeoNFTsAsync, STARCLI.GeoNFTs.ListAllWeb4GeoNFTForAvatarsAsync, STARCLI.GeoNFTs.ShowWeb4GeoNFTAsync, STARCLI.GeoNFTs.SearchWeb4GeoNFTAsync, providerType: providerType);
                                     break;
 
                                 case "geohotspot":
@@ -853,12 +853,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<string, string, string, ISTARNETDNA, ProviderType, Task> addDependencyPredicate = null,
             Func<string, string, string, ProviderType, Task> removeDependencyPredicate = null,
             Func<object, Task> mintPredicate = null,
+            Func<object, Task> burnPredicate = null,
+            Func<object, Task> importPredicate = null,
+            Func<object, Task> exportPredicate = null,
+            Func<object, Task> clonePredicate = null,
+            Func<object, Task> convertPredicate = null,
             Func<bool, bool, int, ProviderType, Task> listAllWeb4NFTsPredicate = null,
             Func<bool, bool, int, ProviderType, Task> listWeb4NFTsForBeamedInAvatarPredicate = null,
             Func<string, ProviderType, Task> showWeb4NFTPredicate = null,
             Func<string, bool, ProviderType, Task> searchWeb4NFTPredicate = null,
-            bool isOAPPOrHapp = false,
-            bool ishApp = false,
             bool showCreate = true,
             bool showUpdate = true,
             bool showDelete = true,
@@ -921,6 +924,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 if (subCommandParam == "detailed" || subCommandParam2 == "detailed" || subCommandParam3 == "detailed")
                     showDetailed = true;
 
+                bool web3 = subCommandParam == "web3" || subCommandParam2 == "web3" || subCommandParam3 == "web3" || subCommandParam4 == "web3" ? true : false;
                 bool web4 = subCommandParam == "web4" || subCommandParam2 == "web4" || subCommandParam3 == "web4" || subCommandParam4 == "web4" ? true : false;
 
                 switch (subCommandParam)
@@ -945,6 +949,60 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 await mintPredicate(null);
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported.");
+                        }
+                        break;
+
+                    case "place":
+                        {
+                            if (subCommand.ToUpper() == "GEONFT")
+                                await STARCLI.GeoNFTs.PublishAsync();
+                            else
+                                CLIEngine.ShowWarningMessage("This sub-command is only supported for the command 'geonft'.");
+                        }
+                        break;
+
+                    case "burn":
+                        {
+                            if (burnPredicate != null)
+                                await burnPredicate(null);
+                            else
+                                CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
+                        }
+                        break;
+
+                    case "import":
+                        {
+                            if (importPredicate != null)
+                                await importPredicate(web3);
+                            else
+                                CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
+                        }
+                        break;
+
+                    case "export":
+                        {
+                            if (exportPredicate != null)
+                                await exportPredicate(null);
+                            else
+                                CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
+                        }
+                        break;
+
+                    case "clone":
+                        {
+                            if (clonePredicate != null)
+                                await clonePredicate(null);
+                            else
+                                CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
+                        }
+                        break;
+
+                    case "convert":
+                        {
+                            if (convertPredicate != null)
+                                await convertPredicate(null);
+                            else
+                                CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
                         }
                         break;
 
@@ -1140,21 +1198,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         }
                         break;
 
-                    case "place":
-                        {
-                            if (subCommand.ToUpper() == "GEONFT")
-                                await STARCLI.GeoNFTs.PublishAsync();
-                            else
-                                CLIEngine.ShowWarningMessage("This sub-command is only supported for the command 'geonft'.");
-                        }
-                        break;
-
-                    case "burn":
-                        {
-                            CLIEngine.ShowMessage("Coming soon...");
-                        }
-                        break;
-
                     case "list":
                         {
                             switch (subCommandParam2.ToLower())
@@ -1293,18 +1336,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 if (showDelete)
                     CLIEngine.ShowMessage(string.Concat("    delete".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Delete an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
 
-                if (subCommand.ToUpper() == "NFT")
+                if (subCommand.ToUpper() == "NFT" || subCommand.ToUpper() == "GEO-NFT")
                 {
-                    CLIEngine.ShowMessage(string.Concat("    burn".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Burn's a OASIS NFT for the given {id} or {name}"), ConsoleColor.Green, false);
-                    CLIEngine.ShowMessage(string.Concat("    send".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Send a OASIS NFT for the given {id} or {name} to another wallet cross-chain."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    burn".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Burn's a OASIS ", subCommand, " for the given {id} or {name}"), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    send".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Send a OASIS ", subCommand, " for the given {id} or {name} to another wallet cross-chain."), ConsoleColor.Green, false);
+
+                    if (subCommand.ToUpper() == "NFT")
+                        CLIEngine.ShowMessage(string.Concat("    import".PadRight(commandSpace), "{id/name} [web3]".PadRight(paramSpace), paramDivider, "Imports a OASIS ", subCommand, " JSON file for the given {id} or {name}. If the [web3] parameter is included it will import an existing WEB3 NFT (JSON MetaData or NFT Token Address) and wrap it in a new WEB4 OASIS NFT."), ConsoleColor.Green, false);
+                    else
+                        CLIEngine.ShowMessage(string.Concat("    import".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Imports a OASIS ", subCommand, " JSON file for the given {id} or {name}."), ConsoleColor.Green, false);
+
+                    CLIEngine.ShowMessage(string.Concat("    export".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Exports a OASIS ", subCommand, " for the given {id} or {name} as a JSON file as well as a WEB3 JSON MetaData file."), ConsoleColor.Green, false);CLIEngine.ShowMessage(string.Concat("    burn".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Burn's a OASIS ", subCommand, " for the given {id} or {name}"), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    clone".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Clones a OASIS ", subCommand, " for the given {id} or {name} to another wallet cross-chain."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    convert".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 Metadata."), ConsoleColor.Green, false);
                 }
 
                 if (subCommand.ToUpper() == "GEO-NFT")
-                {
-                    CLIEngine.ShowMessage(string.Concat("    burn".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Burn's a OASIS Geo-NFT for the given {id} or {name}"), ConsoleColor.Green, false);
-                    CLIEngine.ShowMessage(string.Concat("    send".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Send a OASIS Geo-NFT for the given {id} or {name} to another wallet cross-chain."), ConsoleColor.Green, false);
                     CLIEngine.ShowMessage(string.Concat("    place".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Create a OASIS Geo-NFT from an existing OASIS NFT for the given {id} or {name} and place within Our World."), ConsoleColor.Green, false);
-                }
 
                 CLIEngine.ShowMessage(string.Concat("    adddependency".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Adds a runtime to the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    removedependency".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Removes a runtime from the ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
@@ -1313,9 +1361,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage(string.Concat("    uninstall".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Uninstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
                 //CLIEngine.ShowMessage(string.Concat("    reinstall".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Reinstall a ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
 
-                if (isOAPPOrHapp)
+                if (subCommand.ToUpper() == "OAPP" || subCommand.ToUpper() == "OAPPTEMPLATE" || subCommand.ToUpper() == "HAPP")
                 {
-                    if (ishApp)
+                    if (subCommand.ToUpper() == "HAPP")
                         CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), ("{hAppPath} [publishDotNet]".PadRight(paramSpace)), paramDivider, "Publish a ", subCommand, " for the given {hAppPath}."), ConsoleColor.Green, false);
                     else
                         CLIEngine.ShowMessage(string.Concat("    publish".PadRight(commandSpace), "{oappPath} [publishDotNet]".PadRight(paramSpace), paramDivider, "Publish a ", subCommand, " for the given {oappPath}."), ConsoleColor.Green, false);
@@ -1353,7 +1401,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     CLIEngine.ShowMessage($"For the publish command, if the flag [publishDotNet] is specified it will first do a dotnet publish before publishing to STARNET.", ConsoleColor.Green);
                 
                 CLIEngine.ShowMessage($"For the list & search commands, if [allVersions] is omitted it will list the current version, otherwise it will list all versions. If [forAllAvatars] is omitted it will list only your {subCommandPlural}'s otherwise it will list all published {subCommandPlural}'s as well as yours.", ConsoleColor.Green);
-                //CLIEngine.ShowMessage($"For the list command, if [detailed] is included it will list detailed stats also such as all dependenices installed for OAPP's and OAPP Templates.", ConsoleColor.Green);
                 CLIEngine.ShowMessage($"For the list command, if [detailed] is included it will list detailed stats also such as all dependenices installed.", ConsoleColor.Green);
 
                 if (subCommand.ToUpper() == "GEO-NFT")
@@ -2897,20 +2944,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    quest show                                    {id/name} [detailed]                      Shows the quest for the given {id} or {name}.");
                 Console.WriteLine("    quest list                                    [allVersions] [forAllAvatars] [detailed]  List all quests that have been created.");
                 Console.WriteLine("    quest search                                  [allVersions] [forAllAvatars]             Search all quests that have been created.");
-                Console.WriteLine("    nft mint                                                                                Mints a OASIS NFT for the currently beamed in avatar.");
+                Console.WriteLine("    nft mint                                                                                Mints a WEB4 OASIS NFT for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS NFT.");
                 Console.WriteLine("    nft update                                    {id/name}                                 Updates a nft for the given {id} or {name}.");
                 Console.WriteLine("    nft burn                                      {id/name}                                 Burn's a nft for the given {id} or {name}.");
                 Console.WriteLine("    nft send                                      {id/name}                                 Send a NFT for the given {id} or {name} to another wallet cross-chain.");
+                Console.WriteLine("    nft import                                    [web3]                                    Imports a WEB4 OASIS NFT JSON file. If [web3] param is given it will import a WEB3 NFT JSON MetaData file of NFT Token Address to be wrapped in a WEB4 OASIS NFT.");
+                Console.WriteLine("    nft export                                                                              Exports a WEB4 OASIS NFT as a JSON file as well as a WEB3 JSON MetaData file.");
+                Console.WriteLine("    nft clone                                                                               Clones a WEB4 OASIS NFT.");
+                Console.WriteLine("    nft convert                                                                             Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 Metadata.");
                 Console.WriteLine("    nft publish                                   {id/name}                                 Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.");
                 Console.WriteLine("    nft unpublish                                 {id/name}                                 Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.");
                 Console.WriteLine("    nft show                                      {id/name} [detailed]                      Shows the NFT for the given {id} or {name}.");
                 Console.WriteLine("    nft list                                      [allVersions] [forAllAvatars] [detailed]  Shows the NFT's that belong to the currently beamed in avatar.");
                 Console.WriteLine("    nft search                                    [allVersions] [forAllAvatars]             Search for NFT's that match certain criteria and belong to the currently beamed in avatar.");
-                Console.WriteLine("    geonft mint                                                                             Mints a OASIS Geo-NFT and places in Our World/AR World for the currently beamed in avatar.");
+                Console.WriteLine("    geonft mint                                                                             Mints a OASIS Geo-NFT and places in Our World/AR World for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS Geo-NFT.");
                 Console.WriteLine("    geonft update                                 {id/name}                                 Updates a geo-nft for the given {id} or {name}.");
                 Console.WriteLine("    geonft burn                                   {id/name}                                 Burn's a geo-nft for the given {id} or {name}.");
                 Console.WriteLine("    geonft place                                  {id/name}                                 Places an existing OASIS NFT for the given {id} or {name} in Our World/AR World for the currently beamed in avatar.");
                 Console.WriteLine("    geonft send                                   {id/name}                                 Send a geo-nft for the given {id} or {name} to another wallet cross-chain.");
+                Console.WriteLine("    geonft import                                                                           Imports a WEB4 OASIS Geo-NFT JSON file.");
+                Console.WriteLine("    geonft export                                                                           Exports a WEB4 OASIS Geo-NFT as a JSON file as well as a WEB3 JSON MetaData file.");
+                Console.WriteLine("    geonft clone                                                                            Clones a WEB4 OASIS Geo-NFT.");
+                Console.WriteLine("    geonft convert                                                                          Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 Metadata.");
                 Console.WriteLine("    geonft publish                                {id/name}                                 Publishes a geo-nft for the given {id} or {name} to the STARNET store so others can use in their own quests etc.");
                 Console.WriteLine("    geonft unpublish                              {id/name}                                 Unpublishes a geo-nft for the given {id} or {name} from the STARNET store.");
                 Console.WriteLine("    geonft show                                   {id/name} [detailed]                      Shows the Geo-NFT for the given {id} or {name}");

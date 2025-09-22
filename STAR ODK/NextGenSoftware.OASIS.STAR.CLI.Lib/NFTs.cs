@@ -203,6 +203,84 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowDivider();
         }
 
+        public async Task<OASISResult<IOASISNFT>> BurnNFTAsync(object mintParams = null)
+        {
+            OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISNFT>> ImportNFTAsync(object mintParams = null)
+        {
+            OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+            bool isWeb3 = false;
+
+            if (mintParams != null)
+                bool.TryParse(mintParams.ToString(), out isWeb3);
+
+            if (isWeb3)
+            {
+                if (CLIEngine.GetConfirmation("Do you wish to import a WEB3 JSON MetaData file & then mint and wrap in a WEB4 OASIS NFT or import an existing minted NFT's token address and wrap in a WEB4 OASIS NFT? Press 'Y' for JSON File or 'N' for Token Address."))
+                {
+                    //WEB3 NFT Import from JSON MetaData file
+                    string jsonPath = CLIEngine.GetValidFile("Please enter the full path to the JSON MetaData file you wish to import: ");
+
+                    IMintNFTTransactionRequest request = await NFTCommon.GenerateNFTRequestAsync(jsonPath);
+
+                    CLIEngine.ShowWorkingMessage("Minting OASIS NFT...");
+                    OASISResult<INFTTransactionRespone> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
+
+                    if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
+                    {
+                        CLIEngine.ShowSuccessMessage(nftResult.Message);
+                        result.Result = nftResult.Result.OASISNFT;
+                    }
+                    else
+                    {
+                        string msg = nftResult != null ? nftResult.Message : "";
+                        CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
+                    }
+                }
+                else
+                {
+                    //WEB3 NFT Import from Token Address
+                    string tokenAddress = CLIEngine.GetValidInput("Please enter the token address of the NFT you wish to import: ");
+
+                    //TODO: Finish import code here (may need to split out some of the minting code in NFTManager (so can just call into the OASIS NFT Wrapping Code and not the minting itself).
+                    //intNFTTransactionRequest request = new MintNFTTransactionRequest();
+
+                    //request.MintedByAvatarId = STAR.BeamedInAvatar.Id;
+                    //request.Title = CLIEngine.GetValidInput("What is the NFT's title?");
+                    //request.Description = CLIEngine.GetValidInput("What is the NFT's description?");
+
+                    //CLIEngine.ShowWorkingMessage("Importing OASIS NFT...");
+                }
+            }
+            else
+            {
+                //WEB4 OASIS NFT Import
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISNFT>> ExportNFTAsync(object mintParams = null)
+        {
+            OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISNFT>> CloneNFTAsync(object mintParams = null)
+        {
+            OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISNFT>> ConvertNFTAsync(object mintParams = null)
+        {
+            OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+            return result;
+        }
+
         public virtual async Task<OASISResult<IEnumerable<IOASISNFT>>> ListAllWeb4NFTsAsync(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");

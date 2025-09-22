@@ -508,34 +508,74 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         else
                             request.Symbol = "OASISNFT";
                     }
-                       
+
                     result = MintNFTInternal(request, request.NFTStandardType.Value, NFTMetaDataProviderType, nftProviderResult, result, errorMessage, responseFormatType);
-
-                    //switch (request.NFTStandardType)
-                    //{
-                    //    case NFTStandardType.ERC721:
-                    //        result = MintNFTInternal(request, NFTStandardType.ERC721, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
-                    //        break;
-
-                    //    case NFTStandardType.ERC1155:
-                    //        result = MintNFTInternal(request, NFTStandardType.ERC1155, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
-                    //        break;
-
-                    //    case NFTStandardType.SPL:
-                    //        result = MintNFTInternal(request, NFTStandardType.SPL, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
-                    //        break;
-
-                    //        //case NFTStandardType.Both:
-                    //        //    result = await MintNFTInternalAsync(request, NFTStandardType.ERC721, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
-                    //        //    result = await MintNFTInternalAsync(request, NFTStandardType.ERC1155, NFTMetaDataProviderType, nftProviderResult, result, errorMessage);
-                    //        //    break;
-                    //}
                 }
                 else
                 {
                     result.Result = null;
                     result.Message = nftProviderResult.Message;
                     result.IsError = true;
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISNFT>> ImportWeb3NFTAsync(IImportWeb3NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
+        {
+            OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+            string errorMessage = "Error occured in ImportWeb3NFT in NFTManager. Reason:";
+            IAvatar currentAvatar = null;
+
+            try
+            {
+                result.Result = CreateOASISNFT(request);
+
+                //Default to Mongo for storing the OASIS NFT meta data if none is specified.
+                if (request.OffChainMetaType.Value == ProviderType.None)
+                    request.OffChainMetaType.Value = ProviderType.MongoDBOASIS;
+
+                OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(CreateNFTMetaDataHolon(result.Result, request), request.ImportedByByAvatarId, true, true, 0, true, false, request.OffChainMetaType.Value);
+
+                if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
+                {
+                    result.Result = null;
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {request.OffChainMetaType.Name}. Reason: {saveHolonResult.Message}");
+                }
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISNFT>> ImportWeb3NFT(IImportWeb3NFTRequest request, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
+        {
+            OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+            string errorMessage = "Error occured in ImportWeb3NFT in NFTManager. Reason:";
+            IAvatar currentAvatar = null;
+
+            try
+            {
+                result.Result = CreateOASISNFT(request);
+
+                //Default to Mongo for storing the OASIS NFT meta data if none is specified.
+                if (request.OffChainMetaType.Value == ProviderType.None)
+                    request.OffChainMetaType.Value = ProviderType.MongoDBOASIS;
+
+                OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateNFTMetaDataHolon(result.Result, request), request.ImportedByByAvatarId, true, true, 0, true, false, request.OffChainMetaType.Value);
+
+                if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
+                {
+                    result.Result = null;
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {request.OffChainMetaType.Name}. Reason: {saveHolonResult.Message}");
                 }
             }
             catch (Exception e)
@@ -1399,7 +1439,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             if (!string.IsNullOrEmpty(request.ImageUrl))
             {
-                string json = CreateMetaDataJson(request, NFTStandardType);
+                string json = request.JSONMetaData;
+
+                if (string.IsNullOrEmpty(json))
+                    json = CreateMetaDataJson(request, NFTStandardType);
 
                 switch (request.NFTOffChainMetaType.Value)
                 {
@@ -1430,7 +1473,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the JSON metadata to IPFS. Reason: {ipfsResult.Message}");
                                 return result;
                             }
-                        }                        
+                        }
                         break;
 
                     case NFTOffChainMetaType.OASIS:
@@ -1447,10 +1490,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         }
                         break;
 
-                    case NFTOffChainMetaType.ExternalJsonURL:
+                    case NFTOffChainMetaType.ExternalJSONURL:
                         {
                             if (string.IsNullOrEmpty(request.JSONMetaDataURL))
-                            { 
+                            {
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} When setting NFTOffChainMetaType to ExternalJsonURL, the JSONUrl cannot be empty!");
                                 return result;
                             }
@@ -1626,7 +1669,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             if (!string.IsNullOrEmpty(request.ImageUrl))
             {
-                string json = CreateMetaDataJson(request, NFTStandardType);
+                string json = request.JSONMetaData;
+
+                if (string.IsNullOrEmpty(json))
+                    json = CreateMetaDataJson(request, NFTStandardType);
 
                 switch (request.NFTOffChainMetaType.Value)
                 {
@@ -1674,7 +1720,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         }
                         break;
 
-                    case NFTOffChainMetaType.ExternalJsonURL:
+                    case NFTOffChainMetaType.ExternalJSONURL:
                         {
                             if (string.IsNullOrEmpty(request.JSONMetaDataURL))
                             {
@@ -1919,7 +1965,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             if (OASISNFT.JSONMetaDataURLHolonId != Guid.Empty)
                 message = string.Concat(message, " JSON MetaData URL Holon Id:".PadRight(colWidth), OASISNFT.JSONMetaDataURLHolonId, lineBreak);
-            
+
             message = string.Concat(message, " Image URL:".PadRight(colWidth), OASISNFT.ImageUrl, lineBreak);
             message = string.Concat(message, " Thumbnail URL:".PadRight(colWidth), OASISNFT.ThumbnailUrl, lineBreak);
 
@@ -1977,10 +2023,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             if (!string.IsNullOrEmpty(OASISNFT.SendToAddressAfterMinting))
                 sendNFTMessage = string.Concat(" Send To Address After Minting: ".PadRight(colWidth), OASISNFT.SendToAddressAfterMinting, $". {lineBreak}");
-           
+
             if (!string.IsNullOrEmpty(OASISNFT.SendToAvatarAfterMintingId.ToString()) && OASISNFT.SendToAvatarAfterMintingId.ToString() != Guid.Empty.ToString())
                 sendNFTMessage = string.Concat(sendNFTMessage, " Send To Avatar After Minting Id: ".PadRight(colWidth), OASISNFT.SendToAvatarAfterMintingId, $". {lineBreak}");
-           
+
             if (!string.IsNullOrEmpty(OASISNFT.SendToAvatarAfterMintingUsername))
                 sendNFTMessage = string.Concat(sendNFTMessage, " Send To Avatar After Minting Username: ".PadRight(colWidth), OASISNFT.SendToAvatarAfterMintingUsername, $". {lineBreak}");
 
@@ -2163,6 +2209,37 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             };
         }
 
+        private OASISNFT CreateOASISNFT(IImportWeb3NFTRequest request)
+        {
+            return new OASISNFT()
+            {
+                Id = Guid.NewGuid(),
+                MintTransactionHash = request.MintTransactionHash,
+                MetaData = request.MetaData,
+                NFTMintedUsingWalletAddress = request.NFTMintedUsingWalletAddress,
+                UpdateAuthority = request.UpdateAuthority,
+                NFTTokenAddress = request.NFTTokenAddress,
+                ImportedByAvatarId = request.ImportedByByAvatarId,
+                Title = request.Title,
+                Description = request.Description,
+                Price = request.Price,
+                Discount = request.Discount,
+                Image = request.Image,
+                ImageUrl = request.ImageUrl,
+                Thumbnail = request.Thumbnail,
+                ThumbnailUrl = request.ThumbnailUrl,
+                OnChainProvider = request.OnChainProvider,
+                OffChainProvider = request.OffChainMetaType,
+                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
+                NFTOffChainMetaType = request.NFTOffChainMetaType,
+                NFTStandardType = request.NFTStandardType,
+                Symbol = request.Symbol,
+                MemoText = request.MemoText,
+                JSONMetaDataURL = request.JSONMetaDataURL,
+                ImportedOn = DateTime.Now
+            };
+        }
+
         private OASISGeoSpatialNFT CreateGeoSpatialNFT(IPlaceGeoSpatialNFTRequest request, IOASISNFT originalNftMetaData)
         {
             return new OASISGeoSpatialNFT()
@@ -2264,6 +2341,42 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return holonNFT;
         }
 
+        private IHolon CreateNFTMetaDataHolon(IOASISNFT nftMetaData, IImportWeb3NFTRequest request)
+        {
+            IHolon holonNFT = new Holon(HolonType.NFT);
+            holonNFT.Id = nftMetaData.Id;
+            holonNFT.Name = $"{nftMetaData.OnChainProvider.Name} NFT Imported OnTo The OASIS with title {nftMetaData.Title}";
+            holonNFT.Description = request.Description;
+            holonNFT.MetaData["NFT.OASISNFT"] = JsonSerializer.Serialize(nftMetaData); //TODO: May remove this because its duplicated data. BUT we may need this for other purposes later such as exporting it to a file etc (but then we could just serialaize it there and then).
+            holonNFT.MetaData["NFT.MintTransactionHash"] = request.MintTransactionHash;
+            holonNFT.MetaData["NFT.Id"] = nftMetaData.Id;
+            holonNFT.MetaData["NFT.ImportedByByAvatarId"] = request.ImportedByByAvatarId.ToString();
+            holonNFT.MetaData["NFT.NFTMintedUsingWalletAddress"] = nftMetaData.NFTMintedUsingWalletAddress;
+            holonNFT.MetaData["NFT.NFTTokenAddress"] = nftMetaData.NFTTokenAddress;
+            holonNFT.MetaData["NFT.MemoText"] = nftMetaData.MemoText;
+            holonNFT.MetaData["NFT.Title"] = nftMetaData.Title;
+            holonNFT.MetaData["NFT.Description"] = nftMetaData.Description;
+            holonNFT.MetaData["NFT.Price"] = request.Price.ToString();
+            holonNFT.MetaData["NFT.Discount"] = request.Discount.ToString();
+            holonNFT.MetaData["NFT.OnChainProvider"] = nftMetaData.OnChainProvider.Name;
+            holonNFT.MetaData["NFT.OffChainProvider"] = nftMetaData.OffChainProvider.Name;
+            holonNFT.MetaData["NFT.StoreNFTMetaDataOnChain"] = request.StoreNFTMetaDataOnChain ? "True" : "False";
+            holonNFT.MetaData["NFT.NFTOffChainMetaType"] = nftMetaData.NFTOffChainMetaType.Name;
+            holonNFT.MetaData["NFT.NFTStandardType"] = request.NFTStandardType.Name;
+            holonNFT.MetaData["NFT.Symbol"] = request.Symbol;
+            holonNFT.MetaData["NFT.Image"] = request.Image;
+            holonNFT.MetaData["NFT.ImageUrl"] = request.ImageUrl;
+            holonNFT.MetaData["NFT.Thumbnail"] = request.Thumbnail;
+            holonNFT.MetaData["NFT.ThumbnailUrl"] = request.ThumbnailUrl;
+            holonNFT.MetaData["NFT.JSONMetaDataURL"] = request.JSONMetaDataURL;
+            holonNFT.MetaData["NFT.SellerFeeBasisPoints"] = nftMetaData.SellerFeeBasisPoints;
+            holonNFT.MetaData["NFT.UpdateAuthority"] = nftMetaData.UpdateAuthority;
+            holonNFT.MetaData["NFT.MetaData"] = JsonSerializer.Serialize(request.MetaData);
+            holonNFT.ParentHolonId = nftMetaData.ImportedByAvatarId;
+
+            return holonNFT;
+        }
+
         private IHolon CreateGeoSpatialNFTMetaDataHolon(IOASISGeoSpatialNFT geoNFTMetaData)
         {
             IHolon holonNFT = new Holon(HolonType.GeoNFT);
@@ -2308,7 +2421,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.OnChainProvider"] = geoNFTMetaData.OnChainProvider.Name;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.OffChainProvider"] = geoNFTMetaData.OffChainProvider.Name;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.StoreNFTMetaDataOnChain"] = geoNFTMetaData.StoreNFTMetaDataOnChain ? "True" : "False";
-            holonNFT.MetaData["GEONFT.OriginalOASISNFT.NFTOffChainMetaType"] =  geoNFTMetaData.NFTOffChainMetaType.Name;
+            holonNFT.MetaData["GEONFT.OriginalOASISNFT.NFTOffChainMetaType"] = geoNFTMetaData.NFTOffChainMetaType.Name;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.NFTStandardType"] = geoNFTMetaData.NFTStandardType.Name;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.Symbol"] = geoNFTMetaData.Symbol;
             holonNFT.MetaData["GEONFT.OriginalOASISNFT.Image"] = geoNFTMetaData.Image;
