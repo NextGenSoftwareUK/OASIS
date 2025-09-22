@@ -31,6 +31,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         public EnumValue<NFTOffChainMetaType> NFTOffChainMetaType { get; set; }
         public string Symbol { get; set; }
         public string JSONMetaDataURL { get; set; }
+        public string JSONMetaData { get; set; }
         public bool WaitTillNFTMinted { get; set; } = true;
         public int WaitForNFTToMintInSeconds { get; set; } = 60;
         public int AttemptToMintEveryXSeconds { get; set; } = 1;
