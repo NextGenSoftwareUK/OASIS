@@ -185,22 +185,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("send-nft")]
         public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(NFTWalletTransactionRequest request)
         {
-            // No need to parse - FromProviderType is already a ProviderType enum
-            ProviderType fromProviderType = request.FromProviderType;
-
-
-            // No need to parse - ToProviderType is already a ProviderType enum
-            ProviderType toProviderType = request.ToProviderType;
-
+            // Use the correct property names from the base WalletTransactionRequest class
             API.Core.Objects.NFT.Request.NFTWalletTransactionRequest nftRequest = new API.Core.Objects.NFT.Request.NFTWalletTransactionRequest()
             {
-                 MintWalletAddress = request.MintWalletAddress,
                  FromWalletAddress = request.FromWalletAddress,
                  ToWalletAddress = request.ToWalletAddress,
-                 FromProviderType = fromProviderType,
-                 ToProviderType = toProviderType,
+                 FromProvider = request.FromProvider,
+                 ToProvider = request.ToProvider,
                  Amount = request.Amount,
-                 MemoText = request.MemoText
+                 MemoText = request.MemoText,
+                 TokenId = request.TokenId,
+                 TokenAddress = request.TokenAddress,
+                 WaitTillNFTSent = request.WaitTillNFTSent,
+                 WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                 AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds
             };
 
             return await NFTManager.SendNFTAsync(nftRequest);
@@ -220,11 +218,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
 
             // No need to parse - NFTOffChainMetaType is already an enum
-            NFTOffChainMetaType NFTOffChainMetaType = request.NFTOffChainMetaType;
+            NFTOffChainMetaType NFTOffChainMetaType = request.NFTOffChainMetaType.Value;
 
 
             // No need to parse - NFTStandardType is already an enum
-            NFTStandardType NFTStandardType = request.NFTStandardType;
+            NFTStandardType NFTStandardType = request.NFTStandardType.Value;
 
             // No need to parse - SendToAvatarAfterMintingId is already a Guid
             Guid sendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId;
@@ -252,8 +250,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
                 JSONMetaDataURL = request.JSONMetaDataURL,
                 StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
-                NFTOffChainMetaType = NFTOffChainMetaType,
-                NFTStandardType = NFTStandardType
+                NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType),
+                NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType)
             };
 
             return await NFTManager.MintNftAsync(mintRequest, false, Core.Enums.ResponseFormatType.SimpleText);
@@ -264,8 +262,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("place-geo-nft")]
         public async Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(PlaceGeoSpatialNFTRequest request)
         {
-            // No need to parse - OriginalOASISNFTOffChainProviderType is already a ProviderType enum
-            ProviderType originalOASISNFTProviderType = request.OriginalOASISNFTOffChainProviderType;
+            // Use the ProviderType directly
+            ProviderType originalOASISNFTProviderType = request.OriginalOASISNFTOffChainProvider;
 
 
             // No need to parse - ProviderType is already a ProviderType enum
@@ -274,7 +272,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             API.Core.Objects.NFT.Request.PlaceGeoSpatialNFTRequest placeRequest = new API.Core.Objects.NFT.Request.PlaceGeoSpatialNFTRequest()
             {
                 OriginalOASISNFTId = request.OriginalOASISNFTId,
-                OriginalOASISNFTOffChainProviderType = originalOASISNFTProviderType,
+                OriginalOASISNFTOffChainProvider = originalOASISNFTProviderType,
                 Lat = request.Lat,
                 Long = request.Long,
                 AllowOtherPlayersToAlsoCollect = request.AllowOtherPlayersToAlsoCollect,
@@ -302,11 +300,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
 
             // No need to parse - NFTOffChainMetaType is already an enum
-            NFTOffChainMetaType NFTOffChainMetaType = request.NFTOffChainMetaType;
+            NFTOffChainMetaType NFTOffChainMetaType = request.NFTOffChainMetaType.Value;
 
 
             // No need to parse - NFTStandardType is already an enum
-            NFTStandardType NFTStandardType = request.NFTStandardType;
+            NFTStandardType NFTStandardType = request.NFTStandardType.Value;
 
             // No need to parse - SendToAvatarAfterMintingId is already a Guid
             Guid sendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId;
@@ -334,8 +332,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 OffChainProvider = new EnumValue<ProviderType>(offChainProvider),
                 JSONMetaDataURL = request.JSONMetaDataURL,
                 StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
-                NFTOffChainMetaType = NFTOffChainMetaType,
-                NFTStandardType = NFTStandardType,
+                NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType),
+                NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType),
                 Lat = request.Lat,
                 Long = request.Long,
                 AllowOtherPlayersToAlsoCollect = request.AllowOtherPlayersToAlsoCollect,
