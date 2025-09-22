@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  oasis-api:
+    build: .
+    image: oasis-api:latest
+    container_name: oasis-api-container
+    ports:
+      - "5000:80"
+      - "5001:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__MongoDBOASIS=mongodb+srv://OASISWEB4:Uppermall1!@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - oasis-network
+
+networks:
+  oasis-network:
+    driver: bridge
