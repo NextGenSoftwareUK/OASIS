@@ -12,7 +12,6 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
@@ -750,21 +749,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 {
                     switch (providerType)
                     {
-                        case ProviderType.HoloOASIS:
-                            {
-                                HoloOASIS holoOASIS = new HoloOASIS(
-                                            overrideConnectionString == null
-                                                ? OASISDNA.OASIS.StorageProviders.HoloOASIS.LocalNodeURI
-                                                : overrideConnectionString, 
-                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.HoloNetworkURI, 
-                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.UseLocalNode, 
-                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.UseHoloNetwork, 
-                                            OASISDNA.OASIS.StorageProviders.HoloOASIS.HoloNETORMUseReflection);
-
-                                holoOASIS.OnStorageProviderError += HoloOASIS_StorageProviderError;
-                                result.Result = holoOASIS;
-                            }
-                            break;
 
                         case ProviderType.SQLLiteDBOASIS:
                             {
@@ -1154,10 +1138,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             HandleProviderError("SolanaOASIS", e);
         }
 
-        private static void HoloOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
-        {
-            HandleProviderError("HoloOASIS", e);
-        }
 
         private static void AzureCosmosDBOASIS_StorageProviderError(object sender, OASISErrorEventArgs e)
         {

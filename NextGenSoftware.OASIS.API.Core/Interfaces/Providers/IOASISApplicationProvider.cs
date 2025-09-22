@@ -1,4 +1,4 @@
-﻿
+
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     // NOTE: These are OASIS Providers that offer an application layer that may or may not use other OASIS Providers such as a
