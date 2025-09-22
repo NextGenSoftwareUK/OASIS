@@ -29,6 +29,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
         public string Symbol { get; set; }
         //public bool SaveIPFSImageOnTheOASIS { get; set; }
         public string JSONMetaDataURL { get; set; }
+        public string JSONMetaData { get; set; }
         public bool WaitTillNFTMinted { get; set; }
         public int WaitForNFTToMintInSeconds { get; set; }
         public int AttemptToMintEveryXSeconds { get; set; }

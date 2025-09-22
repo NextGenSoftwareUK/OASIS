@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return metaData;
         }
 
-        public async Task<IMintNFTTransactionRequest> GenerateNFTRequestAsync()
+        public async Task<IMintNFTTransactionRequest> GenerateNFTRequestAsync(string web3JSONMetaDataFile = "")
         {
             MintNFTTransactionRequest request = new MintNFTTransactionRequest();
 
@@ -102,12 +102,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     object offChainProviderObj = CLIEngine.GetValidInputForEnum("What OASIS off-chain provider do you wish to store the metadata on? (NOTE: It will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive)", typeof(ProviderType));
                     request.OffChainProvider = new EnumValue<ProviderType>((ProviderType)offChainProviderObj);
                 }
-                else if (request.NFTOffChainMetaType.Value == NFTOffChainMetaType.ExternalJsonURL)
+                else if (request.NFTOffChainMetaType.Value == NFTOffChainMetaType.ExternalJSONURL)
                 {
                     Uri uriResult = await CLIEngine.GetValidURIAsync("What is the URI to the JSON meta data you have created for this NFT?");
                     request.JSONMetaDataURL = uriResult.AbsoluteUri;
                 }
+                //else if (request.NFTOffChainMetaType.Value == NFTOffChainMetaType.ExternalJSON)
+                //{
+                //    if (string.IsNullOrEmpty(web3JSONMetaDataFile))
+                //        web3JSONMetaDataFile = CLIEngine.GetValidFile("What is the full path to the JSON meta data file you have created for this NFT?");
+
+                //    request.JSONMetaData = web3JSONMetaDataFile;
+                //}
             }
+
+            if (string.IsNullOrEmpty(web3JSONMetaDataFile))
+            {
+                if (CLIEngine.GetConfirmation("Do you wish to import the JSON meta data now? (Press Y to import or N to generate new meta data)"))
+                    web3JSONMetaDataFile = CLIEngine.GetValidFile("Please enter the full path to the JSON MetaData file you wish to import: ");
+            }
+
+            if (File.Exists(web3JSONMetaDataFile))
+                request.JSONMetaData = File.ReadAllText(web3JSONMetaDataFile);
+            else
+                Console.WriteLine("The JSON meta data file path you entered does not exist. A new JSON meta data file will be generated instead.");
 
             bool validStandard = false;
             do
