@@ -232,6 +232,36 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
+        public async Task<OASISResult<IOASISGeoSpatialNFT>> BurnGeoNFTAsync(object mintParams = null)
+        {
+            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISGeoSpatialNFT>> ImportGeoNFTAsync(object mintParams = null)
+        {
+            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISGeoSpatialNFT>> ExportGeoNFTAsync(object mintParams = null)
+        {
+            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISGeoSpatialNFT>> CloneGeoNFTAsync(object mintParams = null)
+        {
+            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISGeoSpatialNFT>> ConvertGeoNFTAsync(object mintParams = null)
+        {
+            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            return result;
+        }
+
         public virtual async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> ListAllWeb4GeoNFTsAsync(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
