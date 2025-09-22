@@ -1,25 +1,55 @@
-**/.classpath
-**/.dockerignore
-**/.env
-**/.git
-**/.gitignore
-**/.project
-**/.settings
-**/.toolstarget
-**/.vs
-**/.vscode
-**/*.*proj.user
-**/*.dbmdl
-**/*.jfm
-**/azds.yaml
-**/bin
-**/charts
-**/docker-compose*
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
-**/obj
-**/secrets.dev.yaml
-**/values.dev.yaml
-LICENSE
-README.md
+# Ignore unnecessary files and directories
+**/bin/
+**/obj/
+**/node_modules/
+**/test/
+**/tests/
+**/TestHarness/
+**/TestHarnes/
+**/.git/
+**/.vs/
+**/.vscode/
+**/Archived/
+**/Images/
+**/Logos/
+# **/OASIS Architecture/
+**/STAR ODK/
+**/Spectre.Console/
+**/meta-bricks-main/
+**/oasis-react-ui-library/
+**/oasis-wallet-ui/
+**/contract_verification_package/
+**/AssetRail/
+**/Native EndPoint/
+**/Providers/
+**/holochain-client-csharp/
+**/External Libs/net-ipfs-http-client-master/test/
+**/External Libs/net-ipfs-http-client-master/doc/
+**/External Libs/net-ipfs-http-client-master/src/bin/
+**/External Libs/net-ipfs-http-client-master/src/obj/
+
+# Documentation files
+*.md
+*.txt
+*.yml
+*.yaml
+*.json
+!OASIS_DNA.json
+!package.json
+!package-lock.json
+
+# Build artifacts
+*.sln
+!The OASIS.sln
+*.user
+*.suo
+*.cache
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

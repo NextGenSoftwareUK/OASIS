@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using System.Threading.Tasks;
