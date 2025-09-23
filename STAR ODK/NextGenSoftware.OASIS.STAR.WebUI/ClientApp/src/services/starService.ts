@@ -55,11 +55,69 @@ export const starService = {
 
   async getSTARStatus(): Promise<STARStatus> {
     const response = await api.get('/star/status');
-    const result: OASISResult<boolean> = response.data;
     return {
-      isIgnited: result.result || false,
+      isIgnited: response.data.isIgnited || false,
       lastUpdated: new Date(),
     };
+  },
+
+  // Beam In
+  async beamIn(username: string, password: string): Promise<OASISResult<any>> {
+    const response = await api.post('/star/beam-in', { username, password });
+    return response.data;
+  },
+
+  // Create Avatar
+  async createAvatar(request: {
+    title: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    username: string;
+    password: string;
+  }): Promise<OASISResult<any>> {
+    const response = await api.post('/star/create-avatar', request);
+    return response.data;
+  },
+
+  // Light OAPP
+  async lightOAPP(request: {
+    oappName: string;
+    oappDescription: string;
+    oappType: any;
+    oappTemplateId: string;
+    oappTemplateVersion: number;
+    genesisType: any;
+  }): Promise<OASISResult<any>> {
+    const response = await api.post('/star/light', request);
+    return response.data;
+  },
+
+  // Seed OAPP
+  async seedOAPP(request: {
+    fullPathToOAPP: string;
+    launchTarget: string;
+    fullPathToPublishTo?: string;
+    registerOnSTARNET?: boolean;
+    dotnetPublish?: boolean;
+    generateOAPPSource?: boolean;
+    uploadOAPPSourceToSTARNET?: boolean;
+    makeOAPPSourcePublic?: boolean;
+    generateOAPPBinary?: boolean;
+    generateOAPPSelfContainedBinary?: boolean;
+    generateOAPPSelfContainedFullBinary?: boolean;
+    uploadOAPPToCloud?: boolean;
+    uploadOAPPSelfContainedToCloud?: boolean;
+    uploadOAPPSelfContainedFullToCloud?: boolean;
+  }): Promise<OASISResult<any>> {
+    const response = await api.post('/star/seed', request);
+    return response.data;
+  },
+
+  // UnSeed OAPP
+  async unSeedOAPP(oappId: string, version: number = 0): Promise<OASISResult<any>> {
+    const response = await api.post('/star/unseed', { oappId, version });
+    return response.data;
   },
 
   // Avatar Operations

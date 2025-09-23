@@ -28,7 +28,6 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 // Add custom services
 builder.Services.AddScoped<ISTARService, STARService>();
-builder.Services.AddScoped<ISTARNETService, STARNETService>();
 
 // Add HttpClient
 builder.Services.AddHttpClient();
