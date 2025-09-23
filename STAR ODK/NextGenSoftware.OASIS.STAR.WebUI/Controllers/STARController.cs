@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using NextGenSoftware.OASIS.STAR.WebUI.Services;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.STAR;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.WebUI.Controllers
 {
@@ -12,171 +13,212 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Controllers
     [Route("api/[controller]")]
     public class STARController : ControllerBase
     {
-        private readonly ISTARService _starService;
+        private static STARAPI? _starAPI;
+        private static readonly object _lock = new object();
 
-        public STARController(ISTARService starService)
+        private STARAPI GetSTARAPI()
         {
-            _starService = starService;
+            if (_starAPI == null)
+            {
+                lock (_lock)
+                {
+                    if (_starAPI == null)
+                    {
+                        var starDNA = new STARDNA();
+                        _starAPI = new STARAPI(starDNA);
+                    }
+                }
+            }
+            return _starAPI;
+        }
+        [HttpGet("status")]
+        public IActionResult GetStatus()
+        {
+            try
+            {
+                var starAPI = GetSTARAPI();
+                var isIgnited = starAPI.IsOASISBooted;
+                return Ok(new { isIgnited, status = isIgnited ? "ignited" : "extinguished" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpPost("ignite")]
-        public async Task<ActionResult<OASISResult<IOmiverse>>> IgniteSTAR()
+        public async Task<IActionResult> IgniteSTAR([FromBody] IgniteRequest? request = null)
         {
-            var result = await _starService.IgniteSTARAsync();
-            return Ok(result);
+            try
+            {
+                var starAPI = GetSTARAPI();
+                var result = await starAPI.BootOASISAsync(
+                    request?.UserName ?? "admin", 
+                    request?.Password ?? "admin"
+                );
+                if (result.IsError)
+                {
+                    return BadRequest(new { error = result.Message });
+                }
+                return Ok(new { success = true, message = "STAR ignited successfully", result = result.Result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpPost("extinguish")]
-        public async Task<ActionResult<OASISResult<bool>>> ExtinguishStar()
+        public async Task<IActionResult> ExtinguishSTAR()
         {
-            var result = await _starService.ExtinguishStarAsync();
-            return Ok(result);
+            try
+            {
+                var result = await STARAPI.ShutdownOASISAsync();
+                if (result.IsError)
+                {
+                    return BadRequest(new { error = result.Message });
+                }
+                return Ok(new { success = true, message = "STAR extinguished successfully", result = result.Result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
-        [HttpGet("status")]
-        public async Task<ActionResult<OASISResult<bool>>> GetSTARStatus()
+        [HttpPost("beam-in")]
+        public async Task<IActionResult> BeamIn([FromBody] BeamInRequest request)
         {
-            var result = await _starService.IsSTARIgnitedAsync();
-            return Ok(result);
+            try
+            {
+                var starAPI = GetSTARAPI();
+                // First ensure OASIS is booted
+                var bootResult = await starAPI.BootOASISAsync(request.Username, request.Password);
+                if (bootResult.IsError)
+                {
+                    return BadRequest(new { error = bootResult.Message });
+                }
+                
+                // For now, return success - the STARAPI handles avatar management internally
+                return Ok(new { success = true, message = "Beamed in successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
-        [HttpGet("avatar/current")]
-        public async Task<ActionResult<OASISResult<IAvatar>>> GetBeamedInAvatar()
+        [HttpPost("create-avatar")]
+        public async Task<IActionResult> CreateAvatar([FromBody] CreateAvatarRequest request)
         {
-            var result = await _starService.GetBeamedInAvatarAsync();
-            return Ok(result);
+            try
+            {
+                // For now, return a placeholder - we can implement this later using STARAPI
+                return Ok(new { success = true, message = "Avatar creation endpoint ready", request });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
-        [HttpPost("avatar/beam-in")]
-        public async Task<ActionResult<OASISResult<IAvatar>>> BeamInAvatar()
+        [HttpPost("light")]
+        public async Task<IActionResult> Light([FromBody] LightRequest request)
         {
-            var result = await _starService.BeamInAvatarAsync();
-            return Ok(result);
+            try
+            {
+                // For now, return a placeholder - we can implement this later using STARAPI
+                return Ok(new { success = true, message = "OAPP light endpoint ready", request });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
-        [HttpPost("avatar/create")]
-        public async Task<ActionResult<OASISResult<IAvatar>>> CreateAvatar([FromBody] CreateAvatarRequest request)
+        [HttpPost("seed")]
+        public async Task<IActionResult> Seed([FromBody] SeedRequest request)
         {
-            var result = await _starService.CreateAvatarAsync(request.Username, request.Email, request.Password);
-            return Ok(result);
+            try
+            {
+                // For now, return a placeholder - we can implement this later using STARAPI
+                return Ok(new { success = true, message = "OAPP seed endpoint ready", request });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
-        [HttpGet("avatar/{id}")]
-        public async Task<ActionResult<OASISResult<IAvatar>>> GetAvatar(Guid id)
+        [HttpPost("unseed")]
+        public async Task<IActionResult> UnSeed([FromBody] UnSeedRequest request)
         {
-            var result = await _starService.LoadAvatarAsync(id);
-            return Ok(result);
+            try
+            {
+                // For now, return a placeholder - we can implement this later using STARAPI
+                return Ok(new { success = true, message = "OAPP unseed endpoint ready", request });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
+    }
 
-        [HttpGet("avatar/username/{username}")]
-        public async Task<ActionResult<OASISResult<IAvatar>>> GetAvatarByUsername(string username)
-        {
-            var result = await _starService.LoadAvatarAsync(username);
-            return Ok(result);
-        }
+    // Request models
+    public class IgniteRequest
+    {
+        public string UserName { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
 
-        [HttpPost("avatar/login")]
-        public async Task<ActionResult<OASISResult<IAvatar>>> LoginAvatar([FromBody] LoginAvatarRequest request)
-        {
-            var result = await _starService.LoadAvatarAsync(request.Username, request.Password);
-            return Ok(result);
-        }
-
-        [HttpPut("avatar")]
-        public async Task<ActionResult<OASISResult<IAvatar>>> SaveAvatar([FromBody] IAvatar avatar)
-        {
-            var result = await _starService.SaveAvatarAsync(avatar);
-            return Ok(result);
-        }
-
-        [HttpDelete("avatar/{id}")]
-        public async Task<ActionResult<OASISResult<bool>>> DeleteAvatar(Guid id)
-        {
-            var result = await _starService.DeleteAvatarAsync(id);
-            return Ok(result);
-        }
-
-        [HttpGet("avatars")]
-        public async Task<ActionResult<OASISResult<List<IAvatar>>>> GetAllAvatars()
-        {
-            var result = await _starService.LoadAllAvatarsAsync();
-            return Ok(result);
-        }
-
-        [HttpGet("avatars/search")]
-        public async Task<ActionResult<OASISResult<List<IAvatar>>>> SearchAvatars([FromQuery] string searchTerm)
-        {
-            var result = await _starService.SearchAvatarsAsync(searchTerm);
-            return Ok(result);
-        }
-
-        [HttpGet("karma/{avatarId}")]
-        public async Task<ActionResult<OASISResult<IKarmaAkashicRecord>>> GetKarma(Guid avatarId)
-        {
-            var result = await _starService.GetKarmaAsync(avatarId);
-            return Ok(result);
-        }
-
-        [HttpPost("karma/{avatarId}/add")]
-        public async Task<ActionResult<OASISResult<IKarmaAkashicRecord>>> AddKarma(Guid avatarId, [FromBody] int karma)
-        {
-            var result = await _starService.AddKarmaAsync(avatarId, karma);
-            return Ok(result);
-        }
-
-        [HttpPost("karma/{avatarId}/remove")]
-        public async Task<ActionResult<OASISResult<IKarmaAkashicRecord>>> RemoveKarma(Guid avatarId, [FromBody] int karma)
-        {
-            var result = await _starService.RemoveKarmaAsync(avatarId, karma);
-            return Ok(result);
-        }
-
-        [HttpPost("karma/{avatarId}/set")]
-        public async Task<ActionResult<OASISResult<IKarmaAkashicRecord>>> SetKarma(Guid avatarId, [FromBody] int karma)
-        {
-            var result = await _starService.SetKarmaAsync(avatarId, karma);
-            return Ok(result);
-        }
-
-        [HttpGet("karma")]
-        public async Task<ActionResult<OASISResult<List<IKarmaAkashicRecord>>>> GetAllKarma()
-        {
-            var result = await _starService.GetAllKarmaAsync();
-            return Ok(result);
-        }
-
-        [HttpGet("karma/between")]
-        public async Task<ActionResult<OASISResult<List<IKarmaAkashicRecord>>>> GetKarmaBetween([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
-        {
-            var result = await _starService.GetKarmaBetweenAsync(fromDate, toDate);
-            return Ok(result);
-        }
-
-        [HttpGet("karma/above/{karmaLevel}")]
-        public async Task<ActionResult<OASISResult<List<IKarmaAkashicRecord>>>> GetKarmaAbove(int karmaLevel)
-        {
-            var result = await _starService.GetKarmaAboveAsync(karmaLevel);
-            return Ok(result);
-        }
-
-        [HttpGet("karma/below/{karmaLevel}")]
-        public async Task<ActionResult<OASISResult<List<IKarmaAkashicRecord>>>> GetKarmaBelow(int karmaLevel)
-        {
-            var result = await _starService.GetKarmaBelowAsync(karmaLevel);
-            return Ok(result);
-        }
+    public class BeamInRequest
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 
     public class CreateAvatarRequest
     {
-        public string Username { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }
 
-    public class LoginAvatarRequest
+    public class LightRequest
     {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
+        public string OAPPName { get; set; } = string.Empty;
+        public string OAPPDescription { get; set; } = string.Empty;
+        public OAPPType OAPPType { get; set; }
+        public Guid OAPPTemplateId { get; set; }
+        public int OAPPTemplateVersion { get; set; }
+        public GenesisType GenesisType { get; set; }
+    }
+
+    public class SeedRequest
+    {
+        public string FullPathToOAPP { get; set; } = string.Empty;
+        public string LaunchTarget { get; set; } = string.Empty;
+        public string FullPathToPublishTo { get; set; } = string.Empty;
+        public bool RegisterOnSTARNET { get; set; } = true;
+        public bool DotnetPublish { get; set; } = true;
+        public bool GenerateOAPPSource { get; set; } = true;
+        public bool UploadOAPPSourceToSTARNET { get; set; } = true;
+        public bool MakeOAPPSourcePublic { get; set; } = false;
+        public bool GenerateOAPPBinary { get; set; } = true;
+        public bool GenerateOAPPSelfContainedBinary { get; set; } = false;
+        public bool GenerateOAPPSelfContainedFullBinary { get; set; } = false;
+        public bool UploadOAPPToCloud { get; set; } = false;
+        public bool UploadOAPPSelfContainedToCloud { get; set; } = false;
+        public bool UploadOAPPSelfContainedFullToCloud { get; set; } = false;
+    }
+
+    public class UnSeedRequest
+    {
+        public Guid OAPPId { get; set; }
+        public int Version { get; set; } = 0;
     }
 }

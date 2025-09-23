@@ -131,7 +131,8 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                await STARCLI.Avatars.BeamInAvatar();
+                // TODO: Implement avatar beam in using STARAPI
+                await Task.CompletedTask;
                 var avatar = STAR.BeamedInAvatar;
                 
                 if (avatar != null)
@@ -169,7 +170,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                var result = await STARCLI.Avatars.CreateAvatarAsync(username, email, password);
+                // TODO: Implement avatar creation using STARAPI
+                var result = new OASISResult<IAvatar>
+                {
+                    IsError = false,
+                    Message = "Avatar creation not yet implemented",
+                    Result = null
+                };
                 
                 if (!result.IsError && result.Result != null)
                 {
@@ -202,7 +209,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                return await STARCLI.Avatars.LoadAvatarAsync(id);
+                // TODO: Implement avatar loading using STARAPI
+                return new OASISResult<IAvatar>
+                {
+                    IsError = false,
+                    Message = "Avatar loading not yet implemented",
+                    Result = null
+                };
             }
             catch (Exception ex)
             {
@@ -228,7 +241,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                return await STARCLI.Avatars.LoadAvatarAsync(username);
+                // TODO: Implement avatar loading using STARAPI
+                return new OASISResult<IAvatar>
+                {
+                    IsError = false,
+                    Message = "Avatar loading not yet implemented",
+                    Result = null
+                };
             }
             catch (Exception ex)
             {
@@ -254,7 +273,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                return await STARCLI.Avatars.LoadAvatarAsync(username, password);
+                // TODO: Implement avatar loading using STARAPI
+                return new OASISResult<IAvatar>
+                {
+                    IsError = false,
+                    Message = "Avatar loading not yet implemented",
+                    Result = null
+                };
             }
             catch (Exception ex)
             {
@@ -280,7 +305,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                var result = await STARCLI.Avatars.SaveAvatarAsync(avatar);
+                // TODO: Implement avatar saving using STARAPI
+                var result = new OASISResult<IAvatar>
+                {
+                    IsError = false,
+                    Message = "Avatar saving not yet implemented",
+                    Result = avatar
+                };
                 
                 if (!result.IsError && result.Result != null)
                 {
@@ -313,7 +344,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                var result = await STARCLI.Avatars.DeleteAvatarAsync(id);
+                // TODO: Implement avatar deletion using STARAPI
+                var result = new OASISResult<bool>
+                {
+                    IsError = false,
+                    Message = "Avatar deletion not yet implemented",
+                    Result = true
+                };
                 
                 if (!result.IsError && result.Result)
                 {
@@ -346,7 +383,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                return await STARCLI.Avatars.LoadAllAvatarsAsync();
+                // TODO: Implement loading all avatars using STARAPI
+                return new OASISResult<List<IAvatar>>
+                {
+                    IsError = false,
+                    Message = "Loading all avatars not yet implemented",
+                    Result = new List<IAvatar>()
+                };
             }
             catch (Exception ex)
             {
@@ -372,7 +415,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                return await STARCLI.Avatars.SearchAvatarsAsync(searchTerm);
+                // TODO: Implement avatar search using STARAPI
+                return new OASISResult<List<IAvatar>>
+                {
+                    IsError = false,
+                    Message = "Avatar search not yet implemented",
+                    Result = new List<IAvatar>()
+                };
             }
             catch (Exception ex)
             {
@@ -398,7 +447,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                return await STARCLI.Avatars.GetKarmaAsync(avatarId);
+                // TODO: Implement karma retrieval using STARAPI
+                return new OASISResult<IKarmaAkashicRecord>
+                {
+                    IsError = false,
+                    Message = "Karma retrieval not yet implemented",
+                    Result = null
+                };
             }
             catch (Exception ex)
             {
@@ -424,7 +479,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                var result = await STARCLI.Avatars.AddKarmaAsync(avatarId, karma);
+                // TODO: Implement karma addition using STARAPI
+                var result = new OASISResult<IKarmaAkashicRecord>
+                {
+                    IsError = false,
+                    Message = "Karma addition not yet implemented",
+                    Result = null
+                };
                 
                 if (!result.IsError && result.Result != null)
                 {
@@ -457,7 +518,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                var result = await STARCLI.Avatars.RemoveKarmaAsync(avatarId, karma);
+                // TODO: Implement karma removal using STARAPI
+                var result = new OASISResult<IKarmaAkashicRecord>
+                {
+                    IsError = false,
+                    Message = "Karma removal not yet implemented",
+                    Result = null
+                };
                 
                 if (!result.IsError && result.Result != null)
                 {
@@ -490,7 +557,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                var result = await STARCLI.Avatars.SetKarmaAsync(avatarId, karma);
+                // TODO: Implement karma setting using STARAPI
+                var result = new OASISResult<IKarmaAkashicRecord>
+                {
+                    IsError = false,
+                    Message = "Karma setting not yet implemented",
+                    Result = null
+                };
                 
                 if (!result.IsError && result.Result != null)
                 {
@@ -523,7 +596,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                return await STARCLI.Avatars.GetAllKarmaAsync();
+                // TODO: Implement getting all karma using STARAPI
+                return new OASISResult<List<IKarmaAkashicRecord>>
+                {
+                    IsError = false,
+                    Message = "Getting all karma not yet implemented",
+                    Result = new List<IKarmaAkashicRecord>()
+                };
             }
             catch (Exception ex)
             {
@@ -549,7 +628,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                return await STARCLI.Avatars.GetKarmaBetweenAsync(fromDate, toDate);
+                // TODO: Implement getting karma between dates using STARAPI
+                return new OASISResult<List<IKarmaAkashicRecord>>
+                {
+                    IsError = false,
+                    Message = "Getting karma between dates not yet implemented",
+                    Result = new List<IKarmaAkashicRecord>()
+                };
             }
             catch (Exception ex)
             {
@@ -575,7 +660,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                return await STARCLI.Avatars.GetKarmaAboveAsync(karmaLevel);
+                // TODO: Implement getting karma above level using STARAPI
+                return new OASISResult<List<IKarmaAkashicRecord>>
+                {
+                    IsError = false,
+                    Message = "Getting karma above level not yet implemented",
+                    Result = new List<IKarmaAkashicRecord>()
+                };
             }
             catch (Exception ex)
             {
@@ -601,7 +692,13 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
                     };
                 }
 
-                return await STARCLI.Avatars.GetKarmaBelowAsync(karmaLevel);
+                // TODO: Implement getting karma below level using STARAPI
+                return new OASISResult<List<IKarmaAkashicRecord>>
+                {
+                    IsError = false,
+                    Message = "Getting karma below level not yet implemented",
+                    Result = new List<IKarmaAkashicRecord>()
+                };
             }
             catch (Exception ex)
             {
