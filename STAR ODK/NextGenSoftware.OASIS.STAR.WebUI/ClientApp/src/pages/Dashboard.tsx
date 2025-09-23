@@ -42,48 +42,30 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
-  const { starStatus, igniteSTAR, extinguishStar } = useSTARConnection();
+  // Fetch STAR status
+  const { data: starStatus, refetch: refetchStarStatus } = useQuery(
+    'starStatus',
+    starService.getSTARStatus,
+    {
+      refetchInterval: 5000,
+    }
+  );
 
   // Fetch dashboard data
   const { data: avatarData } = useQuery(
     'beamedInAvatar',
     starService.getBeamedInAvatar,
     {
-      enabled: isConnected,
+      enabled: starStatus?.isIgnited,
       refetchInterval: 30000,
-    }
-  );
-
-  const { data: oappsData } = useQuery(
-    'dashboardOAPPs',
-    () => starNetService.getAllOAPPs(),
-    {
-      enabled: isConnected,
-      refetchInterval: 60000,
-    }
-  );
-
-  const { data: questsData } = useQuery(
-    'dashboardQuests',
-    () => starNetService.getAllQuests(),
-    {
-      enabled: isConnected,
-      refetchInterval: 60000,
-    }
-  );
-
-  const { data: nftsData } = useQuery(
-    'dashboardNFTs',
-    () => starNetService.getAllNFTs(),
-    {
-      enabled: isConnected,
-      refetchInterval: 60000,
     }
   );
 
   const handleIgniteSTAR = async () => {
     try {
-      await igniteSTAR();
+      await starService.igniteSTAR();
+      refetchStarStatus();
+      toast.success('STAR ignited successfully!');
     } catch (error) {
       toast.error('Failed to ignite STAR');
     }
@@ -91,7 +73,9 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
 
   const handleExtinguishStar = async () => {
     try {
-      await extinguishStar();
+      await starService.extinguishStar();
+      refetchStarStatus();
+      toast.success('STAR extinguished successfully!');
     } catch (error) {
       toast.error('Failed to extinguish STAR');
     }
