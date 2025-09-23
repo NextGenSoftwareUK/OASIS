@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { OASISResult, STARStatus, Avatar, Karma } from '../types/star';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://localhost:7001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:50563/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -131,14 +131,6 @@ export const starService = {
     return response.data;
   },
 
-  async createAvatar(username: string, email: string, password: string): Promise<OASISResult<Avatar>> {
-    const response = await api.post('/star/avatar/create', {
-      username,
-      email,
-      password,
-    });
-    return response.data;
-  },
 
   async getAvatar(id: string): Promise<OASISResult<Avatar>> {
     const response = await api.get(`/star/avatar/${id}`);

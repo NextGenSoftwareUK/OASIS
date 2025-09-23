@@ -7,7 +7,6 @@ import {
   Typography,
   Button,
   Chip,
-  LinearProgress,
   Avatar,
   List,
   ListItem,
@@ -21,20 +20,14 @@ import {
   Apps,
   Assignment,
   Image,
-  LocationOn,
-  TrendingUp,
   People,
-  Public,
   Refresh,
-  Add,
   PlayArrow,
   Pause,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
 import { starService } from '../services/starService';
-import { starNetService } from '../services/starNetService';
-import { useSTARConnection } from '../hooks/useSTARConnection';
 import { toast } from 'react-hot-toast';
 
 interface DashboardProps {
@@ -48,6 +41,33 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
     starService.getSTARStatus,
     {
       refetchInterval: 5000,
+    }
+  );
+
+  // Fetch OAPPs data
+  const { data: oappsData } = useQuery(
+    'oapps',
+    () => Promise.resolve({ result: [] }), // Placeholder for now
+    {
+      enabled: isConnected,
+    }
+  );
+
+  // Fetch Quests data
+  const { data: questsData } = useQuery(
+    'quests',
+    () => Promise.resolve({ result: [] }), // Placeholder for now
+    {
+      enabled: isConnected,
+    }
+  );
+
+  // Fetch NFTs data
+  const { data: nftsData } = useQuery(
+    'nfts',
+    () => Promise.resolve({ result: [] }), // Placeholder for now
+    {
+      enabled: isConnected,
     }
   );
 
