@@ -13,7 +13,7 @@ class SignalRService {
   }
 
   private initializeConnection() {
-    const hubUrl = process.env.REACT_APP_HUB_URL || 'https://localhost:7001/starhub';
+    const hubUrl = process.env.REACT_APP_HUB_URL || 'http://localhost:50563/starhub';
     
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {
@@ -58,7 +58,7 @@ class SignalRService {
 
     this.connection.on('STARExtinguished', (data) => {
       console.log('STAR Extinguished:', data);
-      toast.info('STAR has been extinguished');
+      toast.success('STAR has been extinguished');
       this.emit('starExtinguished', data);
     });
 
@@ -87,7 +87,7 @@ class SignalRService {
 
     this.connection.on('AvatarDeleted', (avatarId) => {
       console.log('Avatar Deleted:', avatarId);
-      toast.info('Avatar deleted');
+      toast.success('Avatar deleted');
       this.emit('avatarDeleted', avatarId);
     });
 
@@ -100,13 +100,13 @@ class SignalRService {
 
     this.connection.on('KarmaRemoved', (data) => {
       console.log('Karma Removed:', data);
-      toast.info(`${data.karma} karma removed`);
+      toast.success(`${data.karma} karma removed`);
       this.emit('karmaRemoved', data);
     });
 
     this.connection.on('KarmaSet', (data) => {
       console.log('Karma Set:', data);
-      toast.info(`Karma set to ${data.karma}`);
+      toast.success(`Karma set to ${data.karma}`);
       this.emit('karmaSet', data);
     });
 
@@ -167,10 +167,12 @@ class SignalRService {
     }
 
     try {
-      await this.connection.start();
-      this.isConnected = true;
-      this.reconnectAttempts = 0;
-      console.log('SignalR connection started');
+      if (this.connection) {
+        await this.connection.start();
+        this.isConnected = true;
+        this.reconnectAttempts = 0;
+        console.log('SignalR connection started');
+      }
       toast.success('Connected to STAR');
     } catch (error) {
       console.error('Error starting SignalR connection:', error);

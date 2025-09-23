@@ -52,11 +52,11 @@ export const useSTARConnection = () => {
           queryClient.invalidateQueries('starStatus');
         });
 
-        signalRService.on('starStatusUpdate', (status) => {
+        signalRService.on('starStatusUpdate', (status: any) => {
           queryClient.invalidateQueries('starStatus');
         });
 
-        signalRService.on('error', (error) => {
+        signalRService.on('error', (error: any) => {
           setConnectionStatus(prev => ({
             ...prev,
             status: 'error',
