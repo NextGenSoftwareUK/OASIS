@@ -7,3 +7,6 @@ Set-Location "STAR ODK\NextGenSoftware.OASIS.STAR.WebUI"
 # Start the server
 Write-Host "Starting server on http://localhost:50563..." -ForegroundColor Yellow
 dotnet run --urls "http://localhost:50563"
+
+
+
