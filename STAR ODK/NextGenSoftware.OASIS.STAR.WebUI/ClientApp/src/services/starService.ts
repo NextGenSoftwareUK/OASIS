@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { OASISResult, STARStatus, Avatar, Karma } from '../types/star';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:50563/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:50564/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

@@ -1,5 +1,18 @@
 # 🌟 STAR Web UI - Quick Start Guide
 
+## 🚀 Current Status & Context
+- **Backend**: REST API with placeholder endpoints (port 50563)
+- **Frontend**: React app with Material-UI (port 3000) 
+- **Connection**: Proxy configured, ready for data loading
+- **UI**: User confirmed "slick" design, navigation working
+- **Architecture**: Direct REST API calls (no complex service layer)
+
+## 🎯 Developer Preferences
+- **Single terminal**: Avoid multiple shells
+- **Foreground mode**: Always run processes in foreground for visibility  
+- **Check processes**: Verify no locks before building
+- **Hot reload**: Leverage React auto-refresh
+
 ## 🚀 Getting Started
 
 The STAR Web UI now uses a clean REST API approach that directly calls the STAR API from STAR ODK!
@@ -18,13 +31,13 @@ The STAR Web UI now uses a clean REST API approach that directly calls the STAR 
    - Install frontend dependencies
    - Build the React app
    - Start the .NET backend server
-3. **Open your browser** to: `https://localhost:7001`
+3. **Open your browser** to: `http://localhost:50563`
 
 ### Option 2: Development Mode
 1. **Double-click** `Start-Development.bat`
 2. This will start both frontend and backend in separate windows
 3. **Frontend**: `http://localhost:3000` (with hot reload)
-4. **Backend**: `https://localhost:7001`
+4. **Backend**: `http://localhost:50563`
 
 ## 🎯 What You'll See
 
@@ -95,9 +108,9 @@ The STAR Web UI now uses a clean REST API approach that directly calls the STAR 
 ## 🚨 **Troubleshooting**
 
 ### If you get SSL certificate errors:
-1. Open `https://localhost:7001` in Chrome
-2. Click "Advanced" → "Proceed to localhost (unsafe)"
-3. Or use `http://localhost:5000` (HTTP version)
+1. Open `http://localhost:50563` in Chrome
+2. The backend runs on HTTP (no SSL) on port 50563
+3. Frontend runs on `http://localhost:3000`
 
 ### If frontend dependencies fail to install:
 1. Make sure you have Node.js 18+ installed

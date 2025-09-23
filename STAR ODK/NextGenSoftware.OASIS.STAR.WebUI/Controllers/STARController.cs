@@ -163,6 +163,383 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        // Avatar Operations
+        [HttpGet("avatar/current")]
+        public async Task<IActionResult> GetBeamedInAvatar()
+        {
+            try
+            {
+                // For now, return a placeholder avatar
+                var placeholderAvatar = new
+                {
+                    id = Guid.NewGuid().ToString(),
+                    title = "Dr",
+                    firstName = "John",
+                    lastName = "Doe",
+                    email = "john.doe@example.com",
+                    username = "johndoe",
+                    isBeamedIn = true,
+                    lastBeamedIn = DateTime.UtcNow
+                };
+                return Ok(new { success = true, result = placeholderAvatar });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("avatar/beam-in")]
+        public async Task<IActionResult> BeamInAvatar()
+        {
+            try
+            {
+                // For now, return a placeholder
+                return Ok(new { success = true, message = "Avatar beamed in successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("avatar/{id}")]
+        public async Task<IActionResult> GetAvatar(string id)
+        {
+            try
+            {
+                // For now, return a placeholder avatar
+                var placeholderAvatar = new
+                {
+                    id = id,
+                    title = "Dr",
+                    firstName = "John",
+                    lastName = "Doe",
+                    email = "john.doe@example.com",
+                    username = "johndoe",
+                    isBeamedIn = false,
+                    lastBeamedIn = DateTime.UtcNow.AddDays(-1)
+                };
+                return Ok(new { success = true, result = placeholderAvatar });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("avatar/username/{username}")]
+        public async Task<IActionResult> GetAvatarByUsername(string username)
+        {
+            try
+            {
+                // For now, return a placeholder avatar
+                var placeholderAvatar = new
+                {
+                    id = Guid.NewGuid().ToString(),
+                    title = "Dr",
+                    firstName = "John",
+                    lastName = "Doe",
+                    email = "john.doe@example.com",
+                    username = username,
+                    isBeamedIn = false,
+                    lastBeamedIn = DateTime.UtcNow.AddDays(-1)
+                };
+                return Ok(new { success = true, result = placeholderAvatar });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("avatar/login")]
+        public async Task<IActionResult> LoginAvatar([FromBody] LoginAvatarRequest request)
+        {
+            try
+            {
+                // For now, return a placeholder avatar
+                var placeholderAvatar = new
+                {
+                    id = Guid.NewGuid().ToString(),
+                    title = "Dr",
+                    firstName = "John",
+                    lastName = "Doe",
+                    email = "john.doe@example.com",
+                    username = request.Username,
+                    isBeamedIn = true,
+                    lastBeamedIn = DateTime.UtcNow
+                };
+                return Ok(new { success = true, result = placeholderAvatar });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPut("avatar")]
+        public async Task<IActionResult> SaveAvatar([FromBody] object avatar)
+        {
+            try
+            {
+                // For now, return success
+                return Ok(new { success = true, message = "Avatar saved successfully", result = avatar });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpDelete("avatar/{id}")]
+        public async Task<IActionResult> DeleteAvatar(string id)
+        {
+            try
+            {
+                // For now, return success
+                return Ok(new { success = true, message = "Avatar deleted successfully", result = true });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("avatars")]
+        public async Task<IActionResult> GetAllAvatars()
+        {
+            try
+            {
+                // For now, return placeholder avatars
+                var placeholderAvatars = new[]
+                {
+                    new
+                    {
+                        id = Guid.NewGuid().ToString(),
+                        title = "Dr",
+                        firstName = "John",
+                        lastName = "Doe",
+                        email = "john.doe@example.com",
+                        username = "johndoe",
+                        isBeamedIn = true,
+                        lastBeamedIn = DateTime.UtcNow
+                    },
+                    new
+                    {
+                        id = Guid.NewGuid().ToString(),
+                        title = "Ms",
+                        firstName = "Jane",
+                        lastName = "Smith",
+                        email = "jane.smith@example.com",
+                        username = "janesmith",
+                        isBeamedIn = false,
+                        lastBeamedIn = DateTime.UtcNow.AddDays(-2)
+                    }
+                };
+                return Ok(new { success = true, result = placeholderAvatars });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("avatars/search")]
+        public async Task<IActionResult> SearchAvatars([FromQuery] string searchTerm)
+        {
+            try
+            {
+                // For now, return placeholder avatars
+                var placeholderAvatars = new[]
+                {
+                    new
+                    {
+                        id = Guid.NewGuid().ToString(),
+                        title = "Dr",
+                        firstName = "John",
+                        lastName = "Doe",
+                        email = "john.doe@example.com",
+                        username = "johndoe",
+                        isBeamedIn = true,
+                        lastBeamedIn = DateTime.UtcNow
+                    }
+                };
+                return Ok(new { success = true, result = placeholderAvatars });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        // Karma Operations
+        [HttpGet("karma/{avatarId}")]
+        public async Task<IActionResult> GetKarma(string avatarId)
+        {
+            try
+            {
+                // For now, return placeholder karma
+                var placeholderKarma = new
+                {
+                    avatarId = avatarId,
+                    karma = 100,
+                    karmaLevel = 5,
+                    lastUpdated = DateTime.UtcNow
+                };
+                return Ok(new { success = true, result = placeholderKarma });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("karma/{avatarId}/add")]
+        public async Task<IActionResult> AddKarma(string avatarId, [FromBody] int karma)
+        {
+            try
+            {
+                // For now, return success
+                return Ok(new { success = true, message = $"Added {karma} karma to avatar {avatarId}" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("karma/{avatarId}/remove")]
+        public async Task<IActionResult> RemoveKarma(string avatarId, [FromBody] int karma)
+        {
+            try
+            {
+                // For now, return success
+                return Ok(new { success = true, message = $"Removed {karma} karma from avatar {avatarId}" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("karma/{avatarId}/set")]
+        public async Task<IActionResult> SetKarma(string avatarId, [FromBody] int karma)
+        {
+            try
+            {
+                // For now, return success
+                return Ok(new { success = true, message = $"Set karma to {karma} for avatar {avatarId}" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("karma")]
+        public async Task<IActionResult> GetAllKarma()
+        {
+            try
+            {
+                // For now, return placeholder karma data
+                var placeholderKarma = new[]
+                {
+                    new
+                    {
+                        avatarId = Guid.NewGuid().ToString(),
+                        karma = 100,
+                        karmaLevel = 5,
+                        lastUpdated = DateTime.UtcNow
+                    },
+                    new
+                    {
+                        avatarId = Guid.NewGuid().ToString(),
+                        karma = 75,
+                        karmaLevel = 4,
+                        lastUpdated = DateTime.UtcNow.AddHours(-1)
+                    }
+                };
+                return Ok(new { success = true, result = placeholderKarma });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("karma/between")]
+        public async Task<IActionResult> GetKarmaBetween([FromQuery] string fromDate, [FromQuery] string toDate)
+        {
+            try
+            {
+                // For now, return placeholder karma data
+                var placeholderKarma = new[]
+                {
+                    new
+                    {
+                        avatarId = Guid.NewGuid().ToString(),
+                        karma = 100,
+                        karmaLevel = 5,
+                        lastUpdated = DateTime.UtcNow
+                    }
+                };
+                return Ok(new { success = true, result = placeholderKarma });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("karma/above/{karmaLevel}")]
+        public async Task<IActionResult> GetKarmaAbove(int karmaLevel)
+        {
+            try
+            {
+                // For now, return placeholder karma data
+                var placeholderKarma = new[]
+                {
+                    new
+                    {
+                        avatarId = Guid.NewGuid().ToString(),
+                        karma = 100,
+                        karmaLevel = 5,
+                        lastUpdated = DateTime.UtcNow
+                    }
+                };
+                return Ok(new { success = true, result = placeholderKarma });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("karma/below/{karmaLevel}")]
+        public async Task<IActionResult> GetKarmaBelow(int karmaLevel)
+        {
+            try
+            {
+                // For now, return placeholder karma data
+                var placeholderKarma = new[]
+                {
+                    new
+                    {
+                        avatarId = Guid.NewGuid().ToString(),
+                        karma = 50,
+                        karmaLevel = 3,
+                        lastUpdated = DateTime.UtcNow
+                    }
+                };
+                return Ok(new { success = true, result = placeholderKarma });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 
     // Request models
@@ -220,5 +597,11 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Controllers
     {
         public Guid OAPPId { get; set; }
         public int Version { get; set; } = 0;
+    }
+
+    public class LoginAvatarRequest
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 }

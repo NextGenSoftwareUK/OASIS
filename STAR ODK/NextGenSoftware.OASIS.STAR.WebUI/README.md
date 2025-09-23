@@ -1,200 +1,151 @@
-# STAR Web UI
+# 🌟 STAR Web UI
 
-A modern web interface for the OASIS STAR CLI, providing the same functionality as the command-line interface with a beautiful, responsive web UI.
+## 🚨 **FOR AI ASSISTANTS - READ THIS FIRST!** 🚨
 
-## Features
+**Before helping with this project, please read these context files:**
+- `DEVELOPMENT_CONTEXT.md` - Complete project context and lessons learned
+- `DEVELOPER_PREFERENCES.md` - User workflow preferences  
+- `QUICK-START.md` - Current status and commands
+- `START-NEW-SESSION.md` - Session starter guide
 
-### 🌟 Core STAR Operations
-- **STAR Management** - Ignite/extinguish STAR with real-time status
-- **Avatar Management** - Create, manage, and beam in avatars
-- **Karma System** - Track and manage karma points
+## 🎯 **User Preferences**
+- **Single terminal**: Avoid multiple shells
+- **Foreground mode**: Always run processes in foreground
+- **Check processes**: Verify no locks before building
+- **Hot reload**: Leverage React auto-refresh
 
-### 🚀 STARNET Asset Management
-- **OAPPs** - Omniverse Applications (create, publish, install, manage)
-- **Quests** - Interactive quests and adventures
-- **NFTs** - Digital assets and collectibles
+## 🔧 **Current Status**
+- **Backend**: Port 50563 with placeholder endpoints
+- **Frontend**: Port 3000 with proxy configuration
+- **Need**: Connect real STAR API data to placeholder endpoints
+
+## 🚀 Getting Started
+
+The STAR Web UI now uses a clean REST API approach that directly calls the STAR API from STAR ODK!
+
+### Option 0: Test REST API (Recommended)
+1. **Double-click** `Test-REST-API.bat`
+2. This will:
+   - Build both backend and frontend
+   - Start the backend server
+   - Test the REST API endpoints
+3. Shows ✅ or ❌ for each component
+
+### Option 1: Production Build
+1. **Double-click** `Start-STAR-WebUI.bat`
+2. This will:
+   - Install frontend dependencies
+   - Build the React app
+   - Start the .NET backend server
+3. **Open your browser** to: `http://localhost:50563`
+
+### Option 2: Development Mode
+1. **Double-click** `Start-Development.bat`
+2. This will start both frontend and backend in separate windows
+3. **Frontend**: `http://localhost:3000` (with hot reload)
+4. **Backend**: `http://localhost:50563`
+
+## 🎯 What You'll See
+
+### 🌟 **Dashboard**
+- STAR connection status
+- Real-time stats (OAPPs, Quests, NFTs, Avatars)
+- Current avatar information
+- Recent activity feed
+
+### 🛠 **STARNET Asset Management**
+- **OAPPs** - Omniverse Applications
+- **Quests** - Interactive adventures
+- **NFTs** - Digital assets
 - **GeoNFTs** - Location-based NFTs
-- **Missions** - Mission management and tracking
-- **Chapters** - Story chapters and content
+- **Missions** - Mission management
+- **Chapters** - Story content
 - **Celestial Bodies** - Planets, stars, moons
 - **Celestial Spaces** - Galaxies, universes
 - **Runtimes** - Runtime environments
-- **Libraries** - Code libraries and components
-- **Templates** - OAPP templates and starters
+- **Libraries** - Code libraries
+- **Templates** - OAPP templates
 - **Inventory** - Item management
-- **Plugins** - Extensions and plugins
-- **Geo Hotspots** - Location-based interactive points
+- **Plugins** - Extensions
+- **Geo Hotspots** - Location-based interactions
 
-### 🏪 STARNET Store
-- Asset marketplace
-- Community sharing
-- Search and discovery
+### 🏪 **STARNET Store**
+- Browse community assets
+- Search and discover content
+- Download and install assets
 
-### 🔄 Real-time Features
-- Live status updates via SignalR
-- Real-time notifications
+## 🔧 **Features**
+
+### ✨ **Real-time Updates**
+- Live connection status
+- Instant notifications
 - Progress tracking
-- Connection monitoring
+- SignalR integration
 
-## Technology Stack
+### 🎨 **Modern UI**
+- Dark theme with gradient accents
+- Smooth animations (Framer Motion)
+- Responsive design
+- Material-UI components
 
-### Backend
-- **ASP.NET Core 8.0** - Web API
-- **SignalR** - Real-time communication
-- **AutoMapper** - Object mapping
-- **Swagger** - API documentation
+### 🔌 **API Integration**
+- RESTful API endpoints
+- Swagger documentation at `/swagger`
+- SignalR real-time communication
+- CORS enabled for frontend
+
+## 🛠 **Technical Stack**
 
 ### Frontend
-- **React 18** - UI framework
-- **TypeScript** - Type safety
-- **Material-UI (MUI)** - Component library
-- **Framer Motion** - Animations
-- **React Query** - Data fetching and caching
-- **React Router** - Navigation
-- **SignalR Client** - Real-time updates
+- **React 18** with TypeScript
+- **Material-UI** for components
+- **Framer Motion** for animations
+- **React Query** for data fetching
+- **SignalR** for real-time updates
+- **React Router** for navigation
 
-## Getting Started
+### Backend
+- **ASP.NET Core 8.0**
+- **SignalR** for real-time communication
+- **Swagger** for API documentation
+- **AutoMapper** for object mapping
+- **CORS** enabled
 
-### Prerequisites
-- .NET 8.0 SDK
-- Node.js 18+ and npm
-- Visual Studio 2022 or VS Code
+## 🚨 **Troubleshooting**
 
-### Backend Setup
+### If you get SSL certificate errors:
+1. Open `http://localhost:50563` in Chrome
+2. The backend runs on HTTP (no SSL) on port 50563
+3. Frontend runs on `http://localhost:3000`
 
-1. Navigate to the backend directory:
+### If frontend dependencies fail to install:
+1. Make sure you have Node.js 18+ installed
+2. Run `npm install` manually in the `ClientApp` folder
+
+### If backend fails to start:
+1. Make sure you have .NET 8.0 SDK installed
+2. Run `dotnet restore` manually in the project folder
+
+## 🔧 **Current Commands**
 ```bash
-cd "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI"
+# Backend (port 50563)
+dotnet run --urls "http://localhost:50563"
+
+# Frontend (port 3000) 
+cd ClientApp && npm start
 ```
 
-2. Restore NuGet packages:
-```bash
-dotnet restore
-```
+## 📚 **Project Structure**
+- `Controllers/STARController.cs` - REST API endpoints
+- `ClientApp/` - React frontend
+- `OASIS_DNA.json` - Configuration file
+- Context files for AI session continuity
 
-3. Update connection strings in `appsettings.json` if needed
+## 🎉 **You're Ready!**
 
-4. Run the backend:
-```bash
-dotnet run
-```
+The STAR Web UI is a complete, modern web interface for the OASIS STAR CLI. It provides all the functionality of the command-line interface with a beautiful, responsive web UI.
 
-The API will be available at `https://localhost:7001`
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-```bash
-cd "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI/ClientApp"
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Start the development server:
-```bash
-npm start
-```
-
-The web UI will be available at `http://localhost:3000`
-
-## Usage
-
-### 1. Connect to STAR
-- Open the web UI
-- Click "Ignite STAR" to connect to the OASIS
-- Monitor connection status in the top navigation
-
-### 2. Manage Avatars
-- Navigate to Avatars section
-- Create new avatars or beam in existing ones
-- Manage karma and user profiles
-
-### 3. Create and Manage Assets
-- Use the sidebar to navigate to different asset types
-- Create new OAPPs, Quests, NFTs, etc.
-- Publish assets to STARNET
-- Install and manage downloaded assets
-
-### 4. Explore STARNET Store
-- Browse the marketplace
-- Search for assets
-- Download and install community creations
-
-## API Endpoints
-
-### STAR Operations
-- `POST /api/star/ignite` - Ignite STAR
-- `POST /api/star/extinguish` - Extinguish STAR
-- `GET /api/star/status` - Get STAR status
-- `GET /api/star/avatar/current` - Get current avatar
-
-### STARNET Operations
-- `GET /api/starnet/oapps` - List all OAPPs
-- `POST /api/starnet/oapps` - Create OAPP
-- `PUT /api/starnet/oapps/{id}` - Update OAPP
-- `DELETE /api/starnet/oapps/{id}` - Delete OAPP
-- `POST /api/starnet/oapps/{id}/publish` - Publish OAPP
-- `POST /api/starnet/oapps/{id}/download-install` - Install OAPP
-
-Similar endpoints exist for all asset types (quests, nfts, etc.)
-
-## Real-time Updates
-
-The application uses SignalR for real-time updates:
-- STAR status changes
-- Asset creation/updates
-- Progress notifications
-- Error messages
-
-## Development
-
-### Project Structure
-```
-STAR ODK/NextGenSoftware.OASIS.STAR.WebUI/
-├── Controllers/          # API controllers
-├── Services/            # Business logic services
-├── Hubs/               # SignalR hubs
-├── ClientApp/          # React frontend
-│   ├── src/
-│   │   ├── components/ # React components
-│   │   ├── pages/      # Page components
-│   │   ├── services/   # API services
-│   │   ├── hooks/      # Custom hooks
-│   │   └── types/      # TypeScript types
-│   └── public/         # Static assets
-└── README.md
-```
-
-### Adding New Features
-
-1. **Backend**: Add new endpoints to controllers
-2. **Frontend**: Create new pages/components
-3. **Types**: Define TypeScript interfaces
-4. **Services**: Add API service methods
-5. **Real-time**: Add SignalR events if needed
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-This project is part of the OASIS ecosystem. Please refer to the main OASIS license.
-
-## Support
-
-For issues and questions:
-- Check the OASIS documentation
-- Create an issue in the repository
-- Join the OASIS community
+**Happy coding in the OASIS Omniverse!** 🌟
 
 ---
-
-**STAR Web UI** - Bringing the power of the OASIS STAR CLI to the web! 🌟
+*This project uses a "session memory" system - see context files for complete details.*
