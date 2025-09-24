@@ -266,3 +266,41 @@ export interface SearchParams extends PaginationParams {
   searchTerm?: string;
   filters?: SearchFilters;
 }
+
+// WEB4 OASIS API Data Types for Karma Integration
+export interface OAPPKarmaData {
+  oappId: string;
+  oappName: string;
+  registeredAvatars: AvatarKarmaData[];
+  totalKarma: number;
+  userCount: number;
+  averageKarma: number;
+  karmaLevel: string;
+  karmaSources: string[];
+}
+
+export interface AvatarKarmaData {
+  avatarId: string;
+  avatarName: string;
+  email: string;
+  totalKarma: number;
+  karmaTransactions: KarmaTransaction[];
+  registrationDate: string;
+  lastLoginDate: string;
+}
+
+export interface KarmaTransaction {
+  transactionId: string;
+  karmaAmount: number;
+  karmaType: 'Earned' | 'Lost' | 'Transferred';
+  source: string;
+  description: string;
+  timestamp: string;
+  oappId: string;
+}
+
+export interface AvatarListResult {
+  avatars: AvatarKarmaData[];
+  totalCount: number;
+  hasMore: boolean;
+}

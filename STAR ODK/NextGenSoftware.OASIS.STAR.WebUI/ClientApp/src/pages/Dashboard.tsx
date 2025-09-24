@@ -28,21 +28,21 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
 import { starService } from '../services/starService';
+import { useSTARConnection } from '../hooks/useSTARConnection';
 import { toast } from 'react-hot-toast';
+import KarmaVisualization from '../components/KarmaVisualization';
+import KarmaSearch from '../components/KarmaSearch';
+import STARStatusCard from '../components/STARStatusCard';
+import StatsOverview from '../components/StatsOverview';
+import RecentActivity from '../components/RecentActivity';
 
 interface DashboardProps {
   isConnected: boolean;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
-  // Fetch STAR status
-  const { data: starStatus, refetch: refetchStarStatus } = useQuery(
-    'starStatus',
-    starService.getSTARStatus,
-    {
-      refetchInterval: 5000,
-    }
-  );
+  // Use the STAR connection hook for consistent state management
+  const { igniteSTAR, extinguishStar, starStatus } = useSTARConnection();
 
   // Fetch OAPPs data
   const { data: oappsData } = useQuery(
@@ -83,8 +83,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
 
   const handleIgniteSTAR = async () => {
     try {
-      await starService.igniteSTAR();
-      refetchStarStatus();
+      await igniteSTAR();
       toast.success('STAR ignited successfully!');
     } catch (error) {
       toast.error('Failed to ignite STAR');
@@ -93,8 +92,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
 
   const handleExtinguishStar = async () => {
     try {
-      await starService.extinguishStar();
-      refetchStarStatus();
+      await extinguishStar();
       toast.success('STAR extinguished successfully!');
     } catch (error) {
       toast.error('Failed to extinguish STAR');
@@ -231,40 +229,14 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
         </motion.div>
       </Box>
 
-      {/* STAR Status Card */}
+      {/* Enhanced STAR Status Card */}
       <motion.div variants={itemVariants}>
-        <Card sx={{ mb: 4, background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)' }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ bgcolor: 'primary.main' }}>
-                  <Star />
-                </Avatar>
-                <Box>
-                  <Typography variant="h6">
-                    STAR Status
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {isConnected ? 'Connected and Ready' : 'Disconnected'}
-                  </Typography>
-                </Box>
-              </Box>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Chip
-                  label={isConnected ? 'Online' : 'Offline'}
-                  color={isConnected ? 'success' : 'error'}
-                  variant="outlined"
-                />
-                <IconButton
-                  color="primary"
-                  onClick={isConnected ? handleExtinguishStar : handleIgniteSTAR}
-                >
-                  {isConnected ? <Pause /> : <PlayArrow />}
-                </IconButton>
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
+        <STARStatusCard />
+      </motion.div>
+
+      {/* Statistics Overview */}
+      <motion.div variants={itemVariants}>
+        <StatsOverview />
       </motion.div>
 
       {/* Stats Grid */}
@@ -344,51 +316,58 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
           </motion.div>
         </Grid>
 
-        {/* Recent Activity */}
+        {/* Enhanced Recent Activity */}
         <Grid item xs={12} md={6}>
           <motion.div variants={itemVariants}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography variant="h6">
-                    Recent Activity
-                  </Typography>
-                  <IconButton size="small">
-                    <Refresh />
-                  </IconButton>
-                </Box>
-                <List>
-                  {recentActivities.map((activity, index) => (
-                    <React.Fragment key={activity.id}>
-                      <ListItem>
-                        <ListItemAvatar>
-                          <Avatar sx={{ bgcolor: 'primary.main' }}>
-                            {activity.icon}
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={activity.title}
-                          secondary={
-                            <Box>
-                              <Typography variant="body2" color="text.secondary">
-                                {activity.description}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {activity.timestamp}
-                              </Typography>
-                            </Box>
-                          }
-                        />
-                      </ListItem>
-                      {index < recentActivities.length - 1 && <Divider />}
-                    </React.Fragment>
-                  ))}
-                </List>
-              </CardContent>
-            </Card>
+            <RecentActivity />
           </motion.div>
         </Grid>
       </Grid>
+
+      {/* Karma Section */}
+      <motion.div variants={itemVariants}>
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+            🌟 OAPP Karma System
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            Explore OAPPs and their karma data from the WEB4 OASIS API. 
+            Karma represents the total positive energy generated by all users in each OAPP.
+          </Typography>
+          
+          {/* Karma Search */}
+          <Box sx={{ mb: 4 }}>
+            <KarmaSearch />
+          </Box>
+          
+          {/* Sample Karma Visualizations */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" gutterBottom>
+              Featured OAPPs
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={4}>
+                <KarmaVisualization 
+                  oappId="oapp_quest" 
+                  oappName="Quest OAPP" 
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <KarmaVisualization 
+                  oappId="oapp_social" 
+                  oappName="Social OAPP" 
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <KarmaVisualization 
+                  oappId="oapp_legendary" 
+                  oappName="Legendary OAPP" 
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        </Box>
+      </motion.div>
     </motion.div>
   );
 };

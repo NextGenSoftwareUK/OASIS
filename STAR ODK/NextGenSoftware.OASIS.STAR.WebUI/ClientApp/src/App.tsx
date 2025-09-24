@@ -41,18 +41,7 @@ const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isConnected, connectionStatus } = useSTARConnection();
 
-  // Check STAR status on app load
-  const { data: starStatus, isLoading: isCheckingStatus } = useQuery<STARStatus>(
-    'starStatus',
-    starService.getSTARStatus,
-    {
-      refetchInterval: 5000,
-      onError: (error) => {
-        console.error('Failed to check STAR status:', error);
-        toast.error('Failed to connect to STAR');
-      },
-    }
-  );
+  // STAR status is now managed by useSTARConnection hook
 
   const handleSidebarToggle = () => {
     setSidebarOpen(!sidebarOpen);
@@ -70,9 +59,7 @@ const App: React.FC = () => {
     duration: 0.3
   };
 
-  if (isCheckingStatus) {
-    return <LoadingSpinner message="Connecting to STAR..." />;
-  }
+  // Remove loading check since useSTARConnection handles this
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>

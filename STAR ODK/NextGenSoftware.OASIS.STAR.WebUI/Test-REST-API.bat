@@ -2,13 +2,16 @@
 echo Testing STAR Web UI REST API...
 
 echo.
-echo --- Testing Backend Build ---
+echo --- Testing WEB5 API Build ---
+cd ..\NextGenSoftware.OASIS.STAR.WebAPI
 dotnet build
 if %errorlevel% neq 0 (
-    echo ❌ Backend: .NET build failed.
+    echo ❌ WEB5 API: .NET build failed.
+    cd ..\NextGenSoftware.OASIS.STAR.WebUI
     exit /b %errorlevel%
 )
-echo ✅ Backend: .NET build succeeded.
+echo ✅ WEB5 API: .NET build succeeded.
+cd ..\NextGenSoftware.OASIS.STAR.WebUI
 
 echo.
 echo --- Testing Frontend Build ---
@@ -29,9 +32,11 @@ echo ✅ Frontend: React app built successfully.
 cd ..
 
 echo.
-echo --- Starting Backend Server ---
-echo Starting .NET backend in background...
-start /B dotnet run --launch-profile "https"
+echo --- Starting WEB5 API Server ---
+echo Starting WEB5 STAR API in background...
+cd ..\NextGenSoftware.OASIS.STAR.WebAPI
+start /B dotnet run --urls http://localhost:50564
+cd ..\NextGenSoftware.OASIS.STAR.WebUI
 
 echo Waiting for server to start...
 timeout /t 10 /nobreak > nul
@@ -39,7 +44,7 @@ timeout /t 10 /nobreak > nul
 echo.
 echo --- Testing REST API Endpoints ---
 echo Testing GET /api/star/status...
-curl -k -s https://localhost:7001/api/star/status
+curl -s http://localhost:50564/api/star/status
 if %errorlevel% neq 0 (
     echo ❌ REST API: Status endpoint failed.
     echo Make sure the server is running and accessible.
@@ -49,8 +54,8 @@ if %errorlevel% neq 0 (
 
 echo.
 echo --- Test Complete ---
-echo The STAR Web UI REST API is ready!
-echo Open your browser to: https://localhost:7001
+echo The WEB5 STAR API is ready!
+echo Open your browser to: http://localhost:50564
 echo.
 echo Available endpoints:
 echo - GET  /api/star/status
@@ -61,6 +66,9 @@ echo - POST /api/star/create-avatar
 echo - POST /api/star/light
 echo - POST /api/star/seed
 echo - POST /api/star/unseed
+echo - GET  /api/missions
+echo - GET  /api/oapps
+echo - GET  /api/nfts
 echo.
 pause
 
