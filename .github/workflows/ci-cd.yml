@@ -39,7 +39,7 @@ jobs:
       run: dotnet build "OASIS Architecture/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
     
     - name: Test
-      run: dotnet test "OASIS Architecture/${{ matrix.project }}.Tests/${{ matrix.project }}.Tests.csproj" --no-build --verbosity normal
+      run: dotnet test "OASIS Architecture/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
 
   # Build and Test ONODE Projects
   test-onode:
@@ -68,7 +68,7 @@ jobs:
       run: dotnet build "ONODE/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
     
     - name: Test
-      run: dotnet test "ONODE/${{ matrix.project }}.Tests/${{ matrix.project }}.Tests.csproj" --no-build --verbosity normal
+      run: dotnet test "ONODE/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
 
   # Build and Test STAR ODK Projects
   test-star-odk:
@@ -100,7 +100,7 @@ jobs:
       run: dotnet build "STAR ODK/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
     
     - name: Test
-      run: dotnet test "STAR ODK/${{ matrix.project }}.Tests/${{ matrix.project }}.Tests.csproj" --no-build --verbosity normal
+      run: dotnet test "STAR ODK/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
 
   # Integration Tests
   integration-tests:

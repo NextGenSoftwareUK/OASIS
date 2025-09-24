@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class IParksController : ControllerBase
+    public class ParksController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
@@ -20,13 +20,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var parks = await _starAPI.Parks.LoadAllAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), null);
-                return Ok(new OASISResult<IEnumerable<IPark>>
-                {
-                    IsError = false,
-                    Message = "IParks loaded successfully",
-                    Result = parks
-                });
+                throw new NotImplementedException("LoadAllAsync method not yet implemented for ParkManager");
             }
             catch (Exception ex)
             {
@@ -44,8 +38,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var park = await _starAPI.Parks.LoadAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), id);
-                return Ok(result);
+                throw new NotImplementedException("LoadAsync method not yet implemented for ParkManager");
             }
             catch (Exception ex)
             {
@@ -63,8 +56,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.Parks.SaveAsync(park);
-                return Ok(result);
+                throw new NotImplementedException("SaveAsync method not yet implemented for ParkManager");
             }
             catch (Exception ex)
             {
@@ -82,9 +74,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                park.Id = id;
-                var result = await _starAPI.Parks.SaveAsync(park);
-                return Ok(result);
+                throw new NotImplementedException("SaveAsync method not yet implemented for ParkManager");
             }
             catch (Exception ex)
             {
@@ -102,8 +92,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.Parks.DeleteAsync(id);
-                return Ok(result);
+                throw new NotImplementedException("DeleteAsync method not yet implemented for ParkManager");
             }
             catch (Exception ex)
             {
@@ -121,13 +110,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var parks = await _starAPI.Parks.LoadAllNearAsync(latitude, longitude, radiusKm);
-                return Ok(new OASISResult<IEnumerable<IPark>>
-                {
-                    IsError = false,
-                    Message = "Nearby parks loaded successfully",
-                    Result = parks
-                });
+                throw new NotImplementedException("LoadAllNearAsync method not yet implemented for ParkManager");
             }
             catch (Exception ex)
             {
@@ -145,13 +128,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var parks = await _starAPI.Parks.LoadAllOfTypeAsync(type);
-                return Ok(new OASISResult<IEnumerable<IPark>>
-                {
-                    IsError = false,
-                    Message = $"IParks of type {type} loaded successfully",
-                    Result = parks
-                });
+                throw new NotImplementedException("LoadAllOfTypeAsync method not yet implemented for ParkManager");
             }
             catch (Exception ex)
             {
