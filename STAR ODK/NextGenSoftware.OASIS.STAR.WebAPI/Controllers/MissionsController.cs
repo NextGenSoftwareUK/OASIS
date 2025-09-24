@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllMissions()
+        public IActionResult GetAllMissions()
         {
             try
             {
@@ -61,7 +61,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetMission(Guid id)
+        public IActionResult GetMission(Guid id)
         {
             try
             {
@@ -85,7 +85,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateMission([FromBody] CreateMissionRequest request)
+        public IActionResult CreateMission([FromBody] CreateMissionRequest request)
         {
             try
             {
@@ -107,7 +107,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMission(Guid id, [FromBody] UpdateMissionRequest request)
+        public IActionResult UpdateMission(Guid id, [FromBody] UpdateMissionRequest request)
         {
             try
             {
@@ -129,7 +129,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMission(Guid id)
+        public IActionResult DeleteMission(Guid id)
         {
             try
             {

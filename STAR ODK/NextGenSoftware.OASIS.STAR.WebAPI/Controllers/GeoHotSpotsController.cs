@@ -6,12 +6,13 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class IGeoHotSpotsController : ControllerBase
+    public class GeoHotSpotsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
@@ -20,13 +21,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var hotSpots = await _starAPI.GeoHotSpots.LoadAllAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), null);
-                return Ok(new OASISResult<IEnumerable<IGeoHotSpot>>
-                {
-                    IsError = false,
-                    Message = "Geo hot spots loaded successfully",
-                    Result = hotSpots
-                });
+                var result = await _starAPI.GeoHotSpots.LoadAllAsync(AvatarId, 0);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -44,7 +40,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var hotSpot = await _starAPI.GeoHotSpots.LoadAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), id);
+                var result = await _starAPI.GeoHotSpots.LoadAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -63,7 +59,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.GeoHotSpots.SaveAsync(hotSpot);
+                var result = await _starAPI.GeoHotSpots.UpdateAsync(AvatarId, (GeoHotSpot)hotSpot);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -83,7 +79,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 hotSpot.Id = id;
-                var result = await _starAPI.GeoHotSpots.SaveAsync(hotSpot);
+                var result = await _starAPI.GeoHotSpots.UpdateAsync(AvatarId, (GeoHotSpot)hotSpot);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -102,7 +98,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.GeoHotSpots.DeleteAsync(id);
+                var result = await _starAPI.GeoHotSpots.DeleteAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -121,13 +117,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var hotSpots = await _starAPI.GeoHotSpots.LoadAllNearAsync(latitude, longitude, radiusKm);
-                return Ok(new OASISResult<IEnumerable<IGeoHotSpot>>
-                {
-                    IsError = false,
-                    Message = "Nearby geo hot spots loaded successfully",
-                    Result = hotSpots
-                });
+                throw new NotImplementedException("LoadAllNearAsync method not yet implemented");
             }
             catch (Exception ex)
             {

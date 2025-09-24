@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 
@@ -11,7 +12,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class IZomesController : ControllerBase
+    public class IZomesController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
@@ -20,7 +21,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.Zomes.LoadAllAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), null);
+                var result = await _starAPI.Zomes.LoadAllAsync(AvatarId, null);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -39,7 +40,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.Zomes.LoadAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), id);
+                var result = await _starAPI.Zomes.LoadAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -58,7 +59,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("SaveAsync method not yet implemented");
+                var result = await _starAPI.Zomes.UpdateAsync(AvatarId, (STARZome)zome);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -77,7 +79,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 zome.Id = id;
-                throw new NotImplementedException("SaveAsync method not yet implemented");
+                var result = await _starAPI.Zomes.UpdateAsync(AvatarId, (STARZome)zome);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -95,7 +98,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("DeleteAsync method not yet implemented");
+                var result = await _starAPI.Zomes.DeleteAsync(AvatarId, id, 0);
+                return Ok(result);
             }
             catch (Exception ex)
             {
