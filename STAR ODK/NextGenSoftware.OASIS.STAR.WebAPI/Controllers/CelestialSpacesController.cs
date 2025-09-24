@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ICelestialSpacesController : STARControllerBase
+    public class CelestialSpacesController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
