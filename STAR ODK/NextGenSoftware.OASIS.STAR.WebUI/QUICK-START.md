@@ -1,11 +1,13 @@
 # 🌟 STAR Web UI - Quick Start Guide
 
 ## 🚀 Current Status & Context
-- **Backend**: REST API with placeholder endpoints (port 50563)
-- **Frontend**: React app with Material-UI (port 3000) 
-- **Connection**: Proxy configured, ready for data loading
-- **UI**: User confirmed "slick" design, navigation working
-- **Architecture**: Direct REST API calls (no complex service layer)
+- **Backend**: WEB5 STAR API with real STAR integration (port 50564)
+- **Frontend**: React app with karma visualization (port 3000) 
+- **WEB4 OASIS API**: Real karma and avatar data (port 50563)
+- **Unity UI**: 3D karma visualization synchronized with Web UI
+- **Connection**: Full integration with real OASIS data
+- **UI**: User confirmed "slick" design with karma effects
+- **Architecture**: Multi-platform synchronized data system
 
 ## 🎯 Developer Preferences
 - **Single terminal**: Avoid multiple shells

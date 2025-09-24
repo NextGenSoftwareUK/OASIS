@@ -90,6 +90,15 @@ export const useSTARConnection = () => {
         throw new Error(result.message || 'Failed to ignite STAR');
       }
 
+      // Immediately update connection state on success
+      setConnectionStatus(prev => ({
+        ...prev,
+        isConnected: true,
+        status: 'connected',
+        lastConnected: new Date(),
+      }));
+
+      // Also invalidate queries to ensure consistency
       queryClient.invalidateQueries('starStatus');
       return result;
     } catch (error) {

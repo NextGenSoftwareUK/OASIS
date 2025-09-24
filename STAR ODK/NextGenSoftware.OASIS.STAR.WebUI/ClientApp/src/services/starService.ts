@@ -1,10 +1,19 @@
 import axios from 'axios';
-import { OASISResult, STARStatus, Avatar, Karma } from '../types/star';
+import { OASISResult, STARStatus, Avatar, Karma, OAPPKarmaData, AvatarKarmaData, AvatarListResult } from '../types/star';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:50564/api';
+const WEB4_API_BASE_URL = process.env.REACT_APP_WEB4_API_URL || 'http://localhost:50563/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+const web4Api = axios.create({
+  baseURL: WEB4_API_BASE_URL,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -213,5 +222,142 @@ export const starService = {
   async getKarmaBelow(karmaLevel: number): Promise<OASISResult<Karma[]>> {
     const response = await api.get(`/star/karma/below/${karmaLevel}`);
     return response.data;
+  },
+
+  // WEB4 OASIS API Methods for Real Karma Data
+  async getOAPPKarmaData(oappId: string): Promise<OAPPKarmaData> {
+    try {
+      console.log(`Getting karma data for OAPP: ${oappId}`);
+      
+      // Step 1: Get registered avatars for this OAPP
+      const avatars = await this.getRegisteredAvatarsForOAPP(oappId);
+      
+      if (avatars.length === 0) {
+        // No avatars registered to this OAPP
+        return {
+          oappId,
+          oappName: 'Unknown OAPP',
+          registeredAvatars: [],
+          totalKarma: 0,
+          userCount: 0,
+          averageKarma: 0,
+          karmaLevel: 'None',
+          karmaSources: []
+        };
+      }
+      
+      // Step 2: Calculate total karma from all avatars
+      return this.calculateOAPPKarmaData(oappId, avatars);
+    } catch (error) {
+      console.error('Error getting OAPP karma data:', error);
+      throw error;
+    }
+  },
+
+  async getRegisteredAvatarsForOAPP(oappId: string): Promise<AvatarKarmaData[]> {
+    try {
+      // Try LoadAvatarsForParent first
+      try {
+        const response = await web4Api.get<OASISResult<AvatarListResult>>(`/avatar/load-avatars-for-parent/${oappId}`);
+        if (!response.data.isError && response.data.result) {
+          return response.data.result.avatars;
+        }
+      } catch (error) {
+        console.warn('LoadAvatarsForParent failed, trying fallback methods:', error);
+      }
+      
+      // Fallback: Try LoadHolonsForParent
+      try {
+        const response = await web4Api.get<OASISResult<any[]>>(`/data/load-holons-for-parent/${oappId}`);
+        if (!response.data.isError && response.data.result) {
+          return this.convertHolonsToAvatars(response.data.result);
+        }
+      } catch (error) {
+        console.warn('LoadHolonsForParent failed, trying final fallback:', error);
+      }
+      
+      // Final fallback: Try LoadHolonsByMetaData
+      try {
+        const searchData = {
+          parentId: oappId,
+          holonType: 'Avatar'
+        };
+        
+        const response = await web4Api.post<OASISResult<any[]>>('/data/load-holons-by-metadata', searchData);
+        if (!response.data.isError && response.data.result) {
+          return this.convertHolonsToAvatars(response.data.result);
+        }
+      } catch (error) {
+        console.error('All avatar loading methods failed:', error);
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Error getting registered avatars:', error);
+      return [];
+    }
+  },
+
+  convertHolonsToAvatars(holons: any[]): AvatarKarmaData[] {
+    return holons.map(holon => ({
+      avatarId: holon.id || 'placeholder_id',
+      avatarName: holon.name || 'Unknown Avatar',
+      email: holon.email || 'unknown@example.com',
+      totalKarma: holon.karma || 0,
+      karmaTransactions: holon.karmaTransactions || [],
+      registrationDate: holon.createdDate || new Date().toISOString(),
+      lastLoginDate: holon.lastLoginDate || new Date().toISOString()
+    }));
+  },
+
+  calculateOAPPKarmaData(oappId: string, avatars: AvatarKarmaData[]): OAPPKarmaData {
+    let totalKarma = 0;
+    const karmaSources: string[] = [];
+    const allTransactions: any[] = [];
+    
+    // Calculate total karma from all avatars
+    avatars.forEach(avatar => {
+      totalKarma += avatar.totalKarma;
+      
+      // Collect karma transactions for this OAPP
+      if (avatar.karmaTransactions) {
+        avatar.karmaTransactions.forEach(transaction => {
+          if (transaction.oappId === oappId) {
+            allTransactions.push(transaction);
+            
+            // Add unique karma sources
+            if (transaction.source && !karmaSources.includes(transaction.source)) {
+              karmaSources.push(transaction.source);
+            }
+          }
+        });
+      }
+    });
+    
+    // Calculate average karma
+    const averageKarma = avatars.length > 0 ? totalKarma / avatars.length : 0;
+    
+    // Determine karma level
+    const karmaLevel = this.determineKarmaLevel(totalKarma);
+    
+    return {
+      oappId,
+      oappName: `OAPP ${oappId}`, // This would come from OAPP data
+      registeredAvatars: avatars,
+      totalKarma,
+      userCount: avatars.length,
+      averageKarma,
+      karmaLevel,
+      karmaSources
+    };
+  },
+
+  determineKarmaLevel(totalKarma: number): string {
+    if (totalKarma <= 0) return 'None';
+    if (totalKarma < 100) return 'Low';
+    if (totalKarma < 1000) return 'Medium';
+    if (totalKarma < 10000) return 'High';
+    if (totalKarma < 100000) return 'Very High';
+    return 'Legendary';
   },
 };

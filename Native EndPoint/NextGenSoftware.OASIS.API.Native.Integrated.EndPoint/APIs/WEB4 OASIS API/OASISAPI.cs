@@ -200,13 +200,14 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             Search = new SearchManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
             Providers = new OASISProviders(OASISBootLoader.OASISBootLoader.OASISDNA);
 
-            if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(password))
-                LogAvatarIntoOASISManagers(userName, password);
+            // Set IsOASISBooted to true before accessing Avatars property
+            IsOASISBooted = true;
+
+            // Avatar authentication is not required for STAR ignition
+            // OASIS is now booted and ready to use
 
             //if (startApolloServer)
             //    ApolloServer.StartServer();
-
-            IsOASISBooted = true;
 
             ////TODO: Move the mappings to an external config wrapper than is injected into the OASISAPIManager constructor above...
             //// Give HoloOASIS Store permission for the Name field (the field will only be stored on Holochain).
