@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <PackageId>NextGenSoftware.OASIS.API.Contracts</PackageId>
+	  <Company>NextGen Software Ltd</Company>
+	  <Product>WEB4 OASIS API Contracts</Product>
+	  <Title>WEB4 OASIS API Contracts</Title>
+	  <Summary>WEB4 OASIS API Contracts - Shared interfaces, enums, and contracts for OASIS ecosystem</Summary>
+	  <Description>WEB4 OASIS API Contracts - Shared interfaces, enums, and contracts that can be referenced by both OASIS.API.Core and Unity projects</Description>
+	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
+	  <PackageTags>OASIS API; Contracts; Interfaces; Enums; Shared; Unity; .NET Standard</PackageTags>
+	  <PackageReleaseNotes>Initial release of OASIS API Contracts for shared interfaces and enums.</PackageReleaseNotes>
+	  <RepositoryType>git</RepositoryType>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <Version>1.0.0</Version>
+	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg" Link="OASISLogo128.jpg">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>
