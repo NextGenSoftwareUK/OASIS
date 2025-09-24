@@ -1,14 +1,7 @@
-using System;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
-using Xunit;
-using NextGenSoftware.OASIS.STAR.WebAPI;
-using NextGenSoftware.OASIS.STAR.DNA;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.VisualStudio.TestPlatform.TestHost;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests
 {
