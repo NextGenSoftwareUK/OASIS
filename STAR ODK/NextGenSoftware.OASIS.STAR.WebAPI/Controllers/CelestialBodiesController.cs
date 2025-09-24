@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.Common;
@@ -11,7 +12,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CelestialBodiesController : ControllerBase
+    public class CelestialBodiesController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
@@ -20,7 +21,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.CelestialBodies.LoadAllAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), null);
+                var result = await _starAPI.CelestialBodies.LoadAllAsync(AvatarId, null);
                 if (result.IsError)
                     return BadRequest(result.Message);
 
@@ -37,7 +38,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.CelestialBodies.LoadAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), id);
+                var result = await _starAPI.CelestialBodies.LoadAsync(AvatarId, id, 0);
                 if (result.IsError)
                     return BadRequest(result.Message);
 
@@ -54,7 +55,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("SaveAsync method not yet implemented - use SaveHolonAsync instead");
+                var result = await _starAPI.CelestialBodies.UpdateAsync(AvatarId, (STARCelestialBody)celestialBody);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -73,7 +75,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 celestialBody.Id = id;
-                throw new NotImplementedException("SaveAsync method not yet implemented - use SaveHolonAsync instead");
+                var result = await _starAPI.CelestialBodies.UpdateAsync(AvatarId, (STARCelestialBody)celestialBody);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -91,7 +94,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("DeleteAsync method not yet implemented");
+                var result = await _starAPI.CelestialBodies.DeleteAsync(AvatarId, id, 0);
+                return Ok(result);
             }
             catch (Exception ex)
             {

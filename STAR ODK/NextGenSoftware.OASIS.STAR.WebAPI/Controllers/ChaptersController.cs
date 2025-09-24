@@ -6,12 +6,13 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class IChaptersController : ControllerBase
+    public class ChaptersController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
@@ -20,13 +21,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var chapters = await _starAPI.Chapters.LoadAllAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), null);
-                return Ok(new OASISResult<IEnumerable<IChapter>>
-                {
-                    IsError = false,
-                    Message = "IChapters loaded successfully",
-                    Result = chapters
-                });
+                var result = await _starAPI.Chapters.LoadAllAsync(AvatarId, 0);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -44,7 +40,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var chapter = await _starAPI.Chapters.LoadAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), id);
+                var result = await _starAPI.Chapters.LoadAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -63,7 +59,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.Chapters.SaveAsync(chapter);
+                var result = await _starAPI.Chapters.UpdateAsync(AvatarId, (Chapter)chapter);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -83,7 +79,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 chapter.Id = id;
-                var result = await _starAPI.Chapters.SaveAsync(chapter);
+                var result = await _starAPI.Chapters.UpdateAsync(AvatarId, (Chapter)chapter);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -102,7 +98,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.Chapters.DeleteAsync(id);
+                var result = await _starAPI.Chapters.DeleteAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
