@@ -1,0 +1,23 @@
+{
+  "OASIS": {
+    "Providers": {
+      "BaseOASIS": {
+        "IsEnabled": true,
+        "Priority": 1,
+        "CustomParams": "hostUri=https://sepolia.base.org;chainPrivateKey=test-private-key;chainId=84532;contractAddress=test-contract-address",
+        "AutoFailOver": {
+          "IsEnabled": true,
+          "FailOverTo": ["EthereumOASIS", "PolygonOASIS"]
+        },
+        "AutoReplication": {
+          "IsEnabled": true,
+          "ReplicateTo": ["MongoDBOASIS"]
+        }
+      }
+    },
+    "AutoFailOver": {
+      "IsEnabled": true,
+      "Providers": ["BaseOASIS", "EthereumOASIS", "PolygonOASIS"]
+    }
+  }
+}
