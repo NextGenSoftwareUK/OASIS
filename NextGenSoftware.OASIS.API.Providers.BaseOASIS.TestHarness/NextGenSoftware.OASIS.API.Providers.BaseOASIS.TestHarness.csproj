@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>NextGenSoftware.OASIS.API.Providers.BaseOASIS.TestHarness</AssemblyName>
+    <RootNamespace>NextGenSoftware.OASIS.API.Providers.BaseOASIS.TestHarness</RootNamespace>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.BaseOASIS\NextGenSoftware.OASIS.API.Providers.BaseOASIS.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Numerics" Version="4.3.0" />
+  </ItemGroup>
+
+</Project>
