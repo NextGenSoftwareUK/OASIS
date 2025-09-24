@@ -54,6 +54,7 @@ export const starService = {
   // STAR Core Operations
   async igniteSTAR(): Promise<OASISResult<any>> {
     const response = await api.post('/star/ignite');
+    console.log('STAR Ignite API Response:', response.data); // Debug logging
     return response.data;
   },
 
@@ -64,6 +65,7 @@ export const starService = {
 
   async getSTARStatus(): Promise<STARStatus> {
     const response = await api.get('/star/status');
+    console.log('STAR Status API Response:', response.data); // Debug logging
     return {
       isIgnited: response.data.isIgnited || false,
       lastUpdated: new Date(),
