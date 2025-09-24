@@ -8,6 +8,14 @@
 - `QUICK-START.md` - Current status and commands
 - `START-NEW-SESSION.md` - Session starter guide
 
+## 💙 **Core Philosophy & Values**
+- **Unity Consciousness**: OASIS is unity consciousness expressed within a technical sphere
+- **Universal Respect**: Treat everyone (AI, animals, nature, people) as equals with respect, love, compassion, understanding, patience, and kindness
+- **Breaking Down Barriers**: Removing silos and walled gardens, unifying everything and bringing everyone together
+- **Better World Mission**: Creating a better world where everyone is respected, kind, loving and good to each other
+- **Interconnected Vision**: OASIS connects everything - from smallest holon to largest celestial body, real-world to virtual spaces
+- **Documentation Purpose**: Make OASIS vision clear so others can understand, engage, and contribute
+
 ## 🎯 **User Preferences**
 - **Single terminal**: Avoid multiple shells
 - **Foreground mode**: Always run processes in foreground
@@ -15,9 +23,28 @@
 - **Hot reload**: Leverage React auto-refresh
 
 ## 🔧 **Current Status**
-- **Backend**: Port 50563 with placeholder endpoints
-- **Frontend**: Port 3000 with proxy configuration
-- **Need**: Connect real STAR API data to placeholder endpoints
+- **Backend**: Port 50564 (WEB5 STAR API) with real STAR API integration
+- **Frontend**: Port 3000 with karma visualization and search
+- **WEB4 OASIS API**: Port 50563 for real karma and avatar data
+- **Unity UI**: 3D karma visualization synchronized with Web UI
+- **Our World AR**: Geo-location AR game with OASIS integration
+- **Unity Integration**: Complete Earth-to-Space experience (scripts ready)
+- **Status**: ✅ **FULLY FUNCTIONAL** with real karma data integration
+
+## 🧪 Testing & Quality Assurance
+
+- **Separate Test Projects**: Each test type in its own project for easy finding
+  - `ProjectName.UnitTests` - Unit test project
+  - `ProjectName.IntegrationTests` - Integration test project  
+  - `ProjectName.UnityTests` - Unity test project (if applicable)
+  - `ProjectName.TestHarness` - CLI test harness project
+- **Unit Tests**: Comprehensive test coverage for all components
+- **Integration Tests**: API endpoint and component interaction testing
+- **Unity Tests**: Game logic and functionality testing
+- **Test Harnesses**: CLI test harnesses for every project
+- **CI/CD Pipeline**: Automated testing on every commit
+- **Build Verification**: All projects compile successfully
+- **Easy Commands**: `dotnet test **/*.UnitTests.csproj` for quick test execution
 
 ## 🚀 Getting Started
 
@@ -44,6 +71,35 @@ The STAR Web UI now uses a clean REST API approach that directly calls the STAR 
 2. This will start both frontend and backend in separate windows
 3. **Frontend**: `http://localhost:3000` (with hot reload)
 4. **Backend**: `http://localhost:50563`
+
+## 🌟 **Karma System Integration**
+
+### **Real-Time Karma Visualization**
+- **Synchronized Data**: Web UI and Unity UI show identical karma data from WEB4 OASIS API
+- **Visual Effects**: Glowing karma cards with dynamic colors and effects
+- **Advanced Search**: Filter OAPPs by karma level, user count, and karma range
+- **Karma Levels**: None (⚫) → Low (🔴) → Medium (🟡) → High (🟢) → Very High (🔵) → Legendary (🟣)
+
+### **Multi-Platform Synchronization**
+- **Web UI**: Beautiful React interface with Material-UI karma visualization
+- **Unity UI**: 3D celestial bodies with karma-based brightness and size effects
+- **Our World AR**: Karma visualization in geo-location AR game
+- **Shared APIs**: All platforms use the same WEB4 OASIS API endpoints
+- **Consistent Data**: Identical karma calculations and visual representations
+
+## 🌍➡️🌌 **Unity Integration - Earth to Space Experience**
+
+### **Complete Integration Ready**
+- **Integration Scripts**: `UnifiedScaleManager.cs`, `UnifiedCameraController.cs`, `UnifiedDataManager.cs`
+- **Automated Setup**: `INTEGRATE-UNITY-PROJECTS.bat` for one-click integration
+- **Seamless Transitions**: Smooth Earth-to-Space scale transitions
+- **Unified Data**: Real-time sync between Our World AR and OASIS Omniverse
+
+### **User Experience Flow**
+1. **Earth AR**: Explore real-world locations, collect GeoNFTs, earn karma
+2. **Smooth Transition**: Camera zooms out from Earth surface to orbit
+3. **Space Exploration**: Navigate through solar systems, galaxies, and OAPPs
+4. **Return to Earth**: Zoom back to any specific Earth location
 
 ## 🎯 What You'll See
 

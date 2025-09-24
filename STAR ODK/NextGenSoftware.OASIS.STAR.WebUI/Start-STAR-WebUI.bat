@@ -24,17 +24,18 @@ if %errorlevel% neq 0 (
 
 cd ..
 echo.
-echo [3/3] Starting Backend Server...
+echo [3/3] Starting WEB5 STAR API Server...
 echo.
 echo STAR Web UI will be available at:
 echo   Frontend: http://localhost:3000
-echo   Backend API: https://localhost:7001
-echo   Swagger UI: https://localhost:7001/swagger
+echo   WEB5 API: http://localhost:50564
+echo   Swagger UI: http://localhost:50564/swagger
 echo.
 echo Press Ctrl+C to stop the server
 echo.
 
-dotnet run
+cd ..\NextGenSoftware.OASIS.STAR.WebAPI
+dotnet run --urls http://localhost:50564
 
 pause
 
