@@ -4,12 +4,13 @@ using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class InventoryItemsController : ControllerBase
+    public class InventoryItemsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
@@ -18,13 +19,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var items = await _starAPI.InventoryItems.LoadAllAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), null);
-                return Ok(new OASISResult<IEnumerable<InventoryItem>>
-                {
-                    IsError = false,
-                    Message = "Inventory items loaded successfully",
-                    Result = items
-                });
+                var result = await _starAPI.InventoryItems.LoadAllAsync(AvatarId, 0);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -42,7 +38,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var item = await _starAPI.InventoryItems.LoadAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), id);
+                var result = await _starAPI.InventoryItems.LoadAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -61,7 +57,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.InventoryItems.SaveAsync(item);
+                var result = await _starAPI.InventoryItems.UpdateAsync(AvatarId, (InventoryItem)item);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -81,7 +77,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 item.Id = id;
-                var result = await _starAPI.InventoryItems.SaveAsync(item);
+                var result = await _starAPI.InventoryItems.UpdateAsync(AvatarId, (InventoryItem)item);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -100,7 +96,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.InventoryItems.DeleteAsync(id);
+                var result = await _starAPI.InventoryItems.DeleteAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -119,13 +115,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var items = await _starAPI.InventoryItems.LoadAllForAvatarAsync(avatarId);
-                return Ok(new OASISResult<IEnumerable<InventoryItem>>
-                {
-                    IsError = false,
-                    Message = "Avatar inventory items loaded successfully",
-                    Result = items
-                });
+                var result = await _starAPI.InventoryItems.LoadAllAsync(avatarId, 0);
+                return Ok(result);
             }
             catch (Exception ex)
             {

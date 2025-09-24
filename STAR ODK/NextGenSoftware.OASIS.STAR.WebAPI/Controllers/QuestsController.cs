@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 
@@ -11,7 +12,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class IQuestsController : ControllerBase
+    public class IQuestsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
@@ -20,17 +21,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var quests = await _starAPI.Quests.LoadAllAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), null);
-                return Ok(new OASISResult<IEnumerable<IQuest>>
-                {
-                    IsError = false,
-                    Message = "IQuests loaded successfully",
-                    Result = quests
-                });
+                var result = await _starAPI.Quests.LoadAllAsync(AvatarId, null);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IQuest>>
+                return BadRequest(new OASISResult<IEnumerable<Quest>>
                 {
                     IsError = true,
                     Message = $"Error loading quests: {ex.Message}",
@@ -44,12 +40,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var quest = await _starAPI.Quests.LoadAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), id);
+                var result = await _starAPI.Quests.LoadAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IQuest>
+                return BadRequest(new OASISResult<Quest>
                 {
                     IsError = true,
                     Message = $"Error loading quest: {ex.Message}",
@@ -63,7 +59,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.Quests.SaveAsync(quest);
+                var result = await _starAPI.Quests.UpdateAsync(AvatarId, (Quest)quest);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -83,7 +79,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 quest.Id = id;
-                var result = await _starAPI.Quests.SaveAsync(quest);
+                var result = await _starAPI.Quests.UpdateAsync(AvatarId, (Quest)quest);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -102,7 +98,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.Quests.DeleteAsync(id);
+                var result = await _starAPI.Quests.DeleteAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -121,17 +117,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var quests = await _starAPI.Quests.LoadAllForAvatarAsync(avatarId);
-                return Ok(new OASISResult<IEnumerable<IQuest>>
-                {
-                    IsError = false,
-                    Message = "Avatar quests loaded successfully",
-                    Result = quests
-                });
+                var result = await _starAPI.Quests.LoadAllForAvatarAsync(AvatarId);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IQuest>>
+                return BadRequest(new OASISResult<IEnumerable<Quest>>
                 {
                     IsError = true,
                     Message = $"Error loading avatar quests: {ex.Message}",

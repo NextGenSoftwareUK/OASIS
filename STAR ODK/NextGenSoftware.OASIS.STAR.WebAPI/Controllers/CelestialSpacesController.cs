@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 
@@ -11,7 +12,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ICelestialSpacesController : ControllerBase
+    public class ICelestialSpacesController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
@@ -20,7 +21,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.CelestialSpaces.LoadAllAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), null);
+                var result = await _starAPI.CelestialSpaces.LoadAllAsync(AvatarId, null);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -39,7 +40,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.CelestialSpaces.LoadAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), id);
+                var result = await _starAPI.CelestialSpaces.LoadAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -58,7 +59,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("SaveAsync method not yet implemented");
+                var result = await _starAPI.CelestialSpaces.UpdateAsync(AvatarId, (STARCelestialSpace)celestialSpace);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -78,7 +79,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 celestialSpace.Id = id;
-                throw new NotImplementedException("SaveAsync method not yet implemented");
+                var result = await _starAPI.CelestialSpaces.UpdateAsync(AvatarId, (STARCelestialSpace)celestialSpace);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -97,7 +98,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("DeleteAsync method not yet implemented");
+                var result = await _starAPI.CelestialSpaces.DeleteAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -117,12 +118,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 throw new NotImplementedException("LoadAllOfTypeAsync method not yet implemented");
-                return Ok(new OASISResult<IEnumerable<ICelestialSpace>>
-                {
-                    IsError = false,
-                    Message = $"Celestial spaces of type {type} loaded successfully",
-                    Result = celestialSpaces
-                });
             }
             catch (Exception ex)
             {
@@ -140,13 +135,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var celestialSpaces = await _starAPI.CelestialSpaces.LoadAllInSpaceAsync(parentSpaceId);
-                return Ok(new OASISResult<IEnumerable<ICelestialSpace>>
-                {
-                    IsError = false,
-                    Message = "Celestial spaces in parent space loaded successfully",
-                    Result = celestialSpaces
-                });
+                throw new NotImplementedException("LoadAllInSpaceAsync method not yet implemented");
             }
             catch (Exception ex)
             {

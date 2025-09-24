@@ -6,12 +6,13 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class GeoNFTsController : ControllerBase
+    public class GeoNFTsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
@@ -20,13 +21,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var geoNFTs = await _starAPI.GeoNFTs.LoadAllAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), null);
-                return Ok(new OASISResult<IEnumerable<ISTARGeoNFT>>
-                {
-                    IsError = false,
-                    Message = "Geo NFTs loaded successfully",
-                    Result = geoNFTs
-                });
+                var result = await _starAPI.GeoNFTs.LoadAllAsync(AvatarId, 0);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -44,7 +40,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var geoNFT = await _starAPI.GeoNFTs.LoadAsync(Guid.Parse("00000000-0000-0000-0000-000000000000"), id);
+                var result = await _starAPI.GeoNFTs.LoadAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -63,7 +59,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.GeoNFTs.SaveAsync(geoNFT);
+                var result = await _starAPI.GeoNFTs.UpdateAsync(AvatarId, (STARGeoNFT)geoNFT);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -83,7 +79,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 geoNFT.Id = id;
-                var result = await _starAPI.GeoNFTs.SaveAsync(geoNFT);
+                var result = await _starAPI.GeoNFTs.UpdateAsync(AvatarId, (STARGeoNFT)geoNFT);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -102,7 +98,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.GeoNFTs.DeleteAsync(id);
+                var result = await _starAPI.GeoNFTs.DeleteAsync(AvatarId, id, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -121,13 +117,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var geoNFTs = await _starAPI.GeoNFTs.LoadAllNearAsync(latitude, longitude, radiusKm);
-                return Ok(new OASISResult<IEnumerable<ISTARGeoNFT>>
-                {
-                    IsError = false,
-                    Message = "Nearby geo NFTs loaded successfully",
-                    Result = geoNFTs
-                });
+                throw new NotImplementedException("LoadAllNearAsync method not yet implemented");
             }
             catch (Exception ex)
             {
@@ -145,13 +135,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var geoNFTs = await _starAPI.GeoNFTs.LoadAllForAvatarAsync(avatarId);
-                return Ok(new OASISResult<IEnumerable<ISTARGeoNFT>>
-                {
-                    IsError = false,
-                    Message = "Avatar geo NFTs loaded successfully",
-                    Result = geoNFTs
-                });
+                var result = await _starAPI.GeoNFTs.LoadAllAsync(avatarId, 0);
+                return Ok(result);
             }
             catch (Exception ex)
             {
