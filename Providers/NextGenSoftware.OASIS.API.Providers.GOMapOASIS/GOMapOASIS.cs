@@ -1,5 +1,6 @@
 using NextGenSoftware.OASIS.API.Contracts.Interfaces;
 using System;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
 {
@@ -9,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
     /// </summary>
     public class GOMapOASIS : IOASISMapProvider
     {
+        public MapProviderType MapProviderType { get; set; }
         public string MapProviderName { get; set; }
         public string MapProviderDescription { get; set; }
         public bool IsInitialized { get; set; }
@@ -22,6 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
 
         public GOMapOASIS()
         {
+            MapProviderType = MapProviderType.GoMap;
             MapProviderName = "GO Map";
             MapProviderDescription = "GO Map OASIS Provider for Unity integration";
             IsInitialized = false;
@@ -88,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
             throw new NotImplementedException("DrawRouteOnMap - GO Map implementation needed");
         }
 
-        public bool HighlightBuildingOnMap(IBuilding building)
+        public bool HighlightBuildingOnMap(object building)
         {
             if (!IsInitialized) return false;
             
@@ -128,7 +131,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
             throw new NotImplementedException("PanMapUp - GO Map implementation needed");
         }
 
-        public bool SelectBuildingOnMap(IBuilding building)
+        public bool SelectBuildingOnMap(object building)
         {
             if (!IsInitialized) return false;
             
@@ -136,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
             throw new NotImplementedException("SelectBuildingOnMap - GO Map implementation needed");
         }
 
-        public bool SelectHolonOnMap(IHolon holon)
+        public bool SelectHolonOnMap(object holon)
         {
             if (!IsInitialized) return false;
             
@@ -160,12 +163,105 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
             throw new NotImplementedException("ZoomMapOut - GO Map implementation needed");
         }
 
-        public bool ZoomToHolonOnMap(IHolon holon)
+        public bool ZoomToHolonOnMap(object holon)
         {
             if (!IsInitialized) return false;
             
             // TODO: Implement GO Map zoom to holon
             throw new NotImplementedException("ZoomToHolonOnMap - GO Map implementation needed");
+        }
+
+        public bool PlaceQuestOnMap(object quest, double latitude, double longitude)
+        {
+            if (!IsInitialized) return false;
+            
+            // TODO: Implement GO Map quest placement
+            throw new NotImplementedException("PlaceQuestOnMap - GO Map implementation needed");
+        }
+
+        public bool PlaceOAPPOnMap(object oapp, double latitude, double longitude)
+        {
+            if (!IsInitialized) return false;
+            
+            // TODO: Implement GO Map OAPP placement
+            throw new NotImplementedException("PlaceOAPPOnMap - GO Map implementation needed");
+        }
+
+        #endregion
+
+        #region Location Management
+
+        public Geolocation GetCurrentLocation()
+        {
+            if (!IsInitialized) return null;
+            
+            // TODO: Implement GO Map current location retrieval
+            // This would access goMap.locationManager.currentLocation
+            throw new NotImplementedException("GetCurrentLocation - GO Map implementation needed");
+        }
+
+        public System.Threading.Tasks.Task WaitForOriginSet()
+        {
+            if (!IsInitialized) return System.Threading.Tasks.Task.CompletedTask;
+            
+            // TODO: Implement GO Map origin wait
+            // This would call goMap.locationManager.WaitForOriginSet()
+            throw new NotImplementedException("WaitForOriginSet - GO Map implementation needed");
+        }
+
+        #endregion
+
+        #region Pin Management
+
+        public bool DropPin(Geolocation coordinates, object gameObject)
+        {
+            if (!IsInitialized) return false;
+            
+            // TODO: Implement GO Map pin dropping
+            // This would call goMap.dropPin(coordinates, gameObject)
+            throw new NotImplementedException("DropPin - GO Map implementation needed");
+        }
+
+        public bool RemovePin(object gameObject)
+        {
+            if (!IsInitialized) return false;
+            
+            // TODO: Implement GO Map pin removal
+            throw new NotImplementedException("RemovePin - GO Map implementation needed");
+        }
+
+        #endregion
+
+        #region Distance Calculation
+
+        public float CalculateDistance(Geolocation location1, Geolocation location2)
+        {
+            if (!IsInitialized) return 0f;
+            
+            // TODO: Implement GO Map distance calculation
+            // This would use goMap.locationManager.currentLocation.DistanceFromOtherGPSCoordinate()
+            throw new NotImplementedException("CalculateDistance - GO Map implementation needed");
+        }
+
+        public float CalculateDistance(double lat1, double lon1, double lat2, double lon2)
+        {
+            if (!IsInitialized) return 0f;
+            
+            // TODO: Implement GO Map distance calculation with lat/lon parameters
+            throw new NotImplementedException("CalculateDistance - GO Map implementation needed");
+        }
+
+        #endregion
+
+        #region Camera/Orbit Control
+
+        public bool UpdateOrbitValue(float value)
+        {
+            if (!IsInitialized) return false;
+            
+            // TODO: Implement GO Map orbit control
+            // This would call GameObject.FindObjectOfType<GoShared.GOOrbit>().UpdateValue(value)
+            throw new NotImplementedException("UpdateOrbitValue - GO Map implementation needed");
         }
 
         #endregion

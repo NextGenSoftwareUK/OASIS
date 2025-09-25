@@ -1,3 +1,13 @@
+/*
+ * OLD ISTARService - COMMENTED OUT TO AVOID CONFUSION
+ * This was replaced by the separate STAR Web API project
+ * The WebUI now calls the STAR Web API directly via HTTP
+ * 
+ * Date: 2024-12-19
+ * Reason: Replaced with separate STAR Web API project for better separation of concerns
+ */
+
+/*
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -32,3 +42,4 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Services
         Task<OASISResult<List<IKarmaAkashicRecord>>> GetKarmaBelowAsync(int karmaLevel);
     }
 }
+*/

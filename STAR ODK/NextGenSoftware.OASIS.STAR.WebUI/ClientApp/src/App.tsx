@@ -29,6 +29,8 @@ import PluginsPage from './pages/PluginsPage';
 import GeoHotSpotsPage from './pages/GeoHotSpotsPage';
 import STARNETStorePage from './pages/STARNETStorePage';
 import SettingsPage from './pages/SettingsPage';
+import KarmaPage from './pages/KarmaPage';
+import MyDataPage from './pages/MyDataPage';
 
 // Services
 import { starService } from './services/starService';
@@ -344,6 +346,34 @@ const App: React.FC = () => {
                     transition={pageTransition}
                   >
                     <SettingsPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/karma" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <KarmaPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/my-data" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <MyDataPage />
                   </motion.div>
                 } 
               />

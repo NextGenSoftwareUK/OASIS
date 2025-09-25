@@ -10,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.Contracts.Interfaces
     public interface IOASISMapProvider
     {
         #region Core Properties
+        MapProviderType MapProviderType { get; set; }
         string MapProviderName { get; set; }
         string MapProviderDescription { get; set; }
         bool IsInitialized { get; set; }
@@ -43,6 +44,28 @@ namespace NextGenSoftware.OASIS.API.Contracts.Interfaces
         bool PlaceGeoHotSpotOnMap(object geoHotSpot, double latitude, double longitude);
         bool PlaceQuestOnMap(object quest, double latitude, double longitude);
         bool PlaceOAPPOnMap(object oapp, double latitude, double longitude);
+        bool SelectHolonOnMap(object holon);
+        bool HighlightBuildingOnMap(object building);
+        bool ZoomToHolonOnMap(object holon);
+        #endregion
+
+        #region Location Management
+        Geolocation GetCurrentLocation();
+        System.Threading.Tasks.Task WaitForOriginSet();
+        #endregion
+
+        #region Pin Management
+        bool DropPin(Geolocation coordinates, object gameObject);
+        bool RemovePin(object gameObject);
+        #endregion
+
+        #region Distance Calculation
+        float CalculateDistance(Geolocation location1, Geolocation location2);
+        float CalculateDistance(double lat1, double lon1, double lat2, double lon2);
+        #endregion
+
+        #region Camera/Orbit Control
+        bool UpdateOrbitValue(float value);
         #endregion
 
         #region Coordinate Conversion
