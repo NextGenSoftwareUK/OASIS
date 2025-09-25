@@ -17,8 +17,9 @@ export const useSTARConnection = () => {
     'starStatus',
     starService.getSTARStatus,
     {
-      refetchInterval: 5000, // Check more frequently
+      refetchInterval: 2000, // Check every 2 seconds for more responsive updates
       refetchOnWindowFocus: true, // Check when user returns to tab
+      refetchIntervalInBackground: true, // Continue checking even when tab is not active
       onSuccess: (data) => {
         console.log('STAR Status Update:', data); // Debug logging
         setConnectionStatus(prev => ({
@@ -93,14 +94,21 @@ export const useSTARConnection = () => {
         throw new Error(result.message || 'Failed to ignite STAR');
       }
 
-      // Don't immediately set connected - let the status check determine the actual state
-      // This ensures we get the real OASISBooted status from the backend
+      // Immediately invalidate and refetch status
       queryClient.invalidateQueries('starStatus');
       
-      // Wait a moment for the backend to update, then check status
+      // Force multiple status checks to ensure we catch the state change
       setTimeout(() => {
         queryClient.invalidateQueries('starStatus');
-      }, 1000);
+      }, 500);
+      
+      setTimeout(() => {
+        queryClient.invalidateQueries('starStatus');
+      }, 1500);
+      
+      setTimeout(() => {
+        queryClient.invalidateQueries('starStatus');
+      }, 3000);
       
       return result;
     } catch (error) {

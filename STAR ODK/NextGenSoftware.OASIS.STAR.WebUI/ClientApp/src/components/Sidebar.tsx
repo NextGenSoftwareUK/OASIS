@@ -33,6 +33,8 @@ import {
   ExpandLess,
   ExpandMore,
   Star,
+  EmojiEvents,
+  CloudUpload,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -201,6 +203,20 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           icon: <AccountCircle />,
           path: '/avatars',
           description: 'User Management',
+        },
+        {
+          id: 'karma',
+          title: 'Karma',
+          icon: <EmojiEvents />,
+          path: '/karma',
+          description: 'Karma Leaderboard',
+        },
+        {
+          id: 'my-data',
+          title: 'My Data',
+          icon: <CloudUpload />,
+          path: '/my-data',
+          description: 'OASIS Hyperdrive',
         },
       ],
     },

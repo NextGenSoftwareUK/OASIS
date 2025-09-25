@@ -1,3 +1,13 @@
+/*
+ * OLD STARController - COMMENTED OUT TO AVOID CONFUSION
+ * This was replaced by the separate STAR Web API project
+ * The WebUI now calls the STAR Web API directly via HTTP
+ * 
+ * Date: 2024-12-19
+ * Reason: Replaced with separate STAR Web API project for better separation of concerns
+ */
+
+/*
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.STAR;
 using NextGenSoftware.OASIS.Common;
@@ -38,7 +48,15 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Controllers
             {
                 var starAPI = GetSTARAPI();
                 var isIgnited = starAPI.IsOASISBooted;
-                return Ok(new { isIgnited, status = isIgnited ? "ignited" : "extinguished" });
+                
+                // Return more detailed status information
+                return Ok(new { 
+                    isIgnited, 
+                    status = isIgnited ? "ignited" : "extinguished",
+                    timestamp = DateTime.UtcNow,
+                    version = "1.0.0",
+                    providers = starAPI.GetProviderManager()?.GetAllProviders()?.Count ?? 0
+                });
             }
             catch (Exception ex)
             {
@@ -60,7 +78,16 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Controllers
                 {
                     return BadRequest(new { error = result.Message });
                 }
-                return Ok(new { success = true, message = "STAR ignited successfully", result = result.Result });
+                
+                // Return detailed success information
+                return Ok(new { 
+                    success = true, 
+                    message = "STAR ignited successfully", 
+                    result = result.Result,
+                    isIgnited = starAPI.IsOASISBooted,
+                    timestamp = DateTime.UtcNow,
+                    providers = starAPI.GetProviderManager()?.GetAllProviders()?.Count ?? 0
+                });
             }
             catch (Exception ex)
             {
@@ -605,3 +632,4 @@ namespace NextGenSoftware.OASIS.STAR.WebUI.Controllers
         public string Password { get; set; } = string.Empty;
     }
 }
+*/

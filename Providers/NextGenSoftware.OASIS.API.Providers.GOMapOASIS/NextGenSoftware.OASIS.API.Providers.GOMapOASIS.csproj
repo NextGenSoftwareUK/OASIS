@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <LangVersion>8.0</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.GOMapOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API GOMap OASIS Provider</Product>
