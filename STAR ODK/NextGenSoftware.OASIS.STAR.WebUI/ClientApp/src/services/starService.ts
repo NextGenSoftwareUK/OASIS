@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { OASISResult, STARStatus, Avatar, Karma, OAPPKarmaData, AvatarKarmaData, AvatarListResult } from '../types/star';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:50564/api';
-const WEB4_API_BASE_URL = process.env.REACT_APP_WEB4_API_URL || 'http://localhost:50563/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api'; // ONODE WebAPI with STAR endpoints
+const WEB4_API_BASE_URL = process.env.REACT_APP_WEB4_API_URL || 'http://localhost:50563/api'; // WEB4 OASIS API
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -361,5 +361,257 @@ export const starService = {
     if (totalKarma < 10000) return 'High';
     if (totalKarma < 100000) return 'Very High';
     return 'Legendary';
+  },
+
+  // NFT Operations
+  async getAllNFTs(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/nfts');
+    return response.data;
+  },
+
+  async createNFT(request: {
+    name: string;
+    description: string;
+    imageUrl: string;
+    price: number;
+    rarity: string;
+    category: string;
+  }): Promise<OASISResult<any>> {
+    const response = await api.post('/star/nfts', request);
+    return response.data;
+  },
+
+  async deleteNFT(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/nfts/${id}`);
+    return response.data;
+  },
+
+  // Settings Operations
+  async getSettings(): Promise<OASISResult<any>> {
+    const response = await api.get('/star/settings');
+    return response.data;
+  },
+
+  async updateSettings(settings: any): Promise<OASISResult<any>> {
+    const response = await api.put('/star/settings', settings);
+    return response.data;
+  },
+
+  // GeoNFT Operations
+  async getAllGeoNFTs(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/geonfts');
+    return response.data;
+  },
+
+  async createGeoNFT(request: any): Promise<OASISResult<any>> {
+    const response = await api.post('/star/geonfts', request);
+    return response.data;
+  },
+
+  async deleteGeoNFT(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/geonfts/${id}`);
+    return response.data;
+  },
+
+  // Mission Operations
+  async getAllMissions(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/missions');
+    return response.data;
+  },
+
+  async createMission(request: any): Promise<OASISResult<any>> {
+    const response = await api.post('/star/missions', request);
+    return response.data;
+  },
+
+  async deleteMission(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/missions/${id}`);
+    return response.data;
+  },
+
+  // Inventory Operations
+  async getAllInventoryItems(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/inventory');
+    return response.data;
+  },
+
+  async createInventoryItem(request: any): Promise<OASISResult<any>> {
+    const response = await api.post('/star/inventory', request);
+    return response.data;
+  },
+
+  async deleteInventoryItem(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/inventory/${id}`);
+    return response.data;
+  },
+
+  // Store Operations
+  async getStoreItems(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/store');
+    return response.data;
+  },
+
+  // Celestial Bodies Operations
+  async getAllCelestialBodies(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/celestial-bodies');
+    return response.data;
+  },
+
+  async createCelestialBody(request: any): Promise<OASISResult<any>> {
+    const response = await api.post('/star/celestial-bodies', request);
+    return response.data;
+  },
+
+  async deleteCelestialBody(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/celestial-bodies/${id}`);
+    return response.data;
+  },
+
+  // Celestial Spaces Operations
+  async getAllCelestialSpaces(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/celestial-spaces');
+    return response.data;
+  },
+
+  async createCelestialSpace(request: any): Promise<OASISResult<any>> {
+    const response = await api.post('/star/celestial-spaces', request);
+    return response.data;
+  },
+
+  async deleteCelestialSpace(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/celestial-spaces/${id}`);
+    return response.data;
+  },
+
+  // Chapters Operations
+  async getAllChapters(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/chapters');
+    return response.data;
+  },
+
+  async createChapter(request: any): Promise<OASISResult<any>> {
+    const response = await api.post('/star/chapters', request);
+    return response.data;
+  },
+
+  async deleteChapter(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/chapters/${id}`);
+    return response.data;
+  },
+
+  // Geo Hot Spots Operations
+  async getAllGeoHotSpots(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/geo-hotspots');
+    return response.data;
+  },
+
+  async createGeoHotSpot(request: any): Promise<OASISResult<any>> {
+    const response = await api.post('/star/geo-hotspots', request);
+    return response.data;
+  },
+
+  async deleteGeoHotSpot(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/geo-hotspots/${id}`);
+    return response.data;
+  },
+
+  // Libraries Operations
+  async getAllLibraries(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/libraries');
+    return response.data;
+  },
+
+  async createLibrary(request: any): Promise<OASISResult<any>> {
+    const response = await api.post('/star/libraries', request);
+    return response.data;
+  },
+
+  async deleteLibrary(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/libraries/${id}`);
+    return response.data;
+  },
+
+  // Plugins Operations
+  async getAllPlugins(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/plugins');
+    return response.data;
+  },
+
+  async createPlugin(request: any): Promise<OASISResult<any>> {
+    const response = await api.post('/star/plugins', request);
+    return response.data;
+  },
+
+  async deletePlugin(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/plugins/${id}`);
+    return response.data;
+  },
+
+  // Runtimes Operations
+  async getAllRuntimes(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/runtimes');
+    return response.data;
+  },
+
+  async createRuntime(request: any): Promise<OASISResult<any>> {
+    const response = await api.post('/star/runtimes', request);
+    return response.data;
+  },
+
+  async deleteRuntime(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/runtimes/${id}`);
+    return response.data;
+  },
+
+  // Templates Operations
+  async getAllTemplates(): Promise<OASISResult<any[]>> {
+    const response = await api.get('/star/templates');
+    return response.data;
+  },
+
+  async createTemplate(request: any): Promise<OASISResult<any>> {
+    const response = await api.post('/star/templates', request);
+    return response.data;
+  },
+
+  async deleteTemplate(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/templates/${id}`);
+    return response.data;
+  },
+
+  // Karma Operations
+  async getKarmaLeaderboard(): Promise<OASISResult<any>> {
+    const response = await api.get('/star/karma/leaderboard');
+    return response.data;
+  },
+
+  // My Data Operations
+  async getMyDataFiles(): Promise<OASISResult<any>> {
+    const response = await api.get('/star/my-data/files');
+    return response.data;
+  },
+
+  async uploadFile(file: File, options?: any): Promise<OASISResult<any>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (options) {
+      formData.append('options', JSON.stringify(options));
+    }
+    const response = await api.post('/star/my-data/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  async deleteFile(id: string): Promise<OASISResult<boolean>> {
+    const response = await api.delete(`/star/my-data/files/${id}`);
+    return response.data;
+  },
+
+  async updateFilePermissions(id: string, permissions: any): Promise<OASISResult<boolean>> {
+    const response = await api.put(`/star/my-data/files/${id}/permissions`, permissions);
+    return response.data;
   },
 };
