@@ -16,6 +16,6 @@ namespace NextGenSoftware.OASIS.API.Contracts.Interfaces
         /// <param name="endPoint">Destination location</param>
         /// <param name="routingType">Type of routing (Walking, Driving, Cycling, etc.)</param>
         /// <returns>List of waypoints for the route</returns>
-        Task<List<object>> GetDirectionsAsync(object startPoint, object endPoint, string routingType = "Walking");
+        Task<List<Geolocation>> GetDirectionsAsync(Geolocation startPoint, Geolocation endPoint, RoutingType routingType = RoutingType.Walking);
     }
 }

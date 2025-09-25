@@ -13,13 +13,13 @@ namespace NextGenSoftware.OASIS.API.Contracts.Interfaces
         /// </summary>
         /// <param name="request">POI search request</param>
         /// <returns>Response containing POI search results</returns>
-        Task<object> POISearchAsync(object request);
+        Task<ForwardGeocodingResponse<IPointOfInterest>> POISearchAsync(IRequest request);
 
         /// <summary>
         /// Batch search for Points of Interest (POIs) using multiple requests
         /// </summary>
         /// <param name="request">Batch POI search request</param>
         /// <returns>Response containing batch POI search results</returns>
-        Task<object> BatchPOISearchAsync(object request);
+        Task<ForwardGeocodingResponse<IPointOfInterest>> BatchPOISearchAsync(IBatchRequest request);
     }
 }
