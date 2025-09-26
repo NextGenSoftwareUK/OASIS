@@ -1,0 +1,27 @@
+{
+  "Comment": "Update A record for oasisweb4.one to point to GitHub Pages",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "oasisweb4.one",
+        "Type": "A",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "185.199.108.153"
+          },
+          {
+            "Value": "185.199.109.153"
+          },
+          {
+            "Value": "185.199.110.153"
+          },
+          {
+            "Value": "185.199.111.153"
+          }
+        ]
+      }
+    }
+  ]
+}
