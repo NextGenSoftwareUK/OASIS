@@ -3,6 +3,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
 using NextGenSoftware.OASIS.STAR.DNA;
@@ -28,7 +30,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultGeoHotSpotsInstalledPath, "DefaultGeoHotSpotsInstalledPath")
         { }
 
-        public override async Task<OASISResult<GeoHotSpot>> CreateAsync(object createParams, GeoHotSpot newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<GeoHotSpot>> CreateAsync(ISTARNETCreateOptions<GeoHotSpot, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<GeoHotSpot> result = new OASISResult<GeoHotSpot>();
 
@@ -45,28 +47,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //    }
             //}
 
-            if (newHolon == null)
-                newHolon = new GeoHotSpot();
+            if (createOptions == null)
+                createOptions = new STARNETCreateOptions<GeoHotSpot, STARNETDNA>() { STARNETHolon = new GeoHotSpot() };
 
             //if (parentQuest != null)
             //    newHolon.ParentQuestId = parentQuest.Id;
 
-            newHolon.Lat = CLIEngine.GetValidInputForDouble("Enter the latitude co-ordinates for the GeoHotSpot (i.e. the north-south position): ");
-            newHolon.Long = CLIEngine.GetValidInputForDouble("Enter the longitude co-ordinates for the GeoHotSpot (i.e. the east-west position): ");
-            newHolon.HotSpotRadiusInMetres = CLIEngine.GetValidInputForInt("Enter the radius in metres for the GeoHotSpot (i.e. how close you need to be to the lat/long co-ords to trigger the hot-spot): ");
+            createOptions.STARNETHolon.Lat = CLIEngine.GetValidInputForDouble("Enter the latitude co-ordinates for the GeoHotSpot (i.e. the north-south position): ");
+            createOptions.STARNETHolon.Long = CLIEngine.GetValidInputForDouble("Enter the longitude co-ordinates for the GeoHotSpot (i.e. the east-west position): ");
+            createOptions.STARNETHolon.HotSpotRadiusInMetres = CLIEngine.GetValidInputForInt("Enter the radius in metres for the GeoHotSpot (i.e. how close you need to be to the lat/long co-ords to trigger the hot-spot): ");
             object triggerTypeObj = CLIEngine.GetValidInputForEnum("Select the trigger type for the GeoHotSpot:", typeof(GeoHotSpotTriggeredType));
 
             if (triggerTypeObj.ToString() != "exit")
-                newHolon.TriggerType = (GeoHotSpotTriggeredType)triggerTypeObj;
+                createOptions.STARNETHolon.TriggerType = (GeoHotSpotTriggeredType)triggerTypeObj;
 
-            switch (newHolon.TriggerType)
+            switch (createOptions.STARNETHolon.TriggerType)
             {
                 case GeoHotSpotTriggeredType.WhenAtGeoLocationForXSeconds:
-                    newHolon.TimeInSecondsNeedToBeAtLocationToTriggerHotSpot = CLIEngine.GetValidInputForInt("Enter the time in seconds you need to be at the location to trigger the GeoHotSpot: ");
+                    createOptions.STARNETHolon.TimeInSecondsNeedToBeAtLocationToTriggerHotSpot = CLIEngine.GetValidInputForInt("Enter the time in seconds you need to be at the location to trigger the GeoHotSpot: ");
                     break;
 
                 case GeoHotSpotTriggeredType.WhenLookingAtObjectOrImageForXSecondsInARMode:
-                    newHolon.TimeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot = CLIEngine.GetValidInputForInt("Enter the time in seconds you need to look at the 3D object or 2D image to trigger the GeoHotSpot: ");
+                    createOptions.STARNETHolon.TimeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot = CLIEngine.GetValidInputForInt("Enter the time in seconds you need to look at the 3D object or 2D image to trigger the GeoHotSpot: ");
                     break;
             }
 
@@ -74,10 +76,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (imageObjectResult != null && imageObjectResult.Result != null && !imageObjectResult.IsError)
             {
-                newHolon.Image2D = imageObjectResult.Result.Image2D;
-                newHolon.Image2DURI = imageObjectResult.Result.Image2DURI;
-                newHolon.Object3D = imageObjectResult.Result.Object3D;
-                newHolon.Object3DURI = imageObjectResult.Result.Object3DURI;
+                createOptions.STARNETHolon.Image2D = imageObjectResult.Result.Image2D;
+                createOptions.STARNETHolon.Image2DURI = imageObjectResult.Result.Image2DURI;
+                createOptions.STARNETHolon.Object3D = imageObjectResult.Result.Object3D;
+                createOptions.STARNETHolon.Object3DURI = imageObjectResult.Result.Object3DURI;
             }
             else
             {
@@ -86,7 +88,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return result;
             }
 
-            result = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, metaData, STARNETDNA, providerType);
+            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
 
             if (result != null)
             {

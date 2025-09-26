@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+	  <PackageId>NextGenSoftware.OASIS.API.Providers.BlockStack</PackageId>
+	  <Company>NextGen Software Ltd</Company>
+	  <Product>WEB4 OASIS API BlockStack OASIS Provider</Product>
+	  <Title>WEB4 OASIS API BlockStack OASIS Provider</Title>
+	  <Summary>WEB4 OASIS API BlockStack OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
+	  <Description>WEB4 OASIS API BlockStack OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
+	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
+	  <PackageTags>OASIS API; Native; Integrated; WEB3; WEB4; WEB5; Blockchain; NFT; Tokens; Crypto; Future-Prove; Metaverse; Aggregation; HOT-Swappable-Architecture; P2P; Decentralised; Distributed; Interoprability; Abstraction-Layer; Multi-Network; Multi-Chain; Bridging; Network-Of-Networks; SSO; Avatar-API; Karma-API; Data-API; Providers-API; SEEDS-API; "Keys/Wallets-API", Auto-FailOver; Auto-LoadBalancing; Auto-Replication; Auto-Sync; Offline-Support; Write-Once-Deploy-Everywhere; Triple-Level-Quantum-Resistant-Encryption; Quantum; Encryption; Smart-Contracts; Intelligent-Key-Management; Zero-Lag; Zero-Downtime; Agent-Centric; Smart-City-Ready; WEB/2D/3D/AR/VR/IR/Map/Meta-Visusalization; Bio-feedback-Ready; IR-(Infinite-Reality)-Ready; Infinite-Players-Online-At-Same-Time; LAN/Bluetooth-Support; AI/Machine-Learning-Over-All-Of-World's-Aggregated-Data; HTTP-REST/gRPC/GraphQL/CLI/Native-Endpoints; Best-Of-All-Worlds; GOD-Protocol/API; Our-World-Geo-Location/AR/IR/Map-UI-(Game-of-Games-Engine); One-World-Open-World-MMO-(VR)-UI-(Game-of-Games-Engine); BlockStack </PackageTags>
+	  <PackageReleaseNotes>Updated Tags &amp; corrected name.</PackageReleaseNotes>
+	  <RepositoryType>git</RepositoryType>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <Version>1.0.1</Version>
+	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
+
+	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+	  <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>

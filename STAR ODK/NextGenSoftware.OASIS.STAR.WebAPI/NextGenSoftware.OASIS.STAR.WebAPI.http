@@ -1,0 +1,6 @@
+@NextGenSoftware.OASIS.STAR.WebAPI_HostAddress = http://localhost:5208
+
+GET {{NextGenSoftware.OASIS.STAR.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
