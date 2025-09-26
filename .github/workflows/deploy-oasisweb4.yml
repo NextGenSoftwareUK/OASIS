@@ -2,7 +2,7 @@ name: Deploy OASIS Web4 Site
 
 on:
   push:
-    branches: [ max-build ]
+    branches: [ max-build2 ]
     paths: [ 'oasisweb4 site/**' ]
   workflow_dispatch:
 
