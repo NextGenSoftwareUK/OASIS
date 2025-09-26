@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -126,6 +127,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 {
                     IsError = true,
                     Message = $"Error loading avatar quests: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        [HttpPost("{id}/clone")]
+        public async Task<IActionResult> CloneQuest(Guid id, [FromBody] CloneRequest request)
+        {
+            try
+            {
+                var result = await _starAPI.Quests.CloneAsync(AvatarId, id, request.NewName);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error cloning quest: {ex.Message}",
                     Exception = ex
                 });
             }

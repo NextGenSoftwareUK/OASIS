@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -26,7 +27,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<ISTARGeoNFT>>
+                return BadRequest(new OASISResult<IEnumerable<STARGeoNFT>>
                 {
                     IsError = true,
                     Message = $"Error loading geo NFTs: {ex.Message}",
@@ -45,7 +46,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ISTARGeoNFT>
+                return BadRequest(new OASISResult<STARGeoNFT>
                 {
                     IsError = true,
                     Message = $"Error loading geo NFT: {ex.Message}",
@@ -55,16 +56,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateGeoNFT([FromBody] ISTARGeoNFT geoNFT)
+        public async Task<IActionResult> CreateGeoNFT([FromBody] STARGeoNFT geoNFT)
         {
             try
             {
-                var result = await _starAPI.GeoNFTs.UpdateAsync(AvatarId, (STARGeoNFT)geoNFT);
+                var result = await _starAPI.GeoNFTs.UpdateAsync(AvatarId, geoNFT);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ISTARGeoNFT>
+                return BadRequest(new OASISResult<STARGeoNFT>
                 {
                     IsError = true,
                     Message = $"Error creating geo NFT: {ex.Message}",
@@ -74,17 +75,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateGeoNFT(Guid id, [FromBody] ISTARGeoNFT geoNFT)
+        public async Task<IActionResult> UpdateGeoNFT(Guid id, [FromBody] STARGeoNFT geoNFT)
         {
             try
             {
                 geoNFT.Id = id;
-                var result = await _starAPI.GeoNFTs.UpdateAsync(AvatarId, (STARGeoNFT)geoNFT);
+                var result = await _starAPI.GeoNFTs.UpdateAsync(AvatarId, geoNFT);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ISTARGeoNFT>
+                return BadRequest(new OASISResult<STARGeoNFT>
                 {
                     IsError = true,
                     Message = $"Error updating geo NFT: {ex.Message}",
@@ -121,7 +122,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<ISTARGeoNFT>>
+                return BadRequest(new OASISResult<IEnumerable<STARGeoNFT>>
                 {
                     IsError = true,
                     Message = $"Error loading nearby geo NFTs: {ex.Message}",
@@ -140,7 +141,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<ISTARGeoNFT>>
+                return BadRequest(new OASISResult<IEnumerable<STARGeoNFT>>
                 {
                     IsError = true,
                     Message = $"Error loading avatar geo NFTs: {ex.Message}",
