@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.STAR.Interfaces;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.STAR.DNA;
 using Ipfs.CoreApi;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -64,9 +65,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //    base.Dispose();
         //}
 
-        public override async Task<OASISResult<OAPP>> CreateAsync(object createParams, OAPP newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<OAPP>> CreateAsync(ISTARNETCreateOptions<OAPP, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<CoronalEjection> result = await LightWizardAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, metaData, STARNETDNA, providerType);
+            OASISResult<CoronalEjection> result = await LightWizardAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
 
             return new OASISResult<OAPP>
             {
@@ -76,7 +77,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             };
         }
 
-        public async Task<OASISResult<CoronalEjection>> LightWizardAsync(object createParams, OAPP newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<CoronalEjection>> LightWizardAsync(ISTARNETCreateOptions<OAPP, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
         {
             //OASISResult<OAPP> result = new OASISResult<OAPP>();
             OASISResult<CoronalEjection> lightResult = new OASISResult<CoronalEjection>();
@@ -592,41 +593,53 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             oappPath = Path.Combine(oappPath, OAPPName);
 
                             //Finally, save this to the STARNET App Store. This will be private on the store until the user publishes via the Star.Seed() command.
-                            OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, metaHolonTagMappingsResult.Result, metaTagMappingsResult.Result, new Dictionary<string, object>()
-                        {
-                            { "CelestialBodyId", lightResult.Result.CelestialBody.Id },
-                            { "CelestialBodyName", lightResult.Result.CelestialBody.Name },
-                            { "GenesisType", genesisType },
-                            { "OAPPTemplateId", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Id : null},
-                            { "OAPPTemplateName", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Name : null },
-                            { "OAPPTemplateDescription", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Description: null },
-                            { "OAPPTemplateType", OAPPTemplateType },
-                            { "OAPPTemplateVersion", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Version : null },
-                            { "OAPPTemplateVersionSequence", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.VersionSequence: null },
-                            { "OAPPTemplateInstalledPath", installedOAPPTemplate != null ? installedOAPPTemplate.InstalledPath : null},
-                            { "CelestialBodyMetaDataId", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Id : null },
-                            { "CelestialBodyMetaDataName", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Name : null },
-                            { "CelestialBodyMetaDataDescription", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Description : null },
-                            { "CelestialBodyMetaDataType", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType : null },
-                            { "CelestialBodyMetaDataVersionSequence", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.VersionSequence : null },
-                            { "CelestialBodyMetaDataVersion", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Version : null },
-                            { "CelestialBodyMetaDataInstalledPath", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.InstalledPath : null },
-                            { "CelestialBodyMetaDataGeneratedPath", cbMetaDataGeneratedPath },
-                            { "STARNETHolonType", OAPPType },
-                            { "OurWorldLat", ourWorldLat },
-                            { "OurWorldLong", ourWorldLong },
-                            { "OurWorld3dObject", ourWorld3dObject },
-                            { "OurWorld3dObjectURI", ourWorld3dObjectURI },
-                            { "OurWorld2dSprite", ourWorld2dSprite },
-                            { "OurWorld2dSpriteURI", ourWorld2dSpriteURI },
-                            { "OneWorldLat", oneWorldLat },
-                            { "OneWorldLong", oneWorldLong },
-                            { "OneWorld3dObject", oneWorld3dObject },
-                            { "OneWorld3dObjectURI", oneWorld3dObjectURI },
-                            { "OneWorld2dSprite", oneWorld2dSprite },
-                            { "OneWorld2dSpriteURI", oneWorld2dSpriteURI } },
-                                // { "Zomes", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes } },
-                                new OAPP() //TODO: For now we need to store the meta data here again otherwise when the holon is saved the blank props will override the metadata keyvalues above! Strongly typed overrides the keyvalue pairs but the metadata above is needed to store in the STARNETDNA, will try to remove this duplication later! ;-)
+                            OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, new STARNETCreateOptions<OAPP, STARNETDNA>()
+                            {
+                                MetaTagMappings = new API.ONODE.Core.Objects.STARNET.MetaTagMappings() 
+                                { 
+                                    MetaHolonTags = metaHolonTagMappingsResult.Result, 
+                                    MetaTags = metaTagMappingsResult.Result 
+                                },
+                                STARNETDNA = new STARNETDNA() 
+                                {  
+                                    MetaData = new Dictionary<string, object>() 
+                                    {
+                                        { "CelestialBodyId", lightResult.Result.CelestialBody.Id },
+                                        { "CelestialBodyName", lightResult.Result.CelestialBody.Name },
+                                        { "GenesisType", genesisType },
+                                        { "OAPPTemplateId", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Id : null},
+                                        { "OAPPTemplateName", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Name : null },
+                                        { "OAPPTemplateDescription", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Description: null },
+                                        { "OAPPTemplateType", OAPPTemplateType },
+                                        { "OAPPTemplateVersion", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Version : null },
+                                        { "OAPPTemplateVersionSequence", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.VersionSequence: null },
+                                        { "OAPPTemplateInstalledPath", installedOAPPTemplate != null ? installedOAPPTemplate.InstalledPath : null},
+                                        { "CelestialBodyMetaDataId", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Id : null },
+                                        { "CelestialBodyMetaDataName", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Name : null },
+                                        { "CelestialBodyMetaDataDescription", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Description : null },
+                                        { "CelestialBodyMetaDataType", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType : null },
+                                        { "CelestialBodyMetaDataVersionSequence", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.VersionSequence : null },
+                                        { "CelestialBodyMetaDataVersion", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Version : null },
+                                        { "CelestialBodyMetaDataInstalledPath", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.InstalledPath : null },
+                                        { "CelestialBodyMetaDataGeneratedPath", cbMetaDataGeneratedPath },
+                                        { "STARNETHolonType", OAPPType },
+                                        { "OurWorldLat", ourWorldLat },
+                                        { "OurWorldLong", ourWorldLong },
+                                        { "OurWorld3dObject", ourWorld3dObject },
+                                        { "OurWorld3dObjectURI", ourWorld3dObjectURI },
+                                        { "OurWorld2dSprite", ourWorld2dSprite },
+                                        { "OurWorld2dSpriteURI", ourWorld2dSpriteURI },
+                                        { "OneWorldLat", oneWorldLat },
+                                        { "OneWorldLong", oneWorldLong },
+                                        { "OneWorld3dObject", oneWorld3dObject },
+                                        { "OneWorld3dObjectURI", oneWorld3dObjectURI },
+                                        { "OneWorld2dSprite", oneWorld2dSprite },
+                                        { "OneWorld2dSpriteURI", oneWorld2dSpriteURI } 
+                                    }
+                                },
+                                
+                                //TODO: For now we need to store the meta data here again otherwise when the holon is saved the blank props will override the metadata keyvalues above! Strongly typed overrides the keyvalue pairs but the metadata above is needed to store in the STARNETDNA, will try to remove this duplication later! ;-)
+                                STARNETHolon = new OAPP()
                                 {
                                     Name = OAPPName,
                                     Description = OAPPDesc,
@@ -659,7 +672,78 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                     OneWorld3dObjectURI = oneWorld3dObjectURI,
                                     OneWorld2dSprite = oneWorld2dSprite,
                                     OneWorld2dSpriteURI = oneWorld2dSpriteURI
-                                }, null, false, providerType);
+                                }
+                            }, providerType);
+
+                        //    
+                        //    OASISResult<OAPP> createOAPPResult = await STAR.STARAPI.OAPPs.CreateAsync(STAR.BeamedInAvatar.Id, OAPPName, OAPPDesc, OAPPType, oappPath, metaHolonTagMappingsResult.Result, metaTagMappingsResult.Result, new Dictionary<string, object>()
+                        //{
+                        //    { "CelestialBodyId", lightResult.Result.CelestialBody.Id },
+                        //    { "CelestialBodyName", lightResult.Result.CelestialBody.Name },
+                        //    { "GenesisType", genesisType },
+                        //    { "OAPPTemplateId", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Id : null},
+                        //    { "OAPPTemplateName", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Name : null },
+                        //    { "OAPPTemplateDescription", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Description: null },
+                        //    { "OAPPTemplateType", OAPPTemplateType },
+                        //    { "OAPPTemplateVersion", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.Version : null },
+                        //    { "OAPPTemplateVersionSequence", installedOAPPTemplate != null ? installedOAPPTemplate.STARNETDNA.VersionSequence: null },
+                        //    { "OAPPTemplateInstalledPath", installedOAPPTemplate != null ? installedOAPPTemplate.InstalledPath : null},
+                        //    { "CelestialBodyMetaDataId", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Id : null },
+                        //    { "CelestialBodyMetaDataName", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Name : null },
+                        //    { "CelestialBodyMetaDataDescription", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Description : null },
+                        //    { "CelestialBodyMetaDataType", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType : null },
+                        //    { "CelestialBodyMetaDataVersionSequence", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.VersionSequence : null },
+                        //    { "CelestialBodyMetaDataVersion", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Version : null },
+                        //    { "CelestialBodyMetaDataInstalledPath", celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.InstalledPath : null },
+                        //    { "CelestialBodyMetaDataGeneratedPath", cbMetaDataGeneratedPath },
+                        //    { "STARNETHolonType", OAPPType },
+                        //    { "OurWorldLat", ourWorldLat },
+                        //    { "OurWorldLong", ourWorldLong },
+                        //    { "OurWorld3dObject", ourWorld3dObject },
+                        //    { "OurWorld3dObjectURI", ourWorld3dObjectURI },
+                        //    { "OurWorld2dSprite", ourWorld2dSprite },
+                        //    { "OurWorld2dSpriteURI", ourWorld2dSpriteURI },
+                        //    { "OneWorldLat", oneWorldLat },
+                        //    { "OneWorldLong", oneWorldLong },
+                        //    { "OneWorld3dObject", oneWorld3dObject },
+                        //    { "OneWorld3dObjectURI", oneWorld3dObjectURI },
+                        //    { "OneWorld2dSprite", oneWorld2dSprite },
+                        //    { "OneWorld2dSpriteURI", oneWorld2dSpriteURI } },
+                        //        // { "Zomes", lightResult.Result.CelestialBody.CelestialBodyCore.Zomes } },
+                        //        new OAPP() //TODO: For now we need to store the meta data here again otherwise when the holon is saved the blank props will override the metadata keyvalues above! Strongly typed overrides the keyvalue pairs but the metadata above is needed to store in the STARNETDNA, will try to remove this duplication later! ;-)
+                        //        {
+                        //            Name = OAPPName,
+                        //            Description = OAPPDesc,
+                        //            GenesisType = genesisType,
+                        //            CelestialBodyId = lightResult.Result.CelestialBody.Id,
+                        //            CelestialBodyName = lightResult.Result.CelestialBody.Name,
+                        //            OAPPTemplateId = installedOAPPTemplate.STARNETDNA.Id,
+                        //            OAPPTemplateName = installedOAPPTemplate.STARNETDNA.Name,
+                        //            OAPPTemplateDescription = installedOAPPTemplate.STARNETDNA.Description,
+                        //            OAPPTemplateType = OAPPTemplateType,
+                        //            OAPPTemplateVersion = installedOAPPTemplate.STARNETDNA.Version,
+                        //            OAPPTemplateVersionSequence = installedOAPPTemplate.STARNETDNA.VersionSequence,
+                        //            CelestialBodyMetaDataId = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Id : Guid.Empty,
+                        //            CelestialBodyMetaDataName = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Name : null,
+                        //            CelestialBodyMetaDataDescription = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Description : null,
+                        //            CelestialBodyMetaDataType = celestialBodyMetaDataDNA != null ? (CelestialBodyType)Enum.Parse(typeof(CelestialBodyType), celestialBodyMetaDataDNA.STARNETDNA.STARNETHolonType.ToString()) : CelestialBodyType.Moon,
+                        //            CelestialBodyMetaDataVersion = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.Version : null,
+                        //            CelestialBodyMetaDataVersionSequence = celestialBodyMetaDataDNA != null ? celestialBodyMetaDataDNA.STARNETDNA.VersionSequence : 0,
+                        //            CelestialBodyMetaDataGeneratedPath = cbMetaDataGeneratedPath,
+                        //            //STARNETHolonType = OAPPType,
+                        //            OurWorldLat = ourWorldLat,
+                        //            OurWorldLong = ourWorldLong,
+                        //            OurWorld3dObject = ourWorld3dObject,
+                        //            OurWorld3dObjectURI = ourWorld3dObjectURI,
+                        //            OurWorld2dSprite = ourWorld2dSprite,
+                        //            OurWorld2dSpriteURI = ourWorld2dSpriteURI,
+                        //            OneWorldLat = oneWorldLat,
+                        //            OneWorldLong = oneWorldLong,
+                        //            OneWorld3dObject = oneWorld3dObject,
+                        //            OneWorld3dObjectURI = oneWorld3dObjectURI,
+                        //            OneWorld2dSprite = oneWorld2dSprite,
+                        //            OneWorld2dSpriteURI = oneWorld2dSpriteURI
+                        //        }, null, false, providerType);
 
                             //null, new OAPPDNA() //TODO: We can pass in custom OAPPDNA when figure out how to resole the cast issues in STARNETManagerBase! ;-) This code does allow custom data to be added to the root of the OAPPDNA.json file but tbh it looks better if its just stored in the MetaData above! ;-)
                             //{
@@ -1204,7 +1288,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             break;
                     }
 
-                    OASISResult<CelestialBodyMetaDataDNA> createResult = await STARCLI.CelestialBodiesMetaDataDNA.CreateAsync(null, null, true, false, celestialBodyType, providerType : providerType);
+                    OASISResult<CelestialBodyMetaDataDNA> createResult = await STARCLI.CelestialBodiesMetaDataDNA.CreateAsync(holonSubType: celestialBodyType, providerType : providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
@@ -1241,7 +1325,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Would you like to upload the Zome generated metadata DNA to STARNET?"))
                 {
                     Console.WriteLine("");
-                    OASISResult<ZomeMetaDataDNA> createResult = await STARCLI.ZomesMetaDataDNA.CreateAsync(null, null, true, false, providerType: providerType);
+                    OASISResult<ZomeMetaDataDNA> createResult = await STARCLI.ZomesMetaDataDNA.CreateAsync(new STARNETCreateOptions<ZomeMetaDataDNA, STARNETDNA>() { CheckIfSourcePathExists = false }, providerType: providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
@@ -1276,7 +1360,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Would you like to upload the Holon generated metadata DNA to STARNET?"))
                 {
                     Console.WriteLine("");
-                    OASISResult<HolonMetaDataDNA> createResult = await STARCLI.HolonsMetaDataDNA.CreateAsync(null, null, true, false, providerType: providerType);
+                    OASISResult<HolonMetaDataDNA> createResult = await STARCLI.HolonsMetaDataDNA.CreateAsync(new STARNETCreateOptions<HolonMetaDataDNA, STARNETDNA>() { CheckIfSourcePathExists = false }, providerType: providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
@@ -1350,7 +1434,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (CLIEngine.GetConfirmation("Would you like to upload the CelestialBody generated to STARNET?"))
                 {
                     Console.WriteLine("");
-                    OASISResult<STARCelestialBody> createResult = await STARCLI.CelestialBodies.CreateAsync(null, null, true, false, providerType);
+                    OASISResult<STARCelestialBody> createResult = await STARCLI.CelestialBodies.CreateAsync(new STARNETCreateOptions<STARCelestialBody, STARNETDNA>() { CheckIfSourcePathExists = false }, providerType: providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
@@ -1381,7 +1465,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
                 if (CLIEngine.GetConfirmation("Would you like to upload the Zome(s) generated to STARNET?"))
                 {
-                    OASISResult<STARZome> createResult = await STARCLI.Zomes.CreateAsync(null, null, true, false, providerType);
+                    OASISResult<STARZome> createResult = await STARCLI.Zomes.CreateAsync(new STARNETCreateOptions<STARZome, STARNETDNA>() { CheckIfSourcePathExists = false }, providerType: providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {
@@ -1408,7 +1492,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
                 if (CLIEngine.GetConfirmation("Would you like to upload the Holon(s) generated to STARNET?"))
                 {
-                    OASISResult<STARHolon> createResult = await STARCLI.Holons.CreateAsync(null, null, true, false, providerType);
+                    OASISResult<STARHolon> createResult = await STARCLI.Holons.CreateAsync(new STARNETCreateOptions<STARHolon, STARNETDNA>() { CheckIfSourcePathExists = false }, providerType: providerType);
 
                     if (createResult != null && createResult.Result != null && !createResult.IsError)
                     {

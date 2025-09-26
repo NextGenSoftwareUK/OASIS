@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -56,9 +57,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultOAPPTemplatesInstalledPath, "DefaultOAPPTemplatesInstalledPath")
         { }
 
-        public override async Task<OASISResult<OAPPTemplate>> CreateAsync(object createParams, OAPPTemplate newHolon = null, bool showHeaderAndInro = true, bool checkIfSourcePathExists = true, object holonSubType = null, Dictionary<string, object> metaData = null, STARNETDNA STARNETDNA = default, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<OAPPTemplate>> CreateAsync(ISTARNETCreateOptions<OAPPTemplate, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<OAPPTemplate> createResult = await base.CreateAsync(createParams, newHolon, showHeaderAndInro, checkIfSourcePathExists, holonSubType, metaData, STARNETDNA, providerType);
+            OASISResult<OAPPTemplate> createResult = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
 
             if (createResult != null && createResult.Result != null && !createResult.IsError)
             {
