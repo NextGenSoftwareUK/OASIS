@@ -218,5 +218,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         OASISResult<bool> ValidateVersion(string dnaVersion, string storedVersion, string fullPathToSTARNETHolonFolder, bool firstPublish, bool edit);
         OASISResult<bool> WriteDNA<T>(T STARNETDNA, string fullPathToSTARNETHolon);
         Task<OASISResult<bool>> WriteDNAAsync<T>(T STARNETDNA, string fullPathToSTARNETHolon);
+        
+        // Clone Methods
+        OASISResult<T1> Clone(Guid avatarId, Guid holonId, string newName = null, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> CloneAsync(Guid avatarId, Guid holonId, string newName = null, ProviderType providerType = ProviderType.Default);
     }
 }

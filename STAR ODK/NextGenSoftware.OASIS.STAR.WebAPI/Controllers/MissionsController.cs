@@ -4,165 +4,132 @@ using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class MissionsController : ControllerBase
+    public class MissionsController : STARControllerBase
     {
-        private static STARAPI? _starAPI;
-        private static readonly object _lock = new object();
-
-        private STARAPI GetSTARAPI()
-        {
-            if (_starAPI == null)
-            {
-                lock (_lock)
-                {
-                    if (_starAPI == null)
-                    {
-                        var starDNA = new STARDNA();
-                        _starAPI = new STARAPI(starDNA);
-                    }
-                }
-            }
-            return _starAPI;
-        }
+        private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
         [HttpGet]
-        public IActionResult GetAllMissions()
+        public async Task<IActionResult> GetAllMissions()
         {
             try
             {
-                var starAPI = GetSTARAPI();
-                var missions = starAPI.Missions;
-                
-                // For now, return placeholder data
-                // TODO: Implement actual mission retrieval
-                var placeholderMissions = new[]
-                {
-                    new { id = Guid.NewGuid(), name = "Mission Alpha", description = "First mission", status = "Active" },
-                    new { id = Guid.NewGuid(), name = "Mission Beta", description = "Second mission", status = "Completed" }
-                };
-                
-                return Ok(new { success = true, result = placeholderMissions });
-            }
-            catch (OASISException ex)
-            {
-                return BadRequest(new { error = ex.Message });
+                var result = await _starAPI.Missions.LoadAllAsync(AvatarId, null);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return BadRequest(new OASISResult<IEnumerable<Mission>>
+                {
+                    IsError = true,
+                    Message = $"Error loading missions: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetMission(Guid id)
+        public async Task<IActionResult> GetMission(Guid id)
         {
             try
             {
-                var starAPI = GetSTARAPI();
-                var missions = starAPI.Missions;
-                
-                // For now, return placeholder data
-                // TODO: Implement actual mission retrieval by ID
-                var placeholderMission = new { id = id, name = "Mission Alpha", description = "First mission", status = "Active" };
-                
-                return Ok(new { success = true, result = placeholderMission });
-            }
-            catch (OASISException ex)
-            {
-                return BadRequest(new { error = ex.Message });
+                var result = await _starAPI.Missions.LoadAsync(AvatarId, id, 0);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return BadRequest(new OASISResult<Mission>
+                {
+                    IsError = true,
+                    Message = $"Error loading mission: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
         [HttpPost]
-        public IActionResult CreateMission([FromBody] CreateMissionRequest request)
+        public async Task<IActionResult> CreateMission([FromBody] IMission mission)
         {
             try
             {
-                var starAPI = GetSTARAPI();
-                var missions = starAPI.Missions;
-                
-                // For now, return success
-                // TODO: Implement actual mission creation
-                return Ok(new { success = true, message = "Mission created successfully", result = request });
-            }
-            catch (OASISException ex)
-            {
-                return BadRequest(new { error = ex.Message });
+                var result = await _starAPI.Missions.UpdateAsync(AvatarId, (Mission)mission);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return BadRequest(new OASISResult<IMission>
+                {
+                    IsError = true,
+                    Message = $"Error creating mission: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateMission(Guid id, [FromBody] UpdateMissionRequest request)
+        public async Task<IActionResult> UpdateMission(Guid id, [FromBody] IMission mission)
         {
             try
             {
-                var starAPI = GetSTARAPI();
-                var missions = starAPI.Missions;
-                
-                // For now, return success
-                // TODO: Implement actual mission update
-                return Ok(new { success = true, message = "Mission updated successfully", result = request });
-            }
-            catch (OASISException ex)
-            {
-                return BadRequest(new { error = ex.Message });
+                mission.Id = id;
+                var result = await _starAPI.Missions.UpdateAsync(AvatarId, (Mission)mission);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return BadRequest(new OASISResult<IMission>
+                {
+                    IsError = true,
+                    Message = $"Error updating mission: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteMission(Guid id)
+        public async Task<IActionResult> DeleteMission(Guid id)
         {
             try
             {
-                var starAPI = GetSTARAPI();
-                var missions = starAPI.Missions;
-                
-                // For now, return success
-                // TODO: Implement actual mission deletion
-                return Ok(new { success = true, message = "Mission deleted successfully" });
-            }
-            catch (OASISException ex)
-            {
-                return BadRequest(new { error = ex.Message });
+                var result = await _starAPI.Missions.DeleteAsync(AvatarId, id, 0);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error deleting mission: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
-    }
 
-    // Request models
-    public class CreateMissionRequest
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string Status { get; set; } = "Active";
-    }
-
-    public class UpdateMissionRequest
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
+        [HttpPost("{id}/clone")]
+        public async Task<IActionResult> CloneMission(Guid id, [FromBody] CloneRequest request)
+        {
+            try
+            {
+                var result = await _starAPI.Missions.CloneAsync(AvatarId, id, request.NewName);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error cloning mission: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
     }
 }

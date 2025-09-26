@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -17,7 +18,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
         [HttpGet]
-        public async Task<IActionResult> GetAllIGeoHotSpots()
+        public async Task<IActionResult> GetAllGeoHotSpots()
         {
             try
             {
@@ -26,7 +27,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IGeoHotSpot>>
+                return BadRequest(new OASISResult<IEnumerable<GeoHotSpot>>
                 {
                     IsError = true,
                     Message = $"Error loading geo hot spots: {ex.Message}",
@@ -36,7 +37,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetIGeoHotSpot(Guid id)
+        public async Task<IActionResult> GetGeoHotSpot(Guid id)
         {
             try
             {
@@ -45,7 +46,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IGeoHotSpot>
+                return BadRequest(new OASISResult<GeoHotSpot>
                 {
                     IsError = true,
                     Message = $"Error loading geo hot spot: {ex.Message}",
@@ -55,16 +56,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateIGeoHotSpot([FromBody] IGeoHotSpot hotSpot)
+        public async Task<IActionResult> CreateGeoHotSpot([FromBody] GeoHotSpot hotSpot)
         {
             try
             {
-                var result = await _starAPI.GeoHotSpots.UpdateAsync(AvatarId, (GeoHotSpot)hotSpot);
+                var result = await _starAPI.GeoHotSpots.UpdateAsync(AvatarId, hotSpot);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IGeoHotSpot>
+                return BadRequest(new OASISResult<GeoHotSpot>
                 {
                     IsError = true,
                     Message = $"Error creating geo hot spot: {ex.Message}",
@@ -74,17 +75,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateIGeoHotSpot(Guid id, [FromBody] IGeoHotSpot hotSpot)
+        public async Task<IActionResult> UpdateGeoHotSpot(Guid id, [FromBody] GeoHotSpot hotSpot)
         {
             try
             {
                 hotSpot.Id = id;
-                var result = await _starAPI.GeoHotSpots.UpdateAsync(AvatarId, (GeoHotSpot)hotSpot);
+                var result = await _starAPI.GeoHotSpots.UpdateAsync(AvatarId, hotSpot);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IGeoHotSpot>
+                return BadRequest(new OASISResult<GeoHotSpot>
                 {
                     IsError = true,
                     Message = $"Error updating geo hot spot: {ex.Message}",
@@ -94,7 +95,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteIGeoHotSpot(Guid id)
+        public async Task<IActionResult> DeleteGeoHotSpot(Guid id)
         {
             try
             {
@@ -113,7 +114,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("nearby")]
-        public async Task<IActionResult> GetNearbyIGeoHotSpots([FromQuery] double latitude, [FromQuery] double longitude, [FromQuery] double radiusKm = 10.0)
+        public async Task<IActionResult> GetNearbyGeoHotSpots([FromQuery] double latitude, [FromQuery] double longitude, [FromQuery] double radiusKm = 10.0)
         {
             try
             {
@@ -121,7 +122,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IGeoHotSpot>>
+                return BadRequest(new OASISResult<IEnumerable<GeoHotSpot>>
                 {
                     IsError = true,
                     Message = $"Error loading nearby geo hot spots: {ex.Message}",
