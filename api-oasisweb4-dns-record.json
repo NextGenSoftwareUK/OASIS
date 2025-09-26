@@ -1,0 +1,17 @@
+{
+  "Comment": "Create A record for api.oasisweb4.one pointing to ALB",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "api.oasisweb4.one",
+        "Type": "A",
+        "AliasTarget": {
+          "DNSName": "oasis-api-alb-2011847064.us-east-1.elb.amazonaws.com",
+          "EvaluateTargetHealth": true,
+          "HostedZoneId": "Z35SXDOTRQ7X7K"
+        }
+      }
+    }
+  ]
+}
