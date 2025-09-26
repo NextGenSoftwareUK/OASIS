@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -22,45 +23,49 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.CelestialBodies.LoadAllAsync(AvatarId, null);
-                if (result.IsError)
-                    return BadRequest(result.Message);
-
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return BadRequest(new OASISResult<IEnumerable<STARCelestialBody>>
+                {
+                    IsError = true,
+                    Message = $"Error loading celestial bodies: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetICelestialBody(Guid id)
+        public async Task<IActionResult> GetCelestialBody(Guid id)
         {
             try
             {
                 var result = await _starAPI.CelestialBodies.LoadAsync(AvatarId, id, 0);
-                if (result.IsError)
-                    return BadRequest(result.Message);
-
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return BadRequest(new OASISResult<STARCelestialBody>
+                {
+                    IsError = true,
+                    Message = $"Error loading celestial body: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateICelestialBody([FromBody] ICelestialBody celestialBody)
+        public async Task<IActionResult> CreateCelestialBody([FromBody] STARCelestialBody celestialBody)
         {
             try
             {
-                var result = await _starAPI.CelestialBodies.UpdateAsync(AvatarId, (STARCelestialBody)celestialBody);
+                var result = await _starAPI.CelestialBodies.UpdateAsync(AvatarId, celestialBody);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ICelestialBody>
+                return BadRequest(new OASISResult<STARCelestialBody>
                 {
                     IsError = true,
                     Message = $"Error creating celestial body: {ex.Message}",
@@ -70,17 +75,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateICelestialBody(Guid id, [FromBody] ICelestialBody celestialBody)
+        public async Task<IActionResult> UpdateCelestialBody(Guid id, [FromBody] STARCelestialBody celestialBody)
         {
             try
             {
                 celestialBody.Id = id;
-                var result = await _starAPI.CelestialBodies.UpdateAsync(AvatarId, (STARCelestialBody)celestialBody);
+                var result = await _starAPI.CelestialBodies.UpdateAsync(AvatarId, celestialBody);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<ICelestialBody>
+                return BadRequest(new OASISResult<STARCelestialBody>
                 {
                     IsError = true,
                     Message = $"Error updating celestial body: {ex.Message}",
@@ -90,7 +95,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteICelestialBody(Guid id)
+        public async Task<IActionResult> DeleteCelestialBody(Guid id)
         {
             try
             {
@@ -117,7 +122,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<ICelestialBody>>
+                return BadRequest(new OASISResult<IEnumerable<STARCelestialBody>>
                 {
                     IsError = true,
                     Message = $"Error loading celestial bodies of type {type}: {ex.Message}",
@@ -135,7 +140,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<ICelestialBody>>
+                return BadRequest(new OASISResult<IEnumerable<STARCelestialBody>>
                 {
                     IsError = true,
                     Message = $"Error loading celestial bodies in space: {ex.Message}",

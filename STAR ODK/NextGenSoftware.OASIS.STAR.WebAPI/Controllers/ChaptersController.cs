@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -17,7 +18,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
         [HttpGet]
-        public async Task<IActionResult> GetAllIChapters()
+        public async Task<IActionResult> GetAllChapters()
         {
             try
             {
@@ -26,7 +27,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IChapter>>
+                return BadRequest(new OASISResult<IEnumerable<Chapter>>
                 {
                     IsError = true,
                     Message = $"Error loading chapters: {ex.Message}",
@@ -36,7 +37,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetIChapter(Guid id)
+        public async Task<IActionResult> GetChapter(Guid id)
         {
             try
             {
@@ -45,7 +46,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IChapter>
+                return BadRequest(new OASISResult<Chapter>
                 {
                     IsError = true,
                     Message = $"Error loading chapter: {ex.Message}",
@@ -55,16 +56,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateIChapter([FromBody] IChapter chapter)
+        public async Task<IActionResult> CreateChapter([FromBody] Chapter chapter)
         {
             try
             {
-                var result = await _starAPI.Chapters.UpdateAsync(AvatarId, (Chapter)chapter);
+                var result = await _starAPI.Chapters.UpdateAsync(AvatarId, chapter);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IChapter>
+                return BadRequest(new OASISResult<Chapter>
                 {
                     IsError = true,
                     Message = $"Error creating chapter: {ex.Message}",
@@ -74,17 +75,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateIChapter(Guid id, [FromBody] IChapter chapter)
+        public async Task<IActionResult> UpdateChapter(Guid id, [FromBody] Chapter chapter)
         {
             try
             {
                 chapter.Id = id;
-                var result = await _starAPI.Chapters.UpdateAsync(AvatarId, (Chapter)chapter);
+                var result = await _starAPI.Chapters.UpdateAsync(AvatarId, chapter);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IChapter>
+                return BadRequest(new OASISResult<Chapter>
                 {
                     IsError = true,
                     Message = $"Error updating chapter: {ex.Message}",
@@ -94,7 +95,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteIChapter(Guid id)
+        public async Task<IActionResult> DeleteChapter(Guid id)
         {
             try
             {

@@ -8412,5 +8412,229 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OnDownloadStatusChanged?.Invoke(sender, e);
         }
+
+        #region Clone Methods
+
+        /// <summary>
+        /// Clones a STARNET holon by its ID
+        /// </summary>
+        /// <param name="avatarId">The avatar ID for authentication/security</param>
+        /// <param name="holonId">The ID of the holon to clone</param>
+        /// <param name="newName">Optional new name for the cloned holon (if not provided, will append " - Clone" to original name)</param>
+        /// <param name="providerType">The provider type to use</param>
+        /// <returns>OASISResult containing the cloned holon</returns>
+        public async Task<OASISResult<T1>> CloneAsync(Guid avatarId, Guid holonId, string newName = null, ProviderType providerType = ProviderType.Default)
+        {
+            try
+            {
+                // Load the original holon
+                var originalResult = await LoadAsync(avatarId, holonId, 0, HolonType.Default, providerType);
+                
+                if (originalResult.IsError || originalResult.Result == null)
+                {
+                    return new OASISResult<T1>
+                    {
+                        IsError = true,
+                        Message = $"Holon with ID {holonId} not found",
+                        Result = default(T1)
+                    };
+                }
+
+                var originalHolon = originalResult.Result;
+                
+                // Create a new holon instance
+                var clonedHolon = new T1();
+                
+                // Copy properties from original to clone
+                clonedHolon.Name = string.IsNullOrEmpty(newName) ? $"{originalHolon.Name} - Clone" : newName;
+                clonedHolon.Description = originalHolon.Description;
+                clonedHolon.Version = 1; // Reset version for clone
+                clonedHolon.CreatedByAvatarId = avatarId;
+                clonedHolon.ModifiedByAvatarId = avatarId;
+                clonedHolon.CreatedDate = DateTime.UtcNow;
+                clonedHolon.ModifiedDate = DateTime.UtcNow;
+                
+                // Copy metadata if it exists
+                if (originalHolon.MetaData != null)
+                {
+                    clonedHolon.MetaData = new Dictionary<string, object>(originalHolon.MetaData);
+                    // Update metadata to indicate this is a clone
+                    clonedHolon.MetaData["IsClone"] = true;
+                    clonedHolon.MetaData["OriginalHolonId"] = originalHolon.Id;
+                    clonedHolon.MetaData["ClonedDate"] = DateTime.UtcNow;
+                    clonedHolon.MetaData["ClonedByAvatarId"] = avatarId;
+                }
+                else
+                {
+                    clonedHolon.MetaData = new Dictionary<string, object>
+                    {
+                        ["IsClone"] = true,
+                        ["OriginalHolonId"] = originalHolon.Id,
+                        ["ClonedDate"] = DateTime.UtcNow,
+                        ["ClonedByAvatarId"] = avatarId
+                    };
+                }
+
+                // Copy ISTARNETHolon specific properties
+                if (originalHolon is ISTARNETHolon originalSTARNET && clonedHolon is ISTARNETHolon clonedSTARNET)
+                {
+                    // Clone STARNETDNA if it exists (copy the entire object)
+                    if (originalSTARNET.STARNETDNA != null)
+                    {
+                        clonedSTARNET.STARNETDNA = originalSTARNET.STARNETDNA;
+                    }
+                    
+                    // Clone PublishedSTARNETHolon if it exists
+                    if (originalSTARNET.PublishedSTARNETHolon != null)
+                    {
+                        clonedSTARNET.PublishedSTARNETHolon = new byte[originalSTARNET.PublishedSTARNETHolon.Length];
+                        Array.Copy(originalSTARNET.PublishedSTARNETHolon, clonedSTARNET.PublishedSTARNETHolon, originalSTARNET.PublishedSTARNETHolon.Length);
+                    }
+                }
+
+                // Save the cloned holon
+                var saveResult = await Data.SaveHolonAsync<T1>(clonedHolon, avatarId, true, true, 0, true, false, providerType);
+                
+                if (saveResult.IsError)
+                {
+                    return new OASISResult<T1>
+                    {
+                        IsError = true,
+                        Message = $"Failed to save cloned holon: {saveResult.Message}",
+                        Exception = saveResult.Exception,
+                        Result = default(T1)
+                    };
+                }
+
+                return new OASISResult<T1>
+                {
+                    IsError = false,
+                    Message = $"Holon '{originalHolon.Name}' cloned successfully as '{clonedHolon.Name}'",
+                    Result = saveResult.Result
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<T1>
+                {
+                    IsError = true,
+                    Message = $"Error cloning holon: {ex.Message}",
+                    Exception = ex,
+                    Result = default(T1)
+                };
+            }
+        }
+
+        /// <summary>
+        /// Clones a STARNET holon by its ID (synchronous version)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID for authentication/security</param>
+        /// <param name="holonId">The ID of the holon to clone</param>
+        /// <param name="newName">Optional new name for the cloned holon (if not provided, will append " - Clone" to original name)</param>
+        /// <param name="providerType">The provider type to use</param>
+        /// <returns>OASISResult containing the cloned holon</returns>
+        public OASISResult<T1> Clone(Guid avatarId, Guid holonId, string newName = null, ProviderType providerType = ProviderType.Default)
+        {
+            try
+            {
+                // Load the original holon
+                var originalResult = Load(avatarId, holonId, 0, HolonType.Default, providerType);
+                
+                if (originalResult.IsError || originalResult.Result == null)
+                {
+                    return new OASISResult<T1>
+                    {
+                        IsError = true,
+                        Message = $"Holon with ID {holonId} not found",
+                        Result = default(T1)
+                    };
+                }
+
+                var originalHolon = originalResult.Result;
+                
+                // Create a new holon instance
+                var clonedHolon = new T1();
+                
+                // Copy properties from original to clone
+                clonedHolon.Name = string.IsNullOrEmpty(newName) ? $"{originalHolon.Name} - Clone" : newName;
+                clonedHolon.Description = originalHolon.Description;
+                clonedHolon.Version = 1; // Reset version for clone
+                clonedHolon.CreatedByAvatarId = avatarId;
+                clonedHolon.ModifiedByAvatarId = avatarId;
+                clonedHolon.CreatedDate = DateTime.UtcNow;
+                clonedHolon.ModifiedDate = DateTime.UtcNow;
+                
+                // Copy metadata if it exists
+                if (originalHolon.MetaData != null)
+                {
+                    clonedHolon.MetaData = new Dictionary<string, object>(originalHolon.MetaData);
+                    // Update metadata to indicate this is a clone
+                    clonedHolon.MetaData["IsClone"] = true;
+                    clonedHolon.MetaData["OriginalHolonId"] = originalHolon.Id;
+                    clonedHolon.MetaData["ClonedDate"] = DateTime.UtcNow;
+                    clonedHolon.MetaData["ClonedByAvatarId"] = avatarId;
+                }
+                else
+                {
+                    clonedHolon.MetaData = new Dictionary<string, object>
+                    {
+                        ["IsClone"] = true,
+                        ["OriginalHolonId"] = originalHolon.Id,
+                        ["ClonedDate"] = DateTime.UtcNow,
+                        ["ClonedByAvatarId"] = avatarId
+                    };
+                }
+
+                // Copy ISTARNETHolon specific properties
+                if (originalHolon is ISTARNETHolon originalSTARNET && clonedHolon is ISTARNETHolon clonedSTARNET)
+                {
+                    // Clone STARNETDNA if it exists (copy the entire object)
+                    if (originalSTARNET.STARNETDNA != null)
+                    {
+                        clonedSTARNET.STARNETDNA = originalSTARNET.STARNETDNA;
+                    }
+                    
+                    // Clone PublishedSTARNETHolon if it exists
+                    if (originalSTARNET.PublishedSTARNETHolon != null)
+                    {
+                        clonedSTARNET.PublishedSTARNETHolon = new byte[originalSTARNET.PublishedSTARNETHolon.Length];
+                        Array.Copy(originalSTARNET.PublishedSTARNETHolon, clonedSTARNET.PublishedSTARNETHolon, originalSTARNET.PublishedSTARNETHolon.Length);
+                    }
+                }
+
+                // Save the cloned holon
+                var saveResult = Data.SaveHolon<T1>(clonedHolon, avatarId, true, true, 0, true, false, providerType);
+                
+                if (saveResult.IsError)
+                {
+                    return new OASISResult<T1>
+                    {
+                        IsError = true,
+                        Message = $"Failed to save cloned holon: {saveResult.Message}",
+                        Exception = saveResult.Exception,
+                        Result = default(T1)
+                    };
+                }
+
+                return new OASISResult<T1>
+                {
+                    IsError = false,
+                    Message = $"Holon '{originalHolon.Name}' cloned successfully as '{clonedHolon.Name}'",
+                    Result = saveResult.Result
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<T1>
+                {
+                    IsError = true,
+                    Message = $"Error cloning holon: {ex.Message}",
+                    Exception = ex,
+                    Result = default(T1)
+                };
+            }
+        }
+
+        #endregion
     }
 }

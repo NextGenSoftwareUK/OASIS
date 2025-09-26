@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -16,7 +17,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
         [HttpGet]
-        public async Task<IActionResult> GetAllIParks()
+        public async Task<IActionResult> GetAllParks()
         {
             try
             {
@@ -34,7 +35,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetIPark(Guid id)
+        public async Task<IActionResult> GetPark(Guid id)
         {
             try
             {
@@ -52,7 +53,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateIPark([FromBody] IPark park)
+        public async Task<IActionResult> CreatePark([FromBody] IPark park)
         {
             try
             {
@@ -70,7 +71,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateIPark(Guid id, [FromBody] IPark park)
+        public async Task<IActionResult> UpdatePark(Guid id, [FromBody] IPark park)
         {
             try
             {
@@ -88,7 +89,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteIPark(Guid id)
+        public async Task<IActionResult> DeletePark(Guid id)
         {
             try
             {
@@ -106,7 +107,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("nearby")]
-        public async Task<IActionResult> GetNearbyIParks([FromQuery] double latitude, [FromQuery] double longitude, [FromQuery] double radiusKm = 10.0)
+        public async Task<IActionResult> GetNearbyParks([FromQuery] double latitude, [FromQuery] double longitude, [FromQuery] double radiusKm = 10.0)
         {
             try
             {
@@ -124,7 +125,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("by-type/{type}")]
-        public async Task<IActionResult> GetIParksByType(string type)
+        public async Task<IActionResult> GetParksByType(string type)
         {
             try
             {

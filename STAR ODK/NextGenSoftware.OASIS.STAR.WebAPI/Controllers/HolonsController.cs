@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -16,7 +17,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
         [HttpGet]
-        public async Task<IActionResult> GetAllIHolons()
+        public async Task<IActionResult> GetAllHolons()
         {
             try
             {
@@ -25,7 +26,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IHolon>>
+                return BadRequest(new OASISResult<IEnumerable<STARHolon>>
                 {
                     IsError = true,
                     Message = $"Error loading holons: {ex.Message}",
@@ -35,7 +36,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetIHolon(Guid id)
+        public async Task<IActionResult> GetHolon(Guid id)
         {
             try
             {
@@ -44,7 +45,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IHolon>
+                return BadRequest(new OASISResult<STARHolon>
                 {
                     IsError = true,
                     Message = $"Error loading holon: {ex.Message}",
@@ -54,16 +55,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateIHolon([FromBody] IHolon holon)
+        public async Task<IActionResult> CreateHolon([FromBody] STARHolon holon)
         {
             try
             {
-                var result = await _starAPI.Holons.UpdateAsync(AvatarId, (STARHolon)holon);
+                var result = await _starAPI.Holons.UpdateAsync(AvatarId, holon);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IHolon>
+                return BadRequest(new OASISResult<STARHolon>
                 {
                     IsError = true,
                     Message = $"Error creating holon: {ex.Message}",
@@ -73,17 +74,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateIHolon(Guid id, [FromBody] IHolon holon)
+        public async Task<IActionResult> UpdateHolon(Guid id, [FromBody] STARHolon holon)
         {
             try
             {
                 holon.Id = id;
-                var result = await _starAPI.Holons.UpdateAsync(AvatarId, (STARHolon)holon);
+                var result = await _starAPI.Holons.UpdateAsync(AvatarId, holon);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IHolon>
+                return BadRequest(new OASISResult<STARHolon>
                 {
                     IsError = true,
                     Message = $"Error updating holon: {ex.Message}",
@@ -93,7 +94,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteIHolon(Guid id)
+        public async Task<IActionResult> DeleteHolon(Guid id)
         {
             try
             {
@@ -112,7 +113,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("by-type/{type}")]
-        public async Task<IActionResult> GetIHolonsByType(string type)
+        public async Task<IActionResult> GetHolonsByType(string type)
         {
             try
             {
@@ -120,7 +121,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IHolon>>
+                return BadRequest(new OASISResult<IEnumerable<STARHolon>>
                 {
                     IsError = true,
                     Message = $"Error loading holons of type {type}: {ex.Message}",
@@ -130,7 +131,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("by-parent/{parentId}")]
-        public async Task<IActionResult> GetIHolonsByParent(Guid parentId)
+        public async Task<IActionResult> GetHolonsByParent(Guid parentId)
         {
             try
             {
@@ -138,7 +139,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IHolon>>
+                return BadRequest(new OASISResult<IEnumerable<STARHolon>>
                 {
                     IsError = true,
                     Message = $"Error loading holons for parent: {ex.Message}",
@@ -148,7 +149,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("by-metadata")]
-        public async Task<IActionResult> GetIHolonsByMetadata([FromQuery] string key, [FromQuery] string value)
+        public async Task<IActionResult> GetHolonsByMetadata([FromQuery] string key, [FromQuery] string value)
         {
             try
             {
@@ -156,7 +157,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IHolon>>
+                return BadRequest(new OASISResult<IEnumerable<STARHolon>>
                 {
                     IsError = true,
                     Message = $"Error loading holons by metadata: {ex.Message}",
