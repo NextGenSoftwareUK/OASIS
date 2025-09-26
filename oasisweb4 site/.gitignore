@@ -1,0 +1,23 @@
+# Large video files that cause GitHub push issues
+videos/*.mp4
+videos/*.webm
+videos/*.mov
+videos/*.avi
+
+# Keep poster images but exclude large video files
+!videos/*-poster-*.jpg
+!videos/*-poster-*.png
+
+# Development files
+.DS_Store
+*.log
+node_modules/
+.env
+.env.local
+.env.production
+
+# Build files
+dist/
+build/
+*.tmp
+*.temp 
