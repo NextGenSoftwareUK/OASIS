@@ -13,19 +13,24 @@ $onodePath = Join-Path $repoRoot "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI"
 $starApiPath = Join-Path $repoRoot "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI"
 $starUiPath = Join-Path $repoRoot "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI/ClientApp"
 
-Write-Host "Starting Web4 OASIS API at $OasisApiUrl" -ForegroundColor Cyan
-$onodeProcess = Start-Process dotnet -ArgumentList @("run", "--urls", "$OasisApiUrl") -WorkingDirectory $onodePath -PassThru
+Write-Host "🌐 Starting Web4 OASIS API at $OasisApiUrl" -ForegroundColor Green
+$onodeProcess = Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$onodePath'; Write-Host 'Web4 OASIS API Starting...' -ForegroundColor Green; dotnet run --urls $OasisApiUrl" -PassThru
 
-Write-Host "Starting Web5 STAR Web API at $StarApiUrl" -ForegroundColor Cyan
-$starApiProcess = Start-Process dotnet -ArgumentList @("run", "--urls", "$StarApiUrl") -WorkingDirectory $starApiPath -PassThru
+Write-Host "⭐ Starting Web5 STAR Web API at $StarApiUrl" -ForegroundColor Magenta  
+$starApiProcess = Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$starApiPath'; Write-Host 'Web5 STAR API Starting...' -ForegroundColor Magenta; dotnet run --urls $StarApiUrl" -PassThru
 
-Write-Host "Starting STAR Web UI dev server on port $StarUiPort" -ForegroundColor Cyan
-$env:REACT_APP_API_URL = "$StarApiUrl/api"
-$env:REACT_APP_WEB4_API_URL = "$OasisApiUrl/api"
-$starUiProcess = Start-Process npm -ArgumentList @("start", "--", "--port", $StarUiPort) -WorkingDirectory $starUiPath -PassThru
+Write-Host "🎨 Starting STAR Web UI dev server on port $StarUiPort" -ForegroundColor Blue
+$starUiProcess = Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$starUiPath'; `$env:REACT_APP_API_URL='$StarApiUrl/api'; `$env:REACT_APP_WEB4_API_URL='$OasisApiUrl/api'; Write-Host 'STAR Web UI Starting...' -ForegroundColor Blue; npm start -- --port $StarUiPort" -PassThru
 
-Write-Host "Processes launched:" -ForegroundColor Green
-Write-Host " OASIS API PID: $($onodeProcess.Id)"
-Write-Host " STAR API PID: $($starApiProcess.Id)"
-Write-Host " STAR UI PID:  $($starUiProcess.Id)"
-Write-Host "Use Stop-Process -Id <PID> to terminate." -ForegroundColor Yellow
+Write-Host ""
+Write-Host "✅ All services launched in separate windows!" -ForegroundColor Green
+Write-Host "📊 Process IDs: OASIS=$($onodeProcess.Id), STAR=$($starApiProcess.Id), UI=$($starUiProcess.Id)" -ForegroundColor Gray
+Write-Host ""
+Write-Host "🔗 Access URLs:" -ForegroundColor Cyan
+Write-Host "   • Web4 OASIS API: $OasisApiUrl" -ForegroundColor White
+Write-Host "   • Web5 STAR API:  $StarApiUrl" -ForegroundColor White  
+Write-Host "   • STAR Web UI:    http://localhost:$StarUiPort" -ForegroundColor White
+Write-Host ""
+Write-Host "💡 Each service runs in its own PowerShell window." -ForegroundColor Yellow
+Write-Host "Press any key to exit launcher..." -ForegroundColor Gray
+$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")

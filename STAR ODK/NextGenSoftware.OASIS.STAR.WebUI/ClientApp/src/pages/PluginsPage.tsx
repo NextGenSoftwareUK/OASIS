@@ -102,105 +102,105 @@ const PluginsPage: React.FC = () => {
           result: [
             {
               id: '1',
-              name: 'Quantum Performance Booster',
-              description: 'Advanced performance optimization plugin that uses quantum algorithms to enhance system speed',
-              imageUrl: 'https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=400&h=300&fit=crop',
-              version: '3.2.1',
-              author: 'Quantum Labs',
-              category: 'Productivity',
-              type: 'Extension',
-              size: 12.5,
-              downloads: 245000,
-              rating: 4.9,
+              name: 'React DevTools Pro',
+              description: 'Advanced React development tools with component inspector and performance profiler',
+              imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=300&fit=crop',
+              version: '4.2.1',
+              author: 'React Tools Inc',
+              category: 'Development',
+              type: 'Browser Extension',
+              size: 2.1,
+              downloads: 1250000,
+              rating: 4.8,
               lastUpdated: '2024-01-15',
               isInstalled: true,
               isActive: true,
               isCompatible: true,
-              dependencies: ['OASIS Core 2.0+'],
-              features: ['Quantum Optimization', 'Real-time Monitoring', 'Auto-tuning'],
-              documentation: 'https://docs.quantumlabs.com/booster',
-              repository: 'https://github.com/quantumlabs/performance-booster',
+              dependencies: ['React 16.8+', 'Chrome 90+'],
+              features: ['Component Tree', 'Props Inspector', 'Performance Profiler', 'State Debugger'],
+              documentation: 'https://docs.reacttools.com/devtools',
+              repository: 'https://github.com/reacttools/devtools-pro',
               price: 0,
               isFree: true,
             },
             {
               id: '2',
-              name: 'Cosmic Visual Effects',
-              description: 'Stunning visual effects plugin for creating immersive cosmic environments',
-              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop',
+              name: 'VS Code AI Assistant',
+              description: 'Intelligent code completion and debugging assistant powered by advanced AI',
+              imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=300&fit=crop',
               version: '2.8.4',
-              author: 'Space Graphics Inc',
-              category: 'Graphics',
-              type: 'Addon',
-              size: 45.2,
-              downloads: 189000,
-              rating: 4.8,
+              author: 'CodeAI Solutions',
+              category: 'Development',
+              type: 'VS Code Extension',
+              size: 15.7,
+              downloads: 890000,
+              rating: 4.9,
               lastUpdated: '2024-01-20',
               isInstalled: true,
               isActive: false,
               isCompatible: true,
-              dependencies: ['OpenGL 4.5+', 'DirectX 11+'],
-              features: ['Particle Systems', 'Lighting Effects', 'Post-processing'],
-              documentation: 'https://docs.spacegraphics.com/effects',
-              repository: 'https://github.com/spacegraphics/cosmic-effects',
+              dependencies: ['VS Code 1.80+', 'Node.js 16+'],
+              features: ['Smart Autocomplete', 'Code Generation', 'Bug Detection', 'Refactoring'],
+              documentation: 'https://docs.codeai.com/assistant',
+              repository: 'https://github.com/codeai/vscode-ai',
               price: 29.99,
               isFree: false,
             },
             {
               id: '3',
-              name: 'Neural Audio Processor',
-              description: 'AI-powered audio processing plugin with advanced neural network algorithms',
-              imageUrl: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop',
-              version: '1.5.7',
-              author: 'AudioTech Solutions',
-              category: 'Audio',
-              type: 'Extension',
-              size: 8.7,
-              downloads: 156000,
+              name: 'Unity Performance Profiler',
+              description: 'Advanced Unity game performance analysis and optimization tools',
+              imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=300&fit=crop',
+              version: '3.1.5',
+              author: 'Unity Technologies',
+              category: 'Game Development',
+              type: 'Unity Package',
+              size: 8.3,
+              downloads: 456000,
               rating: 4.7,
               lastUpdated: '2024-01-25',
               isInstalled: false,
               isActive: false,
               isCompatible: true,
-              dependencies: ['Audio Engine 3.0+'],
-              features: ['AI Enhancement', 'Real-time Processing', 'Custom Presets'],
-              documentation: 'https://docs.audiotech.com/neural',
-              repository: 'https://github.com/audiotech/neural-audio',
-              price: 19.99,
-              isFree: false,
+              dependencies: ['Unity 2022.3+'],
+              features: ['Frame Analysis', 'Memory Profiler', 'GPU Profiler', 'Optimization Suggestions'],
+              documentation: 'https://docs.unity.com/profiler',
+              repository: 'https://github.com/unity/performance-profiler',
+              price: 0,
+              isFree: true,
             },
             {
               id: '4',
-              name: 'Secure Network Shield',
-              description: 'Advanced security plugin for protecting network communications and data',
-              imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop',
-              version: '4.1.2',
-              author: 'CyberSec Pro',
-              category: 'Security',
-              type: 'Extension',
-              size: 6.3,
-              downloads: 320000,
-              rating: 4.9,
+              name: 'Docker Container Manager',
+              description: 'Comprehensive Docker container management and orchestration plugin',
+              imageUrl: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400&h=300&fit=crop',
+              version: '1.9.2',
+              author: 'ContainerOps',
+              category: 'DevOps',
+              type: 'CLI Tool',
+              size: 12.4,
+              downloads: 678000,
+              rating: 4.8,
               lastUpdated: '2024-01-30',
               isInstalled: true,
               isActive: true,
               isCompatible: true,
-              dependencies: ['Network Stack 2.0+'],
-              features: ['Encryption', 'Firewall', 'Threat Detection'],
-              documentation: 'https://docs.cybersec.com/shield',
-              repository: 'https://github.com/cybersec/network-shield',
+              dependencies: ['Docker 20.10+', 'Docker Compose 2.0+'],
+              features: ['Container Monitoring', 'Auto-scaling', 'Health Checks', 'Log Management'],
+              documentation: 'https://docs.containerops.com/manager',
+              repository: 'https://github.com/containerops/docker-manager',
               price: 0,
               isFree: true,
             },
             {
               id: '5',
-              name: 'Game Mode Pro',
-              description: 'Comprehensive gaming enhancement plugin with FPS boost and optimization',
-              imageUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&h=300&fit=crop',
+              name: 'PostgreSQL Query Optimizer',
+              description: 'Advanced database query optimization and performance monitoring tool',
+              imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop',
               version: '2.3.8',
-              author: 'GameBoost Studios',
-              category: 'Gaming',
-              type: 'Mod',
+              author: 'Database Pro',
+              category: 'Database',
+              type: 'Database Tool',
               size: 18.9,
               downloads: 278000,
               rating: 4.6,
@@ -208,11 +208,126 @@ const PluginsPage: React.FC = () => {
               isInstalled: false,
               isActive: false,
               isCompatible: true,
-              dependencies: ['Game Engine 4.0+'],
-              features: ['FPS Boost', 'Graphics Enhancement', 'Performance Tuning'],
-              documentation: 'https://docs.gameboost.com/mode',
-              repository: 'https://github.com/gameboost/mode-pro',
+              dependencies: ['PostgreSQL 13+', 'Python 3.8+'],
+              features: ['Query Analysis', 'Index Optimization', 'Performance Monitoring', 'Auto-tuning'],
+              documentation: 'https://docs.dbpro.com/optimizer',
+              repository: 'https://github.com/dbpro/postgres-optimizer',
               price: 14.99,
+              isFree: false,
+            },
+            {
+              id: '6',
+              name: 'GitHub Actions Workflow Builder',
+              description: 'Visual workflow builder for GitHub Actions with pre-built templates and automation',
+              imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop',
+              version: '1.4.2',
+              author: 'DevOps Solutions',
+              category: 'DevOps',
+              type: 'GitHub App',
+              size: 5.2,
+              downloads: 189000,
+              rating: 4.8,
+              lastUpdated: '2024-01-20',
+              isInstalled: true,
+              isActive: true,
+              isCompatible: true,
+              dependencies: ['GitHub API v4', 'Node.js 18+'],
+              features: ['Visual Builder', 'Template Library', 'Auto-deployment', 'CI/CD Pipeline'],
+              documentation: 'https://docs.devops.com/workflow-builder',
+              repository: 'https://github.com/devops/github-workflow-builder',
+              price: 0,
+              isFree: true,
+            },
+            {
+              id: '7',
+              name: 'Figma Design System Manager',
+              description: 'Comprehensive design system management and component library for Figma',
+              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
+              version: '2.1.5',
+              author: 'Design Systems Co',
+              category: 'Design',
+              type: 'Figma Plugin',
+              size: 45.2,
+              downloads: 156000,
+              rating: 4.7,
+              lastUpdated: '2024-01-18',
+              isInstalled: false,
+              isActive: false,
+              isCompatible: true,
+              dependencies: ['Graphics Engine 3.0+', 'Hologram SDK'],
+              features: ['3D Interface Design', 'Real-time Preview', 'Export Tools'],
+              documentation: 'https://docs.holodesign.com/ui-designer',
+              repository: 'https://github.com/holodesign/ui-designer',
+              price: 29.99,
+              isFree: false,
+            },
+            {
+              id: '8',
+              name: 'Neural Network Accelerator',
+              description: 'Boost AI and machine learning performance with neural processing optimization',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1555949963-aa79dcee981c?w=400&h=300&fit=crop',
+              version: '2.8.4',
+              author: 'AI Dynamics',
+              category: 'Productivity',
+              type: 'Extension',
+              size: 32.1,
+              downloads: 203000,
+              rating: 4.9,
+              lastUpdated: '2024-01-22',
+              isInstalled: true,
+              isActive: false,
+              isCompatible: true,
+              dependencies: ['Neural SDK 2.0+', 'CUDA Support'],
+              features: ['GPU Acceleration', 'Model Optimization', 'Batch Processing'],
+              documentation: 'https://docs.aidynamics.com/accelerator',
+              repository: 'https://github.com/aidynamics/neural-accelerator',
+              price: 0,
+              isFree: true,
+            },
+            {
+              id: '9',
+              name: 'Spatial Audio Engine',
+              description: 'Immersive 3D spatial audio processing for virtual environments',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop',
+              version: '1.9.3',
+              author: 'SoundSpace Technologies',
+              category: 'Audio',
+              type: 'Engine',
+              size: 28.6,
+              downloads: 134000,
+              rating: 4.6,
+              lastUpdated: '2024-01-16',
+              isInstalled: false,
+              isActive: false,
+              isCompatible: true,
+              dependencies: ['Audio Framework 3.0+', 'Spatial SDK'],
+              features: ['3D Audio Processing', 'Environmental Effects', 'Real-time Mixing'],
+              documentation: 'https://docs.soundspace.com/engine',
+              repository: 'https://github.com/soundspace/spatial-engine',
+              price: 19.99,
+              isFree: false,
+            },
+            {
+              id: '10',
+              name: 'Blockchain Integration Suite',
+              description: 'Seamlessly integrate blockchain functionality into any OASIS application',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1639762681485-074b7f938ba0?w=400&h=300&fit=crop',
+              version: '5.2.1',
+              author: 'CryptoLink Solutions',
+              category: 'Network',
+              type: 'Framework',
+              size: 67.8,
+              downloads: 98000,
+              rating: 4.5,
+              lastUpdated: '2024-01-25',
+              isInstalled: true,
+              isActive: true,
+              isCompatible: true,
+              dependencies: ['Web3 SDK', 'Ethereum Client', 'IPFS Node'],
+              features: ['Multi-chain Support', 'Smart Contracts', 'DeFi Integration'],
+              documentation: 'https://docs.cryptolink.com/suite',
+              repository: 'https://github.com/cryptolink/blockchain-suite',
+              price: 49.99,
               isFree: false,
             },
           ]
@@ -290,31 +405,75 @@ const PluginsPage: React.FC = () => {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
+      case 'Development': return <Extension sx={{ color: '#4caf50' }} />;
+      case 'Game Development': return <Extension sx={{ color: '#2196f3' }} />;
+      case 'DevOps': return <Extension sx={{ color: '#ff9800' }} />;
+      case 'Database': return <Extension sx={{ color: '#9c27b0' }} />;
+      case 'Design': return <Extension sx={{ color: '#607d8b' }} />;
       case 'Productivity': return <Extension sx={{ color: '#4caf50' }} />;
       case 'Gaming': return <Extension sx={{ color: '#2196f3' }} />;
       case 'Graphics': return <Extension sx={{ color: '#ff9800' }} />;
       case 'Audio': return <Extension sx={{ color: '#9c27b0' }} />;
       case 'Network': return <Extension sx={{ color: '#607d8b' }} />;
       case 'Security': return <Extension sx={{ color: '#f44336' }} />;
+      case 'AI/ML': return <Extension sx={{ color: '#e91e63' }} />;
+      case 'Mobile': return <Extension sx={{ color: '#795548' }} />;
+      case 'Web': return <Extension sx={{ color: '#3f51b5' }} />;
+      case 'Desktop': return <Extension sx={{ color: '#009688' }} />;
+      case 'Cloud': return <Extension sx={{ color: '#00bcd4' }} />;
+      case 'Testing': return <Extension sx={{ color: '#8bc34a' }} />;
+      case 'Monitoring': return <Extension sx={{ color: '#ffc107' }} />;
       default: return <Extension sx={{ color: '#757575' }} />;
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
+      case 'Development': return '#4caf50';
+      case 'Game Development': return '#2196f3';
+      case 'DevOps': return '#ff9800';
+      case 'Database': return '#9c27b0';
+      case 'Design': return '#607d8b';
       case 'Productivity': return '#4caf50';
       case 'Gaming': return '#2196f3';
       case 'Graphics': return '#ff9800';
       case 'Audio': return '#9c27b0';
       case 'Network': return '#607d8b';
       case 'Security': return '#f44336';
+      case 'AI/ML': return '#e91e63';
+      case 'Mobile': return '#795548';
+      case 'Web': return '#3f51b5';
+      case 'Desktop': return '#009688';
+      case 'Cloud': return '#00bcd4';
+      case 'Testing': return '#8bc34a';
+      case 'Monitoring': return '#ffc107';
       default: return '#757575';
     }
   };
 
   const filteredPlugins = pluginsData?.result?.filter((plugin: Plugin) => 
     filterCategory === 'all' || plugin.category === filterCategory
-  ) || [];
+  ).map((plugin: Plugin) => ({
+    ...plugin,
+    imageUrl: plugin.imageUrl || 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop'
+  })) || [];
+
+  // Debug logging for PluginsPage
+  console.log('PluginsPage Debug:', {
+    pluginsData: pluginsData,
+    hasResult: !!pluginsData?.result,
+    resultLength: pluginsData?.result?.length || 0,
+    filteredLength: filteredPlugins.length,
+    filterCategory: filterCategory,
+    isLoading: isLoading,
+    error: error
+  });
+  
+  // Debug image URLs
+  if (filteredPlugins.length > 0) {
+    console.log('First plugin image URL:', filteredPlugins[0].imageUrl);
+    console.log('All plugin image URLs:', filteredPlugins.map(plugin => plugin.imageUrl));
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -357,12 +516,24 @@ const PluginsPage: React.FC = () => {
                 onChange={(e) => setFilterCategory(e.target.value)}
               >
                 <MenuItem value="all">All Categories</MenuItem>
+                <MenuItem value="Development">Development</MenuItem>
+                <MenuItem value="Game Development">Game Development</MenuItem>
+                <MenuItem value="DevOps">DevOps</MenuItem>
+                <MenuItem value="Database">Database</MenuItem>
+                <MenuItem value="Design">Design</MenuItem>
                 <MenuItem value="Productivity">Productivity</MenuItem>
                 <MenuItem value="Gaming">Gaming</MenuItem>
                 <MenuItem value="Graphics">Graphics</MenuItem>
                 <MenuItem value="Audio">Audio</MenuItem>
                 <MenuItem value="Network">Network</MenuItem>
                 <MenuItem value="Security">Security</MenuItem>
+                <MenuItem value="AI/ML">AI/ML</MenuItem>
+                <MenuItem value="Mobile">Mobile</MenuItem>
+                <MenuItem value="Web">Web</MenuItem>
+                <MenuItem value="Desktop">Desktop</MenuItem>
+                <MenuItem value="Cloud">Cloud</MenuItem>
+                <MenuItem value="Testing">Testing</MenuItem>
+                <MenuItem value="Monitoring">Monitoring</MenuItem>
               </Select>
             </FormControl>
             <Button
@@ -406,12 +577,16 @@ const PluginsPage: React.FC = () => {
                     }
                   }}>
                     <Box sx={{ position: 'relative' }}>
-                      <CardMedia
-                        component="img"
-                        height="200"
-                        image={plugin.imageUrl}
-                        alt={plugin.name}
-                        sx={{ objectFit: 'cover' }}
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '200px',
+                          backgroundImage: `url(${plugin.imageUrl})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          backgroundRepeat: 'no-repeat',
+                          display: 'block'
+                        }}
                       />
                       <Chip
                         label={plugin.category}
@@ -419,26 +594,28 @@ const PluginsPage: React.FC = () => {
                         sx={{
                           position: 'absolute',
                           top: 8,
-                          right: 8,
+                          left: 8,
                           bgcolor: getCategoryColor(plugin.category),
                           color: 'white',
                           fontWeight: 'bold',
                         }}
                       />
                       {plugin.isInstalled && (
-                        <Badge
-                          badgeContent="Installed"
+                        <Chip
+                          label="Installed"
+                          size="small"
                           color="success"
                           sx={{
                             position: 'absolute',
                             top: 8,
-                            left: 8,
+                            right: 8,
+                            fontWeight: 'bold',
                           }}
                         />
                       )}
                       {!plugin.isFree && (
                         <Chip
-                          label={`$${plugin.price}`}
+                          label={`$${plugin.price || '0.00'}`}
                           size="small"
                           sx={{
                             position: 'absolute',
@@ -571,12 +748,24 @@ const PluginsPage: React.FC = () => {
                   label="Category"
                   onChange={(e) => setNewPlugin({ ...newPlugin, category: e.target.value as any })}
                 >
+                  <MenuItem value="Development">Development</MenuItem>
+                  <MenuItem value="Game Development">Game Development</MenuItem>
+                  <MenuItem value="DevOps">DevOps</MenuItem>
+                  <MenuItem value="Database">Database</MenuItem>
+                  <MenuItem value="Design">Design</MenuItem>
                   <MenuItem value="Productivity">Productivity</MenuItem>
                   <MenuItem value="Gaming">Gaming</MenuItem>
                   <MenuItem value="Graphics">Graphics</MenuItem>
                   <MenuItem value="Audio">Audio</MenuItem>
                   <MenuItem value="Network">Network</MenuItem>
                   <MenuItem value="Security">Security</MenuItem>
+                  <MenuItem value="AI/ML">AI/ML</MenuItem>
+                  <MenuItem value="Mobile">Mobile</MenuItem>
+                  <MenuItem value="Web">Web</MenuItem>
+                  <MenuItem value="Desktop">Desktop</MenuItem>
+                  <MenuItem value="Cloud">Cloud</MenuItem>
+                  <MenuItem value="Testing">Testing</MenuItem>
+                  <MenuItem value="Monitoring">Monitoring</MenuItem>
                 </Select>
               </FormControl>
               <FormControl fullWidth>

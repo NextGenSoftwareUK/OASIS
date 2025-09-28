@@ -4,6 +4,7 @@ import {
   Typography,
   Card,
   CardContent,
+  CardMedia,
   Grid,
   Button,
   Chip,
@@ -47,7 +48,7 @@ const STARNETStorePage: React.FC = () => {
               category: 'Hardware',
               rating: 4.9,
               sales: 1247,
-              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
               isFeatured: true,
               discount: 15,
             },
@@ -59,7 +60,7 @@ const STARNETStorePage: React.FC = () => {
               category: 'Software',
               rating: 4.8,
               sales: 892,
-              imageUrl: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1555949963-aa79dcee981c?w=400&h=300&fit=crop',
               isFeatured: false,
               discount: 0,
             },
@@ -71,7 +72,7 @@ const STARNETStorePage: React.FC = () => {
               category: 'Display',
               rating: 4.7,
               sales: 156,
-              imageUrl: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&h=300&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1446776653964-20c1d3a81b06?w=400&h=300&fit=crop',
               isFeatured: true,
               discount: 20,
             },
@@ -83,7 +84,7 @@ const STARNETStorePage: React.FC = () => {
               category: 'Security',
               rating: 4.6,
               sales: 634,
-              imageUrl: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&h=300&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1446776653964-20c1d3a81b06?w=400&h=300&fit=crop',
               isFeatured: false,
               discount: 10,
             },
@@ -95,7 +96,7 @@ const STARNETStorePage: React.FC = () => {
               category: 'Research',
               rating: 4.9,
               sales: 23,
-              imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
               isFeatured: true,
               discount: 0,
             },
@@ -107,9 +108,81 @@ const STARNETStorePage: React.FC = () => {
               category: 'Communication',
               rating: 4.5,
               sales: 445,
-              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
               isFeatured: false,
               discount: 5,
+            },
+            {
+              id: '7',
+              name: 'Consciousness Transfer Pod',
+              description: 'Upload and download consciousness between avatars and digital realms',
+              price: 95000,
+              category: 'Consciousness',
+              rating: 4.9,
+              sales: 89,
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
+              isFeatured: true,
+              discount: 0,
+            },
+            {
+              id: '8',
+              name: 'Quantum Entanglement Communicator',
+              description: 'Instantaneous communication across infinite distances using quantum entanglement',
+              price: 67000,
+              category: 'Communication',
+              rating: 4.8,
+              sales: 234,
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1555949963-aa79dcee981c?w=400&h=300&fit=crop',
+              isFeatured: false,
+              discount: 12,
+            },
+            {
+              id: '9',
+              name: 'Reality Manipulation Engine',
+              description: 'Alter the fundamental laws of physics in localized reality bubbles',
+              price: 150000,
+              category: 'Reality',
+              rating: 4.7,
+              sales: 45,
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1446776877081-d282a0f896e2?w=400&h=300&fit=crop',
+              isFeatured: true,
+              discount: 25,
+            },
+            {
+              id: '10',
+              name: 'Dimensional Portal Generator',
+              description: 'Create stable portals between different dimensions and universes',
+              price: 89000,
+              category: 'Transportation',
+              rating: 4.6,
+              sales: 167,
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+              isFeatured: false,
+              discount: 8,
+            },
+            {
+              id: '11',
+              name: 'AI Consciousness Synthesizer',
+              description: 'Generate fully conscious AI beings with unique personalities and memories',
+              price: 125000,
+              category: 'AI',
+              rating: 4.9,
+              sales: 78,
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
+              isFeatured: true,
+              discount: 0,
+            },
+            {
+              id: '12',
+              name: 'Molecular Assembler',
+              description: 'Construct any object from raw atoms with perfect precision',
+              price: 78000,
+              category: 'Manufacturing',
+              rating: 4.5,
+              sales: 298,
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1446776653964-20c1d3a81b06?w=400&h=300&fit=crop',
+              isFeatured: false,
+              discount: 15,
             },
           ]
         };
@@ -175,9 +248,9 @@ const STARNETStorePage: React.FC = () => {
               variant="contained"
               startIcon={<ShoppingCart />}
               sx={{
-                background: 'linear-gradient(45deg, #ff6b35, #f7931e)',
+                bgcolor: '#1976d2',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #e55a2b, #e6851a)',
+                  bgcolor: '#1565c0',
                 },
               }}
             >
@@ -199,7 +272,12 @@ const STARNETStorePage: React.FC = () => {
         </Box>
       ) : (
         <Grid container spacing={3}>
-          {storeData?.result?.map((item: any, index: number) => (
+          {storeData?.result?.map((item: any, index: number) => ({
+            ...item,
+            imageUrl: item.imageUrl || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop'
+          })).map((item: any, index: number) => {
+            console.log('STARNET Store item imageUrl:', item.imageUrl);
+            return (
             <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
               <motion.div
                 variants={itemVariants}
@@ -210,16 +288,16 @@ const STARNETStorePage: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Card sx={{ height: '100%', position: 'relative' }}>
-                  <Box sx={{ position: 'relative' }}>
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
+                    <Box sx={{ position: 'relative' }}>
+                    <div
                       style={{
                         width: '100%',
-                        height: 200,
-                        objectFit: 'cover',
-                        borderTopLeftRadius: 4,
-                        borderTopRightRadius: 4,
+                        height: '200px',
+                        backgroundImage: `url(${item.imageUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                        display: 'block'
                       }}
                     />
                     {item.isFeatured && (
@@ -248,6 +326,19 @@ const STARNETStorePage: React.FC = () => {
                         }}
                       />
                     )}
+                    <Chip
+                      label={item.category}
+                      size="small"
+                      variant="filled"
+                      sx={{
+                        position: 'absolute',
+                        bottom: 8,
+                        left: 8,
+                        bgcolor: 'rgba(0,0,0,0.7)',
+                        color: 'white',
+                        fontWeight: 'bold',
+                      }}
+                    />
                   </Box>
                   
                   <CardContent>
@@ -259,19 +350,11 @@ const STARNETStorePage: React.FC = () => {
                       {item.description}
                     </Typography>
                     
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Chip
-                        label={item.category}
-                        size="small"
-                        variant="outlined"
-                        sx={{ mr: 1 }}
-                      />
-                      <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
-                        <Star sx={{ fontSize: 16, color: '#ffc107', mr: 0.5 }} />
-                        <Typography variant="body2" fontWeight="bold">
-                          {item.rating}
-                        </Typography>
-                      </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'flex-end' }}>
+                      <Star sx={{ fontSize: 16, color: '#ffc107', mr: 0.5 }} />
+                      <Typography variant="body2" fontWeight="bold">
+                        {item.rating}
+                      </Typography>
                     </Box>
                     
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -310,9 +393,9 @@ const STARNETStorePage: React.FC = () => {
                         startIcon={<ShoppingCart />}
                         onClick={() => handlePurchase(item)}
                         sx={{
-                          background: 'linear-gradient(45deg, #ff6b35, #f7931e)',
+                          bgcolor: '#1976d2',
                           '&:hover': {
-                            background: 'linear-gradient(45deg, #e55a2b, #e6851a)',
+                            bgcolor: '#1565c0',
                           },
                         }}
                       >
@@ -326,7 +409,8 @@ const STARNETStorePage: React.FC = () => {
                 </Card>
               </motion.div>
             </Grid>
-          ))}
+          );
+          })}
         </Grid>
       )}
       </>

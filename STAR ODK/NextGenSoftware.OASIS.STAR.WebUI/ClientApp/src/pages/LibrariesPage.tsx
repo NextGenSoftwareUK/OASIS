@@ -88,7 +88,17 @@ const LibrariesPage: React.FC = () => {
       try {
         // Try to get real data first
         const response = await starService.getAllLibraries?.();
+        // Check if the real data has meaningful values, if not use demo data
+        if (response?.result && response.result.length > 0) {
+          const hasRealData = response.result.some((library: any) => 
+            library.size > 0 || library.rating > 0 || library.downloads > 0
+          );
+          if (hasRealData) {
         return response;
+          }
+        }
+        // Fall through to demo data if no real data or all zeros
+        throw new Error('No meaningful data from API, using demo data');
       } catch (error) {
         // Fallback to impressive demo data
         console.log('Using demo Libraries data for investor presentation');
@@ -96,51 +106,51 @@ const LibrariesPage: React.FC = () => {
           result: [
             {
               id: '1',
-              name: 'Quantum Physics Engine',
-              description: 'Advanced physics simulation library for quantum mechanics and particle interactions',
-              imageUrl: 'https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=400&h=300&fit=crop',
-              version: '2.1.4',
-              author: 'Quantum Labs',
-              category: 'Framework',
-              language: 'C++',
+              name: 'React',
+              description: 'A JavaScript library for building user interfaces with component-based architecture',
+              imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=300&fit=crop',
+              version: '18.2.0',
+              author: 'Meta',
+              category: 'Frontend',
+              language: 'JavaScript',
               license: 'MIT',
-              downloads: 125000,
+              downloads: 18500000,
               rating: 4.9,
               size: 15.2,
               lastUpdated: '2024-01-15',
               isInstalled: true,
               isActive: true,
-              dependencies: ['OpenGL', 'CUDA'],
-              features: ['Real-time Simulation', 'GPU Acceleration', 'Multi-threading'],
-              documentation: 'https://docs.quantumlabs.com',
-              repository: 'https://github.com/quantumlabs/physics-engine',
+              dependencies: ['react-dom', 'prop-types'],
+              features: ['Virtual DOM', 'JSX', 'Hooks', 'Component Lifecycle'],
+              documentation: 'https://react.dev',
+              repository: 'https://github.com/facebook/react',
             },
             {
               id: '2',
-              name: 'Neural Network Builder',
-              description: 'Intuitive library for building and training neural networks with advanced algorithms',
-              imageUrl: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop',
-              version: '1.8.2',
-              author: 'AI Research Corp',
-              category: 'AI/ML',
-              language: 'Python',
-              license: 'Apache 2.0',
-              downloads: 89000,
+              name: 'Express.js',
+              description: 'Fast, unopinionated, minimalist web framework for Node.js applications',
+              imageUrl: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400&h=300&fit=crop',
+              version: '4.18.2',
+              author: 'TJ Holowaychuk',
+              category: 'Backend',
+              language: 'JavaScript',
+              license: 'MIT',
+              downloads: 25000000,
               rating: 4.7,
               size: 8.5,
               lastUpdated: '2024-01-20',
               isInstalled: true,
               isActive: false,
-              dependencies: ['TensorFlow', 'NumPy', 'Pandas'],
-              features: ['AutoML', 'Visualization', 'Model Export'],
-              documentation: 'https://docs.airesearch.com/nnb',
-              repository: 'https://github.com/airesearch/neural-builder',
+              dependencies: ['accepts', 'array-flatten', 'body-parser'],
+              features: ['Routing', 'Middleware', 'Template Engines', 'Static Files'],
+              documentation: 'https://expressjs.com',
+              repository: 'https://github.com/expressjs/express',
             },
             {
               id: '3',
               name: 'Cosmic Graphics Renderer',
               description: 'High-performance 3D graphics library optimized for space and cosmic environments',
-              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop',
+              imageUrl: 'https://via.placeholder.com/400x300/0000FF/FFFFFF?text=TEST3',
               version: '3.0.1',
               author: 'Space Graphics Inc',
               category: 'Graphics',
@@ -161,7 +171,7 @@ const LibrariesPage: React.FC = () => {
               id: '4',
               name: 'OASIS Database Connector',
               description: 'Universal database connector for OASIS ecosystem with advanced query optimization',
-              imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop',
+              imageUrl: 'https://via.placeholder.com/400x300/FFFF00/000000?text=TEST4',
               version: '1.5.3',
               author: 'OASIS Core Team',
               category: 'Database',
@@ -273,31 +283,81 @@ const LibrariesPage: React.FC = () => {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
+      case 'Frontend': return <LibraryBooks sx={{ color: '#4caf50' }} />;
+      case 'Backend': return <LibraryBooks sx={{ color: '#2196f3' }} />;
+      case 'Utility': return <LibraryBooks sx={{ color: '#ff9800' }} />;
+      case 'HTTP Client': return <LibraryBooks sx={{ color: '#9c27b0' }} />;
       case 'Framework': return <LibraryBooks sx={{ color: '#4caf50' }} />;
-      case 'Utility': return <LibraryBooks sx={{ color: '#2196f3' }} />;
       case 'Graphics': return <LibraryBooks sx={{ color: '#ff9800' }} />;
-      case 'AI/ML': return <LibraryBooks sx={{ color: '#9c27b0' }} />;
+      case 'AI/ML': return <LibraryBooks sx={{ color: '#e91e63' }} />;
       case 'Game Engine': return <LibraryBooks sx={{ color: '#f44336' }} />;
       case 'Database': return <LibraryBooks sx={{ color: '#607d8b' }} />;
+      case 'Mobile': return <LibraryBooks sx={{ color: '#795548' }} />;
+      case 'Web': return <LibraryBooks sx={{ color: '#3f51b5' }} />;
+      case 'Desktop': return <LibraryBooks sx={{ color: '#009688' }} />;
+      case 'Cloud': return <LibraryBooks sx={{ color: '#00bcd4' }} />;
+      case 'Testing': return <LibraryBooks sx={{ color: '#8bc34a' }} />;
+      case 'Security': return <LibraryBooks sx={{ color: '#f44336' }} />;
+      case 'Data Science': return <LibraryBooks sx={{ color: '#ff5722' }} />;
+      case 'Blockchain': return <LibraryBooks sx={{ color: '#673ab7' }} />;
+      case 'IoT': return <LibraryBooks sx={{ color: '#ffc107' }} />;
       default: return <LibraryBooks sx={{ color: '#757575' }} />;
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
+      case 'Frontend': return '#4caf50';
+      case 'Backend': return '#2196f3';
+      case 'Utility': return '#ff9800';
+      case 'HTTP Client': return '#9c27b0';
       case 'Framework': return '#4caf50';
-      case 'Utility': return '#2196f3';
       case 'Graphics': return '#ff9800';
-      case 'AI/ML': return '#9c27b0';
+      case 'AI/ML': return '#e91e63';
       case 'Game Engine': return '#f44336';
       case 'Database': return '#607d8b';
+      case 'Mobile': return '#795548';
+      case 'Web': return '#3f51b5';
+      case 'Desktop': return '#009688';
+      case 'Cloud': return '#00bcd4';
+      case 'Testing': return '#8bc34a';
+      case 'Security': return '#f44336';
+      case 'Data Science': return '#ff5722';
+      case 'Blockchain': return '#673ab7';
+      case 'IoT': return '#ffc107';
       default: return '#757575';
     }
   };
 
   const filteredLibraries = librariesData?.result?.filter((library: Library) => 
     filterCategory === 'all' || library.category === filterCategory
-  ) || [];
+  ).map((library: Library) => ({
+    ...library,
+    imageUrl: library.imageUrl || (library.name?.toLowerCase().includes('quantum') ? 
+      'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=300&fit=crop' :
+      library.name?.toLowerCase().includes('neural') ?
+      'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop' :
+      'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop')
+  })) || [];
+
+  // Debug logging for LibrariesPage
+  console.log('LibrariesPage Debug:', {
+    librariesData: librariesData,
+    hasResult: !!librariesData?.result,
+    resultLength: librariesData?.result?.length || 0,
+    filteredLength: filteredLibraries.length,
+    filterCategory: filterCategory,
+    isLoading: isLoading,
+    error: error
+  });
+  
+  // Debug image URLs
+  if (filteredLibraries.length > 0) {
+    console.log('First library image URL:', filteredLibraries[0].imageUrl);
+    console.log('All library image URLs:', filteredLibraries.map(lib => lib.imageUrl));
+    console.log('First library object:', filteredLibraries[0]);
+    console.log('All library objects:', filteredLibraries);
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -340,12 +400,24 @@ const LibrariesPage: React.FC = () => {
                 onChange={(e) => setFilterCategory(e.target.value)}
               >
                 <MenuItem value="all">All Categories</MenuItem>
-                <MenuItem value="Framework">Frameworks</MenuItem>
-                <MenuItem value="Utility">Utilities</MenuItem>
+                <MenuItem value="Frontend">Frontend</MenuItem>
+                <MenuItem value="Backend">Backend</MenuItem>
+                <MenuItem value="Utility">Utility</MenuItem>
+                <MenuItem value="HTTP Client">HTTP Client</MenuItem>
+                <MenuItem value="Framework">Framework</MenuItem>
                 <MenuItem value="Graphics">Graphics</MenuItem>
                 <MenuItem value="AI/ML">AI/ML</MenuItem>
-                <MenuItem value="Game Engine">Game Engines</MenuItem>
-                <MenuItem value="Database">Databases</MenuItem>
+                <MenuItem value="Game Engine">Game Engine</MenuItem>
+                <MenuItem value="Database">Database</MenuItem>
+                <MenuItem value="Mobile">Mobile</MenuItem>
+                <MenuItem value="Web">Web</MenuItem>
+                <MenuItem value="Desktop">Desktop</MenuItem>
+                <MenuItem value="Cloud">Cloud</MenuItem>
+                <MenuItem value="Testing">Testing</MenuItem>
+                <MenuItem value="Security">Security</MenuItem>
+                <MenuItem value="Data Science">Data Science</MenuItem>
+                <MenuItem value="Blockchain">Blockchain</MenuItem>
+                <MenuItem value="IoT">IoT</MenuItem>
               </Select>
             </FormControl>
             <Button
@@ -389,12 +461,16 @@ const LibrariesPage: React.FC = () => {
                     }
                   }}>
                     <Box sx={{ position: 'relative' }}>
-                      <CardMedia
-                        component="img"
-                        height="200"
-                        image={library.imageUrl}
-                        alt={library.name}
-                        sx={{ objectFit: 'cover' }}
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '200px',
+                          backgroundImage: `url(${library.imageUrl})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          backgroundRepeat: 'no-repeat',
+                          display: 'block'
+                        }}
                       />
                       <Chip
                         label={library.category}
@@ -402,20 +478,22 @@ const LibrariesPage: React.FC = () => {
                         sx={{
                           position: 'absolute',
                           top: 8,
-                          right: 8,
+                          left: 8,
                           bgcolor: getCategoryColor(library.category),
                           color: 'white',
                           fontWeight: 'bold',
                         }}
                       />
                       {library.isInstalled && (
-                        <Badge
-                          badgeContent="Installed"
+                        <Chip
+                          label="Installed"
+                          size="small"
                           color="success"
                           sx={{
                             position: 'absolute',
                             top: 8,
-                            left: 8,
+                            right: 8,
+                            fontWeight: 'bold',
                           }}
                         />
                       )}
@@ -440,7 +518,7 @@ const LibrariesPage: React.FC = () => {
                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                           <Chip label={`v${library.version}`} size="small" variant="outlined" />
                           <Chip label={library.language} size="small" variant="outlined" />
-                          <Chip label={`${library.size}MB`} size="small" variant="outlined" />
+                          <Chip label={`${library.size || '0'}MB`} size="small" variant="outlined" />
                         </Box>
                       </Box>
                       
@@ -540,20 +618,50 @@ const LibrariesPage: React.FC = () => {
                   label="Category"
                   onChange={(e) => setNewLibrary({ ...newLibrary, category: e.target.value as any })}
                 >
-                  <MenuItem value="Framework">Framework</MenuItem>
+                  <MenuItem value="Frontend">Frontend</MenuItem>
+                  <MenuItem value="Backend">Backend</MenuItem>
                   <MenuItem value="Utility">Utility</MenuItem>
+                  <MenuItem value="HTTP Client">HTTP Client</MenuItem>
+                  <MenuItem value="Framework">Framework</MenuItem>
                   <MenuItem value="Graphics">Graphics</MenuItem>
                   <MenuItem value="AI/ML">AI/ML</MenuItem>
                   <MenuItem value="Game Engine">Game Engine</MenuItem>
                   <MenuItem value="Database">Database</MenuItem>
+                  <MenuItem value="Mobile">Mobile</MenuItem>
+                  <MenuItem value="Web">Web</MenuItem>
+                  <MenuItem value="Desktop">Desktop</MenuItem>
+                  <MenuItem value="Cloud">Cloud</MenuItem>
+                  <MenuItem value="Testing">Testing</MenuItem>
+                  <MenuItem value="Security">Security</MenuItem>
+                  <MenuItem value="Data Science">Data Science</MenuItem>
+                  <MenuItem value="Blockchain">Blockchain</MenuItem>
+                  <MenuItem value="IoT">IoT</MenuItem>
                 </Select>
               </FormControl>
-              <TextField
-                label="Language"
-                value={newLibrary.language}
-                onChange={(e) => setNewLibrary({ ...newLibrary, language: e.target.value })}
-                fullWidth
-              />
+              <FormControl fullWidth>
+                <InputLabel>Language</InputLabel>
+                <Select
+                  value={newLibrary.language}
+                  label="Language"
+                  onChange={(e) => setNewLibrary({ ...newLibrary, language: e.target.value as any })}
+                >
+                  <MenuItem value="JavaScript">JavaScript</MenuItem>
+                  <MenuItem value="TypeScript">TypeScript</MenuItem>
+                  <MenuItem value="Python">Python</MenuItem>
+                  <MenuItem value="Java">Java</MenuItem>
+                  <MenuItem value="C#">C#</MenuItem>
+                  <MenuItem value="PHP">PHP</MenuItem>
+                  <MenuItem value="Dart">Dart</MenuItem>
+                  <MenuItem value="Go">Go</MenuItem>
+                  <MenuItem value="Rust">Rust</MenuItem>
+                  <MenuItem value="Swift">Swift</MenuItem>
+                  <MenuItem value="Kotlin">Kotlin</MenuItem>
+                  <MenuItem value="C++">C++</MenuItem>
+                  <MenuItem value="C">C</MenuItem>
+                  <MenuItem value="Ruby">Ruby</MenuItem>
+                  <MenuItem value="Scala">Scala</MenuItem>
+                </Select>
+              </FormControl>
             </Box>
             <TextField
               label="License"

@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request
         public string CurrentOwnerWalletAddress { get; set; }
         public string NFTTokenAddress { get; set; }
         public EnumValue<ProviderType> OnChainProvider { get; set; } //Set to the eqvialent OnChain provider that the NFT was minted with (e.g. Ethereum, Solana etc).
-        public EnumValue<ProviderType> OffChainMetaType { get; set; } //Set to the provider they want to use to store the off-chain meta data (e.g. IPFS, OASIS etc).
+        public EnumValue<ProviderType> OffChainProvider { get; set; } //Set to the provider they want to use to store the off-chain meta data (e.g. IPFS, OASIS etc).
         public bool StoreNFTMetaDataOnChain { get; set; }
         public EnumValue<NFTOffChainMetaType> NFTOffChainMetaType { get; set; }
         public EnumValue<NFTStandardType> NFTStandardType { get; set; } 

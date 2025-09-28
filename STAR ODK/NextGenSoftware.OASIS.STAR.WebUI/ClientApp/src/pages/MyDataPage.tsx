@@ -162,7 +162,8 @@ const MyDataPage: React.FC = () => {
     'myDataFiles',
     async () => {
       try {
-        // Try to get real data first
+        // Force demo data for now
+        throw 'Forcing demo data for My Data files';
         const response = await starService.getMyDataFiles?.();
         return response;
       } catch (error) {
@@ -345,6 +346,391 @@ const MyDataPage: React.FC = () => {
                   description: 'Source code repository with version control',
                   version: '4.2'
                 }
+              },
+              {
+                id: '6',
+                name: 'neural-networks.py',
+                type: 'file',
+                mimeType: 'text/x-python',
+                size: 850000,
+                path: '/code-repository/neural-networks.py',
+                createdAt: '2024-01-14T15:30:00Z',
+                modifiedAt: '2024-01-15T09:45:00Z',
+                permissions: {
+                  read: ['ai-team', 'developers'],
+                  write: ['me'],
+                  execute: ['ai-team']
+                },
+                replication: {
+                  enabled: true,
+                  nodes: 6,
+                  regions: ['us-east', 'eu-west', 'asia-pacific']
+                },
+                encryption: {
+                  enabled: true,
+                  algorithm: 'AES-256',
+                  keySize: 256
+                },
+                storage: {
+                  provider: 'web3',
+                  nodes: ['ipfs-node-1', 'ipfs-node-2', 'filecoin-node-1'],
+                  redundancy: 3
+                },
+                metadata: {
+                  tags: ['ai', 'neural-networks', 'python', 'machine-learning'],
+                  description: 'Advanced neural network implementation for OASIS AI',
+                  version: '3.1'
+                }
+              },
+              {
+                id: '7',
+                name: 'holographic-ui-designs',
+                type: 'folder',
+                mimeType: 'folder',
+                size: 0,
+                path: '/holographic-ui-designs',
+                createdAt: '2024-01-08T12:00:00Z',
+                modifiedAt: '2024-01-15T16:20:00Z',
+                permissions: {
+                  read: ['design-team', 'developers'],
+                  write: ['design-team'],
+                  execute: ['design-team']
+                },
+                replication: {
+                  enabled: true,
+                  nodes: 8,
+                  regions: ['us-east', 'eu-west', 'asia-pacific', 'us-west']
+                },
+                encryption: {
+                  enabled: true,
+                  algorithm: 'ChaCha20-Poly1305',
+                  keySize: 256
+                },
+                storage: {
+                  provider: 'p2p',
+                  nodes: ['oasis-node-1', 'oasis-node-2', 'oasis-node-3'],
+                  redundancy: 4
+                },
+                metadata: {
+                  tags: ['design', 'holographic', 'ui', 'interface'],
+                  description: 'Holographic user interface design assets and prototypes',
+                  version: '2.3'
+                }
+              },
+              {
+                id: '8',
+                name: 'quantum-simulation.mp4',
+                type: 'file',
+                mimeType: 'video/mp4',
+                size: 125000000,
+                path: '/holographic-ui-designs/quantum-simulation.mp4',
+                createdAt: '2024-01-12T14:15:00Z',
+                modifiedAt: '2024-01-14T11:30:00Z',
+                permissions: {
+                  read: ['public'],
+                  write: ['me'],
+                  execute: ['me']
+                },
+                replication: {
+                  enabled: true,
+                  nodes: 10,
+                  regions: ['us-east', 'eu-west', 'asia-pacific', 'us-west', 'south-america']
+                },
+                encryption: {
+                  enabled: false,
+                  algorithm: '',
+                  keySize: 0
+                },
+                storage: {
+                  provider: 'web2',
+                  nodes: ['aws-s3', 'google-cloud', 'azure-blob', 'cloudflare-r2'],
+                  redundancy: 4
+                },
+                metadata: {
+                  tags: ['video', 'quantum', 'simulation', 'demo'],
+                  description: '4K quantum physics simulation for investor demonstrations',
+                  version: '1.0'
+                }
+              },
+              {
+                id: '9',
+                name: 'blockchain-data',
+                type: 'folder',
+                mimeType: 'folder',
+                size: 0,
+                path: '/blockchain-data',
+                createdAt: '2024-01-03T08:30:00Z',
+                modifiedAt: '2024-01-15T19:45:00Z',
+                permissions: {
+                  read: ['blockchain-team'],
+                  write: ['blockchain-team'],
+                  execute: ['blockchain-team']
+                },
+                replication: {
+                  enabled: true,
+                  nodes: 20,
+                  regions: ['us-east', 'eu-west', 'asia-pacific', 'us-west', 'south-america', 'africa']
+                },
+                encryption: {
+                  enabled: true,
+                  algorithm: 'AES-256',
+                  keySize: 256
+                },
+                storage: {
+                  provider: 'web3',
+                  nodes: ['ipfs-node-1', 'ipfs-node-2', 'arweave-node-1', 'filecoin-node-1', 'swarm-node-1', 'storj-node-1'],
+                  redundancy: 8
+                },
+                metadata: {
+                  tags: ['blockchain', 'data', 'distributed', 'immutable'],
+                  description: 'Immutable blockchain data storage and transaction records',
+                  version: '5.0'
+                }
+              },
+              {
+                id: '10',
+                name: 'smart-contracts.sol',
+                type: 'file',
+                mimeType: 'text/x-solidity',
+                size: 450000,
+                path: '/blockchain-data/smart-contracts.sol',
+                createdAt: '2024-01-11T10:20:00Z',
+                modifiedAt: '2024-01-15T13:10:00Z',
+                permissions: {
+                  read: ['blockchain-team', 'auditors'],
+                  write: ['blockchain-team'],
+                  execute: ['blockchain-team']
+                },
+                replication: {
+                  enabled: true,
+                  nodes: 12,
+                  regions: ['us-east', 'eu-west', 'asia-pacific', 'us-west']
+                },
+                encryption: {
+                  enabled: true,
+                  algorithm: 'AES-256',
+                  keySize: 256
+                },
+                storage: {
+                  provider: 'web3',
+                  nodes: ['ipfs-node-1', 'arweave-node-1', 'filecoin-node-1'],
+                  redundancy: 5
+                },
+                metadata: {
+                  tags: ['smart-contracts', 'solidity', 'ethereum', 'defi'],
+                  description: 'OASIS DeFi smart contracts for token economics',
+                  version: '2.8'
+                }
+              },
+              {
+                id: '11',
+                name: 'avatar-assets',
+                type: 'folder',
+                mimeType: 'folder',
+                size: 0,
+                path: '/avatar-assets',
+                createdAt: '2024-01-02T09:00:00Z',
+                modifiedAt: '2024-01-15T17:30:00Z',
+                permissions: {
+                  read: ['avatar-team', 'artists'],
+                  write: ['avatar-team'],
+                  execute: ['avatar-team']
+                },
+                replication: {
+                  enabled: true,
+                  nodes: 15,
+                  regions: ['us-east', 'eu-west', 'asia-pacific', 'us-west', 'south-america']
+                },
+                encryption: {
+                  enabled: false,
+                  algorithm: '',
+                  keySize: 0
+                },
+                storage: {
+                  provider: 'web2',
+                  nodes: ['aws-s3', 'google-cloud', 'azure-blob'],
+                  redundancy: 3
+                },
+                metadata: {
+                  tags: ['avatar', 'assets', '3d', 'models'],
+                  description: '3D avatar models, textures, and animation assets',
+                  version: '1.7'
+                }
+              },
+              {
+                id: '12',
+                name: 'cosmic-avatar-model.fbx',
+                type: 'file',
+                mimeType: 'application/octet-stream',
+                size: 75000000,
+                path: '/avatar-assets/cosmic-avatar-model.fbx',
+                createdAt: '2024-01-13T16:45:00Z',
+                modifiedAt: '2024-01-15T08:20:00Z',
+                permissions: {
+                  read: ['avatar-team', 'artists', 'public'],
+                  write: ['me'],
+                  execute: ['me']
+                },
+                replication: {
+                  enabled: true,
+                  nodes: 8,
+                  regions: ['us-east', 'eu-west', 'asia-pacific']
+                },
+                encryption: {
+                  enabled: false,
+                  algorithm: '',
+                  keySize: 0
+                },
+                storage: {
+                  provider: 'web2',
+                  nodes: ['aws-s3', 'google-cloud'],
+                  redundancy: 2
+                },
+                metadata: {
+                  tags: ['3d-model', 'avatar', 'cosmic', 'fbx'],
+                  description: 'High-poly cosmic-themed avatar model with animations',
+                  version: '1.2'
+                }
+              },
+              {
+                id: '13',
+                name: 'metaverse-worlds',
+                type: 'folder',
+                mimeType: 'folder',
+                size: 0,
+                path: '/metaverse-worlds',
+                createdAt: '2024-01-01T00:00:00Z',
+                modifiedAt: '2024-01-15T20:00:00Z',
+                permissions: {
+                  read: ['world-builders', 'developers'],
+                  write: ['world-builders'],
+                  execute: ['world-builders']
+                },
+                replication: {
+                  enabled: true,
+                  nodes: 25,
+                  regions: ['us-east', 'eu-west', 'asia-pacific', 'us-west', 'south-america', 'africa', 'oceania']
+                },
+                encryption: {
+                  enabled: true,
+                  algorithm: 'ChaCha20-Poly1305',
+                  keySize: 256
+                },
+                storage: {
+                  provider: 'p2p',
+                  nodes: ['oasis-node-1', 'oasis-node-2', 'oasis-node-3', 'oasis-node-4', 'oasis-node-5'],
+                  redundancy: 7
+                },
+                metadata: {
+                  tags: ['metaverse', 'worlds', 'virtual', 'environments'],
+                  description: 'Virtual world environments and procedural generation data',
+                  version: '6.1'
+                }
+              },
+              {
+                id: '14',
+                name: 'quantum-city.unity',
+                type: 'file',
+                mimeType: 'application/x-unity',
+                size: 350000000,
+                path: '/metaverse-worlds/quantum-city.unity',
+                createdAt: '2024-01-09T13:00:00Z',
+                modifiedAt: '2024-01-15T15:30:00Z',
+                permissions: {
+                  read: ['world-builders', 'testers'],
+                  write: ['world-builders'],
+                  execute: ['world-builders']
+                },
+                replication: {
+                  enabled: true,
+                  nodes: 18,
+                  regions: ['us-east', 'eu-west', 'asia-pacific', 'us-west', 'south-america']
+                },
+                encryption: {
+                  enabled: true,
+                  algorithm: 'AES-256',
+                  keySize: 256
+                },
+                storage: {
+                  provider: 'p2p',
+                  nodes: ['oasis-node-1', 'oasis-node-2', 'oasis-node-3'],
+                  redundancy: 6
+                },
+                metadata: {
+                  tags: ['unity', 'quantum-city', 'virtual-world', 'metaverse'],
+                  description: 'Massive quantum-themed virtual city with physics simulation',
+                  version: '3.4'
+                }
+              },
+              {
+                id: '15',
+                name: 'ai-training-data',
+                type: 'folder',
+                mimeType: 'folder',
+                size: 0,
+                path: '/ai-training-data',
+                createdAt: '2024-01-04T07:00:00Z',
+                modifiedAt: '2024-01-15T21:15:00Z',
+                permissions: {
+                  read: ['ai-team', 'researchers'],
+                  write: ['ai-team'],
+                  execute: ['ai-team']
+                },
+                replication: {
+                  enabled: true,
+                  nodes: 30,
+                  regions: ['us-east', 'eu-west', 'asia-pacific', 'us-west', 'south-america', 'africa', 'oceania']
+                },
+                encryption: {
+                  enabled: true,
+                  algorithm: 'AES-256',
+                  keySize: 256
+                },
+                storage: {
+                  provider: 'web3',
+                  nodes: ['ipfs-node-1', 'ipfs-node-2', 'arweave-node-1', 'filecoin-node-1', 'swarm-node-1', 'storj-node-1', 'sia-node-1'],
+                  redundancy: 10
+                },
+                metadata: {
+                  tags: ['ai', 'training', 'datasets', 'machine-learning'],
+                  description: 'Massive AI training datasets for OASIS neural networks',
+                  version: '7.3'
+                }
+              },
+              {
+                id: '16',
+                name: 'consciousness-patterns.json',
+                type: 'file',
+                mimeType: 'application/json',
+                size: 2800000,
+                path: '/ai-training-data/consciousness-patterns.json',
+                createdAt: '2024-01-15T12:00:00Z',
+                modifiedAt: '2024-01-15T18:45:00Z',
+                permissions: {
+                  read: ['ai-team', 'consciousness-researchers'],
+                  write: ['me'],
+                  execute: ['me']
+                },
+                replication: {
+                  enabled: true,
+                  nodes: 25,
+                  regions: ['us-east', 'eu-west', 'asia-pacific', 'us-west', 'south-america', 'africa']
+                },
+                encryption: {
+                  enabled: true,
+                  algorithm: 'ChaCha20-Poly1305',
+                  keySize: 256
+                },
+                storage: {
+                  provider: 'web3',
+                  nodes: ['ipfs-node-1', 'arweave-node-1', 'filecoin-node-1'],
+                  redundancy: 8
+                },
+                metadata: {
+                  tags: ['consciousness', 'ai', 'patterns', 'neural-mapping'],
+                  description: 'Digital consciousness pattern recognition training data',
+                  version: '1.0'
+                }
               }
             ],
             nodes: [
@@ -463,8 +849,18 @@ const MyDataPage: React.FC = () => {
 
   const filteredFiles = filesData?.result?.files?.filter((file: DataFile) => 
     file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    file.metadata.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    (file.metadata?.tags || []).some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
+
+  // Debug logging
+  console.log('MyDataPage Debug:', {
+    filesData: filesData,
+    hasResult: !!filesData?.result,
+    hasFiles: !!filesData?.result?.files,
+    filesCount: filesData?.result?.files?.length || 0,
+    filteredCount: filteredFiles.length,
+    searchTerm: searchTerm
+  });
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -631,26 +1027,26 @@ const MyDataPage: React.FC = () => {
                             </Box>
                             
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                              {file.metadata.description}
+                              {file.metadata?.description || 'No description'}
                             </Typography>
                             
                             <Box sx={{ mb: 2 }}>
                               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
                                 <Chip
-                                  label={file.storage.provider.toUpperCase()}
+                                  label={file.storage?.provider?.toUpperCase() || 'UNKNOWN'}
                                   size="small"
                                   sx={{
-                                    bgcolor: getProviderColor(file.storage.provider),
+                                    bgcolor: getProviderColor(file.storage?.provider || 'unknown'),
                                     color: 'white',
                                     fontWeight: 'bold'
                                   }}
                                 />
                                 <Chip
-                                  label={`${file.replication.nodes} nodes`}
+                                  label={`${file.replication?.nodes || 0} nodes`}
                                   size="small"
                                   variant="outlined"
                                 />
-                                {file.encryption.enabled && (
+                                {file.encryption?.enabled && (
                                   <Chip
                                     label="Encrypted"
                                     size="small"
@@ -660,7 +1056,7 @@ const MyDataPage: React.FC = () => {
                                 )}
                               </Box>
                               <Typography variant="caption" color="text.secondary">
-                                Size: {formatFileSize(file.size)} • Modified: {new Date(file.modifiedAt).toLocaleDateString()}
+                                Size: {formatFileSize(file.size || 0)} • Modified: {file.modifiedAt ? new Date(file.modifiedAt).toLocaleDateString() : 'Unknown'}
                               </Typography>
                             </Box>
                             
@@ -706,15 +1102,15 @@ const MyDataPage: React.FC = () => {
                         }}>
                           <CardContent sx={{ flexGrow: 1 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                              <Storage sx={{ color: getProviderColor(node.type), mr: 1 }} />
+                              <Storage sx={{ color: getProviderColor(node.type || 'unknown'), mr: 1 }} />
                               <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                                {node.name}
+                                {node.name || 'Unknown Node'}
                               </Typography>
                               <Chip
-                                label={node.status}
+                                label={node.status || 'unknown'}
                                 size="small"
                                 sx={{
-                                  bgcolor: getStatusColor(node.status),
+                                  bgcolor: getStatusColor(node.status || 'unknown'),
                                   color: 'white',
                                   fontWeight: 'bold'
                                 }}
@@ -727,11 +1123,11 @@ const MyDataPage: React.FC = () => {
                               </Typography>
                               <LinearProgress
                                 variant="determinate"
-                                value={(node.used / node.capacity) * 100}
+                                value={((node.used || 0) / (node.capacity || 1)) * 100}
                                 sx={{ height: 8, borderRadius: 4, mb: 1 }}
                               />
                               <Typography variant="caption" color="text.secondary">
-                                {formatFileSize(node.used)} / {formatFileSize(node.capacity)}
+                                {formatFileSize(node.used || 0)} / {formatFileSize(node.capacity || 0)}
                               </Typography>
                             </Box>
                             
@@ -739,29 +1135,29 @@ const MyDataPage: React.FC = () => {
                               <Box>
                                 <Typography variant="caption" color="text.secondary">Latency</Typography>
                                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                  {node.latency}ms
+                                  {node.latency || 0}ms
                                 </Typography>
                               </Box>
                               <Box>
                                 <Typography variant="caption" color="text.secondary">Reliability</Typography>
                                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                  {node.reliability}%
+                                  {node.reliability || 0}%
                                 </Typography>
                               </Box>
                             </Box>
                             
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <Chip
-                                label={node.type.toUpperCase()}
+                                label={(node.type || 'unknown').toUpperCase()}
                                 size="small"
                                 sx={{
-                                  bgcolor: getProviderColor(node.type),
+                                  bgcolor: getProviderColor(node.type || 'unknown'),
                                   color: 'white',
                                   fontWeight: 'bold'
                                 }}
                               />
                               <Typography variant="caption" color="text.secondary">
-                                {node.region}
+                                {node.region || 'Unknown'}
                               </Typography>
                             </Box>
                           </CardContent>

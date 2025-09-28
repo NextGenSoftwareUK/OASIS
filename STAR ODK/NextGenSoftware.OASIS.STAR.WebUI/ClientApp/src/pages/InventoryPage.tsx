@@ -80,9 +80,8 @@ const InventoryPage: React.FC = () => {
     'inventory',
     async () => {
       try {
-        // Try to get real data first
-        const response = await starService.getAllInventoryItems?.();
-        return response;
+        // Force demo data for inventory
+        throw 'Forcing demo data for inventory';
       } catch (error) {
         // Fallback to impressive demo data
         console.log('Using demo Inventory data for investor presentation');
@@ -110,7 +109,7 @@ const InventoryPage: React.FC = () => {
               rarity: 'Epic',
               quantity: 2,
               value: 25000,
-              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=400&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=400&fit=crop',
               category: 'Tech',
               stats: { power: 70, durability: 60, speed: 95 },
               createdAt: '2024-01-12',
@@ -124,7 +123,7 @@ const InventoryPage: React.FC = () => {
               rarity: 'Rare',
               quantity: 3,
               value: 15000,
-              imageUrl: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&h=400&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=400&fit=crop',
               category: 'Defense',
               stats: { power: 60, durability: 85, defense: 90 },
               createdAt: '2024-01-14',
@@ -138,7 +137,7 @@ const InventoryPage: React.FC = () => {
               rarity: 'Legendary',
               quantity: 1,
               value: 100000,
-              imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=400&fit=crop',
               category: 'Mystical',
               stats: { power: 100, durability: 100, speed: 100 },
               createdAt: '2024-01-08',
@@ -166,11 +165,137 @@ const InventoryPage: React.FC = () => {
               rarity: 'Rare',
               quantity: 1,
               value: 12000,
-              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=400&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=400&fit=crop&auto=format&q=80',
               category: 'Tech',
               stats: { power: 50, durability: 65, speed: 80 },
               createdAt: '2024-01-13',
               lastUsed: '2024-01-17',
+            },
+            {
+              id: '7',
+              name: 'Quantum Armor',
+              description: 'Advanced protective suit with quantum field manipulation',
+              type: 'Defense',
+              rarity: 'Legendary',
+              quantity: 1,
+              value: 75000,
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=400&fit=crop',
+              category: 'Defense',
+              stats: { power: 80, durability: 95, defense: 100 },
+              createdAt: '2024-01-09',
+              lastUsed: '2024-01-19',
+            },
+            {
+              id: '8',
+              name: 'Nano Healing Pods',
+              description: 'Microscopic medical nanobots for instant healing',
+              type: 'Consumable',
+              rarity: 'Epic',
+              quantity: 10,
+              value: 5000,
+              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=400&fit=crop&auto=format&q=80',
+              category: 'Utility',
+              stats: { power: 90, durability: 30, speed: 95 },
+              createdAt: '2024-01-12',
+              lastUsed: '2024-01-18',
+            },
+            {
+              id: '9',
+              name: 'Void Manipulator',
+              description: 'Artifact capable of bending space-time itself',
+              type: 'Artifact',
+              rarity: 'Legendary',
+              quantity: 1,
+              value: 150000,
+              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=400&fit=crop&auto=format&q=80',
+              category: 'Mystical',
+              stats: { power: 100, durability: 90, speed: 85 },
+              createdAt: '2024-01-05',
+              lastUsed: '2024-01-20',
+            },
+            {
+              id: '10',
+              name: 'Cyber Enhancement Chip',
+              description: 'Neural implant that boosts cognitive abilities',
+              type: 'Technology',
+              rarity: 'Epic',
+              quantity: 3,
+              value: 20000,
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=400&fit=crop&auto=format&q=80',
+              category: 'Tech',
+              stats: { power: 75, durability: 80, speed: 90 },
+              createdAt: '2024-01-14',
+              lastUsed: '2024-01-19',
+            },
+            {
+              id: '11',
+              name: 'Quantum Blaster',
+              description: 'A powerful energy weapon from the future',
+              type: 'Weapon',
+              rarity: 'Legendary',
+              quantity: 1,
+              value: 25000,
+              imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=400&fit=crop',
+              category: 'Combat',
+              stats: { power: 95, durability: 85, speed: 80 },
+              createdAt: '2024-01-15',
+              lastUsed: '2024-01-20',
+            },
+            {
+              id: '12',
+              name: 'Shield Generator',
+              description: 'Advanced energy shield technology',
+              type: 'Defense',
+              rarity: 'Epic',
+              quantity: 1,
+              value: 18000,
+              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=400&fit=crop',
+              category: 'Defense',
+              stats: { power: 70, durability: 90, defense: 95 },
+              createdAt: '2024-01-16',
+              lastUsed: '2024-01-21',
+            },
+            {
+              id: '13',
+              name: 'Space Suit',
+              description: 'Protective gear for space exploration',
+              type: 'Armor',
+              rarity: 'Rare',
+              quantity: 1,
+              value: 12000,
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=400&fit=crop',
+              category: 'Defense',
+              stats: { power: 60, durability: 80, defense: 85 },
+              createdAt: '2024-01-17',
+              lastUsed: '2024-01-22',
+            },
+            {
+              id: '14',
+              name: 'Gravity Boots',
+              description: 'Boots that allow walking on any surface',
+              type: 'Utility',
+              rarity: 'Epic',
+              quantity: 1,
+              value: 15000,
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=400&fit=crop',
+              category: 'Utility',
+              stats: { power: 80, durability: 75, speed: 90 },
+              createdAt: '2024-01-18',
+              lastUsed: '2024-01-23',
+            },
+            {
+              id: '15',
+              name: 'Teleportation Ring',
+              description: 'Ring that allows instant teleportation',
+              type: 'Artifact',
+              rarity: 'Legendary',
+              quantity: 1,
+              value: 100000,
+              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=400&fit=crop&auto=format&q=80',
+              category: 'Mystical',
+              stats: { power: 100, durability: 100, speed: 100 },
+              createdAt: '2024-01-19',
+              lastUsed: '2024-01-24',
             },
           ]
         };
@@ -255,6 +380,17 @@ const InventoryPage: React.FC = () => {
       case 'uncommon': return '#4caf50';
       case 'common': return '#9e9e9e';
       default: return '#9e9e9e';
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'weapon': return '#f44336';
+      case 'technology': return '#3f51b5';
+      case 'defense': return '#4caf50';
+      case 'artifact': return '#9c27b0';
+      case 'consumable': return '#ff9800';
+      default: return '#607d8b';
     }
   };
 
@@ -375,16 +511,27 @@ const InventoryPage: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Card sx={{ height: '100%', position: 'relative' }}>
-                  <Box sx={{ position: 'relative' }}>
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      style={{
-                        width: '100%',
-                        height: 200,
-                        objectFit: 'cover',
-                        borderTopLeftRadius: 4,
-                        borderTopRightRadius: 4,
+                  <Box sx={{ 
+                    position: 'relative', 
+                    overflow: 'hidden', 
+                    borderTopLeftRadius: 4, 
+                    borderTopRightRadius: 4,
+                    height: 200,
+                    backgroundColor: getRarityColor(item.rarity),
+                    background: item.imageUrl ? `url(${item.imageUrl})` : `linear-gradient(45deg, ${getRarityColor(item.rarity)}, ${getRarityColor(item.rarity)}aa)`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}>
+                    <Chip
+                      label={item.type}
+                      size="small"
+                      sx={{
+                        position: 'absolute',
+                        top: 8,
+                        left: 8,
+                        bgcolor: getTypeColor(item.type),
+                        color: 'white',
+                        fontWeight: 'bold',
                       }}
                     />
                     <Chip
@@ -418,16 +565,16 @@ const InventoryPage: React.FC = () => {
                         Stats:
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                        {item.stats.power && (
+                        {item.stats?.power && (
                           <Chip label={`Power: ${item.stats.power}`} size="small" variant="outlined" />
                         )}
-                        {item.stats.durability && (
+                        {item.stats?.durability && (
                           <Chip label={`Durability: ${item.stats.durability}`} size="small" variant="outlined" />
                         )}
-                        {item.stats.speed && (
+                        {item.stats?.speed && (
                           <Chip label={`Speed: ${item.stats.speed}`} size="small" variant="outlined" />
                         )}
-                        {item.stats.defense && (
+                        {item.stats?.defense && (
                           <Chip label={`Defense: ${item.stats.defense}`} size="small" variant="outlined" />
                         )}
                       </Box>
