@@ -11,11 +11,14 @@ export interface Avatar {
   email: string;
   firstName?: string;
   lastName?: string;
+  title?: string;
   avatarType?: string;
   karma?: number;
   level?: number;
   xp?: number;
   isActive?: boolean;
+  isBeamedIn?: boolean;
+  lastBeamedIn?: string;
   createdDate?: Date;
   lastLoginDate?: Date;
 }
@@ -167,6 +170,28 @@ export interface Runtime extends STARNETItem {
   architecture?: string;
   dependencies?: string[];
   requirements?: string[];
+  framework?: string;
+  category?: string;
+  lastUpdated?: string;
+  uptime?: string;
+  language?: string;
+  status?: 'Running' | 'Stopped' | 'Paused' | 'Error';
+  cpuUsage?: number;
+  memoryUsage?: number;
+  diskUsage?: number;
+  instances?: number;
+  maxInstances?: number;
+  port?: number;
+  environment?: string;
+  logs?: string[];
+  isActive?: boolean;
+  isPublic?: boolean;
+  region?: string;
+  cost?: number;
+  imageUrl?: string;
+  type?: string;
+  lastStarted?: string;
+  lastStopped?: string;
 }
 
 export interface Library extends STARNETItem {

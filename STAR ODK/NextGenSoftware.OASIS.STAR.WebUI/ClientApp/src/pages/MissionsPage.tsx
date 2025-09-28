@@ -260,7 +260,7 @@ const MissionsPage: React.FC = () => {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase() || '') {
       case 'completed': return 'success';
       case 'active': return 'primary';
       case 'in_progress': return 'warning';
@@ -270,7 +270,7 @@ const MissionsPage: React.FC = () => {
   };
 
   const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
+    switch (priority?.toLowerCase() || '') {
       case 'critical': return '#f44336';
       case 'high': return '#ff9800';
       case 'medium': return '#2196f3';
@@ -280,7 +280,7 @@ const MissionsPage: React.FC = () => {
   };
 
   const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty.toLowerCase()) {
+    switch (difficulty?.toLowerCase() || '') {
       case 'expert': return '#9c27b0';
       case 'hard': return '#f44336';
       case 'normal': return '#2196f3';
@@ -290,7 +290,7 @@ const MissionsPage: React.FC = () => {
   };
 
   const getTypeIcon = (type: string) => {
-    switch (type.toLowerCase()) {
+    switch (type?.toLowerCase() || '') {
       case 'exploration': return <Public />;
       case 'security': return <Security />;
       case 'research': return <Science />;
@@ -301,9 +301,9 @@ const MissionsPage: React.FC = () => {
   };
 
   const statuses = ['all', 'pending', 'active', 'in_progress', 'completed'];
-  const filteredMissions = missionsData?.result?.filter((mission: any) => 
+  const filteredMissions = (missionsData?.result || []).filter((mission: any) =>
     filterStatus === 'all' || mission.status === filterStatus
-  ) || [];
+  );
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -352,9 +352,9 @@ const MissionsPage: React.FC = () => {
               startIcon={<Add />}
               onClick={() => setCreateDialogOpen(true)}
               sx={{
-                background: 'linear-gradient(45deg, #ff9800, #f44336)',
+                background: '#1976d2',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #f57c00, #d32f2f)',
+                  background: '#1565c0',
                 },
               }}
             >
@@ -467,21 +467,25 @@ const MissionsPage: React.FC = () => {
                           Reward: <strong>{mission.reward.toLocaleString()} Credits</strong>
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Assigned: {mission.assignedTo}
+                          Assigned: {mission.assignedTo || 'Unassigned'}
                         </Typography>
                       </Box>
                       <Box sx={{ textAlign: 'right' }}>
                         <Typography variant="body2" color="text.secondary">
-                          Due: {new Date(mission.dueDate).toLocaleDateString()}
+                          Due: {mission.dueDate ? new Date(mission.dueDate).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          }) : 'Not set'}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Est: {mission.estimatedTime}
+                          Est: {mission.estimatedTime || 'TBD'}
                         </Typography>
                       </Box>
                     </Box>
                     
                     <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-                      {mission.tags.map((tag: string, tagIndex: number) => (
+                      {(mission.tags || []).map((tag: string, tagIndex: number) => (
                         <Chip
                           key={tagIndex}
                           label={tag}

@@ -42,33 +42,7 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
 import { starService } from '../services/starService';
-
-interface Runtime {
-  id: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-  version: string;
-  type: 'Virtual Machine' | 'Container' | 'Serverless' | 'Edge' | 'Quantum';
-  language: string;
-  status: 'Running' | 'Stopped' | 'Paused' | 'Error';
-  cpuUsage: number;
-  memoryUsage: number;
-  diskUsage: number;
-  uptime: number;
-  lastStarted: string;
-  lastStopped: string;
-  instances: number;
-  maxInstances: number;
-  port: number;
-  environment: string;
-  dependencies: string[];
-  logs: string[];
-  isActive: boolean;
-  isPublic: boolean;
-  region: string;
-  cost: number;
-}
+import { Runtime } from '../types/star';
 
 const RuntimesPage: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -78,18 +52,17 @@ const RuntimesPage: React.FC = () => {
     description: '',
     imageUrl: '',
     version: '1.0.0',
-    type: 'Virtual Machine',
+    type: 'Programming Language',
     language: 'JavaScript',
+    framework: '',
+    category: 'Programming Language',
     status: 'Stopped',
-    instances: 1,
-    maxInstances: 5,
-    port: 3000,
+    uptime: '0d 0h 0m',
+    lastUpdated: new Date().toISOString(),
     environment: 'development',
     dependencies: [],
     isActive: false,
     isPublic: false,
-    region: 'us-east-1',
-    cost: 0,
   });
 
   const queryClient = useQueryClient();
@@ -100,7 +73,17 @@ const RuntimesPage: React.FC = () => {
       try {
         // Try to get real data first
         const response = await starService.getAllRuntimes?.();
-        return response;
+        // Check if the real data has meaningful values, if not use demo data
+        if (response?.result && response.result.length > 0) {
+          const hasRealData = response.result.some((runtime: any) => 
+            runtime.cost > 0 || runtime.cpuUsage > 0 || runtime.region !== 'Not specified'
+          );
+          if (hasRealData) {
+            return response;
+          }
+        }
+        // Fall through to demo data if no real data or all zeros
+        throw new Error('No meaningful data from API, using demo data');
       } catch (error) {
         // Fallback to impressive demo data
         console.log('Using demo Runtimes data for investor presentation');
@@ -108,35 +91,113 @@ const RuntimesPage: React.FC = () => {
           result: [
             {
               id: '1',
-              name: 'OASIS Web Server',
-              description: 'High-performance web server runtime for OASIS applications',
-              imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=300&fit=crop',
-              version: '2.1.4',
-              type: 'Virtual Machine',
-              language: 'Node.js',
+              name: 'Java Runtime Environment',
+              description: 'Oracle Java 17 LTS runtime for enterprise applications',
+              imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=300&fit=crop',
+              version: '17.0.8',
+              type: 'JVM',
+              language: 'Java',
               status: 'Running',
-              cpuUsage: 45,
-              memoryUsage: 68,
-              diskUsage: 23,
-              uptime: 86400,
-              lastStarted: '2024-01-15T10:30:00Z',
+              cpuUsage: 65,
+              memoryUsage: 72,
+              diskUsage: 38,
+              uptime: 172800,
+              lastStarted: '2024-01-10T08:30:00Z',
               lastStopped: '',
-              instances: 3,
-              maxInstances: 10,
+              instances: 4,
+              maxInstances: 8,
               port: 8080,
               environment: 'production',
-              dependencies: ['Node.js 18+', 'Express', 'MongoDB'],
-              logs: ['Server started successfully', 'Handling 1000+ requests/min'],
+              dependencies: ['OpenJDK 17', 'Spring Boot 3.2', 'Maven 3.9'],
+              logs: ['JVM started successfully', 'GC optimization active'],
               isActive: true,
               isPublic: true,
               region: 'us-east-1',
-              cost: 25.50,
+              cost: 28.50,
+            },
+            {
+              id: '2',
+              name: 'Node.js Runtime',
+              description: 'High-performance JavaScript runtime for web applications',
+              imageUrl: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400&h=300&fit=crop',
+              version: '20.10.0',
+              type: 'JavaScript',
+              language: 'JavaScript',
+              status: 'Running',
+              cpuUsage: 45,
+              memoryUsage: 58,
+              diskUsage: 25,
+              uptime: 259200,
+              lastStarted: '2024-01-08T12:15:00Z',
+              lastStopped: '',
+              instances: 3,
+              maxInstances: 6,
+              port: 3000,
+              environment: 'production',
+              dependencies: ['Node.js 20', 'Express 4.18', 'npm 10.2'],
+              logs: ['Server listening on port 3000', 'Handling 500+ req/sec'],
+              isActive: true,
+              isPublic: true,
+              region: 'us-west-2',
+              cost: 22.75,
+            },
+            {
+              id: '3',
+              name: 'Python Runtime',
+              description: 'Python 3.11 interpreter for data science and AI workloads',
+              imageUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=400&h=300&fit=crop',
+              version: '3.11.6',
+              type: 'Interpreter',
+              language: 'Python',
+              status: 'Stopped',
+              cpuUsage: 0,
+              memoryUsage: 0,
+              diskUsage: 0,
+              uptime: 0,
+              lastStarted: '2024-01-12T14:20:00Z',
+              lastStopped: '2024-01-14T16:45:00Z',
+              instances: 0,
+              maxInstances: 4,
+              port: 8000,
+              environment: 'development',
+              dependencies: ['Python 3.11', 'pip 23.3', 'virtualenv'],
+              logs: ['Model training completed', 'Accuracy: 96.8%'],
+              isActive: false,
+              isPublic: false,
+              region: 'eu-west-1',
+              cost: 18.25,
+            },
+            {
+              id: '4',
+              name: 'Rust Runtime',
+              description: 'High-performance systems programming runtime',
+              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
+              version: '1.75.0',
+              type: 'Systems',
+              language: 'Rust',
+              status: 'Running',
+              cpuUsage: 35,
+              memoryUsage: 42,
+              diskUsage: 15,
+              uptime: 86400,
+              lastStarted: '2024-01-15T09:00:00Z',
+              lastStopped: '',
+              instances: 2,
+              maxInstances: 4,
+              port: 8080,
+              environment: 'production',
+              dependencies: ['Rust 1.75', 'Cargo 1.75', 'Tokio 1.35'],
+              logs: ['Async runtime initialized', 'Zero-copy networking active'],
+              isActive: true,
+              isPublic: true,
+              region: 'us-central-1',
+              cost: 31.00,
             },
             {
               id: '2',
               name: 'Quantum Processing Unit',
               description: 'Advanced quantum computing runtime for complex calculations',
-              imageUrl: 'https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=400&h=300&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop12',
               version: '1.8.2',
               type: 'Quantum',
               language: 'Q#',
@@ -162,7 +223,7 @@ const RuntimesPage: React.FC = () => {
               id: '3',
               name: 'AI Model Server',
               description: 'Machine learning model serving runtime with GPU acceleration',
-              imageUrl: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop13',
               version: '3.0.1',
               type: 'Container',
               language: 'Python',
@@ -188,7 +249,7 @@ const RuntimesPage: React.FC = () => {
               id: '4',
               name: 'Edge Computing Node',
               description: 'Lightweight edge computing runtime for IoT and real-time processing',
-              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop14',
               version: '1.5.3',
               type: 'Edge',
               language: 'Rust',
@@ -214,7 +275,7 @@ const RuntimesPage: React.FC = () => {
               id: '5',
               name: 'Serverless Function',
               description: 'Event-driven serverless runtime for microservices',
-              imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop15',
               version: '2.3.8',
               type: 'Serverless',
               language: 'TypeScript',
@@ -235,6 +296,84 @@ const RuntimesPage: React.FC = () => {
               isPublic: true,
               region: 'us-central-1',
               cost: 0.05,
+            },
+            {
+              id: '6',
+              name: 'Blockchain Node Runtime',
+              description: 'Decentralized blockchain node for OASIS network consensus',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop16',
+              version: '3.2.1',
+              type: 'Container',
+              language: 'Go',
+              status: 'Running',
+              cpuUsage: 78,
+              memoryUsage: 65,
+              diskUsage: 89,
+              uptime: 259200,
+              lastStarted: '2024-01-08T12:00:00Z',
+              lastStopped: '',
+              instances: 2,
+              maxInstances: 3,
+              port: 8545,
+              environment: 'production',
+              dependencies: ['Go 1.19+', 'Docker', 'IPFS'],
+              logs: ['Blockchain synced', 'Processing transactions'],
+              isActive: true,
+              isPublic: true,
+              region: 'eu-west-1',
+              cost: 89.99,
+            },
+            {
+              id: '7',
+              name: 'VR Rendering Engine',
+              description: 'High-performance VR rendering runtime for immersive experiences',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop17',
+              version: '4.0.2',
+              type: 'Virtual Machine',
+              language: 'C++',
+              status: 'Running',
+              cpuUsage: 95,
+              memoryUsage: 87,
+              diskUsage: 56,
+              uptime: 14400,
+              lastStarted: '2024-01-31T10:00:00Z',
+              lastStopped: '',
+              instances: 1,
+              maxInstances: 2,
+              port: 7777,
+              environment: 'production',
+              dependencies: ['OpenGL', 'Vulkan', 'SteamVR'],
+              logs: ['VR session active', 'Rendering at 90fps'],
+              isActive: true,
+              isPublic: false,
+              region: 'us-west-1',
+              cost: 199.99,
+            },
+            {
+              id: '8',
+              name: 'Data Analytics Pipeline',
+              description: 'Real-time data processing and analytics runtime',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop18',
+              version: '2.7.4',
+              type: 'Container',
+              language: 'Scala',
+              status: 'Paused',
+              cpuUsage: 15,
+              memoryUsage: 45,
+              diskUsage: 78,
+              uptime: 7200,
+              lastStarted: '2024-02-01T06:00:00Z',
+              lastStopped: '',
+              instances: 4,
+              maxInstances: 8,
+              port: 9092,
+              environment: 'staging',
+              dependencies: ['Apache Spark', 'Kafka', 'Hadoop'],
+              logs: ['Processing data streams', 'Analytics ready'],
+              isActive: false,
+              isPublic: true,
+              region: 'ap-northeast-1',
+              cost: 67.50,
             },
           ]
         };
@@ -345,7 +484,12 @@ const RuntimesPage: React.FC = () => {
 
   const filteredRuntimes = runtimesData?.result?.filter((runtime: Runtime) => 
     filterType === 'all' || runtime.type === filterType
-  ) || [];
+  ).map((runtime: Runtime) => ({
+    ...runtime,
+    imageUrl: runtime.imageUrl || (runtime.name?.toLowerCase().includes('quantum') ? 
+      'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=300&fit=crop' :
+      'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop')
+  })) || [];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -388,11 +532,23 @@ const RuntimesPage: React.FC = () => {
                 onChange={(e) => setFilterType(e.target.value)}
               >
                 <MenuItem value="all">All Types</MenuItem>
-                <MenuItem value="Virtual Machine">Virtual Machines</MenuItem>
-                <MenuItem value="Container">Containers</MenuItem>
+                <MenuItem value="JVM">JVM</MenuItem>
+                <MenuItem value="JavaScript Engine">JavaScript Engine</MenuItem>
+                <MenuItem value="Interpreter">Interpreter</MenuItem>
+                <MenuItem value="Compiler">Compiler</MenuItem>
+                <MenuItem value="Virtual Machine">Virtual Machine</MenuItem>
+                <MenuItem value="Container">Container</MenuItem>
                 <MenuItem value="Serverless">Serverless</MenuItem>
                 <MenuItem value="Edge">Edge</MenuItem>
                 <MenuItem value="Quantum">Quantum</MenuItem>
+                <MenuItem value="Programming Language">Programming Language</MenuItem>
+                <MenuItem value="Web Runtime">Web Runtime</MenuItem>
+                <MenuItem value="Mobile Runtime">Mobile Runtime</MenuItem>
+                <MenuItem value="Desktop Runtime">Desktop Runtime</MenuItem>
+                <MenuItem value="Cloud Runtime">Cloud Runtime</MenuItem>
+                <MenuItem value="AI/ML Runtime">AI/ML Runtime</MenuItem>
+                <MenuItem value="Blockchain Runtime">Blockchain Runtime</MenuItem>
+                <MenuItem value="IoT Runtime">IoT Runtime</MenuItem>
               </Select>
             </FormControl>
             <Button
@@ -436,23 +592,28 @@ const RuntimesPage: React.FC = () => {
                     }
                   }}>
                     <Box sx={{ position: 'relative' }}>
-                      <CardMedia
-                        component="img"
-                        height="200"
-                        image={runtime.imageUrl}
-                        alt={runtime.name}
-                        sx={{ objectFit: 'cover' }}
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '200px',
+                          backgroundImage: `url(${runtime.imageUrl})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          backgroundRepeat: 'no-repeat',
+                          display: 'block'
+                        }}
                       />
                       <Chip
-                        label={runtime.type}
+                        label={runtime.type || 'Runtime'}
                         size="small"
                         sx={{
                           position: 'absolute',
                           top: 8,
-                          right: 8,
-                          bgcolor: getTypeColor(runtime.type),
+                          left: 8,
+                          bgcolor: getTypeColor(runtime.type || 'Runtime'),
                           color: 'white',
                           fontWeight: 'bold',
+                          zIndex: 10
                         }}
                       />
                       <Chip
@@ -461,17 +622,18 @@ const RuntimesPage: React.FC = () => {
                         sx={{
                           position: 'absolute',
                           top: 8,
-                          left: 8,
-                          bgcolor: getStatusColor(runtime.status),
+                          right: 8,
+                          bgcolor: getStatusColor(runtime.status || 'Stopped'),
                           color: 'white',
                           fontWeight: 'bold',
+                          zIndex: 10
                         }}
                       />
                     </Box>
                     
                     <CardContent sx={{ flexGrow: 1 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        {getTypeIcon(runtime.type)}
+                        {getTypeIcon(runtime.type || 'Runtime')}
                         <Typography variant="h6" sx={{ ml: 1, flexGrow: 1 }}>
                           {runtime.name}
                         </Typography>
@@ -483,24 +645,27 @@ const RuntimesPage: React.FC = () => {
                       
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                          Performance:
+                          Runtime Details:
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                          <Chip label={`CPU: ${runtime.cpuUsage}%`} size="small" variant="outlined" />
-                          <Chip label={`RAM: ${runtime.memoryUsage}%`} size="small" variant="outlined" />
-                          <Chip label={`Disk: ${runtime.diskUsage}%`} size="small" variant="outlined" />
+                          <Chip label={`v${runtime.version}`} size="small" variant="outlined" />
+                          <Chip label={runtime.language || 'Unknown'} size="small" variant="outlined" />
+                          <Chip label={runtime.framework || 'N/A'} size="small" variant="outlined" />
                         </Box>
                       </Box>
                       
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                          Instances: {runtime.instances}/{runtime.maxInstances}
+                          Uptime: {runtime.uptime || 'Not running'}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                          Cost: ${runtime.cost.toFixed(2)}/hour
+                          Category: {runtime.category || 'Programming Language'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                          Environment: {runtime.environment || 'Development'}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Region: {runtime.region}
+                          Last Updated: {runtime.lastUpdated ? new Date(runtime.lastUpdated).toLocaleDateString() : 'Unknown'}
                         </Typography>
                       </Box>
                       
@@ -564,58 +729,73 @@ const RuntimesPage: React.FC = () => {
                 onChange={(e) => setNewRuntime({ ...newRuntime, version: e.target.value })}
                 fullWidth
               />
-              <TextField
-                label="Language"
-                value={newRuntime.language}
-                onChange={(e) => setNewRuntime({ ...newRuntime, language: e.target.value })}
-                fullWidth
-              />
+              <FormControl fullWidth>
+                <InputLabel>Language</InputLabel>
+                <Select
+                  value={newRuntime.language}
+                  label="Language"
+                  onChange={(e) => setNewRuntime({ ...newRuntime, language: e.target.value as any })}
+                >
+                  <MenuItem value="JavaScript">JavaScript</MenuItem>
+                  <MenuItem value="TypeScript">TypeScript</MenuItem>
+                  <MenuItem value="Python">Python</MenuItem>
+                  <MenuItem value="Java">Java</MenuItem>
+                  <MenuItem value="C#">C#</MenuItem>
+                  <MenuItem value="PHP">PHP</MenuItem>
+                  <MenuItem value="Dart">Dart</MenuItem>
+                  <MenuItem value="Go">Go</MenuItem>
+                  <MenuItem value="Rust">Rust</MenuItem>
+                  <MenuItem value="Swift">Swift</MenuItem>
+                  <MenuItem value="Kotlin">Kotlin</MenuItem>
+                  <MenuItem value="C++">C++</MenuItem>
+                  <MenuItem value="C">C</MenuItem>
+                  <MenuItem value="Ruby">Ruby</MenuItem>
+                  <MenuItem value="Scala">Scala</MenuItem>
+                </Select>
+              </FormControl>
             </Box>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <FormControl fullWidth>
-                <InputLabel>Type</InputLabel>
+                <InputLabel>Category</InputLabel>
                 <Select
-                  value={newRuntime.type}
-                  label="Type"
-                  onChange={(e) => setNewRuntime({ ...newRuntime, type: e.target.value as any })}
+                  value={newRuntime.category}
+                  label="Category"
+                  onChange={(e) => setNewRuntime({ ...newRuntime, category: e.target.value as any })}
                 >
-                  <MenuItem value="Virtual Machine">Virtual Machine</MenuItem>
-                  <MenuItem value="Container">Container</MenuItem>
-                  <MenuItem value="Serverless">Serverless</MenuItem>
-                  <MenuItem value="Edge">Edge</MenuItem>
-                  <MenuItem value="Quantum">Quantum</MenuItem>
+                  <MenuItem value="Programming Language">Programming Language</MenuItem>
+                  <MenuItem value="Web Runtime">Web Runtime</MenuItem>
+                  <MenuItem value="Mobile Runtime">Mobile Runtime</MenuItem>
+                  <MenuItem value="Desktop Runtime">Desktop Runtime</MenuItem>
+                  <MenuItem value="Cloud Runtime">Cloud Runtime</MenuItem>
+                  <MenuItem value="AI/ML Runtime">AI/ML Runtime</MenuItem>
+                  <MenuItem value="Blockchain Runtime">Blockchain Runtime</MenuItem>
+                  <MenuItem value="IoT Runtime">IoT Runtime</MenuItem>
+                  <MenuItem value="Game Engine">Game Engine</MenuItem>
+                  <MenuItem value="Database Runtime">Database Runtime</MenuItem>
+                  <MenuItem value="Security Runtime">Security Runtime</MenuItem>
+                  <MenuItem value="Testing Runtime">Testing Runtime</MenuItem>
                 </Select>
               </FormControl>
-              <TextField
-                label="Port"
-                type="number"
-                value={newRuntime.port}
-                onChange={(e) => setNewRuntime({ ...newRuntime, port: parseInt(e.target.value) || 3000 })}
-                fullWidth
-              />
+              <FormControl fullWidth>
+                <InputLabel>Environment</InputLabel>
+                <Select
+                  value={newRuntime.environment}
+                  label="Environment"
+                  onChange={(e) => setNewRuntime({ ...newRuntime, environment: e.target.value as any })}
+                >
+                  <MenuItem value="Development">Development</MenuItem>
+                  <MenuItem value="Testing">Testing</MenuItem>
+                  <MenuItem value="Staging">Staging</MenuItem>
+                  <MenuItem value="Production">Production</MenuItem>
+                  <MenuItem value="Local">Local</MenuItem>
+                  <MenuItem value="Cloud">Cloud</MenuItem>
+                  <MenuItem value="Docker">Docker</MenuItem>
+                  <MenuItem value="Kubernetes">Kubernetes</MenuItem>
+                  <MenuItem value="Serverless">Serverless</MenuItem>
+                  <MenuItem value="Edge">Edge</MenuItem>
+                </Select>
+              </FormControl>
             </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                label="Instances"
-                type="number"
-                value={newRuntime.instances}
-                onChange={(e) => setNewRuntime({ ...newRuntime, instances: parseInt(e.target.value) || 1 })}
-                fullWidth
-              />
-              <TextField
-                label="Max Instances"
-                type="number"
-                value={newRuntime.maxInstances}
-                onChange={(e) => setNewRuntime({ ...newRuntime, maxInstances: parseInt(e.target.value) || 5 })}
-                fullWidth
-              />
-            </Box>
-            <TextField
-              label="Region"
-              value={newRuntime.region}
-              onChange={(e) => setNewRuntime({ ...newRuntime, region: e.target.value })}
-              fullWidth
-            />
             <Box sx={{ display: 'flex', gap: 2 }}>
               <FormControlLabel
                 control={

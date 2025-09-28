@@ -41,7 +41,7 @@ import { STARStatus } from './types/star';
 
 const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isConnected, connectionStatus } = useSTARConnection();
+  const { isConnected, connectionStatus, igniteSTAR, extinguishStar, reconnect } = useSTARConnection();
 
   // STAR status is now managed by useSTARConnection hook
 
@@ -72,6 +72,9 @@ const App: React.FC = () => {
         onMenuClick={handleSidebarToggle}
         isConnected={isConnected}
         connectionStatus={connectionStatus}
+        igniteSTAR={igniteSTAR}
+        extinguishStar={extinguishStar}
+        reconnect={reconnect}
       />
       
       {/* Sidebar */}

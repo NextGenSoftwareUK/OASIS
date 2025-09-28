@@ -336,9 +336,9 @@ const GeoNFTsPage: React.FC = () => {
               startIcon={<Add />}
               onClick={() => setCreateDialogOpen(true)}
               sx={{
-                background: 'linear-gradient(45deg, #4caf50, #2196f3)',
+                bgcolor: '#1976d2',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #45a049, #1976d2)',
+                  bgcolor: '#1565c0',
                 },
               }}
             >
@@ -452,13 +452,19 @@ const GeoNFTsPage: React.FC = () => {
                       <Typography variant="h6" color="primary" fontWeight="bold">
                         {geoNFT.price} ETH
                       </Typography>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Badge badgeContent={geoNFT.views} color="primary" max={999}>
-                          <Visibility sx={{ fontSize: 20 }} />
-                        </Badge>
-                        <Badge badgeContent={geoNFT.likes} color="secondary" max={999}>
+                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Visibility sx={{ fontSize: 16, color: 'text.secondary' }} />
+                          <Typography variant="body2" color="text.secondary">
+                            {geoNFT.views}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                           <Typography variant="body2">❤️</Typography>
-                        </Badge>
+                          <Typography variant="body2" color="text.secondary">
+                            {geoNFT.likes}
+                          </Typography>
+                        </Box>
                       </Box>
                     </Box>
                     

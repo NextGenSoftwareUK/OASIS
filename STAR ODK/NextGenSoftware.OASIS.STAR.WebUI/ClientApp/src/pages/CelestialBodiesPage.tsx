@@ -375,15 +375,14 @@ const CelestialBodiesPage: React.FC = () => {
                 >
                   <Card sx={{ 
                     height: '100%', 
-                    display: 'flex', 
+                    display: 'flex',
                     flexDirection: 'column',
                     position: 'relative',
-                    overflow: 'hidden',
                     '&:hover': {
                       boxShadow: 6,
                     }
                   }}>
-                    <Box sx={{ position: 'relative' }}>
+                    <Box sx={{ position: 'relative', overflow: 'hidden', borderTopLeftRadius: 4, borderTopRightRadius: 4 }}>
                       <CardMedia
                         component="img"
                         height="200"
@@ -404,13 +403,16 @@ const CelestialBodiesPage: React.FC = () => {
                         }}
                       />
                       {body.isInhabited && (
-                        <Badge
-                          badgeContent="Inhabited"
+                        <Chip
+                          label="Inhabited"
+                          size="small"
                           color="success"
                           sx={{
                             position: 'absolute',
                             top: 8,
                             left: 8,
+                            fontSize: '0.75rem',
+                            height: 24,
                           }}
                         />
                       )}

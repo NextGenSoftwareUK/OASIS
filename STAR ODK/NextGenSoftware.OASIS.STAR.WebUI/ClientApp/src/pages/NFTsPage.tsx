@@ -73,7 +73,8 @@ const NFTsPage: React.FC = () => {
     'nfts',
     async () => {
       try {
-        // Try to get real data first
+        // Force demo data for now
+        throw 'Forcing demo data for NFTs';
         const response = await starService.getAllNFTs();
         return response;
       } catch (error) {
@@ -99,7 +100,7 @@ const NFTsPage: React.FC = () => {
               id: '2',
               name: 'Neon Cityscape',
               description: 'A futuristic cityscape from the cyberpunk realm',
-              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=400&fit=crop&auto=format&q=80',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=400&fit=crop&auto=format&q=80',
               price: 1.8,
               rarity: 'Epic',
               category: 'Art',
@@ -113,7 +114,7 @@ const NFTsPage: React.FC = () => {
               id: '3',
               name: 'Quantum Crystal',
               description: 'A rare crystal that bends reality itself',
-              imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=400&fit=crop',
               price: 3.2,
               rarity: 'Legendary',
               category: 'Minerals',
@@ -127,7 +128,7 @@ const NFTsPage: React.FC = () => {
               id: '4',
               name: 'Virtual Pet - Cyber Cat',
               description: 'An adorable cybernetic cat companion',
-              imageUrl: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=400&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&h=400&fit=crop&auto=format&q=80',
               price: 0.8,
               rarity: 'Rare',
               category: 'Pets',
@@ -141,7 +142,7 @@ const NFTsPage: React.FC = () => {
               id: '5',
               name: 'Space Station Alpha',
               description: 'A massive space station orbiting a distant star',
-              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=400&fit=crop',
+              imageUrl: 'https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=400&h=400&fit=crop&auto=format&q=80',
               price: 4.5,
               rarity: 'Legendary',
               category: 'Structures',
@@ -242,6 +243,18 @@ const NFTsPage: React.FC = () => {
     }
   };
 
+  const getCategoryColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'art': return '#e91e63';
+      case 'creatures': return '#4caf50';
+      case 'minerals': return '#9c27b0';
+      case 'pets': return '#ff9800';
+      case 'structures': return '#607d8b';
+      case 'nature': return '#8bc34a';
+      default: return '#1976d2';
+    }
+  };
+
   const categories = ['all', 'Art', 'Creatures', 'Minerals', 'Pets', 'Structures', 'Nature'];
   const filteredNFTs = nftsData?.result?.filter((nft: any) => 
     filterCategory === 'all' || nft.category === filterCategory
@@ -294,11 +307,9 @@ const NFTsPage: React.FC = () => {
             startIcon={<AddIcon />}
             onClick={() => setCreateDialogOpen(true)}
             sx={{
-              background: 'linear-gradient(45deg, #FFD700, #FFA500)',
-              color: 'black',
-              fontWeight: 'bold',
+              bgcolor: '#1976d2',
               '&:hover': {
-                background: 'linear-gradient(45deg, #FFA500, #FFD700)',
+                bgcolor: '#1565c0',
               }
             }}
           >
@@ -366,14 +377,27 @@ const NFTsPage: React.FC = () => {
                 }
               }}>
                 <Box sx={{ position: 'relative' }}>
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image={nft.imageUrl}
-                    alt={nft.name}
-                    sx={{ 
-                      objectFit: 'cover',
+                  <Box
+                    sx={{
+                      height: 200,
+                      backgroundImage: `url(${nft.imageUrl})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
                       filter: 'brightness(1.1) contrast(1.1)',
+                    }}
+                  />
+                  <Chip
+                    label={nft.category}
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: 8,
+                      left: 8,
+                      bgcolor: getCategoryColor(nft.category),
+                      color: 'white',
+                      fontWeight: 'bold',
+                      fontSize: '0.7rem'
                     }}
                   />
                   <Chip
@@ -395,7 +419,7 @@ const NFTsPage: React.FC = () => {
                       size="small"
                       sx={{
                         position: 'absolute',
-                        top: 8,
+                        top: 40,
                         left: 8,
                         bgcolor: '#4caf50',
                         color: 'white',
@@ -531,8 +555,31 @@ const NFTsPage: React.FC = () => {
             variant="outlined"
             value={newNFT.category}
             onChange={(e) => setNewNFT({ ...newNFT, category: e.target.value })}
+            select
+            SelectProps={{ native: true }}
             sx={{ mb: 2 }}
-          />
+          >
+            <option value="Art">Art</option>
+            <option value="Creatures">Creatures</option>
+            <option value="Minerals">Minerals</option>
+            <option value="Pets">Pets</option>
+            <option value="Structures">Structures</option>
+            <option value="Nature">Nature</option>
+            <option value="Landscapes">Landscapes</option>
+            <option value="Characters">Characters</option>
+            <option value="Vehicles">Vehicles</option>
+            <option value="Weapons">Weapons</option>
+            <option value="Accessories">Accessories</option>
+            <option value="Music">Music</option>
+            <option value="Sports">Sports</option>
+            <option value="Gaming">Gaming</option>
+            <option value="Technology">Technology</option>
+            <option value="Fashion">Fashion</option>
+            <option value="Collectibles">Collectibles</option>
+            <option value="Memes">Memes</option>
+            <option value="Abstract">Abstract</option>
+            <option value="Photography">Photography</option>
+          </TextField>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>

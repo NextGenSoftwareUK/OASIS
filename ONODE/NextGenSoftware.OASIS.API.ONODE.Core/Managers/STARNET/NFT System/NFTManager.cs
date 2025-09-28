@@ -537,15 +537,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 result.Result = CreateOASISNFT(request);
 
                 //Default to Mongo for storing the OASIS NFT meta data if none is specified.
-                if (request.OffChainMetaType.Value == ProviderType.None)
-                    request.OffChainMetaType.Value = ProviderType.MongoDBOASIS;
+                if (request.OffChainProvider.Value == ProviderType.None)
+                    request.OffChainProvider.Value = ProviderType.MongoDBOASIS;
 
-                OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(CreateNFTMetaDataHolon(result.Result, request), request.ImportedByByAvatarId, true, true, 0, true, false, request.OffChainMetaType.Value);
+                OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(CreateNFTMetaDataHolon(result.Result, request), request.ImportedByByAvatarId, true, true, 0, true, false, request.OffChainProvider.Value);
 
                 if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
                 {
                     result.Result = null;
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {request.OffChainMetaType.Name}. Reason: {saveHolonResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {request.OffChainProvider.Name}. Reason: {saveHolonResult.Message}");
                 }
             }
             catch (Exception e)
@@ -567,15 +567,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 result.Result = CreateOASISNFT(request);
 
                 //Default to Mongo for storing the OASIS NFT meta data if none is specified.
-                if (request.OffChainMetaType.Value == ProviderType.None)
-                    request.OffChainMetaType.Value = ProviderType.MongoDBOASIS;
+                if (request.OffChainProvider.Value == ProviderType.None)
+                    request.OffChainProvider.Value = ProviderType.MongoDBOASIS;
 
-                OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateNFTMetaDataHolon(result.Result, request), request.ImportedByByAvatarId, true, true, 0, true, false, request.OffChainMetaType.Value);
+                OASISResult<IHolon> saveHolonResult = Data.SaveHolon(CreateNFTMetaDataHolon(result.Result, request), request.ImportedByByAvatarId, true, true, 0, true, false, request.OffChainProvider.Value);
 
                 if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
                 {
                     result.Result = null;
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {request.OffChainMetaType.Name}. Reason: {saveHolonResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving metadata holon to the {request.OffChainProvider.Name}. Reason: {saveHolonResult.Message}");
                 }
             }
             catch (Exception e)
@@ -2229,7 +2229,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 Thumbnail = request.Thumbnail,
                 ThumbnailUrl = request.ThumbnailUrl,
                 OnChainProvider = request.OnChainProvider,
-                OffChainProvider = request.OffChainMetaType,
+                OffChainProvider = request.OffChainProvider,
                 StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
                 NFTOffChainMetaType = request.NFTOffChainMetaType,
                 NFTStandardType = request.NFTStandardType,
