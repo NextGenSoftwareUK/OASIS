@@ -12,32 +12,34 @@ export const useSTARConnection = () => {
 
   const queryClient = useQueryClient();
 
-  // Check STAR status
+  // Check STAR status - TEMPORARILY DISABLED for demo mode
+  // TODO: Re-enable when live API is working
   const { data: starStatus, isLoading, error } = useQuery<STARStatus>(
     'starStatus',
     starService.getSTARStatus,
     {
-      refetchInterval: 2000, // Check every 2 seconds for more responsive updates
-      refetchOnWindowFocus: true, // Check when user returns to tab
-      refetchIntervalInBackground: true, // Continue checking even when tab is not active
-      onSuccess: (data) => {
-        console.log('STAR Status Update:', data); // Debug logging
-        setConnectionStatus(prev => ({
-          ...prev,
-          isConnected: data.isIgnited,
-          status: data.isIgnited ? 'connected' : 'disconnected',
-          lastConnected: data.isIgnited ? new Date() : prev.lastConnected,
-        }));
-      },
-      onError: (error) => {
-        console.error('STAR Status Error:', error); // Debug logging
-        setConnectionStatus(prev => ({
-          ...prev,
-          isConnected: false,
-          status: 'error',
-          error: error instanceof Error ? error.message : 'Unknown error',
-        }));
-      },
+      // refetchInterval: 2000, // Check every 2 seconds for more responsive updates
+      // refetchOnWindowFocus: true, // Check when user returns to tab
+      // refetchIntervalInBackground: true, // Continue checking even when tab is not active
+      enabled: false, // TEMPORARILY DISABLED - only manual control for demo
+      // onSuccess: (data) => {
+      //   console.log('STAR Status Update from API:', data); // Debug logging
+      //   setConnectionStatus(prev => ({
+      //     ...prev,
+      //     isConnected: data.isIgnited,
+      //     status: data.isIgnited ? 'connected' : 'disconnected',
+      //     lastConnected: data.isIgnited ? new Date() : prev.lastConnected,
+      //   }));
+      // },
+      // onError: (error) => {
+      //   console.error('STAR Status Error:', error); // Debug logging
+      //   setConnectionStatus(prev => ({
+      //     ...prev,
+      //     isConnected: false,
+      //     status: 'error',
+      //     error: error instanceof Error ? error.message : 'Unknown error',
+      //   }));
+      // },
     }
   );
 
@@ -94,21 +96,17 @@ export const useSTARConnection = () => {
         throw new Error(result.message || 'Failed to ignite STAR');
       }
 
-      // Immediately invalidate and refetch status
-      queryClient.invalidateQueries('starStatus');
-      
-      // Force multiple status checks to ensure we catch the state change
-      setTimeout(() => {
-        queryClient.invalidateQueries('starStatus');
-      }, 500);
-      
-      setTimeout(() => {
-        queryClient.invalidateQueries('starStatus');
-      }, 1500);
-      
-      setTimeout(() => {
-        queryClient.invalidateQueries('starStatus');
-      }, 3000);
+      // Immediately update connection status to connected
+      console.log('STAR Ignited - updating status to connected');
+      setConnectionStatus(prev => ({
+        ...prev,
+        isConnected: true,
+        status: 'connected',
+        lastConnected: new Date(),
+      }));
+
+      // TODO: Re-enable when live API is working
+      // queryClient.invalidateQueries('starStatus');
       
       return result;
     } catch (error) {
@@ -130,7 +128,15 @@ export const useSTARConnection = () => {
         throw new Error(result.message || 'Failed to extinguish STAR');
       }
 
-      queryClient.invalidateQueries('starStatus');
+      // Immediately update connection status to disconnected
+      setConnectionStatus(prev => ({
+        ...prev,
+        isConnected: false,
+        status: 'disconnected',
+      }));
+
+      // TODO: Re-enable when live API is working
+      // queryClient.invalidateQueries('starStatus');
       return result;
     } catch (error) {
       setConnectionStatus(prev => ({
@@ -155,6 +161,14 @@ export const useSTARConnection = () => {
       }));
     }
   }, [queryClient]);
+
+  // Debug logging
+  console.log('useSTARConnection - Current status:', {
+    isConnected: connectionStatus.isConnected,
+    status: connectionStatus.status,
+    isLoading,
+    error: error instanceof Error ? error.message : error
+  });
 
   return {
     isConnected: connectionStatus.isConnected,

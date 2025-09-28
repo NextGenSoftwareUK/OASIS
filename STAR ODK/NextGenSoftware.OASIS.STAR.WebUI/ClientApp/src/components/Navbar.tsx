@@ -22,19 +22,25 @@ import {
   Refresh,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { useSTARConnection } from '../hooks/useSTARConnection';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 interface NavbarProps {
   onMenuClick: () => void;
   isConnected: boolean;
   connectionStatus: string;
+  igniteSTAR: () => Promise<any>;
+  extinguishStar: () => Promise<any>;
+  reconnect: () => Promise<any>;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionStatus }) => {
-  const { igniteSTAR, extinguishStar, reconnect } = useSTARConnection();
+const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionStatus, igniteSTAR, extinguishStar, reconnect }) => {
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = React.useState<null | HTMLElement>(null);
+
+  // Debug logging
+  console.log('Navbar received props:', { isConnected, connectionStatus });
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -76,6 +82,11 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
     } catch (error) {
       toast.error('Failed to reconnect');
     }
+    handleMenuClose();
+  };
+
+  const handleSettingsClick = () => {
+    navigate('/settings');
     handleMenuClose();
   };
 
@@ -209,7 +220,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
             <Refresh sx={{ mr: 1 }} />
             Reconnect
           </MenuItem>
-          <MenuItem onClick={handleMenuClose}>
+          <MenuItem onClick={handleSettingsClick}>
             <Settings sx={{ mr: 1 }} />
             Settings
           </MenuItem>

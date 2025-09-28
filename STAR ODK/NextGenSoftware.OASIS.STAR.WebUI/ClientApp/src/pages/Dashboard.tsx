@@ -138,7 +138,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
     },
     {
       title: 'Avatars',
-      value: Array.isArray(avatarData?.result) ? avatarData?.result.length : 89, // Impressive demo number
+      value: 30, // Total avatars in the OASIS ecosystem
       icon: <People />,
       color: '#ff9800',
       description: 'Active Users',

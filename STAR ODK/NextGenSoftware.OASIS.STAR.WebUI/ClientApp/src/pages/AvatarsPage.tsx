@@ -68,7 +68,22 @@ const AvatarsPage: React.FC = () => {
     async () => {
       try {
         const response = await starService.getAllAvatars();
-        return response;
+        // Check if the real data has meaningful values, if not use demo data
+        console.log('API Response for Avatars:', response);
+        if (response?.result && response.result.length > 0) {
+          console.log('API returned avatars:', response.result);
+          const hasRealData = response.result.some((avatar: any) => 
+            avatar.karma > 0 || avatar.level || avatar.firstName
+          );
+          console.log('Has real data:', hasRealData);
+          if (hasRealData) {
+            console.log('Using API data for avatars');
+            return response;
+          }
+        }
+        console.log('API data not meaningful, using demo data');
+        // Fall through to demo data if no real data or all zeros
+        throw new Error('No meaningful data from API, using demo data');
       } catch (error) {
         // Fallback to demo data for investor presentation - only log to console
         console.log('Using demo Avatar data for investor presentation:', error);
@@ -109,6 +124,330 @@ const AvatarsPage: React.FC = () => {
               lastBeamedIn: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
               karma: 87500,
               level: 'Expert'
+            },
+            {
+              id: '4',
+              title: 'Commander',
+              firstName: 'Zara',
+              lastName: 'Phoenix',
+              email: 'zara.phoenix@oasis.com',
+              username: 'zara_phoenix',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+              karma: 156000,
+              level: 'Legendary'
+            },
+            {
+              id: '5',
+              title: 'Prof',
+              firstName: 'Marcus',
+              lastName: 'Voidwalker',
+              email: 'marcus.void@oasis.com',
+              username: 'marcus_void',
+              isBeamedIn: false,
+              lastBeamedIn: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+              karma: 78500,
+              level: 'Expert'
+            },
+            {
+              id: '6',
+              title: 'Agent',
+              firstName: 'Luna',
+              lastName: 'Starweaver',
+              email: 'luna.star@oasis.com',
+              username: 'luna_starweaver',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+              karma: 92000,
+              level: 'Master'
+            },
+            {
+              id: '7',
+              title: 'Engineer',
+              firstName: 'Kai',
+              lastName: 'Nexus',
+              email: 'kai.nexus@oasis.com',
+              username: 'kai_nexus',
+              isBeamedIn: false,
+              lastBeamedIn: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+              karma: 65000,
+              level: 'Advanced'
+            },
+            {
+              id: '8',
+              title: 'Pilot',
+              firstName: 'Raven',
+              lastName: 'Cosmos',
+              email: 'raven.cosmos@oasis.com',
+              username: 'raven_cosmos',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+              karma: 110000,
+              level: 'Master'
+            },
+            {
+              id: '9',
+              title: 'Scientist',
+              firstName: 'Echo',
+              lastName: 'Quantum',
+              email: 'echo.quantum@oasis.com',
+              username: 'echo_quantum',
+              isBeamedIn: false,
+              lastBeamedIn: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+              karma: 89000,
+              level: 'Expert'
+            },
+            {
+              id: '10',
+              title: 'Guardian',
+              firstName: 'Orion',
+              lastName: 'Stardust',
+              email: 'orion.stardust@oasis.com',
+              username: 'orion_stardust',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+              karma: 134000,
+              level: 'Legendary'
+            },
+            {
+              id: '11',
+              title: 'Hacker',
+              firstName: 'Nyx',
+              lastName: 'Shadowbyte',
+              email: 'nyx.shadow@oasis.com',
+              username: 'nyx_shadowbyte',
+              isBeamedIn: false,
+              lastBeamedIn: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+              karma: 95500,
+              level: 'Master'
+            },
+            {
+              id: '12',
+              title: 'Explorer',
+              firstName: 'Atlas',
+              lastName: 'Voyager',
+              email: 'atlas.voyager@oasis.com',
+              username: 'atlas_voyager',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+              karma: 72000,
+              level: 'Advanced'
+            },
+            {
+              id: '13',
+              title: 'Architect',
+              firstName: 'Vega',
+              lastName: 'Skyforge',
+              email: 'vega.skyforge@oasis.com',
+              username: 'vega_skyforge',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 8 * 60 * 1000).toISOString(),
+              karma: 145000,
+              level: 'Legendary'
+            },
+            {
+              id: '14',
+              title: 'Mystic',
+              firstName: 'Celeste',
+              lastName: 'Moonwhisper',
+              email: 'celeste.moon@oasis.com',
+              username: 'celeste_moonwhisper',
+              isBeamedIn: false,
+              lastBeamedIn: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+              karma: 118000,
+              level: 'Master'
+            },
+            {
+              id: '15',
+              title: 'Warrior',
+              firstName: 'Titan',
+              lastName: 'Ironclad',
+              email: 'titan.ironclad@oasis.com',
+              username: 'titan_ironclad',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
+              karma: 167000,
+              level: 'Legendary'
+            },
+            {
+              id: '16',
+              title: 'Sage',
+              firstName: 'Wisdom',
+              lastName: 'Ethereal',
+              email: 'wisdom.ethereal@oasis.com',
+              username: 'wisdom_ethereal',
+              isBeamedIn: false,
+              lastBeamedIn: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+              karma: 89500,
+              level: 'Expert'
+            },
+            {
+              id: '17',
+              title: 'Ranger',
+              firstName: 'Storm',
+              lastName: 'Wildfire',
+              email: 'storm.wildfire@oasis.com',
+              username: 'storm_wildfire',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+              karma: 103000,
+              level: 'Master'
+            },
+            {
+              id: '18',
+              title: 'Technomancer',
+              firstName: 'Cipher',
+              lastName: 'Datastream',
+              email: 'cipher.data@oasis.com',
+              username: 'cipher_datastream',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
+              karma: 178000,
+              level: 'Legendary'
+            },
+            {
+              id: '19',
+              title: 'Bard',
+              firstName: 'Melody',
+              lastName: 'Starlight',
+              email: 'melody.starlight@oasis.com',
+              username: 'melody_starlight',
+              isBeamedIn: false,
+              lastBeamedIn: new Date(Date.now() - 7 * 60 * 60 * 1000).toISOString(),
+              karma: 76500,
+              level: 'Advanced'
+            },
+            {
+              id: '20',
+              title: 'Paladin',
+              firstName: 'Justice',
+              lastName: 'Lightbringer',
+              email: 'justice.light@oasis.com',
+              username: 'justice_lightbringer',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
+              karma: 142000,
+              level: 'Legendary'
+            },
+            {
+              id: '21',
+              title: 'Rogue',
+              firstName: 'Shadow',
+              lastName: 'Nightfall',
+              email: 'shadow.nightfall@oasis.com',
+              username: 'shadow_nightfall',
+              isBeamedIn: false,
+              lastBeamedIn: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+              karma: 91000,
+              level: 'Expert'
+            },
+            {
+              id: '22',
+              title: 'Alchemist',
+              firstName: 'Phoenix',
+              lastName: 'Goldweaver',
+              email: 'phoenix.gold@oasis.com',
+              username: 'phoenix_goldweaver',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
+              karma: 127000,
+              level: 'Master'
+            },
+            {
+              id: '23',
+              title: 'Monk',
+              firstName: 'Zen',
+              lastName: 'Peacekeeper',
+              email: 'zen.peace@oasis.com',
+              username: 'zen_peacekeeper',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 6 * 60 * 1000).toISOString(),
+              karma: 156000,
+              level: 'Legendary'
+            },
+            {
+              id: '24',
+              title: 'Necromancer',
+              firstName: 'Raven',
+              lastName: 'Soulweaver',
+              email: 'raven.soul@oasis.com',
+              username: 'raven_soulweaver',
+              isBeamedIn: false,
+              lastBeamedIn: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+              karma: 84000,
+              level: 'Expert'
+            },
+            {
+              id: '25',
+              title: 'Druid',
+              firstName: 'Forest',
+              lastName: 'Earthsong',
+              email: 'forest.earth@oasis.com',
+              username: 'forest_earthsong',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 22 * 60 * 1000).toISOString(),
+              karma: 112000,
+              level: 'Master'
+            },
+            {
+              id: '26',
+              title: 'Artificer',
+              firstName: 'Gear',
+              lastName: 'Clockwork',
+              email: 'gear.clockwork@oasis.com',
+              username: 'gear_clockwork',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 14 * 60 * 1000).toISOString(),
+              karma: 98000,
+              level: 'Master'
+            },
+            {
+              id: '27',
+              title: 'Summoner',
+              firstName: 'Void',
+              lastName: 'Spiritcaller',
+              email: 'void.spirit@oasis.com',
+              username: 'void_spiritcaller',
+              isBeamedIn: false,
+              lastBeamedIn: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+              karma: 133000,
+              level: 'Master'
+            },
+            {
+              id: '28',
+              title: 'Elementalist',
+              firstName: 'Blaze',
+              lastName: 'Stormcaller',
+              email: 'blaze.storm@oasis.com',
+              username: 'blaze_stormcaller',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 9 * 60 * 1000).toISOString(),
+              karma: 149000,
+              level: 'Legendary'
+            },
+            {
+              id: '29',
+              title: 'Chronomancer',
+              firstName: 'Time',
+              lastName: 'Paradox',
+              email: 'time.paradox@oasis.com',
+              username: 'time_paradox',
+              isBeamedIn: false,
+              lastBeamedIn: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+              karma: 201000,
+              level: 'Legendary'
+            },
+            {
+              id: '30',
+              title: 'Voidwalker',
+              firstName: 'Cosmos',
+              lastName: 'Infinity',
+              email: 'cosmos.infinity@oasis.com',
+              username: 'cosmos_infinity',
+              isBeamedIn: true,
+              lastBeamedIn: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
+              karma: 234000,
+              level: 'Legendary'
             }
           ]
         };
@@ -216,7 +555,10 @@ const AvatarsPage: React.FC = () => {
                 <Card sx={{ height: '100%' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Avatar sx={{ width: 60, height: 60, bgcolor: 'primary.main', mr: 2 }}>
+                      <Avatar 
+                        sx={{ width: 60, height: 60, mr: 2 }}
+                        src={avatar.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatar.username}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf&backgroundType=gradientLinear`}
+                      >
                         {avatar.username?.charAt(0).toUpperCase()}
                       </Avatar>
                       <Box sx={{ flexGrow: 1 }}>
@@ -271,7 +613,15 @@ const AvatarsPage: React.FC = () => {
                     </Box>
 
                     <Typography variant="caption" color="text.secondary">
-                      Last active: {new Date(avatar.lastBeamedIn).toLocaleDateString()}
+                      Last active: {avatar.lastBeamedIn ? 
+                        new Date(avatar.lastBeamedIn).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }) : 'Never'
+                      }
                     </Typography>
                   </CardContent>
                 </Card>

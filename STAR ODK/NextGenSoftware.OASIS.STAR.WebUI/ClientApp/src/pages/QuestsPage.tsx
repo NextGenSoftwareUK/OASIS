@@ -283,6 +283,12 @@ const QuestsPage: React.FC = () => {
                           }}
                         />
                         <Chip
+                          label={quest.category.toUpperCase()}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                        />
+                        <Chip
                           label={`${quest.karmaReward} Karma`}
                           size="small"
                           color="secondary"
@@ -378,8 +384,31 @@ const QuestsPage: React.FC = () => {
               value={newQuest.category}
               onChange={(e) => setNewQuest({ ...newQuest, category: e.target.value })}
               fullWidth
+              select
+              SelectProps={{ native: true }}
               required
-            />
+            >
+              <option value="general">General</option>
+              <option value="exploration">Exploration</option>
+              <option value="combat">Combat</option>
+              <option value="crafting">Crafting</option>
+              <option value="social">Social</option>
+              <option value="puzzle">Puzzle</option>
+              <option value="collection">Collection</option>
+              <option value="achievement">Achievement</option>
+              <option value="story">Story</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="event">Event</option>
+              <option value="pvp">PvP</option>
+              <option value="pve">PvE</option>
+              <option value="raid">Raid</option>
+              <option value="dungeon">Dungeon</option>
+              <option value="quest">Quest</option>
+              <option value="mission">Mission</option>
+              <option value="challenge">Challenge</option>
+              <option value="tutorial">Tutorial</option>
+            </TextField>
             <TextField
               label="Tags (comma-separated)"
               value={newQuest.tags}

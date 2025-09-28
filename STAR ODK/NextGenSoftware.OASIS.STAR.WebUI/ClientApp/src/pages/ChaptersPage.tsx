@@ -380,13 +380,15 @@ const ChaptersPage: React.FC = () => {
                         }}
                       />
                       {chapter.isFeatured && (
-                        <Badge
-                          badgeContent="Featured"
+                        <Chip
+                          label="Featured"
+                          size="small"
                           color="primary"
                           sx={{
                             position: 'absolute',
                             top: 8,
                             left: 8,
+                            fontWeight: 'bold',
                           }}
                         />
                       )}

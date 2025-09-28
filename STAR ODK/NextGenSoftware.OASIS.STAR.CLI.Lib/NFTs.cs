@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using ThirdParty.Json.LitJson;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -242,8 +243,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
                 else
                 {
-                    //WEB3 NFT Import from Token Address
-                    string tokenAddress = CLIEngine.GetValidInput("Please enter the token address of the NFT you wish to import: ");
+                    IImportWeb3NFTRequest request = await NFTCommon.GenerateNFTRequestAsync();
+
+                    CLIEngine.ShowWorkingMessage("Importing OASIS NFT...");
+                    OASISResult<IOASISNFT> importResult = await STAR.OASISAPI.NFTs.ImportWeb3NFTAsync(request);
+
+                    if (importResult != null && importResult.Result != null && !importResult.IsError)
+                    {
+                        CLIEngine.ShowSuccessMessage(importResult.Message);
+                        result.Result = importResult.Result.OASISNFT;
+                    }
+                    else
+                    {
+                        string msg = importResult != null ? importResult.Message : "";
+                        CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
+                    }
+
+                    //ImportWeb3NFTRequest request = await NFTCommon.GenerateNFTRequestAsync();
+
+                    //ImportWeb3NFTRequest request = new ImportWeb3NFTRequest();
+
+                    ////WEB3 NFT Import from Token Address
+                    //request. = CLIEngine.GetValidInput("Please enter the token address of the NFT you wish to import: ");
+
 
                     //TODO: Finish import code here (may need to split out some of the minting code in NFTManager (so can just call into the OASIS NFT Wrapping Code and not the minting itself).
                     //intNFTTransactionRequest request = new MintNFTTransactionRequest();
@@ -253,6 +275,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     //request.Description = CLIEngine.GetValidInput("What is the NFT's description?");
 
                     //CLIEngine.ShowWorkingMessage("Importing OASIS NFT...");
+                    //NFTCommon.NFTManager.ImportWeb3NFTAsync()
                 }
             }
             else

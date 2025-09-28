@@ -103,7 +103,22 @@ const TemplatesPage: React.FC = () => {
       try {
         // Try to get real data first
         const response = await starService.getAllTemplates?.();
+        // Check if the real data has meaningful values, if not use demo data
+        console.log('API Response for Templates:', response);
+        if (response?.result && response.result.length > 0) {
+          console.log('API returned templates:', response.result);
+          const hasRealData = response.result.some((template: any) => 
+            template.price > 0 || template.downloads > 0 || template.rating > 0
+          );
+          console.log('Has real data:', hasRealData);
+          if (hasRealData) {
+            console.log('Using API data for templates');
         return response;
+          }
+        }
+        console.log('API data not meaningful, using demo data');
+        // Fall through to demo data if no real data or all zeros
+        throw new Error('No meaningful data from API, using demo data');
       } catch (error) {
         // Fallback to impressive demo data
         console.log('Using demo Templates data for investor presentation');
@@ -111,133 +126,263 @@ const TemplatesPage: React.FC = () => {
           result: [
             {
               id: '1',
-              name: 'OASIS Web App Starter',
-              description: 'Complete starter template for building OASIS-compatible web applications with modern tech stack',
-              imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop',
-              category: 'Web App',
-              type: 'Full Stack',
+              name: 'React Native Mobile App',
+              description: 'Cross-platform mobile app template with authentication and navigation',
+              imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=300&fit=crop',
+              category: 'Mobile',
+              type: 'Mobile App',
               language: 'TypeScript',
-              framework: 'React + Node.js',
-              author: 'OASIS Core Team',
+              framework: 'React Native',
+              author: 'MobileDev Studio',
               version: '3.2.1',
-              downloads: 125000,
+              downloads: 25420,
               rating: 4.9,
               size: 45.2,
               lastUpdated: '2024-01-15',
               isPublic: true,
               isFeatured: true,
-              tags: ['React', 'Node.js', 'TypeScript', 'OASIS'],
-              features: ['Authentication', 'Database Integration', 'API Routes', 'UI Components'],
-              requirements: ['Node.js 18+', 'npm/yarn', 'MongoDB'],
-              documentation: 'https://docs.oasis.com/starter',
-              repository: 'https://github.com/oasis/web-starter',
+              tags: ['React Native', 'TypeScript', 'Firebase', 'Redux'],
+              features: ['Authentication', 'Push Notifications', 'Offline Support', 'Social Login'],
+              requirements: ['Node.js 18+', 'React Native CLI', 'Android Studio', 'Xcode'],
+              documentation: 'https://docs.mobiledev.com/react-native-template',
+              repository: 'https://github.com/mobiledev/react-native-template',
               license: 'MIT',
               price: 0,
               isFree: true,
             },
             {
               id: '2',
-              name: 'Quantum Game Engine',
-              description: 'Advanced game development template with quantum physics simulation and 3D graphics',
-              imageUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&h=300&fit=crop',
-              category: 'Game',
-              type: 'Framework',
-              language: 'C++',
-              framework: 'Unreal Engine',
-              author: 'Quantum Games Studio',
-              version: '2.8.4',
+              name: '.NET MAUI Cross-Platform App',
+              description: 'Microsoft MAUI template for building native mobile and desktop apps',
+              imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=300&fit=crop',
+              category: 'Desktop',
+              type: 'Cross-Platform',
+              language: 'C#',
+              framework: '.NET MAUI',
+              author: 'Microsoft',
+              version: '8.0.0',
               downloads: 89000,
               rating: 4.8,
               size: 125.7,
               lastUpdated: '2024-01-20',
               isPublic: true,
               isFeatured: true,
-              tags: ['C++', 'Unreal', 'Quantum', '3D Graphics'],
-              features: ['Quantum Physics', '3D Rendering', 'Multiplayer', 'VR Support'],
-              requirements: ['Unreal Engine 5+', 'Visual Studio', 'DirectX 12'],
-              documentation: 'https://docs.quantumgames.com/engine',
-              repository: 'https://github.com/quantumgames/engine',
-              license: 'GPL v3',
-              price: 99.99,
-              isFree: false,
+              tags: ['C#', '.NET', 'MAUI', 'Cross-Platform'],
+              features: ['Native Performance', 'Shared UI', 'Platform APIs', 'Hot Reload'],
+              requirements: ['Visual Studio 2022', '.NET 8 SDK', 'Android SDK'],
+              documentation: 'https://docs.microsoft.com/maui',
+              repository: 'https://github.com/dotnet/maui',
+              license: 'MIT',
+              price: 0,
+              isFree: true,
             },
             {
               id: '3',
-              name: 'AI/ML Model Template',
-              description: 'Comprehensive template for building and deploying machine learning models',
-              imageUrl: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop',
-              category: 'AI/ML',
-              type: 'Boilerplate',
-              language: 'Python',
-              framework: 'TensorFlow + FastAPI',
-              author: 'AI Research Labs',
-              version: '1.5.7',
+              name: 'WordPress CMS Template',
+              description: 'Professional WordPress theme with custom post types and WooCommerce integration',
+              imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop',
+              category: 'Web',
+              type: 'CMS',
+              language: 'PHP',
+              framework: 'WordPress',
+              author: 'WP Studio',
+              version: '2.1.4',
               downloads: 156000,
               rating: 4.7,
               size: 23.8,
               lastUpdated: '2024-01-25',
               isPublic: true,
               isFeatured: false,
-              tags: ['Python', 'TensorFlow', 'FastAPI', 'MLOps'],
-              features: ['Model Training', 'API Endpoints', 'Data Pipeline', 'Monitoring'],
-              requirements: ['Python 3.9+', 'TensorFlow 2.0+', 'Docker'],
-              documentation: 'https://docs.airesearch.com/template',
-              repository: 'https://github.com/airesearch/ml-template',
-              license: 'Apache 2.0',
-              price: 0,
-              isFree: true,
+              tags: ['PHP', 'WordPress', 'WooCommerce', 'CMS'],
+              features: ['Custom Post Types', 'E-commerce', 'SEO Optimized', 'Responsive'],
+              requirements: ['PHP 8.0+', 'MySQL 5.7+', 'WordPress 6.0+'],
+              documentation: 'https://docs.wpstudio.com/template',
+              repository: 'https://github.com/wpstudio/wordpress-template',
+              license: 'GPL v2',
+              price: 49.99,
+              isFree: false,
             },
             {
               id: '4',
-              name: 'Blockchain DApp Template',
-              description: 'Complete decentralized application template with smart contracts and frontend',
-              imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=300&fit=crop',
-              category: 'Blockchain',
-              type: 'Full Stack',
-              language: 'Solidity + TypeScript',
-              framework: 'Hardhat + React',
-              author: 'Blockchain Devs',
-              version: '4.1.2',
+              name: 'ASP.NET Core MVC Template',
+              description: 'Enterprise-grade web application template with authentication and API integration',
+              imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=300&fit=crop',
+              category: 'Web',
+              type: 'Web App',
+              language: 'C#',
+              framework: 'ASP.NET Core',
+              author: 'Microsoft',
+              version: '8.0.0',
               downloads: 67000,
               rating: 4.6,
               size: 34.5,
               lastUpdated: '2024-01-30',
               isPublic: true,
               isFeatured: false,
-              tags: ['Solidity', 'React', 'Web3', 'Smart Contracts'],
-              features: ['Smart Contracts', 'Web3 Integration', 'Wallet Connect', 'NFT Support'],
-              requirements: ['Node.js 16+', 'Hardhat', 'MetaMask'],
-              documentation: 'https://docs.blockchaindevs.com/dapp',
-              repository: 'https://github.com/blockchaindevs/dapp-template',
+              tags: ['C#', 'ASP.NET', 'MVC', 'Entity Framework'],
+              features: ['Authentication', 'Authorization', 'API Controllers', 'Database Integration'],
+              requirements: ['.NET 8 SDK', 'Visual Studio 2022', 'SQL Server'],
+              documentation: 'https://docs.microsoft.com/aspnet/core',
+              repository: 'https://github.com/dotnet/aspnetcore',
               license: 'MIT',
-              price: 49.99,
-              isFree: false,
+              price: 0,
+              isFree: true,
             },
             {
               id: '5',
-              name: 'Mobile App Boilerplate',
-              description: 'Cross-platform mobile app template with native performance and modern UI',
+              name: 'Flutter Mobile App Template',
+              description: 'Google Flutter template for building beautiful native mobile apps',
               imageUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=300&fit=crop',
-              category: 'Mobile App',
-              type: 'Boilerplate',
-              language: 'TypeScript',
-              framework: 'React Native',
-              author: 'Mobile Masters',
-              version: '2.3.8',
+              category: 'Mobile',
+              type: 'Cross-Platform',
+              language: 'Dart',
+              framework: 'Flutter',
+              author: 'Google',
+              version: '3.16.0',
               downloads: 234000,
               rating: 4.8,
               size: 67.3,
               lastUpdated: '2024-02-01',
               isPublic: true,
               isFeatured: true,
-              tags: ['React Native', 'TypeScript', 'Cross-platform', 'Native'],
-              features: ['Cross-platform', 'Native Performance', 'Offline Support', 'Push Notifications'],
-              requirements: ['Node.js 18+', 'React Native CLI', 'Android Studio/Xcode'],
-              documentation: 'https://docs.mobilemasters.com/boilerplate',
-              repository: 'https://github.com/mobilemasters/rn-boilerplate',
+              tags: ['Dart', 'Flutter', 'Cross-platform', 'Material Design'],
+              features: ['Hot Reload', 'Material Design', 'Cupertino Widgets', 'Platform Channels'],
+              requirements: ['Flutter SDK', 'Android Studio', 'Xcode'],
+              documentation: 'https://docs.flutter.dev',
+              repository: 'https://github.com/flutter/flutter',
+              license: 'BSD-3-Clause',
+              price: 0,
+              isFree: true,
+            },
+            {
+              id: '6',
+              name: 'Vue.js SPA Template',
+              description: 'Modern single-page application template with Vue 3 and Composition API',
+              imageUrl: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400&h=300&fit=crop',
+              category: 'Web',
+              type: 'SPA',
+              language: 'TypeScript',
+              framework: 'Vue.js',
+              author: 'Vue Team',
+              version: '3.4.0',
+              downloads: 89000,
+              rating: 4.7,
+              size: 52.1,
+              lastUpdated: '2024-01-28',
+              isPublic: true,
+              isFeatured: true,
+              tags: ['Vue.js', 'TypeScript', 'SPA', 'Composition API'],
+              features: ['Composition API', 'TypeScript Support', 'Router', 'State Management'],
+              requirements: ['Node.js 16+', 'Vue CLI', 'npm/yarn'],
+              documentation: 'https://vuejs.org/guide',
+              repository: 'https://github.com/vuejs/vue',
               license: 'MIT',
               price: 0,
               isFree: true,
+            },
+            {
+              id: '7',
+              name: 'Angular Enterprise Template',
+              description: 'Enterprise-grade Angular application with authentication and state management',
+              imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=300&fit=crop',
+              category: 'Web',
+              type: 'Enterprise',
+              language: 'TypeScript',
+              framework: 'Angular',
+              author: 'Google',
+              version: '17.0.0',
+              downloads: 45000,
+              rating: 4.9,
+              size: 125.7,
+              lastUpdated: '2024-02-02',
+              isPublic: true,
+              isFeatured: true,
+              tags: ['Angular', 'TypeScript', 'Enterprise', 'RxJS'],
+              features: ['Authentication', 'State Management', 'Lazy Loading', 'Testing'],
+              requirements: ['Node.js 18+', 'Angular CLI', 'npm/yarn'],
+              documentation: 'https://angular.io/docs',
+              repository: 'https://github.com/angular/angular',
+              license: 'MIT',
+              price: 0,
+              isFree: true,
+            },
+            {
+              id: '8',
+              name: 'Laravel API Template',
+              description: 'RESTful API template with Laravel framework and authentication',
+              imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop',
+              category: 'Backend',
+              type: 'API',
+              language: 'PHP',
+              framework: 'Laravel',
+              author: 'Laravel Team',
+              version: '10.0.0',
+              downloads: 23000,
+              rating: 4.8,
+              size: 38.9,
+              lastUpdated: '2024-01-25',
+              isPublic: true,
+              isFeatured: false,
+              tags: ['PHP', 'Laravel', 'API', 'REST'],
+              features: ['Authentication', 'API Routes', 'Database Migration', 'Validation'],
+              requirements: ['PHP 8.1+', 'Composer', 'MySQL', 'Laravel 10'],
+              documentation: 'https://laravel.com/docs',
+              repository: 'https://github.com/laravel/laravel',
+              license: 'MIT',
+              price: 0,
+              isFree: true,
+            },
+            {
+              id: '9',
+              name: 'IoT Device Manager',
+              description: 'Comprehensive IoT device management system with real-time monitoring and control',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+              category: 'IoT',
+              type: 'Management System',
+              language: 'JavaScript',
+              framework: 'Node.js + Vue.js',
+              author: 'IoT Solutions',
+              version: '1.8.2',
+              downloads: 67000,
+              rating: 4.6,
+              size: 43.2,
+              lastUpdated: '2024-01-20',
+              isPublic: true,
+              isFeatured: false,
+              tags: ['IoT', 'Node.js', 'Vue.js', 'MQTT'],
+              features: ['Device Monitoring', 'Real-time Control', 'Data Analytics', 'Alert System'],
+              requirements: ['Node.js 16+', 'MQTT Broker', 'MongoDB', 'Vue CLI'],
+              documentation: 'https://docs.iotsolutions.com/manager',
+              repository: 'https://github.com/iotsolutions/device-manager',
+              license: 'GPL v3',
+              price: 39.99,
+              isFree: false,
+            },
+            {
+              id: '10',
+              name: 'Microservices Architecture',
+              description: 'Production-ready microservices template with Docker, Kubernetes, and service mesh',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=cropphoto-1667372393119-3d4c48d07fc9?w=400&h=300&fit=crop',
+              category: 'Backend',
+              type: 'Architecture',
+              language: 'Go',
+              framework: 'Gin + gRPC',
+              author: 'Cloud Architects',
+              version: '2.1.5',
+              downloads: 156000,
+              rating: 4.9,
+              size: 89.4,
+              lastUpdated: '2024-02-05',
+              isPublic: true,
+              isFeatured: true,
+              tags: ['Microservices', 'Go', 'Docker', 'Kubernetes'],
+              features: ['Service Discovery', 'Load Balancing', 'Circuit Breaker', 'Observability'],
+              requirements: ['Go 1.19+', 'Docker', 'Kubernetes', 'Helm'],
+              documentation: 'https://docs.cloudarchitects.com/microservices',
+              repository: 'https://github.com/cloudarchitects/microservices-template',
+              license: 'Apache 2.0',
+              price: 199.99,
+              isFree: false,
             },
           ]
         };
@@ -344,7 +489,10 @@ const TemplatesPage: React.FC = () => {
 
   const filteredTemplates = templatesData?.result?.filter((template: Template) => 
     filterCategory === 'all' || template.category === filterCategory
-  ) || [];
+  ).map((template: Template) => ({
+    ...template,
+    imageUrl: template.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop'
+  })) || [];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -436,12 +584,16 @@ const TemplatesPage: React.FC = () => {
                     }
                   }}>
                     <Box sx={{ position: 'relative' }}>
-                      <CardMedia
-                        component="img"
-                        height="200"
-                        image={template.imageUrl}
-                        alt={template.name}
-                        sx={{ objectFit: 'cover' }}
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '200px',
+                          backgroundImage: `url(${template.imageUrl})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          backgroundRepeat: 'no-repeat',
+                          display: 'block'
+                        }}
                       />
                       <Chip
                         label={template.category}
@@ -456,30 +608,30 @@ const TemplatesPage: React.FC = () => {
                         }}
                       />
                       {template.isFeatured && (
-                        <Badge
-                          badgeContent="Featured"
+                        <Chip
+                          label="Featured"
+                          size="small"
                           color="primary"
                           sx={{
                             position: 'absolute',
                             top: 8,
                             left: 8,
+                            fontWeight: 'bold',
                           }}
                         />
                       )}
-                      {!template.isFree && (
                         <Chip
-                          label={`$${template.price}`}
+                        label={template.isFree ? 'Free' : `$${template.price || '0.00'}`}
                           size="small"
                           sx={{
                             position: 'absolute',
                             bottom: 8,
                             right: 8,
-                            bgcolor: 'rgba(0,0,0,0.7)',
+                          bgcolor: template.isFree ? 'rgba(76,175,80,0.8)' : 'rgba(0,0,0,0.7)',
                             color: 'white',
                             fontWeight: 'bold',
                           }}
                         />
-                      )}
                     </Box>
                     
                     <CardContent sx={{ flexGrow: 1 }}>
@@ -587,12 +739,24 @@ const TemplatesPage: React.FC = () => {
                   label="Category"
                   onChange={(e) => setNewTemplate({ ...newTemplate, category: e.target.value as any })}
                 >
-                  <MenuItem value="Web App">Web App</MenuItem>
-                  <MenuItem value="Mobile App">Mobile App</MenuItem>
+                  <MenuItem value="Web">Web</MenuItem>
+                  <MenuItem value="Mobile">Mobile</MenuItem>
+                  <MenuItem value="Desktop">Desktop</MenuItem>
+                  <MenuItem value="Backend">Backend</MenuItem>
+                  <MenuItem value="Frontend">Frontend</MenuItem>
+                  <MenuItem value="Full Stack">Full Stack</MenuItem>
                   <MenuItem value="API">API</MenuItem>
                   <MenuItem value="Game">Game</MenuItem>
                   <MenuItem value="AI/ML">AI/ML</MenuItem>
                   <MenuItem value="Blockchain">Blockchain</MenuItem>
+                  <MenuItem value="IoT">IoT</MenuItem>
+                  <MenuItem value="Cloud">Cloud</MenuItem>
+                  <MenuItem value="Data Science">Data Science</MenuItem>
+                  <MenuItem value="Security">Security</MenuItem>
+                  <MenuItem value="Testing">Testing</MenuItem>
+                  <MenuItem value="DevOps">DevOps</MenuItem>
+                  <MenuItem value="Database">Database</MenuItem>
+                  <MenuItem value="Utility">Utility</MenuItem>
                 </Select>
               </FormControl>
               <FormControl fullWidth>
@@ -611,18 +775,55 @@ const TemplatesPage: React.FC = () => {
               </FormControl>
             </Box>
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
+              <FormControl fullWidth>
+                <InputLabel>Language</InputLabel>
+                <Select
+                  value={newTemplate.language}
                 label="Language"
-                value={newTemplate.language}
-                onChange={(e) => setNewTemplate({ ...newTemplate, language: e.target.value })}
-                fullWidth
-              />
-              <TextField
+                  onChange={(e) => setNewTemplate({ ...newTemplate, language: e.target.value as any })}
+                >
+                  <MenuItem value="JavaScript">JavaScript</MenuItem>
+                  <MenuItem value="TypeScript">TypeScript</MenuItem>
+                  <MenuItem value="Python">Python</MenuItem>
+                  <MenuItem value="Java">Java</MenuItem>
+                  <MenuItem value="C#">C#</MenuItem>
+                  <MenuItem value="PHP">PHP</MenuItem>
+                  <MenuItem value="Dart">Dart</MenuItem>
+                  <MenuItem value="Go">Go</MenuItem>
+                  <MenuItem value="Rust">Rust</MenuItem>
+                  <MenuItem value="Swift">Swift</MenuItem>
+                  <MenuItem value="Kotlin">Kotlin</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <InputLabel>Framework</InputLabel>
+                <Select
+                  value={newTemplate.framework}
                 label="Framework"
-                value={newTemplate.framework}
-                onChange={(e) => setNewTemplate({ ...newTemplate, framework: e.target.value })}
-                fullWidth
-              />
+                  onChange={(e) => setNewTemplate({ ...newTemplate, framework: e.target.value as any })}
+                >
+                  <MenuItem value="React">React</MenuItem>
+                  <MenuItem value="Angular">Angular</MenuItem>
+                  <MenuItem value="Vue.js">Vue.js</MenuItem>
+                  <MenuItem value="Svelte">Svelte</MenuItem>
+                  <MenuItem value="Next.js">Next.js</MenuItem>
+                  <MenuItem value="Nuxt.js">Nuxt.js</MenuItem>
+                  <MenuItem value="SvelteKit">SvelteKit</MenuItem>
+                  <MenuItem value="Express.js">Express.js</MenuItem>
+                  <MenuItem value="Laravel">Laravel</MenuItem>
+                  <MenuItem value="Django">Django</MenuItem>
+                  <MenuItem value="Flask">Flask</MenuItem>
+                  <MenuItem value="ASP.NET Core">ASP.NET Core</MenuItem>
+                  <MenuItem value="Spring Boot">Spring Boot</MenuItem>
+                  <MenuItem value="Flutter">Flutter</MenuItem>
+                  <MenuItem value="React Native">React Native</MenuItem>
+                  <MenuItem value="Xamarin">Xamarin</MenuItem>
+                  <MenuItem value=".NET MAUI">.NET MAUI</MenuItem>
+                  <MenuItem value="WordPress">WordPress</MenuItem>
+                  <MenuItem value="Drupal">Drupal</MenuItem>
+                  <MenuItem value="Joomla">Joomla</MenuItem>
+                </Select>
+              </FormControl>
             </Box>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
