@@ -497,7 +497,7 @@ const LibrariesPage: React.FC = () => {
                           color="success"
                           sx={{
                             position: 'absolute',
-                            top: 8,
+                            bottom: 8,
                             right: 8,
                             fontWeight: 'bold',
                           }}
