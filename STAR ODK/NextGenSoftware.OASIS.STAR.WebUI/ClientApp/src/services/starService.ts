@@ -1617,6 +1617,30 @@ export const starService = {
     }
   },
 
+  async getInstalledRuntimes(): Promise<OASISResult<any[]>> {
+    try {
+      // When API is ready, replace with: const response = await api.get('/runtimes/installed'); return response.data;
+      throw new Error('Forcing demo data for runtimes (installed)');
+    } catch (error) {
+      // Filter demo list to simulate installed items
+      const all = await this.getAllRuntimes();
+      const installed = (all.result || []).filter((r: any) => ['1', '2', '4', '6'].includes(String(r.id)));
+      return { result: installed, isError: false, message: 'Demo installed runtimes' };
+    }
+  },
+
+  async getRuntimesForAvatar(avatarId: string): Promise<OASISResult<any[]>> {
+    try {
+      // When API is ready, replace with: const response = await api.get(`/runtimes/for-avatar/${avatarId}`); return response.data;
+      throw new Error('Forcing demo data for runtimes (mine)');
+    } catch (error) {
+      // Filter demo list to simulate runtimes owned by this avatar
+      const all = await this.getAllRuntimes();
+      const mine = (all.result || []).filter((r: any) => ['2', '5'].includes(String(r.id)));
+      return { result: mine, isError: false, message: 'Demo runtimes for avatar' };
+    }
+  },
+
   // Templates Operations - Using WEB5 STAR Web API
   async getAllTemplates(): Promise<OASISResult<any[]>> {
     try {

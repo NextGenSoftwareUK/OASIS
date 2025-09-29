@@ -851,12 +851,13 @@ const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants, onOAPP
                 height: '100%', 
                 display: 'flex', 
                 flexDirection: 'column',
+                position: 'relative',
                 cursor: 'pointer',
                 '&:hover': { boxShadow: 6 }
               }}
               onClick={() => onOAPPClick(oapp.id)}
             >
-              <CardContent sx={{ flexGrow: 1 }}>
+              <CardContent sx={{ flexGrow: 1, position: 'relative' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Apps color="primary" />
@@ -880,9 +881,6 @@ const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants, onOAPP
                   {oapp.isPublished && (
                     <Chip label="Published" size="small" color="success" variant="outlined" />
                   )}
-                  {oapp.isInstalled && (
-                    <Chip label="Installed" size="small" color="primary" variant="outlined" />
-                  )}
                   {oapp.isActive && (
                     <Chip label="Active" size="small" color="secondary" variant="outlined" />
                   )}
@@ -891,6 +889,19 @@ const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants, onOAPP
                 <Typography variant="caption" color="text.secondary">
                   Version: {oapp.version || '1.0.0'}
                 </Typography>
+                {oapp.isInstalled && (
+                  <Chip
+                    label="Installed"
+                    size="small"
+                    color="primary"
+                    sx={{
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      fontWeight: 'bold',
+                    }}
+                  />
+                )}
               </CardContent>
             </Card>
           </motion.div>

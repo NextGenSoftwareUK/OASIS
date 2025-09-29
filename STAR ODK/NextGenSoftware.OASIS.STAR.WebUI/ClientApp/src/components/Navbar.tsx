@@ -172,7 +172,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
                 mr: 2,
               }}
             >
-              STAR Web UI
+              STARNET
             </Typography>
           </motion.div>
 
