@@ -39,6 +39,7 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { starService } from '../services/starService';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface InventoryItem {
   id: string;
@@ -61,6 +62,7 @@ interface InventoryItem {
 }
 
 const InventoryPage: React.FC = () => {
+  const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
   const [newItem, setNewItem] = useState({
@@ -510,7 +512,10 @@ const InventoryPage: React.FC = () => {
                 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Card sx={{ height: '100%', position: 'relative' }}>
+                <Card 
+                  sx={{ height: '100%', position: 'relative', cursor: 'pointer' }}
+                  onClick={() => navigate(`/inventory/${item.id}`)}
+                >
                   <Box sx={{ 
                     position: 'relative', 
                     overflow: 'hidden', 

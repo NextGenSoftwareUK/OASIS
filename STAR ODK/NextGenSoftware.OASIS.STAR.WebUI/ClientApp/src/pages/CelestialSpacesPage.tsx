@@ -39,6 +39,7 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
 import { starService } from '../services/starService';
+import { useNavigate } from 'react-router-dom';
 
 interface CelestialSpace {
   id: string;
@@ -65,6 +66,7 @@ interface CelestialSpace {
 }
 
 const CelestialSpacesPage: React.FC = () => {
+  const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
   const [newSpace, setNewSpace] = useState<Partial<CelestialSpace>>({
@@ -387,16 +389,20 @@ const CelestialSpacesPage: React.FC = () => {
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card sx={{ 
-                    height: '100%', 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&:hover': {
-                      boxShadow: 6,
-                    }
-                  }}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        boxShadow: 6,
+                      }
+                    }}
+                    onClick={() => navigate(`/celestial-spaces/${space.id}`)}
+                  >
                     <Box sx={{ position: 'relative' }}>
                       <CardMedia
                         component="img"

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -51,6 +51,7 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { starService } from '../services/starService';
+import { useDemoMode } from '../contexts/DemoModeContext';
 import toast from 'react-hot-toast';
 
 interface Settings {
@@ -88,12 +89,14 @@ interface Settings {
 }
 
 const SettingsPage: React.FC = () => {
+  const { isDemoMode, setDemoMode } = useDemoMode();
   const [settings, setSettings] = useState<Settings>({
     general: {
       theme: 'dark',
       language: 'en',
       timezone: 'UTC',
       autoSave: true,
+      demoMode: isDemoMode, // Use context value
     },
     notifications: {
       emailNotifications: true,
@@ -125,6 +128,17 @@ const SettingsPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const queryClient = useQueryClient();
+
+  // Sync settings with demo mode context
+  useEffect(() => {
+    setSettings(prev => ({
+      ...prev,
+      general: {
+        ...prev.general,
+        demoMode: isDemoMode,
+      },
+    }));
+  }, [isDemoMode]);
 
   // Fetch settings with demo data
   const { data: settingsData, isLoading, error, refetch } = useQuery(
@@ -173,6 +187,11 @@ const SettingsPage: React.FC = () => {
         [key]: value,
       },
     }));
+
+    // Sync demo mode with context
+    if (section === 'general' && key === 'demoMode') {
+      setDemoMode(value);
+    }
   };
 
   const containerVariants = {

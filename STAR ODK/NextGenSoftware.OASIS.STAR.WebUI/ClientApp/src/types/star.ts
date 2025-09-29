@@ -63,6 +63,18 @@ export interface STARNETItem {
   updatedDate?: Date;
   publishedDate?: Date;
   installedDate?: Date;
+  // Additional properties for detail pages
+  type?: string;
+  status?: string;
+  lastUpdated?: Date;
+  downloads?: number;
+  bookmarks?: number;
+  license?: string;
+  size?: number;
+  fileCount?: number;
+  hasDocumentation?: boolean;
+  exampleCount?: number;
+  technologies?: string[];
 }
 
 export interface OAPP extends STARNETItem {
@@ -90,6 +102,19 @@ export interface Quest extends STARNETItem {
   estimatedDuration?: number;
   rewards?: string[];
   requirements?: string[];
+  // Additional properties for detail pages
+  title?: string;
+  dueDate?: Date;
+  status?: string;
+  progress?: number;
+  completedTasks?: number;
+  totalTasks?: number;
+  karmaReward?: number;
+  xpReward?: number;
+  itemRewards?: string[];
+  creator?: string;
+  steps?: string[];
+  completedSteps?: number;
 }
 
 export interface NFT extends STARNETItem {
@@ -101,6 +126,14 @@ export interface NFT extends STARNETItem {
   animationUrl?: string;
   externalUrl?: string;
   attributes?: NFTAttribute[];
+  // Additional properties for detail pages
+  creator?: string;
+  rarity?: string;
+  price?: number;
+  lastSalePrice?: number;
+  views?: number;
+  likes?: number;
+  collection?: string;
 }
 
 export interface NFTAttribute {
@@ -118,6 +151,11 @@ export interface GeoNFT extends NFT {
   isActive?: boolean;
   collectedBy?: string;
   collectedDate?: Date;
+  // Additional properties for detail pages
+  country?: string;
+  region?: string;
+  address?: string;
+  status?: string;
 }
 
 export interface Mission extends STARNETItem {
@@ -127,6 +165,20 @@ export interface Mission extends STARNETItem {
   rewards?: string[];
   requirements?: string[];
   quests?: Quest[];
+  // Additional properties for detail pages
+  title?: string;
+  priority?: string;
+  dueDate?: Date;
+  status?: string;
+  progress?: number;
+  completedTasks?: number;
+  totalTasks?: number;
+  karmaReward?: number;
+  xpReward?: number;
+  itemRewards?: string[];
+  assignee?: string;
+  steps?: string[];
+  completedSteps?: number;
 }
 
 export interface Chapter extends STARNETItem {
@@ -136,6 +188,18 @@ export interface Chapter extends STARNETItem {
   estimatedReadTime?: number;
   parentMissionId?: string;
   parentQuestId?: string;
+  // Additional properties for detail pages
+  title?: string;
+  chapterNumber?: number;
+  difficulty?: string;
+  status?: string;
+  readingProgress?: number;
+  wordsRead?: number;
+  totalWords?: number;
+  publishedDate?: Date;
+  estimatedReadingTime?: number;
+  level?: string;
+  sections?: string[];
 }
 
 export interface CelestialBody extends STARNETItem {
@@ -148,6 +212,17 @@ export interface CelestialBody extends STARNETItem {
   orbitSpeed?: number;
   parentId?: string;
   children?: CelestialBody[];
+  // Additional properties for detail pages
+  galaxy?: string;
+  discoveredDate?: Date;
+  radius?: number;
+  orbitalPeriod?: number;
+  distanceFromStar?: number;
+  discoverer?: string;
+  discoveryMethod?: string;
+  luminosity?: number;
+  age?: number;
+  atmosphere?: string;
 }
 
 export interface CelestialSpace extends STARNETItem {
@@ -161,6 +236,20 @@ export interface CelestialSpace extends STARNETItem {
   atmosphere?: string;
   temperature?: number;
   celestialBodies?: CelestialBody[];
+  // Additional properties for detail pages
+  galaxy?: string;
+  discoveredDate?: Date;
+  diameter?: number;
+  volume?: number;
+  matterDensity?: number;
+  darkMatterPercentage?: number;
+  energyLevel?: number;
+  discoverer?: string;
+  discoveryMethod?: string;
+  starCount?: number;
+  age?: number;
+  expansionRate?: number;
+  gravitationalField?: string;
 }
 
 export interface Runtime extends STARNETItem {
@@ -172,7 +261,7 @@ export interface Runtime extends STARNETItem {
   requirements?: string[];
   framework?: string;
   category?: string;
-  lastUpdated?: string;
+  lastUpdated?: Date;
   uptime?: string;
   language?: string;
   status?: 'Running' | 'Stopped' | 'Paused' | 'Error';
@@ -183,6 +272,11 @@ export interface Runtime extends STARNETItem {
   maxInstances?: number;
   port?: number;
   environment?: string;
+  // Additional properties for detail pages
+  owner?: string;
+  securityLevel?: string;
+  maxMemory?: number;
+  maxCpu?: number;
   logs?: string[];
   isActive?: boolean;
   isPublic?: boolean;
@@ -225,6 +319,15 @@ export interface InventoryItem extends STARNETItem {
   tradeable?: boolean;
   consumable?: boolean;
   effects?: string[];
+  // Additional properties for detail pages
+  type?: string;
+  status?: string;
+  imageUrl?: string;
+  durability?: number;
+  maxDurability?: number;
+  acquiredDate?: Date;
+  lastUsed?: Date;
+  location?: string;
 }
 
 export interface Plugin extends STARNETItem {

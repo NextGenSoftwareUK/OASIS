@@ -38,6 +38,7 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
 import { starService } from '../services/starService';
+import { useNavigate } from 'react-router-dom';
 
 interface Library {
   id: string;
@@ -62,6 +63,7 @@ interface Library {
 }
 
 const LibrariesPage: React.FC = () => {
+  const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [newLibrary, setNewLibrary] = useState<Partial<Library>>({
@@ -450,16 +452,20 @@ const LibrariesPage: React.FC = () => {
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card sx={{ 
-                    height: '100%', 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&:hover': {
-                      boxShadow: 6,
-                    }
-                  }}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      position: 'relative',
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      '&:hover': {
+                        boxShadow: 6,
+                      }
+                    }}
+                    onClick={() => navigate(`/libraries/${library.id}`)}
+                  >
                     <Box sx={{ position: 'relative' }}>
                       <div
                         style={{

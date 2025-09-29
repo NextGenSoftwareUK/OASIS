@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDemoMode } from '../contexts/DemoModeContext';
 import {
   Box,
   Typography,
@@ -71,6 +73,8 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const OAPPsPage: React.FC = () => {
+  const navigateTo = useNavigate();
+  const { isDemoMode } = useDemoMode();
   const [tabValue, setTabValue] = useState(0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedOAPP, setSelectedOAPP] = useState<OAPP | null>(null);
@@ -83,11 +87,9 @@ const OAPPsPage: React.FC = () => {
   const { data: allOAPPs, isLoading: isLoadingAll, error: errorAll } = useQuery(
     'allOAPPs',
     async () => {
-      try {
-        return await starNetService.getAllOAPPs();
-      } catch (error) {
-        // Fallback to impressive demo data
-        console.log('Using demo OAPPs data for investor presentation');
+      if (isDemoMode) {
+        // Demo mode - return demo data directly
+        console.log('OAPPs - Demo Mode (from context)');
         return {
           result: [
             {
@@ -392,6 +394,33 @@ const OAPPsPage: React.FC = () => {
             }
           ]
         };
+      } else {
+        // Live mode - try API call with fallback
+        try {
+          return await starNetService.getAllOAPPs();
+        } catch (error) {
+          // Fallback to demo data if API fails
+          console.log('API failed, using demo OAPPs data');
+          return {
+            result: [
+              {
+                id: '1',
+                name: 'Cosmic Explorer',
+                description: 'Navigate through the infinite cosmos with real-time star mapping and discovery tools',
+                type: 'Web',
+                version: '2.1.0',
+                isPublished: true,
+                isInstalled: false,
+                isActive: true,
+                downloads: 15420,
+                rating: 4.8,
+                author: 'SpaceDev Studios',
+                category: 'Exploration',
+                lastUpdated: '2024-01-15',
+              }
+            ]
+          };
+        }
       }
     },
     { refetchInterval: 30000 }
@@ -710,6 +739,7 @@ const OAPPsPage: React.FC = () => {
               oapps={filteredData} 
               onMenuOpen={handleMenuOpen}
               variants={itemVariants}
+              onOAPPClick={(id) => navigateTo(`/oapps/${id}`)}
             />
           </TabPanel>
 
@@ -718,6 +748,7 @@ const OAPPsPage: React.FC = () => {
               oapps={filteredData} 
               onMenuOpen={handleMenuOpen}
               variants={itemVariants}
+              onOAPPClick={(id) => navigateTo(`/oapps/${id}`)}
             />
           </TabPanel>
 
@@ -726,6 +757,7 @@ const OAPPsPage: React.FC = () => {
               oapps={filteredData} 
               onMenuOpen={handleMenuOpen}
               variants={itemVariants}
+              onOAPPClick={(id) => navigateTo(`/oapps/${id}`)}
             />
           </TabPanel>
         </Card>
@@ -786,9 +818,10 @@ interface OAPPGridProps {
   oapps: OAPP[];
   onMenuOpen: (event: React.MouseEvent<HTMLElement>, oapp: OAPP) => void;
   variants: any;
+  onOAPPClick: (oappId: string) => void;
 }
 
-const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants }) => {
+const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants, onOAPPClick }) => {
   if (oapps.length === 0) {
     return (
       <Box sx={{ textAlign: 'center', py: 8 }}>
@@ -813,7 +846,16 @@ const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants }) => {
             animate="visible"
             transition={{ delay: index * 0.1 }}
           >
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card 
+              sx={{ 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column',
+                cursor: 'pointer',
+                '&:hover': { boxShadow: 6 }
+              }}
+              onClick={() => onOAPPClick(oapp.id)}
+            >
               <CardContent sx={{ flexGrow: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

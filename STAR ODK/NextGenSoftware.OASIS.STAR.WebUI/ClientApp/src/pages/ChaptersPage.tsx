@@ -39,6 +39,7 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
 import { starService } from '../services/starService';
+import { useNavigate } from 'react-router-dom';
 
 interface Chapter {
   id: string;
@@ -61,6 +62,7 @@ interface Chapter {
 }
 
 const ChaptersPage: React.FC = () => {
+  const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [newChapter, setNewChapter] = useState<Partial<Chapter>>({
@@ -349,16 +351,20 @@ const ChaptersPage: React.FC = () => {
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card sx={{ 
-                    height: '100%', 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&:hover': {
-                      boxShadow: 6,
-                    }
-                  }}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        boxShadow: 6,
+                      }
+                    }}
+                    onClick={() => navigate(`/chapters/${chapter.id}`)}
+                  >
                     <Box sx={{ position: 'relative' }}>
                       <CardMedia
                         component="img"
