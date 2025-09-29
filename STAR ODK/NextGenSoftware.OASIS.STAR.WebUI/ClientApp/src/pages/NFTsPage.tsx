@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -56,6 +57,7 @@ interface NFT {
 }
 
 const NFTsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [newNFT, setNewNFT] = useState({
@@ -364,18 +366,22 @@ const NFTsPage: React.FC = () => {
                 transition: { duration: 0.2 }
               }}
             >
-              <Card sx={{ 
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                background: `linear-gradient(135deg, ${getRarityColor(nft.rarity)}15, ${getRarityColor(nft.rarity)}05)`,
-                border: `2px solid ${getRarityColor(nft.rarity)}30`,
-                boxShadow: `0 8px 32px ${getRarityColor(nft.rarity)}20`,
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  boxShadow: `0 12px 40px ${getRarityColor(nft.rarity)}30`,
-                }
-              }}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  background: `linear-gradient(135deg, ${getRarityColor(nft.rarity)}15, ${getRarityColor(nft.rarity)}05)`,
+                  border: `2px solid ${getRarityColor(nft.rarity)}30`,
+                  boxShadow: `0 8px 32px ${getRarityColor(nft.rarity)}20`,
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    boxShadow: `0 12px 40px ${getRarityColor(nft.rarity)}30`,
+                  }
+                }}
+                onClick={() => navigate(`/nfts/${nft.id}`)}
+              >
                 <Box sx={{ position: 'relative' }}>
                   <Box
                     sx={{

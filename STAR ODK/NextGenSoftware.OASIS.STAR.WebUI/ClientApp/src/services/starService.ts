@@ -1,6 +1,12 @@
 import axios from 'axios';
 import { OASISResult, STARStatus, Avatar, Karma, OAPPKarmaData, AvatarKarmaData, AvatarListResult } from '../types/star';
 
+// Helper function to check demo mode
+const isDemoMode = () => {
+  const saved = localStorage.getItem('demoMode');
+  return saved ? JSON.parse(saved) : true;
+};
+
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:50564/api'; // STAR Web API
 const WEB4_API_BASE_URL = process.env.REACT_APP_WEB4_API_URL || 'http://localhost:5000/api'; // ONODE WEB4 OASIS API
 
@@ -53,51 +59,85 @@ api.interceptors.response.use(
 export const starService = {
   // STAR Core Operations
   async igniteSTAR(): Promise<OASISResult<any>> {
-    try {
-      const response = await api.post('/star/ignite');
-      console.log('STAR Ignite API Response:', response.data); // Debug logging
-      return response.data;
-    } catch (error) {
-      // For demo purposes, simulate successful ignition
-      console.log('STAR Ignite API failed, using demo data');
+    console.log('starService.igniteSTAR called, isDemoMode():', isDemoMode());
+    
+    if (isDemoMode()) {
+      // Demo mode - simulate successful ignition
+      console.log('STAR Ignite - Demo Mode');
       return {
         isError: false,
         message: 'STAR ignited successfully (Demo Mode)',
         result: { ignited: true },
       };
     }
+
+    console.log('STAR Ignite - Live Mode, making API call to:', API_BASE_URL + '/star/ignite');
+    try {
+    const response = await api.post('/star/ignite');
+    console.log('STAR Ignite API Response:', response.data); // Debug logging
+    return response.data;
+    } catch (error) {
+      console.error('STAR Ignite API failed:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        code: (error as any)?.code,
+        response: (error as any)?.response?.data,
+        status: (error as any)?.response?.status,
+      });
+      // In live mode, return error result instead of throwing
+      return {
+        isError: true,
+        message: error instanceof Error ? error.message : 'Failed to connect to STAR API',
+        result: undefined,
+      };
+    }
   },
 
   async extinguishStar(): Promise<OASISResult<boolean>> {
-    try {
-      const response = await api.post('/star/extinguish');
-      return response.data;
-    } catch (error) {
-      // For demo purposes, simulate successful extinguish
-      console.log('STAR Extinguish API failed, using demo data');
+    if (isDemoMode()) {
+      // Demo mode - simulate successful extinguish
+      console.log('STAR Extinguish - Demo Mode');
       return {
         isError: false,
         message: 'STAR extinguished successfully (Demo Mode)',
         result: true,
       };
     }
+
+    try {
+    const response = await api.post('/star/extinguish');
+    return response.data;
+    } catch (error) {
+      console.error('STAR Extinguish API failed:', error);
+      // In live mode, return error result instead of throwing
+      return {
+        isError: true,
+        message: error instanceof Error ? error.message : 'Failed to connect to STAR API',
+        result: false,
+      };
+    }
   },
 
   async getSTARStatus(): Promise<STARStatus> {
-    try {
-      const response = await api.get('/star/status');
-      console.log('STAR Status API Response:', response.data); // Debug logging
-      return {
-        isIgnited: response.data.isIgnited || false,
-        lastUpdated: new Date(),
-      };
-    } catch (error) {
-      // For demo purposes, simulate STAR status
-      console.log('STAR Status API failed, using demo data');
+    if (isDemoMode()) {
+      // Demo mode - return default status
+      console.log('STAR Status - Demo Mode');
       return {
         isIgnited: false, // Will be updated by the hook when igniteSTAR is called
         lastUpdated: new Date(),
       };
+    }
+
+    try {
+    const response = await api.get('/star/status');
+    console.log('STAR Status API Response:', response.data); // Debug logging
+    return {
+      isIgnited: response.data.isIgnited || false,
+      lastUpdated: new Date(),
+    };
+    } catch (error) {
+      console.error('STAR Status API failed:', error);
+      throw error;
     }
   },
 
@@ -219,11 +259,104 @@ export const starService = {
   },
 
   async getAllAvatars(): Promise<OASISResult<Avatar[]>> {
+    console.log('starService.getAllAvatars called, isDemoMode():', isDemoMode());
+    
+    if (isDemoMode()) {
+      // Demo mode - return demo data
+      console.log('Avatars - Demo Mode');
+      return {
+        isError: false,
+        message: 'Avatars loaded successfully (Demo Mode)',
+        result: [
+          {
+            id: '1',
+            username: 'sarah_chen',
+            email: 'sarah.chen@oasis.com',
+            firstName: 'Sarah',
+            lastName: 'Chen',
+            title: 'Dr',
+            karma: 125000,
+            level: 10,
+            xp: 250000,
+            isActive: true,
+            isBeamedIn: true,
+            lastBeamedIn: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+            createdDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+            lastLoginDate: new Date(Date.now() - 5 * 60 * 1000) // 5 minutes ago
+          },
+          {
+            id: '2',
+            username: 'alex_rodriguez',
+            email: 'alex.rodriguez@oasis.com',
+            firstName: 'Alex',
+            lastName: 'Rodriguez',
+            title: 'Prof',
+            karma: 98000,
+            level: 9,
+            xp: 200000,
+            isActive: true,
+            isBeamedIn: false,
+            lastBeamedIn: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+            createdDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000), // 45 days ago
+            lastLoginDate: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
+          },
+          {
+            id: '3',
+            username: 'maya_patel',
+            email: 'maya.patel@oasis.com',
+            firstName: 'Maya',
+            lastName: 'Patel',
+            title: 'Dr',
+            karma: 75000,
+            level: 8,
+            xp: 150000,
+            isActive: true,
+            isBeamedIn: true,
+            lastBeamedIn: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 minutes ago
+            createdDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 days ago
+            lastLoginDate: new Date(Date.now() - 10 * 60 * 1000) // 10 minutes ago
+          },
+          {
+            id: '4',
+            username: 'david_kim',
+            email: 'david.kim@oasis.com',
+            firstName: 'David',
+            lastName: 'Kim',
+            title: 'Mr',
+            karma: 50000,
+            level: 6,
+            xp: 100000,
+            isActive: true,
+            isBeamedIn: false,
+            lastBeamedIn: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+            createdDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 90 days ago
+            lastLoginDate: new Date(Date.now() - 24 * 60 * 60 * 1000) // 1 day ago
+          },
+          {
+            id: '5',
+            username: 'luna_star',
+            email: 'luna.star@oasis.com',
+            firstName: 'Luna',
+            lastName: 'Star',
+            title: 'Dr',
+            karma: 200000,
+            level: 15,
+            xp: 500000,
+            isActive: true,
+            isBeamedIn: true,
+            lastBeamedIn: new Date(Date.now() - 1 * 60 * 1000).toISOString(), // 1 minute ago
+            createdDate: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000), // 120 days ago
+            lastLoginDate: new Date(Date.now() - 1 * 60 * 1000) // 1 minute ago
+          }
+        ]
+      };
+    }
+
+    console.log('Avatars - Live Mode, making API call to:', WEB4_API_BASE_URL + '/avatar/load-all-avatars');
     try {
-      // Force demo data for now - API might be returning empty data
-      throw new Error('Forcing demo data for avatars');
       // Use WEB4 OASIS API for avatar operations
       const response = await web4Api.get('/avatar/load-all-avatars');
+      console.log('Avatars API response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching avatars:', error);
@@ -317,6 +450,137 @@ export const starService = {
     }
   },
 
+  async getAvatarById(id: string): Promise<OASISResult<Avatar>> {
+    console.log('starService.getAvatarById called, isDemoMode():', isDemoMode());
+    
+    if (isDemoMode()) {
+      // Demo mode - return demo data
+      console.log('Avatar by ID - Demo Mode');
+      const demoAvatars = [
+        {
+          id: '1',
+          username: 'sarah_chen',
+          email: 'sarah.chen@oasis.com',
+          firstName: 'Sarah',
+          lastName: 'Chen',
+          title: 'Dr',
+          karma: 125000,
+          level: 10,
+          xp: 250000,
+          isActive: true,
+          isBeamedIn: true,
+          lastBeamedIn: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+          createdDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          lastLoginDate: new Date(Date.now() - 5 * 60 * 1000)
+        },
+        {
+          id: '2',
+          username: 'alex_rodriguez',
+          email: 'alex.rodriguez@oasis.com',
+          firstName: 'Alex',
+          lastName: 'Rodriguez',
+          title: 'Prof',
+          karma: 98000,
+          level: 9,
+          xp: 200000,
+          isActive: true,
+          isBeamedIn: false,
+          lastBeamedIn: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          createdDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+          lastLoginDate: new Date(Date.now() - 2 * 60 * 60 * 1000)
+        }
+      ];
+      
+      const avatar = demoAvatars.find(a => a.id === id);
+      return {
+        isError: false,
+        message: 'Avatar loaded successfully (Demo Mode)',
+        result: avatar || demoAvatars[0]
+      };
+    }
+
+    console.log('Avatar by ID - Live Mode, making API call to:', WEB4_API_BASE_URL + `/avatar/${id}`);
+    try {
+      const response = await web4Api.get(`/avatar/${id}`);
+      console.log('Avatar by ID API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching avatar by ID:', error);
+      return {
+        isError: true,
+        message: error instanceof Error ? error.message : 'Failed to fetch avatar',
+        result: undefined
+      };
+    }
+  },
+
+  async updateAvatar(id: string, data: any): Promise<OASISResult<Avatar>> {
+    console.log('starService.updateAvatar called, isDemoMode():', isDemoMode());
+    
+    if (isDemoMode()) {
+      // Demo mode - simulate successful update
+      console.log('Update Avatar - Demo Mode');
+      return {
+        isError: false,
+        message: 'Avatar updated successfully (Demo Mode)',
+        result: {
+          id,
+          ...data,
+          karma: 125000,
+          level: 10,
+          xp: 250000,
+          isActive: true,
+          isBeamedIn: true,
+          lastBeamedIn: new Date().toISOString(),
+          createdDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          lastLoginDate: new Date()
+        }
+      };
+    }
+
+    console.log('Update Avatar - Live Mode, making API call to:', WEB4_API_BASE_URL + `/avatar/${id}`);
+    try {
+      const response = await web4Api.put(`/avatar/${id}`, data);
+      console.log('Update Avatar API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      return {
+        isError: true,
+        message: error instanceof Error ? error.message : 'Failed to update avatar',
+        result: undefined
+      };
+    }
+  },
+
+  async deleteAvatar(id: string): Promise<OASISResult<boolean>> {
+    console.log('starService.deleteAvatar called, isDemoMode():', isDemoMode());
+    
+    if (isDemoMode()) {
+      // Demo mode - simulate successful deletion
+      console.log('Delete Avatar - Demo Mode');
+      return {
+        isError: false,
+        message: 'Avatar deleted successfully (Demo Mode)',
+        result: true
+      };
+    }
+
+    console.log('Delete Avatar - Live Mode, making API call to:', WEB4_API_BASE_URL + `/avatar/${id}`);
+    try {
+      const response = await web4Api.delete(`/avatar/${id}`);
+      console.log('Delete Avatar API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting avatar:', error);
+      return {
+        isError: true,
+        message: error instanceof Error ? error.message : 'Failed to delete avatar',
+        result: false
+      };
+    }
+  },
+
   async getBeamedInAvatar(): Promise<OASISResult<Avatar>> {
     try {
       const response = await web4Api.get('/avatar/get-beamed-in-avatar');
@@ -341,22 +605,6 @@ export const starService = {
         },
         isError: false,
         message: 'Demo beamed in avatar loaded (API unavailable)'
-      };
-    }
-  },
-
-  async deleteAvatar(avatarId: string): Promise<OASISResult<boolean>> {
-    try {
-      const response = await web4Api.delete(`/avatar/delete-avatar/${avatarId}`);
-      console.log('Delete Avatar API Response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Error deleting avatar from WEB4 OASIS API:', error);
-      // Return success for demo purposes
-      return {
-        result: true,
-        isError: false,
-        message: 'Avatar deleted successfully (demo mode)'
       };
     }
   },
