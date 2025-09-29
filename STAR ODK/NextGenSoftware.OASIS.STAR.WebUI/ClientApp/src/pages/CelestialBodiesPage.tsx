@@ -48,6 +48,7 @@ interface CelestialBody {
   description: string;
   imageUrl: string;
   mass: number;
+  isInstalled?: boolean; // Added for installed badge and filtering
   radius: number;
   temperature: number;
   distance: number;
@@ -66,6 +67,7 @@ const CelestialBodiesPage: React.FC = () => {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
+  const [viewScope, setViewScope] = useState<string>('all');
   const [newBody, setNewBody] = useState<Partial<CelestialBody>>({
     name: '',
     type: 'Planet',
@@ -292,9 +294,27 @@ const CelestialBodiesPage: React.FC = () => {
     }
   };
 
-  const filteredBodies = bodiesData?.result?.filter((body: CelestialBody) => 
-    filterType === 'all' || body.type === filterType
-  ) || [];
+  // Filter by view scope first, then by type
+  const getFilteredBodies = () => {
+    let filtered = bodiesData?.result || [];
+    
+    // Apply view scope filter
+    if (viewScope === 'installed') {
+      filtered = filtered.filter((body: any) => body.isInstalled);
+    } else if (viewScope === 'mine') {
+      // For demo, show bodies discovered by current user
+      filtered = filtered.filter((body: any) => body.discoveredBy === 'Captain Nova');
+    }
+    
+    // Apply type filter
+    if (filterType !== 'all') {
+      filtered = filtered.filter((body: CelestialBody) => body.type === filterType);
+    }
+    
+    return filtered;
+  };
+  
+  const filteredBodies = getFilteredBodies();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -329,6 +349,19 @@ const CelestialBodiesPage: React.FC = () => {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
+            <FormControl size="small" sx={{ minWidth: 140 }}>
+              <InputLabel>View</InputLabel>
+              <Select
+                value={viewScope}
+                label="View"
+                onChange={(e) => setViewScope(e.target.value)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="installed">Installed</MenuItem>
+                <MenuItem value="mine">My Bodies</MenuItem>
+              </Select>
+            </FormControl>
+            
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Filter Type</InputLabel>
               <Select
@@ -419,6 +452,19 @@ const CelestialBodiesPage: React.FC = () => {
                             left: 8,
                             fontSize: '0.75rem',
                             height: 24,
+                          }}
+                        />
+                      )}
+                      {body.isInstalled && (
+                        <Chip
+                          label="Installed"
+                          size="small"
+                          color="success"
+                          sx={{
+                            position: 'absolute',
+                            bottom: 8,
+                            right: 8,
+                            fontWeight: 'bold',
                           }}
                         />
                       )}

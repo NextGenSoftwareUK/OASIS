@@ -57,6 +57,7 @@ interface CelestialSpace {
   celestialBodies: number;
   energyLevel: number;
   dangerLevel: 'Low' | 'Medium' | 'High' | 'Extreme';
+  isInstalled?: boolean; // Added for installed badge and filtering
   coordinates: {
     x: number;
     y: number;
@@ -69,6 +70,7 @@ const CelestialSpacesPage: React.FC = () => {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
+  const [viewScope, setViewScope] = useState<string>('all');
   const [newSpace, setNewSpace] = useState<Partial<CelestialSpace>>({
     name: '',
     type: 'Solar System',
@@ -306,9 +308,27 @@ const CelestialSpacesPage: React.FC = () => {
     }
   };
 
-  const filteredSpaces = spacesData?.result?.filter((space: CelestialSpace) => 
-    filterType === 'all' || space.type === filterType
-  ) || [];
+  // Filter by view scope first, then by type
+  const getFilteredSpaces = () => {
+    let filtered = spacesData?.result || [];
+    
+    // Apply view scope filter
+    if (viewScope === 'installed') {
+      filtered = filtered.filter((space: any) => space.isInstalled);
+    } else if (viewScope === 'mine') {
+      // For demo, show spaces discovered by current user
+      filtered = filtered.filter((space: any) => space.discoveredBy === 'Cosmic Observatory');
+    }
+    
+    // Apply type filter
+    if (filterType !== 'all') {
+      filtered = filtered.filter((space: CelestialSpace) => space.type === filterType);
+    }
+    
+    return filtered;
+  };
+  
+  const filteredSpaces = getFilteredSpaces();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -343,6 +363,19 @@ const CelestialSpacesPage: React.FC = () => {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
+            <FormControl size="small" sx={{ minWidth: 140 }}>
+              <InputLabel>View</InputLabel>
+              <Select
+                value={viewScope}
+                label="View"
+                onChange={(e) => setViewScope(e.target.value)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="installed">Installed</MenuItem>
+                <MenuItem value="mine">My Spaces</MenuItem>
+              </Select>
+            </FormControl>
+            
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Filter Type</InputLabel>
               <Select
@@ -435,6 +468,19 @@ const CelestialSpacesPage: React.FC = () => {
                           fontWeight: 'bold',
                         }}
                       />
+                      {space.isInstalled && (
+                        <Chip
+                          label="Installed"
+                          size="small"
+                          color="success"
+                          sx={{
+                            position: 'absolute',
+                            bottom: 8,
+                            right: 8,
+                            fontWeight: 'bold',
+                          }}
+                        />
+                      )}
                     </Box>
                     
                     <CardContent sx={{ flexGrow: 1 }}>

@@ -12,6 +12,10 @@ import {
   Alert,
   CircularProgress,
   Badge,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   Store,
@@ -28,6 +32,7 @@ import { starService } from '../services/starService';
 import toast from 'react-hot-toast';
 
 const STARNETStorePage: React.FC = () => {
+  const [viewScope, setViewScope] = useState<string>('all');
   const { data: storeData, isLoading, error, refetch } = useQuery(
     'storeItems',
     async () => {
@@ -202,6 +207,26 @@ const STARNETStorePage: React.FC = () => {
     toast.success(`Viewing details for ${item.name}`);
   };
 
+  // Filter by view scope
+  const getFilteredStoreItems = () => {
+    let filtered = storeData?.result || [];
+    
+    // Apply view scope filter
+    if (viewScope === 'installed') {
+      filtered = filtered.filter((item: any) => item.isInstalled);
+    } else if (viewScope === 'mine') {
+      // For demo, show items purchased by current user
+      filtered = filtered.filter((item: any) => item.owner === 'Current User');
+    }
+    
+    return filtered.map((item: any) => ({
+      ...item,
+      imageUrl: item.imageUrl || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop'
+    }));
+  };
+  
+  const filteredStoreItems = getFilteredStoreItems();
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -236,6 +261,19 @@ const STARNETStorePage: React.FC = () => {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
+            <FormControl size="small" sx={{ minWidth: 140 }}>
+              <InputLabel>View</InputLabel>
+              <Select
+                value={viewScope}
+                label="View"
+                onChange={(e) => setViewScope(e.target.value)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="installed">Installed</MenuItem>
+                <MenuItem value="mine">My Purchases</MenuItem>
+              </Select>
+            </FormControl>
+            
             <Button
               variant="outlined"
               startIcon={<Refresh />}
@@ -272,10 +310,7 @@ const STARNETStorePage: React.FC = () => {
         </Box>
       ) : (
         <Grid container spacing={3}>
-          {storeData?.result?.map((item: any, index: number) => ({
-            ...item,
-            imageUrl: item.imageUrl || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop'
-          })).map((item: any, index: number) => {
+          {filteredStoreItems.map((item: any, index: number) => {
             console.log('STARNET Store item imageUrl:', item.imageUrl);
             return (
             <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
@@ -339,6 +374,19 @@ const STARNETStorePage: React.FC = () => {
                         fontWeight: 'bold',
                       }}
                     />
+                    {item.isInstalled && (
+                      <Chip
+                        label="Installed"
+                        size="small"
+                        color="success"
+                        sx={{
+                          position: 'absolute',
+                          bottom: 8,
+                          right: 8,
+                          fontWeight: 'bold',
+                        }}
+                      />
+                    )}
                   </Box>
                   
                   <CardContent>

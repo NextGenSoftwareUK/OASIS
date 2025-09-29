@@ -15,6 +15,7 @@ import { DemoModeProvider } from './contexts/DemoModeContext';
 import { AvatarProvider } from './contexts/AvatarContext';
 
 // Pages
+import HomePage from './pages/HomePage';
 import Dashboard from './pages/Dashboard';
 import OAPPsPage from './pages/OAPPsPage';
 import OAPPDetailPage from './pages/OAPPDetailPage';
@@ -54,6 +55,7 @@ import KarmaDetailPage from './pages/KarmaDetailPage';
 import MyDataDetailPage from './pages/MyDataDetailPage';
 import KarmaPage from './pages/KarmaPage';
 import MyDataPage from './pages/MyDataPage';
+import DevPortalPage from './pages/DevPortalPage';
 
 // Services
 import { starService } from './services/starService';
@@ -124,7 +126,21 @@ const App: React.FC = () => {
         <Container maxWidth="xl">
           <AnimatePresence mode="wait">
             <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route 
+                path="/home" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <HomePage />
+                  </motion.div>
+                } 
+              />
               <Route 
                 path="/dashboard" 
                 element={
@@ -668,6 +684,20 @@ const App: React.FC = () => {
                     transition={pageTransition}
                   >
                     <STARNETDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/dev-portal" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <DevPortalPage />
                   </motion.div>
                 } 
               />

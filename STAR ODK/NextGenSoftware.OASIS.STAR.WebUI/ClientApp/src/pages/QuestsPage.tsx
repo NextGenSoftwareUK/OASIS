@@ -17,6 +17,10 @@ import {
   Alert,
   LinearProgress,
   Badge,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   Assignment,
@@ -44,6 +48,8 @@ interface Quest {
   progress: number;
   maxProgress: number;
   createdAt: string;
+  isInstalled?: boolean; // Added for installed badge and filtering
+  creator?: string; // Added for 'mine' filter demo
   updatedAt: string;
   category: string;
   tags: string[];
@@ -53,6 +59,7 @@ const QuestsPage: React.FC = () => {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [viewScope, setViewScope] = useState<string>('all');
   const [newQuest, setNewQuest] = useState({
     title: '',
     description: '',
@@ -176,9 +183,27 @@ const QuestsPage: React.FC = () => {
     }
   };
 
-  const filteredQuests = questsData?.result?.filter((quest: any) => 
-    filterStatus === 'all' || quest.status === filterStatus
-  ) || [];
+  // Filter by view scope first, then by status
+  const getFilteredQuests = () => {
+    let filtered = questsData?.result || [];
+    
+    // Apply view scope filter
+    if (viewScope === 'installed') {
+      filtered = filtered.filter((quest: any) => quest.isInstalled);
+    } else if (viewScope === 'mine') {
+      // For demo, show quests created by current user
+      filtered = filtered.filter((quest: any) => quest.creator === 'Current User');
+    }
+    
+    // Apply status filter
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter((quest: any) => quest.status === filterStatus);
+    }
+    
+    return filtered;
+  };
+  
+  const filteredQuests = getFilteredQuests();
 
   return (
     <>
@@ -192,6 +217,19 @@ const QuestsPage: React.FC = () => {
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <InputLabel>View</InputLabel>
+            <Select
+              value={viewScope}
+              label="View"
+              onChange={(e) => setViewScope(e.target.value)}
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="installed">Installed</MenuItem>
+              <MenuItem value="mine">My Quests</MenuItem>
+            </Select>
+          </FormControl>
+          
           <Button
             variant="outlined"
             startIcon={<FilterList />}
@@ -240,6 +278,20 @@ const QuestsPage: React.FC = () => {
                   sx={{ height: '100%', position: 'relative', cursor: 'pointer' }}
                   onClick={() => navigate(`/quests/${quest.id}`)}
                 >
+                  {quest.isInstalled && (
+                    <Chip
+                      label="Installed"
+                      size="small"
+                      color="success"
+                      sx={{
+                        position: 'absolute',
+                        bottom: 8,
+                        right: 8,
+                        fontWeight: 'bold',
+                        zIndex: 1,
+                      }}
+                    />
+                  )}
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                       <Box sx={{ flexGrow: 1 }}>

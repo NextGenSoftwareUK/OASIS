@@ -55,12 +55,14 @@ interface GeoNFT {
   isForSale: boolean;
   views: number;
   likes: number;
+  isInstalled?: boolean; // Added for installed badge and filtering
 }
 
 const GeoNFTsPage: React.FC = () => {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
+  const [viewScope, setViewScope] = useState<string>('all');
   const [newGeoNFT, setNewGeoNFT] = useState({
     name: '',
     description: '',
@@ -287,9 +289,28 @@ const GeoNFTsPage: React.FC = () => {
   };
 
   const categories = ['all', 'Landmark', 'Nature', 'Urban', 'Heritage'];
-  const filteredGeoNFTs = geoNFTsData?.result?.filter((geoNFT: any) => 
-    filterCategory === 'all' || geoNFT.category === filterCategory
-  ) || [];
+  
+  // Filter by view scope first, then by category
+  const getFilteredGeoNFTs = () => {
+    let filtered = geoNFTsData?.result || [];
+    
+    // Apply view scope filter
+    if (viewScope === 'installed') {
+      filtered = filtered.filter((geoNFT: any) => geoNFT.isInstalled);
+    } else if (viewScope === 'mine') {
+      // For demo, show GeoNFTs created by current user
+      filtered = filtered.filter((geoNFT: any) => geoNFT.owner === 'SF_Explorer');
+    }
+    
+    // Apply category filter
+    if (filterCategory !== 'all') {
+      filtered = filtered.filter((geoNFT: any) => geoNFT.category === filterCategory);
+    }
+    
+    return filtered;
+  };
+  
+  const filteredGeoNFTs = getFilteredGeoNFTs();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -351,6 +372,19 @@ const GeoNFTsPage: React.FC = () => {
 
         {/* Filter */}
         <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <InputLabel>View</InputLabel>
+            <Select
+              value={viewScope}
+              label="View"
+              onChange={(e) => setViewScope(e.target.value)}
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="installed">Installed</MenuItem>
+              <MenuItem value="mine">My GeoNFTs</MenuItem>
+            </Select>
+          </FormControl>
+          
           <FilterList color="action" />
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <InputLabel>Category</InputLabel>
@@ -428,6 +462,19 @@ const GeoNFTsPage: React.FC = () => {
                           position: 'absolute',
                           top: 8,
                           left: 8,
+                          fontWeight: 'bold',
+                        }}
+                      />
+                    )}
+                    {geoNFT.isInstalled && (
+                      <Chip
+                        label="Installed"
+                        size="small"
+                        color="success"
+                        sx={{
+                          position: 'absolute',
+                          bottom: 8,
+                          right: 8,
                           fontWeight: 'bold',
                         }}
                       />

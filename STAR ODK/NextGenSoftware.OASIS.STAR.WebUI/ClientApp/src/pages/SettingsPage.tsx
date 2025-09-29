@@ -54,6 +54,36 @@ import { starService } from '../services/starService';
 import { useDemoMode } from '../contexts/DemoModeContext';
 import toast from 'react-hot-toast';
 
+// OASIS Provider Types - Full ProviderType enum from backend
+const OASIS_PROVIDERS = [
+  { value: 'Auto', label: 'Auto (Let OASIS Choose)', description: 'OASIS will automatically select the best provider for your needs' },
+  { value: 'Default', label: 'Default', description: 'Use the default OASIS provider' },
+  { value: 'MongoDBOASIS', label: 'MongoDB', description: 'MongoDB document database - Fast and flexible' },
+  { value: 'SQLLiteDBOASIS', label: 'SQLite', description: 'SQLite relational database - Local and lightweight' },
+  { value: 'Neo4jOASIS', label: 'Neo4j', description: 'Neo4j graph database - Perfect for relationships' },
+  { value: 'EthereumOASIS', label: 'Ethereum', description: 'Ethereum blockchain - Decentralized and secure' },
+  { value: 'ArbitrumOASIS', label: 'Arbitrum', description: 'Arbitrum Layer 2 - Fast and cheap transactions' },
+  { value: 'PolygonOASIS', label: 'Polygon', description: 'Polygon network - Low-cost Ethereum scaling' },
+  { value: 'SolanaOASIS', label: 'Solana', description: 'Solana blockchain - High-speed transactions' },
+  { value: 'EOSIOOASIS', label: 'EOSIO', description: 'EOSIO blockchain - Enterprise-grade performance' },
+  { value: 'TRONOASIS', label: 'TRON', description: 'TRON blockchain - High throughput network' },
+  { value: 'HoloOASIS', label: 'Holochain', description: 'Holochain - Agent-centric distributed computing' },
+  { value: 'IPFSOASIS', label: 'IPFS', description: 'InterPlanetary File System - Distributed storage' },
+  { value: 'PinataOASIS', label: 'Pinata', description: 'Pinata IPFS service - Reliable IPFS hosting' },
+  { value: 'AzureStorageOASIS', label: 'Azure Storage', description: 'Microsoft Azure cloud storage' },
+  { value: 'AzureCosmosDBOASIS', label: 'Azure Cosmos DB', description: 'Azure Cosmos DB - Global distributed database' },
+  { value: 'AWSOASIS', label: 'AWS', description: 'Amazon Web Services cloud platform' },
+  { value: 'GoogleCloudOASIS', label: 'Google Cloud', description: 'Google Cloud Platform services' },
+  { value: 'LocalFileOASIS', label: 'Local File', description: 'Local file system storage' },
+  { value: 'ActivityPubOASIS', label: 'ActivityPub', description: 'ActivityPub protocol - Federated social web' },
+  { value: 'ScuttlebuttOASIS', label: 'Scuttlebutt', description: 'Scuttlebutt - Offline-first social network' },
+  { value: 'ThreeFoldOASIS', label: 'ThreeFold', description: 'ThreeFold - Decentralized internet infrastructure' },
+  { value: 'UrbitOASIS', label: 'Urbit', description: 'Urbit - Personal server platform' },
+  { value: 'SOLIDOASIS', label: 'SOLID', description: 'SOLID - Decentralized web standards' },
+  { value: 'HoloWebOASIS', label: 'Holo Web', description: 'Holo Web - Distributed web hosting' },
+  { value: 'PLANOASIS', label: 'PLAN', description: 'PLAN protocol - Decentralized planning' },
+];
+
 interface Settings {
   general: {
     theme: 'light' | 'dark' | 'auto';
@@ -85,6 +115,9 @@ interface Settings {
     backupEnabled: boolean;
     syncInterval: number;
     maxRetries: number;
+    enabledProviders: string[];
+    autoReplication: boolean;
+    replicationProviders: string[];
   };
 }
 
@@ -117,10 +150,13 @@ const SettingsPage: React.FC = () => {
       encryptionEnabled: true,
     },
     oasiss: {
-      defaultProvider: 'holochain',
+      defaultProvider: 'Auto',
       backupEnabled: true,
-      syncInterval: 60,
+      syncInterval: 300,
       maxRetries: 3,
+      enabledProviders: ['Auto', 'MongoDBOASIS', 'IPFSOASIS', 'EthereumOASIS'],
+      autoReplication: true,
+      replicationProviders: ['Auto', 'IPFSOASIS', 'PinataOASIS'],
     },
   });
 
@@ -305,6 +341,110 @@ const SettingsPage: React.FC = () => {
           sx={{ fontWeight: 'bold' }}
         />
       </Box>
+
+      {/* OASIS Provider Management */}
+      <Card sx={{ mb: 3, background: 'linear-gradient(135deg, #9c27b015, #9c27b005)', border: '2px solid #9c27b030' }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+            <Avatar sx={{ bgcolor: '#9c27b0', width: 50, height: 50 }}>
+              <CloudIcon />
+            </Avatar>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              🌐 OASIS Provider Management
+            </Typography>
+          </Box>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Default Provider</InputLabel>
+                <Select
+                  value={settings.oasiss.defaultProvider}
+                  onChange={(e) => handleSettingChange('oasiss', 'defaultProvider', e.target.value)}
+                  label="Default Provider"
+                >
+                  {OASIS_PROVIDERS.map((provider) => (
+                    <MenuItem key={provider.value} value={provider.value}>
+                      <Box>
+                        <Typography variant="body1">{provider.label}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {provider.description}
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={settings.oasiss.autoReplication}
+                    onChange={(e) => handleSettingChange('oasiss', 'autoReplication', e.target.checked)}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: '#9c27b0',
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: '#9c27b0',
+                      },
+                    }}
+                  />
+                }
+                label="Auto Replication"
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>
+                Enabled Providers
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                {OASIS_PROVIDERS.map((provider) => (
+                  <Chip
+                    key={provider.value}
+                    label={provider.label}
+                    color={settings.oasiss.enabledProviders.includes(provider.value) ? 'primary' : 'default'}
+                    variant={settings.oasiss.enabledProviders.includes(provider.value) ? 'filled' : 'outlined'}
+                    onClick={() => {
+                      const newProviders = settings.oasiss.enabledProviders.includes(provider.value)
+                        ? settings.oasiss.enabledProviders.filter(p => p !== provider.value)
+                        : [...settings.oasiss.enabledProviders, provider.value];
+                      handleSettingChange('oasiss', 'enabledProviders', newProviders);
+                    }}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Box>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>
+                Replication Providers
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {OASIS_PROVIDERS.map((provider) => (
+                  <Chip
+                    key={provider.value}
+                    label={provider.label}
+                    color={settings.oasiss.replicationProviders.includes(provider.value) ? 'secondary' : 'default'}
+                    variant={settings.oasiss.replicationProviders.includes(provider.value) ? 'filled' : 'outlined'}
+                    onClick={() => {
+                      const newProviders = settings.oasiss.replicationProviders.includes(provider.value)
+                        ? settings.oasiss.replicationProviders.filter(p => p !== provider.value)
+                        : [...settings.oasiss.replicationProviders, provider.value];
+                      handleSettingChange('oasiss', 'replicationProviders', newProviders);
+                    }}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Box>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
 
       {/* Settings Grid */}
       <Grid container spacing={3}>

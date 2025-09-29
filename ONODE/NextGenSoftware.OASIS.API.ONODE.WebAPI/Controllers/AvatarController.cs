@@ -1808,5 +1808,163 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    else
         //        currentAutoFailOverList = ProviderManager.GetProviderListAsString(listResult.Result.ToList());
         //}
+
+        #region Session Management - OASIS SSO System 🚀
+
+        /// <summary>
+        /// Get all active sessions for a specific avatar (OASIS SSO System)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <returns>List of active sessions</returns>
+        [HttpGet("{avatarId}/sessions")]
+        [Authorize]
+        public async Task<OASISHttpResponseMessage<AvatarSessionManagement>> GetAvatarSessions(Guid avatarId)
+        {
+            try
+            {
+                var result = await _avatarService.GetAvatarSessionsAsync(avatarId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<AvatarSessionManagement>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving avatar sessions: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Logout avatar from specific sessions (OASIS SSO System)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <param name="sessionIds">List of session IDs to logout</param>
+        /// <returns>Success status</returns>
+        [HttpPost("{avatarId}/sessions/logout")]
+        [Authorize]
+        public async Task<OASISHttpResponseMessage<bool>> LogoutAvatarSessions(Guid avatarId, [FromBody] List<string> sessionIds)
+        {
+            try
+            {
+                var result = await _avatarService.LogoutAvatarSessionsAsync(avatarId, sessionIds);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error logging out avatar sessions: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Logout avatar from all sessions (OASIS SSO System)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <returns>Success status</returns>
+        [HttpPost("{avatarId}/sessions/logout-all")]
+        [Authorize]
+        public async Task<OASISHttpResponseMessage<bool>> LogoutAllAvatarSessions(Guid avatarId)
+        {
+            try
+            {
+                var result = await _avatarService.LogoutAllAvatarSessionsAsync(avatarId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error logging out all avatar sessions: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Create a new session for an avatar (OASIS SSO System)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <param name="sessionData">Session information</param>
+        /// <returns>Created session</returns>
+        [HttpPost("{avatarId}/sessions")]
+        [Authorize]
+        public async Task<OASISHttpResponseMessage<AvatarSession>> CreateAvatarSession(Guid avatarId, [FromBody] CreateSessionRequest sessionData)
+        {
+            try
+            {
+                var result = await _avatarService.CreateAvatarSessionAsync(avatarId, sessionData);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<AvatarSession>
+                {
+                    IsError = true,
+                    Message = $"Error creating avatar session: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Update an existing session (OASIS SSO System)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <param name="sessionId">The session ID</param>
+        /// <param name="sessionData">Updated session information</param>
+        /// <returns>Updated session</returns>
+        [HttpPut("{avatarId}/sessions/{sessionId}")]
+        [Authorize]
+        public async Task<OASISHttpResponseMessage<AvatarSession>> UpdateAvatarSession(Guid avatarId, string sessionId, [FromBody] UpdateSessionRequest sessionData)
+        {
+            try
+            {
+                var result = await _avatarService.UpdateAvatarSessionAsync(avatarId, sessionId, sessionData);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<AvatarSession>
+                {
+                    IsError = true,
+                    Message = $"Error updating avatar session: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Get session statistics for an avatar (OASIS SSO System)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <returns>Session statistics</returns>
+        [HttpGet("{avatarId}/sessions/stats")]
+        [Authorize]
+        public async Task<OASISHttpResponseMessage<AvatarSessionStats>> GetAvatarSessionStats(Guid avatarId)
+        {
+            try
+            {
+                var result = await _avatarService.GetAvatarSessionStatsAsync(avatarId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<AvatarSessionStats>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving avatar session stats: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        #endregion
     }
 }
