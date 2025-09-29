@@ -35,6 +35,7 @@ import {
   Star,
   EmojiEvents,
   CloudUpload,
+  Code,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -219,6 +220,13 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           description: 'OASIS Hyperdrive',
         },
       ],
+    },
+    {
+      id: 'dev-portal',
+      title: 'Dev Portal',
+      icon: <Code />,
+      path: '/dev-portal',
+      description: 'Developer Resources & Tools',
     },
     {
       id: 'settings',

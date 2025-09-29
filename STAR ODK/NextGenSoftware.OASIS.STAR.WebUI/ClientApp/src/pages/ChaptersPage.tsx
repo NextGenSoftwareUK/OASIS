@@ -57,6 +57,7 @@ interface Chapter {
   likes: number;
   tags: string[];
   content: string;
+  isInstalled?: boolean; // Added for installed badge and filtering
   isFeatured: boolean;
   category: string;
 }
@@ -65,6 +66,7 @@ const ChaptersPage: React.FC = () => {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [viewScope, setViewScope] = useState<string>('all');
   const [newChapter, setNewChapter] = useState<Partial<Chapter>>({
     title: '',
     description: '',
@@ -270,9 +272,27 @@ const ChaptersPage: React.FC = () => {
     }
   };
 
-  const filteredChapters = chaptersData?.result?.filter((chapter: Chapter) => 
-    filterStatus === 'all' || chapter.status === filterStatus
-  ) || [];
+  // Filter by view scope first, then by status
+  const getFilteredChapters = () => {
+    let filtered = chaptersData?.result || [];
+    
+    // Apply view scope filter
+    if (viewScope === 'installed') {
+      filtered = filtered.filter((chapter: any) => chapter.isInstalled);
+    } else if (viewScope === 'mine') {
+      // For demo, show chapters created by current user
+      filtered = filtered.filter((chapter: any) => chapter.author === 'Dr. Sarah Chen');
+    }
+    
+    // Apply status filter
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter((chapter: Chapter) => chapter.status === filterStatus);
+    }
+    
+    return filtered;
+  };
+  
+  const filteredChapters = getFilteredChapters();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -307,6 +327,19 @@ const ChaptersPage: React.FC = () => {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
+            <FormControl size="small" sx={{ minWidth: 140 }}>
+              <InputLabel>View</InputLabel>
+              <Select
+                value={viewScope}
+                label="View"
+                onChange={(e) => setViewScope(e.target.value)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="installed">Installed</MenuItem>
+                <MenuItem value="mine">My Chapters</MenuItem>
+              </Select>
+            </FormControl>
+            
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Filter Status</InputLabel>
               <Select
@@ -410,6 +443,19 @@ const ChaptersPage: React.FC = () => {
                           fontWeight: 'bold',
                         }}
                       />
+                      {chapter.isInstalled && (
+                        <Chip
+                          label="Installed"
+                          size="small"
+                          color="success"
+                          sx={{
+                            position: 'absolute',
+                            bottom: 8,
+                            right: 8,
+                            fontWeight: 'bold',
+                          }}
+                        />
+                      )}
                     </Box>
                     
                     <CardContent sx={{ flexGrow: 1 }}>

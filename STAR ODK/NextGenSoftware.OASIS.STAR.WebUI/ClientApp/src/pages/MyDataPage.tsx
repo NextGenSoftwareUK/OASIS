@@ -91,6 +91,36 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
 import { starService } from '../services/starService';
 
+// OASIS Provider Types - Full ProviderType enum from backend
+const OASIS_PROVIDERS = [
+  { value: 'Auto', label: 'Auto (Let OASIS Choose)', description: 'OASIS will automatically select the best provider for your needs' },
+  { value: 'Default', label: 'Default', description: 'Use the default OASIS provider' },
+  { value: 'MongoDBOASIS', label: 'MongoDB', description: 'MongoDB document database - Fast and flexible' },
+  { value: 'SQLLiteDBOASIS', label: 'SQLite', description: 'SQLite relational database - Local and lightweight' },
+  { value: 'Neo4jOASIS', label: 'Neo4j', description: 'Neo4j graph database - Perfect for relationships' },
+  { value: 'EthereumOASIS', label: 'Ethereum', description: 'Ethereum blockchain - Decentralized and secure' },
+  { value: 'ArbitrumOASIS', label: 'Arbitrum', description: 'Arbitrum Layer 2 - Fast and cheap transactions' },
+  { value: 'PolygonOASIS', label: 'Polygon', description: 'Polygon network - Low-cost Ethereum scaling' },
+  { value: 'SolanaOASIS', label: 'Solana', description: 'Solana blockchain - High-speed transactions' },
+  { value: 'EOSIOOASIS', label: 'EOSIO', description: 'EOSIO blockchain - Enterprise-grade performance' },
+  { value: 'TRONOASIS', label: 'TRON', description: 'TRON blockchain - High throughput network' },
+  { value: 'HoloOASIS', label: 'Holochain', description: 'Holochain - Agent-centric distributed computing' },
+  { value: 'IPFSOASIS', label: 'IPFS', description: 'InterPlanetary File System - Distributed storage' },
+  { value: 'PinataOASIS', label: 'Pinata', description: 'Pinata IPFS service - Reliable IPFS hosting' },
+  { value: 'AzureStorageOASIS', label: 'Azure Storage', description: 'Microsoft Azure cloud storage' },
+  { value: 'AzureCosmosDBOASIS', label: 'Azure Cosmos DB', description: 'Azure Cosmos DB - Global distributed database' },
+  { value: 'AWSOASIS', label: 'AWS', description: 'Amazon Web Services cloud platform' },
+  { value: 'GoogleCloudOASIS', label: 'Google Cloud', description: 'Google Cloud Platform services' },
+  { value: 'LocalFileOASIS', label: 'Local File', description: 'Local file system storage' },
+  { value: 'ActivityPubOASIS', label: 'ActivityPub', description: 'ActivityPub protocol - Federated social web' },
+  { value: 'ScuttlebuttOASIS', label: 'Scuttlebutt', description: 'Scuttlebutt - Offline-first social network' },
+  { value: 'ThreeFoldOASIS', label: 'ThreeFold', description: 'ThreeFold - Decentralized internet infrastructure' },
+  { value: 'UrbitOASIS', label: 'Urbit', description: 'Urbit - Personal server platform' },
+  { value: 'SOLIDOASIS', label: 'SOLID', description: 'SOLID - Decentralized web standards' },
+  { value: 'HoloWebOASIS', label: 'Holo Web', description: 'Holo Web - Distributed web hosting' },
+  { value: 'PLANOASIS', label: 'PLAN', description: 'PLAN protocol - Decentralized planning' },
+];
+
 interface DataFile {
   id: string;
   name: string;
@@ -101,12 +131,15 @@ interface DataFile {
   createdAt: string;
   modifiedAt: string;
   permissions: {
-    read: string[];
-    write: string[];
-    execute: string[];
+    read: PermissionEntry[];
+    write: PermissionEntry[];
+    execute: PermissionEntry[];
+    share: PermissionEntry[];
   };
   replication: {
     enabled: boolean;
+    autoReplicate: boolean;
+    providers: string[];
     nodes: number;
     regions: string[];
   };
@@ -125,6 +158,22 @@ interface DataFile {
     description: string;
     version: string;
   };
+}
+
+interface PermissionEntry {
+  type: 'user' | 'group' | 'public' | 'provider';
+  id: string;
+  name: string;
+  providers: string[];
+  expiresAt?: string;
+  conditions?: string[];
+}
+
+interface PermissionDialogProps {
+  open: boolean;
+  onClose: () => void;
+  file: DataFile | null;
+  onSave: (permissions: DataFile['permissions']) => void;
 }
 
 interface StorageNode {
