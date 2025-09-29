@@ -22,6 +22,10 @@ import {
   LinearProgress,
   CardMedia,
   CardActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -53,6 +57,7 @@ interface NFT {
   createdAt: string;
   isForSale: boolean;
   views: number;
+  isInstalled?: boolean; // Added for installed badge and filtering
   likes: number;
 }
 
@@ -60,6 +65,7 @@ const NFTsPage: React.FC = () => {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [viewScope, setViewScope] = useState<string>('all');
   const [newNFT, setNewNFT] = useState({
     name: '',
     description: '',
@@ -258,9 +264,28 @@ const NFTsPage: React.FC = () => {
   };
 
   const categories = ['all', 'Art', 'Creatures', 'Minerals', 'Pets', 'Structures', 'Nature'];
-  const filteredNFTs = nftsData?.result?.filter((nft: any) => 
-    filterCategory === 'all' || nft.category === filterCategory
-  ) || [];
+  
+  // Filter by view scope first, then by category
+  const getFilteredNFTs = () => {
+    let filtered = nftsData?.result || [];
+    
+    // Apply view scope filter
+    if (viewScope === 'installed') {
+      filtered = filtered.filter((nft: any) => nft.isInstalled);
+    } else if (viewScope === 'mine') {
+      // For demo, show NFTs created by current user
+      filtered = filtered.filter((nft: any) => nft.owner === 'OASIS_Explorer');
+    }
+    
+    // Apply category filter
+    if (filterCategory !== 'all') {
+      filtered = filtered.filter((nft: any) => nft.category === filterCategory);
+    }
+    
+    return filtered;
+  };
+  
+  const filteredNFTs = getFilteredNFTs();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -328,23 +353,38 @@ const NFTsPage: React.FC = () => {
           </Button>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <FilterIcon sx={{ color: 'text.secondary' }} />
-          {categories.map((category) => (
-            <Chip
-              key={category}
-              label={category}
-              onClick={() => setFilterCategory(category)}
-              variant={filterCategory === category ? 'filled' : 'outlined'}
-              sx={{
-                bgcolor: filterCategory === category ? 'primary.main' : 'transparent',
-                color: filterCategory === category ? 'white' : 'text.primary',
-                '&:hover': {
-                  bgcolor: filterCategory === category ? 'primary.dark' : 'action.hover',
-                }
-              }}
-            />
-          ))}
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <InputLabel>View</InputLabel>
+            <Select
+              value={viewScope}
+              label="View"
+              onChange={(e) => setViewScope(e.target.value)}
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="installed">Installed</MenuItem>
+              <MenuItem value="mine">My NFTs</MenuItem>
+            </Select>
+          </FormControl>
+          
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <FilterIcon sx={{ color: 'text.secondary' }} />
+            {categories.map((category) => (
+              <Chip
+                key={category}
+                label={category}
+                onClick={() => setFilterCategory(category)}
+                variant={filterCategory === category ? 'filled' : 'outlined'}
+                sx={{
+                  bgcolor: filterCategory === category ? 'primary.main' : 'transparent',
+                  color: filterCategory === category ? 'white' : 'text.primary',
+                  '&:hover': {
+                    bgcolor: filterCategory === category ? 'primary.dark' : 'action.hover',
+                  }
+                }}
+              />
+            ))}
+          </Box>
         </Box>
       </Box>
 
@@ -431,6 +471,19 @@ const NFTsPage: React.FC = () => {
                         color: 'white',
                         fontWeight: 'bold',
                         fontSize: '0.7rem'
+                      }}
+                    />
+                  )}
+                  {nft.isInstalled && (
+                    <Chip
+                      label="Installed"
+                      size="small"
+                      color="success"
+                      sx={{
+                        position: 'absolute',
+                        bottom: 8,
+                        right: 8,
+                        fontWeight: 'bold',
                       }}
                     />
                   )}

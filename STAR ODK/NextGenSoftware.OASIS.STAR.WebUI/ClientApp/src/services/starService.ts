@@ -581,6 +581,427 @@ export const starService = {
     }
   },
 
+  // Avatar Session Management - OASIS SSO System 🚀
+  async getAvatarSessions(avatarId: string): Promise<OASISResult<any>> {
+    console.log('starService.getAvatarSessions called, isDemoMode():', isDemoMode());
+    
+    if (isDemoMode()) {
+      // Demo mode - return impressive session data
+      console.log('Avatar Sessions - Demo Mode');
+      return {
+        isError: false,
+        message: 'Avatar sessions loaded successfully (Demo Mode)',
+        result: {
+          totalSessions: 12,
+          activeSessions: 4,
+          sessions: [
+            {
+              id: '1',
+              serviceName: 'STARNET Dashboard',
+              serviceType: 'platform',
+              deviceType: 'desktop',
+              deviceName: 'MacBook Pro 16"',
+              location: 'San Francisco, CA',
+              ipAddress: '192.168.1.100',
+              isActive: true,
+              lastActivity: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+              loginTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+              userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+              platform: 'macOS',
+              version: '1.0.0',
+            },
+            {
+              id: '2',
+              serviceName: 'OASIS Gaming Platform',
+              serviceType: 'game',
+              deviceType: 'vr',
+              deviceName: 'Oculus Quest 3',
+              location: 'San Francisco, CA',
+              ipAddress: '192.168.1.101',
+              isActive: true,
+              lastActivity: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+              loginTime: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+              userAgent: 'OculusBrowser/1.0.0',
+              platform: 'Android',
+              version: '2.1.0',
+            },
+            {
+              id: '3',
+              serviceName: 'STAR Mobile App',
+              serviceType: 'app',
+              deviceType: 'mobile',
+              deviceName: 'iPhone 15 Pro',
+              location: 'San Francisco, CA',
+              ipAddress: '192.168.1.102',
+              isActive: true,
+              lastActivity: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+              loginTime: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+              userAgent: 'STAR Mobile/3.2.1 (iPhone; iOS 17.0)',
+              platform: 'iOS',
+              version: '3.2.1',
+            },
+            {
+              id: '4',
+              serviceName: 'Quantum Calculator OAPP',
+              serviceType: 'app',
+              deviceType: 'desktop',
+              deviceName: 'Windows PC',
+              location: 'New York, NY',
+              ipAddress: '203.0.113.45',
+              isActive: true,
+              lastActivity: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+              loginTime: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+              userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+              platform: 'Windows',
+              version: '1.5.2',
+            },
+            {
+              id: '5',
+              serviceName: 'STARNET Store',
+              serviceType: 'website',
+              deviceType: 'tablet',
+              deviceName: 'iPad Pro 12.9"',
+              location: 'San Francisco, CA',
+              ipAddress: '192.168.1.103',
+              isActive: false,
+              lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+              loginTime: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+              userAgent: 'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X)',
+              platform: 'iPadOS',
+              version: '1.0.0',
+            },
+            {
+              id: '6',
+              serviceName: 'Neural Network SDK',
+              serviceType: 'service',
+              deviceType: 'desktop',
+              deviceName: 'Linux Workstation',
+              location: 'Seattle, WA',
+              ipAddress: '198.51.100.23',
+              isActive: false,
+              lastActivity: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+              loginTime: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
+              userAgent: 'STAR SDK/2.0.0 (Linux x86_64)',
+              platform: 'Linux',
+              version: '2.0.0',
+            },
+          ],
+        }
+      };
+    }
+
+    console.log('Avatar Sessions - Live Mode, making API call to:', WEB4_API_BASE_URL + `/avatar/${avatarId}/sessions`);
+    try {
+      const response = await web4Api.get(`/avatar/${avatarId}/sessions`);
+      console.log('Avatar Sessions API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching avatar sessions:', error);
+      return {
+        isError: true,
+        message: 'Failed to fetch avatar sessions',
+        result: undefined
+      };
+    }
+  },
+
+  async logoutAvatarSessions(avatarId: string, sessionIds: string[]): Promise<OASISResult<boolean>> {
+    console.log('starService.logoutAvatarSessions called, isDemoMode():', isDemoMode());
+    
+    if (isDemoMode()) {
+      // Demo mode - simulate successful logout
+      console.log('Logout Avatar Sessions - Demo Mode');
+      return {
+        isError: false,
+        message: `Successfully logged out from ${sessionIds.length} session(s) (Demo Mode)`,
+        result: true
+      };
+    }
+
+    console.log('Logout Avatar Sessions - Live Mode, making API call to:', WEB4_API_BASE_URL + `/avatar/${avatarId}/sessions/logout`);
+    try {
+      const response = await web4Api.post(`/avatar/${avatarId}/sessions/logout`, {
+        sessionIds
+      });
+      console.log('Logout Avatar Sessions API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error logging out avatar sessions:', error);
+      return {
+        isError: true,
+        message: 'Failed to logout sessions',
+        result: undefined
+      };
+    }
+  },
+
+    // Dev Portal - Developer Resources & Tools 🛠️
+    async getDevPortalStats(): Promise<OASISResult<any>> {
+      console.log('starService.getDevPortalStats called, isDemoMode():', isDemoMode());
+      
+      if (isDemoMode()) {
+        // Demo mode - return impressive dev portal stats
+        console.log('Dev Portal Stats - Demo Mode');
+        return {
+          isError: false,
+          message: 'Dev portal stats loaded successfully (Demo Mode)',
+          result: {
+            totalResources: 47,
+            totalDownloads: 125000,
+            activeDevelopers: 8923,
+            averageRating: 4.8,
+            popularCategories: [
+              { category: 'Getting Started', count: 12 },
+              { category: 'Integration', count: 18 },
+              { category: 'Advanced', count: 8 },
+              { category: 'Examples', count: 6 },
+              { category: 'Tools', count: 3 },
+            ],
+            recentUpdates: [],
+            featuredResources: [],
+          }
+        };
+      }
+
+      console.log('Dev Portal Stats - Live Mode, making API call to:', API_BASE_URL + '/dev-portal/stats');
+      try {
+        const response = await api.get('/dev-portal/stats');
+        console.log('Dev Portal Stats API response:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching dev portal stats:', error);
+        return {
+          isError: true,
+          message: 'Failed to fetch dev portal stats',
+          result: undefined
+        };
+      }
+    },
+
+    async getDevPortalResources(): Promise<OASISResult<any>> {
+      console.log('starService.getDevPortalResources called, isDemoMode():', isDemoMode());
+      
+      if (isDemoMode()) {
+        // Demo mode - return impressive dev portal resources
+        console.log('Dev Portal Resources - Demo Mode');
+        return {
+          isError: false,
+          message: 'Dev portal resources loaded successfully (Demo Mode)',
+          result: [
+            {
+              id: '1',
+              title: 'STAR CLI - Command Line Interface',
+              description: 'Complete command-line tool for interacting with the OASIS ecosystem. Deploy, manage, and monitor your applications.',
+              type: 'cli',
+              category: 'getting-started',
+              downloadUrl: '/downloads/star-cli-v2.1.0.zip',
+              version: '2.1.0',
+              size: '45.2 MB',
+              downloads: 45678,
+              rating: 4.9,
+              tags: ['cli', 'deployment', 'management', 'monitoring'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-01-15T10:30:00Z',
+              featured: true,
+              difficulty: 'beginner',
+              estimatedTime: '15 minutes',
+              prerequisites: ['Node.js 18+', 'Git'],
+              languages: ['JavaScript', 'TypeScript'],
+              frameworks: ['Node.js'],
+              platforms: ['Windows', 'macOS', 'Linux'],
+              content: 'The STAR CLI is your gateway to the OASIS ecosystem. With simple commands, you can deploy applications, manage avatars, and interact with the blockchain.',
+              codeExamples: [
+                'star login',
+                'star deploy my-app',
+                'star avatar create --name "My Avatar"',
+                'star blockchain connect --network ethereum'
+              ],
+              screenshots: ['/screenshots/star-cli-1.png', '/screenshots/star-cli-2.png'],
+              videoUrl: 'https://youtube.com/watch?v=star-cli-demo',
+              githubUrl: 'https://github.com/oasis/star-cli',
+              documentationUrl: 'https://docs.oasis.network/star-cli',
+              supportUrl: 'https://support.oasis.network/star-cli'
+            },
+            {
+              id: '2',
+              title: 'OASIS Avatar SSO SDK Pack',
+              description: 'Complete SDK package for integrating OASIS Avatar SSO into your applications. Includes widgets, API clients, and documentation.',
+              type: 'sdk',
+              category: 'integration',
+              downloadUrl: '/downloads/oasis-avatar-sso-sdk-v1.5.2.zip',
+              version: '1.5.2',
+              size: '128.7 MB',
+              downloads: 23456,
+              rating: 4.8,
+              tags: ['sso', 'authentication', 'avatar', 'sdk', 'widget'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-01-14T14:20:00Z',
+              featured: true,
+              difficulty: 'intermediate',
+              estimatedTime: '2 hours',
+              prerequisites: ['JavaScript', 'React/Vue/Angular', 'Node.js'],
+              languages: ['JavaScript', 'TypeScript', 'Python', 'Java', 'C#'],
+              frameworks: ['React', 'Vue', 'Angular', 'Express', 'Django', 'Spring'],
+              platforms: ['Web', 'Mobile', 'Desktop'],
+              content: 'The OASIS Avatar SSO SDK Pack provides everything you need to integrate seamless authentication into your applications. Includes pre-built widgets, API clients, and comprehensive documentation.',
+              codeExamples: [
+                'import { OasisAvatarSSO } from "@oasis/avatar-sso";',
+                'const sso = new OasisAvatarSSO({ clientId: "your-client-id" });',
+                'await sso.login();',
+                'const user = await sso.getCurrentUser();'
+              ],
+              screenshots: ['/screenshots/avatar-sso-1.png', '/screenshots/avatar-sso-2.png'],
+              videoUrl: 'https://youtube.com/watch?v=avatar-sso-demo',
+              githubUrl: 'https://github.com/oasis/avatar-sso-sdk',
+              documentationUrl: 'https://docs.oasis.network/avatar-sso',
+              supportUrl: 'https://support.oasis.network/avatar-sso'
+            },
+            {
+              id: '3',
+              title: 'Postman Collection - WEB4 OASIS API',
+              description: 'Complete Postman collection with all WEB4 OASIS API endpoints, examples, and authentication setup.',
+              type: 'postman',
+              category: 'tools',
+              downloadUrl: '/downloads/oasis-api-postman-collection-v3.2.1.json',
+              version: '3.2.1',
+              size: '2.1 MB',
+              downloads: 18923,
+              rating: 4.7,
+              tags: ['api', 'postman', 'testing', 'documentation'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-01-13T16:45:00Z',
+              featured: true,
+              difficulty: 'beginner',
+              estimatedTime: '30 minutes',
+              prerequisites: ['Postman', 'API knowledge'],
+              languages: ['JSON'],
+              frameworks: ['Postman'],
+              platforms: ['Cross-platform'],
+              content: 'Ready-to-use Postman collection with all WEB4 OASIS API endpoints, including authentication, examples, and test scenarios.',
+              codeExamples: [
+                'GET /api/avatar/profile',
+                'POST /api/avatar/create',
+                'GET /api/nft/list',
+                'POST /api/oapp/deploy'
+              ],
+              screenshots: ['/screenshots/postman-1.png', '/screenshots/postman-2.png'],
+              videoUrl: 'https://youtube.com/watch?v=postman-oasis-api',
+              githubUrl: 'https://github.com/oasis/api-postman-collection',
+              documentationUrl: 'https://docs.oasis.network/api/postman',
+              supportUrl: 'https://support.oasis.network/api'
+            }
+          ]
+        };
+      }
+
+      console.log('Dev Portal Resources - Live Mode, making API call to:', API_BASE_URL + '/dev-portal/resources');
+      try {
+        const response = await api.get('/dev-portal/resources');
+        console.log('Dev Portal Resources API response:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching dev portal resources:', error);
+        return {
+          isError: true,
+          message: 'Failed to fetch dev portal resources',
+          result: undefined
+        };
+      }
+    },
+
+    // Dashboard Data - Analytics and Metrics 📊
+    async getDashboardData(): Promise<OASISResult<any>> {
+    console.log('starService.getDashboardData called, isDemoMode():', isDemoMode());
+    
+    if (isDemoMode()) {
+      // Demo mode - return impressive dashboard data
+      console.log('Dashboard Data - Demo Mode');
+      return {
+        isError: false,
+        message: 'Dashboard data loaded successfully (Demo Mode)',
+        result: {
+          overview: {
+            totalUsers: 2547891,
+            activeUsers: 892456,
+            totalRevenue: 12500000,
+            systemHealth: 98.5,
+            uptime: 99.9,
+            transactions: 4567892,
+            growthRate: 12.5,
+            userSatisfaction: 4.8,
+          },
+          metrics: {
+            oapps: { total: 1250, active: 892, growth: 8.2 },
+            nfts: { total: 45678, active: 23456, growth: 15.3 },
+            avatars: { total: 892456, active: 456789, growth: 22.1 },
+            runtimes: { total: 234, active: 189, growth: 5.7 },
+            libraries: { total: 567, active: 456, growth: 12.8 },
+            templates: { total: 1234, active: 987, growth: 18.9 },
+            celestialBodies: { total: 4567, active: 3456, growth: 7.4 },
+            celestialSpaces: { total: 234, active: 189, growth: 9.2 },
+            quests: { total: 1234, active: 567, growth: 14.6 },
+            chapters: { total: 2345, active: 1234, growth: 11.3 },
+            inventory: { total: 45678, active: 23456, growth: 16.7 },
+            plugins: { total: 234, active: 189, growth: 6.9 },
+            storeItems: { total: 1234, active: 987, growth: 13.2 },
+          },
+          recentActivity: [
+            { id: 1, type: 'user', action: 'New user registered', user: 'John Doe', time: '2 minutes ago', status: 'success' },
+            { id: 2, type: 'oapp', action: 'OAPP deployed', name: 'Quantum Calculator', time: '5 minutes ago', status: 'success' },
+            { id: 3, type: 'nft', action: 'NFT minted', name: 'Cosmic Dragon', time: '8 minutes ago', status: 'success' },
+            { id: 4, type: 'transaction', action: 'Payment processed', amount: '$2,500', time: '12 minutes ago', status: 'success' },
+            { id: 5, type: 'error', action: 'System warning', message: 'High CPU usage detected', time: '15 minutes ago', status: 'warning' },
+            { id: 6, type: 'avatar', action: 'Avatar created', name: 'Space Explorer', time: '18 minutes ago', status: 'success' },
+            { id: 7, type: 'runtime', action: 'Runtime updated', name: 'Node.js 18', time: '22 minutes ago', status: 'success' },
+            { id: 8, type: 'library', action: 'Library published', name: 'AI Toolkit', time: '25 minutes ago', status: 'success' },
+          ],
+          performanceData: [
+            { name: 'Jan', users: 1200000, revenue: 2100000, transactions: 45000 },
+            { name: 'Feb', users: 1350000, revenue: 2400000, transactions: 52000 },
+            { name: 'Mar', users: 1500000, revenue: 2800000, transactions: 58000 },
+            { name: 'Apr', users: 1680000, revenue: 3200000, transactions: 65000 },
+            { name: 'May', users: 1850000, revenue: 3600000, transactions: 72000 },
+            { name: 'Jun', users: 2050000, revenue: 4100000, transactions: 78000 },
+            { name: 'Jul', users: 2250000, revenue: 4600000, transactions: 85000 },
+            { name: 'Aug', users: 2450000, revenue: 5100000, transactions: 92000 },
+            { name: 'Sep', users: 2650000, revenue: 5600000, transactions: 98000 },
+            { name: 'Oct', users: 2850000, revenue: 6200000, transactions: 105000 },
+            { name: 'Nov', users: 3050000, revenue: 6800000, transactions: 112000 },
+            { name: 'Dec', users: 3250000, revenue: 7500000, transactions: 120000 },
+          ],
+          systemStatus: {
+            api: { status: 'healthy', responseTime: 45, uptime: 99.9 },
+            database: { status: 'healthy', responseTime: 12, uptime: 99.8 },
+            storage: { status: 'healthy', responseTime: 8, uptime: 99.9 },
+            cache: { status: 'healthy', responseTime: 2, uptime: 99.9 },
+            cdn: { status: 'healthy', responseTime: 15, uptime: 99.9 },
+          },
+          topPerformers: [
+            { name: 'Quantum Calculator', type: 'OAPP', users: 45678, revenue: 125000, growth: 25.3 },
+            { name: 'Cosmic Dragon NFT', type: 'NFT', users: 23456, revenue: 89000, growth: 18.7 },
+            { name: 'AI Assistant', type: 'Plugin', users: 78901, revenue: 156000, growth: 32.1 },
+            { name: 'Space Explorer', type: 'Avatar', users: 123456, revenue: 234000, growth: 15.8 },
+            { name: 'Neural Network SDK', type: 'Library', users: 34567, revenue: 67000, growth: 22.4 },
+          ],
+        }
+      };
+    }
+
+    console.log('Dashboard Data - Live Mode, making API call to:', API_BASE_URL + '/dashboard');
+    try {
+      const response = await api.get('/dashboard');
+      console.log('Dashboard Data API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      return {
+        isError: true,
+        message: 'Failed to fetch dashboard data',
+        result: undefined
+      };
+    }
+  },
+
   async getBeamedInAvatar(): Promise<OASISResult<Avatar>> {
     try {
       const response = await web4Api.get('/avatar/get-beamed-in-avatar');

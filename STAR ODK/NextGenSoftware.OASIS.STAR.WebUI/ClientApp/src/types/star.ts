@@ -212,6 +212,7 @@ export interface CelestialBody extends STARNETItem {
   orbitSpeed?: number;
   parentId?: string;
   children?: CelestialBody[];
+  isInstalled?: boolean; // Added for installed badge and filtering
   // Additional properties for detail pages
   galaxy?: string;
   discoveredDate?: Date;
@@ -236,6 +237,7 @@ export interface CelestialSpace extends STARNETItem {
   atmosphere?: string;
   temperature?: number;
   celestialBodies?: CelestialBody[];
+  isInstalled?: boolean; // Added for installed badge and filtering
   // Additional properties for detail pages
   galaxy?: string;
   discoveredDate?: Date;
@@ -307,6 +309,7 @@ export interface Template extends STARNETItem {
   estimatedSetupTime?: number;
   features?: string[];
   requirements?: string[];
+  isInstalled?: boolean; // Added for installed badge and filtering
 }
 
 export interface InventoryItem extends STARNETItem {
@@ -319,6 +322,7 @@ export interface InventoryItem extends STARNETItem {
   tradeable?: boolean;
   consumable?: boolean;
   effects?: string[];
+  isInstalled?: boolean; // Added for installed badge and filtering
   // Additional properties for detail pages
   type?: string;
   status?: string;

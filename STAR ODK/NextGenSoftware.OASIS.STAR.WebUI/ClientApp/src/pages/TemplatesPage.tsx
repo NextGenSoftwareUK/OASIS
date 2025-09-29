@@ -57,6 +57,7 @@ interface Template {
   downloads: number;
   rating: number;
   size: number;
+  isInstalled?: boolean; // Added for installed badge and filtering
   lastUpdated: string;
   isPublic: boolean;
   isFeatured: boolean;
@@ -74,6 +75,7 @@ const TemplatesPage: React.FC = () => {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [viewScope, setViewScope] = useState<string>('all');
   const [newTemplate, setNewTemplate] = useState<Partial<Template>>({
     name: '',
     description: '',
@@ -489,12 +491,30 @@ const TemplatesPage: React.FC = () => {
     }
   };
 
-  const filteredTemplates = templatesData?.result?.filter((template: Template) => 
-    filterCategory === 'all' || template.category === filterCategory
-  ).map((template: Template) => ({
-    ...template,
-    imageUrl: template.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop'
-  })) || [];
+  // Filter by view scope first, then by category
+  const getFilteredTemplates = () => {
+    let filtered = templatesData?.result || [];
+    
+    // Apply view scope filter
+    if (viewScope === 'installed') {
+      filtered = filtered.filter((template: any) => template.isInstalled);
+    } else if (viewScope === 'mine') {
+      // For demo, show templates created by current user
+      filtered = filtered.filter((template: any) => template.author === 'MobileDev Studio');
+    }
+    
+    // Apply category filter
+    if (filterCategory !== 'all') {
+      filtered = filtered.filter((template: Template) => template.category === filterCategory);
+    }
+    
+    return filtered.map((template: Template) => ({
+      ...template,
+      imageUrl: template.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop'
+    }));
+  };
+  
+  const filteredTemplates = getFilteredTemplates();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -529,6 +549,19 @@ const TemplatesPage: React.FC = () => {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
+            <FormControl size="small" sx={{ minWidth: 140 }}>
+              <InputLabel>View</InputLabel>
+              <Select
+                value={viewScope}
+                label="View"
+                onChange={(e) => setViewScope(e.target.value)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="installed">Installed</MenuItem>
+                <MenuItem value="mine">My Templates</MenuItem>
+              </Select>
+            </FormControl>
+            
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Filter Category</InputLabel>
               <Select
@@ -632,12 +665,25 @@ const TemplatesPage: React.FC = () => {
                           sx={{
                             position: 'absolute',
                             bottom: 8,
-                            right: 8,
+                            left: 8,
                           bgcolor: template.isFree ? 'rgba(76,175,80,0.8)' : 'rgba(0,0,0,0.7)',
                             color: 'white',
                             fontWeight: 'bold',
                           }}
                         />
+                        {template.isInstalled && (
+                          <Chip
+                            label="Installed"
+                            size="small"
+                            color="success"
+                            sx={{
+                              position: 'absolute',
+                              bottom: 8,
+                              right: 8,
+                              fontWeight: 'bold',
+                            }}
+                          />
+                        )}
                     </Box>
                     
                     <CardContent sx={{ flexGrow: 1 }}>

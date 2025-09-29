@@ -65,6 +65,7 @@ const InventoryPage: React.FC = () => {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
+  const [viewScope, setViewScope] = useState<string>('all');
   const [newItem, setNewItem] = useState({
     name: '',
     description: '',
@@ -408,9 +409,28 @@ const InventoryPage: React.FC = () => {
   };
 
   const categories = ['all', 'Combat', 'Tech', 'Defense', 'Mystical', 'Utility'];
-  const filteredItems = inventoryData?.result?.filter((item: any) => 
-    filterCategory === 'all' || item.category === filterCategory
-  ) || [];
+  
+  // Filter by view scope first, then by category
+  const getFilteredItems = () => {
+    let filtered = inventoryData?.result || [];
+    
+    // Apply view scope filter
+    if (viewScope === 'installed') {
+      filtered = filtered.filter((item: any) => item.isInstalled);
+    } else if (viewScope === 'mine') {
+      // For demo, show items owned by current user
+      filtered = filtered.filter((item: any) => item.owner === 'Current User');
+    }
+    
+    // Apply category filter
+    if (filterCategory !== 'all') {
+      filtered = filtered.filter((item: any) => item.category === filterCategory);
+    }
+    
+    return filtered;
+  };
+  
+  const filteredItems = getFilteredItems();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -472,6 +492,19 @@ const InventoryPage: React.FC = () => {
 
         {/* Filter */}
         <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <InputLabel>View</InputLabel>
+            <Select
+              value={viewScope}
+              label="View"
+              onChange={(e) => setViewScope(e.target.value)}
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="installed">Installed</MenuItem>
+              <MenuItem value="mine">My Items</MenuItem>
+            </Select>
+          </FormControl>
+          
           <FilterList color="action" />
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <InputLabel>Category</InputLabel>
@@ -551,6 +584,19 @@ const InventoryPage: React.FC = () => {
                         fontWeight: 'bold',
                       }}
                     />
+                    {item.isInstalled && (
+                      <Chip
+                        label="Installed"
+                        size="small"
+                        color="success"
+                        sx={{
+                          position: 'absolute',
+                          bottom: 8,
+                          right: 8,
+                          fontWeight: 'bold',
+                        }}
+                      />
+                    )}
                   </Box>
                   
                   <CardContent>
