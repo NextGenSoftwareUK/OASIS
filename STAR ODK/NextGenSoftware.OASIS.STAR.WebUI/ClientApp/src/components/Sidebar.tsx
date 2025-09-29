@@ -328,7 +328,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            STAR Navigation
+            STARNET Navigation
           </Typography>
           <Typography variant="caption" color="text.secondary">
             OASIS Omniverse Interface
@@ -344,7 +344,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
 
       <Box sx={{ p: 2, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
         <Typography variant="caption" color="text.secondary" align="center" display="block">
-          STAR Web UI v1.0.0
+          STARNET v1.0.0
         </Typography>
         <Typography variant="caption" color="text.secondary" align="center" display="block">
           {isConnected ? 'Connected to STAR' : 'Disconnected'}

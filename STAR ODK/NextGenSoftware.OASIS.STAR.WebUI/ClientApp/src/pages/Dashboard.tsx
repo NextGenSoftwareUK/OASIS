@@ -242,7 +242,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
               textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
               mb: 2
             }}>
-              STAR Web UI
+              STARNET
             </Typography>
             
             <Typography variant="h5" color="rgba(255,255,255,0.9)" paragraph sx={{ mb: 3 }}>

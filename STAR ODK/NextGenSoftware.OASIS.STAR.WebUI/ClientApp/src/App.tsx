@@ -45,9 +45,13 @@ import LibrariesPage from './pages/LibrariesPage';
 import TemplatesPage from './pages/TemplatesPage';
 import InventoryPage from './pages/InventoryPage';
 import PluginsPage from './pages/PluginsPage';
+import PluginDetailPage from './pages/PluginDetailPage';
 import GeoHotSpotsPage from './pages/GeoHotSpotsPage';
 import STARNETStorePage from './pages/STARNETStorePage';
+import STARNETDetailPage from './pages/STARNETDetailPage';
 import SettingsPage from './pages/SettingsPage';
+import KarmaDetailPage from './pages/KarmaDetailPage';
+import MyDataDetailPage from './pages/MyDataDetailPage';
 import KarmaPage from './pages/KarmaPage';
 import MyDataPage from './pages/MyDataPage';
 
@@ -608,6 +612,62 @@ const App: React.FC = () => {
                     transition={pageTransition}
                   >
                     <MyDataPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/karma/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <KarmaDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/my-data/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <MyDataDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/plugins/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <PluginDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/starnet-store/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <STARNETDetailPage />
                   </motion.div>
                 } 
               />

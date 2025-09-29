@@ -607,7 +607,7 @@ const PluginsPage: React.FC = () => {
                           color="success"
                           sx={{
                             position: 'absolute',
-                            top: 8,
+                            bottom: 8,
                             right: 8,
                             fontWeight: 'bold',
                           }}
@@ -620,7 +620,7 @@ const PluginsPage: React.FC = () => {
                           sx={{
                             position: 'absolute',
                             bottom: 8,
-                            right: 8,
+                            left: 8,
                             bgcolor: 'rgba(0,0,0,0.7)',
                             color: 'white',
                             fontWeight: 'bold',

@@ -48,6 +48,7 @@ import { Runtime } from '../types/star';
 const RuntimesPage: React.FC = () => {
   const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [viewScope, setViewScope] = useState<'all' | 'installed' | 'mine'>('all');
   const [filterType, setFilterType] = useState<string>('all');
   const [newRuntime, setNewRuntime] = useState<Partial<Runtime>>({
     name: '',
@@ -70,316 +71,16 @@ const RuntimesPage: React.FC = () => {
   const queryClient = useQueryClient();
 
   const { data: runtimesData, isLoading, error, refetch } = useQuery(
-    'runtimes',
+    ['runtimes', viewScope],
     async () => {
-      try {
-        // Try to get real data first
-        const response = await starService.getAllRuntimes?.();
-        // Check if the real data has meaningful values, if not use demo data
-        if (response?.result && response.result.length > 0) {
-          const hasRealData = response.result.some((runtime: any) => 
-            runtime.cost > 0 || runtime.cpuUsage > 0 || runtime.region !== 'Not specified'
-          );
-          if (hasRealData) {
-        return response;
-          }
-        }
-        // Fall through to demo data if no real data or all zeros
-        throw new Error('No meaningful data from API, using demo data');
-      } catch (error) {
-        // Fallback to impressive demo data
-        console.log('Using demo Runtimes data for investor presentation');
-        return {
-          result: [
-            {
-              id: '1',
-              name: 'Java Runtime Environment',
-              description: 'Oracle Java 17 LTS runtime for enterprise applications',
-              imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=300&fit=crop',
-              version: '17.0.8',
-              type: 'JVM',
-              language: 'Java',
-              status: 'Running',
-              cpuUsage: 65,
-              memoryUsage: 72,
-              diskUsage: 38,
-              uptime: 172800,
-              lastStarted: '2024-01-10T08:30:00Z',
-              lastStopped: '',
-              instances: 4,
-              maxInstances: 8,
-              port: 8080,
-              environment: 'production',
-              dependencies: ['OpenJDK 17', 'Spring Boot 3.2', 'Maven 3.9'],
-              logs: ['JVM started successfully', 'GC optimization active'],
-              isActive: true,
-              isPublic: true,
-              region: 'us-east-1',
-              cost: 28.50,
-            },
-            {
-              id: '2',
-              name: 'Node.js Runtime',
-              description: 'High-performance JavaScript runtime for web applications',
-              imageUrl: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400&h=300&fit=crop',
-              version: '20.10.0',
-              type: 'JavaScript',
-              language: 'JavaScript',
-              status: 'Running',
-              cpuUsage: 45,
-              memoryUsage: 58,
-              diskUsage: 25,
-              uptime: 259200,
-              lastStarted: '2024-01-08T12:15:00Z',
-              lastStopped: '',
-              instances: 3,
-              maxInstances: 6,
-              port: 3000,
-              environment: 'production',
-              dependencies: ['Node.js 20', 'Express 4.18', 'npm 10.2'],
-              logs: ['Server listening on port 3000', 'Handling 500+ req/sec'],
-              isActive: true,
-              isPublic: true,
-              region: 'us-west-2',
-              cost: 22.75,
-            },
-            {
-              id: '3',
-              name: 'Python Runtime',
-              description: 'Python 3.11 interpreter for data science and AI workloads',
-              imageUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=400&h=300&fit=crop',
-              version: '3.11.6',
-              type: 'Interpreter',
-              language: 'Python',
-              status: 'Stopped',
-              cpuUsage: 0,
-              memoryUsage: 0,
-              diskUsage: 0,
-              uptime: 0,
-              lastStarted: '2024-01-12T14:20:00Z',
-              lastStopped: '2024-01-14T16:45:00Z',
-              instances: 0,
-              maxInstances: 4,
-              port: 8000,
-              environment: 'development',
-              dependencies: ['Python 3.11', 'pip 23.3', 'virtualenv'],
-              logs: ['Model training completed', 'Accuracy: 96.8%'],
-              isActive: false,
-              isPublic: false,
-              region: 'eu-west-1',
-              cost: 18.25,
-            },
-            {
-              id: '4',
-              name: 'Rust Runtime',
-              description: 'High-performance systems programming runtime',
-              imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop',
-              version: '1.75.0',
-              type: 'Systems',
-              language: 'Rust',
-              status: 'Running',
-              cpuUsage: 35,
-              memoryUsage: 42,
-              diskUsage: 15,
-              uptime: 86400,
-              lastStarted: '2024-01-15T09:00:00Z',
-              lastStopped: '',
-              instances: 2,
-              maxInstances: 4,
-              port: 8080,
-              environment: 'production',
-              dependencies: ['Rust 1.75', 'Cargo 1.75', 'Tokio 1.35'],
-              logs: ['Async runtime initialized', 'Zero-copy networking active'],
-              isActive: true,
-              isPublic: true,
-              region: 'us-central-1',
-              cost: 31.00,
-            },
-            {
-              id: '2',
-              name: 'Quantum Processing Unit',
-              description: 'Advanced quantum computing runtime for complex calculations',
-              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop12',
-              version: '1.8.2',
-              type: 'Quantum',
-              language: 'Q#',
-              status: 'Running',
-              cpuUsage: 92,
-              memoryUsage: 85,
-              diskUsage: 45,
-              uptime: 43200,
-              lastStarted: '2024-01-20T14:15:00Z',
-              lastStopped: '',
-              instances: 1,
-              maxInstances: 2,
-              port: 9000,
-              environment: 'research',
-              dependencies: ['Q# SDK', 'Quantum Simulator'],
-              logs: ['Quantum circuit initialized', 'Processing quantum algorithms'],
-              isActive: true,
-              isPublic: false,
-              region: 'us-west-2',
-              cost: 150.00,
-            },
-            {
-              id: '3',
-              name: 'AI Model Server',
-              description: 'Machine learning model serving runtime with GPU acceleration',
-              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop13',
-              version: '3.0.1',
-              type: 'Container',
-              language: 'Python',
-              status: 'Paused',
-              cpuUsage: 0,
-              memoryUsage: 12,
-              diskUsage: 67,
-              uptime: 0,
-              lastStarted: '2024-01-25T09:00:00Z',
-              lastStopped: '2024-01-25T18:00:00Z',
-              instances: 0,
-              maxInstances: 5,
-              port: 5000,
-              environment: 'staging',
-              dependencies: ['TensorFlow', 'CUDA', 'Docker'],
-              logs: ['Model loaded successfully', 'GPU acceleration enabled'],
-              isActive: false,
-              isPublic: true,
-              region: 'eu-west-1',
-              cost: 75.25,
-            },
-            {
-              id: '4',
-              name: 'Edge Computing Node',
-              description: 'Lightweight edge computing runtime for IoT and real-time processing',
-              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop14',
-              version: '1.5.3',
-              type: 'Edge',
-              language: 'Rust',
-              status: 'Running',
-              cpuUsage: 23,
-              memoryUsage: 34,
-              diskUsage: 12,
-              uptime: 172800,
-              lastStarted: '2024-01-10T08:00:00Z',
-              lastStopped: '',
-              instances: 8,
-              maxInstances: 20,
-              port: 3001,
-              environment: 'production',
-              dependencies: ['Rust Runtime', 'Tokio'],
-              logs: ['Edge node online', 'Processing IoT data'],
-              isActive: true,
-              isPublic: false,
-              region: 'ap-southeast-1',
-              cost: 12.75,
-            },
-            {
-              id: '5',
-              name: 'Serverless Function',
-              description: 'Event-driven serverless runtime for microservices',
-              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop15',
-              version: '2.3.8',
-              type: 'Serverless',
-              language: 'TypeScript',
-              status: 'Stopped',
-              cpuUsage: 0,
-              memoryUsage: 0,
-              diskUsage: 5,
-              uptime: 0,
-              lastStarted: '',
-              lastStopped: '2024-01-30T16:30:00Z',
-              instances: 0,
-              maxInstances: 100,
-              port: 0,
-              environment: 'development',
-              dependencies: ['AWS Lambda', 'TypeScript'],
-              logs: ['Function deployed', 'Cold start optimization'],
-              isActive: false,
-              isPublic: true,
-              region: 'us-central-1',
-              cost: 0.05,
-            },
-            {
-              id: '6',
-              name: 'Blockchain Node Runtime',
-              description: 'Decentralized blockchain node for OASIS network consensus',
-              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop16',
-              version: '3.2.1',
-              type: 'Container',
-              language: 'Go',
-              status: 'Running',
-              cpuUsage: 78,
-              memoryUsage: 65,
-              diskUsage: 89,
-              uptime: 259200,
-              lastStarted: '2024-01-08T12:00:00Z',
-              lastStopped: '',
-              instances: 2,
-              maxInstances: 3,
-              port: 8545,
-              environment: 'production',
-              dependencies: ['Go 1.19+', 'Docker', 'IPFS'],
-              logs: ['Blockchain synced', 'Processing transactions'],
-              isActive: true,
-              isPublic: true,
-              region: 'eu-west-1',
-              cost: 89.99,
-            },
-            {
-              id: '7',
-              name: 'VR Rendering Engine',
-              description: 'High-performance VR rendering runtime for immersive experiences',
-              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop17',
-              version: '4.0.2',
-              type: 'Virtual Machine',
-              language: 'C++',
-              status: 'Running',
-              cpuUsage: 95,
-              memoryUsage: 87,
-              diskUsage: 56,
-              uptime: 14400,
-              lastStarted: '2024-01-31T10:00:00Z',
-              lastStopped: '',
-              instances: 1,
-              maxInstances: 2,
-              port: 7777,
-              environment: 'production',
-              dependencies: ['OpenGL', 'Vulkan', 'SteamVR'],
-              logs: ['VR session active', 'Rendering at 90fps'],
-              isActive: true,
-              isPublic: false,
-              region: 'us-west-1',
-              cost: 199.99,
-            },
-            {
-              id: '8',
-              name: 'Data Analytics Pipeline',
-              description: 'Real-time data processing and analytics runtime',
-              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop18',
-              version: '2.7.4',
-              type: 'Container',
-              language: 'Scala',
-              status: 'Paused',
-              cpuUsage: 15,
-              memoryUsage: 45,
-              diskUsage: 78,
-              uptime: 7200,
-              lastStarted: '2024-02-01T06:00:00Z',
-              lastStopped: '',
-              instances: 4,
-              maxInstances: 8,
-              port: 9092,
-              environment: 'staging',
-              dependencies: ['Apache Spark', 'Kafka', 'Hadoop'],
-              logs: ['Processing data streams', 'Analytics ready'],
-              isActive: false,
-              isPublic: true,
-              region: 'ap-northeast-1',
-              cost: 67.50,
-            },
-          ]
-        };
+      if (viewScope === 'installed') {
+        return await starService.getInstalledRuntimes();
       }
+      if (viewScope === 'mine') {
+        // In future, pass real avatar id
+        return await starService.getRuntimesForAvatar('me');
+      }
+      return await starService.getAllRuntimes();
     },
     {
       refetchInterval: 30000,
@@ -493,6 +194,12 @@ const RuntimesPage: React.FC = () => {
       'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop')
   })) || [];
 
+  // Check if a runtime is installed (for badge display)
+  const isInstalled = (runtimeId: string) => {
+    const installedIds = ['1', '2', '4', '6']; // Same IDs used in getInstalledRuntimes
+    return installedIds.includes(String(runtimeId));
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -526,6 +233,18 @@ const RuntimesPage: React.FC = () => {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
+            <FormControl size="small" sx={{ minWidth: 140 }}>
+              <InputLabel>View</InputLabel>
+              <Select
+                value={viewScope}
+                label="View"
+                onChange={(e) => setViewScope(e.target.value as any)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="installed">Installed</MenuItem>
+                <MenuItem value="mine">My Runtimes</MenuItem>
+              </Select>
+            </FormControl>
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Filter Type</InputLabel>
               <Select
@@ -635,6 +354,21 @@ const RuntimesPage: React.FC = () => {
                           zIndex: 10
                         }}
                       />
+                      {isInstalled(runtime.id) && (
+                        <Chip
+                          label="Installed"
+                          size="small"
+                          sx={{
+                            position: 'absolute',
+                            bottom: 8,
+                            right: 8,
+                            bgcolor: '#4caf50',
+                            color: 'white',
+                            fontWeight: 'bold',
+                            zIndex: 10
+                          }}
+                        />
+                      )}
                     </Box>
                     
                     <CardContent sx={{ flexGrow: 1 }}>
