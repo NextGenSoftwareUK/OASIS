@@ -42,9 +42,11 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
 import { starService } from '../services/starService';
+import { useNavigate } from 'react-router-dom';
 import { Runtime } from '../types/star';
 
 const RuntimesPage: React.FC = () => {
+  const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
   const [newRuntime, setNewRuntime] = useState<Partial<Runtime>>({
@@ -58,7 +60,7 @@ const RuntimesPage: React.FC = () => {
     category: 'Programming Language',
     status: 'Stopped',
     uptime: '0d 0h 0m',
-    lastUpdated: new Date().toISOString(),
+    lastUpdated: new Date(),
     environment: 'development',
     dependencies: [],
     isActive: false,
@@ -79,7 +81,7 @@ const RuntimesPage: React.FC = () => {
             runtime.cost > 0 || runtime.cpuUsage > 0 || runtime.region !== 'Not specified'
           );
           if (hasRealData) {
-            return response;
+        return response;
           }
         }
         // Fall through to demo data if no real data or all zeros
@@ -581,16 +583,20 @@ const RuntimesPage: React.FC = () => {
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card sx={{ 
-                    height: '100%', 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&:hover': {
-                      boxShadow: 6,
-                    }
-                  }}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        boxShadow: 6,
+                      }
+                    }}
+                    onClick={() => navigate(`/runtimes/${runtime.id}`)}
+                  >
                     <Box sx={{ position: 'relative' }}>
                       <div
                         style={{
@@ -733,7 +739,7 @@ const RuntimesPage: React.FC = () => {
                 <InputLabel>Language</InputLabel>
                 <Select
                   value={newRuntime.language}
-                  label="Language"
+                label="Language"
                   onChange={(e) => setNewRuntime({ ...newRuntime, language: e.target.value as any })}
                 >
                   <MenuItem value="JavaScript">JavaScript</MenuItem>

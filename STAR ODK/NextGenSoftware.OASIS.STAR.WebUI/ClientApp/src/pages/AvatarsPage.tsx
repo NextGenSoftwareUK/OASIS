@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -48,6 +49,7 @@ interface Avatar {
 }
 
 const AvatarsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
@@ -552,7 +554,10 @@ const AvatarsPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card sx={{ height: '100%' }}>
+                <Card 
+                  sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
+                  onClick={() => navigate(`/avatars/${avatar.id}`)}
+                >
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       <Avatar 

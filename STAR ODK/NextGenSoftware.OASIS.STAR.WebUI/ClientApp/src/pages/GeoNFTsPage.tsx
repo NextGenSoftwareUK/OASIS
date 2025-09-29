@@ -37,6 +37,7 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { starService } from '../services/starService';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface GeoNFT {
   id: string;
@@ -57,6 +58,7 @@ interface GeoNFT {
 }
 
 const GeoNFTsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
   const [newGeoNFT, setNewGeoNFT] = useState({
@@ -389,7 +391,10 @@ const GeoNFTsPage: React.FC = () => {
                 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Card sx={{ height: '100%', position: 'relative' }}>
+                <Card 
+                  sx={{ height: '100%', position: 'relative', cursor: 'pointer' }}
+                  onClick={() => navigate(`/geonfts/${geoNFT.id}`)}
+                >
                   <Box sx={{ position: 'relative' }}>
                     <img
                       src={geoNFT.imageUrl}

@@ -23,7 +23,10 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useDemoMode } from '../contexts/DemoModeContext';
+import { useAvatar } from '../contexts/AvatarContext';
 import { toast } from 'react-hot-toast';
+import AvatarAuth from './AvatarAuth';
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -36,11 +39,12 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionStatus, igniteSTAR, extinguishStar, reconnect }) => {
   const navigate = useNavigate();
+  const { isDemoMode } = useDemoMode();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = React.useState<null | HTMLElement>(null);
 
   // Debug logging
-  console.log('Navbar received props:', { isConnected, connectionStatus });
+  console.log('Navbar received props:', { isConnected, connectionStatus, isDemoMode });
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -57,18 +61,26 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
 
   const handleIgniteSTAR = async () => {
     try {
-      await igniteSTAR();
-      toast.success('STAR ignited successfully!');
+      const result = await igniteSTAR();
+      if (result.isError || result.result === false) {
+        toast.error('Could not connect to STAR');
+      } else {
+        toast.success(isDemoMode ? 'STAR ignited successfully! (Demo Mode)' : 'STAR ignited successfully!');
+      }
     } catch (error) {
-      toast.error('Failed to ignite STAR');
+      toast.error('Could not connect to STAR');
     }
     handleMenuClose();
   };
 
   const handleExtinguishStar = async () => {
     try {
-      await extinguishStar();
-      toast.success('STAR extinguished successfully!');
+      const result = await extinguishStar();
+      if (result.isError) {
+        toast.error(result.message || 'Failed to extinguish STAR');
+      } else {
+        toast.success(isDemoMode ? 'STAR extinguished successfully! (Demo Mode)' : 'STAR extinguished successfully!');
+      }
     } catch (error) {
       toast.error('Failed to extinguish STAR');
     }
@@ -78,9 +90,14 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
   const handleReconnect = async () => {
     try {
       await reconnect();
-      toast.success('Reconnected to STAR');
+      // Check if we're actually connected by looking at the connection status
+      if (isConnected) {
+        toast.success(isDemoMode ? 'Reconnected to STAR (Demo Mode)' : 'Reconnected to STAR');
+      } else {
+        toast.error(isDemoMode ? 'Could not reconnect to STAR (Demo Mode)' : 'Could not reconnect to STAR');
+      }
     } catch (error) {
-      toast.error('Failed to reconnect');
+      toast.error(isDemoMode ? 'Could not reconnect to STAR (Demo Mode)' : 'Could not reconnect to STAR');
     }
     handleMenuClose();
   };
@@ -225,6 +242,21 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
             Settings
           </MenuItem>
         </Menu>
+
+        {/* Avatar Authentication */}
+        <AvatarAuth
+          variant="button"
+          size="small"
+          onLogin={(avatar) => {
+            console.log('Avatar logged in:', avatar);
+          }}
+          onSignup={(avatar) => {
+            console.log('Avatar signed up:', avatar);
+          }}
+          onLogout={() => {
+            console.log('Avatar logged out');
+          }}
+        />
 
         {/* Notifications Menu */}
         <Menu

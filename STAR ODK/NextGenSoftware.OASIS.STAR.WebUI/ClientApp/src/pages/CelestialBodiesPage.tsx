@@ -39,6 +39,7 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
 import { starService } from '../services/starService';
+import { useNavigate } from 'react-router-dom';
 
 interface CelestialBody {
   id: string;
@@ -62,6 +63,7 @@ interface CelestialBody {
 }
 
 const CelestialBodiesPage: React.FC = () => {
+  const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
   const [newBody, setNewBody] = useState<Partial<CelestialBody>>({
@@ -373,15 +375,19 @@ const CelestialBodiesPage: React.FC = () => {
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card sx={{ 
-                    height: '100%', 
-                    display: 'flex',
-                    flexDirection: 'column',
-                    position: 'relative',
-                    '&:hover': {
-                      boxShadow: 6,
-                    }
-                  }}>
+                  <Card 
+                    sx={{ 
+                      height: '100%', 
+                      display: 'flex',
+                      flexDirection: 'column',
+                      position: 'relative',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        boxShadow: 6,
+                      }
+                    }}
+                    onClick={() => navigate(`/celestial-bodies/${body.id}`)}
+                  >
                     <Box sx={{ position: 'relative', overflow: 'hidden', borderTopLeftRadius: 4, borderTopRightRadius: 4 }}>
                       <CardMedia
                         component="img"

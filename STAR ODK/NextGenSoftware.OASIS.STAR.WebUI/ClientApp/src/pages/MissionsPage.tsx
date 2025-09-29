@@ -42,6 +42,7 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { starService } from '../services/starService';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface Mission {
   id: string;
@@ -61,6 +62,7 @@ interface Mission {
 }
 
 const MissionsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [newMission, setNewMission] = useState({
@@ -405,7 +407,10 @@ const MissionsPage: React.FC = () => {
                 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Card sx={{ height: '100%', position: 'relative' }}>
+                <Card 
+                  sx={{ height: '100%', position: 'relative', cursor: 'pointer' }}
+                  onClick={() => navigate(`/missions/${mission.id}`)}
+                >
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       {getTypeIcon(mission.type)}
