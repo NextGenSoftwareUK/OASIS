@@ -1324,7 +1324,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             
             try
             {
-                var avatarResult = await _avatarManager.LoadAvatarAsync(avatarId);
+                var avatarResult = await AvatarManager.LoadAvatarAsync(avatarId);
                 
                 if (avatarResult.IsError || avatarResult.Result == null)
                 {
@@ -1333,8 +1333,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     return response;
                 }
 
-                // Use AvatarManager session methods
-                var sessionsResult = await _avatarManager.GetAvatarSessionsAsync(avatarId);
+                // Use AvatarManager session methods - returns Core type, we use WebAPI.Models type in service
+                var sessionsResult = await AvatarManager.GetAvatarSessionsAsync(avatarId);
                 
                 if (sessionsResult.IsError)
                 {
@@ -1343,7 +1343,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     return response;
                 }
 
-                response.Result = sessionsResult.Result;
+                // Map from Core type to WebAPI.Models type (they should have same structure)
+                response.Result = sessionsResult.Result as Models.Avatar.AvatarSessionManagement;
                 response.IsSaved = true;
                 return response;
             }
@@ -1362,7 +1363,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             
             try
             {
-                var result = await _avatarManager.LogoutAvatarSessionsAsync(avatarId, sessionIds);
+                var result = await AvatarManager.LogoutAvatarSessionsAsync(avatarId, sessionIds);
                 
                 response.Result = !result.IsError;
                 response.IsError = result.IsError;
@@ -1386,7 +1387,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             
             try
             {
-                var result = await _avatarManager.LogoutAllAvatarSessionsAsync(avatarId);
+                var result = await AvatarManager.LogoutAllAvatarSessionsAsync(avatarId);
                 
                 response.Result = !result.IsError;
                 response.IsError = result.IsError;
@@ -1410,9 +1411,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             
             try
             {
-                var result = await _avatarManager.CreateAvatarSessionAsync(avatarId, request);
+                // Convert WebAPI.Models request to Core.Objects request
+                var coreRequest = request as NextGenSoftware.OASIS.API.Core.Objects.Avatar.CreateSessionRequest 
+                    ?? new NextGenSoftware.OASIS.API.Core.Objects.Avatar.CreateSessionRequest();
                 
-                response.Result = result.Result;
+                var result = await AvatarManager.CreateAvatarSessionAsync(avatarId, coreRequest);
+                
+                response.Result = result.Result as Models.Avatar.AvatarSession;
                 response.IsError = result.IsError;
                 response.Message = result.Message;
                 response.IsSaved = !result.IsError;
@@ -1434,9 +1439,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             
             try
             {
-                var result = await _avatarManager.UpdateAvatarSessionAsync(avatarId, sessionId, request);
+                // Convert WebAPI.Models request to Core.Objects request
+                var coreRequest = request as NextGenSoftware.OASIS.API.Core.Objects.Avatar.UpdateSessionRequest
+                    ?? new NextGenSoftware.OASIS.API.Core.Objects.Avatar.UpdateSessionRequest();
                 
-                response.Result = result.Result;
+                var result = await AvatarManager.UpdateAvatarSessionAsync(avatarId, sessionId, coreRequest);
+                
+                response.Result = result.Result as Models.Avatar.AvatarSession;
                 response.IsError = result.IsError;
                 response.Message = result.Message;
                 response.IsSaved = !result.IsError;
@@ -1458,9 +1467,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             
             try
             {
-                var result = await _avatarManager.GetAvatarSessionStatsAsync(avatarId);
+                var result = await AvatarManager.GetAvatarSessionStatsAsync(avatarId);
                 
-                response.Result = result.Result;
+                response.Result = result.Result as Models.Avatar.AvatarSessionStats;
                 response.IsError = result.IsError;
                 response.Message = result.Message;
                 response.IsSaved = !result.IsError;
