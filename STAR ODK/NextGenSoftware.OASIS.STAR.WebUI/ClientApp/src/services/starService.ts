@@ -746,9 +746,9 @@ export const starService = {
           isError: false,
           message: 'Dev portal stats loaded successfully (Demo Mode)',
           result: {
-            totalResources: 10,
-            totalDownloads: 187057,
-            activeDevelopers: 8923,
+            totalResources: 16,
+            totalDownloads: 232567,
+            activeDevelopers: 12456,
             averageRating: 4.9,
             popularCategories: [
               { category: 'Getting Started', count: 1 },
@@ -1095,6 +1095,192 @@ export const starService = {
               githubUrl: 'https://github.com/oasis/avatar-sso-nextjs',
               documentationUrl: 'https://docs.oasis.network/avatar-sso/nextjs',
               supportUrl: 'https://support.oasis.network/avatar-sso'
+            },
+            {
+              id: '11',
+              title: 'OASIS Web UI Dev Kit - React',
+              description: 'Complete React component library with 20+ pre-built components for Avatar SSO, Karma, NFTs, Messaging, Data Management, and more.',
+              type: 'ui-kit',
+              category: 'development',
+              downloadUrl: '/downloads/oasis-webui-devkit-react.zip',
+              version: '1.0.0',
+              size: '45.2 MB',
+              downloads: 15420,
+              rating: 5.0,
+              tags: ['react', 'components', 'ui-kit', 'widgets', 'full-stack'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-02-15T10:00:00Z',
+              featured: true,
+              difficulty: 'beginner',
+              estimatedTime: '30 minutes',
+              prerequisites: ['React 18+', 'Node.js 16+'],
+              languages: ['TypeScript', 'JavaScript'],
+              frameworks: ['React'],
+              platforms: ['Web'],
+              content: 'Comprehensive UI component library including: AvatarSSO, KarmaManagement, NFTGallery, NFTManagement, GeoNFTMap, Messaging, ChatWidget, DataManagement, ProviderManagement, OASISSettings, Notifications, SocialFeed, FriendsList, GroupManagement, and more. Fully customizable with theme support.',
+              codeExamples: [
+                `import { AvatarSSO, KarmaManagement, NFTGallery } from '@oasis/webui-devkit-react';\n\nfunction App() {\n  const [avatarId, setAvatarId] = useState('');\n  \n  return (\n    <>\n      <AvatarSSO onSuccess={(avatar) => setAvatarId(avatar.id)} />\n      <KarmaManagement avatarId={avatarId} theme="dark" />\n      <NFTGallery avatarId={avatarId} columns={3} />\n    </>\n  );\n}`
+              ],
+              screenshots: ['/screenshots/react-devkit-1.png'],
+              videoUrl: 'https://youtube.com/watch?v=react-devkit',
+              githubUrl: 'https://github.com/oasis/webui-devkit-react',
+              documentationUrl: 'https://docs.oasis.network/webui-devkit/react',
+              supportUrl: 'https://support.oasis.network/webui-devkit'
+            },
+            {
+              id: '12',
+              title: 'OASIS Web UI Dev Kit - Angular',
+              description: 'Complete Angular component library with full RxJS integration and reactive forms support.',
+              type: 'ui-kit',
+              category: 'development',
+              downloadUrl: '/downloads/oasis-webui-devkit-angular.zip',
+              version: '1.0.0',
+              size: '48.5 MB',
+              downloads: 12340,
+              rating: 4.9,
+              tags: ['angular', 'components', 'ui-kit', 'rxjs', 'reactive'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-02-15T10:00:00Z',
+              featured: true,
+              difficulty: 'intermediate',
+              estimatedTime: '45 minutes',
+              prerequisites: ['Angular 15+', 'RxJS 7+'],
+              languages: ['TypeScript'],
+              frameworks: ['Angular'],
+              platforms: ['Web'],
+              content: 'Enterprise-grade Angular components with module and standalone support. Includes all OASIS functionality as Angular services and components.',
+              codeExamples: [
+                `import { OasisWebUIModule } from '@oasis/webui-devkit-angular';\n\n@NgModule({\n  imports: [\n    OasisWebUIModule.forRoot({\n      apiEndpoint: 'https://api.oasis.network'\n    })\n  ]\n})\nexport class AppModule { }`
+              ],
+              screenshots: ['/screenshots/angular-devkit-1.png'],
+              videoUrl: 'https://youtube.com/watch?v=angular-devkit',
+              githubUrl: 'https://github.com/oasis/webui-devkit-angular',
+              documentationUrl: 'https://docs.oasis.network/webui-devkit/angular',
+              supportUrl: 'https://support.oasis.network/webui-devkit'
+            },
+            {
+              id: '13',
+              title: 'OASIS Web UI Dev Kit - Vue 3',
+              description: 'Modern Vue 3 Composition API component library with reactive stores and composables.',
+              type: 'ui-kit',
+              category: 'development',
+              downloadUrl: '/downloads/oasis-webui-devkit-vue.zip',
+              version: '1.0.0',
+              size: '42.8 MB',
+              downloads: 10890,
+              rating: 5.0,
+              tags: ['vue', 'vue3', 'composition-api', 'components', 'reactive'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-02-15T10:00:00Z',
+              featured: true,
+              difficulty: 'beginner',
+              estimatedTime: '30 minutes',
+              prerequisites: ['Vue 3.3+', 'Vite or Vue CLI'],
+              languages: ['TypeScript', 'JavaScript'],
+              frameworks: ['Vue 3'],
+              platforms: ['Web'],
+              content: 'Lightweight Vue 3 components using Composition API with built-in stores and composables for state management.',
+              codeExamples: [
+                `<script setup>\nimport { AvatarSSO, KarmaManagement } from '@oasis/webui-devkit-vue';\nimport { ref } from 'vue';\n\nconst avatarId = ref('');\n</script>\n\n<template>\n  <AvatarSSO @success="avatarId = $event.id" />\n  <KarmaManagement :avatar-id="avatarId" />\n</template>`
+              ],
+              screenshots: ['/screenshots/vue-devkit-1.png'],
+              videoUrl: 'https://youtube.com/watch?v=vue-devkit',
+              githubUrl: 'https://github.com/oasis/webui-devkit-vue',
+              documentationUrl: 'https://docs.oasis.network/webui-devkit/vue',
+              supportUrl: 'https://support.oasis.network/webui-devkit'
+            },
+            {
+              id: '14',
+              title: 'OASIS Web UI Dev Kit - Vanilla JS',
+              description: 'Framework-agnostic Web Components library - works with any JavaScript project!',
+              type: 'ui-kit',
+              category: 'development',
+              downloadUrl: '/downloads/oasis-webui-devkit-vanilla.zip',
+              version: '1.0.0',
+              size: '38.4 MB',
+              downloads: 8760,
+              rating: 4.8,
+              tags: ['vanilla-js', 'web-components', 'custom-elements', 'no-framework'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-02-15T10:00:00Z',
+              featured: true,
+              difficulty: 'beginner',
+              estimatedTime: '15 minutes',
+              prerequisites: ['Modern browser', 'No framework required'],
+              languages: ['JavaScript'],
+              frameworks: ['None'],
+              platforms: ['Web'],
+              content: 'Pure Web Components with no dependencies. Use with any framework or vanilla JavaScript. Simple CDN integration.',
+              codeExamples: [
+                `<!-- Via CDN -->\n<script src="https://cdn.oasis.network/webui-devkit/1.0.0/oasis.min.js"></script>\n\n<!-- Use components -->\n<oasis-avatar-sso providers="holochain,ethereum"></oasis-avatar-sso>\n<oasis-karma-management avatar-id="123"></oasis-karma-management>\n\n<script>\n  document.querySelector('oasis-avatar-sso')\n    .addEventListener('success', (e) => console.log(e.detail));\n</script>`
+              ],
+              screenshots: ['/screenshots/vanilla-devkit-1.png'],
+              videoUrl: 'https://youtube.com/watch?v=vanilla-devkit',
+              githubUrl: 'https://github.com/oasis/webui-devkit-vanilla',
+              documentationUrl: 'https://docs.oasis.network/webui-devkit/vanilla',
+              supportUrl: 'https://support.oasis.network/webui-devkit'
+            },
+            {
+              id: '15',
+              title: 'OASIS Web UI Dev Kit - Svelte',
+              description: 'Reactive Svelte component library with built-in stores and minimal bundle size.',
+              type: 'ui-kit',
+              category: 'development',
+              downloadUrl: '/downloads/oasis-webui-devkit-svelte.zip',
+              version: '1.0.0',
+              size: '35.6 MB',
+              downloads: 7650,
+              rating: 5.0,
+              tags: ['svelte', 'reactive', 'components', 'lightweight'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-02-15T10:00:00Z',
+              featured: true,
+              difficulty: 'beginner',
+              estimatedTime: '25 minutes',
+              prerequisites: ['Svelte 4.0+', 'Vite or SvelteKit'],
+              languages: ['TypeScript', 'JavaScript'],
+              frameworks: ['Svelte'],
+              platforms: ['Web'],
+              content: 'Ultra-lightweight Svelte components with reactive stores. Smallest bundle size of all kits.',
+              codeExamples: [
+                `<script>\n  import { AvatarSSO, KarmaManagement } from '@oasis/webui-devkit-svelte';\n  let avatarId = '';\n</script>\n\n<AvatarSSO on:success={(e) => avatarId = e.detail.id} />\n<KarmaManagement {avatarId} />`
+              ],
+              screenshots: ['/screenshots/svelte-devkit-1.png'],
+              videoUrl: 'https://youtube.com/watch?v=svelte-devkit',
+              githubUrl: 'https://github.com/oasis/webui-devkit-svelte',
+              documentationUrl: 'https://docs.oasis.network/webui-devkit/svelte',
+              supportUrl: 'https://support.oasis.network/webui-devkit'
+            },
+            {
+              id: '16',
+              title: 'OASIS Web UI Dev Kit - Next.js',
+              description: 'Next.js optimized components with Server Components, App Router, and API Routes integration.',
+              type: 'ui-kit',
+              category: 'development',
+              downloadUrl: '/downloads/oasis-webui-devkit-nextjs.zip',
+              version: '1.0.0',
+              size: '52.3 MB',
+              downloads: 14230,
+              rating: 5.0,
+              tags: ['nextjs', 'ssr', 'server-components', 'app-router'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-02-15T10:00:00Z',
+              featured: true,
+              difficulty: 'intermediate',
+              estimatedTime: '1 hour',
+              prerequisites: ['Next.js 13.4+', 'React 18+', 'TypeScript'],
+              languages: ['TypeScript'],
+              frameworks: ['Next.js', 'React'],
+              platforms: ['Web', 'Server-Side'],
+              content: 'Full Next.js integration with RSC (React Server Components), client components, API routes, middleware, and server actions.',
+              codeExamples: [
+                `// app/page.tsx (Server Component)\nimport { AvatarDetailServer } from '@oasis/webui-devkit-nextjs/server';\n\nexport default async function Page() {\n  return <AvatarDetailServer avatarId="123" />;\n}\n\n// Client component\n'use client';\nimport { KarmaManagement } from '@oasis/webui-devkit-nextjs';\n\nexport function Dashboard() {\n  return <KarmaManagement avatarId="123" />;\n}`
+              ],
+              screenshots: ['/screenshots/nextjs-devkit-1.png'],
+              videoUrl: 'https://youtube.com/watch?v=nextjs-devkit',
+              githubUrl: 'https://github.com/oasis/webui-devkit-nextjs',
+              documentationUrl: 'https://docs.oasis.network/webui-devkit/nextjs',
+              supportUrl: 'https://support.oasis.network/webui-devkit'
             }
           ]
         };
@@ -1911,6 +2097,42 @@ export const starService = {
   async deleteZome(id: string): Promise<OASISResult<boolean>> {
     const response = await api.delete(`/zomes/${id}`);
     return response.data;
+  },
+
+  // STAR Plugins Operations
+  async getSTARPlugins(): Promise<OASISResult<any[]>> {
+    if (isDemoMode()) {
+      // Demo mode - return impressive STAR/STARNET plugins
+      return {
+        result: [
+          { id: '1', name: 'Holochain Storage Provider', description: 'High-performance Holochain integration for distributed data storage with P2P sync', category: 'provider', version: '2.4.1', author: 'OASIS Team', downloads: 45678, rating: 4.9, imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=300&fit=crop', tags: ['holochain', 'p2p', 'distributed', 'storage'], compatible: ['STAR', 'STARNET'], size: '12.5 MB', lastUpdated: '2024-02-15', downloadUrl: '/downloads/holochain-provider.zip', documentation: 'https://docs.oasis.network/plugins/holochain', codeExample: `import { HolochainProvider } from '@oasis/holochain-provider';\n\nconst provider = new HolochainProvider({\n  appId: 'your-app-id',\n  dnaHash: 'your-dna-hash'\n});\n\nawait provider.connect();` },
+          { id: '2', name: 'IPFS Content Provider', description: 'Seamless IPFS integration for decentralized file storage and content distribution', category: 'provider', version: '3.1.0', author: 'OASIS Team', downloads: 38956, rating: 4.8, imageUrl: 'https://images.unsplash.com/photo-1639322537228-f710d846310a?w=400&h=300&fit=crop', tags: ['ipfs', 'decentralized', 'content', 'storage'], compatible: ['STAR', 'STARNET'], size: '15.2 MB', lastUpdated: '2024-02-14', downloadUrl: '/downloads/ipfs-provider.zip', documentation: 'https://docs.oasis.network/plugins/ipfs', codeExample: `import { IPFSProvider } from '@oasis/ipfs-provider';\n\nconst ipfs = new IPFSProvider({\n  gateway: 'https://ipfs.io'\n});\n\nconst cid = await ipfs.upload(file);` },
+          { id: '3', name: 'Ethereum Bridge', description: 'Connect STAR to Ethereum blockchain with smart contract integration and token support', category: 'integration', version: '2.2.5', author: 'BlockchainDevs', downloads: 29834, rating: 4.9, imageUrl: 'https://images.unsplash.com/photo-1621761191319-c6fb62004040?w=400&h=300&fit=crop', tags: ['ethereum', 'blockchain', 'web3', 'contracts'], compatible: ['STAR', 'STARNET'], size: '18.7 MB', lastUpdated: '2024-02-13', downloadUrl: '/downloads/ethereum-bridge.zip', documentation: 'https://docs.oasis.network/plugins/ethereum', codeExample: `import { EthereumBridge } from '@oasis/ethereum-bridge';\n\nconst bridge = new EthereumBridge({\n  rpcUrl: 'https://mainnet.infura.io',\n  contractAddress: '0x...'\n});\n\nawait bridge.deployContract(abi, bytecode);` },
+          { id: '4', name: 'Solana Integration', description: 'High-speed Solana blockchain integration with program deployment and SPL token support', category: 'integration', version: '1.9.2', author: 'SolanaLabs', downloads: 24567, rating: 4.7, imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=300&fit=crop', tags: ['solana', 'blockchain', 'spl', 'programs'], compatible: ['STAR', 'STARNET'], size: '14.3 MB', lastUpdated: '2024-02-12', downloadUrl: '/downloads/solana-integration.zip', documentation: 'https://docs.oasis.network/plugins/solana', codeExample: `import { SolanaIntegration } from '@oasis/solana-integration';\n\nconst solana = new SolanaIntegration({\n  cluster: 'mainnet-beta'\n});\n\nconst signature = await solana.sendTransaction(tx);` },
+          { id: '5', name: 'Performance Monitor', description: 'Real-time performance monitoring and optimization for STAR applications', category: 'performance', version: '1.5.4', author: 'OASIS Team', downloads: 19234, rating: 4.8, imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop', tags: ['monitoring', 'performance', 'metrics', 'optimization'], compatible: ['STAR', 'STARNET'], size: '8.9 MB', lastUpdated: '2024-02-11', downloadUrl: '/downloads/performance-monitor.zip', documentation: 'https://docs.oasis.network/plugins/performance', codeExample: `import { PerformanceMonitor } from '@oasis/performance-monitor';\n\nconst monitor = new PerformanceMonitor();\nmonitor.track('api-call', async () => {\n  // Your code here\n});` },
+          { id: '6', name: 'Security Vault', description: 'Advanced encryption and secure key management for sensitive data', category: 'security', version: '2.0.1', author: 'SecurityExperts', downloads: 31456, rating: 5.0, imageUrl: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=300&fit=crop', tags: ['security', 'encryption', 'vault', 'keys'], compatible: ['STAR', 'STARNET'], size: '10.4 MB', lastUpdated: '2024-02-10', downloadUrl: '/downloads/security-vault.zip', documentation: 'https://docs.oasis.network/plugins/security-vault', codeExample: `import { SecurityVault } from '@oasis/security-vault';\n\nconst vault = new SecurityVault({\n  masterKey: process.env.MASTER_KEY\n});\n\nconst encrypted = await vault.encrypt(data);\nconst decrypted = await vault.decrypt(encrypted);` },
+          { id: '7', name: 'Data Sync Utility', description: 'Multi-provider data synchronization and conflict resolution', category: 'utility', version: '1.7.3', author: 'OASIS Team', downloads: 16789, rating: 4.6, imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=300&fit=crop', tags: ['sync', 'data', 'utility', 'conflict-resolution'], compatible: ['STAR', 'STARNET'], size: '7.6 MB', lastUpdated: '2024-02-09', downloadUrl: '/downloads/data-sync.zip', documentation: 'https://docs.oasis.network/plugins/data-sync', codeExample: `import { DataSync } from '@oasis/data-sync';\n\nconst sync = new DataSync({\n  providers: ['holochain', 'ipfs'],\n  strategy: 'last-write-wins'\n});\n\nawait sync.synchronize(data);` },
+          { id: '8', name: 'Analytics Dashboard', description: 'Comprehensive analytics and insights for STAR applications', category: 'utility', version: '1.4.0', author: 'AnalyticsTeam', downloads: 13567, rating: 4.7, imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop', tags: ['analytics', 'dashboard', 'insights', 'metrics'], compatible: ['STAR'], size: '11.2 MB', lastUpdated: '2024-02-08', downloadUrl: '/downloads/analytics-dashboard.zip', documentation: 'https://docs.oasis.network/plugins/analytics', codeExample: `import { Analytics } from '@oasis/analytics-dashboard';\n\nconst analytics = new Analytics({\n  trackPageViews: true,\n  trackEvents: true\n});\n\nanalytics.track('button-click', { button: 'submit' });` },
+          { id: '9', name: 'Backup & Restore', description: 'Automated backup and restore functionality with versioning', category: 'utility', version: '2.1.2', author: 'OASIS Team', downloads: 22345, rating: 4.9, imageUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400&h=300&fit=crop', tags: ['backup', 'restore', 'versioning', 'recovery'], compatible: ['STAR', 'STARNET'], size: '9.8 MB', lastUpdated: '2024-02-07', downloadUrl: '/downloads/backup-restore.zip', documentation: 'https://docs.oasis.network/plugins/backup', codeExample: `import { BackupRestore } from '@oasis/backup-restore';\n\nconst backup = new BackupRestore({\n  destination: 's3://my-bucket/backups'\n});\n\nawait backup.create('my-backup');\nawait backup.restore('my-backup');` },
+          { id: '10', name: 'Rate Limiter', description: 'Advanced rate limiting and throttling for API protection', category: 'security', version: '1.3.5', author: 'SecurityExperts', downloads: 18234, rating: 4.8, imageUrl: 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=400&h=300&fit=crop', tags: ['rate-limit', 'throttle', 'api', 'protection'], compatible: ['STAR', 'STARNET'], size: '5.4 MB', lastUpdated: '2024-02-06', downloadUrl: '/downloads/rate-limiter.zip', documentation: 'https://docs.oasis.network/plugins/rate-limiter', codeExample: `import { RateLimiter } from '@oasis/rate-limiter';\n\nconst limiter = new RateLimiter({\n  windowMs: 15 * 60 * 1000, // 15 minutes\n  max: 100 // limit each IP to 100 requests per windowMs\n});\n\napp.use('/api/', limiter.middleware());` }
+        ],
+        isError: false,
+        message: 'STAR plugins loaded (Demo Mode)'
+      };
+    }
+
+    // Live mode - use real API
+    try {
+      const response = await api.get('/star-plugins');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching STAR plugins from API:', error);
+      return {
+        isError: true,
+        message: 'Failed to fetch STAR plugins from API',
+        result: []
+      };
+    }
   },
 
   // Parks Operations - Using actual Parks controller endpoints
