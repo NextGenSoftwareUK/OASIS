@@ -1,26 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 {
+    /// <summary>
+    /// SOLID (Social Linked Data) Provider for OASIS
+    /// Implements Tim Berners-Lee's decentralized web standard where users store data in "pods"
+    /// </summary>
     public class SOLIDOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
-        //public event AvatarManager.StorageProviderError OnStorageProviderError;
+        private readonly HttpClient _httpClient;
+        private readonly string _podServerUrl;
+        private readonly string _authToken;
+        private bool _isActivated;
 
-        public SOLIDOASIS()
+        /// <summary>
+        /// Initializes a new instance of the SOLIDOASIS provider
+        /// </summary>
+        /// <param name="podServerUrl">URL of the SOLID pod server (e.g., https://solidcommunity.net, https://inrupt.net)</param>
+        /// <param name="authToken">Authentication token for accessing the pod</param>
+        public SOLIDOASIS(string podServerUrl = "https://solidcommunity.net", string authToken = "")
         {
             this.ProviderName = "SOLIDOASIS";
-            this.ProviderDescription = "SOLID Provider";
+            this.ProviderDescription = "SOLID (Social Linked Data) Provider - Decentralized personal data storage";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SOLIDOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+
+            _podServerUrl = podServerUrl ?? throw new ArgumentNullException(nameof(podServerUrl));
+            _authToken = authToken;
+            _httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(_podServerUrl)
+            };
+
+            if (!string.IsNullOrEmpty(_authToken))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = 
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authToken);
+            }
         }
 
         #region IOASISStorageProvider Implementation

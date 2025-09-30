@@ -1,0 +1,16 @@
+{
+  "OASIS": {
+    "Providers": {
+      "BaseOASIS": {
+        "HostUri": "https://sepolia.base.org",
+        "ChainId": 84532,
+        "ChainPrivateKey": "TEST_PRIVATE_KEY_PLACEHOLDER",
+        "ContractAddress": "TEST_CONTRACT_ADDRESS_PLACEHOLDER"
+      }
+    },
+    "Security": {
+      "SecretKey": "TEST_SECRET_KEY"
+    }
+  }
+}
+

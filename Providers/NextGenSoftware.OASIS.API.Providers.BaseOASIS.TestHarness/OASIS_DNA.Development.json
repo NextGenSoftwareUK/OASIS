@@ -1,0 +1,17 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Debug",
+      "System": "Information",
+      "Microsoft": "Information"
+    }
+  },
+  "Base": {
+    "Network": "Sepolia",
+    "ChainId": 84532,
+    "RpcUrl": "https://sepolia.base.org",
+    "Explorer": "https://sepolia.basescan.org",
+    "BackedBy": "Coinbase"
+  }
+}
+
