@@ -9,6 +9,7 @@ import { toast } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import LoadingSpinner from './components/LoadingSpinner';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Contexts
 import { DemoModeProvider } from './contexts/DemoModeContext';
@@ -56,6 +57,8 @@ import MyDataDetailPage from './pages/MyDataDetailPage';
 import KarmaPage from './pages/KarmaPage';
 import MyDataPage from './pages/MyDataPage';
 import DevPortalPage from './pages/DevPortalPage';
+import HolonsPage from './pages/HolonsPage';
+import ZomesPage from './pages/ZomesPage';
 
 // Services
 import { starService } from './services/starService';
@@ -144,113 +147,129 @@ const App: React.FC = () => {
               <Route 
                 path="/dashboard" 
                 element={
-                  <motion.div
-                    initial="initial"
-                    animate="in"
-                    exit="out"
-                    variants={pageVariants}
-                    transition={pageTransition}
-                  >
-                    <Dashboard isConnected={isConnected} />
-                  </motion.div>
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <Dashboard isConnected={isConnected} />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/oapps" 
                 element={
-                  <motion.div
-                    initial="initial"
-                    animate="in"
-                    exit="out"
-                    variants={pageVariants}
-                    transition={pageTransition}
-                  >
-                    <OAPPsPage />
-                  </motion.div>
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <OAPPsPage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/oapps/:id" 
                 element={
-                  <motion.div
-                    initial="initial"
-                    animate="in"
-                    exit="out"
-                    variants={pageVariants}
-                    transition={pageTransition}
-                  >
-                    <OAPPDetailPage />
-                  </motion.div>
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <OAPPDetailPage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/quests" 
                 element={
-                  <motion.div
-                    initial="initial"
-                    animate="in"
-                    exit="out"
-                    variants={pageVariants}
-                    transition={pageTransition}
-                  >
-                    <QuestsPage />
-                  </motion.div>
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <QuestsPage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/quests/:id" 
                 element={
-                  <motion.div
-                    initial="initial"
-                    animate="in"
-                    exit="out"
-                    variants={pageVariants}
-                    transition={pageTransition}
-                  >
-                    <QuestDetailPage />
-                  </motion.div>
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <QuestDetailPage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/nfts" 
                 element={
-                  <motion.div
-                    initial="initial"
-                    animate="in"
-                    exit="out"
-                    variants={pageVariants}
-                    transition={pageTransition}
-                  >
-                    <NFTsPage />
-                  </motion.div>
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <NFTsPage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/nfts/:id" 
                 element={
-                  <motion.div
-                    initial="initial"
-                    animate="in"
-                    exit="out"
-                    variants={pageVariants}
-                    transition={pageTransition}
-                  >
-                    <NFTDetailPage />
-                  </motion.div>
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <NFTDetailPage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/geonfts" 
                 element={
-                  <motion.div
-                    initial="initial"
-                    animate="in"
-                    exit="out"
-                    variants={pageVariants}
-                    transition={pageTransition}
-                  >
-                    <GeoNFTsPage />
-                  </motion.div>
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <GeoNFTsPage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
@@ -698,6 +717,34 @@ const App: React.FC = () => {
                     transition={pageTransition}
                   >
                     <DevPortalPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/holons" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <HolonsPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/zomes" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <ZomesPage />
                   </motion.div>
                 } 
               />
