@@ -60,6 +60,9 @@ interface Chapter {
   isInstalled?: boolean; // Added for installed badge and filtering
   isFeatured: boolean;
   category: string;
+  missionsCount?: number; // Number of missions in this chapter
+  totalQuestsCount?: number; // Total quests across all missions
+  totalSubQuestsCount?: number; // Total sub-quests across all quests
 }
 
 const ChaptersPage: React.FC = () => {
@@ -99,7 +102,7 @@ const ChaptersPage: React.FC = () => {
             {
               id: '1',
               title: 'The Genesis Protocol',
-              description: 'The beginning of the OASIS universe and the discovery of the first quantum realm',
+              description: 'The beginning of the OASIS universe and the discovery of the first quantum realm. Contains 5 missions, 12 quests, and 48 sub-quests.',
               imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop',
               chapterNumber: 1,
               status: 'Published',
@@ -114,6 +117,9 @@ const ChaptersPage: React.FC = () => {
               content: 'In the beginning, there was darkness...',
               isFeatured: true,
               category: 'Science Fiction',
+              missionsCount: 5,
+              totalQuestsCount: 12,
+              totalSubQuestsCount: 48,
             },
             {
               id: '2',

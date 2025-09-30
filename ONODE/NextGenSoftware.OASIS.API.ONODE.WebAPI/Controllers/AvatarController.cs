@@ -17,6 +17,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.Common;
@@ -1818,7 +1819,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>List of active sessions</returns>
         [HttpGet("{avatarId}/sessions")]
         [Authorize]
-        public async Task<OASISHttpResponseMessage<AvatarSessionManagement>> GetAvatarSessions(Guid avatarId)
+        public async Task<OASISHttpResponseMessage<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar.AvatarSessionManagement>> GetAvatarSessions(Guid avatarId)
         {
             try
             {
@@ -1827,7 +1828,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HttpResponseHelper.FormatResponse(new OASISResult<AvatarSessionManagement>
+                return HttpResponseHelper.FormatResponse(new OASISResult<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar.AvatarSessionManagement>
                 {
                     IsError = true,
                     Message = $"Error retrieving avatar sessions: {ex.Message}",
@@ -1895,7 +1896,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>Created session</returns>
         [HttpPost("{avatarId}/sessions")]
         [Authorize]
-        public async Task<OASISHttpResponseMessage<AvatarSession>> CreateAvatarSession(Guid avatarId, [FromBody] CreateSessionRequest sessionData)
+        public async Task<OASISHttpResponseMessage<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar.AvatarSession>> CreateAvatarSession(Guid avatarId, [FromBody] NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar.CreateSessionRequest sessionData)
         {
             try
             {
@@ -1922,7 +1923,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>Updated session</returns>
         [HttpPut("{avatarId}/sessions/{sessionId}")]
         [Authorize]
-        public async Task<OASISHttpResponseMessage<AvatarSession>> UpdateAvatarSession(Guid avatarId, string sessionId, [FromBody] UpdateSessionRequest sessionData)
+        public async Task<OASISHttpResponseMessage<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar.AvatarSession>> UpdateAvatarSession(Guid avatarId, string sessionId, [FromBody] NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar.UpdateSessionRequest sessionData)
         {
             try
             {
@@ -1947,7 +1948,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>Session statistics</returns>
         [HttpGet("{avatarId}/sessions/stats")]
         [Authorize]
-        public async Task<OASISHttpResponseMessage<AvatarSessionStats>> GetAvatarSessionStats(Guid avatarId)
+        public async Task<OASISHttpResponseMessage<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar.AvatarSessionStats>> GetAvatarSessionStats(Guid avatarId)
         {
             try
             {
