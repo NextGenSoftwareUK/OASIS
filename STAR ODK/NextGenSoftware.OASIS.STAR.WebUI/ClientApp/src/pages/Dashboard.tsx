@@ -74,7 +74,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
             overview: {
               totalUsers: 2547891,
               activeUsers: 892456,
-              totalRevenue: 12500000,
+              totalKarma: 12500000,
               systemHealth: 98.5,
               uptime: 99.9,
               transactions: 4567892,
@@ -107,18 +107,18 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
               { id: 8, type: 'library', action: 'Library published', name: 'AI Toolkit', time: '25 minutes ago', status: 'success' },
             ],
             performanceData: [
-              { name: 'Jan', users: 1200000, revenue: 2100000, transactions: 45000 },
-              { name: 'Feb', users: 1350000, revenue: 2400000, transactions: 52000 },
-              { name: 'Mar', users: 1500000, revenue: 2800000, transactions: 58000 },
-              { name: 'Apr', users: 1680000, revenue: 3200000, transactions: 65000 },
-              { name: 'May', users: 1850000, revenue: 3600000, transactions: 72000 },
-              { name: 'Jun', users: 2050000, revenue: 4100000, transactions: 78000 },
-              { name: 'Jul', users: 2250000, revenue: 4600000, transactions: 85000 },
-              { name: 'Aug', users: 2450000, revenue: 5100000, transactions: 92000 },
-              { name: 'Sep', users: 2650000, revenue: 5600000, transactions: 98000 },
-              { name: 'Oct', users: 2850000, revenue: 6200000, transactions: 105000 },
-              { name: 'Nov', users: 3050000, revenue: 6800000, transactions: 112000 },
-              { name: 'Dec', users: 3250000, revenue: 7500000, transactions: 120000 },
+              { name: 'Jan', users: 1200000, karma: 2100000, transactions: 45000 },
+              { name: 'Feb', users: 1350000, karma: 2400000, transactions: 52000 },
+              { name: 'Mar', users: 1500000, karma: 2800000, transactions: 58000 },
+              { name: 'Apr', users: 1680000, karma: 3200000, transactions: 65000 },
+              { name: 'May', users: 1850000, karma: 3600000, transactions: 72000 },
+              { name: 'Jun', users: 2050000, karma: 4100000, transactions: 78000 },
+              { name: 'Jul', users: 2250000, karma: 4600000, transactions: 85000 },
+              { name: 'Aug', users: 2450000, karma: 5100000, transactions: 92000 },
+              { name: 'Sep', users: 2650000, karma: 5600000, transactions: 98000 },
+              { name: 'Oct', users: 2850000, karma: 6200000, transactions: 105000 },
+              { name: 'Nov', users: 3050000, karma: 6800000, transactions: 112000 },
+              { name: 'Dec', users: 3250000, karma: 7500000, transactions: 120000 },
             ],
             systemStatus: {
               api: { status: 'healthy', responseTime: 45, uptime: 99.9 },
@@ -128,11 +128,11 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
               cdn: { status: 'healthy', responseTime: 15, uptime: 99.9 },
             },
             topPerformers: [
-              { name: 'Quantum Calculator', type: 'OAPP', users: 45678, revenue: 125000, growth: 25.3 },
-              { name: 'Cosmic Dragon NFT', type: 'NFT', users: 23456, revenue: 89000, growth: 18.7 },
-              { name: 'AI Assistant', type: 'Plugin', users: 78901, revenue: 156000, growth: 32.1 },
-              { name: 'Space Explorer', type: 'Avatar', users: 123456, revenue: 234000, growth: 15.8 },
-              { name: 'Neural Network SDK', type: 'Library', users: 34567, revenue: 67000, growth: 22.4 },
+              { name: 'Quantum Calculator', type: 'OAPP', users: 45678, karma: 1250000, growth: 25.3 },
+              { name: 'Cosmic Dragon NFT', type: 'NFT', users: 23456, karma: 890000, growth: 18.7 },
+              { name: 'AI Assistant', type: 'Plugin', users: 78901, karma: 1560000, growth: 32.1 },
+              { name: 'Space Explorer', type: 'Avatar', users: 123456, karma: 2340000, growth: 15.8 },
+              { name: 'Neural Network SDK', type: 'Library', users: 34567, karma: 670000, growth: 22.4 },
             ],
           }
         };
@@ -199,9 +199,10 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
+      style={{ overflow: 'visible', width: '100%' }}
     >
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ mt: 4, mb: 4, px: { xs: 0, md: 1 }, overflow: 'visible' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, pr: { xs: 0, md: 1 } }}>
           <Box>
             <Typography variant="h4" gutterBottom className="page-heading">
               📊 Dashboard
@@ -223,7 +224,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
         </Box>
 
         {/* Overview Cards */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={3} sx={{ mb: 4, overflow: 'visible', px: { xs: 0, md: 1 } }}>
           <Grid item xs={12} sm={6} md={3}>
             <motion.div variants={itemVariants}>
               <Card sx={{ height: '100%' }}>
@@ -262,10 +263,10 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
                     </Avatar>
                     <Box>
                       <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                        ${data?.overview?.totalRevenue?.toLocaleString()}
+                        {data?.overview?.totalKarma?.toLocaleString()}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Total Revenue
+                        Total Karma Points
                       </Typography>
                     </Box>
                   </Box>
@@ -337,7 +338,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
         </Grid>
 
         {/* Charts Row */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={3} sx={{ mb: 4, overflow: 'visible', px: { xs: 0, md: 1 } }}>
           <Grid item xs={12} lg={8}>
             <motion.div variants={itemVariants}>
               <Card sx={{ height: 400 }}>
@@ -350,7 +351,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
                       <YAxis />
                       <RechartsTooltip />
                       <Line type="monotone" dataKey="users" stroke="#2196f3" strokeWidth={2} />
-                      <Line type="monotone" dataKey="revenue" stroke="#4caf50" strokeWidth={2} />
+                      <Line type="monotone" dataKey="karma" stroke="#4caf50" strokeWidth={2} />
                       <Line type="monotone" dataKey="transactions" stroke="#ff9800" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
@@ -377,8 +378,8 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
                               mr: 2,
                             }}
                           />
-                          <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
-                            {key}
+                          <Typography variant="body2" sx={{ textTransform: 'uppercase' }}>
+                            {key === 'api' ? 'API' : key === 'cdn' ? 'CDN' : key}
                           </Typography>
                         </Box>
                         <Typography variant="body2" color="text.secondary">
@@ -394,10 +395,10 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
         </Grid>
 
         {/* Metrics and Activity Row */}
-        <Grid container spacing={3}>
+        <Grid container spacing={3} sx={{ overflow: 'visible', px: { xs: 0, md: 1 } }}>
           <Grid item xs={12} md={6}>
             <motion.div variants={itemVariants}>
-              <Card sx={{ height: 400 }}>
+              <Card sx={{ minHeight: 400, height: '100%' }}>
                 <CardHeader title="Platform Metrics" />
                 <CardContent>
                   <Grid container spacing={2}>
@@ -427,12 +428,12 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
 
           <Grid item xs={12} md={6}>
             <motion.div variants={itemVariants}>
-              <Card sx={{ height: 400 }}>
+              <Card sx={{ minHeight: 400, height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardHeader title="Recent Activity" />
-                <CardContent sx={{ p: 0 }}>
-                  <List>
+                <CardContent sx={{ p: 0, flex: 1, overflowY: 'auto' }}>
+                  <List disablePadding>
                     {data?.recentActivity?.slice(0, 6).map((activity: any) => (
-                      <ListItem key={activity.id} divider>
+                      <ListItem key={activity.id} divider sx={{ px: 2 }}>
                         <ListItemAvatar>
                           <Avatar sx={{ bgcolor: getStatusColor(activity.status), width: 32, height: 32 }}>
                             {getStatusIcon(activity.status)}
@@ -459,7 +460,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
         </Grid>
 
         {/* Top Performers */}
-        <Grid container spacing={3} sx={{ mt: 2 }}>
+        <Grid container spacing={3} sx={{ mt: 2, overflow: 'visible', pb: 3, px: { xs: 0, md: 1 } }}>
           <Grid item xs={12}>
             <motion.div variants={itemVariants}>
               <Card>
@@ -491,7 +492,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
                               Users: {performer.users?.toLocaleString()}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                              Revenue: ${performer.revenue?.toLocaleString()}
+                              Karma: {performer.karma?.toLocaleString()}
                             </Typography>
                           </Box>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
