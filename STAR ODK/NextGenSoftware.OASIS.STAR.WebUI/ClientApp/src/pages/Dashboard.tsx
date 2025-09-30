@@ -201,8 +201,8 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
       animate="visible"
       style={{ overflow: 'visible', width: '100%' }}
     >
-      <Box sx={{ mt: 4, mb: 4, px: { xs: 0, md: 1 }, overflow: 'visible' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, pr: { xs: 0, md: 1 } }}>
+      <Box sx={{ mt: 4, mb: 4, overflow: 'visible' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, px: { xs: 0, md: 1 } }}>
           <Box>
             <Typography variant="h4" gutterBottom className="page-heading">
               📊 Dashboard
@@ -224,10 +224,10 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
         </Box>
 
         {/* Overview Cards */}
-        <Grid container spacing={3} sx={{ mb: 4, overflow: 'visible', px: { xs: 0, md: 1 } }}>
+        <Grid container spacing={3} sx={{ mb: 4, overflow: 'visible', px: { xs: 0, md: 1 }, width: '100%' }}>
           <Grid item xs={12} sm={6} md={3}>
             <motion.div variants={itemVariants}>
-              <Card sx={{ height: '100%' }}>
+              <Card sx={{ height: '100%', overflow: 'visible' }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
@@ -255,7 +255,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
 
           <Grid item xs={12} sm={6} md={3}>
             <motion.div variants={itemVariants}>
-              <Card sx={{ height: '100%' }}>
+              <Card sx={{ height: '100%', overflow: 'visible' }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <Avatar sx={{ bgcolor: 'success.main', mr: 2 }}>
@@ -283,7 +283,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
 
           <Grid item xs={12} sm={6} md={3}>
             <motion.div variants={itemVariants}>
-              <Card sx={{ height: '100%' }}>
+              <Card sx={{ height: '100%', overflow: 'visible' }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <Avatar sx={{ bgcolor: 'warning.main', mr: 2 }}>
@@ -310,7 +310,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
 
           <Grid item xs={12} sm={6} md={3}>
             <motion.div variants={itemVariants}>
-              <Card sx={{ height: '100%' }}>
+              <Card sx={{ height: '100%', overflow: 'visible' }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <Avatar sx={{ bgcolor: 'info.main', mr: 2 }}>
@@ -338,7 +338,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
         </Grid>
 
         {/* Charts Row */}
-        <Grid container spacing={3} sx={{ mb: 4, overflow: 'visible', px: { xs: 0, md: 1 } }}>
+        <Grid container spacing={3} sx={{ mb: 4, overflow: 'visible', px: { xs: 0, md: 1 }, width: '100%' }}>
           <Grid item xs={12} lg={8}>
             <motion.div variants={itemVariants}>
               <Card sx={{ height: 400 }}>
@@ -395,12 +395,12 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
         </Grid>
 
         {/* Metrics and Activity Row */}
-        <Grid container spacing={3} sx={{ overflow: 'visible', px: { xs: 0, md: 1 } }}>
+        <Grid container spacing={3} sx={{ overflow: 'visible', px: { xs: 0, md: 1 }, width: '100%' }}>
           <Grid item xs={12} md={6}>
             <motion.div variants={itemVariants}>
-              <Card sx={{ minHeight: 400, height: '100%' }}>
+              <Card sx={{ minHeight: 400, height: '100%', overflow: 'visible' }}>
                 <CardHeader title="Platform Metrics" />
-                <CardContent>
+                <CardContent sx={{ overflow: 'visible' }}>
                   <Grid container spacing={2}>
                     {Object.entries(data?.metrics || {}).map(([key, metric]: [string, any]) => (
                       <Grid item xs={6} sm={4} key={key}>
@@ -460,7 +460,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
         </Grid>
 
         {/* Top Performers */}
-        <Grid container spacing={3} sx={{ mt: 2, overflow: 'visible', pb: 3, px: { xs: 0, md: 1 } }}>
+        <Grid container spacing={3} sx={{ mt: 2, overflow: 'visible', pb: 3, px: { xs: 0, md: 1 }, width: '100%' }}>
           <Grid item xs={12}>
             <motion.div variants={itemVariants}>
               <Card>
@@ -469,7 +469,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
                   <Grid container spacing={2}>
                     {data?.topPerformers?.map((performer: any, index: number) => (
                       <Grid item xs={12} sm={6} md={4} key={index}>
-                        <Paper sx={{ p: 2, height: '100%' }}>
+                        <Paper sx={{ p: 2, height: '100%', overflow: 'visible' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                             <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
                               {performer.type === 'OAPP' && <Code />}
