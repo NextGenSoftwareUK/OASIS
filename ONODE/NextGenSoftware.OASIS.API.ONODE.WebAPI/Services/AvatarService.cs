@@ -1316,5 +1316,164 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         //    // convert random bytes to hex string
         //    return BitConverter.ToString(randomBytes).Replace("-", "");
         //}
+
+        // Avatar Session Management Implementation
+        public async Task<OASISResult<Models.Avatar.AvatarSessionManagement>> GetAvatarSessionsAsync(Guid avatarId)
+        {
+            var response = new OASISResult<Models.Avatar.AvatarSessionManagement>();
+            
+            try
+            {
+                var avatarResult = await _avatarManager.LoadAvatarAsync(avatarId);
+                
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    response.IsError = true;
+                    response.Message = $"Error loading avatar: {avatarResult.Message}";
+                    return response;
+                }
+
+                // Use AvatarManager session methods
+                var sessionsResult = await _avatarManager.GetAvatarSessionsAsync(avatarId);
+                
+                if (sessionsResult.IsError)
+                {
+                    response.IsError = true;
+                    response.Message = sessionsResult.Message;
+                    return response;
+                }
+
+                response.Result = sessionsResult.Result;
+                response.IsSaved = true;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsError = true;
+                response.Message = $"Error getting avatar sessions: {ex.Message}";
+                response.Exception = ex;
+                return response;
+            }
+        }
+
+        public async Task<OASISResult<bool>> LogoutAvatarSessionsAsync(Guid avatarId, System.Collections.Generic.List<string> sessionIds)
+        {
+            var response = new OASISResult<bool>();
+            
+            try
+            {
+                var result = await _avatarManager.LogoutAvatarSessionsAsync(avatarId, sessionIds);
+                
+                response.Result = !result.IsError;
+                response.IsError = result.IsError;
+                response.Message = result.Message;
+                response.IsSaved = !result.IsError;
+                
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsError = true;
+                response.Message = $"Error logging out sessions: {ex.Message}";
+                response.Exception = ex;
+                return response;
+            }
+        }
+
+        public async Task<OASISResult<bool>> LogoutAllAvatarSessionsAsync(Guid avatarId)
+        {
+            var response = new OASISResult<bool>();
+            
+            try
+            {
+                var result = await _avatarManager.LogoutAllAvatarSessionsAsync(avatarId);
+                
+                response.Result = !result.IsError;
+                response.IsError = result.IsError;
+                response.Message = result.Message;
+                response.IsSaved = !result.IsError;
+                
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsError = true;
+                response.Message = $"Error logging out all sessions: {ex.Message}";
+                response.Exception = ex;
+                return response;
+            }
+        }
+
+        public async Task<OASISResult<Models.Avatar.AvatarSession>> CreateAvatarSessionAsync(Guid avatarId, Models.Avatar.CreateSessionRequest request)
+        {
+            var response = new OASISResult<Models.Avatar.AvatarSession>();
+            
+            try
+            {
+                var result = await _avatarManager.CreateAvatarSessionAsync(avatarId, request);
+                
+                response.Result = result.Result;
+                response.IsError = result.IsError;
+                response.Message = result.Message;
+                response.IsSaved = !result.IsError;
+                
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsError = true;
+                response.Message = $"Error creating session: {ex.Message}";
+                response.Exception = ex;
+                return response;
+            }
+        }
+
+        public async Task<OASISResult<Models.Avatar.AvatarSession>> UpdateAvatarSessionAsync(Guid avatarId, string sessionId, Models.Avatar.UpdateSessionRequest request)
+        {
+            var response = new OASISResult<Models.Avatar.AvatarSession>();
+            
+            try
+            {
+                var result = await _avatarManager.UpdateAvatarSessionAsync(avatarId, sessionId, request);
+                
+                response.Result = result.Result;
+                response.IsError = result.IsError;
+                response.Message = result.Message;
+                response.IsSaved = !result.IsError;
+                
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsError = true;
+                response.Message = $"Error updating session: {ex.Message}";
+                response.Exception = ex;
+                return response;
+            }
+        }
+
+        public async Task<OASISResult<Models.Avatar.AvatarSessionStats>> GetAvatarSessionStatsAsync(Guid avatarId)
+        {
+            var response = new OASISResult<Models.Avatar.AvatarSessionStats>();
+            
+            try
+            {
+                var result = await _avatarManager.GetAvatarSessionStatsAsync(avatarId);
+                
+                response.Result = result.Result;
+                response.IsError = result.IsError;
+                response.Message = result.Message;
+                response.IsSaved = !result.IsError;
+                
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsError = true;
+                response.Message = $"Error getting session stats: {ex.Message}";
+                response.Exception = ex;
+                return response;
+            }
+        }
     }
 }

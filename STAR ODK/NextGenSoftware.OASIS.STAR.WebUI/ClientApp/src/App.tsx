@@ -59,6 +59,7 @@ import MyDataPage from './pages/MyDataPage';
 import DevPortalPage from './pages/DevPortalPage';
 import HolonsPage from './pages/HolonsPage';
 import ZomesPage from './pages/ZomesPage';
+import STARPluginsPage from './pages/STARPluginsPage';
 
 // Services
 import { starService } from './services/starService';
@@ -745,6 +746,20 @@ const App: React.FC = () => {
                     transition={pageTransition}
                   >
                     <ZomesPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/star-plugins" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <STARPluginsPage />
                   </motion.div>
                 } 
               />

@@ -247,6 +247,13 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
       description: 'Developer Resources & Tools',
     },
     {
+      id: 'star-plugins',
+      title: 'STAR Plugins',
+      icon: <Extension />,
+      path: '/star-plugins',
+      description: 'STAR & STARNET Plugins',
+    },
+    {
       id: 'settings',
       title: 'Settings',
       icon: <Settings />,
