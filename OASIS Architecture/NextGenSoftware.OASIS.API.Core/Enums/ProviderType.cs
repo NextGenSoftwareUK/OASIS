@@ -7,6 +7,8 @@
         Default,
         SolanaOASIS, //Chains
         ArbitrumOASIS,
+        AvalancheOASIS,
+        BaseOASIS,
         EthereumOASIS,
         PolygonOASIS,
         EOSIOOASIS,

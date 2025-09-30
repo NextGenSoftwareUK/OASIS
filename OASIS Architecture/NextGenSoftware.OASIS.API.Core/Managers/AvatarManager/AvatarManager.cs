@@ -1505,5 +1505,194 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         #endregion
 
+        #region Token Management
+
+        /// <summary>
+        /// Refresh an authentication token
+        /// </summary>
+        public OASISResult<IAvatar> RefreshToken(string token, string ipAddress)
+        {
+            var response = new OASISResult<IAvatar>();
+
+            try
+            {
+                var refreshToken = GetRefreshTokenFromAvatar(token, out IAvatar avatar);
+
+                if (avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Avatar not found");
+                    return response;
+                }
+
+                if (refreshToken != null && refreshToken.IsActive)
+                {
+                    var newRefreshToken = generateRefreshToken(ipAddress);
+                    refreshToken.Revoked = DateTime.UtcNow;
+                    refreshToken.RevokedByIp = ipAddress;
+                    refreshToken.ReplacedByToken = newRefreshToken.Token;
+                    avatar.RefreshTokens.Add(newRefreshToken);
+
+                    avatar.RefreshToken = newRefreshToken.Token;
+                    avatar.JwtToken = GenerateJWTToken(avatar);
+
+                    OASISResult<IAvatar> saveAvatarResult = SaveAvatar(avatar);
+
+                    if (saveAvatarResult != null && !saveAvatarResult.IsError && saveAvatarResult.Result != null)
+                    {
+                        avatar = HideAuthDetails(saveAvatarResult.Result);
+                        response.Result = avatar;
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref response, $"Error occurred in RefreshToken method in AvatarManager saving avatar. Reason: {saveAvatarResult.Message}", saveAvatarResult.DetailedMessage);
+                }
+                else
+                    OASISErrorHandling.HandleError(ref response, "Refresh token is inactive or invalid");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"An unknown error occurred in RefreshToken method in AvatarManager. Reason: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Revoke a refresh token
+        /// </summary>
+        public OASISResult<string> RevokeToken(string token, string ipAddress)
+        {
+            var response = new OASISResult<string>();
+            var refreshToken = GetRefreshTokenFromAvatar(token, out IAvatar avatar);
+
+            if (avatar == null)
+            {
+                OASISErrorHandling.HandleError(ref response, "Avatar not found");
+                return response;
+            }
+
+            // revoke token and save
+            if (refreshToken != null && refreshToken.IsActive)
+            {
+                refreshToken.Revoked = DateTime.UtcNow;
+                refreshToken.RevokedByIp = ipAddress;
+                avatar.IsBeamedIn = false;
+                avatar.LastBeamedOut = DateTime.Now;
+
+                var saveAvatar = SaveAvatar(avatar);
+
+                if (saveAvatar != null && !saveAvatar.IsError && saveAvatar.Result != null)
+                {
+                    response.Message = "Token Revoked.";
+                    response.IsSaved = true;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref response, $"An error in RevokeToken method in AvatarManager saving the avatar. Reason: {saveAvatar.Message}", saveAvatar.DetailedMessage);
+            }
+            else
+                OASISErrorHandling.HandleError(ref response, "Refresh token is inactive or invalid");
+
+            return response;
+        }
+
+        /// <summary>
+        /// Validate an account token (JWT)
+        /// </summary>
+        public OASISResult<string> ValidateAccountToken(string accountToken)
+        {
+            var response = new OASISResult<string>();
+
+            try
+            {
+                var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var key = System.Text.Encoding.ASCII.GetBytes(OASISDNA.OASIS.Security.SecretKey);
+                tokenHandler.ValidateToken(accountToken, new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
+                    ClockSkew = TimeSpan.Zero
+                }, out Microsoft.IdentityModel.Tokens.SecurityToken validatedToken);
+
+                response.Result = "Token is valid";
+            }
+            catch
+            {
+                response.IsError = true;
+                response.Result = "Token is invalid";
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Validate a password reset token
+        /// </summary>
+        public OASISResult<string> ValidateResetToken(string token)
+        {
+            var response = new OASISResult<string>();
+
+            try
+            {
+                OASISResult<IEnumerable<IAvatar>> avatarsResult = LoadAllAvatars(false, false);
+
+                if (!avatarsResult.IsError && avatarsResult.Result != null)
+                {
+                    var avatar = avatarsResult.Result.SingleOrDefault(x =>
+                        x.ResetToken == token && x.ResetTokenExpires > DateTime.UtcNow);
+
+                    if (avatar == null)
+                    {
+                        response.IsError = true;
+                        response.Result = "Invalid token";
+                    }
+                    else
+                        response.Result = "Valid token";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref response, $"Error in ValidateResetToken loading avatars. Reason: {avatarsResult.Message}", avatarsResult.DetailedMessage);
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                response.IsError = true;
+                response.Result = "Error validating token";
+                OASISErrorHandling.HandleError(ref response, ex.Message);
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Helper method to get refresh token from avatar
+        /// </summary>
+        private RefreshToken GetRefreshTokenFromAvatar(string token, out IAvatar avatar)
+        {
+            avatar = null;
+            var avatarsResult = LoadAllAvatars(false, false);
+
+            if (!avatarsResult.IsError && avatarsResult.Result != null)
+            {
+                foreach (var av in avatarsResult.Result)
+                {
+                    if (av.RefreshTokens != null)
+                    {
+                        var refreshToken = av.RefreshTokens.SingleOrDefault(x => x.Token == token);
+                        if (refreshToken != null)
+                        {
+                            avatar = av;
+                            return refreshToken;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        #endregion
+
     }
 }
