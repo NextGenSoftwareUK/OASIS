@@ -1,4 +1,4 @@
-﻿namespace NextGenSoftware.OASIS.API.ONODE.OPORTAL.Tests;
+﻿namespace NextGenSoftware.OASIS.API.ONODE.OPORTAL.UnitTests;
 
 public class UnitTest1
 {

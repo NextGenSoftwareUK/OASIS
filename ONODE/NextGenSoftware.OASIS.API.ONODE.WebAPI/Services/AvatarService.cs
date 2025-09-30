@@ -25,6 +25,7 @@ using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
     //TODO: Want to phase this out, not needed, moving more and more code into AvatarManager.
+    [Obsolete("AvatarService is being phased out. Controllers should call AvatarManager directly.")]
     public class AvatarService : IAvatarService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;

@@ -31,6 +31,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         // Directly use AvatarManager instead of service layer
         private AvatarManager AvatarManager => Program.AvatarManager;
         
+        // Temporary service access for methods not yet migrated (being phased out)
+        private IAvatarService _avatarService => Program.AvatarService;
+        
         public AvatarController()
         {
         }
@@ -83,7 +86,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("verify-email")]
         public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(string token)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.VerifyEmail(token));
+            return HttpResponseHelper.FormatResponse(AvatarManager.VerifyEmail(token));
         }
 
         /// <summary>
@@ -99,7 +102,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("verify-email/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(string token, ProviderType providerType, bool setGlobally = false)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.VerifyEmail(token));
+            await GetAndActivateProviderAsync(providerType, setGlobally);
+            return HttpResponseHelper.FormatResponse(AvatarManager.VerifyEmail(token));
         }
 
         /// <summary>
@@ -232,7 +236,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<IAvatar>> RefreshToken()
         {
             var refreshToken = Request.Cookies["refreshToken"];
-            var response = await _avatarService.RefreshToken(refreshToken, ipAddress());
+            var response = AvatarManager.RefreshToken(refreshToken, ipAddress());
 
             if (!response.IsError && response.Result != null)
                 setTokenCookie(response.Result.RefreshToken);
@@ -275,7 +279,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!Avatar.OwnsToken(token) && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<string>() { Result = "Unauthorized", IsError = true }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.RevokeToken(token, ipAddress()));
+            return HttpResponseHelper.FormatResponse(AvatarManager.RevokeToken(token, ipAddress()));
         }
 
         /// <summary>
@@ -337,7 +341,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("validate-reset-token")]
         public async Task<OASISHttpResponseMessage<string>> ValidateResetToken(ValidateResetTokenRequest model)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.ValidateResetToken(model));
+            return HttpResponseHelper.FormatResponse(AvatarManager.ValidateResetToken(model.Token));
         }
 
         /// <summary>
@@ -423,7 +427,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-terms")]
         public async Task<OASISHttpResponseMessage<string>> GetTerms()
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetTerms());
+            return HttpResponseHelper.FormatResponse(new OASISResult<string> { Result = OASISDNA.OASIS.Terms });
         }
 
         /// <summary>
@@ -939,7 +943,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<KarmaAkashicRecord>> AddKarmaToAvatar(Guid avatarId,
             AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.AddKarmaToAvatar(avatarId, addKarmaToAvatarRequest));
+            return HttpResponseHelper.FormatResponse(await AvatarManager.AddKarmaToAvatarAsync(avatarId, addKarmaToAvatarRequest));
         }
 
         /// <summary>
@@ -986,7 +990,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<KarmaAkashicRecord>> RemoveKarmaFromAvatar(Guid avatarId,
             AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.RemoveKarmaFromAvatar(avatarId, addKarmaToAvatarRequest));
+            return HttpResponseHelper.FormatResponse(await AvatarManager.RemoveKarmaFromAvatarAsync(avatarId, addKarmaToAvatarRequest));
         }
 
         /// <summary>
@@ -1032,7 +1036,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.Update(id, avatar));
+            return HttpResponseHelper.FormatResponse(await AvatarManager.Update(id, avatar));
         }
 
         /// <summary>
@@ -1071,7 +1075,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.UpdateByEmail(email, avatar));
+            return HttpResponseHelper.FormatResponse(await AvatarManager.UpdateByEmail(email, avatar));
         }
 
         /// <summary>
@@ -1106,7 +1110,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.UpdateByUsername(username, avatar));
+            return HttpResponseHelper.FormatResponse(await AvatarManager.UpdateByUsername(username, avatar));
         }
 
         /// <summary>
@@ -1435,7 +1439,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-logged-in-avatar")]
         public async Task<OASISHttpResponseMessage<IAvatar>> GetLoggedInAvatar()
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetLoggedInAvatar());
+            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { Result = AvatarManager.LoggedInAvatar });
         }
 
         /// <summary>
@@ -1836,7 +1840,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _avatarService.GetAvatarSessionsAsync(avatarId);
+                var result = await AvatarManager.GetAvatarSessionsAsync(avatarId);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -1862,7 +1866,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _avatarService.LogoutAvatarSessionsAsync(avatarId, sessionIds);
+                var result = await AvatarManager.LogoutAvatarSessionsAsync(avatarId, sessionIds);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -1887,7 +1891,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _avatarService.LogoutAllAvatarSessionsAsync(avatarId);
+                var result = await AvatarManager.LogoutAllAvatarSessionsAsync(avatarId);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -1913,7 +1917,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _avatarService.CreateAvatarSessionAsync(avatarId, sessionData);
+                var result = await AvatarManager.CreateAvatarSessionAsync(avatarId, sessionData);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -1940,7 +1944,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _avatarService.UpdateAvatarSessionAsync(avatarId, sessionId, sessionData);
+                var result = await AvatarManager.UpdateAvatarSessionAsync(avatarId, sessionId, sessionData);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
@@ -1965,7 +1969,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await _avatarService.GetAvatarSessionStatsAsync(avatarId);
+                var result = await AvatarManager.GetAvatarSessionStatsAsync(avatarId);
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)

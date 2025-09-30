@@ -1,0 +1,16 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Debug",
+      "System": "Information",
+      "Microsoft": "Information"
+    }
+  },
+  "Avalanche": {
+    "Network": "Fuji",
+    "ChainId": 43113,
+    "RpcUrl": "https://api.avax-test.network/ext/bc/C/rpc",
+    "Explorer": "https://testnet.snowtrace.io"
+  }
+}
+

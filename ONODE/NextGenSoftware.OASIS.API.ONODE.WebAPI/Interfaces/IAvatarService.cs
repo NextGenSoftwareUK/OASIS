@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
 {
+    [Obsolete("IAvatarService is being phased out. Controllers should call AvatarManager directly.")]
     public interface IAvatarService
     {
         //TODO: Want to phase this out, not needed, moving more and more code into AvatarManager.
