@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { SOLANA_CHAIN } from "@/types/chains";
 import { AppLayout } from "@/components/layout/app-layout";
 import { StatCard } from "@/components/layout/stat-card";
@@ -11,6 +11,7 @@ import { ProviderTogglePanel, ProviderToggle } from "@/components/auth/provider-
 import { AssetUploadPanel, DEFAULT_ASSET_DRAFT, AssetDraft } from "@/components/assets/asset-upload-panel";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { MintReviewPanel } from "@/components/mint/mint-review-panel";
 
 const WIZARD_STEPS = [
   {
@@ -66,6 +67,9 @@ export default function PageContent() {
   ]);
   const [statusState, setStatusState] = useState<"idle" | "ready">("idle");
   const [assetDraft, setAssetDraft] = useState<AssetDraft>(DEFAULT_ASSET_DRAFT);
+  const [mintReady, setMintReady] = useState(false);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+  const baseUrl = "http://devnet.oasisweb4.one";
 
   const renderSessionSummary = (
     <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-[var(--color-card-border)]/50 bg-[rgba(8,12,26,0.7)] px-4 py-3 text-[11px] text-[var(--muted)]">
@@ -113,12 +117,12 @@ export default function PageContent() {
               <span
                 className={cn(
                   "mt-2 h-fit rounded-full border px-3 py-1 text-xs uppercase tracking-[0.4em]",
-                  statusState === "ready"
+                  statusState === "ready" && mintReady
                     ? "border-[var(--color-positive)]/60 bg-[rgba(20,118,96,0.25)] text-[var(--color-positive)]"
                     : "border-[var(--negative)]/60 bg-[rgba(120,35,50,0.2)] text-[var(--negative)]"
                 )}
               >
-                {statusState === "ready" ? "Providers Ready" : "Providers Pending"}
+                {statusState === "ready" && mintReady ? "Ready To Mint" : "Pending Configuration"}
               </span>
             </div>
             {renderSessionSummary}
@@ -145,6 +149,9 @@ export default function PageContent() {
                   }}
                   onAcquireAvatar={() => {
                     window.open("https://metabricks.xyz", "_blank", "noopener,noreferrer");
+                  }}
+                  onToken={(token) => {
+                    setAuthToken(token);
                   }}
                 />
               </div>
@@ -188,9 +195,16 @@ export default function PageContent() {
             <AssetUploadPanel value={assetDraft} onChange={setAssetDraft} />
           ) : null}
           {activeStep === "mint" ? (
-            <div className="flex h-full flex-col justify-center space-y-4 text-sm text-[var(--muted)]">
-              <p>Mint preview panel placeholder. We will render the PascalCase request body, allow edits, and execute `/api/nft/mint-nft`.</p>
-              <p className="text-xs">Success response expected to include `mintTransactionHash`, `sendNFTTransactionHash`, and `oasisnft.nftTokenAddress`.</p>
+            <div className="space-y-8">
+              <div className="rounded-2xl border border-[var(--color-card-border)]/60 bg-[rgba(8,12,28,0.85)] p-6">
+                <h3 className="text-xl font-semibold text-[var(--color-foreground)]">Mint Configuration</h3>
+                <p className="mt-2 text-sm text-[var(--muted)]">
+                  Review the payload assembled from previous steps. Adjust mint timing options and submit to `/api/nft/mint-nft`.
+                </p>
+                <MintReviewPanel assetDraft={assetDraft} onStatusChange={(state) => {
+                  setMintReady(state === "ready");
+                }} baseUrl={baseUrl} token={authToken ?? undefined} />
+              </div>
             </div>
           ) : null}
         </WizardShell>

@@ -8,6 +8,7 @@ export type CredentialsPanelProps = {
   defaultPassword?: string;
   onAuthenticate?: (credentials: { username: string; password: string }) => void;
   onAcquireAvatar?: () => void;
+  onToken?: (token: string) => void;
 };
 
 export function CredentialsPanel({
@@ -15,9 +16,38 @@ export function CredentialsPanel({
   defaultPassword = "Uppermall1!",
   onAuthenticate,
   onAcquireAvatar,
+  onToken,
 }: CredentialsPanelProps) {
   const [username, setUsername] = useState(defaultUsername);
   const [password, setPassword] = useState(defaultPassword);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const authenticate = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      onAuthenticate?.({ username, password });
+
+      const response = await fetch("http://devnet.oasisweb4.one/api/avatar/authenticate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || data?.result?.jwtToken == null) {
+        throw new Error(data?.message ?? "Authentication failed");
+      }
+
+      onToken?.(data.result.jwtToken);
+    } catch (err: any) {
+      console.error("Authentication error", err);
+      setError(err.message ?? "Authentication failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -44,10 +74,11 @@ export function CredentialsPanel({
         <div className="flex flex-col gap-3">
           <Button
             variant="primary"
-            onClick={() => onAuthenticate?.({ username, password })}
+            disabled={isLoading}
+            onClick={authenticate}
             className="whitespace-nowrap"
           >
-            Authenticate Avatar
+            {isLoading ? "Authenticating..." : "Authenticate Avatar"}
           </Button>
           <Button
             variant="secondary"
@@ -61,6 +92,8 @@ export function CredentialsPanel({
       <p className="text-xs text-[var(--muted)]">
         No avatar yet? Purchasing a MetaBrick at <a className="text-[var(--accent)] underline" href="https://metabricks.xyz" target="_blank" rel="noreferrer">MetaBricks.xyz</a> will provision credentials automatically.
       </p>
+      {error ? <p className="text-xs text-[var(--negative)]">{error}</p> : null}
     </div>
   );
 }
+

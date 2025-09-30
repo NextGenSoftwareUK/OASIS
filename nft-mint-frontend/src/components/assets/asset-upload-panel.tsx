@@ -15,19 +15,23 @@ export type AssetDraft = {
   recipientLabel?: string;
   imageFileName?: string;
   thumbnailFileName?: string;
+  imageData?: string;
+  thumbnailData?: string;
 };
 
 export const DEFAULT_ASSET_DRAFT: AssetDraft = {
   title: "MetaBrick Test NFT",
   description: "Test NFT minted via devnet.oasisweb4.one",
   symbol: "MBRICK",
-  jsonUrl: "https://gateway.pinata.cloud/ipfs/Qmag8SxBHha1K6zvxqqYANjVza1HmPbSwempw2LpFW6X88",
-  imageUrl: "https://gateway.pinata.cloud/ipfs/bafkreibhok44eomzkubmt3e2kzxip3w3b4pclixvgff5q7awhfa7kwlwsq",
-  thumbnailUrl: "https://gateway.pinata.cloud/ipfs/bafkreibhok44eomzkubmt3e2kzxip3w3b4pclixvgff5q7awhfa7kwlwsq",
+  jsonUrl: "",
+  imageUrl: "",
+  thumbnailUrl: "",
   sendToAddress: "85ArqfA2fy8spGcMGsSW7cbEJAWj26vewmmoG2bwkgT9",
   recipientLabel: "Primary Recipient",
   imageFileName: undefined,
   thumbnailFileName: undefined,
+  imageData: undefined,
+  thumbnailData: undefined,
 };
 
 export type AssetUploadPanelProps = {
@@ -58,11 +62,32 @@ export function AssetUploadPanel({ value, onChange }: AssetUploadPanelProps) {
       JSONMetaDataURL: draft.jsonUrl,
       ImageUrl: draft.imageUrl,
       ThumbnailUrl: draft.thumbnailUrl,
-      MintedByAvatarId: "89d907a8-5859-4171-b6c5-621bfe96930d",
       SendToAddressAfterMinting: draft.sendToAddress,
     }),
     [draft]
   );
+
+  const handleFileSelect = async (file: File | null, kind: "image" | "thumbnail") => {
+    if (!file) {
+      if (kind === "image") {
+        updateDraft({ imageFileName: undefined, imageData: undefined });
+      } else {
+        updateDraft({ thumbnailFileName: undefined, thumbnailData: undefined });
+      }
+      return;
+    }
+
+    try {
+      const base64 = await fileToBase64(file);
+      if (kind === "image") {
+        updateDraft({ imageFileName: file.name, imageData: base64 });
+      } else {
+        updateDraft({ thumbnailFileName: file.name, thumbnailData: base64 });
+      }
+    } catch (error) {
+      console.error("Failed to process file", error);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -70,9 +95,15 @@ export function AssetUploadPanel({ value, onChange }: AssetUploadPanelProps) {
         <header className="flex items-center justify-between">
           <div>
             <h4 className="text-lg font-semibold text-[var(--color-foreground)]">Media Uploads</h4>
-            <p className="text-sm text-[var(--muted)]">Upload artwork and thumbnails. These will be pinned via OASIS endpoints later.</p>
+            <p className="text-sm text-[var(--muted)]">
+              Upload artwork and thumbnails. When provided, we will pin them via Pinata during the mint call.
+            </p>
           </div>
-          <Button variant="secondary" className="text-xs" onClick={() => updateDraft(DEFAULT_ASSET_DRAFT)}>
+          <Button
+            variant="secondary"
+            className="text-xs"
+            onClick={() => updateDraft(DEFAULT_ASSET_DRAFT)}
+          >
             Reset to Template
           </Button>
         </header>
@@ -81,20 +112,15 @@ export function AssetUploadPanel({ value, onChange }: AssetUploadPanelProps) {
             label="Primary Artwork"
             description="PNG, JPG, GIF up to 25 MB"
             fileName={draft.imageFileName}
-            onSelect={(file) =>
-              updateDraft({ imageFileName: file?.name, imageUrl: file ? `pending://uploads/${file.name}` : draft.imageUrl })
-            }
+            hasPayload={Boolean(draft.imageData)}
+            onSelect={(file) => handleFileSelect(file, "image")}
           />
           <UploadTile
             label="Thumbnail"
-            description="Optimized preview image"
+            description="Optional preview image"
             fileName={draft.thumbnailFileName}
-            onSelect={(file) =>
-              updateDraft({
-                thumbnailFileName: file?.name,
-                thumbnailUrl: file ? `pending://uploads/${file.name}` : draft.thumbnailUrl,
-              })
-            }
+            hasPayload={Boolean(draft.thumbnailData)}
+            onSelect={(file) => handleFileSelect(file, "thumbnail")}
           />
         </div>
       </section>
@@ -154,14 +180,16 @@ export function AssetUploadPanel({ value, onChange }: AssetUploadPanelProps) {
         </div>
         <div className="space-y-4 rounded-2xl border border-[var(--color-card-border)]/60 bg-[rgba(8,14,34,0.8)] p-6">
           <h4 className="text-lg font-semibold text-[var(--color-foreground)]">Media Preview</h4>
-          <p className="text-sm text-[var(--muted)]">Paste URLs above or upload files to stage metadata assets for Pinata/MongoDB.</p>
+          <p className="text-sm text-[var(--muted)]">
+            Provide either hosted URLs or upload files above so the mint endpoint can push them to Pinata automatically.
+          </p>
           <div className="flex h-48 items-center justify-center rounded-xl border border-[var(--color-card-border)]/40 bg-[rgba(6,10,24,0.6)] text-[var(--muted)]">
-            Artwork preview coming soon
+            {draft.imageData ? "Image data ready for Pinata" : "No image selected"}
           </div>
           <div className="grid grid-cols-2 gap-3 text-xs text-[var(--muted)]">
             <div>
               <p className="font-semibold text-[var(--color-foreground)]">JSON</p>
-              <p className="break-all text-[11px] opacity-80">{draft.jsonUrl}</p>
+              <p className="break-all text-[11px] opacity-80">{draft.jsonUrl || "Will be generated via Pinata"}</p>
             </div>
             <div>
               <p className="font-semibold text-[var(--color-foreground)]">Recipient</p>
@@ -174,9 +202,9 @@ export function AssetUploadPanel({ value, onChange }: AssetUploadPanelProps) {
       <section className="rounded-2xl border border-[var(--color-card-border)]/60 bg-[rgba(8,12,28,0.85)] p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h4 className="text-lg font-semibold text-[var(--color-foreground)]">Request Preview</h4>
+            <h4 className="text-lg font-semibold text-[var(--color-foreground)]">Request Snapshot</h4>
             <p className="text-sm text-[var(--muted)]">
-              These fields will feed into `/api/nft/mint-nft`. Adjust values above to keep casing and enum structures exact.
+              Reference scaffold before final mint. The review step will add provider enums and mint options automatically.
             </p>
           </div>
         </div>
@@ -192,11 +220,13 @@ function UploadTile({
   label,
   description,
   fileName,
+  hasPayload,
   onSelect,
 }: {
   label: string;
   description: string;
   fileName?: string;
+  hasPayload?: boolean;
   onSelect: (file: File | null) => void;
 }) {
   const inputId = `${label.toLowerCase().replace(/\s+/g, "-")}-upload`;
@@ -212,6 +242,9 @@ function UploadTile({
       <div className="mt-6 rounded-xl bg-[rgba(4,8,20,0.8)] px-4 py-3 text-xs text-[var(--muted)]">
         {fileName ? <span>{fileName}</span> : <span>No file selected</span>}
       </div>
+      {hasPayload ? (
+        <span className="mt-3 text-[10px] uppercase tracking-[0.35em] text-[var(--accent)]">Ready</span>
+      ) : null}
       <input
         id={inputId}
         type="file"
@@ -253,4 +286,17 @@ function Field({
       />
     </label>
   );
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.split(",")[1];
+      resolve(base64);
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("Unable to read file"));
+    reader.readAsDataURL(file);
+  });
 }
