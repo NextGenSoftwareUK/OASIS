@@ -26,7 +26,8 @@ import { useNavigate } from 'react-router-dom';
 import { useDemoMode } from '../contexts/DemoModeContext';
 import { useAvatar } from '../contexts/AvatarContext';
 import { toast } from 'react-hot-toast';
-import AvatarAuth from './AvatarAuth';
+import { Button } from '@mui/material';
+import { Login, PersonAdd, Logout } from '@mui/icons-material';
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -40,6 +41,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionStatus, igniteSTAR, extinguishStar, reconnect }) => {
   const navigate = useNavigate();
   const { isDemoMode } = useDemoMode();
+  const { isLoggedIn, currentAvatar, signout } = useAvatar();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = React.useState<null | HTMLElement>(null);
 
@@ -244,19 +246,65 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
         </Menu>
 
         {/* Avatar Authentication */}
-        <AvatarAuth
-          variant="button"
-          size="small"
-          onLogin={(avatar) => {
-            console.log('Avatar logged in:', avatar);
-          }}
-          onSignup={(avatar) => {
-            console.log('Avatar signed up:', avatar);
-          }}
-          onLogout={() => {
-            console.log('Avatar logged out');
-          }}
-        />
+        {!isLoggedIn ? (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Login />}
+              onClick={() => navigate('/avatar/signin')}
+              sx={{
+                borderColor: '#00bcd4',
+                color: '#00bcd4',
+                '&:hover': {
+                  borderColor: '#00acc1',
+                  bgcolor: 'rgba(0, 188, 212, 0.1)',
+                },
+              }}
+            >
+              Sign In
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<PersonAdd />}
+              onClick={() => navigate('/avatar/signup')}
+              sx={{
+                bgcolor: '#00bcd4',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: '#00acc1',
+                },
+              }}
+            >
+              Sign Up
+            </Button>
+          </Box>
+        ) : (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {currentAvatar?.username || 'Avatar'}
+            </Typography>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Logout />}
+              onClick={async () => {
+                await signout();
+                navigate('/home');
+              }}
+              sx={{
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                color: 'white',
+                '&:hover': {
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                },
+              }}
+            >
+              Sign Out
+            </Button>
+          </Box>
+        )}
 
         {/* Notifications Menu */}
         <Menu

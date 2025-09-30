@@ -11,6 +11,7 @@ import {
   Typography,
   Collapse,
   IconButton,
+  Button,
 } from '@mui/material';
 import {
   Dashboard,
@@ -36,9 +37,11 @@ import {
   EmojiEvents,
   CloudUpload,
   Code,
+  DataObject,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAvatar } from '../contexts/AvatarContext';
 
 interface SidebarProps {
   open: boolean;
@@ -51,6 +54,7 @@ const drawerWidth = 240;
 const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isLoggedIn } = useAvatar();
   const [expandedItems, setExpandedItems] = React.useState<string[]>(['star']);
 
   const menuItems = [
@@ -176,6 +180,20 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           icon: <Extension />,
           path: '/templates',
           description: 'OAPP Templates',
+        },
+        {
+          id: 'holons',
+          title: 'Holons',
+          icon: <DataObject />,
+          path: '/holons',
+          description: 'OASIS Data Objects',
+        },
+        {
+          id: 'zomes',
+          title: 'Zomes',
+          icon: <Extension />,
+          path: '/zomes',
+          description: 'OASIS Code Modules',
         },
         {
           id: 'plugins',
@@ -346,7 +364,27 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
 
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         <List>
-          {menuItems.map((item) => renderMenuItem(item))}
+          {isLoggedIn ? (
+            menuItems.map((item) => renderMenuItem(item))
+          ) : (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Please sign in to access menu
+              </Typography>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AccountCircle />}
+                onClick={() => {
+                  navigate('/avatar/signin');
+                  onClose();
+                }}
+                sx={{ mt: 2 }}
+              >
+                Sign In
+              </Button>
+            </Box>
+          )}
         </List>
       </Box>
 

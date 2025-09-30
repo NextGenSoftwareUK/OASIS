@@ -746,13 +746,13 @@ export const starService = {
           isError: false,
           message: 'Dev portal stats loaded successfully (Demo Mode)',
           result: {
-            totalResources: 4,
+            totalResources: 10,
             totalDownloads: 187057,
             activeDevelopers: 8923,
             averageRating: 4.9,
             popularCategories: [
               { category: 'Getting Started', count: 1 },
-              { category: 'Integration', count: 1 },
+              { category: 'Integration', count: 7 },
               { category: 'Tools', count: 2 },
             ],
             recentUpdates: [],
@@ -909,6 +909,192 @@ export const starService = {
               githubUrl: 'https://github.com/oasis/web5-star-api-postman',
               documentationUrl: 'https://docs.oasis.network/star/web5-api',
               supportUrl: 'https://support.oasis.network/star'
+            },
+            {
+              id: '5',
+              title: 'OASIS Avatar SSO SDK - Angular',
+              description: 'Angular-specific implementation of Avatar SSO with reactive services, guards, and interceptors.',
+              type: 'sdk',
+              category: 'integration',
+              downloadUrl: '/downloads/oasis-avatar-sso-sdk-angular.zip',
+              version: '1.5.2',
+              size: '15.3 MB',
+              downloads: 12456,
+              rating: 4.9,
+              tags: ['angular', 'sso', 'authentication', 'rxjs'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-02-14T14:20:00Z',
+              featured: true,
+              difficulty: 'intermediate',
+              estimatedTime: '1.5 hours',
+              prerequisites: ['Angular 15+', 'TypeScript', 'RxJS'],
+              languages: ['TypeScript'],
+              frameworks: ['Angular'],
+              platforms: ['Web'],
+              content: 'Full Angular module with services, guards, and interceptors for seamless avatar authentication.',
+              codeExamples: [
+                `import { OasisAvatarSSOModule } from '@oasis/avatar-sso-angular';\n\n@NgModule({\n  imports: [\n    OasisAvatarSSOModule.forRoot({\n      apiUrl: 'https://api.oasis.network',\n      provider: 'Auto'\n    })\n  ]\n})\nexport class AppModule { }`
+              ],
+              screenshots: ['/screenshots/angular-sso-1.png'],
+              videoUrl: 'https://youtube.com/watch?v=angular-sso',
+              githubUrl: 'https://github.com/oasis/avatar-sso-angular',
+              documentationUrl: 'https://docs.oasis.network/avatar-sso/angular',
+              supportUrl: 'https://support.oasis.network/avatar-sso'
+            },
+            {
+              id: '6',
+              title: 'OASIS Avatar SSO SDK - React',
+              description: 'React hooks and context provider for Avatar SSO with TypeScript support.',
+              type: 'sdk',
+              category: 'integration',
+              downloadUrl: '/downloads/oasis-avatar-sso-sdk-react.zip',
+              version: '1.5.2',
+              size: '12.8 MB',
+              downloads: 23789,
+              rating: 4.9,
+              tags: ['react', 'hooks', 'sso', 'context'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-02-14T14:20:00Z',
+              featured: true,
+              difficulty: 'intermediate',
+              estimatedTime: '1 hour',
+              prerequisites: ['React 18+', 'TypeScript'],
+              languages: ['TypeScript', 'JavaScript'],
+              frameworks: ['React'],
+              platforms: ['Web'],
+              content: 'Modern React hooks API with useOasisSSO hook and context provider for global auth state.',
+              codeExamples: [
+                `import { OasisSSOProvider, useOasisSSO } from '@oasis/avatar-sso-react';\n\nfunction App() {\n  return (\n    <OasisSSOProvider apiUrl="https://api.oasis.network">\n      <YourApp />\n    </OasisSSOProvider>\n  );\n}\n\nfunction LoginPage() {\n  const { login, user, isAuthenticated } = useOasisSSO();\n  // ...\n}`
+              ],
+              screenshots: ['/screenshots/react-sso-1.png'],
+              videoUrl: 'https://youtube.com/watch?v=react-sso',
+              githubUrl: 'https://github.com/oasis/avatar-sso-react',
+              documentationUrl: 'https://docs.oasis.network/avatar-sso/react',
+              supportUrl: 'https://support.oasis.network/avatar-sso'
+            },
+            {
+              id: '7',
+              title: 'OASIS Avatar SSO SDK - Vue 3',
+              description: 'Vue 3 Composition API plugin for Avatar SSO with reactive stores.',
+              type: 'sdk',
+              category: 'integration',
+              downloadUrl: '/downloads/oasis-avatar-sso-sdk-vue.zip',
+              version: '1.5.2',
+              size: '11.2 MB',
+              downloads: 8934,
+              rating: 4.8,
+              tags: ['vue', 'composition-api', 'sso', 'reactive'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-02-14T14:20:00Z',
+              featured: true,
+              difficulty: 'intermediate',
+              estimatedTime: '1 hour',
+              prerequisites: ['Vue 3+', 'TypeScript'],
+              languages: ['TypeScript', 'JavaScript'],
+              frameworks: ['Vue'],
+              platforms: ['Web'],
+              content: 'Vue 3 plugin with Composition API composables for reactive authentication state.',
+              codeExamples: [
+                `import { createApp } from 'vue';\nimport { OasisSSOPlugin } from '@oasis/avatar-sso-vue';\n\nconst app = createApp(App);\napp.use(OasisSSOPlugin, {\n  apiUrl: 'https://api.oasis.network'\n});\n\n// In components\nconst { user, isAuthenticated, login } = useOasisSSO();`
+              ],
+              screenshots: ['/screenshots/vue-sso-1.png'],
+              videoUrl: 'https://youtube.com/watch?v=vue-sso',
+              githubUrl: 'https://github.com/oasis/avatar-sso-vue',
+              documentationUrl: 'https://docs.oasis.network/avatar-sso/vue',
+              supportUrl: 'https://support.oasis.network/avatar-sso'
+            },
+            {
+              id: '8',
+              title: 'OASIS Avatar SSO SDK - Vanilla JS',
+              description: 'Pure JavaScript SDK for Avatar SSO - no framework required, works anywhere.',
+              type: 'sdk',
+              category: 'integration',
+              downloadUrl: '/downloads/oasis-avatar-sso-sdk-vanilla.zip',
+              version: '1.5.2',
+              size: '8.4 MB',
+              downloads: 15678,
+              rating: 4.7,
+              tags: ['javascript', 'vanilla', 'sso', 'lightweight'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-02-14T14:20:00Z',
+              featured: true,
+              difficulty: 'beginner',
+              estimatedTime: '30 minutes',
+              prerequisites: ['JavaScript basics'],
+              languages: ['JavaScript'],
+              frameworks: ['None'],
+              platforms: ['Web', 'Any JavaScript environment'],
+              content: 'Zero-dependency vanilla JavaScript SDK that works in any environment - browser, Node.js, or Deno.',
+              codeExamples: [
+                `// Include via CDN or npm\nconst sso = new OasisAvatarSSO({\n  apiUrl: 'https://api.oasis.network',\n  provider: 'Auto'\n});\n\nawait sso.login('username', 'password');\nconst user = await sso.getCurrentUser();\nconsole.log('Logged in as:', user.username);`
+              ],
+              screenshots: ['/screenshots/vanilla-sso-1.png'],
+              videoUrl: 'https://youtube.com/watch?v=vanilla-sso',
+              githubUrl: 'https://github.com/oasis/avatar-sso-vanilla',
+              documentationUrl: 'https://docs.oasis.network/avatar-sso/vanilla',
+              supportUrl: 'https://support.oasis.network/avatar-sso'
+            },
+            {
+              id: '9',
+              title: 'OASIS Avatar SSO SDK - Svelte',
+              description: 'Svelte stores and components for Avatar SSO with reactive authentication.',
+              type: 'sdk',
+              category: 'integration',
+              downloadUrl: '/downloads/oasis-avatar-sso-sdk-svelte.zip',
+              version: '1.5.2',
+              size: '9.7 MB',
+              downloads: 5423,
+              rating: 4.8,
+              tags: ['svelte', 'stores', 'sso', 'reactive'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-02-14T14:20:00Z',
+              featured: false,
+              difficulty: 'intermediate',
+              estimatedTime: '45 minutes',
+              prerequisites: ['Svelte 3+', 'TypeScript'],
+              languages: ['TypeScript', 'JavaScript'],
+              frameworks: ['Svelte'],
+              platforms: ['Web'],
+              content: 'Svelte stores and components for reactive avatar authentication with SvelteKit support.',
+              codeExamples: [
+                `import { initOasisSSO, oasisSSO, user, isAuthenticated } from '@oasis/avatar-sso-svelte';\n\ninitOasisSSO({ apiUrl: 'https://api.oasis.network' });\n\n// In components\n{#if $isAuthenticated}\n  <p>Welcome, {$user.username}!</p>\n  <button on:click={() => oasisSSO.logout()}>Logout</button>\n{/if}`
+              ],
+              screenshots: ['/screenshots/svelte-sso-1.png'],
+              videoUrl: 'https://youtube.com/watch?v=svelte-sso',
+              githubUrl: 'https://github.com/oasis/avatar-sso-svelte',
+              documentationUrl: 'https://docs.oasis.network/avatar-sso/svelte',
+              supportUrl: 'https://support.oasis.network/avatar-sso'
+            },
+            {
+              id: '10',
+              title: 'OASIS Avatar SSO SDK - Next.js',
+              description: 'Next.js App Router and Pages Router integration with server-side authentication.',
+              type: 'sdk',
+              category: 'integration',
+              downloadUrl: '/downloads/oasis-avatar-sso-sdk-nextjs.zip',
+              version: '1.5.2',
+              size: '14.6 MB',
+              downloads: 18234,
+              rating: 4.9,
+              tags: ['nextjs', 'ssr', 'sso', 'server-components'],
+              author: 'OASIS Team',
+              lastUpdated: '2024-02-14T14:20:00Z',
+              featured: true,
+              difficulty: 'advanced',
+              estimatedTime: '2 hours',
+              prerequisites: ['Next.js 13+', 'React', 'TypeScript'],
+              languages: ['TypeScript', 'JavaScript'],
+              frameworks: ['Next.js', 'React'],
+              platforms: ['Web', 'Server-Side'],
+              content: 'Full Next.js integration with App Router, Pages Router, middleware, and server actions support.',
+              codeExamples: [
+                `// app/providers.tsx\n'use client';\nimport { OasisSSOProvider } from '@oasis/avatar-sso-nextjs';\n\nexport function Providers({ children }) {\n  return (\n    <OasisSSOProvider apiUrl={process.env.NEXT_PUBLIC_OASIS_API_URL}>\n      {children}\n    </OasisSSOProvider>\n  );\n}`
+              ],
+              screenshots: ['/screenshots/nextjs-sso-1.png'],
+              videoUrl: 'https://youtube.com/watch?v=nextjs-sso',
+              githubUrl: 'https://github.com/oasis/avatar-sso-nextjs',
+              documentationUrl: 'https://docs.oasis.network/avatar-sso/nextjs',
+              supportUrl: 'https://support.oasis.network/avatar-sso'
             }
           ]
         };
@@ -1649,8 +1835,32 @@ export const starService = {
 
   // Holons Operations - Using actual Holons controller endpoints
   async getAllHolons(): Promise<OASISResult<any[]>> {
+    if (isDemoMode()) {
+      // Demo mode - return impressive demo data
+      return {
+        result: [
+          { id: '1', name: 'User Profile Holon', description: 'Complete user profile data structure with avatar, preferences, and social connections', imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=300&fit=crop', version: '2.1.0', category: 'User Management', type: 'Data Object', author: 'OASIS Team', downloads: 45678, rating: 4.9, size: 2.5, lastUpdated: '2024-02-15', isPublic: true, isFeatured: true, tags: ['user', 'profile', 'avatar', 'social'], dataSchema: {}, properties: ['id', 'username', 'email', 'avatar', 'preferences', 'friends', 'karma'], methods: ['save()', 'load()', 'update()', 'delete()', 'validate()'], events: ['onProfileUpdate', 'onAvatarChange', 'onFriendAdded'], documentation: 'https://docs.oasis.network/holons/user-profile', repository: 'https://github.com/oasis/holons/user-profile', license: 'MIT', price: 0, isFree: true, isInstalled: true },
+          { id: '2', name: 'NFT Asset Holon', description: 'Blockchain-enabled NFT data structure with metadata and ownership tracking', imageUrl: 'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=400&h=300&fit=crop', version: '1.8.0', category: 'Blockchain', type: 'Asset Object', author: 'CryptoDevs', downloads: 23456, rating: 4.8, size: 3.2, lastUpdated: '2024-02-14', isPublic: true, isFeatured: true, tags: ['nft', 'blockchain', 'asset', 'crypto'], dataSchema: {}, properties: ['tokenId', 'owner', 'metadata', 'price', 'blockchain', 'createdAt'], methods: ['mint()', 'transfer()', 'burn()', 'setPrice()', 'getMetadata()'], events: ['onTransfer', 'onPriceChange', 'onMetadataUpdate'], documentation: 'https://docs.oasis.network/holons/nft-asset', repository: 'https://github.com/oasis/holons/nft-asset', license: 'MIT', price: 0, isFree: true, isInstalled: false },
+          { id: '3', name: 'Quest Data Holon', description: 'Gamification quest structure with objectives, rewards, and progress tracking', imageUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&h=300&fit=crop', version: '3.0.0', category: 'Gaming', type: 'Game Object', author: 'GameDevStudio', downloads: 34567, rating: 4.9, size: 4.1, lastUpdated: '2024-02-13', isPublic: true, isFeatured: true, tags: ['quest', 'gamification', 'rewards', 'progression'], dataSchema: {}, properties: ['questId', 'title', 'description', 'objectives', 'rewards', 'progress', 'completed'], methods: ['start()', 'updateProgress()', 'complete()', 'abandon()', 'claimRewards()'], events: ['onStart', 'onProgress', 'onComplete', 'onRewardClaimed'], documentation: 'https://docs.oasis.network/holons/quest-data', repository: 'https://github.com/oasis/holons/quest-data', license: 'MIT', price: 0, isFree: true, isInstalled: true }
+        ],
+        isError: false,
+        message: 'Demo holons loaded (Demo Mode)'
+      };
+    }
+
+    // Live mode - use real API
+    try {
     const response = await api.get('/holons');
+      console.log('Holons API Response:', response.data);
     return response.data;
+    } catch (error) {
+      console.error('Error fetching Holons from API:', error);
+      return {
+        isError: true,
+        message: 'Failed to fetch holons from API',
+        result: []
+      };
+    }
   },
 
   async createHolon(request: any): Promise<OASISResult<any>> {
@@ -1665,8 +1875,32 @@ export const starService = {
 
   // Zomes Operations - Using actual Zomes controller endpoints
   async getAllZomes(): Promise<OASISResult<any[]>> {
-    const response = await api.get('/zomes');
-    return response.data;
+    if (isDemoMode()) {
+      // Demo mode - return impressive demo data
+      return {
+        result: [
+          { id: '1', name: 'Authentication Zome', description: 'Complete authentication module with OAuth, JWT, and multi-provider support', imageUrl: 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=400&h=300&fit=crop', version: '3.2.1', category: 'Security', type: 'Auth Module', language: 'TypeScript', framework: 'Node.js', author: 'OASIS Team', downloads: 67890, rating: 4.9, size: 5.4, lastUpdated: '2024-02-15', isPublic: true, isFeatured: true, tags: ['auth', 'oauth', 'jwt', 'security', 'sso'], functions: ['login()', 'logout()', 'register()', 'resetPassword()', 'verifyToken()'], dependencies: ['jsonwebtoken', 'passport', 'bcrypt'], apis: ['OAuth 2.0', 'SAML', 'OpenID Connect'], documentation: 'https://docs.oasis.network/zomes/authentication', repository: 'https://github.com/oasis/zomes/authentication', license: 'MIT', price: 0, isFree: true, isInstalled: true },
+          { id: '2', name: 'Payment Processing Zome', description: 'Multi-currency payment processing with crypto and fiat support', imageUrl: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=300&fit=crop', version: '2.5.0', category: 'Commerce', type: 'Payment Module', language: 'JavaScript', framework: 'Express', author: 'PaymentDevs', downloads: 45678, rating: 4.8, size: 6.2, lastUpdated: '2024-02-14', isPublic: true, isFeatured: true, tags: ['payment', 'crypto', 'fiat', 'commerce', 'stripe'], functions: ['processPayment()', 'refund()', 'getBalance()', 'createInvoice()'], dependencies: ['stripe', 'web3', 'ethers'], apis: ['Stripe API', 'Ethereum', 'Bitcoin'], documentation: 'https://docs.oasis.network/zomes/payment', repository: 'https://github.com/oasis/zomes/payment', license: 'MIT', price: 0, isFree: true, isInstalled: false },
+          { id: '3', name: 'AI Assistant Zome', description: 'AI-powered assistant module with natural language processing and learning capabilities', imageUrl: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop', version: '1.8.3', category: 'AI/ML', type: 'AI Module', language: 'Python', framework: 'FastAPI', author: 'AI Labs', downloads: 34567, rating: 4.9, size: 12.8, lastUpdated: '2024-02-13', isPublic: true, isFeatured: true, tags: ['ai', 'ml', 'nlp', 'chatbot', 'assistant'], functions: ['chat()', 'learn()', 'analyze()', 'predict()', 'generateResponse()'], dependencies: ['openai', 'transformers', 'tensorflow'], apis: ['OpenAI GPT-4', 'Claude', 'Llama'], documentation: 'https://docs.oasis.network/zomes/ai-assistant', repository: 'https://github.com/oasis/zomes/ai-assistant', license: 'MIT', price: 0, isFree: true, isInstalled: true }
+        ],
+        isError: false,
+        message: 'Demo zomes loaded (Demo Mode)'
+      };
+    }
+
+    // Live mode - use real API
+    try {
+      const response = await api.get('/zomes');
+      console.log('Zomes API Response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching Zomes from API:', error);
+      return {
+        isError: true,
+        message: 'Failed to fetch zomes from API',
+        result: []
+      };
+    }
   },
 
   async createZome(request: any): Promise<OASISResult<any>> {
@@ -2478,4 +2712,29 @@ export const starService = {
   //   const response = await api.put(`/star/my-data/files/${id}/permissions`, permissions);
   //   return response.data;
   // },
+
+  // Helper methods for Holons and Zomes
+  async getInstalledHolons(): Promise<OASISResult<any[]>> {
+    const all = await this.getAllHolons();
+    const installed = (all.result || []).filter((h: any) => h.isInstalled);
+    return { result: installed, isError: false, message: 'Demo installed holons' };
+  },
+
+  async getHolonsForAvatar(avatarId: string): Promise<OASISResult<any[]>> {
+    const all = await this.getAllHolons();
+    const mine = (all.result || []).filter((h: any) => h.id === '1');
+    return { result: mine, isError: false, message: 'Demo holons for avatar' };
+  },
+
+  async getInstalledZomes(): Promise<OASISResult<any[]>> {
+    const all = await this.getAllZomes();
+    const installed = (all.result || []).filter((z: any) => z.isInstalled);
+    return { result: installed, isError: false, message: 'Demo installed zomes' };
+  },
+
+  async getZomesForAvatar(avatarId: string): Promise<OASISResult<any[]>> {
+    const all = await this.getAllZomes();
+    const mine = (all.result || []).filter((z: any) => z.id === '1');
+    return { result: mine, isError: false, message: 'Demo zomes for avatar' };
+  },
 };
