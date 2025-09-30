@@ -28,10 +28,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [ApiController]
     public class AvatarController : OASISControllerBase
     {
-        private readonly IAvatarService _avatarService;
-        public AvatarController(IAvatarService avatarService)
+        // Directly use AvatarManager instead of service layer
+        private AvatarManager AvatarManager => Program.AvatarManager;
+        
+        public AvatarController()
         {
-            _avatarService = avatarService;
         }
 
         /// <summary>
@@ -42,7 +43,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("register")]
         public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.RegisterAsync(model, Request.Headers["origin"]));
+            // Call AvatarManager directly
+            var result = await AvatarManager.RegisterAsync(
+                model.AvatarTitle,
+                model.FirstName,
+                model.LastName,
+                model.Email,
+                model.Password,
+                model.Username,
+                model.AvatarType != null ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType) : AvatarType.User,
+                OASISType.ONODE
+            );
+            
+            return HttpResponseHelper.FormatResponse(result);
         }
 
         /// <summary>
