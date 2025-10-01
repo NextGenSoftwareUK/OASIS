@@ -8,23 +8,34 @@ using Newtonsoft.Json;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Avatar endpoints for authenticating against the WEB4 OASIS API and accessing the current STAR session avatar.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class AvatarController : STARControllerBase
     {
         private readonly HttpClient _httpClient;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="AvatarController"/>.
+        /// </summary>
+        /// <param name="httpClient">HTTP client used to call WEB4 OASIS API endpoints.</param>
         public AvatarController(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
 
         /// <summary>
-        /// Authenticate with the WEB4 OASIS API and set the JWT token for future requests
+        /// Authenticates with the WEB4 OASIS API and returns a JWT token for subsequent requests.
         /// </summary>
-        /// <param name="model">Authentication request with username and password</param>
-        /// <returns>Authentication result with JWT token</returns>
+        /// <param name="model">Authentication request containing username and password.</param>
+        /// <returns>
+        /// 200 OK with <see cref="AuthenticateResponse"/> on success; 400 BadRequest on failure with details.
+        /// </returns>
         [HttpPost("authenticate")]
+        [ProducesResponseType(typeof(OASISResult<AuthenticateResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Authenticate([FromBody] AuthenticateRequest model)
         {
             try
@@ -79,10 +90,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Get the current authenticated avatar
+        /// Gets the current authenticated avatar from the STAR session context.
         /// </summary>
-        /// <returns>Current avatar information</returns>
+        /// <returns>
+        /// 200 OK with <see cref="IAvatar"/> when authenticated; 401 Unauthorized if no JWT present.
+        /// </returns>
         [HttpGet("current")]
+        [ProducesResponseType(typeof(OASISResult<IAvatar>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public IActionResult GetCurrentAvatar()
         {
             if (Avatar == null)

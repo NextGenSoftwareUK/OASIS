@@ -24,6 +24,10 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
+    /// <summary>
+    /// Avatar management endpoints for user registration, authentication, profile management, and session handling.
+    /// Supports all OASIS providers with automatic failover and load balancing.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class AvatarController : OASISControllerBase
@@ -39,11 +43,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        ///     Register a new avatar.
+        /// Register a new avatar with the OASIS system.
         /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
+        /// <param name="model">Registration details including username, email, password, and optional provider preferences.</param>
+        /// <returns>OASIS result containing the newly created avatar or error details.</returns>
+        /// <response code="200">Avatar successfully registered</response>
+        /// <response code="400">Invalid registration data or user already exists</response>
         [HttpPost("register")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IAvatar>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model)
         {
             // Call AvatarManager directly
@@ -137,12 +145,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Authenticate and log in using the given avatar credentials.
+        /// Authenticate and log in using avatar credentials.
         /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <param name="request">Authentication request containing username/email and password.</param>
+        /// <returns>OASIS result containing authenticated avatar with JWT token or error details.</returns>
+        /// <response code="200">Authentication successful</response>
+        /// <response code="401">Invalid credentials</response>
+        /// <response code="400">Invalid request data</response>
         [HttpPost("authenticate")]
-        [ResponseType(typeof(OASISHttpResponseMessage<IAvatar>))]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IAvatar>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest request)
         {
             OASISConfigResult<IAvatar> configResult = await ConfigureOASISEngineAsync<IAvatar>(request);

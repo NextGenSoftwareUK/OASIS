@@ -11,13 +11,25 @@ using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Celestial Bodies management endpoints for creating, updating, and managing STAR celestial bodies.
+    /// Celestial bodies represent planets, stars, moons, and other astronomical objects in the STAR universe.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class CelestialBodiesController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all celestial bodies for the authenticated avatar.
+        /// </summary>
+        /// <returns>List of all celestial bodies associated with the current avatar.</returns>
+        /// <response code="200">Celestial bodies retrieved successfully</response>
+        /// <response code="400">Error retrieving celestial bodies</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARCelestialBody>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARCelestialBody>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllCelestialBodies()
         {
             try

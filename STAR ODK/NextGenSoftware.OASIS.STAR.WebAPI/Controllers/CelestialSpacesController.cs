@@ -11,13 +11,25 @@ using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Celestial Spaces management endpoints for creating, updating, and managing STAR celestial spaces.
+    /// Celestial spaces represent regions, sectors, and areas within the STAR universe that contain celestial bodies.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class CelestialSpacesController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all celestial spaces for the authenticated avatar.
+        /// </summary>
+        /// <returns>List of all celestial spaces associated with the current avatar.</returns>
+        /// <response code="200">Celestial spaces retrieved successfully</response>
+        /// <response code="400">Error retrieving celestial spaces</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARCelestialSpace>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARCelestialSpace>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllCelestialSpaces()
         {
             try
