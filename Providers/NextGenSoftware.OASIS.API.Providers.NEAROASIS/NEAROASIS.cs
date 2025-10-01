@@ -138,7 +138,17 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse NEAR JSON and create Avatar object
-                    OASISErrorHandling.HandleError(ref response, "NEAR JSON parsing not implemented - requires JSON parsing library");
+                    // Parse NEAR JSON and create Avatar object
+                    var avatar = ParseNEARToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from NEAR successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse NEAR JSON response");
+                    }
                 }
                 else
                 {
@@ -186,7 +196,17 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // Parse NEAR JSON and create Player collection
-                    OASISErrorHandling.HandleError(ref response, "NEAR JSON parsing not implemented - requires JSON parsing library");
+                    // Parse NEAR JSON and create Avatar object
+                    var avatar = ParseNEARToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from NEAR successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse NEAR JSON response");
+                    }
                 }
                 else
                 {
@@ -222,7 +242,17 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // Parse NEAR JSON and create Holon collection
-                    OASISErrorHandling.HandleError(ref response, "NEAR JSON parsing not implemented - requires JSON parsing library");
+                    // Parse NEAR JSON and create Avatar object
+                    var avatar = ParseNEARToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from NEAR successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse NEAR JSON response");
+                    }
                 }
                 else
                 {

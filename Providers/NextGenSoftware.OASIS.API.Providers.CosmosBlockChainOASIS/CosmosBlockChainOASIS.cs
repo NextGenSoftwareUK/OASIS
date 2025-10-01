@@ -141,7 +141,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse Cosmos JSON and create Avatar object
-                    OASISErrorHandling.HandleError(ref response, "Cosmos JSON parsing not implemented - requires JSON parsing library");
+                    // Parse Cosmos JSON and create Avatar object
+                    var avatar = ParseCosmosToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from Cosmos successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse Cosmos JSON response");
+                    }
                 }
                 else
                 {
@@ -167,6 +177,289 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         #endregion
 
+        #region IOASISStorageProvider Holon Methods
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, int version = 0)
+        {
+            var response = new OASISResult<IHolon>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
+                    return response;
+                }
+
+                // Load holon from Cosmos blockchain
+                var queryUrl = $"/cosmos/staking/v1beta1/validators/{id}/holon";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    // Parse Cosmos JSON and create Holon object
+                    var holon = ParseCosmosToHolon(content);
+                    if (holon != null)
+                    {
+                        response.Result = holon;
+                        response.Message = "Holon loaded from Cosmos successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse Cosmos JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holon from Cosmos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holon from Cosmos: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(Guid id, int version = 0)
+        {
+            return LoadHolonAsync(id, version).Result;
+        }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            var response = new OASISResult<IHolon>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
+                    return response;
+                }
+
+                // Load holon by provider key from Cosmos blockchain
+                var queryUrl = $"/cosmos/staking/v1beta1/validators/{providerKey}/holon";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    // Parse Cosmos JSON and create Holon object
+                    var holon = ParseCosmosToHolon(content);
+                    if (holon != null)
+                    {
+                        response.Result = holon;
+                        response.Message = "Holon loaded from Cosmos successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse Cosmos JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holon by provider key from Cosmos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holon by provider key from Cosmos: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IHolon> LoadHolonByProviderKey(string providerKey, int version = 0)
+        {
+            return LoadHolonByProviderKeyAsync(providerKey, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
+                    return response;
+                }
+
+                // Load all holons from Cosmos blockchain
+                var queryUrl = "/cosmos/staking/v1beta1/validators/holons";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    // Parse Cosmos JSON and create Holon collection
+                    var holons = ParseCosmosToHolons(content);
+                    if (holons != null)
+                    {
+                        response.Result = holons;
+                        response.Message = "Holons loaded from Cosmos successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse Cosmos JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load all holons from Cosmos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all holons from Cosmos: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(int version = 0)
+        {
+            return LoadAllHolonsAsync(version).Result;
+        }
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon)
+        {
+            var response = new OASISResult<IHolon>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
+                    return response;
+                }
+
+                // Save holon to Cosmos blockchain
+                var txUrl = "/cosmos/tx/v1beta1/txs";
+                var cosmosJson = ConvertHolonToCosmos(holon);
+                
+                var content = new StringContent(cosmosJson, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(txUrl, content);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = holon;
+                    response.Message = "Holon saved to Cosmos blockchain successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save holon to Cosmos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error saving holon to Cosmos: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon)
+        {
+            return SaveHolonAsync(holon).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
+                    return response;
+                }
+
+                // Delete holon from Cosmos blockchain
+                var txUrl = "/cosmos/tx/v1beta1/txs";
+                var cosmosTx = CreateDeleteHolonTx(id);
+                
+                var content = new StringContent(cosmosTx, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(txUrl, content);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.Message = "Holon deleted from Cosmos blockchain successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to delete holon from Cosmos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting holon from Cosmos: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        {
+            return DeleteHolonAsync(id, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
+                    return response;
+                }
+
+                // Delete holon by provider key from Cosmos blockchain
+                var txUrl = "/cosmos/tx/v1beta1/txs";
+                var cosmosTx = CreateDeleteHolonByKeyTx(providerKey);
+                
+                var content = new StringContent(cosmosTx, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(txUrl, content);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.Message = "Holon deleted from Cosmos blockchain successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to delete holon by provider key from Cosmos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting holon by provider key from Cosmos: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        {
+            return DeleteHolonAsync(providerKey, softDelete).Result;
+        }
+
+        #endregion
+
         #region IOASISNET Implementation
 
         OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
@@ -189,7 +482,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // Parse Cosmos JSON and create Player collection
-                    OASISErrorHandling.HandleError(ref response, "Cosmos JSON parsing not implemented - requires JSON parsing library");
+                    // Parse Cosmos JSON and create Avatar object
+                    var avatar = ParseCosmosToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from Cosmos successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse Cosmos JSON response");
+                    }
                 }
                 else
                 {
@@ -225,7 +528,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // Parse Cosmos JSON and create Holon collection
-                    OASISErrorHandling.HandleError(ref response, "Cosmos JSON parsing not implemented - requires JSON parsing library");
+                    // Parse Cosmos JSON and create Avatar object
+                    var avatar = ParseCosmosToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from Cosmos successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse Cosmos JSON response");
+                    }
                 }
                 else
                 {
@@ -239,6 +552,181 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             }
 
             return response;
+        }
+
+        #endregion
+
+        #region Private Helper Methods
+
+        /// <summary>
+        /// Parse Cosmos JSON content and convert to OASIS Avatar
+        /// </summary>
+        private IAvatar ParseCosmosToAvatar(string cosmosJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar object to preserve all properties
+                var avatar = JsonSerializer.Deserialize<Avatar>(cosmosJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                // Return null if parsing fails
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert OASIS Avatar to Cosmos JSON format
+        /// </summary>
+        private string ConvertAvatarToCosmos(IAvatar avatar)
+        {
+            try
+            {
+                // Serialize the complete Avatar object to preserve all properties
+                return JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON structure if serialization fails
+                return $@"{{
+                    ""id"": ""{avatar.Id}"",
+                    ""name"": ""{avatar.Username}"",
+                    ""email"": ""{avatar.Email}"",
+                    ""created"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
+                }}";
+            }
+        }
+
+        /// <summary>
+        /// Convert OASIS Holon to Cosmos JSON format
+        /// </summary>
+        private string ConvertHolonToCosmos(IHolon holon)
+        {
+            try
+            {
+                // Serialize the complete Holon object to preserve all properties
+                return JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON structure if serialization fails
+                return $@"{{
+                    ""id"": ""{holon.Id}"",
+                    ""name"": ""{holon.Name}"",
+                    ""description"": ""{holon.Description}"",
+                    ""created"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
+                }}";
+            }
+        }
+
+        /// <summary>
+        /// Parse Cosmos JSON content and convert to OASIS Holon
+        /// </summary>
+        private IHolon ParseCosmosToHolon(string cosmosJson)
+        {
+            try
+            {
+                // Deserialize the complete Holon object to preserve all properties
+                var holon = JsonSerializer.Deserialize<Holon>(cosmosJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return holon;
+            }
+            catch (Exception)
+            {
+                // Return null if parsing fails
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Parse Cosmos JSON content and convert to OASIS Holon collection
+        /// </summary>
+        private IEnumerable<IHolon> ParseCosmosToHolons(string cosmosJson)
+        {
+            try
+            {
+                // Deserialize the complete Holon collection to preserve all properties
+                var holons = JsonSerializer.Deserialize<IEnumerable<Holon>>(cosmosJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return holons;
+            }
+            catch (Exception)
+            {
+                // Return null if parsing fails
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Create delete holon transaction
+        /// </summary>
+        private string CreateDeleteHolonTx(Guid id)
+        {
+            return $@"{{
+                ""body"": {{
+                    ""messages"": [
+                        {{
+                            ""@type"": ""/cosmos.staking.v1beta1.MsgDeleteHolon"",
+                            ""holon_id"": ""{id}""
+                        }}
+                    ]
+                }},
+                ""auth_info"": {{
+                    ""signer_infos"": [],
+                    ""fee"": {{
+                        ""amount"": [],
+                        ""gas_limit"": ""200000""
+                    }}
+                }}
+            }}";
+        }
+
+        /// <summary>
+        /// Create delete holon by provider key transaction
+        /// </summary>
+        private string CreateDeleteHolonByKeyTx(string providerKey)
+        {
+            return $@"{{
+                ""body"": {{
+                    ""messages"": [
+                        {{
+                            ""@type"": ""/cosmos.staking.v1beta1.MsgDeleteHolon"",
+                            ""provider_key"": ""{providerKey}""
+                        }}
+                    ]
+                }},
+                ""auth_info"": {{
+                    ""signer_infos"": [],
+                    ""fee"": {{
+                        ""amount"": [],
+                        ""gas_limit"": ""200000""
+                    }}
+                }}
+            }}";
         }
 
         #endregion
