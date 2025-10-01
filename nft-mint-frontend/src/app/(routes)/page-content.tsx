@@ -12,7 +12,10 @@ import { AssetUploadPanel, DEFAULT_ASSET_DRAFT, AssetDraft } from "@/components/
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { MintReviewPanel } from "@/components/mint/mint-review-panel";
-import { useOasisApi } from "@/hooks/useOasisApi";
+import { useOasisApi } from "@/hooks/use-oasis-api";
+
+const DEVNET_URL = "http://devnet.oasisweb4.one";
+const LOCAL_URL = "https://localhost:5004";
 
 const WIZARD_STEPS = [
   {
