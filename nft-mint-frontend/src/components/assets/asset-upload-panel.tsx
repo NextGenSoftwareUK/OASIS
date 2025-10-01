@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+const PINATA_FILE_ENDPOINT = "/api/pinata/upload-file";
+const PINATA_JSON_ENDPOINT = "/api/pinata/upload-json";
+
 export type AssetDraft = {
   title: string;
   description: string;
@@ -17,6 +20,9 @@ export type AssetDraft = {
   thumbnailFileName?: string;
   imageData?: string;
   thumbnailData?: string;
+  imageUploading?: boolean;
+  thumbnailUploading?: boolean;
+  metadataUploading?: boolean;
 };
 
 export const DEFAULT_ASSET_DRAFT: AssetDraft = {
@@ -37,9 +43,11 @@ export const DEFAULT_ASSET_DRAFT: AssetDraft = {
 export type AssetUploadPanelProps = {
   value?: AssetDraft;
   onChange?: (draft: AssetDraft) => void;
+  baseUrl?: string;
+  token?: string;
 };
 
-export function AssetUploadPanel({ value, onChange }: AssetUploadPanelProps) {
+export function AssetUploadPanel({ value, onChange, baseUrl, token }: AssetUploadPanelProps) {
   const [draft, setDraft] = useState<AssetDraft>(value ?? DEFAULT_ASSET_DRAFT);
 
   useEffect(() => {
@@ -54,6 +62,8 @@ export function AssetUploadPanel({ value, onChange }: AssetUploadPanelProps) {
     onChange?.(next);
   };
 
+  const normalizedBase = baseUrl ? baseUrl.replace(/\/$/, "") : undefined;
+
   const previewPayload = useMemo(
     () => ({
       Title: draft.title,
@@ -67,12 +77,97 @@ export function AssetUploadPanel({ value, onChange }: AssetUploadPanelProps) {
     [draft]
   );
 
+  const uploadToPinata = async (kind: "image" | "thumbnail", base64: string, fileName?: string, contentType?: string) => {
+    if (!normalizedBase || !token || !base64) return;
+
+    const setterKey = kind === "image" ? "imageUploading" : "thumbnailUploading";
+    updateDraft({ [setterKey]: true } as Partial<AssetDraft>);
+
+    try {
+      const response = await fetch(`${normalizedBase}${PINATA_FILE_ENDPOINT}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          base64,
+          fileName,
+          contentType,
+        }),
+      });
+
+      const json: { isError?: boolean; message?: string; result?: string } = await response.json();
+      if (!response.ok || json?.isError) {
+        throw new Error(json?.message ?? "Failed to upload file to Pinata");
+      }
+
+      const url = json?.result ?? "";
+      if (kind === "image") {
+        updateDraft({ imageUrl: url, imageData: undefined, imageUploading: false });
+      } else {
+        updateDraft({ thumbnailUrl: url, thumbnailData: undefined, thumbnailUploading: false });
+      }
+    } catch (error) {
+      console.error("Pinata upload failed", error);
+      updateDraft({ [setterKey]: false } as Partial<AssetDraft>);
+    }
+  };
+
+  const uploadMetadataJson = async () => {
+    if (!normalizedBase || !token) return;
+    const metadata = {
+      name: draft.title,
+      symbol: draft.symbol,
+      description: draft.description,
+      image: draft.imageUrl,
+      external_url: draft.thumbnailUrl || undefined,
+      properties: {
+        files: draft.imageUrl
+          ? [
+              {
+                uri: draft.imageUrl,
+                type: "image/png",
+              },
+            ]
+          : [],
+      },
+    };
+
+    updateDraft({ metadataUploading: true });
+
+    try {
+      const response = await fetch(`${normalizedBase}${PINATA_JSON_ENDPOINT}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          content: metadata,
+          name: draft.title || "Metadata",
+        }),
+      });
+
+      const json: { isError?: boolean; message?: string; result?: string } = await response.json();
+      if (!response.ok || json?.isError) {
+        throw new Error(json?.message ?? "Failed to upload metadata to Pinata");
+      }
+
+      const url = json?.result ?? "";
+      updateDraft({ jsonUrl: url, metadataUploading: false });
+    } catch (error) {
+      console.error("Metadata upload failed", error);
+      updateDraft({ metadataUploading: false });
+    }
+  };
+
   const handleFileSelect = async (file: File | null, kind: "image" | "thumbnail") => {
     if (!file) {
       if (kind === "image") {
-        updateDraft({ imageFileName: undefined, imageData: undefined });
+        updateDraft({ imageFileName: undefined, imageData: undefined, imageUploading: false });
       } else {
-        updateDraft({ thumbnailFileName: undefined, thumbnailData: undefined });
+        updateDraft({ thumbnailFileName: undefined, thumbnailData: undefined, thumbnailUploading: false });
       }
       return;
     }
@@ -80,14 +175,23 @@ export function AssetUploadPanel({ value, onChange }: AssetUploadPanelProps) {
     try {
       const base64 = await fileToBase64(file);
       if (kind === "image") {
-        updateDraft({ imageFileName: file.name, imageData: base64 });
+        updateDraft({ imageFileName: file.name, imageData: base64, imageUploading: true });
       } else {
-        updateDraft({ thumbnailFileName: file.name, thumbnailData: base64 });
+        updateDraft({ thumbnailFileName: file.name, thumbnailData: base64, thumbnailUploading: true });
       }
+
+      await uploadToPinata(kind, base64, file.name, file.type);
     } catch (error) {
       console.error("Failed to process file", error);
+      if (kind === "image") {
+        updateDraft({ imageUploading: false });
+      } else {
+        updateDraft({ thumbnailUploading: false });
+      }
     }
   };
+
+  const canGenerateMetadata = Boolean(draft.title && draft.symbol && draft.description && draft.imageUrl);
 
   return (
     <div className="space-y-8">
@@ -112,14 +216,16 @@ export function AssetUploadPanel({ value, onChange }: AssetUploadPanelProps) {
             label="Primary Artwork"
             description="PNG, JPG, GIF up to 25 MB"
             fileName={draft.imageFileName}
-            hasPayload={Boolean(draft.imageData)}
+            hasPayload={Boolean(draft.imageUrl)}
+            uploading={draft.imageUploading}
             onSelect={(file) => handleFileSelect(file, "image")}
           />
           <UploadTile
             label="Thumbnail"
             description="Optional preview image"
             fileName={draft.thumbnailFileName}
-            hasPayload={Boolean(draft.thumbnailData)}
+            hasPayload={Boolean(draft.thumbnailUrl)}
+            uploading={draft.thumbnailUploading}
             onSelect={(file) => handleFileSelect(file, "thumbnail")}
           />
         </div>
@@ -184,7 +290,11 @@ export function AssetUploadPanel({ value, onChange }: AssetUploadPanelProps) {
             Provide either hosted URLs or upload files above so the mint endpoint can push them to Pinata automatically.
           </p>
           <div className="flex h-48 items-center justify-center rounded-xl border border-[var(--color-card-border)]/40 bg-[rgba(6,10,24,0.6)] text-[var(--muted)]">
-            {draft.imageData ? "Image data ready for Pinata" : "No image selected"}
+            {draft.imageUploading
+              ? "Uploading to Pinata..."
+              : draft.imageUrl
+              ? "Image uploaded via Pinata"
+              : "No image selected"}
           </div>
           <div className="grid grid-cols-2 gap-3 text-xs text-[var(--muted)]">
             <div>
@@ -196,6 +306,13 @@ export function AssetUploadPanel({ value, onChange }: AssetUploadPanelProps) {
               <p className="break-all text-[11px] opacity-80">{draft.sendToAddress}</p>
             </div>
           </div>
+          <Button
+            variant="secondary"
+            disabled={!canGenerateMetadata || draft.metadataUploading}
+            onClick={uploadMetadataJson}
+          >
+            {draft.metadataUploading ? "Uploading metadata..." : "Generate & Pin Metadata"}
+          </Button>
         </div>
       </section>
 
@@ -221,12 +338,14 @@ function UploadTile({
   description,
   fileName,
   hasPayload,
+  uploading,
   onSelect,
 }: {
   label: string;
   description: string;
   fileName?: string;
   hasPayload?: boolean;
+  uploading?: boolean;
   onSelect: (file: File | null) => void;
 }) {
   const inputId = `${label.toLowerCase().replace(/\s+/g, "-")}-upload`;
@@ -242,14 +361,16 @@ function UploadTile({
       <div className="mt-6 rounded-xl bg-[rgba(4,8,20,0.8)] px-4 py-3 text-xs text-[var(--muted)]">
         {fileName ? <span>{fileName}</span> : <span>No file selected</span>}
       </div>
-      {hasPayload ? (
+      {uploading ? (
+        <span className="mt-3 text-[10px] uppercase tracking-[0.35em] text-[var(--accent)]">Uploading...</span>
+      ) : hasPayload ? (
         <span className="mt-3 text-[10px] uppercase tracking-[0.35em] text-[var(--accent)]">Ready</span>
       ) : null}
       <input
         id={inputId}
         type="file"
         className="hidden"
-        onChange={(event) => onSelect(event.target.files?.[0] ?? null)}
+        onChange={(event: React.ChangeEvent<HTMLInputElement>) => onSelect(event.target.files?.[0] ?? null)}
       />
     </label>
   );
@@ -281,7 +402,7 @@ function Field({
         )}
         value={value}
         placeholder={placeholder}
-        onChange={(event: any) => onChange(event.target.value)}
+        onChange={(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(event.target.value)}
         {...(multiline ? { rows: 4 } : { type })}
       />
     </label>

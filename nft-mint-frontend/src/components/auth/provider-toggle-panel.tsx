@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export type ProviderToggle = {
   id: string;
@@ -14,16 +13,19 @@ export type ProviderToggle = {
 
 export type ProviderTogglePanelProps = {
   providers: ProviderToggle[];
-  onRegister?: (id: string) => void;
-  onActivate?: (id: string) => void;
+  onRegister?: (provider: ProviderToggle) => Promise<boolean> | boolean;
+  onActivate?: (provider: ProviderToggle) => Promise<boolean> | boolean;
+  onError?: (provider: ProviderToggle, mode: "register" | "activate", error: Error) => void;
+  loadingIds?: string[];
 };
 
-export function ProviderTogglePanel({ providers, onRegister, onActivate }: ProviderTogglePanelProps) {
+export function ProviderTogglePanel({ providers, onRegister, onActivate, onError, loadingIds = [] }: ProviderTogglePanelProps) {
   return (
     <div className="space-y-3">
       {providers.map((provider) => {
         const isRegistered = provider.state !== "idle";
         const isActive = provider.state === "active";
+        const isLoading = loadingIds.includes(provider.id);
         return (
           <div
             key={provider.id}
@@ -37,19 +39,40 @@ export function ProviderTogglePanel({ providers, onRegister, onActivate }: Provi
               <Button
                 variant="toggle"
                 data-state={isRegistered ? "active" : undefined}
-                onClick={() => onRegister?.(provider.id)}
+                disabled={isLoading}
+                onClick={async () => {
+                  if (onRegister) {
+                    try {
+                      await onRegister(provider);
+                    } catch (error) {
+                      if (error instanceof Error) {
+                        onError?.(provider, "register", error);
+                      }
+                    }
+                  }
+                }}
                 className="px-3 py-1 text-xs"
               >
-                {isRegistered ? "Registered" : "Register"}
+                {isLoading ? "Processing" : isRegistered ? "Registered" : "Register"}
               </Button>
               <Button
                 variant="toggle"
                 data-state={isActive ? "active" : undefined}
-                disabled={!isRegistered}
-                onClick={() => onActivate?.(provider.id)}
+                disabled={!isRegistered || isLoading}
+                onClick={async () => {
+                  if (onActivate) {
+                    try {
+                      await onActivate(provider);
+                    } catch (error) {
+                      if (error instanceof Error) {
+                        onError?.(provider, "activate", error);
+                      }
+                    }
+                  }
+                }}
                 className="px-3 py-1 text-xs"
               >
-                {isActive ? "Active" : "Activate"}
+                {isLoading ? "Processing" : isActive ? "Active" : "Activate"}
               </Button>
             </div>
           </div>
