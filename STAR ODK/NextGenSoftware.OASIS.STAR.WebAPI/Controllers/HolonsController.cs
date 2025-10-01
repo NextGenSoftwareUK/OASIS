@@ -10,13 +10,25 @@ using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Holon management endpoints for creating, updating, and managing STAR holons.
+    /// Holons are the fundamental building blocks of the OASIS system - self-contained units that can contain other holons.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class HolonsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all holons for the authenticated avatar.
+        /// </summary>
+        /// <returns>List of all holons associated with the current avatar.</returns>
+        /// <response code="200">Holons retrieved successfully</response>
+        /// <response code="400">Error retrieving holons</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARHolon>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARHolon>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllHolons()
         {
             try

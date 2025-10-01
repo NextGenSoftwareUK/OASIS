@@ -11,13 +11,25 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Mission management endpoints for creating, updating, and managing STAR missions.
+    /// Missions are structured objectives that avatars can undertake within the STAR ecosystem.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class MissionsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all missions for the authenticated avatar.
+        /// </summary>
+        /// <returns>List of all missions associated with the current avatar.</returns>
+        /// <response code="200">Missions retrieved successfully</response>
+        /// <response code="400">Error retrieving missions</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Mission>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Mission>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllMissions()
         {
             try
@@ -36,7 +48,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific mission by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the mission to retrieve.</param>
+        /// <returns>The requested mission details.</returns>
+        /// <response code="200">Mission retrieved successfully</response>
+        /// <response code="400">Error retrieving mission</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(OASISResult<Mission>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<Mission>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetMission(Guid id)
         {
             try
@@ -55,7 +76,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates a new mission for the authenticated avatar.
+        /// </summary>
+        /// <param name="mission">The mission details to create.</param>
+        /// <returns>The created mission with assigned ID and metadata.</returns>
+        /// <response code="200">Mission created successfully</response>
+        /// <response code="400">Error creating mission</response>
         [HttpPost]
+        [ProducesResponseType(typeof(OASISResult<IMission>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IMission>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateMission([FromBody] IMission mission)
         {
             try

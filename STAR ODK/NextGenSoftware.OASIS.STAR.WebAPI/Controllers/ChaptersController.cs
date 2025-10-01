@@ -11,13 +11,25 @@ using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Chapters management endpoints for creating, updating, and managing STAR chapters.
+    /// Chapters represent story segments, quest lines, or narrative components within the STAR universe.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class ChaptersController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all chapters for the authenticated avatar.
+        /// </summary>
+        /// <returns>List of all chapters associated with the current avatar.</returns>
+        /// <response code="200">Chapters retrieved successfully</response>
+        /// <response code="400">Error retrieving chapters</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Chapter>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Chapter>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllChapters()
         {
             try
