@@ -138,7 +138,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse AWS JSON and create Avatar object
-                    OASISErrorHandling.HandleError(ref response, "AWS JSON parsing not implemented - requires JSON parsing library");
+                    // Parse AWS JSON and create Avatar object
+                    var avatar = ParseAWSToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from AWS successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
                 }
                 else
                 {
@@ -164,6 +174,285 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
 
         #endregion
 
+        #region IOASISStorageProvider Holon Methods
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, int version = 0)
+        {
+            var response = new OASISResult<IHolon>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
+                    return response;
+                }
+
+                // Load holon from AWS DynamoDB
+                var queryUrl = $"/dynamodb/holon/{id}";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    // Parse AWS JSON and create Holon object
+                    var holon = ParseAWSToHolon(content);
+                    if (holon != null)
+                    {
+                        response.Result = holon;
+                        response.Message = "Holon loaded from AWS successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holon from AWS: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holon from AWS: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(Guid id, int version = 0)
+        {
+            return LoadHolonAsync(id, version).Result;
+        }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            var response = new OASISResult<IHolon>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
+                    return response;
+                }
+
+                // Load holon by provider key from AWS DynamoDB
+                var queryUrl = $"/dynamodb/holon/{providerKey}";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    // Parse AWS JSON and create Holon object
+                    var holon = ParseAWSToHolon(content);
+                    if (holon != null)
+                    {
+                        response.Result = holon;
+                        response.Message = "Holon loaded from AWS successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holon by provider key from AWS: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holon by provider key from AWS: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IHolon> LoadHolonByProviderKey(string providerKey, int version = 0)
+        {
+            return LoadHolonByProviderKeyAsync(providerKey, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
+                    return response;
+                }
+
+                // Load all holons from AWS DynamoDB
+                var queryUrl = "/dynamodb/holons";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    // Parse AWS JSON and create Holon collection
+                    var holons = ParseAWSToHolons(content);
+                    if (holons != null)
+                    {
+                        response.Result = holons;
+                        response.Message = "Holons loaded from AWS successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load all holons from AWS: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all holons from AWS: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(int version = 0)
+        {
+            return LoadAllHolonsAsync(version).Result;
+        }
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon)
+        {
+            var response = new OASISResult<IHolon>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
+                    return response;
+                }
+
+                // Save holon to AWS DynamoDB
+                var queryUrl = "/dynamodb/holon";
+                var awsJson = ConvertHolonToAWS(holon);
+                
+                var content = new StringContent(awsJson, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(queryUrl, content);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = holon;
+                    response.Message = "Holon saved to AWS successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save holon to AWS: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error saving holon to AWS: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon)
+        {
+            return SaveHolonAsync(holon).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
+                    return response;
+                }
+
+                // Delete holon from AWS DynamoDB
+                var queryUrl = $"/dynamodb/holon/{id}";
+                
+                var httpResponse = await _httpClient.DeleteAsync(queryUrl);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.Message = "Holon deleted from AWS successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to delete holon from AWS: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting holon from AWS: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        {
+            return DeleteHolonAsync(id, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "AWS provider is not activated");
+                    return response;
+                }
+
+                // Delete holon by provider key from AWS DynamoDB
+                var queryUrl = $"/dynamodb/holon/{providerKey}";
+                
+                var httpResponse = await _httpClient.DeleteAsync(queryUrl);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.Message = "Holon deleted from AWS successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to delete holon by provider key from AWS: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting holon by provider key from AWS: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        {
+            return DeleteHolonAsync(providerKey, softDelete).Result;
+        }
+
+        #endregion
+
         #region IOASISNET Implementation
 
         OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
@@ -186,7 +475,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // Parse AWS JSON and create Player collection
-                    OASISErrorHandling.HandleError(ref response, "AWS JSON parsing not implemented - requires JSON parsing library");
+                    // Parse AWS JSON and create Avatar object
+                    var avatar = ParseAWSToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from AWS successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
                 }
                 else
                 {
@@ -222,7 +521,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // Parse AWS JSON and create Holon collection
-                    OASISErrorHandling.HandleError(ref response, "AWS JSON parsing not implemented - requires JSON parsing library");
+                    // Parse AWS JSON and create Avatar object
+                    var avatar = ParseAWSToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from AWS successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse AWS JSON response");
+                    }
                 }
                 else
                 {
@@ -236,6 +545,133 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             }
 
             return response;
+        }
+
+        #endregion
+
+        #region Private Helper Methods
+
+        /// <summary>
+        /// Parse AWS JSON content and convert to OASIS Avatar
+        /// </summary>
+        private IAvatar ParseAWSToAvatar(string awsJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar object to preserve all properties
+                var avatar = JsonSerializer.Deserialize<Avatar>(awsJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                // Return null if parsing fails
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert OASIS Avatar to AWS JSON format
+        /// </summary>
+        private string ConvertAvatarToAWS(IAvatar avatar)
+        {
+            try
+            {
+                // Serialize the complete Avatar object to preserve all properties
+                return JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON structure if serialization fails
+                return $@"{{
+                    ""id"": ""{avatar.Id}"",
+                    ""username"": ""{avatar.Username}"",
+                    ""email"": ""{avatar.Email}"",
+                    ""created"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
+                }}";
+            }
+        }
+
+        /// <summary>
+        /// Convert OASIS Holon to AWS JSON format
+        /// </summary>
+        private string ConvertHolonToAWS(IHolon holon)
+        {
+            try
+            {
+                // Serialize the complete Holon object to preserve all properties
+                return JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON structure if serialization fails
+                return $@"{{
+                    ""id"": ""{holon.Id}"",
+                    ""name"": ""{holon.Name}"",
+                    ""description"": ""{holon.Description}"",
+                    ""created"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
+                }}";
+            }
+        }
+
+        /// <summary>
+        /// Parse AWS JSON content and convert to OASIS Holon
+        /// </summary>
+        private IHolon ParseAWSToHolon(string awsJson)
+        {
+            try
+            {
+                // Deserialize the complete Holon object to preserve all properties
+                var holon = JsonSerializer.Deserialize<Holon>(awsJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return holon;
+            }
+            catch (Exception)
+            {
+                // Return null if parsing fails
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Parse AWS JSON content and convert to OASIS Holon collection
+        /// </summary>
+        private IEnumerable<IHolon> ParseAWSToHolons(string awsJson)
+        {
+            try
+            {
+                // Deserialize the complete Holon collection to preserve all properties
+                var holons = JsonSerializer.Deserialize<IEnumerable<Holon>>(awsJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return holons;
+            }
+            catch (Exception)
+            {
+                // Return null if parsing fails
+                return null;
+            }
         }
 
         #endregion

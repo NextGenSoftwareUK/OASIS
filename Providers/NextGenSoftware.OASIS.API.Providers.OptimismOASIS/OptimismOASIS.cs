@@ -15,13 +15,13 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
+namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
 {
     /// <summary>
-    /// Polkadot Provider for OASIS
-    /// Implements Polkadot parachain integration for multi-chain interoperability
+    /// Optimism Provider for OASIS
+    /// Implements Optimism Layer 2 blockchain integration for Ethereum scaling
     /// </summary>
-    public class PolkadotOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
+    public class OptimismOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
@@ -30,16 +30,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         private bool _isActivated;
 
         /// <summary>
-        /// Initializes a new instance of the PolkadotOASIS provider
+        /// Initializes a new instance of the OptimismOASIS provider
         /// </summary>
-        /// <param name="rpcEndpoint">Polkadot RPC endpoint URL</param>
-        /// <param name="chainId">Polkadot chain ID</param>
+        /// <param name="rpcEndpoint">Optimism RPC endpoint URL</param>
+        /// <param name="chainId">Optimism chain ID</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public PolkadotOASIS(string rpcEndpoint = "https://rpc.polkadot.io", string chainId = "polkadot", string privateKey = "")
+        public OptimismOASIS(string rpcEndpoint = "https://mainnet.optimism.io", string chainId = "10", string privateKey = "")
         {
-            this.ProviderName = "PolkadotOASIS";
-            this.ProviderDescription = "Polkadot Provider - Multi-chain interoperability protocol";
-            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PolkadotOASIS);
+            this.ProviderName = "OptimismOASIS";
+            this.ProviderDescription = "Optimism Provider - Ethereum Layer 2 scaling solution";
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OptimismOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
@@ -62,27 +62,27 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 if (_isActivated)
                 {
                     response.Result = true;
-                    response.Message = "Polkadot provider is already activated";
+                    response.Message = "Optimism provider is already activated";
                     return response;
                 }
 
-                // Test connection to Polkadot RPC endpoint
+                // Test connection to Optimism RPC endpoint
                 var testResponse = await _httpClient.GetAsync("/");
                 if (testResponse.IsSuccessStatusCode)
                 {
                     _isActivated = true;
                     response.Result = true;
-                    response.Message = "Polkadot provider activated successfully";
+                    response.Message = "Optimism provider activated successfully";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to connect to Polkadot RPC endpoint: {testResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to connect to Optimism RPC endpoint: {testResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error activating Polkadot provider: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error activating Optimism provider: {ex.Message}");
             }
 
             return response;
@@ -102,12 +102,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 _isActivated = false;
                 _httpClient?.Dispose();
                 response.Result = true;
-                response.Message = "Polkadot provider deactivated successfully";
+                response.Message = "Optimism provider deactivated successfully";
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deactivating Polkadot provider: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error deactivating Optimism provider: {ex.Message}");
             }
 
             return response;
@@ -126,29 +126,29 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
                     return response;
                 }
 
-                // Load avatar from Polkadot blockchain
+                // Load avatar from Optimism blockchain
                 var queryUrl = $"/api/v1/accounts/{id}";
                 
                 var httpResponse = await _httpClient.GetAsync(queryUrl);
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse Polkadot JSON and create Avatar object
-                    OASISErrorHandling.HandleError(ref response, "Polkadot JSON parsing not implemented - requires JSON parsing library");
+                    // Parse Optimism JSON and create Avatar object
+                    OASISErrorHandling.HandleError(ref response, "Optimism JSON parsing not implemented - requires JSON parsing library");
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from Polkadot blockchain: {httpResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from Optimism blockchain: {httpResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar from Polkadot: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar from Optimism: {ex.Message}");
             }
 
             return response;
@@ -174,29 +174,29 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
                     return response;
                 }
 
-                // Get players near me from Polkadot blockchain
+                // Get players near me from Optimism blockchain
                 var queryUrl = "/api/v1/accounts/nearby";
                 
                 var httpResponse = _httpClient.GetAsync(queryUrl).Result;
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse Polkadot JSON and create Player collection
-                    OASISErrorHandling.HandleError(ref response, "Polkadot JSON parsing not implemented - requires JSON parsing library");
+                    // Parse Optimism JSON and create Player collection
+                    OASISErrorHandling.HandleError(ref response, "Optimism JSON parsing not implemented - requires JSON parsing library");
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to get players near me from Polkadot blockchain: {httpResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to get players near me from Optimism blockchain: {httpResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting players near me from Polkadot: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error getting players near me from Optimism: {ex.Message}");
             }
 
             return response;
@@ -210,29 +210,29 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
                     return response;
                 }
 
-                // Get holons near me from Polkadot blockchain
+                // Get holons near me from Optimism blockchain
                 var queryUrl = $"/api/v1/accounts/holons?type={Type}";
                 
                 var httpResponse = _httpClient.GetAsync(queryUrl).Result;
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse Polkadot JSON and create Holon collection
-                    OASISErrorHandling.HandleError(ref response, "Polkadot JSON parsing not implemented - requires JSON parsing library");
+                    // Parse Optimism JSON and create Holon collection
+                    OASISErrorHandling.HandleError(ref response, "Optimism JSON parsing not implemented - requires JSON parsing library");
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from Polkadot blockchain: {httpResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from Optimism blockchain: {httpResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from Polkadot: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from Optimism: {ex.Message}");
             }
 
             return response;
