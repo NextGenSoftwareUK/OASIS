@@ -26,11 +26,13 @@ export function CredentialsPanel({
   const [password, setPassword] = useState(defaultPassword);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [authenticated, setAuthenticated] = useState(false);
 
   const authenticate = async () => {
     try {
       setIsLoading(true);
       setError(null);
+      setAuthenticated(false);
       onAuthenticate?.({ username, password });
 
       const response = await fetch("/api/authenticate", {
@@ -50,10 +52,12 @@ export function CredentialsPanel({
 
       onToken?.(data.token);
       onAuthenticated?.({ token: data.token, avatarId: data.avatarId ?? null });
+      setAuthenticated(true);
     } catch (err: unknown) {
       console.error("Authentication error", err);
       const message = err instanceof Error ? err.message : "Authentication failed";
       setError(message);
+      setAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
@@ -88,15 +92,21 @@ export function CredentialsPanel({
             onClick={authenticate}
             className="whitespace-nowrap"
           >
-            {isLoading ? "Authenticating..." : "Authenticate Avatar"}
+            {isLoading ? "Authenticating..." : authenticated ? "Authenticated" : "Authenticate Avatar"}
           </Button>
-          <Button
-            variant="secondary"
-            onClick={onAcquireAvatar}
-            className="whitespace-nowrap"
-          >
-            Acquire Avatar
-          </Button>
+          {authenticated ? (
+            <Button variant="success" className="whitespace-nowrap" disabled>
+              Authentication Successful
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              onClick={onAcquireAvatar}
+              className="whitespace-nowrap"
+            >
+              Acquire Avatar
+            </Button>
+          )}
         </div>
       </div>
       <p className="text-xs text-[var(--muted)]">
