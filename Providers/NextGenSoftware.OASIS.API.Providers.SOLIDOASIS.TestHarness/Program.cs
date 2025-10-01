@@ -1,149 +1,95 @@
-using NextGenSoftware.OASIS.API.Providers.SOLIDOASIS;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.SOLIDOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.TestHarness
 {
-    internal static class Program
+    class Program
     {
-        private const string TestPodServerUrl = "https://solidcommunity.net";
-        private const string TestAuthToken = ""; // Add your SOLID pod authentication token here
-
-        private static async Task ExecuteSOLIDProviderExample(string podServerUrl, string authToken)
+        static async Task Main(string[] args)
         {
-            Console.WriteLine("=== SOLID Provider Test Harness ===");
-            Console.WriteLine($"Pod Server: {podServerUrl}");
-            Console.WriteLine($"Auth Token: {(string.IsNullOrEmpty(authToken) ? "None (public access)" : "Provided")}");
+            Console.WriteLine("🚀 SOLID OASIS Provider TestHarness");
+            Console.WriteLine("=====================================");
             Console.WriteLine();
 
-            SOLIDOASIS solidOASIS = new(podServerUrl, authToken);
-
+            // Initialize the SOLID provider
+            var solidProvider = new SOLIDOASIS();
+            
             try
             {
-                Console.WriteLine("1. Testing Provider Activation...");
-                var activateResult = await solidOASIS.ActivateProviderAsync();
-                
-                if (activateResult.IsError)
-                {
-                    Console.WriteLine($"❌ Activation failed: {activateResult.Message}");
-                    return;
-                }
-                
-                Console.WriteLine($"✅ Provider activated: {activateResult.Message}");
+                // Activate the provider
+                Console.WriteLine("🔌 Activating SOLID Provider...");
+                var result = await solidProvider.ActivateProviderAsync();
+                Console.WriteLine($"✅ Provider Activated: {result.IsSuccess}");
                 Console.WriteLine();
 
-                Console.WriteLine("2. Testing Provider Properties...");
-                Console.WriteLine($"Provider Name: {solidOASIS.ProviderName}");
-                Console.WriteLine($"Provider Description: {solidOASIS.ProviderDescription}");
-                Console.WriteLine($"Provider Type: {solidOASIS.ProviderType.Value}");
-                Console.WriteLine($"Provider Category: {solidOASIS.ProviderCategory.Value}");
-                Console.WriteLine();
-
-                Console.WriteLine("3. Testing Avatar Operations...");
-                Console.WriteLine("Note: SOLID provider methods are currently marked as 'not yet implemented'");
-                Console.WriteLine("This is a foundation for future SOLID pod integration");
-                Console.WriteLine();
-
-                Console.WriteLine("4. Testing Provider Deactivation...");
-                var deactivateResult = await solidOASIS.DeActivateProviderAsync();
-                
-                if (deactivateResult.IsError)
+                if (result.IsSuccess)
                 {
-                    Console.WriteLine($"❌ Deactivation failed: {deactivateResult.Message}");
+                    // Test Avatar operations
+                    Console.WriteLine("👤 Testing Avatar Operations...");
+                    
+                    // Create a test avatar
+                    var avatar = new Avatar
+                    {
+                        Username = "testuser",
+                        Email = "test@example.com",
+                        FirstName = "Test",
+                        LastName = "User"
+                    };
+
+                    // Save avatar
+                    Console.WriteLine("💾 Saving Avatar...");
+                    var saveResult = await solidProvider.SaveAvatarAsync(avatar);
+                    Console.WriteLine($"✅ Avatar Saved: {saveResult.IsSuccess}");
+                    if (saveResult.IsSuccess)
+                        Console.WriteLine($"📝 Avatar ID: {saveResult.Result.Id}");
+
+                    // Load avatar
+                    Console.WriteLine("📖 Loading Avatar...");
+                    var loadResult = await solidProvider.LoadAvatarAsync(avatar.Id);
+                    Console.WriteLine($"✅ Avatar Loaded: {loadResult.IsSuccess}");
+                    if (loadResult.IsSuccess)
+                        Console.WriteLine($"👤 Username: {loadResult.Result.Username}");
+
+                    // Test Holon operations
+                    Console.WriteLine("🔗 Testing Holon Operations...");
+                    
+                    var holon = new Holon
+                    {
+                        Name = "Test Holon",
+                        Description = "A test holon for SOLID storage"
+                    };
+
+                    // Save holon
+                    Console.WriteLine("💾 Saving Holon...");
+                    var saveHolonResult = await solidProvider.SaveHolonAsync(holon);
+                    Console.WriteLine($"✅ Holon Saved: {saveHolonResult.IsSuccess}");
+                    if (saveHolonResult.IsSuccess)
+                        Console.WriteLine($"📝 Holon ID: {saveHolonResult.Result.Id}");
+
+                    // Load holon
+                    Console.WriteLine("📖 Loading Holon...");
+                    var loadHolonResult = await solidProvider.LoadHolonAsync(holon.Id);
+                    Console.WriteLine($"✅ Holon Loaded: {loadHolonResult.IsSuccess}");
+                    if (loadHolonResult.IsSuccess)
+                        Console.WriteLine($"🔗 Holon Name: {loadHolonResult.Result.Name}");
                 }
-                else
-                {
-                    Console.WriteLine($"✅ Provider deactivated: {deactivateResult.Message}");
-                }
+
+                // Deactivate provider
+                Console.WriteLine("🔌 Deactivating SOLID Provider...");
+                var deactivateResult = await solidProvider.DeActivateProviderAsync();
+                Console.WriteLine($"✅ Provider Deactivated: {deactivateResult.IsSuccess}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error during SOLID provider testing: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-            }
-            finally
-            {
-                solidOASIS.Dispose();
-            }
-        }
-
-        private static async Task TestDifferentPodServers()
-        {
-            Console.WriteLine("=== Testing Different SOLID Pod Servers ===");
-            Console.WriteLine();
-
-            var podServers = new[]
-            {
-                ("SolidCommunity", "https://solidcommunity.net"),
-                ("Inrupt", "https://inrupt.net"),
-                ("SolidWeb", "https://solidweb.org")
-            };
-
-            foreach (var (name, url) in podServers)
-            {
-                Console.WriteLine($"Testing {name} ({url})...");
-                
-                try
-                {
-                    var provider = new SOLIDOASIS(url);
-                    var result = await provider.ActivateProviderAsync();
-                    
-                    if (result.IsError)
-                    {
-                        Console.WriteLine($"❌ {name}: {result.Message}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"✅ {name}: Connected successfully");
-                    }
-                    
-                    provider.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"❌ {name}: Error - {ex.Message}");
-                }
-                
-                Console.WriteLine();
-            }
-        }
-
-        private static async Task Main(string[] args)
-        {
-            Console.WriteLine("NextGenSoftware.OASIS.API.Providers.SOLIDOASIS - TEST HARNESS v1.0");
-            Console.WriteLine("SOLID (Social Linked Data) Provider Test Harness");
-            Console.WriteLine("Tim Berners-Lee's Decentralized Web Standard");
-            Console.WriteLine("================================================");
-            Console.WriteLine();
-
-            try
-            {
-                // Test with default configuration
-                await ExecuteSOLIDProviderExample(TestPodServerUrl, TestAuthToken);
-                Console.WriteLine();
-                
-                // Test different pod servers
-                await TestDifferentPodServers();
-                
-                Console.WriteLine("=== Test Harness Complete ===");
-                Console.WriteLine("SOLID Provider is ready for integration with OASIS!");
-                Console.WriteLine("Future implementations will include:");
-                Console.WriteLine("- WebID authentication");
-                Console.WriteLine("- Pod data storage and retrieval");
-                Console.WriteLine("- Linked Data operations");
-                Console.WriteLine("- RDF/JSON-LD processing");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Test harness failed: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                Console.WriteLine($"❌ Error: {ex.Message}");
             }
 
             Console.WriteLine();
+            Console.WriteLine("🏁 TestHarness Complete!");
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
     }
 }
-
-
-
