@@ -1,0 +1,14 @@
+{
+  "OASIS": {
+    "Providers": {
+      "SOLIDOASIS": {
+        "PodServerUrl": "https://solidcommunity.net",
+        "AuthToken": "YOUR_SOLID_POD_AUTH_TOKEN_HERE"
+      }
+    },
+    "Security": {
+      "SecretKey": "TEST_SECRET_KEY"
+    }
+  }
+}
+
