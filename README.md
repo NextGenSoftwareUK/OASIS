@@ -7,7 +7,7 @@
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK)
 [![Documentation](https://img.shields.io/badge/docs-complete-blue.svg)](./Docs/)
 
-## 🚀 What is OASIS?
+## 🚀 What is The OASIS?
 
 The OASIS (Open Advanced Secure Interoperable System) is a revolutionary Web4/Web5 infrastructure that unifies all Web2 and Web3 technologies into a single, intelligent, auto-failover system. It's the first universal API that connects everything to everything, eliminating silos and walled gardens.
 
@@ -40,7 +40,7 @@ cd Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK
 
 ## 🏗️ Architecture Overview
 
-OASIS consists of two main layers:
+The OASIS consists of two main layers:
 
 ### WEB4 OASIS API - Data Aggregation & Identity Layer
 - **Purpose**: Universal data aggregation and identity management
