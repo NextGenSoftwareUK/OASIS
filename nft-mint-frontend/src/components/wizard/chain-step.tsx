@@ -11,16 +11,17 @@ type SolanaConfigStepProps = {
 };
 
 export function SolanaConfigStep({ selectedOption, onSelect }: SolanaConfigStepProps) {
+  const baseClasses = "glass-card relative overflow-hidden rounded-2xl border border-[var(--color-card-border)]/60 p-5 text-left transition";
+  const selectedClasses =
+    "border-[var(--accent)]/80 shadow-[0_25px_60px_rgba(34,211,238,0.35)] ring-2 ring-[var(--accent)]/50";
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <button
           type="button"
           onClick={() => onSelect("Metaplex Standard")}
-          className={cn(
-            "glass-card relative overflow-hidden rounded-2xl border border-[var(--color-card-border)]/60 p-5 text-left transition",
-            selectedOption === "Metaplex Standard" ? "shadow-[0_25px_60px_rgba(20,184,166,0.25)] border-[var(--accent)]/70" : "hover:border-[var(--accent)]/50"
-          )}
+          className={cn(baseClasses, selectedOption === "Metaplex Standard" ? selectedClasses : "hover:border-[var(--accent)]/50")}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_60%)]" />
           <div className="relative">
@@ -34,8 +35,8 @@ export function SolanaConfigStep({ selectedOption, onSelect }: SolanaConfigStepP
           type="button"
           onClick={() => onSelect("Collection with Verified Creator")}
           className={cn(
-            "glass-card relative overflow-hidden rounded-2xl border border-[var(--color-card-border)]/60 p-5 text-left transition",
-            selectedOption === "Collection with Verified Creator" ? "shadow-[0_25px_60px_rgba(20,184,166,0.25)] border-[var(--accent)]/70" : "hover:border-[var(--accent)]/50"
+            baseClasses,
+            selectedOption === "Collection with Verified Creator" ? selectedClasses : "hover:border-[var(--accent)]/50"
           )}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_60%)]" />
@@ -51,10 +52,7 @@ export function SolanaConfigStep({ selectedOption, onSelect }: SolanaConfigStepP
         <button
           type="button"
           onClick={() => onSelect("Editioned Series")}
-          className={cn(
-            "glass-card relative overflow-hidden rounded-2xl border border-[var(--color-card-border)]/60 p-5 text-left transition",
-            selectedOption === "Editioned Series" ? "shadow-[0_25px_60px_rgba(20,184,166,0.25)] border-[var(--accent)]/70" : "hover:border-[var(--accent)]/50"
-          )}
+          className={cn(baseClasses, selectedOption === "Editioned Series" ? selectedClasses : "hover:border-[var(--accent)]/50")}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_60%)]" />
           <div className="relative">
@@ -68,8 +66,8 @@ export function SolanaConfigStep({ selectedOption, onSelect }: SolanaConfigStepP
           type="button"
           onClick={() => onSelect("Compressed NFT (Bubblegum)")}
           className={cn(
-            "glass-card relative overflow-hidden rounded-2xl border border-[var(--color-card-border)]/60 p-5 text-left transition",
-            selectedOption === "Compressed NFT (Bubblegum)" ? "shadow-[0_25px_60px_rgba(20,184,166,0.25)] border-[var(--accent)]/70" : "hover:border-[var(--accent)]/50"
+            baseClasses,
+            selectedOption === "Compressed NFT (Bubblegum)" ? selectedClasses : "hover:border-[var(--accent)]/50"
           )}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_60%)]" />

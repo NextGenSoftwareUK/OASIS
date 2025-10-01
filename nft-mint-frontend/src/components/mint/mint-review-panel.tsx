@@ -16,24 +16,24 @@ export type MintReviewPanelProps = {
   onStatusChange?: (state: "idle" | "ready") => void;
   baseUrl: string;
   token?: string;
+  avatarId?: string;
 };
 
-export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token }: MintReviewPanelProps) {
+export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token, avatarId }: MintReviewPanelProps) {
   const [waitSeconds, setWaitSeconds] = useState(60);
   const [retrySeconds, setRetrySeconds] = useState(5);
   const [waitTillSent, setWaitTillSent] = useState(true);
   const [storeOnChain, setStoreOnChain] = useState(false);
   const [numberToMint, setNumberToMint] = useState(1);
   const [price, setPrice] = useState(0.02);
-  const [mintReady, setMintReady] = useState(false);
   const [minting, setMinting] = useState(false);
-  const [mintResult, setMintResult] = useState<any>(null);
+  const [mintResult, setMintResult] = useState<unknown>(null);
   const [mintError, setMintError] = useState<string | null>(null);
 
   const { call } = useOasisApi({ baseUrl, token });
 
   const payload = useMemo(() => {
-    const basePayload: Record<string, any> = {
+    const basePayload: Record<string, unknown> = {
       Title: assetDraft.title,
       Description: assetDraft.description,
       Symbol: assetDraft.symbol,
@@ -47,7 +47,7 @@ export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token }: 
       Price: price,
       NumberToMint: numberToMint,
       StoreNFTMetaDataOnChain: storeOnChain,
-      MintedByAvatarId: "89d907a8-5859-4171-b6c5-621bfe96930d",
+      MintedByAvatarId: avatarId ?? "89d907a8-5859-4171-b6c5-621bfe96930d",
       SendToAddressAfterMinting: assetDraft.sendToAddress,
       WaitTillNFTSent: waitTillSent,
       WaitForNFTToSendInSeconds: waitSeconds,
@@ -67,7 +67,7 @@ export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token }: 
     }
 
     return basePayload;
-  }, [assetDraft, numberToMint, price, retrySeconds, storeOnChain, waitSeconds, waitTillSent]);
+  }, [assetDraft, avatarId, numberToMint, price, retrySeconds, storeOnChain, waitSeconds, waitTillSent]);
 
   const mintDisabled = useMemo(() => {
     const hasUrls = Boolean(assetDraft.jsonUrl && assetDraft.imageUrl);
@@ -123,8 +123,9 @@ export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token }: 
 
                 setMintResult(response);
                 onStatusChange?.("ready");
-              } catch (error: any) {
-                setMintError(error.message ?? "Minting failed");
+              } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : "Minting failed";
+                setMintError(message);
                 onStatusChange?.("idle");
               } finally {
                 setMinting(false);
@@ -132,9 +133,6 @@ export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token }: 
             }}
           >
             {minting ? "Minting..." : "Mint via OASIS API"}
-          </Button>
-          <Button variant="secondary" disabled>
-            Pinata Staging (Coming Soon)
           </Button>
         </div>
         {mintError ? <p className="text-xs text-[var(--negative)]">{mintError}</p> : null}
