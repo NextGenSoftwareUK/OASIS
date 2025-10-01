@@ -11,13 +11,25 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Quest management endpoints for creating, updating, and managing STAR quests.
+    /// Quests are interactive challenges and objectives that avatars can complete for rewards and progression.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class QuestsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all quests for the authenticated avatar.
+        /// </summary>
+        /// <returns>List of all quests associated with the current avatar.</returns>
+        /// <response code="200">Quests retrieved successfully</response>
+        /// <response code="400">Error retrieving quests</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Quest>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Quest>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllIQuests()
         {
             try
