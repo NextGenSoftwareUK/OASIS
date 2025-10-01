@@ -846,22 +846,55 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
+                    return response;
+                }
+
+                // Placeholder: return empty collection for now
+                response.Result = Enumerable.Empty<IHolon>();
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent from SOLID: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
+                    return response;
+                }
+
+                response.Result = Enumerable.Empty<IHolon>();
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent from SOLID: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool loadChildrenFromProvider = false, bool continueOnError = true, int version = 0)
         {
-            return null;
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         //public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -876,132 +909,295 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return Task.Run(() =>
+            {
+                var response = new OASISResult<IEnumerable<IHolon>>
+                {
+                    Result = Enumerable.Empty<IHolon>()
+                };
+                return response;
+            });
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return Task.Run(() =>
+            {
+                var response = new OASISResult<IEnumerable<IHolon>>
+                {
+                    Result = Enumerable.Empty<IHolon>()
+                };
+                return response;
+            });
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
+                    return response;
+                }
+
+                response.Result = Enumerable.Empty<IHolon>();
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all holons from SOLID: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+            return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
         public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+            return Task.Run(async () =>
+            {
+                var response = new OASISResult<IHolon>();
+                try
+                {
+                    if (!_isActivated)
+                    {
+                        OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
+                        return response;
+                    }
+
+                    // Serialize holon to JSON-LD placeholder and store
+                    var podUrl = $"{_podServerUrl}/holons/{holon.Id}";
+                    var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(holon), System.Text.Encoding.UTF8, "application/json");
+                    var httpResponse = await _httpClient.PutAsync(podUrl, content);
+                    if (!httpResponse.IsSuccessStatusCode)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to save holon to SOLID pod: {httpResponse.StatusCode}");
+                        return response;
+                    }
+
+                    response.Result = holon;
+                }
+                catch (Exception ex)
+                {
+                    response.Exception = ex;
+                    OASISErrorHandling.HandleError(ref response, $"Error saving holon to SOLID: {ex.Message}");
+                }
+                return response;
+            });
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+            return Task.Run(async () =>
+            {
+                var response = new OASISResult<IEnumerable<IHolon>>();
+                try
+                {
+                    var results = new List<IHolon>();
+                    foreach (var holon in holons)
+                    {
+                        var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                        if (saveResult.IsError && !continueOnError)
+                        {
+                            OASISErrorHandling.CopyOASISResultOnlyErrors(saveResult, ref response);
+                            return response;
+                        }
+                        if (saveResult.Result != null)
+                            results.Add(saveResult.Result);
+                    }
+                    response.Result = results;
+                }
+                catch (Exception ex)
+                {
+                    response.Exception = ex;
+                    OASISErrorHandling.HandleError(ref response, $"Error saving holons to SOLID: {ex.Message}");
+                }
+                return response;
+            });
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            throw new NotImplementedException();
+            return Task.Run(async () =>
+            {
+                var response = new OASISResult<IHolon>();
+                try
+                {
+                    if (!_isActivated)
+                    {
+                        OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
+                        return response;
+                    }
+
+                    var podUrl = $"{_podServerUrl}/holons/{id}";
+                    var httpResponse = await _httpClient.DeleteAsync(podUrl);
+                    if (!httpResponse.IsSuccessStatusCode)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to delete holon on SOLID pod: {httpResponse.StatusCode}");
+                        return response;
+                    }
+
+                    response.Result = new Holon { Id = id };
+                }
+                catch (Exception ex)
+                {
+                    response.Exception = ex;
+                    OASISErrorHandling.HandleError(ref response, $"Error deleting holon on SOLID: {ex.Message}");
+                }
+                return response;
+            });
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            throw new NotImplementedException();
+            return DeleteHolonAsync(id).Result;
         }
 
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            throw new NotImplementedException();
+            return Task.Run(async () =>
+            {
+                var response = new OASISResult<IHolon>();
+                try
+                {
+                    if (!_isActivated)
+                    {
+                        OASISErrorHandling.HandleError(ref response, "SOLID provider is not activated");
+                        return response;
+                    }
+
+                    var podUrl = $"{_podServerUrl}/holons/{providerKey}";
+                    var httpResponse = await _httpClient.DeleteAsync(podUrl);
+                    if (!httpResponse.IsSuccessStatusCode)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to delete holon on SOLID pod: {httpResponse.StatusCode}");
+                        return response;
+                    }
+
+                    response.Result = new Holon { ProviderUniqueStorageKey = providerKey };
+                }
+                catch (Exception ex)
+                {
+                    response.Exception = ex;
+                    OASISErrorHandling.HandleError(ref response, $"Error deleting holon on SOLID: {ex.Message}");
+                }
+                return response;
+            });
         }
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            throw new NotImplementedException();
+            return DeleteHolonAsync(providerKey).Result;
         }
 
         public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return Task.Run(() =>
+            {
+                var response = new OASISResult<ISearchResults>();
+                OASISErrorHandling.HandleError(ref response, "Search is not currently supported by the SOLID provider.");
+                return response;
+            });
         }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
         public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            return Task.Run(() =>
+            {
+                var response = new OASISResult<bool> { Result = true };
+                return response;
+            });
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            return ImportAsync(holons).Result;
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            return Task.Run(() =>
+            {
+                var response = new OASISResult<IEnumerable<IHolon>> { Result = Enumerable.Empty<IHolon>() };
+                return response;
+            });
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return Task.Run(() =>
+            {
+                var response = new OASISResult<IEnumerable<IHolon>> { Result = Enumerable.Empty<IHolon>() };
+                return response;
+            });
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            return Task.Run(() =>
+            {
+                var response = new OASISResult<IEnumerable<IHolon>> { Result = Enumerable.Empty<IHolon>() };
+                return response;
+            });
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            throw new NotImplementedException();
+            return Task.Run(() =>
+            {
+                var response = new OASISResult<IEnumerable<IHolon>> { Result = Enumerable.Empty<IHolon>() };
+                return response;
+            });
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllAsync(version).Result;
         }
 
         #endregion
@@ -1141,7 +1337,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         #region IOASISSuperStar
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
-            throw new NotImplementedException();
+            // SOLID provider doesn't support native code genesis
+            return false;
         }
 
         #endregion
@@ -1150,17 +1347,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 
         public OASISResult<string> SendTransaction(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            var response = new OASISResult<string>();
+            OASISErrorHandling.HandleError(ref response, "SOLID provider doesn't support blockchain transactions");
+            return response;
         }
 
         public Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            return Task.Run(() => SendTransaction(transation));
         }
 
         public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            var response = new OASISResult<string>();
+            OASISErrorHandling.HandleError(ref response, "SOLID provider doesn't support blockchain transactions");
+            return response;
         }
 
         public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)

@@ -11,13 +11,4 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="OASIS_DNA.Development.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
-
-
-
