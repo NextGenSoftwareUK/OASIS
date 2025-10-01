@@ -16,7 +16,7 @@ export type CredentialsPanelProps = {
 export function CredentialsPanel({
   defaultUsername = "metabricks_admin",
   defaultPassword = "Uppermall1!",
-  baseUrl = "http://devnet.oasisweb4.one",
+  baseUrl,
   onAuthenticate,
   onAcquireAvatar,
   onToken,
@@ -33,39 +33,23 @@ export function CredentialsPanel({
       setError(null);
       onAuthenticate?.({ username, password });
 
-      const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
-      const response = await fetch(`${normalizedBaseUrl}/api/avatar/authenticate`, {
+      const response = await fetch("/api/authenticate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        credentials: "include",
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, baseUrl }),
       });
 
-      const text = await response.text();
-      let data: { message?: string; result?: { jwtToken?: string; avatarId?: string; avatar?: { id?: string; AvatarId?: string } } } | null = null;
-      try {
-        data = text ? JSON.parse(text) : null;
-      } catch (parseError) {
-        console.warn("Authentication response was not valid JSON", parseError);
+      const data: { token?: string; avatarId?: string; message?: string } = await response.json();
+
+      if (!response.ok || !data?.token) {
+        throw new Error(data?.message ?? `Authentication failed (HTTP ${response.status})`);
       }
 
-      const token = data?.result?.jwtToken;
-      if (!response.ok || !token) {
-        const message = data?.message ?? `Authentication failed (HTTP ${response.status})`;
-        throw new Error(message);
-      }
-
-      const avatarId =
-        data?.result?.avatarId ??
-        data?.result?.avatar?.id ??
-        data?.result?.avatar?.AvatarId ??
-        null;
-
-      onToken?.(token);
-      onAuthenticated?.({ token, avatarId });
+      onToken?.(data.token);
+      onAuthenticated?.({ token: data.token, avatarId: data.avatarId ?? null });
     } catch (err: unknown) {
       console.error("Authentication error", err);
       const message = err instanceof Error ? err.message : "Authentication failed";
