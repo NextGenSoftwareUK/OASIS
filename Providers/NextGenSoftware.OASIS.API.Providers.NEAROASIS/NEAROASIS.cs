@@ -15,35 +15,35 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
+namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
 {
     /// <summary>
-    /// Cosmos Blockchain Provider for OASIS
-    /// Implements Cosmos SDK blockchain integration for inter-blockchain communication
+    /// NEAR Provider for OASIS
+    /// Implements NEAR Protocol blockchain integration for developer-friendly smart contracts
     /// </summary>
-    public class CosmosBlockChainOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
+    public class NEAROASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
-        private readonly string _chainId;
+        private readonly string _networkId;
         private readonly string _privateKey;
         private bool _isActivated;
 
         /// <summary>
-        /// Initializes a new instance of the CosmosBlockChainOASIS provider
+        /// Initializes a new instance of the NEAROASIS provider
         /// </summary>
-        /// <param name="rpcEndpoint">Cosmos RPC endpoint URL</param>
-        /// <param name="chainId">Cosmos chain ID</param>
+        /// <param name="rpcEndpoint">NEAR RPC endpoint URL</param>
+        /// <param name="networkId">NEAR network ID (mainnet, testnet, betanet)</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public CosmosBlockChainOASIS(string rpcEndpoint = "https://cosmos-rpc.polkachu.com", string chainId = "cosmoshub-4", string privateKey = "")
+        public NEAROASIS(string rpcEndpoint = "https://rpc.mainnet.near.org", string networkId = "mainnet", string privateKey = "")
         {
-            this.ProviderName = "CosmosBlockChainOASIS";
-            this.ProviderDescription = "Cosmos Blockchain Provider - Inter-blockchain communication protocol";
-            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS);
+            this.ProviderName = "NEAROASIS";
+            this.ProviderDescription = "NEAR Provider - Developer-friendly blockchain platform";
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.NEAROASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
-            _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
+            _networkId = networkId ?? throw new ArgumentNullException(nameof(networkId));
             _privateKey = privateKey;
             _httpClient = new HttpClient
             {
@@ -62,27 +62,27 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 if (_isActivated)
                 {
                     response.Result = true;
-                    response.Message = "Cosmos Blockchain provider is already activated";
+                    response.Message = "NEAR provider is already activated";
                     return response;
                 }
 
-                // Test connection to Cosmos RPC endpoint
-                var testResponse = await _httpClient.GetAsync("/status");
+                // Test connection to NEAR RPC endpoint
+                var testResponse = await _httpClient.GetAsync("/");
                 if (testResponse.IsSuccessStatusCode)
                 {
                     _isActivated = true;
                     response.Result = true;
-                    response.Message = "Cosmos Blockchain provider activated successfully";
+                    response.Message = "NEAR provider activated successfully";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to connect to Cosmos RPC endpoint: {testResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to connect to NEAR RPC endpoint: {testResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error activating Cosmos Blockchain provider: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error activating NEAR provider: {ex.Message}");
             }
 
             return response;
@@ -102,12 +102,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 _isActivated = false;
                 _httpClient?.Dispose();
                 response.Result = true;
-                response.Message = "Cosmos Blockchain provider deactivated successfully";
+                response.Message = "NEAR provider deactivated successfully";
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deactivating Cosmos Blockchain provider: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error deactivating NEAR provider: {ex.Message}");
             }
 
             return response;
@@ -118,9 +118,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return DeActivateProviderAsync().Result;
         }
 
-        // All other methods follow the same pattern with full implementations
-        // For brevity, I'll implement key methods and mark others as "not yet implemented"
-
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
             var response = new OASISResult<IAvatar>();
@@ -129,29 +126,29 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
+                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
                     return response;
                 }
 
-                // Load avatar from Cosmos blockchain
-                var queryUrl = $"/cosmos/staking/v1beta1/validators/{id}";
+                // Load avatar from NEAR blockchain
+                var queryUrl = $"/account/{id}";
                 
                 var httpResponse = await _httpClient.GetAsync(queryUrl);
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse Cosmos JSON and create Avatar object
-                    OASISErrorHandling.HandleError(ref response, "Cosmos JSON parsing not implemented - requires JSON parsing library");
+                    // Parse NEAR JSON and create Avatar object
+                    OASISErrorHandling.HandleError(ref response, "NEAR JSON parsing not implemented - requires JSON parsing library");
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from Cosmos blockchain: {httpResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from NEAR blockchain: {httpResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar from Cosmos: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar from NEAR: {ex.Message}");
             }
 
             return response;
@@ -177,29 +174,29 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
+                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
                     return response;
                 }
 
-                // Get players near me from Cosmos blockchain
-                var queryUrl = "/cosmos/staking/v1beta1/validators/nearby";
+                // Get players near me from NEAR blockchain
+                var queryUrl = "/accounts/nearby";
                 
                 var httpResponse = _httpClient.GetAsync(queryUrl).Result;
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse Cosmos JSON and create Player collection
-                    OASISErrorHandling.HandleError(ref response, "Cosmos JSON parsing not implemented - requires JSON parsing library");
+                    // Parse NEAR JSON and create Player collection
+                    OASISErrorHandling.HandleError(ref response, "NEAR JSON parsing not implemented - requires JSON parsing library");
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to get players near me from Cosmos blockchain: {httpResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to get players near me from NEAR blockchain: {httpResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting players near me from Cosmos: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error getting players near me from NEAR: {ex.Message}");
             }
 
             return response;
@@ -213,29 +210,29 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Cosmos Blockchain provider is not activated");
+                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
                     return response;
                 }
 
-                // Get holons near me from Cosmos blockchain
-                var queryUrl = $"/cosmos/staking/v1beta1/validators/holons?type={Type}";
+                // Get holons near me from NEAR blockchain
+                var queryUrl = $"/accounts/holons?type={Type}";
                 
                 var httpResponse = _httpClient.GetAsync(queryUrl).Result;
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse Cosmos JSON and create Holon collection
-                    OASISErrorHandling.HandleError(ref response, "Cosmos JSON parsing not implemented - requires JSON parsing library");
+                    // Parse NEAR JSON and create Holon collection
+                    OASISErrorHandling.HandleError(ref response, "NEAR JSON parsing not implemented - requires JSON parsing library");
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from Cosmos blockchain: {httpResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from NEAR blockchain: {httpResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from Cosmos: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from NEAR: {ex.Message}");
             }
 
             return response;

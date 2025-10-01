@@ -1,0 +1,14 @@
+{
+  "OASIS": {
+    "Providers": {
+      "ActivityPubOASIS": {
+        "InstanceUrl": "https://mastodon.social",
+        "AccessToken": "YOUR_ACTIVITYPUB_OAUTH_TOKEN_HERE"
+      }
+    },
+    "Security": {
+      "SecretKey": "TEST_SECRET_KEY"
+    }
+  }
+}
+
