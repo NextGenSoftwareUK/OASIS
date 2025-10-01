@@ -6,17 +6,21 @@ import { Button } from "@/components/ui/button";
 export type CredentialsPanelProps = {
   defaultUsername?: string;
   defaultPassword?: string;
+  baseUrl?: string;
   onAuthenticate?: (credentials: { username: string; password: string }) => void;
   onAcquireAvatar?: () => void;
   onToken?: (token: string) => void;
+  onAuthenticated?: (payload: { token: string; avatarId?: string | null }) => void;
 };
 
 export function CredentialsPanel({
   defaultUsername = "metabricks_admin",
   defaultPassword = "Uppermall1!",
+  baseUrl = "http://devnet.oasisweb4.one",
   onAuthenticate,
   onAcquireAvatar,
   onToken,
+  onAuthenticated,
 }: CredentialsPanelProps) {
   const [username, setUsername] = useState(defaultUsername);
   const [password, setPassword] = useState(defaultPassword);
@@ -29,21 +33,43 @@ export function CredentialsPanel({
       setError(null);
       onAuthenticate?.({ username, password });
 
-      const response = await fetch("http://devnet.oasisweb4.one/api/avatar/authenticate", {
+      const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
+      const response = await fetch(`${normalizedBaseUrl}/api/avatar/authenticate`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        credentials: "include",
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
-      if (!response.ok || data?.result?.jwtToken == null) {
-        throw new Error(data?.message ?? "Authentication failed");
+      const text = await response.text();
+      let data: { message?: string; result?: { jwtToken?: string; avatarId?: string; avatar?: { id?: string; AvatarId?: string } } } | null = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch (parseError) {
+        console.warn("Authentication response was not valid JSON", parseError);
       }
 
-      onToken?.(data.result.jwtToken);
-    } catch (err: any) {
+      const token = data?.result?.jwtToken;
+      if (!response.ok || !token) {
+        const message = data?.message ?? `Authentication failed (HTTP ${response.status})`;
+        throw new Error(message);
+      }
+
+      const avatarId =
+        data?.result?.avatarId ??
+        data?.result?.avatar?.id ??
+        data?.result?.avatar?.AvatarId ??
+        null;
+
+      onToken?.(token);
+      onAuthenticated?.({ token, avatarId });
+    } catch (err: unknown) {
       console.error("Authentication error", err);
-      setError(err.message ?? "Authentication failed");
+      const message = err instanceof Error ? err.message : "Authentication failed";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
