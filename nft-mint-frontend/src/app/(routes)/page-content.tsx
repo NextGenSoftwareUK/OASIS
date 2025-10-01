@@ -12,6 +12,7 @@ import { AssetUploadPanel, DEFAULT_ASSET_DRAFT, AssetDraft } from "@/components/
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { MintReviewPanel } from "@/components/mint/mint-review-panel";
+import { useOasisApi } from "@/hooks/useOasisApi";
 
 const WIZARD_STEPS = [
   {
@@ -69,7 +70,13 @@ export default function PageContent() {
   const [assetDraft, setAssetDraft] = useState<AssetDraft>(DEFAULT_ASSET_DRAFT);
   const [mintReady, setMintReady] = useState(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
-  const baseUrl = "http://devnet.oasisweb4.one";
+  const [avatarId, setAvatarId] = useState<string | null>(null);
+  const [providerLoading, setProviderLoading] = useState<string[]>([]);
+  const [useLocalApi, setUseLocalApi] = useState(false);
+
+  const baseUrl = useLocalApi ? LOCAL_URL : DEVNET_URL;
+
+  const { call } = useOasisApi({ baseUrl, token: authToken ?? undefined });
 
   const renderSessionSummary = (
     <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-[var(--color-card-border)]/50 bg-[rgba(8,12,26,0.7)] px-4 py-3 text-[11px] text-[var(--muted)]">
@@ -92,6 +99,15 @@ export default function PageContent() {
       </div>
     </div>
   );
+
+  const updateProviderState = (id: string, state: ProviderToggle["state"]) => {
+    setProviderStates((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        return { ...p, state };
+      })
+    );
+  };
 
   return (
     <AppLayout
@@ -144,6 +160,7 @@ export default function PageContent() {
                   Enter the Site Avatar credentials to obtain a JWT. The token is required for every subsequent provider call.
                 </p>
                 <CredentialsPanel
+                  baseUrl={baseUrl}
                   onAuthenticate={(creds) => {
                     console.log("Authenticate", creds);
                   }}
@@ -152,6 +169,10 @@ export default function PageContent() {
                   }}
                   onToken={(token) => {
                     setAuthToken(token);
+                  }}
+                  onAuthenticated={({ token, avatarId }) => {
+                    setAuthToken(token);
+                    if (avatarId) setAvatarId(avatarId);
                   }}
                 />
               </div>
@@ -162,37 +183,52 @@ export default function PageContent() {
                 </p>
                 <ProviderTogglePanel
                   providers={providerStates}
-                  onRegister={(id) =>
-                    setProviderStates((prev) =>
-                      prev.map((p) => {
-                        if (p.id !== id) return p;
-                        if (p.state === "idle") {
-                          return { ...p, state: "registered" as ProviderToggle["state"] };
-                        }
-                        return p;
-                      })
-                    )
-                  }
-                  onActivate={(id) =>
-                    setProviderStates((prev) => {
-                      const updated = prev.map((p) => {
-                        if (p.id !== id) return p;
-                        if (p.state === "registered") {
-                          return { ...p, state: "active" as ProviderToggle["state"] };
-                        }
-                        return p;
-                      });
-                      const allActive = updated.every((p) => p.state === "active");
-                      setStatusState(allActive ? "ready" : "idle");
-                      return updated;
-                    })
-                  }
+                  loadingIds={providerLoading}
+                  onRegister={async (provider) => {
+                    if (!authToken) {
+                      console.warn("Authenticate before registering providers");
+                      throw new Error("You must authenticate first");
+                    }
+                    if (provider.state !== "idle") return true;
+                    setProviderLoading((prev) => [...prev, provider.id]);
+                    try {
+                      await call(provider.registerEndpoint, { method: "POST" });
+                      updateProviderState(provider.id, "registered");
+                      return true;
+                    } catch (error) {
+                      console.error("Register provider failed", error);
+                      throw error instanceof Error ? error : new Error("Register provider failed");
+                    } finally {
+                      setProviderLoading((prev) => prev.filter((id) => id !== provider.id));
+                    }
+                  }}
+                  onActivate={async (provider) => {
+                    if (!authToken) {
+                      console.warn("Authenticate before activating providers");
+                      throw new Error("You must authenticate first");
+                    }
+                    if (provider.state !== "registered") return true;
+                    setProviderLoading((prev) => [...prev, provider.id]);
+                    try {
+                      await call(provider.activateEndpoint, { method: "POST" });
+                      updateProviderState(provider.id, "active");
+                      return true;
+                    } catch (error) {
+                      console.error("Activate provider failed", error);
+                      throw error instanceof Error ? error : new Error("Activate provider failed");
+                    } finally {
+                      setProviderLoading((prev) => prev.filter((id) => id !== provider.id));
+                    }
+                  }}
+                  onError={(provider, mode, error) => {
+                    alert(`${provider.label} ${mode} failed: ${error.message}`);
+                  }}
                 />
               </div>
             </div>
           ) : null}
           {activeStep === "assets" ? (
-            <AssetUploadPanel value={assetDraft} onChange={setAssetDraft} />
+            <AssetUploadPanel value={assetDraft} onChange={setAssetDraft} baseUrl={baseUrl} token={authToken ?? undefined} />
           ) : null}
           {activeStep === "mint" ? (
             <div className="space-y-8">
@@ -201,14 +237,33 @@ export default function PageContent() {
                 <p className="mt-2 text-sm text-[var(--muted)]">
                   Review the payload assembled from previous steps. Adjust mint timing options and submit to `/api/nft/mint-nft`.
                 </p>
-                <MintReviewPanel assetDraft={assetDraft} onStatusChange={(state) => {
-                  setMintReady(state === "ready");
-                }} baseUrl={baseUrl} token={authToken ?? undefined} />
+                <MintReviewPanel
+                  assetDraft={assetDraft}
+                  avatarId={avatarId ?? undefined}
+                  onStatusChange={(state) => {
+                    setMintReady(state === "ready");
+                  }}
+                  baseUrl={baseUrl}
+                  token={authToken ?? undefined}
+                />
               </div>
             </div>
           ) : null}
         </WizardShell>
       </section>
+      <Button
+        variant="secondary"
+        className="text-[10px]"
+        onClick={() => {
+          setUseLocalApi((prev) => !prev);
+          setProviderStates((prev) => prev.map((p) => ({ ...p, state: "idle" })));
+          setStatusState("idle");
+          setAuthToken(null);
+          setAvatarId(null);
+        }}
+      >
+        {useLocalApi ? "Switch to Devnet" : "Use Local API"}
+      </Button>
     </AppLayout>
   );
 }
