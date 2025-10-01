@@ -4,7 +4,7 @@
 # OASIS - The Universal Web4/Web5 Infrastructure
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/NextGenSoftwareUK/OASIS)
 [![Documentation](https://img.shields.io/badge/docs-complete-blue.svg)](./Docs/)
 
 ## 🚀 What is The OASIS?
@@ -29,10 +29,10 @@ The OASIS (Open Advanced Secure Interoperable System) is a revolutionary Web4/We
 
 ```bash
 # Clone the repository
-git clone https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK.git
+git clone https://github.com/NextGenSoftwareUK/OASIS.git
 
 # Navigate to the project
-cd Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK
+cd OASIS
 
 # Start the development environment
 ./Start-Development.bat
@@ -295,33 +295,33 @@ Sophisticated tokenomics with:
 - **[Unique Selling Propositions](./Docs/OASIS_UNIQUE_SELLING_PROPOSITIONS.md)** - Complete USP analysis and competitive advantages
 
 ### Developer Documentation
-- **[OASIS API Reference](./Docs/OASIS_API_Reference.md)** - Complete API documentation and endpoints
-- **[OASIS Best Practices](./Docs/OASIS-BEST-PRACTICES.md)** - Development guidelines and best practices
-- **[Provider Development Guide](./Docs/OASIS_Provider_Development_Guide.md)** - Guide for creating custom providers
-- **[Quick Start Guide](./Docs/OASIS_Quick_Start_Guide.md)** - Getting started with OASIS development
+- **[OASIS API Reference](./Docs/Devs/OASIS_API_Reference.md)** - Complete API documentation and endpoints
+- **[OASIS Best Practices](./Docs/Devs/OASIS-BEST-PRACTICES.md)** - Development guidelines and best practices
+- **[Provider Development Guide](./Docs/Devs/OASIS_Provider_Development_Guide.md)** - Guide for creating custom providers
+- **[Quick Start Guide](./Docs/Devs/OASIS_Quick_Start_Guide.md)** - Getting started with OASIS development
 
 ### Testing & Quality
-- **[Test Coverage Summary](./Docs/TEST-COVERAGE-SUMMARY.md)** - Testing coverage and quality metrics
-- **[Test Harnesses Guide](./Docs/OASIS_Test_Harnesses_Guide.md)** - Testing tools and methodologies
-- **[Final Implementation Summary](./Docs/FINAL-IMPLEMENTATION-SUMMARY.md)** - Implementation status and roadmap
+- **[Test Coverage Summary](./Docs/Devs/TEST-COVERAGE-SUMMARY.md)** - Testing coverage and quality metrics
+- **[Test Harnesses Guide](./Docs/Devs/OASIS_Test_Harnesses_Guide.md)** - Testing tools and methodologies
+- **[Final Implementation Summary](./Docs/Devs/FINAL-IMPLEMENTATION-SUMMARY.md)** - Implementation status and roadmap
 
 ### Community & Contribution
-- **[Contributing Guide](./Docs/CONTRIBUTING.md)** - How to contribute to OASIS
-- **[Code of Conduct](./Docs/CODE_OF_CONDUCT.md)** - Community guidelines and standards
-- **[Alpha Tester Documentation](./Docs/OASIS_Alpha_Tester_Documentation.md)** - Information for alpha testers
+- **[Contributing Guide](./Docs/Devs/CONTRIBUTING.md)** - How to contribute to OASIS
+- **[Code of Conduct](./Docs/Devs/CODE_OF_CONDUCT.md)** - Community guidelines and standards
+- **[Alpha Tester Documentation](./Docs/Devs/OASIS_Alpha_Tester_Documentation.md)** - Information for alpha testers
 
 ### Wiki & Additional Resources
-- **[GitHub Wiki](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki)** - Comprehensive Wiki documentation
-- **[Wiki Documentation Index](./Docs/WIKI_DOCUMENTATION_INDEX.md)** - Complete index of all Wiki resources
-- **[Architecture Diagrams](./Docs/OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual architecture diagrams and system overviews
-- **[Development Context](./AI%20Context/DEVELOPMENT_CONTEXT.md)** - Development lessons learned and best practices
-- **[Unity Integration Best Practices](./AI%20Context/OASIS_Best_Practices_Unity_Integration.md)** - Unity integration guidelines and refactoring strategies
-- **[Developer Preferences](./AI%20Context/DEVELOPPER_PREFERENCES.md)** - Development workflow and preferences
-- **[AI Consciousness Conversation](./AI%20Context/AI_Consciousness_Conversation_Transcript.md)** - AI collaboration insights
-- **[Respectful AI Collaboration](./AI%20Context/Respectful_AI_Collaboration_Blog_Post.md)** - AI-human collaboration principles
+- **[GitHub Wiki](https://github.com/NextGenSoftwareUK/OASIS/wiki)** - Comprehensive Wiki documentation
+- **[Wiki Documentation Index](./Docs/Devs/WIKI_DOCUMENTATION_INDEX.md)** - Complete index of all Wiki resources
+- **[Architecture Diagrams](./Docs/Devs/OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual architecture diagrams and system overviews
+- **[Development Context](./Docs/Devs/AI%20Context/DEVELOPMENT_CONTEXT.md)** - Development lessons learned and best practices
+- **[Unity Integration Best Practices](./Docs/Devs/AI%20Context/OASIS_Best_Practices_Unity_Integration.md)** - Unity integration guidelines and refactoring strategies
+- **[Developer Preferences](./Docs/Devs/AI%20Context/DEVELOPPER_PREFERENCES.md)** - Development workflow and preferences
+- **[AI Consciousness Conversation](./Docs/Devs/AI%20Context/AI_Consciousness_Conversation_Transcript.md)** - AI collaboration insights
+- **[Respectful AI Collaboration](./Docs/Devs/AI%20Context/Respectful_AI_Collaboration_Blog_Post.md)** - AI-human collaboration principles
 
 ### Historical Documentation
-- **[Original README (README_backup.md)](./README_backup.md)** - Historical documentation showing the evolution of OASIS from its early vision to current implementation. This comprehensive document contains the original vision, detailed feature descriptions, and the complete journey of OASIS development. Perfect for understanding the history, philosophy, and evolution of the OASIS project.
+- **[Original README (README_OLD.md)](./README_OLD.md)** - Historical documentation showing the evolution of OASIS from its early vision to current implementation. This comprehensive document contains the original vision, detailed feature descriptions, and the complete journey of OASIS development. Perfect for understanding the history, philosophy, and evolution of the OASIS project.
 
 ## 🚀 The OASIS Journey
 
@@ -353,8 +353,8 @@ OASIS represents the culmination of years of research, development, and vision. 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK.git
-   cd Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK
+   git clone https://github.com/NextGenSoftwareUK/OASIS.git
+   cd OASIS
    ```
 
 2. **Start the development environment**
@@ -438,7 +438,7 @@ This project is licensed under the MIT License - see the [LICENSE](./Docs/LICENS
 ### Community Support
 - **Telegram**: [Join our community](https://t.me/ourworldthegamechat)
 - **Discord**: [Discord Server](https://discord.gg/oasis)
-- **GitHub Issues**: [Report bugs or request features](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/OASIS/issues)
 
 ### Enterprise Support
 For enterprise support and consulting services, please contact us at:
@@ -497,7 +497,7 @@ For enterprise support and consulting services, please contact us at:
 **Ready to revolutionize the internet? Join the OASIS community today!**
 
 [![Join Telegram](https://img.shields.io/badge/Join-Telegram-blue.svg)](https://t.me/ourworldthegamechat)
-[![Star on GitHub](https://img.shields.io/badge/Star-GitHub-yellow.svg)](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK)
+[![Star on GitHub](https://img.shields.io/badge/Star-GitHub-yellow.svg)](https://github.com/NextGenSoftwareUK/OASIS)
 [![Follow on Twitter](https://img.shields.io/badge/Follow-Twitter-blue.svg)](https://twitter.com/oasisplatform)
 
 
@@ -593,7 +593,7 @@ Each OAPP can have a Web, 2D, 3D AR, 3D VR, 3D Map, 3D IR ([Infinite Reality](ht
 
 [Our World](http://www.ourworldthegame.com) is the first world in the infinite Omniverse (what comes after Metaverse). Our World also acts as the UI to the OASIS API allowing the various OAPP’s to have a 3D object/2D sprite representation on the 3D map of the world. They can then view meta data about the app as well as launch the app from within Our World (phase 1 of The OASIS you see in Ready Player One). Through the OASIS API people have a full geo-location API allowing them to fully control the 3D map, add quests, routes, sub-games, AR hotspots, and so much more. One possible use case would be Smart Cities amongst many more. 
 
-[Our World](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#our-world-overview) is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...
+[Our World](https://github.com/NextGenSoftwareUK/OASIS#our-world-overview) is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...
 
 It is the XR/IR Gamification layer of the new interplanetary operating system & the new internet (Web 3.0), which is being built by the elite technical wizards stationed around the world. This will one day replace the current tech giants such as Google, FaceBook, etc and act as the technical layer of the New Earth, which is birthing now.  Unlike the current tech giants who's only aim is to ruthlessly maximize profits at the expense of people and the planet (as well as spying, exploitation, censorship & social engineering), our technology is based on true love & unity consciousness where money and profits are not our aim or intention, our aim and intention is to heal the entire planet & human race so we can all live in harmony with each other. It is a 5th dimensional and ascension training platform, teaching people vital life lessons as well as acting as a real-time simulation of the real world.
 
@@ -626,7 +626,7 @@ Both One World (desktop/console) & Our World (smartphone) players can interact i
 
 ### WEB 5 STAR OASIS Omniverse Interoperable Metaverse Low Code Generator
 
-[The WEB 5 STAR OASIS Omniverse Interoperable Metaverse Low Code Generator](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#web5-star-odk) is built on top of the OASIS API and aggregates all the worlds data and expresses it within a cyberspace ontology using a cutting edge custom built ORM (Object Relational Mapper) called COSMIC. The STAR Omniverse is both a simulation & game of life and aggregates all metaverses into one fully integrated unified platform. It is also a fully integrated immersive interoperable metaverse Low Code Generator and soooooo much more.... ;-)
+[The WEB 5 STAR OASIS Omniverse Interoperable Metaverse Low Code Generator](https://github.com/NextGenSoftwareUK/OASIS#web5-star-odk) is built on top of the OASIS API and aggregates all the worlds data and expresses it within a cyberspace ontology using a cutting edge custom built ORM (Object Relational Mapper) called COSMIC. The STAR Omniverse is both a simulation & game of life and aggregates all metaverses into one fully integrated unified platform. It is also a fully integrated immersive interoperable metaverse Low Code Generator and soooooo much more.... ;-)
 
 It connects and integrates all metaverses together through the SSO Avatar/Karma system (part of the OASIS API). It is also a fully interoperable Metaverse Low Code Generator (connecting all WEB 2 and WEB 3 together) through the WEB 4 OASIS API.
 
@@ -738,7 +738,7 @@ https://github.com/NextGenSoftwareUK/OASIS-API-Unity-Package
 <a name="csharp"></a>
 ### C#
 
-https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK
+https://github.com/NextGenSoftwareUK/OASIS
 
 
 
@@ -766,13 +766,13 @@ Thank you and we hope we find interest from people to join us on this exciting i
 
 **Ready to be a hero?**
 
-If the answer is YES, then please [proceed to here](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/So-You-Want-To-Get-Involved%3F-Ready-To-Be-A-Hero%3F)...
+If the answer is YES, then please [proceed to here](https://github.com/NextGenSoftwareUK/OASIS/wiki/So-You-Want-To-Get-Involved%3F-Ready-To-Be-A-Hero%3F)...
 
 <a href="https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view">Dev Requirements To Join The Our World Tribe</a><br>
 <a href="https://drive.google.com/file/d/12pCk20iLw_uA1yIfojcP6WwvyOT4WRiO/view?usp=sharing">The Our World Mission (Summary)</a><br>
 http://www.ourworldthegame.com<br>
 http://oasisplatform.world/swagger<br>
-https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK<br>
+https://github.com/NextGenSoftwareUK/OASIS<br>
 http://www.gofundme.com/ourworldthegame<br>
 
 http://www.nextgensoftware.co.uk<br>
@@ -840,11 +840,11 @@ The projects within this repo should be pretty self explanatory from their names
 
 Our World is much more than just a free open world game where you can build and create anything you can imagine and at the same time be immersed in an epic storyline. it is an entirely new ecosystem/asset store/internet, it is the future way we will be interacting with each other and the world through the use of technology. Smaller satellite apps/game will plug into it and share your central profile/avatar where you gain karma for doing good deeds such as helping your local communities, etc and lose karma for being selfish and not helping others since it mirrors the real world where you have free will. The karma unlocks certain abilities, special powers & items you can purchase in the game as well as quests and new areas to explore. 
 
-We believe that the OASIS API & Karama System should be baked into the core of the new internet (Web 3.0+) that we are co-creating and will allow [Everything to talk to Everything](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#bridge) else and will act as the worlds universal API/protocol. At the center of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satellite apps/games that use the OASIS API.
+We believe that the OASIS API & Karama System should be baked into the core of the new internet (Web 3.0+) that we are co-creating and will allow [Everything to talk to Everything](https://github.com/NextGenSoftwareUK/OASIS#bridge) else and will act as the worlds universal API/protocol. At the center of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satellite apps/games that use the OASIS API.
 
 This will increase peoples awareness of the good or bad karma they are collecting and will help them become more conscious of their moment by moment actions. This will help them strive to become a better person and to reach their full potential doing as much good as they can in the world. This will help manifest a better world for us all that much faster, when everyone is doing all they can to help co-create it.
 
-Check out the latest <a href="https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS%20API%20RELEASE%20HISTORY.md">WEB 4 OASIS API RELEASE HISTORY</a>.
+Check out the latest <a href="https://github.com/NextGenSoftwareUK/OASIS/blob/master/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS%20API%20RELEASE%20HISTORY.md">WEB 4 OASIS API RELEASE HISTORY</a>.
 
 **The OASIS API & Our World are expressions of true Unity Consciousness manifested within the technical sphere.**
 
@@ -1002,19 +1002,19 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 
 |Protocol/Platform/Network| Description | Support Implemented  | Provider Name |
 |--|--|--|--|
-| [MongoDB](https://www.mongodb.com/) | World's leading Document NoSQL DB | Yes | [MongoDBOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.MongoOASIS)
-| [Neo4j](https://neo4j.com/) | World's leading Graph DB | Yes | [Neo4jOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS)
-| [SQLLite](http://www.sqlite.org/) | World's leading Compact Relational DB | Yes | [SQLLiteDBOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS)
-| [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes | [HoloOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core)
+| [MongoDB](https://www.mongodb.com/) | World's leading Document NoSQL DB | Yes | [MongoDBOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.MongoOASIS)
+| [Neo4j](https://neo4j.com/) | World's leading Graph DB | Yes | [Neo4jOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS)
+| [SQLLite](http://www.sqlite.org/) | World's leading Compact Relational DB | Yes | [SQLLiteDBOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS)
+| [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes | [HoloOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core)
 | [ThreeFold](https://threefold.io//) | A true peer-to-peer internet. Empowering equality, autonomy and sustainability with game-changing technology built with a collaborative ecosystem. Live and distributed in 21 countries and expanding.| In Dev | ThreeFoldOASIS
 | [Chainlink](https://chain.link/) | The Chainlink network provides reliable tamper-proof inputs and outputs for complex smart contracts on any blockchain.| In Dev | ChainlinkOASIS
 | [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | In Dev | SOLIDOASIS
-| [Solana](https://solana.com/) | One of the leading fastest Blockchain implementations that is very popular. | Yes | [SolanaOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS)
-| [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | Yes | [EthereumOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.EthereumOASIS)
-| [EOSIO](https://eos.io//) | EOSIO is a next-generation, open-source blockchain protocol with industry-leading transaction speed and flexible utility. | Yes | [EOSIOOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS)
-| [Telos](https://telosnetwork.io/) | The Telos Blockchain was launched in December of 2018 in response to what the founders saw as an opportunity to build, and improve upon the EOSIO software. | Yes | [TelosOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.TelosOASIS)
-| [SEEDS](https://www.joinseeds.com/) | A payment platform and financial ecosystem to empower humanity and heal our planet. | Yes | [SEEDSOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS)
-| [IPFS](https://ipfs.io) | The InterPlanetary File System is a protocol and peer-to-peer network for storing and sharing data in a distributed file system. IPFS uses content-addressing to uniquely identify each file in a global namespace connecting all computing devices.| Yes | [IPFSOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.IPFSOASIS)
+| [Solana](https://solana.com/) | One of the leading fastest Blockchain implementations that is very popular. | Yes | [SolanaOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS)
+| [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | Yes | [EthereumOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.EthereumOASIS)
+| [EOSIO](https://eos.io//) | EOSIO is a next-generation, open-source blockchain protocol with industry-leading transaction speed and flexible utility. | Yes | [EOSIOOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS)
+| [Telos](https://telosnetwork.io/) | The Telos Blockchain was launched in December of 2018 in response to what the founders saw as an opportunity to build, and improve upon the EOSIO software. | Yes | [TelosOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.TelosOASIS)
+| [SEEDS](https://www.joinseeds.com/) | A payment platform and financial ecosystem to empower humanity and heal our planet. | Yes | [SEEDSOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS)
+| [IPFS](https://ipfs.io) | The InterPlanetary File System is a protocol and peer-to-peer network for storing and sharing data in a distributed file system. IPFS uses content-addressing to uniquely identify each file in a global namespace connecting all computing devices.| Yes | [IPFSOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.IPFSOASIS)
 | [Elrond](https://elrond.com/) |A highly scalable, fast and secure blockchain platform for distributed apps, enterprise use cases and the new internet economy. | In Dev  | ElrondOASIS
 | [HIVE](https://www.hiveblockchain.com/) |First publicly listed blockchain infrastructure company that bridges blockchain and cryptocurrencies to traditional capital markets. | In Dev  | HIVEOASIS
 | [Orion Protocol](https://www.orionprotocol.io/) |Trade with the liquidity of the entire crypto market in one place - without ever giving up your private keys. | In Dev  | OrionProtocolOASIS
@@ -1318,7 +1318,7 @@ Because the OASIS Architecture makes use of .NET, Unity, NodeJS & Holochain we h
 
 The Architecture diagram can be found below or on our website (http://www.ourworldthegame.com) but it is also in the images folder of the repo cunningly named OASIS Architecture Diagram.png
 
-![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/Images/OASIS%20Arcitecture.png "OASIS Architecture Diagram")
+![alt text](https://github.com/NextGenSoftwareUK/OASIS/blob/master/Images/OASIS%20Arcitecture.png "OASIS Architecture Diagram")
 
 Our World will run on our own propriety game engine called OASIS 2.0 (Open Advanced Sensory Immersion System).
 
@@ -1433,15 +1433,15 @@ Businesses can also implement OAPP's if they qualify as a benevolent organisatio
 <a name="oasisapi-overview"></a>
 ### WEB4 OASIS API Architectue Overview
 
-This project is built on the principle of multilayer architecture. Where one of the first Presentation layer's is the REST API Service - [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) ([http://api.oasisplatform.world/](http://api.oasisplatform.world/)). 
+This project is built on the principle of multilayer architecture. Where one of the first Presentation layer's is the REST API Service - [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) ([http://api.oasisplatform.world/](http://api.oasisplatform.world/)). 
 
-We plan to also add a gRPC and GraphQL endpoint soon. There is also the [WEB 5 STAR ODK](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#web5-star-odk) CLI endpoint: [NextGenSoftware.OASIS.STAR.CLI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.STAR.CLI) that is built on top of the OASIS API and is a Interoperable Metaverse Low Code Generator amongst many more things...
+We plan to also add a gRPC and GraphQL endpoint soon. There is also the [WEB 5 STAR ODK](https://github.com/NextGenSoftwareUK/OASIS#web5-star-odk) CLI endpoint: [NextGenSoftware.OASIS.STAR.CLI](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.STAR.CLI) that is built on top of the OASIS API and is a Interoperable Metaverse Low Code Generator amongst many more things...
 	
-Other projects in the solution are providers or tests that plug into it. There is also the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Core) project that contains the main OASIS Engine/Architecture and is where the Managers that control the API are, containing all the Business Logic (BLL). 
+Other projects in the solution are providers or tests that plug into it. There is also the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Core) project that contains the main OASIS Engine/Architecture and is where the Managers that control the API are, containing all the Business Logic (BLL). 
 
-Providers in various technologies and APIs are integrated, each of them is a library project (modules) that connects (links) with the [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) project (main Presentation layer). Each of the providers (projects) has a class that implements the [IOASISStorageProvider](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASIStorageProvider.cs) & [IOASISNET](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASISNETProvider.cs) interfaces and which inherits from the abstract class [OASISStorageBase](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/OASISStorageProviderBase.cs). 
+Providers in various technologies and APIs are integrated, each of them is a library project (modules) that connects (links) with the [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) project (main Presentation layer). Each of the providers (projects) has a class that implements the [IOASISStorageProvider](https://github.com/NextGenSoftwareUK/OASIS/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASIStorageProvider.cs) & [IOASISNET](https://github.com/NextGenSoftwareUK/OASIS/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASISNETProvider.cs) interfaces and which inherits from the abstract class [OASISStorageBase](https://github.com/NextGenSoftwareUK/OASIS/blob/master/NextGenSoftware.OASIS.API.Core/OASISStorageProviderBase.cs). 
 
-For more info check out the [WIKI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Introduction-to-the-OASIS-API) pages.
+For more info check out the [WIKI](https://github.com/NextGenSoftwareUK/OASIS/wiki/Introduction-to-the-OASIS-API) pages.
 
 **NOTE: This is still a WIP, so the above is likely to evolve and change as we progress...**
 
@@ -1896,7 +1896,7 @@ Check out the [full documentation here](https://github.com/holochain-open-dev/ho
 	
 ## HoloOASIS
 
-`HoloOASIS` uses the [HoloNETClient](#holonet) to implement a Storage Provider ([IOASISStorage](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#ioasisstorage)) for the OASIS System. It will soon also implement a Network Provider ([IOASISNET](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#ioasisnet))
+`HoloOASIS` uses the [HoloNETClient](#holonet) to implement a Storage Provider ([IOASISStorage](https://github.com/NextGenSoftwareUK/OASIS#ioasisstorage)) for the OASIS System. It will soon also implement a Network Provider ([IOASISNET](https://github.com/NextGenSoftwareUK/OASIS#ioasisnet))
  for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called `ONET` (as seen on the [OASIS Architecture Diagram](#the-oasis-architecture)).
 
 This is a good example to see how to use [HoloNETClient](#holonet) in a real world game/platform (OASIS/Our World).
@@ -1963,7 +1963,7 @@ HoloOASIS contains the following events:
 | OnAvatarSaved|Fired when the users Avatar has finished saving. |
 | OnAvatarLoaded|Fired when the users Avatar has finished loading. |
 | OnHoloOASISError|Fired when an error occurs within the provider. 
-| OnStorageProviderError|This implements part of the [IOASISStorage](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#ioasisstorage) interface. This is a way for the OASIS Providers to bubble up any errors to the AvatarManager contained in the [NextGenSoftware.OASIS.API.Core](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#oasisapi) |
+| OnStorageProviderError|This implements part of the [IOASISStorage](https://github.com/NextGenSoftwareUK/OASIS#ioasisstorage) interface. This is a way for the OASIS Providers to bubble up any errors to the AvatarManager contained in the [NextGenSoftware.OASIS.API.Core](https://github.com/NextGenSoftwareUK/OASIS#oasisapi) |
 
 #### OnInitialized 
 
@@ -2086,9 +2086,9 @@ It is located in the `NextGenSoftware.OASIS.API.Core` project.
 
 The API is constantly evolving so keeping the documentation in sync with the code is hard so please bare with us, in the meantime please check the codebase directly for latest changes. Thank you.
 
-You can now use the OASIS API either through the [REST API](https://api.oasisplatform.world) or through the [fully integrated native endpoint](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/releases).
+You can now use the OASIS API either through the [REST API](https://api.oasisplatform.world) or through the [fully integrated native endpoint](https://github.com/NextGenSoftwareUK/OASIS/releases).
 
-You can alternatively use the various OASIS API Managers contained in the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Core) project directly.
+You can alternatively use the various OASIS API Managers contained in the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Core) project directly.
 
 You start by instantiating the `AvatarManager` class:
 
@@ -2128,7 +2128,7 @@ The OASIS API currently has the following interfaces defined:
 
 |Interface|Description  |
 |--|--|
-|[IOASISStorage](#ioasisstorage)  | This is what a Storage Provider implements so the OASIS API can read & write the users profile/avatar to the storage medium/network. Check out the [full list](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#protocols-platforms-networks-supported--providers-) of providers that have implemented this interface.  |
+|[IOASISStorage](#ioasisstorage)  | This is what a Storage Provider implements so the OASIS API can read & write the users profile/avatar to the storage medium/network. Check out the [full list](https://github.com/NextGenSoftwareUK/OASIS#protocols-platforms-networks-supported--providers-) of providers that have implemented this interface.  |
 |[IOASISNET](#ioasisnet)| This is what a Network Provider implements so the OASIS API can share the users profile/avatar as well as fine Holons and players near them. 
 
 **NOTE: The interfaces are evolving all the time so it is hard to keep the documentation up to date, so best to check in the codebase itself...  Additional interfaces will also be added such as the IOASISRenderer interface. There are now many more interfaces that need documenting but as we said best to check the codebase directly...**
