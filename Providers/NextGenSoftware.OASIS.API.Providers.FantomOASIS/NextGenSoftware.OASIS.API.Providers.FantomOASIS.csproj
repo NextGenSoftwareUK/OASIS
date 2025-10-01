@@ -2,12 +2,12 @@
 
   <PropertyGroup>
 	  <TargetFramework>net8.0</TargetFramework>
-	  <PackageId>NextGenSoftware.OASIS.API.Providers.PolkadotOASIS</PackageId>
+	  <PackageId>NextGenSoftware.OASIS.API.Providers.FantomOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
-	  <Product>WEB4 OASIS API Polkadot OASIS Provider</Product>
-	  <Title>WEB4 OASIS API Polkadot OASIS Provider</Title>
-	  <Summary>WEB4 OASIS API Polkadot OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
-	  <Description>WEB4 OASIS API Polkadot OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
+	  <Product>WEB4 OASIS API Fantom OASIS Provider</Product>
+	  <Title>WEB4 OASIS API Fantom OASIS Provider</Title>
+	  <Summary>WEB4 OASIS API Fantom OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
+	  <Description>WEB4 OASIS API Fantom OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
 	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
 	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>

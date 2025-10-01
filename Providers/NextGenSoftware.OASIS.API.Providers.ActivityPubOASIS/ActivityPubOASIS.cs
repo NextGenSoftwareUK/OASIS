@@ -143,7 +143,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse ActivityPub JSON and create Avatar object
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub JSON parsing not implemented - requires JSON parsing library");
+                    // Parse ActivityPub JSON and create Avatar object
+                    var avatar = ParseActivityPubToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
                 }
                 else
                 {
@@ -185,7 +195,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse ActivityPub JSON and create Avatar object
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub JSON parsing not implemented - requires JSON parsing library");
+                    // Parse ActivityPub JSON and create Avatar object
+                    var avatar = ParseActivityPubToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
                 }
                 else
                 {
@@ -226,7 +246,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse ActivityPub JSON and create Avatar object
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub JSON parsing not implemented - requires JSON parsing library");
+                    // Parse ActivityPub JSON and create Avatar object
+                    var avatar = ParseActivityPubToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
                 }
                 else
                 {
@@ -268,7 +298,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse ActivityPub JSON and create Avatar object
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub JSON parsing not implemented - requires JSON parsing library");
+                    // Parse ActivityPub JSON and create Avatar object
+                    var avatar = ParseActivityPubToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
                 }
                 else
                 {
@@ -309,7 +349,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse ActivityPub JSON and create AvatarDetail object
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub JSON parsing not implemented - requires JSON parsing library");
+                    // Parse ActivityPub JSON and create Avatar object
+                    var avatar = ParseActivityPubToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
                 }
                 else
                 {
@@ -350,7 +400,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse ActivityPub JSON and create AvatarDetail object
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub JSON parsing not implemented - requires JSON parsing library");
+                    // Parse ActivityPub JSON and create Avatar object
+                    var avatar = ParseActivityPubToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
                 }
                 else
                 {
@@ -391,7 +451,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse ActivityPub JSON and create AvatarDetail object
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub JSON parsing not implemented - requires JSON parsing library");
+                    // Parse ActivityPub JSON and create Avatar object
+                    var avatar = ParseActivityPubToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
                 }
                 else
                 {
@@ -432,7 +502,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse ActivityPub JSON and create Avatar collection
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub JSON parsing not implemented - requires JSON parsing library");
+                    // Parse ActivityPub JSON and create Avatar object
+                    var avatar = ParseActivityPubToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
                 }
                 else
                 {
@@ -473,7 +553,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse ActivityPub JSON and create AvatarDetail collection
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub JSON parsing not implemented - requires JSON parsing library");
+                    // Parse ActivityPub JSON and create Avatar object
+                    var avatar = ParseActivityPubToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
                 }
                 else
                 {
@@ -749,6 +839,285 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
         #endregion
 
+        #region IOASISStorageProvider Holon Methods
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, int version = 0)
+        {
+            var response = new OASISResult<IHolon>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
+                    return response;
+                }
+
+                // Load holon from ActivityPub instance
+                var apiUrl = $"{_instanceUrl}/api/v1/statuses/{id}";
+                
+                var httpResponse = await _httpClient.GetAsync(apiUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    // Parse ActivityPub JSON and create Holon object
+                    var holon = ParseActivityPubToHolon(content);
+                    if (holon != null)
+                    {
+                        response.Result = holon;
+                        response.Message = "Holon loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holon from ActivityPub instance: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holon from ActivityPub: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(Guid id, int version = 0)
+        {
+            return LoadHolonAsync(id, version).Result;
+        }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            var response = new OASISResult<IHolon>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
+                    return response;
+                }
+
+                // Load holon by provider key from ActivityPub instance
+                var apiUrl = $"{_instanceUrl}/api/v1/statuses/{providerKey}";
+                
+                var httpResponse = await _httpClient.GetAsync(apiUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    // Parse ActivityPub JSON and create Holon object
+                    var holon = ParseActivityPubToHolon(content);
+                    if (holon != null)
+                    {
+                        response.Result = holon;
+                        response.Message = "Holon loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holon by provider key from ActivityPub instance: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holon by provider key from ActivityPub: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IHolon> LoadHolonByProviderKey(string providerKey, int version = 0)
+        {
+            return LoadHolonByProviderKeyAsync(providerKey, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
+                    return response;
+                }
+
+                // Load all holons from ActivityPub instance
+                var apiUrl = $"{_instanceUrl}/api/v1/statuses";
+                
+                var httpResponse = await _httpClient.GetAsync(apiUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    // Parse ActivityPub JSON and create Holon collection
+                    var holons = ParseActivityPubToHolons(content);
+                    if (holons != null)
+                    {
+                        response.Result = holons;
+                        response.Message = "Holons loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load all holons from ActivityPub instance: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all holons from ActivityPub: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(int version = 0)
+        {
+            return LoadAllHolonsAsync(version).Result;
+        }
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon)
+        {
+            var response = new OASISResult<IHolon>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
+                    return response;
+                }
+
+                // Save holon to ActivityPub instance
+                var apiUrl = $"{_instanceUrl}/api/v1/statuses";
+                var activityPubJson = ConvertHolonToActivityPub(holon);
+                
+                var content = new StringContent(activityPubJson, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync(apiUrl, content);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = holon;
+                    response.Message = "Holon saved to ActivityPub instance successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save holon to ActivityPub instance: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error saving holon to ActivityPub: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon)
+        {
+            return SaveHolonAsync(holon).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
+                    return response;
+                }
+
+                // Delete holon from ActivityPub instance
+                var apiUrl = $"{_instanceUrl}/api/v1/statuses/{id}";
+                
+                var httpResponse = await _httpClient.DeleteAsync(apiUrl);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.Message = "Holon deleted from ActivityPub instance successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to delete holon from ActivityPub instance: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting holon from ActivityPub: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        {
+            return DeleteHolonAsync(id, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "ActivityPub provider is not activated");
+                    return response;
+                }
+
+                // Delete holon by provider key from ActivityPub instance
+                var apiUrl = $"{_instanceUrl}/api/v1/statuses/{providerKey}";
+                
+                var httpResponse = await _httpClient.DeleteAsync(apiUrl);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.Message = "Holon deleted from ActivityPub instance successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to delete holon by provider key from ActivityPub instance: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting holon by provider key from ActivityPub: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        {
+            return DeleteHolonAsync(providerKey, softDelete).Result;
+        }
+
+        #endregion
+
         #region IOASISNET Implementation
 
         OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
@@ -771,7 +1140,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse ActivityPub JSON and create Player collection
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub JSON parsing not implemented - requires JSON parsing library");
+                    // Parse ActivityPub JSON and create Avatar object
+                    var avatar = ParseActivityPubToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
                 }
                 else
                 {
@@ -807,7 +1186,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse ActivityPub JSON and create Holon collection
-                    OASISErrorHandling.HandleError(ref response, "ActivityPub JSON parsing not implemented - requires JSON parsing library");
+                    // Parse ActivityPub JSON and create Avatar object
+                    var avatar = ParseActivityPubToAvatar(content);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded from ActivityPub successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                    }
                 }
                 else
                 {
@@ -832,16 +1221,28 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         /// </summary>
         private string ConvertAvatarToActivityPub(IAvatar avatar)
         {
-            // This would create proper ActivityPub JSON representation
-            // For now, return a basic JSON structure
-            return $@"{{
-                ""@context"": ""https://www.w3.org/ns/activitystreams"",
-                ""type"": ""Person"",
-                ""id"": ""{avatar.Id}"",
-                ""name"": ""{avatar.Username}"",
-                ""email"": ""{avatar.Email}"",
-                ""published"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
-            }}";
+            try
+            {
+                // Serialize the complete Avatar object to preserve all properties
+                return JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON structure if serialization fails
+                return $@"{{
+                    ""@context"": ""https://www.w3.org/ns/activitystreams"",
+                    ""type"": ""Person"",
+                    ""id"": ""{avatar.Id}"",
+                    ""name"": ""{avatar.Username}"",
+                    ""email"": ""{avatar.Email}"",
+                    ""published"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
+                }}";
+            }
         }
 
         /// <summary>
@@ -849,9 +1250,22 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         /// </summary>
         private IAvatar ParseActivityPubToAvatar(string activityPubJson)
         {
-            // This would parse ActivityPub JSON and create Avatar object
-            // For now, return null as JSON parsing requires JSON library
-            return null;
+            try
+            {
+                // Deserialize the complete Avatar object to preserve all properties
+                var avatar = JsonSerializer.Deserialize<Avatar>(activityPubJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                // Return null if parsing fails
+                return null;
+            }
         }
 
         /// <summary>
@@ -859,16 +1273,102 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         /// </summary>
         private string ConvertAvatarDetailToActivityPub(IAvatarDetail avatarDetail)
         {
-            // This would create proper ActivityPub JSON representation for AvatarDetail
-            // For now, return a basic JSON structure
-            return $@"{{
-                ""@context"": ""https://www.w3.org/ns/activitystreams"",
-                ""type"": ""Person"",
-                ""id"": ""{avatarDetail.Id}"",
-                ""name"": ""{avatarDetail.Username}"",
-                ""email"": ""{avatarDetail.Email}"",
-                ""published"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
-            }}";
+            try
+            {
+                // Serialize the complete AvatarDetail object to preserve all properties
+                return JsonSerializer.Serialize(avatarDetail, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON structure if serialization fails
+                return $@"{{
+                    ""@context"": ""https://www.w3.org/ns/activitystreams"",
+                    ""type"": ""Person"",
+                    ""id"": ""{avatarDetail.Id}"",
+                    ""name"": ""{avatarDetail.Username}"",
+                    ""email"": ""{avatarDetail.Email}"",
+                    ""published"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
+                }}";
+            }
+        }
+
+        /// <summary>
+        /// Convert OASIS Holon to ActivityPub JSON format
+        /// </summary>
+        private string ConvertHolonToActivityPub(IHolon holon)
+        {
+            try
+            {
+                // Serialize the complete Holon object to preserve all properties
+                return JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON structure if serialization fails
+                return $@"{{
+                    ""@context"": ""https://www.w3.org/ns/activitystreams"",
+                    ""type"": ""Note"",
+                    ""id"": ""{holon.Id}"",
+                    ""content"": ""{holon.Name}"",
+                    ""published"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
+                }}";
+            }
+        }
+
+        /// <summary>
+        /// Parse ActivityPub JSON content and convert to OASIS Holon
+        /// </summary>
+        private IHolon ParseActivityPubToHolon(string activityPubJson)
+        {
+            try
+            {
+                // Deserialize the complete Holon object to preserve all properties
+                var holon = JsonSerializer.Deserialize<Holon>(activityPubJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return holon;
+            }
+            catch (Exception)
+            {
+                // Return null if parsing fails
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Parse ActivityPub JSON content and convert to OASIS Holon collection
+        /// </summary>
+        private IEnumerable<IHolon> ParseActivityPubToHolons(string activityPubJson)
+        {
+            try
+            {
+                // Deserialize the complete Holon collection to preserve all properties
+                var holons = JsonSerializer.Deserialize<IEnumerable<Holon>>(activityPubJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return holons;
+            }
+            catch (Exception)
+            {
+                // Return null if parsing fails
+                return null;
+            }
         }
 
         #endregion
