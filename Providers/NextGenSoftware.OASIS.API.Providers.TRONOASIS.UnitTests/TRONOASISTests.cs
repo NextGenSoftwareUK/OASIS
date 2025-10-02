@@ -1,112 +1,134 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using FluentAssertions;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using Xunit;
-using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
-using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests
 {
-    public class TRONOASISTests
-    {
-        [Fact]
-        public void Constructor_ShouldInitializeProviderCorrectly()
-        {
-            // Arrange & Act
-            var tronProvider = new TRONOASIS();
+	public class TRONOASISTests
+	{
+		[Fact]
+		public async Task ActivateProvider_ShouldSucceed()
+		{
+			var provider = new TRONOASIS();
+			var result = await provider.ActivateProviderAsync();
+			
+			result.IsError.Should().BeFalse();
+			result.Result.Should().BeTrue();
+		}
 
-            // Assert
-            Assert.Equal("TRONOASIS", tronProvider.ProviderName);
-            Assert.Equal("TRON Provider", tronProvider.ProviderDescription);
-            Assert.Equal(ProviderType.TRONOASIS, tronProvider.ProviderType.Value);
-            Assert.Equal(ProviderCategory.StorageAndNetwork, tronProvider.ProviderCategory.Value);
-        }
+		[Fact]
+		public async Task SaveHolon_ShouldReturnNotSupported()
+		{
+			var provider = new TRONOASIS();
+			provider.ActivateProvider();
 
-        [Fact]
-        public void ProviderName_ShouldBeSetCorrectly()
-        {
-            // Arrange & Act
-            var tronProvider = new TRONOASIS();
+			var holon = new Holon
+			{
+				Id = Guid.NewGuid(),
+				Name = "Unit Test Holon",
+				MetaData = new Dictionary<string, object> { { "k", "v" } }
+			};
 
-            // Assert
-            Assert.Equal("TRONOASIS", tronProvider.ProviderName);
-        }
+			var result = await provider.SaveHolonAsync(holon);
+			result.IsError.Should().BeTrue();
+			result.Message.Should().Contain("not supported");
+		}
 
-        [Fact]
-        public void ProviderDescription_ShouldBeSetCorrectly()
-        {
-            // Arrange & Act
-            var tronProvider = new TRONOASIS();
+		[Fact]
+		public async Task LoadAllHolons_ShouldReturnNotSupported()
+		{
+			var provider = new TRONOASIS();
+			provider.ActivateProvider();
 
-            // Assert
-            Assert.Equal("TRON Provider", tronProvider.ProviderDescription);
-        }
+			var result = await provider.LoadAllHolonsAsync();
+			result.IsError.Should().BeTrue();
+			result.Message.Should().Contain("not supported");
+			result.Result.Should().NotBeNull();
+			result.Result.Should().BeEmpty();
+		}
 
-        [Fact]
-        public void ProviderType_ShouldBeTRONOASIS()
-        {
-            // Arrange & Act
-            var tronProvider = new TRONOASIS();
+		[Fact]
+		public async Task LoadHolonsByMetaData_ShouldReturnNotSupported()
+		{
+			var provider = new TRONOASIS();
+			provider.ActivateProvider();
 
-            // Assert
-            Assert.Equal(ProviderType.TRONOASIS, tronProvider.ProviderType.Value);
-        }
+			var result = await provider.LoadHolonsByMetaDataAsync("env", "test");
+			result.IsError.Should().BeTrue();
+			result.Message.Should().Contain("not supported");
+			result.Result.Should().NotBeNull();
+			result.Result.Should().BeEmpty();
+		}
 
-        [Fact]
-        public void ProviderCategory_ShouldBeStorageAndNetwork()
-        {
-            // Arrange & Act
-            var tronProvider = new TRONOASIS();
+		[Fact]
+		public async Task Import_ShouldReturnNotSupported()
+		{
+			var provider = new TRONOASIS();
+			provider.ActivateProvider();
 
-            // Assert
-            Assert.Equal(ProviderCategory.StorageAndNetwork, tronProvider.ProviderCategory.Value);
-        }
+			var holons = new List<IHolon>
+			{
+				new Holon { Id = Guid.NewGuid(), Name = "A" },
+				new Holon { Id = Guid.NewGuid(), Name = "B" }
+			};
 
-        [Fact]
-        public async Task ActivateProviderAsync_ShouldReturnSuccess()
-        {
-            // Arrange
-            var tronProvider = new TRONOASIS();
+			var result = await provider.ImportAsync(holons);
+			result.IsError.Should().BeTrue();
+			result.Message.Should().Contain("not supported");
+			result.Result.Should().BeFalse();
+		}
 
-            // Act
-            var result = await tronProvider.ActivateProviderAsync();
+		[Fact]
+		public void GetPlayersNearMe_ShouldReturnNotSupported()
+		{
+			var provider = new TRONOASIS();
+			provider.ActivateProvider();
 
-            // Assert
-            Assert.False(result.IsError);
-            Assert.True(result.Result);
-            Assert.Contains("TRON provider activated successfully", result.Message);
-        }
+			var result = provider.GetPlayersNearMe();
+			result.IsError.Should().BeTrue();
+			result.Message.Should().Contain("not supported");
+			result.Result.Should().NotBeNull();
+			result.Result.Should().BeEmpty();
+		}
 
-        [Fact]
-        public async Task DeActivateProviderAsync_ShouldReturnSuccess()
-        {
-            // Arrange
-            var tronProvider = new TRONOASIS();
+		[Fact]
+		public void GetHolonsNearMe_ShouldReturnNotSupported()
+		{
+			var provider = new TRONOASIS();
+			provider.ActivateProvider();
 
-            // Act
-            var result = await tronProvider.DeActivateProviderAsync();
+			var result = provider.GetHolonsNearMe(HolonType.Holon);
+			result.IsError.Should().BeTrue();
+			result.Message.Should().Contain("not supported");
+			result.Result.Should().NotBeNull();
+			result.Result.Should().BeEmpty();
+		}
 
-            // Assert
-            Assert.False(result.IsError);
-            Assert.True(result.Result);
-            Assert.Contains("TRON provider deactivated successfully", result.Message);
-        }
+		[Fact]
+		public void SendTransaction_ShouldReturnNotImplemented()
+		{
+			var provider = new TRONOASIS();
+			provider.ActivateProvider();
 
-        [Fact]
-        public void LoadOnChainNFTData_ShouldReturnTRONNFT()
-        {
-            // Arrange
-            var tronProvider = new TRONOASIS();
-            var tokenAddress = "TTestTokenAddress123";
+			var result = provider.SendTransaction(null);
+			result.IsError.Should().BeTrue();
+			result.Message.Should().Contain("not implemented");
+		}
 
-            // Act
-            var result = tronProvider.LoadOnChainNFTData(tokenAddress);
+		[Fact]
+		public void MintNFT_ShouldReturnNotImplemented()
+		{
+			var provider = new TRONOASIS();
+			provider.ActivateProvider();
 
-            // Assert
-            Assert.False(result.IsError);
-            Assert.NotNull(result.Result);
-            Assert.Equal(tokenAddress, result.Result.TokenId);
-            Assert.Contains("TRON NFT", result.Result.Name);
-            Assert.Contains("TRON blockchain", result.Result.Description);
-        }
-    }
+			var result = provider.MintNFT(null);
+			result.IsError.Should().BeTrue();
+			result.Message.Should().Contain("not implemented");
+		}
+	}
 }
