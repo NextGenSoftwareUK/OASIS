@@ -1,13 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.API.Core.Exceptions;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -209,7 +207,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (result.IsError)
                     return BadRequest(result);
 
-                var filteredMissions = result.Result?.Where(m => m.MissionType.ToString() == type);
+                var filteredMissions = result.Result?.Where(m => Enum.GetName(typeof(MissionType), m.MissionType) == type);
                 return Ok(new OASISResult<IEnumerable<Mission>>
                 {
                     Result = filteredMissions,

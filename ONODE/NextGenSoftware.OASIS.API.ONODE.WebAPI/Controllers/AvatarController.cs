@@ -36,7 +36,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private AvatarManager AvatarManager => Program.AvatarManager;
         
         // Temporary service access for methods not yet migrated (being phased out)
-        private IAvatarService _avatarService => Program.AvatarService;
+        // Note: AvatarService is being phased out, use AvatarManager directly
+        // private IAvatarService _avatarService => Program.AvatarService;
         
         public AvatarController()
         {
@@ -56,14 +57,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             // Call AvatarManager directly
             var result = await AvatarManager.RegisterAsync(
-                model.AvatarTitle,
+                model.Title,
                 model.FirstName,
                 model.LastName,
                 model.Email,
                 model.Password,
                 model.Username,
                 model.AvatarType != null ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType) : AvatarType.User,
-                OASISType.ONODE
+                OASISType.OASISAPIREST
             );
             
             return HttpResponseHelper.FormatResponse(result);
@@ -242,7 +243,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("authenticate-token/{JWTToken}")]
         public async Task<OASISHttpResponseMessage<string>> Authenticate(string JWTToken)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.ValidateAccountToken(JWTToken));
+            // TODO: Implement ValidateAccountTokenAsync in AvatarManager or use alternative method
+            return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "ValidateAccountTokenAsync not yet implemented in AvatarManager" });
         }
 
         /// <summary>
@@ -431,7 +433,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("create/{model}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> Create(CreateRequest model)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.Create(model));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "AvatarService.Create not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -460,7 +463,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-terms")]
         public async Task<OASISHttpResponseMessage<string>> GetTerms()
         {
-            return HttpResponseHelper.FormatResponse(new OASISResult<string> { Result = OASISDNA.OASIS.Terms });
+            return HttpResponseHelper.FormatResponse(new OASISResult<string> { Result = OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Terms });
         }
 
         /// <summary>
@@ -477,7 +480,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarPortraitById(id));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait> { IsError = true, Message = "AvatarService.GetAvatarPortraitById not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -511,7 +515,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarPortraitByUsername(username));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait> { IsError = true, Message = "AvatarService.GetAvatarPortraitByUsername not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -544,7 +549,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarPortraitByEmail(email));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait> { IsError = true, Message = "AvatarService.GetAvatarPortraitByEmail not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -578,7 +584,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (avatarPortrait.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<bool>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.UploadAvatarPortrait(avatarPortrait));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "AvatarService.UploadAvatarPortrait not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -1383,7 +1390,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-uma-json-by-id/{id}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonById(Guid id)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarUmaJsonById(id));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "AvatarService.GetAvatarUmaJsonById not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -1413,7 +1421,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-uma-json-by-username/{username}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByUsername(string username)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarUmaJsonByUsername(username));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "AvatarService.GetAvatarUmaJsonByUsername not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -1443,7 +1452,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-uma-json-by-email/{email}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByEmail(string email)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarUmaJsonByEmail(email));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "AvatarService.GetAvatarUmaJsonByEmail not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -1771,7 +1781,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{id:Guid}/{telosAccountName}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> LinkTelosAccountToAvatar(Guid id, string telosAccountName)
         {
-            return await _avatarService.LinkProviderKeyToAvatar(id, ProviderType.TelosOASIS, telosAccountName);
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "AvatarService.LinkProviderKeyToAvatar not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -1785,8 +1796,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> LinkTelosAccountToAvatar2(
             LinkProviderKeyToAvatar linkProviderKeyToAvatar)
         {
-            return await _avatarService.LinkProviderKeyToAvatar(linkProviderKeyToAvatar.AvatarID,
-                ProviderType.TelosOASIS, linkProviderKeyToAvatar.ProviderUniqueStorageKey);
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "AvatarService.LinkProviderKeyToAvatar not yet migrated to AvatarManager" });
         }
 
 
@@ -1800,7 +1811,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{eosioAccountName}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
         {
-            return await _avatarService.LinkProviderKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "AvatarService.LinkProviderKeyToAvatar not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -1814,7 +1826,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> LinkHolochainAgentIDToAvatar(Guid avatarId,
             string holochainAgentID)
         {
-            return await _avatarService.LinkProviderKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentID);
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "AvatarService.LinkProviderKeyToAvatar not yet migrated to AvatarManager" });
         }*/
 
         ///// <summary>
