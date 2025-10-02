@@ -229,13 +229,6 @@ export default function PageContent() {
                     setAuthToken(token);
                     if (avatarId) setAvatarId(avatarId);
                   }}
-                  onSuccess={() => {
-                    const currentIndex = WIZARD_STEPS.findIndex((step) => step.id === "auth");
-                    const nextStep = WIZARD_STEPS[currentIndex + 1];
-                    if (nextStep) {
-                      setActiveStep(nextStep.id);
-                    }
-                  }}
                 />
               </div>
               <div>
@@ -290,12 +283,7 @@ export default function PageContent() {
             </div>
           ) : null}
           {activeStep === "assets" ? (
-            <AssetUploadPanel
-              value={assetDraft}
-              onChange={setAssetDraft}
-              token={authToken ?? undefined}
-              onNext={() => setActiveStep("mint")}
-            />
+            <AssetUploadPanel value={assetDraft} onChange={setAssetDraft} token={authToken ?? undefined} />
           ) : null}
           {activeStep === "mint" ? (
             <div className="space-y-8">

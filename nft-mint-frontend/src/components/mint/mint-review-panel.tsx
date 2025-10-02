@@ -5,6 +5,7 @@ import { AssetDraft } from "@/components/assets/asset-upload-panel";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useOasisApi } from "@/hooks/use-oasis-api";
+import React from "react";
 
 const SOLANA_ONCHAIN = { value: 3, name: "SolanaOASIS" } as const;
 const MONGO_OFFCHAIN = { value: 23, name: "MongoDBOASIS" } as const;
@@ -31,6 +32,7 @@ export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMin
   const [minting, setMinting] = useState(false);
   const [mintResult, setMintResult] = useState<unknown>(null);
   const [mintError, setMintError] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const { call } = useOasisApi({ baseUrl, token });
 
@@ -154,6 +156,7 @@ export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMin
                 }
                 onStatusChange?.("ready");
                 onMintSuccess?.(response);
+                setShowSuccessModal(true);
               } catch (error: unknown) {
                 const message = error instanceof Error ? error.message : "Minting failed";
                 setMintError(message);
@@ -170,17 +173,13 @@ export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMin
           </Button>
         </div>
         {mintError ? <p className="text-xs text-[var(--negative)]">{mintError}</p> : null}
-        {mintResult ? (
-          <div className="rounded-xl border border-[var(--color-positive)]/60 bg-[rgba(16,84,60,0.3)] p-3 text-sm text-[var(--color-positive)]">
-            Mint request submitted successfully. Response payload shown below.
-          </div>
-        ) : null}
-        {mintResult ? (
-          <pre className="max-h-60 overflow-auto rounded-xl border border-[var(--color-card-border)]/40 bg-[rgba(4,8,20,0.9)] p-4 text-xs text-[var(--muted)]">
-{JSON.stringify(mintResult, null, 2)}
-          </pre>
-        ) : null}
       </div>
+      {showSuccessModal ? (
+        <MintSuccessModal
+          onClose={() => setShowSuccessModal(false)}
+          response={mintResult}
+        />
+      ) : null}
     </div>
   );
 }
@@ -222,4 +221,28 @@ function SummaryField({ label, value, multiline }: { label: string; value: strin
 function renderSource(url?: string, data?: string) {
   if (data) return "Upload (Pinata)";
   return url || "—";
+}
+
+function MintSuccessModal({ onClose }: { onClose: () => void; response: unknown }) {
+  React.useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-3xl border border-[var(--color-card-border)]/60 bg-[rgba(6,11,26,0.95)] p-8 text-center">
+        <h3 className="text-2xl font-semibold text-[var(--color-foreground)]">Mint successful!</h3>
+        <p className="mt-3 text-sm text-[var(--muted)]">Check wallet for NFT</p>
+        <div className="mt-6 flex flex-col gap-3">
+          <Button variant="primary" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }
