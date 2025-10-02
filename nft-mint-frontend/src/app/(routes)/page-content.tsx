@@ -231,7 +231,7 @@ export default function PageContent() {
             </div>
           ) : null}
           {activeStep === "assets" ? (
-            <AssetUploadPanel value={assetDraft} onChange={setAssetDraft} baseUrl={baseUrl} token={authToken ?? undefined} />
+            <AssetUploadPanel value={assetDraft} onChange={setAssetDraft} token={authToken ?? undefined} />
           ) : null}
           {activeStep === "mint" ? (
             <div className="space-y-8">
