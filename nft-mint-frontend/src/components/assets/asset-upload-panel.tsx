@@ -348,6 +348,15 @@ function UploadTile({
   onSelect: (file: File | null) => void;
 }) {
   const inputId = `${label.toLowerCase().replace(/\s+/g, "-")}-upload`;
+  const successMessage = label.toLowerCase().includes("thumbnail") ? "Thumbnail uploaded" : "Image uploaded";
+  let statusMessage = "No file selected";
+
+  if (uploading) {
+    statusMessage = fileName ? `Uploading ${fileName}...` : "Uploading...";
+  } else if (hasPayload) {
+    statusMessage = successMessage;
+  }
+
   return (
     <label
       htmlFor={inputId}
@@ -358,7 +367,7 @@ function UploadTile({
         <p className="mt-1 text-xs text-[var(--muted)]">{description}</p>
       </div>
       <div className="mt-6 rounded-xl bg-[rgba(4,8,20,0.8)] px-4 py-3 text-xs text-[var(--muted)]">
-        {fileName ? <span>{fileName}</span> : <span>No file selected</span>}
+        <span>{statusMessage}</span>
       </div>
       {uploading ? (
         <span className="mt-3 text-[10px] uppercase tracking-[0.35em] text-[var(--accent)]">Uploading...</span>
