@@ -1,0 +1,55 @@
+{
+  "name": "@oasis/webui-devkit-nextjs",
+  "version": "1.0.0",
+  "description": "OASIS Web UI Development Kit for Next.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./server": {
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.js",
+      "types": "./dist/server.d.ts"
+    },
+    "./middleware": {
+      "import": "./dist/middleware.mjs",
+      "require": "./dist/middleware.js",
+      "types": "./dist/middleware.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "jest"
+  },
+  "keywords": [
+    "oasis",
+    "nextjs",
+    "react",
+    "server-components",
+    "web3"
+  ],
+  "author": "OASIS Network",
+  "license": "MIT",
+  "peerDependencies": {
+    "next": "^13.4.0 || ^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "dependencies": {
+    "@oasis/api-client": "^2.0.0",
+    "react-query": "^3.39.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "tsup": "^7.0.0",
+    "typescript": "^5.0.0"
+  }
+}
+

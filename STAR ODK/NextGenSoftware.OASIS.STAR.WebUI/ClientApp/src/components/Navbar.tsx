@@ -164,30 +164,79 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
           >
             {/* STAR Logo */}
             <img 
-              src="/star-logo.png" 
+              src="/star-logo-navbar.png" 
               alt="STAR Logo" 
               style={{ 
-                height: '40px', 
+                height: '50px', 
                 width: 'auto',
-                marginRight: '12px',
+                marginRight: '2px',
                 filter: 'drop-shadow(0 0 10px rgba(0, 188, 212, 0.3))'
               }}
-            />
-            <Typography 
-              variant="h6" 
-              noWrap 
-              component="div"
-              sx={{ 
-                fontWeight: 300,
-                background: 'linear-gradient(45deg, #00bcd4, #ff4081)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                mr: 2,
-              }}
-            >
-              STARNET
-            </Typography>
+                      />
+
+                      <img
+                          src="/STARNET.png"
+                          alt="STAR NET Logo"
+                          style={{
+                              height: '50px',
+                              width: 'auto',
+                              marginRight: '2px'
+                          }}
+                      />
+
+                       {/*<motion.div*/}
+                       {/*    style={{*/}
+                       {/*        position: 'relative',*/}
+                       {/*        display: 'inline-block'*/}
+                       {/*    }}*/}
+                       {/*    animate={{*/}
+                       {/*        textShadow: [*/}
+                       {/*            '0 0 15px rgba(0, 188, 212, 0.6)',*/}
+                       {/*            '0 0 25px rgba(0, 188, 212, 0.8)',*/}
+                       {/*            '0 0 15px rgba(0, 188, 212, 0.6)'*/}
+                       {/*        ]*/}
+                       {/*    }}*/}
+                       {/*    transition={{*/}
+                       {/*        duration: 2,*/}
+                       {/*        repeat: Infinity,*/}
+                       {/*        ease: 'easeInOut'*/}
+                       {/*    }}*/}
+                       {/*>*/}
+                       {/*    <Typography */}
+                       {/*        variant="h6" */}
+                       {/*        noWrap */}
+                       {/*        component="div"*/}
+                       {/*        sx={{ */}
+                       {/*            fontWeight: 700,*/}
+                       {/*            fontSize: '1.5rem',*/}
+                       {/*            background: 'linear-gradient(45deg, #00bcd4, #ff4081)',*/}
+                       {/*            backgroundClip: 'text',*/}
+                       {/*            WebkitBackgroundClip: 'text',*/}
+                       {/*            WebkitTextFillColor: 'transparent',*/}
+                       {/*            mr: 2,*/}
+                       {/*            fontFamily: 'monospace',*/}
+                       {/*            letterSpacing: '0.1em'*/}
+                       {/*        }}*/}
+                       {/*    >*/}
+                       {/*        STARNET*/}
+                       {/*    </Typography>*/}
+                       {/*</motion.div>*/}
+                      
+            {/*<Typography */}
+            {/*  variant="h6" */}
+            {/*  noWrap */}
+            {/*  component="div"*/}
+            {/*  sx={{ */}
+            {/*    fontWeight: 300,*/}
+            {/*    background: 'linear-gradient(45deg, #00bcd4, #ff4081)',*/}
+            {/*    backgroundClip: 'text',*/}
+            {/*    WebkitBackgroundClip: 'text',*/}
+            {/*    WebkitTextFillColor: 'transparent',*/}
+            {/*    mr: 2,*/}
+            {/*  }}*/}
+            {/*>*/}
+            {/*  STARNET*/}
+            {/*</Typography>*/}
           </motion.div>
 
           <Chip

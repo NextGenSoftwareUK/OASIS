@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OASIS Avatar SSO Widget</title>
+    <style>
+        .oasis-sso-widget {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            color: white;
+        }
+        
+        .oasis-sso-widget h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .oasis-sso-input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background: rgba(255,255,255,0.9);
+            transition: all 0.3s ease;
+        }
+        
+        .oasis-sso-input:focus {
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+        }
+        
+        .oasis-sso-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .oasis-sso-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(245,87,108,0.4);
+        }
+        
+        .oasis-sso-button:active {
+            transform: translateY(0);
+        }
+        
+        .oasis-provider-select {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background: rgba(255,255,255,0.9);
+            cursor: pointer;
+        }
+        
+        .oasis-sso-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .oasis-sso-footer a {
+            color: white;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="oasis-sso-widget">
+        <h2>🌟 OASIS Avatar SSO</h2>
+        
+        <input type="text" class="oasis-sso-input" id="username" placeholder="Avatar Username" />
+        <input type="password" class="oasis-sso-input" id="password" placeholder="Password" />
+        
+        <select class="oasis-provider-select" id="provider">
+            <option value="Auto">Auto (Recommended)</option>
+            <option value="MongoDBOASIS">MongoDB</option>
+            <option value="IPFSOASIS">IPFS</option>
+            <option value="EthereumOASIS">Ethereum</option>
+            <option value="SolanaOASIS">Solana</option>
+            <option value="EOSIOOASIS">EOSIO</option>
+            <option value="TelosOASIS">Telos</option>
+        </select>
+        
+        <button class="oasis-sso-button" onclick="login()">Beam In 🚀</button>
+        
+        <div class="oasis-sso-footer">
+            New to OASIS? <a href="#">Create Avatar</a>
+        </div>
+    </div>
+
+    <script src="avatar-sso-client.js"></script>
+    <script>
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const provider = document.getElementById('provider').value;
+            
+            const sso = new OasisAvatarSSO({
+                apiUrl: 'https://api.oasis.network',
+                provider: provider
+            });
+            
+            try {
+                const result = await sso.login(username, password);
+                console.log('Login successful:', result);
+                // Redirect or handle success
+                window.location.href = '/dashboard';
+            } catch (error) {
+                console.error('Login failed:', error);
+                alert('Login failed. Please check your credentials.');
+            }
+        }
+    </script>
+</body>
+</html>
+
