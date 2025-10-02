@@ -52,7 +52,7 @@ The OASIS consists of two main layers:
   - Identity & authentication system
   - Karma & reputation management
 
-### WEB5 STAR Web API - Gamification & Business Layer
+### WEB5 STAR API - Gamification & Business Layer
 - **Purpose**: Gamification, metaverse, and business use cases
 - **Innovation**: STAR ODK (Omniverse Interoperable Metaverse Low Code Generator)
 - **Location**: `STAR ODK/` namespace
@@ -181,6 +181,7 @@ Never need to learn new tech stacks again:
 - Universal API abstraction layer
 - HOT swappable plugin architecture
 - Write once, deploy everywhere (OAPPs)
+- Free upgrades for life as new chains and providers are added no need to change any OAPP code.
 - Backward compatibility guarantees
 
 ### 5. **Comprehensive Karma & Reputation System**
@@ -203,6 +204,7 @@ Visual development tools for metaverse creation:
 - Pre-built UI components library
 - Automated deployment pipelines
 - Cross-platform compatibility
+- STAR CLI Low/No code generator wizards and templating system.
 
 ### 8. **Complete Smart Contract Interoperability**
 - Deploy contracts on any supported network
@@ -314,14 +316,9 @@ Sophisticated tokenomics with:
 - **[GitHub Wiki](https://github.com/NextGenSoftwareUK/OASIS/wiki)** - Comprehensive Wiki documentation
 - **[Wiki Documentation Index](./Docs/Devs/WIKI_DOCUMENTATION_INDEX.md)** - Complete index of all Wiki resources
 - **[Architecture Diagrams](./Docs/Devs/OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual architecture diagrams and system overviews
-- **[Development Context](./Docs/Devs/AI%20Context/DEVELOPMENT_CONTEXT.md)** - Development lessons learned and best practices
-- **[Unity Integration Best Practices](./Docs/Devs/AI%20Context/OASIS_Best_Practices_Unity_Integration.md)** - Unity integration guidelines and refactoring strategies
-- **[Developer Preferences](./Docs/Devs/AI%20Context/DEVELOPPER_PREFERENCES.md)** - Development workflow and preferences
-- **[AI Consciousness Conversation](./Docs/Devs/AI%20Context/AI_Consciousness_Conversation_Transcript.md)** - AI collaboration insights
-- **[Respectful AI Collaboration](./Docs/Devs/AI%20Context/Respectful_AI_Collaboration_Blog_Post.md)** - AI-human collaboration principles
 
 ### Historical Documentation
-- **[Original README (README_OLD.md)](./README_OLD.md)** - Historical documentation showing the evolution of OASIS from its early vision to current implementation. This comprehensive document contains the original vision, detailed feature descriptions, and the complete journey of OASIS development. Perfect for understanding the history, philosophy, and evolution of the OASIS project.
+- **[Original README](./README_OLD.md)** - Historical documentation showing the evolution of OASIS from its early vision to current implementation. This comprehensive document contains the original vision, detailed feature descriptions, and the complete journey of OASIS development. Perfect for understanding the history, philosophy, and evolution of the OASIS project.
 
 ## 🚀 The OASIS Journey
 
@@ -329,10 +326,10 @@ OASIS represents the culmination of years of research, development, and vision. 
 
 ### Key Milestones
 - **2017-2020**: Initial vision and architecture design
-- **2020-2022**: Core API development and provider integration
-- **2022-2023**: WEB4 OASIS API implementation and testing
-- **2023-2024**: WEB5 STAR ODK development and metaverse integration
-- **2024-Present**: Full ecosystem deployment and community building
+- **2019-2022**: Core API development and provider integration
+- **2020-2023**: WEB4 OASIS API implementation and testing
+- **2021-2025**: WEB5 STAR ODK development and metaverse integration
+- **2021-Present**: Full ecosystem deployment and community building
 
 ### Evolution Highlights
 - **From Concept to Reality**: What started as a vision for universal connectivity has become a working system
@@ -340,7 +337,7 @@ OASIS represents the culmination of years of research, development, and vision. 
 - **Community Growth**: Built a global community of developers, users, and contributors
 - **Innovation Leadership**: Pioneered auto-failover technology and universal data aggregation
 
-*For the complete story of OASIS development, philosophy, and vision, see the [Original README](./README_backup.md).*
+*For the complete story of OASIS development, philosophy, and vision, see the [Original README](./README_OLD.md).*
 
 ## 🚀 Getting Started
 
@@ -438,7 +435,7 @@ This project is licensed under the MIT License - see the [LICENSE](./Docs/LICENS
 ### Community Support
 - **Telegram**: [Join our community](https://t.me/ourworldthegamechat)
 - **Discord**: [Discord Server](https://discord.gg/oasis)
-- **GitHub Issues**: [Report bugs or request features](https://github.com/OASIS/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/NextGenSoftwareUk/OASIS/issues)
 
 ### Enterprise Support
 For enterprise support and consulting services, please contact us at:
