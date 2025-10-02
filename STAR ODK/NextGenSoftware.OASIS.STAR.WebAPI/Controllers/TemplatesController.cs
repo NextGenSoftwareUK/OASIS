@@ -10,6 +10,10 @@ using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Templates management endpoints for creating, updating, and managing STAR templates.
+    /// Templates represent reusable code patterns, configurations, and project structures within the STAR ecosystem.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class TemplatesController : STARControllerBase
@@ -36,7 +40,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific template by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the template to retrieve.</param>
+        /// <returns>The requested template details.</returns>
+        /// <response code="200">Template retrieved successfully</response>
+        /// <response code="400">Error retrieving template</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetTemplate(Guid id)
         {
             try
@@ -55,7 +68,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates a new template for the authenticated avatar.
+        /// </summary>
+        /// <param name="request">The template creation request details.</param>
+        /// <returns>The created template with assigned ID and metadata.</returns>
+        /// <response code="200">Template created successfully</response>
+        /// <response code="400">Error creating template</response>
         [HttpPost]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateTemplate([FromBody] CreateTemplateRequest request)
         {
             try

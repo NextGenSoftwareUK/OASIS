@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
@@ -841,7 +842,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
         #region IOASISStorageProvider Holon Methods
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, int version = 0)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IHolon>();
 
@@ -886,12 +887,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return response;
         }
 
-        public override OASISResult<IHolon> LoadHolon(Guid id, int version = 0)
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonAsync(id, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonByProviderKeyAsync(string providerKey, int version = 0)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IHolon>();
 
@@ -936,12 +937,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return response;
         }
 
-        public override OASISResult<IHolon> LoadHolonByProviderKey(string providerKey, int version = 0)
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonByProviderKeyAsync(providerKey, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
 
@@ -986,12 +987,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return response;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadAllHolonsAsync(version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var response = new OASISResult<IHolon>();
 
@@ -1029,12 +1030,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return response;
         }
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             return SaveHolonAsync(holon).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var response = new OASISResult<bool>();
 
@@ -1070,12 +1071,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return response;
         }
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
             return DeleteHolonAsync(id, softDelete).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
             var response = new OASISResult<bool>();
 
@@ -1111,7 +1112,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return response;
         }
 
-        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
             return DeleteHolonAsync(providerKey, softDelete).Result;
         }

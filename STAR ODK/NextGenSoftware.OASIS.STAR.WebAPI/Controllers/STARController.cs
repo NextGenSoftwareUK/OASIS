@@ -6,6 +6,10 @@ using NextGenSoftware.OASIS.API.Core.Exceptions;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// STAR system management endpoints for controlling the STAR API lifecycle.
+    /// Provides endpoints for checking status, igniting (starting), and extinguishing (stopping) the STAR system.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class STARController : ControllerBase
@@ -29,7 +33,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             return _starAPI;
         }
 
+        /// <summary>
+        /// Retrieves the current status of the STAR system.
+        /// </summary>
+        /// <returns>The current ignition status of the STAR system.</returns>
+        /// <response code="200">Status retrieved successfully</response>
+        /// <response code="400">Error retrieving status</response>
         [HttpGet("status")]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
         public IActionResult GetStatus()
         {
             try
@@ -47,7 +59,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Ignites (starts) the STAR system with optional authentication credentials.
+        /// </summary>
+        /// <param name="request">Optional authentication request with username and password.</param>
+        /// <returns>Result of the STAR ignition process.</returns>
+        /// <response code="200">STAR ignition completed (success or failure)</response>
         [HttpPost("ignite")]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         public async Task<IActionResult> IgniteSTAR([FromBody] IgniteRequest? request = null)
         {
             try
@@ -87,7 +106,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Extinguishes (stops) the STAR system.
+        /// </summary>
+        /// <returns>Result of the STAR extinguishing process.</returns>
+        /// <response code="200">STAR extinguishing completed (success or failure)</response>
         [HttpPost("extinguish")]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         public async Task<IActionResult> ExtinguishSTAR()
         {
             try
@@ -119,7 +144,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Beams in (authenticates) an avatar to the STAR system.
+        /// </summary>
+        /// <param name="request">Authentication request with username and password.</param>
+        /// <returns>Result of the beam-in process.</returns>
+        /// <response code="200">Beam-in completed (success or failure)</response>
         [HttpPost("beam-in")]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         public async Task<IActionResult> BeamIn([FromBody] BeamInRequest request)
         {
             try

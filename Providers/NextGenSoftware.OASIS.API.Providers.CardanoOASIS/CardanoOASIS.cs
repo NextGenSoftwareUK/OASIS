@@ -240,6 +240,148 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
 
         #endregion
 
+        #region Serialization Methods
+
+        /// <summary>
+        /// Parse Cardano blockchain response to Avatar object
+        /// </summary>
+        private Avatar ParseCardanoToAvatar(string cardanoJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar object from Cardano JSON
+                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(cardanoJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                // If JSON deserialization fails, try to extract basic info
+                return CreateAvatarFromCardano(cardanoJson);
+            }
+        }
+
+        /// <summary>
+        /// Create Avatar from Cardano response when JSON deserialization fails
+        /// </summary>
+        private Avatar CreateAvatarFromCardano(string cardanoJson)
+        {
+            try
+            {
+                // Extract basic information from Cardano JSON response
+                var avatar = new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = ExtractCardanoProperty(cardanoJson, "stake_address") ?? "cardano_user",
+                    Email = ExtractCardanoProperty(cardanoJson, "email") ?? "user@cardano.example",
+                    FirstName = ExtractCardanoProperty(cardanoJson, "first_name"),
+                    LastName = ExtractCardanoProperty(cardanoJson, "last_name"),
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow
+                };
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extract property value from Cardano JSON response
+        /// </summary>
+        private string ExtractCardanoProperty(string cardanoJson, string propertyName)
+        {
+            try
+            {
+                // Simple regex-based extraction for Cardano properties
+                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
+                var match = System.Text.RegularExpressions.Regex.Match(cardanoJson, pattern);
+                return match.Success ? match.Groups[1].Value : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert Avatar to Cardano blockchain format
+        /// </summary>
+        private string ConvertAvatarToCardano(IAvatar avatar)
+        {
+            try
+            {
+                // Serialize Avatar to JSON with Cardano blockchain structure
+                var cardanoData = new
+                {
+                    stake_address = avatar.Username,
+                    email = avatar.Email,
+                    first_name = avatar.FirstName,
+                    last_name = avatar.LastName,
+                    created = avatar.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(cardanoData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        /// <summary>
+        /// Convert Holon to Cardano blockchain format
+        /// </summary>
+        private string ConvertHolonToCardano(IHolon holon)
+        {
+            try
+            {
+                // Serialize Holon to JSON with Cardano blockchain structure
+                var cardanoData = new
+                {
+                    id = holon.Id.ToString(),
+                    type = holon.HolonType.ToString(),
+                    name = holon.Name,
+                    description = holon.Description,
+                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(cardanoData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        #endregion
+
         #region IDisposable
 
         public void Dispose()

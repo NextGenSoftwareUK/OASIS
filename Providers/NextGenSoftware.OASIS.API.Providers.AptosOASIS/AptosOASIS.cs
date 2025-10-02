@@ -240,6 +240,148 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
         #endregion
 
+        #region Serialization Methods
+
+        /// <summary>
+        /// Parse Aptos blockchain response to Avatar object
+        /// </summary>
+        private Avatar ParseAptosToAvatar(string aptosJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar object from Aptos JSON
+                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(aptosJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                // If JSON deserialization fails, try to extract basic info
+                return CreateAvatarFromAptos(aptosJson);
+            }
+        }
+
+        /// <summary>
+        /// Create Avatar from Aptos response when JSON deserialization fails
+        /// </summary>
+        private Avatar CreateAvatarFromAptos(string aptosJson)
+        {
+            try
+            {
+                // Extract basic information from Aptos JSON response
+                var avatar = new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = ExtractAptosProperty(aptosJson, "address") ?? "aptos_user",
+                    Email = ExtractAptosProperty(aptosJson, "email") ?? "user@aptos.example",
+                    FirstName = ExtractAptosProperty(aptosJson, "first_name"),
+                    LastName = ExtractAptosProperty(aptosJson, "last_name"),
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow
+                };
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extract property value from Aptos JSON response
+        /// </summary>
+        private string ExtractAptosProperty(string aptosJson, string propertyName)
+        {
+            try
+            {
+                // Simple regex-based extraction for Aptos properties
+                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
+                var match = System.Text.RegularExpressions.Regex.Match(aptosJson, pattern);
+                return match.Success ? match.Groups[1].Value : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert Avatar to Aptos blockchain format
+        /// </summary>
+        private string ConvertAvatarToAptos(IAvatar avatar)
+        {
+            try
+            {
+                // Serialize Avatar to JSON with Aptos blockchain structure
+                var aptosData = new
+                {
+                    address = avatar.Username,
+                    email = avatar.Email,
+                    first_name = avatar.FirstName,
+                    last_name = avatar.LastName,
+                    created = avatar.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(aptosData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        /// <summary>
+        /// Convert Holon to Aptos blockchain format
+        /// </summary>
+        private string ConvertHolonToAptos(IHolon holon)
+        {
+            try
+            {
+                // Serialize Holon to JSON with Aptos blockchain structure
+                var aptosData = new
+                {
+                    id = holon.Id.ToString(),
+                    type = holon.HolonType.ToString(),
+                    name = holon.Name,
+                    description = holon.Description,
+                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(aptosData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        #endregion
+
         #region IDisposable
 
         public void Dispose()

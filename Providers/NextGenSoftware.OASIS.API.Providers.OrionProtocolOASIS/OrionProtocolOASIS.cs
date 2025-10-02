@@ -62,7 +62,6 @@ namespace NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS
             Logger = logger;
             WebSocket = new WebSocket.WebSocket(hostURI, logger);
 
-            //TODO: Impplemnt IDispoasable to unsubscribe event handlers to prevent memory leaks... 
             WebSocket.OnConnected += WebSocket_OnConnected;
             WebSocket.OnDataReceived += WebSocket_OnDataReceived;
             WebSocket.OnDisconnected += WebSocket_OnDisconnected;

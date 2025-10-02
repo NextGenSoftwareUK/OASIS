@@ -240,6 +240,148 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         #endregion
 
+        #region Serialization Methods
+
+        /// <summary>
+        /// Parse Polkadot blockchain response to Avatar object
+        /// </summary>
+        private Avatar ParsePolkadotToAvatar(string polkadotJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar object from Polkadot JSON
+                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(polkadotJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                // If JSON deserialization fails, try to extract basic info
+                return CreateAvatarFromPolkadot(polkadotJson);
+            }
+        }
+
+        /// <summary>
+        /// Create Avatar from Polkadot response when JSON deserialization fails
+        /// </summary>
+        private Avatar CreateAvatarFromPolkadot(string polkadotJson)
+        {
+            try
+            {
+                // Extract basic information from Polkadot JSON response
+                var avatar = new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = ExtractPolkadotProperty(polkadotJson, "address") ?? "polkadot_user",
+                    Email = ExtractPolkadotProperty(polkadotJson, "email") ?? "user@polkadot.example",
+                    FirstName = ExtractPolkadotProperty(polkadotJson, "first_name"),
+                    LastName = ExtractPolkadotProperty(polkadotJson, "last_name"),
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow
+                };
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extract property value from Polkadot JSON response
+        /// </summary>
+        private string ExtractPolkadotProperty(string polkadotJson, string propertyName)
+        {
+            try
+            {
+                // Simple regex-based extraction for Polkadot properties
+                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
+                var match = System.Text.RegularExpressions.Regex.Match(polkadotJson, pattern);
+                return match.Success ? match.Groups[1].Value : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert Avatar to Polkadot blockchain format
+        /// </summary>
+        private string ConvertAvatarToPolkadot(IAvatar avatar)
+        {
+            try
+            {
+                // Serialize Avatar to JSON with Polkadot blockchain structure
+                var polkadotData = new
+                {
+                    address = avatar.Username,
+                    email = avatar.Email,
+                    first_name = avatar.FirstName,
+                    last_name = avatar.LastName,
+                    created = avatar.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(polkadotData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        /// <summary>
+        /// Convert Holon to Polkadot blockchain format
+        /// </summary>
+        private string ConvertHolonToPolkadot(IHolon holon)
+        {
+            try
+            {
+                // Serialize Holon to JSON with Polkadot blockchain structure
+                var polkadotData = new
+                {
+                    id = holon.Id.ToString(),
+                    type = holon.HolonType.ToString(),
+                    name = holon.Name,
+                    description = holon.Description,
+                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(polkadotData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        #endregion
+
         #region IDisposable
 
         public void Dispose()

@@ -6,13 +6,25 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Runtimes management endpoints for creating, updating, and managing STAR runtimes.
+    /// Runtimes represent execution environments and runtime configurations within the STAR ecosystem.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class RuntimesController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all runtimes in the system.
+        /// </summary>
+        /// <returns>List of all runtimes available in the STAR system.</returns>
+        /// <response code="200">Runtimes retrieved successfully</response>
+        /// <response code="400">Error retrieving runtimes</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllRuntimes()
         {
             try
@@ -31,7 +43,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific runtime by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the runtime to retrieve.</param>
+        /// <returns>The requested runtime details.</returns>
+        /// <response code="200">Runtime retrieved successfully</response>
+        /// <response code="400">Error retrieving runtime</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetRuntime(Guid id)
         {
             try
@@ -50,7 +71,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates a new runtime for the authenticated avatar.
+        /// </summary>
+        /// <param name="request">The runtime creation request details.</param>
+        /// <returns>The created runtime with assigned ID and metadata.</returns>
+        /// <response code="200">Runtime created successfully</response>
+        /// <response code="400">Error creating runtime</response>
         [HttpPost]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateRuntime([FromBody] CreateRuntimeRequest request)
         {
             try

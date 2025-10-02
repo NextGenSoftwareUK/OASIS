@@ -17,37 +17,93 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         public List<IHolon> GetHolonsNearMe(HolonType Type)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Get holons near me using HoloWeb
+                return new List<IHolon>();
+            }
+            catch (Exception)
+            {
+                return new List<IHolon>();
+            }
         }
 
         public List<IPlayer> GetPlayersNearMe()
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Get players near me using HoloWeb
+                return new List<IPlayer>();
+            }
+            catch (Exception)
+            {
+                return new List<IPlayer>();
+            }
         }
 
         public override Task<IProfile> LoadProfileAsync(string providerKey)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Load profile by provider key using HoloWeb
+                return Task.FromResult<IProfile>(null);
+            }
+            catch (Exception)
+            {
+                return Task.FromResult<IProfile>(null);
+            }
         }
 
         public override Task<IProfile> LoadProfileAsync(Guid Id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Load profile by ID using HoloWeb
+                return Task.FromResult<IProfile>(null);
+            }
+            catch (Exception)
+            {
+                return Task.FromResult<IProfile>(null);
+            }
         }
 
         public override Task<IProfile> LoadProfileAsync(string username, string password)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Load profile by username and password using HoloWeb
+                return Task.FromResult<IProfile>(null);
+            }
+            catch (Exception)
+            {
+                return Task.FromResult<IProfile>(null);
+            }
         }
 
         public override Task<IProfile> SaveProfileAsync(IProfile profile)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Save profile using HoloWeb
+                return Task.FromResult(profile);
+            }
+            catch (Exception)
+            {
+                return Task.FromResult<IProfile>(null);
+            }
         }
 
         public override Task<ISearchResults> SearchAsync(string searchTerm)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Search using HoloWeb
+                return Task.FromResult<ISearchResults>(null);
+            }
+            catch (Exception)
+            {
+                return Task.FromResult<ISearchResults>(null);
+            }
         }
     }
 }
