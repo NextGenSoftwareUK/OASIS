@@ -11,13 +11,25 @@ using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Zomes management endpoints for creating, updating, and managing STAR zomes.
+    /// Zomes represent Holochain applications and distributed computing modules within the STAR ecosystem.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class ZomesController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all zomes in the system.
+        /// </summary>
+        /// <returns>List of all zomes available in the STAR system.</returns>
+        /// <response code="200">Zomes retrieved successfully</response>
+        /// <response code="400">Error retrieving zomes</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARZome>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARZome>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllZomes()
         {
             try
@@ -36,7 +48,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific zome by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the zome to retrieve.</param>
+        /// <returns>The requested zome details.</returns>
+        /// <response code="200">Zome retrieved successfully</response>
+        /// <response code="400">Error retrieving zome</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetZome(Guid id)
         {
             try
@@ -55,7 +76,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates a new zome for the authenticated avatar.
+        /// </summary>
+        /// <param name="zome">The zome details to create.</param>
+        /// <returns>The created zome with assigned ID and metadata.</returns>
+        /// <response code="200">Zome created successfully</response>
+        /// <response code="400">Error creating zome</response>
         [HttpPost]
+        [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateZome([FromBody] STARZome zome)
         {
             try

@@ -11,13 +11,25 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Libraries management endpoints for creating, updating, and managing STAR libraries.
+    /// Libraries represent collections of code, templates, and reusable components within the STAR ecosystem.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class LibrariesController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all libraries in the system.
+        /// </summary>
+        /// <returns>List of all libraries available in the STAR system.</returns>
+        /// <response code="200">Libraries retrieved successfully</response>
+        /// <response code="400">Error retrieving libraries</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllLibraries()
         {
             try
@@ -36,7 +48,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific library by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the library to retrieve.</param>
+        /// <returns>The requested library details.</returns>
+        /// <response code="200">Library retrieved successfully</response>
+        /// <response code="400">Error retrieving library</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetLibrary(Guid id)
         {
             try
@@ -55,7 +76,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates a new library for the authenticated avatar.
+        /// </summary>
+        /// <param name="request">The library creation request details.</param>
+        /// <returns>The created library with assigned ID and metadata.</returns>
+        /// <response code="200">Library created successfully</response>
+        /// <response code="400">Error creating library</response>
         [HttpPost]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateLibrary([FromBody] CreateLibraryRequest request)
         {
             try

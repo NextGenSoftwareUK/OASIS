@@ -1,89 +1,66 @@
 ﻿using System;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.WebSocket;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness
 {
     class Program
     {
-        static HoloOASIS _holoOASIS = new HoloOASIS("ws://localhost:8888");
-        //static Core.HcAvatar _savedAvatar;
-        static Avatar _savedAvatar;
-
         static async Task Main(string[] args)
         {
-            Console.WriteLine("NEXTGEN SOFTWARE HOLOOASIS TEST HARNESS V1.O");
-            Console.WriteLine("");
+            Console.WriteLine("🚀 Holo OASIS Provider Test Harness");
+            Console.WriteLine("====================================");
+            Console.WriteLine();
 
-            _holoOASIS.HoloNETClient.OnConnected += HoloNETClient_OnConnected;
-            _holoOASIS.OnInitialized += _holoOASIS_OnInitialized;
-            _holoOASIS.OnPlayerAvatarLoaded += _holoOASIS_OnPlayerAvatarLoaded;
-            _holoOASIS.OnPlayerAvatarSaved += _holoOASIS_OnPlayerAvatarSaved;
-            _holoOASIS.OnHoloOASISError += _holoOASIS_OnHoloOASISError;
-
-            //  await _holoOASIS.Initialize();
-
-            _holoOASIS.ActivateProvider();
-
-           // Task.Delay(10000);
-            Console.ReadKey();
-
-            /*
-            IAvatar Avatar = await _holoOASIS.GetAvatarAsync(Guid.NewGuid());
-
-            if (Avatar != null)
+            try
             {
-                Console.WriteLine("Avatar Received.");
-                Console.WriteLine(string.Concat("Name: ", Avatar.Title, " ", Avatar.FirstName, " ", Avatar.LastName));
-                Console.WriteLine(string.Concat("DOB: ", Avatar.DOB));
-                Console.WriteLine(string.Concat("Address: ", Avatar.PlayerAddress));
-                Console.WriteLine(string.Concat("Karma: ", Avatar.Karma));
-                Console.WriteLine(string.Concat("Level: ", Avatar.Level));
-            }*/
-        }
+                // Initialize Holo provider
+                var holoProvider = new HoloOASIS();
+                
+                Console.WriteLine("✅ Holo Provider initialized successfully");
+                Console.WriteLine($"Provider Name: {holoProvider.ProviderName}");
+                Console.WriteLine($"Provider Description: {holoProvider.ProviderDescription}");
+                Console.WriteLine($"Provider Type: {holoProvider.ProviderType}");
+                Console.WriteLine($"Provider Category: {holoProvider.ProviderCategory}");
+                Console.WriteLine();
 
-        private static void _holoOASIS_OnHoloOASISError(object sender, HoloOASISErrorEventArgs e)
-        {
-            Console.WriteLine(string.Concat("Error Occured. Reason: ", e.Reason, (e.HoloNETErrorDetails != null ? string.Concat(", HoloNET Reason: ", e.HoloNETErrorDetails.Reason) : ""), (e.HoloNETErrorDetails != null ? string.Concat(", HoloNET Details: ", e.HoloNETErrorDetails.ErrorDetails.ToString()) : ""), "\n"));
-        }
+                // Test provider activation
+                Console.WriteLine("🔄 Activating Holo provider...");
+                var activationResult = await holoProvider.ActivateProviderAsync();
+                
+                if (activationResult.IsError)
+                {
+                    Console.WriteLine($"❌ Failed to activate Holo provider: {activationResult.Message}");
+                    return;
+                }
+                
+                Console.WriteLine($"✅ Holo provider activated successfully: {activationResult.Message}");
+                Console.WriteLine();
 
-        private static void HoloNETClient_OnConnected(object sender, ConnectedEventArgs e)
-        {
-            Console.WriteLine("Connected");
-        }
+                // Test provider deactivation
+                Console.WriteLine("🔄 Deactivating Holo provider...");
+                var deactivationResult = await holoProvider.DeActivateProviderAsync();
+                
+                if (deactivationResult.IsError)
+                {
+                    Console.WriteLine($"❌ Failed to deactivate Holo provider: {deactivationResult.Message}");
+                    return;
+                }
+                
+                Console.WriteLine($"✅ Holo provider deactivated successfully: {deactivationResult.Message}");
+                Console.WriteLine();
 
-        private static void _holoOASIS_OnPlayerAvatarSaved(object sender, AvatarSavedEventArgs e)
-        {
-            Console.WriteLine("Avatar Saved.");
-            Console.WriteLine("Avatar Entry Hash: " + e.HcAvatar.hc_address_hash);
-            Console.WriteLine("Loading Avatar...");
-            //_savedAvatar.Id = new Guid(e.AvatarEntryHash);
-            _holoOASIS.LoadAvatarAsync(e.HcAvatar.hc_address_hash);
-        }
+                Console.WriteLine("🎉 Holo OASIS Provider Test Harness completed successfully!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error in Holo Provider Test Harness: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            }
 
-        private static void _holoOASIS_OnPlayerAvatarLoaded(object sender, AvatarLoadedEventArgs e)
-        {
-            Console.WriteLine("Avatar Loaded.");
-            Console.WriteLine(string.Concat("Id: ", e.Avatar.Id));
-            Console.WriteLine(string.Concat("HC Address Hash: ", e.HcAvatar.hc_address_hash));
-            Console.WriteLine(string.Concat("Name: ", e.Avatar.Title, " ", e.Avatar.FirstName, " ", e.Avatar.LastName));
-            Console.WriteLine(string.Concat("Username: ", e.Avatar.Username));
-            Console.WriteLine(string.Concat("Password: ", e.Avatar.Password));
-            Console.WriteLine(string.Concat("Email: ", e.Avatar.Email));
-            //Console.WriteLine(string.Concat("DOB: ", e.Avatar.DOB));
-          //  Console.WriteLine(string.Concat("Address: ", e.Avatar.Address));
-            //Console.WriteLine(string.Concat("Karma: ", e.Avatar.Karma));
-            //Console.WriteLine(string.Concat("Level: ", e.Avatar.Level));
-        }
-
-        private static async void _holoOASIS_OnInitialized(object sender, EventArgs e)
-        {
-            Console.WriteLine("Initialized.");
-            Console.WriteLine("Saving Avatar...");
-
-            _savedAvatar = new Avatar { Username = "dellams", Email = "david@nextgensoftware.co.uk", Password = "1234", FirstName = "David", LastName = "Ellams", Id = Guid.NewGuid(), Title = "Mr" };
-            await _holoOASIS.SaveAvatarAsync(_savedAvatar);
+            Console.WriteLine();
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
         }
     }
 }

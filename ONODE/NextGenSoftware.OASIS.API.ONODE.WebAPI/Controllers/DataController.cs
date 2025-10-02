@@ -17,6 +17,10 @@ using Solnet.Metaplex;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
+    /// <summary>
+    /// Data management endpoints for CRUD operations on holons and data objects.
+    /// Provides comprehensive data storage, retrieval, and management capabilities across all OASIS providers.
+    /// </summary>
     [ApiController]
     [Route("api/data")]
     public class DataController : OASISControllerBase
@@ -62,10 +66,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Set the setglobally flag to false to use these settings only for this request or true for it to be used for all future requests.
         /// Set the showDetailedSettings flag to true to view detailed settings such as the list of providers in the auto-failover, auto-replication &amp; auto-load balance lists.
         /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <param name="request">The load holon request containing ID and configuration options.</param>
+        /// <returns>OASIS result containing the loaded holon or error details.</returns>
+        /// <response code="200">Holon loaded successfully</response>
+        /// <response code="400">Error loading holon</response>
+        /// <response code="401">Unauthorized - authentication required</response>
         [Authorize]
         [HttpPost("load-holon")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<Holon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(LoadHolonRequest request)
         {
             //OASISResult<Holon> response = new OASISResult<Holon>();

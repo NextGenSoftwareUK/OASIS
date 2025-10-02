@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 {
@@ -179,7 +180,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         #region IOASISStorageProvider Holon Methods
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, int version = 0)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IHolon>();
 
@@ -224,12 +225,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return response;
         }
 
-        public override OASISResult<IHolon> LoadHolon(Guid id, int version = 0)
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonAsync(id, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonByProviderKeyAsync(string providerKey, int version = 0)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IHolon>();
 
@@ -274,12 +275,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return response;
         }
 
-        public override OASISResult<IHolon> LoadHolonByProviderKey(string providerKey, int version = 0)
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonByProviderKeyAsync(providerKey, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
 
@@ -324,12 +325,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return response;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadAllHolonsAsync(version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var response = new OASISResult<IHolon>();
 
@@ -367,12 +368,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return response;
         }
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             return SaveHolonAsync(holon).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var response = new OASISResult<bool>();
 
@@ -410,12 +411,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return response;
         }
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
             return DeleteHolonAsync(id, softDelete).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
             var response = new OASISResult<bool>();
 
@@ -453,7 +454,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return response;
         }
 
-        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
             return DeleteHolonAsync(providerKey, softDelete).Result;
         }
@@ -561,7 +562,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         /// <summary>
         /// Parse Cosmos JSON content and convert to OASIS Avatar
         /// </summary>
-        private IAvatar ParseCosmosToAvatar(string cosmosJson)
+        private Avatar ParseCosmosToAvatar(string cosmosJson)
         {
             try
             {
@@ -727,6 +728,148 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     }}
                 }}
             }}";
+        }
+
+        #endregion
+
+        #region Serialization Methods
+
+        /// <summary>
+        /// Parse Cosmos blockchain response to Avatar object
+        /// </summary>
+        private Avatar ParseCosmosToAvatar(string cosmosJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar object from Cosmos JSON
+                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(cosmosJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                // If JSON deserialization fails, try to extract basic info
+                return CreateAvatarFromCosmos(cosmosJson);
+            }
+        }
+
+        /// <summary>
+        /// Create Avatar from Cosmos response when JSON deserialization fails
+        /// </summary>
+        private Avatar CreateAvatarFromCosmos(string cosmosJson)
+        {
+            try
+            {
+                // Extract basic information from Cosmos JSON response
+                var avatar = new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = ExtractCosmosProperty(cosmosJson, "moniker") ?? "cosmos_user",
+                    Email = ExtractCosmosProperty(cosmosJson, "email") ?? "user@cosmos.example",
+                    FirstName = ExtractCosmosProperty(cosmosJson, "first_name"),
+                    LastName = ExtractCosmosProperty(cosmosJson, "last_name"),
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow
+                };
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extract property value from Cosmos JSON response
+        /// </summary>
+        private string ExtractCosmosProperty(string cosmosJson, string propertyName)
+        {
+            try
+            {
+                // Simple regex-based extraction for Cosmos properties
+                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
+                var match = System.Text.RegularExpressions.Regex.Match(cosmosJson, pattern);
+                return match.Success ? match.Groups[1].Value : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert Avatar to Cosmos blockchain format
+        /// </summary>
+        private string ConvertAvatarToCosmos(IAvatar avatar)
+        {
+            try
+            {
+                // Serialize Avatar to JSON with Cosmos blockchain structure
+                var cosmosData = new
+                {
+                    moniker = avatar.Username,
+                    email = avatar.Email,
+                    first_name = avatar.FirstName,
+                    last_name = avatar.LastName,
+                    created = avatar.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(cosmosData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        /// <summary>
+        /// Convert Holon to Cosmos blockchain format
+        /// </summary>
+        private string ConvertHolonToCosmos(IHolon holon)
+        {
+            try
+            {
+                // Serialize Holon to JSON with Cosmos blockchain structure
+                var cosmosData = new
+                {
+                    id = holon.Id.ToString(),
+                    type = holon.HolonType.ToString(),
+                    name = holon.Name,
+                    description = holon.Description,
+                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(cosmosData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
         }
 
         #endregion

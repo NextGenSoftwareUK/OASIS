@@ -10,13 +10,25 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// OAPPs (OASIS Applications) management endpoints for creating, updating, and managing STAR OAPPs.
+    /// OAPPs represent applications and services that plug into the OASIS ecosystem.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class OAPPsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all OAPPs in the system.
+        /// </summary>
+        /// <returns>List of all OAPPs available in the STAR system.</returns>
+        /// <response code="200">OAPPs retrieved successfully</response>
+        /// <response code="400">Error retrieving OAPPs</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<OAPP>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<OAPP>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllOAPPs()
         {
             try
@@ -35,7 +47,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific OAPP by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the OAPP to retrieve.</param>
+        /// <returns>The requested OAPP details.</returns>
+        /// <response code="200">OAPP retrieved successfully</response>
+        /// <response code="400">Error retrieving OAPP</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(OASISResult<OAPP>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<OAPP>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetOAPP(Guid id)
         {
             try
@@ -54,7 +75,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates a new OAPP for the authenticated avatar.
+        /// </summary>
+        /// <param name="oapp">The OAPP details to create.</param>
+        /// <returns>The created OAPP with assigned ID and metadata.</returns>
+        /// <response code="200">OAPP created successfully</response>
+        /// <response code="400">Error creating OAPP</response>
         [HttpPost]
+        [ProducesResponseType(typeof(OASISResult<OAPP>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<OAPP>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateOAPP([FromBody] OAPP oapp)
         {
             try

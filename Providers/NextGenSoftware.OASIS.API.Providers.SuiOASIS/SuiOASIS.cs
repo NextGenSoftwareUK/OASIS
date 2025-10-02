@@ -240,6 +240,148 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 
         #endregion
 
+        #region Serialization Methods
+
+        /// <summary>
+        /// Parse Sui blockchain response to Avatar object
+        /// </summary>
+        private Avatar ParseSuiToAvatar(string suiJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar object from Sui JSON
+                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(suiJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                // If JSON deserialization fails, try to extract basic info
+                return CreateAvatarFromSui(suiJson);
+            }
+        }
+
+        /// <summary>
+        /// Create Avatar from Sui response when JSON deserialization fails
+        /// </summary>
+        private Avatar CreateAvatarFromSui(string suiJson)
+        {
+            try
+            {
+                // Extract basic information from Sui JSON response
+                var avatar = new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = ExtractSuiProperty(suiJson, "address") ?? "sui_user",
+                    Email = ExtractSuiProperty(suiJson, "email") ?? "user@sui.example",
+                    FirstName = ExtractSuiProperty(suiJson, "first_name"),
+                    LastName = ExtractSuiProperty(suiJson, "last_name"),
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow
+                };
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extract property value from Sui JSON response
+        /// </summary>
+        private string ExtractSuiProperty(string suiJson, string propertyName)
+        {
+            try
+            {
+                // Simple regex-based extraction for Sui properties
+                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
+                var match = System.Text.RegularExpressions.Regex.Match(suiJson, pattern);
+                return match.Success ? match.Groups[1].Value : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert Avatar to Sui blockchain format
+        /// </summary>
+        private string ConvertAvatarToSui(IAvatar avatar)
+        {
+            try
+            {
+                // Serialize Avatar to JSON with Sui blockchain structure
+                var suiData = new
+                {
+                    address = avatar.Username,
+                    email = avatar.Email,
+                    first_name = avatar.FirstName,
+                    last_name = avatar.LastName,
+                    created = avatar.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(suiData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        /// <summary>
+        /// Convert Holon to Sui blockchain format
+        /// </summary>
+        private string ConvertHolonToSui(IHolon holon)
+        {
+            try
+            {
+                // Serialize Holon to JSON with Sui blockchain structure
+                var suiData = new
+                {
+                    id = holon.Id.ToString(),
+                    type = holon.HolonType.ToString(),
+                    name = holon.Name,
+                    description = holon.Description,
+                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(suiData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        #endregion
+
         #region IDisposable
 
         public void Dispose()

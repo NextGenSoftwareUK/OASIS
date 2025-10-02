@@ -11,6 +11,10 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
+    /// <summary>
+    /// Search endpoints for querying and searching across all OASIS data.
+    /// Provides comprehensive search capabilities across holons, avatars, and other OASIS entities.
+    /// </summary>
     //  [Route("api/[search]")]
     [Route("api/[controller]")]
     [ApiController]
@@ -44,7 +48,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Performs a search across all OASIS data using the specified search parameters.
+        /// </summary>
+        /// <param name="searchParams">The search parameters including query, filters, and options.</param>
+        /// <returns>OASIS result containing the search results.</returns>
+        /// <response code="200">Search completed successfully</response>
+        /// <response code="400">Error performing search</response>
         [HttpGet("{searchParams}")]
+        [ProducesResponseType(typeof(OASISResult<ISearchResults>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<ISearchResults>> Get(SearchParams searchParams)
         {
             return await SearchManager.SearchAsync(searchParams);

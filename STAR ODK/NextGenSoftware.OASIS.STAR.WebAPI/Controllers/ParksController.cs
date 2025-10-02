@@ -10,13 +10,25 @@ using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Parks management endpoints for creating, updating, and managing STAR parks.
+    /// Parks represent recreational areas and natural spaces within the STAR universe.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class ParksController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all parks in the system.
+        /// </summary>
+        /// <returns>List of all parks available in the STAR system.</returns>
+        /// <response code="200">Parks retrieved successfully</response>
+        /// <response code="400">Error retrieving parks</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IPark>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IPark>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllParks()
         {
             try
@@ -34,7 +46,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific park by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the park to retrieve.</param>
+        /// <returns>The requested park details.</returns>
+        /// <response code="200">Park retrieved successfully</response>
+        /// <response code="400">Error retrieving park</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(OASISResult<IPark>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IPark>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetPark(Guid id)
         {
             try
@@ -52,7 +73,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates a new park for the authenticated avatar.
+        /// </summary>
+        /// <param name="park">The park details to create.</param>
+        /// <returns>The created park with assigned ID and metadata.</returns>
+        /// <response code="200">Park created successfully</response>
+        /// <response code="400">Error creating park</response>
         [HttpPost]
+        [ProducesResponseType(typeof(OASISResult<IPark>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IPark>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreatePark([FromBody] IPark park)
         {
             try
