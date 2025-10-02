@@ -14,7 +14,6 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -54,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 if (_avatarManager == null)
                 {
                     if (TelosOASIS != null)
-                        _avatarManager = new AvatarManager(TelosOASIS);
+                        _avatarManager = new AvatarManager(TelosOASIS, OASISDNA);
                     else
                     {
                         if (!ProviderManager.Instance.IsProviderRegistered(Core.Enums.ProviderType.TelosOASIS))
@@ -91,18 +90,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
            // TelosOASIS = new TelosOASIS.TelosOASIS(telosConnectionString);
         }
 
-        event EventDelegates.StorageProviderError IOASISStorageProvider.OnStorageProviderError
-        {
-            add
-            {
-                throw new NotImplementedException();
-            }
+        //event EventDelegates.StorageProviderError IOASISStorageProvider.OnStorageProviderError
+        //{
+        //    add
+        //    {
+        //        throw new NotImplementedException();
+        //    }
 
-            remove
-            {
-                throw new NotImplementedException();
-            }
-        }
+        //    remove
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+        //}
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
@@ -1022,17 +1021,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByEmailAsync is not supported yet by SEEDS provider." });
+            throw new NotImplementedException();
         }
 
         public OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
-            return new OASISResult<IEnumerable<IHolon>> { Message = "ExportAll is not supported yet by SEEDS provider." };
+            throw new NotImplementedException();
         }
 
         public Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllAsync is not supported yet by SEEDS provider." });
+            throw new NotImplementedException();
         }
 
         public Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
