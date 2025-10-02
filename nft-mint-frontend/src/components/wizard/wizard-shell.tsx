@@ -8,9 +8,10 @@ type WizardShellProps = {
   activeStep: string;
   onStepChange?: (stepId: string) => void;
   children: ReactNode;
+  footer?: ReactNode;
 };
 
-export function WizardShell({ steps, activeStep, onStepChange, children }: WizardShellProps) {
+export function WizardShell({ steps, activeStep, onStepChange, children, footer }: WizardShellProps) {
   return (
     <div className="glass-card gradient-ring relative overflow-hidden rounded-3xl border border-[var(--color-card-border)]/60">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.2),transparent_70%)]" />
@@ -60,6 +61,7 @@ export function WizardShell({ steps, activeStep, onStepChange, children }: Wizar
         </aside>
         <section className="min-h-[460px] rounded-2xl border border-[var(--color-card-border)]/50 bg-[rgba(6,11,26,0.7)] p-6 shadow-inner lg:p-8">
           {children}
+          {footer ? <div className="mt-8 border-t border-[var(--color-card-border)]/30 pt-6">{footer}</div> : null}
         </section>
       </div>
     </div>

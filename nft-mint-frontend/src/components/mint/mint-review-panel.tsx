@@ -14,12 +14,14 @@ const SPL_STANDARD = { value: 2, name: "SPL" } as const;
 export type MintReviewPanelProps = {
   assetDraft: AssetDraft;
   onStatusChange?: (state: "idle" | "ready") => void;
+  onMintStart?: () => void;
+  onMintSuccess?: (result: unknown) => void;
   baseUrl: string;
   token?: string;
   avatarId?: string;
 };
 
-export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token, avatarId }: MintReviewPanelProps) {
+export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMintSuccess, baseUrl, token, avatarId }: MintReviewPanelProps) {
   const [waitSeconds, setWaitSeconds] = useState(60);
   const [retrySeconds, setRetrySeconds] = useState(5);
   const [waitTillSent, setWaitTillSent] = useState(true);
@@ -136,6 +138,8 @@ export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token, av
             disabled={mintDisabled || minting}
             onClick={async () => {
               try {
+                onMintStart?.();
+                onStatusChange?.("idle");
                 setMinting(true);
                 setMintError(null);
                 setMintResult(null);
@@ -149,6 +153,7 @@ export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token, av
                   console.log("[mint] success", response);
                 }
                 onStatusChange?.("ready");
+                onMintSuccess?.(response);
               } catch (error: unknown) {
                 const message = error instanceof Error ? error.message : "Minting failed";
                 setMintError(message);
@@ -165,6 +170,11 @@ export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token, av
           </Button>
         </div>
         {mintError ? <p className="text-xs text-[var(--negative)]">{mintError}</p> : null}
+        {mintResult ? (
+          <div className="rounded-xl border border-[var(--color-positive)]/60 bg-[rgba(16,84,60,0.3)] p-3 text-sm text-[var(--color-positive)]">
+            Mint request submitted successfully. Response payload shown below.
+          </div>
+        ) : null}
         {mintResult ? (
           <pre className="max-h-60 overflow-auto rounded-xl border border-[var(--color-card-border)]/40 bg-[rgba(4,8,20,0.9)] p-4 text-xs text-[var(--muted)]">
 {JSON.stringify(mintResult, null, 2)}
