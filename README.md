@@ -52,7 +52,7 @@ The OASIS consists of two main layers:
   - Identity & authentication system
   - Karma & reputation management
 
-### WEB5 STAR Web API - Gamification & Business Layer
+### WEB5 STAR API - Gamification & Business Layer
 - **Purpose**: Gamification, metaverse, and business use cases
 - **Innovation**: STAR ODK (Omniverse Interoperable Metaverse Low Code Generator)
 - **Location**: `STAR ODK/` namespace
