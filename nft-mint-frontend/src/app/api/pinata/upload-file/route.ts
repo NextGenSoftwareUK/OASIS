@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import FormData from "form-data";
 
 const PINATA_JWT = process.env.PINATA_JWT;
 const PINATA_API_KEY = process.env.PINATA_API_KEY;
@@ -36,16 +35,16 @@ export async function POST(request: NextRequest) {
     const safeName = fileName ?? `upload-${Date.now()}`;
 
     const form = new FormData();
-    form.append("file", buffer, { filename: safeName, contentType: inferredType });
+    const blob = new Blob([buffer], { type: inferredType });
+    form.append("file", blob, safeName);
     form.append("pinataMetadata", JSON.stringify({ name: safeName }));
     form.append("pinataOptions", JSON.stringify({ cidVersion: 1 }));
 
     const response = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
       method: "POST",
-      body: form as unknown as BodyInit,
+      body: form,
       headers: {
         ...(getAuthHeaders()),
-        ...form.getHeaders?.(),
       },
     });
 
