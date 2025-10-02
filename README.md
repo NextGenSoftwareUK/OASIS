@@ -435,7 +435,7 @@ This project is licensed under the MIT License - see the [LICENSE](./Docs/LICENS
 ### Community Support
 - **Telegram**: [Join our community](https://t.me/ourworldthegamechat)
 - **Discord**: [Discord Server](https://discord.gg/oasis)
-- **GitHub Issues**: [Report bugs or request features](https://github.com/OASIS/issues)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/NextGenSoftwareUk/OASIS/issues)
 
 ### Enterprise Support
 For enterprise support and consulting services, please contact us at:
