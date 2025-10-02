@@ -18,9 +18,12 @@ ENV NODE_ENV=production
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/next.config.* ./
+COPY --from=deps /app/node_modules ./node_modules
 
-RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
+RUN npm prune --omit=dev && \
+    addgroup -S nextjs && adduser -S nextjs -G nextjs
 USER nextjs
 
 EXPOSE 3000
