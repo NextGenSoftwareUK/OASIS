@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -727,6 +728,28 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
                 });
             }
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
+        {
+            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatarByUsername is not supported yet by Scuttlebutt provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true)
+        {
+            return DeleteAvatarByUsernameAsync(username, softDelete).Result;
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
+        {
+            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatarByEmail is not supported yet by Scuttlebutt provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true)
+        {
+            return DeleteAvatarByEmailAsync(email, softDelete).Result;
         }
 
         #endregion

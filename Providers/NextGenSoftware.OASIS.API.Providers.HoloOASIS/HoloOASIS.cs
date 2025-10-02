@@ -20,6 +20,8 @@ using DataHelper = NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers.DataHel
 using static System.Net.WebRequestMethods;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -1241,11 +1243,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 // This would query Holochain DHT for NFT metadata
                 var nft = new OASISNFT
                 {
-                    TokenId = nftTokenAddress,
-                    TokenURI = $"holochain://{OASIS_HAPP_ID}/nft/{nftTokenAddress}",
-                    Name = "Holochain NFT",
+                    NFTTokenAddress = nftTokenAddress,
+                    JSONMetaDataURL = $"holochain://{OASIS_HAPP_ID}/nft/{nftTokenAddress}",
+                    Title = "Holochain NFT",
                     Description = "NFT from Holochain DHT",
-                    Image = "https://holo.host/images/logo.png"
+                    ImageUrl = "https://holo.host/images/logo.png"
                 };
                 
                 response.Result = nft;
@@ -1268,11 +1270,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 // This would query Holochain DHT for NFT metadata
                 var nft = new OASISNFT
                 {
-                    TokenId = nftTokenAddress,
-                    TokenURI = $"holochain://{OASIS_HAPP_ID}/nft/{nftTokenAddress}",
-                    Name = "Holochain NFT",
+                    NFTTokenAddress = nftTokenAddress,
+                    JSONMetaDataURL = $"holochain://{OASIS_HAPP_ID}/nft/{nftTokenAddress}",
+                    Title = "Holochain NFT",
                     Description = "NFT from Holochain DHT",
-                    Image = "https://holo.host/images/logo.png"
+                    ImageUrl = "https://holo.host/images/logo.png"
                 };
                 
                 response.Result = nft;

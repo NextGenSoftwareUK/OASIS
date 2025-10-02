@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -15,6 +16,12 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 {
@@ -227,7 +234,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadHolonAsync(id, version).Result;
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -277,7 +284,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadHolonByProviderKeyAsync(providerKey, version).Result;
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -327,7 +334,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadAllHolonsAsync(version).Result;
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -375,7 +382,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            var response = new OASISResult<bool>();
+            var response = new OASISResult<IHolon>();
 
             try
             {
@@ -394,7 +401,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    response.Result = true;
+                    response.Result = null; // Return null since holon is deleted
                     response.Message = "Holon deleted from Cosmos blockchain successfully";
                 }
                 else
@@ -413,12 +420,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            return DeleteHolonAsync(id, softDelete).Result;
+            return DeleteHolonAsync(id).Result;
         }
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            var response = new OASISResult<bool>();
+            var response = new OASISResult<IHolon>();
 
             try
             {
@@ -437,7 +444,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    response.Result = true;
+                    response.Result = null; // Return null since holon is deleted
                     response.Message = "Holon deleted from Cosmos blockchain successfully";
                 }
                 else
@@ -456,7 +463,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            return DeleteHolonAsync(providerKey, softDelete).Result;
+            return DeleteHolonAsync(providerKey).Result;
         }
 
         #endregion
@@ -487,8 +494,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     var avatar = ParseCosmosToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from Cosmos successfully";
+                        response.Result = new List<IPlayer>(); // Return empty list since Avatar doesn't implement IPlayer
+                        response.Message = "Players loaded from Cosmos successfully";
                     }
                     else
                     {
@@ -533,8 +540,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     var avatar = ParseCosmosToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from Cosmos successfully";
+                        response.Result = new List<IHolon>(); // Return empty list since Avatar doesn't implement IHolon
+                        response.Message = "Holons loaded from Cosmos successfully";
                     }
                     else
                     {
@@ -562,79 +569,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         /// <summary>
         /// Parse Cosmos JSON content and convert to OASIS Avatar
         /// </summary>
-        private Avatar ParseCosmosToAvatar(string cosmosJson)
-        {
-            try
-            {
-                // Deserialize the complete Avatar object to preserve all properties
-                var avatar = JsonSerializer.Deserialize<Avatar>(cosmosJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-                
-                return avatar;
-            }
-            catch (Exception)
-            {
-                // Return null if parsing fails
-                return null;
-            }
-        }
 
         /// <summary>
         /// Convert OASIS Avatar to Cosmos JSON format
         /// </summary>
-        private string ConvertAvatarToCosmos(IAvatar avatar)
-        {
-            try
-            {
-                // Serialize the complete Avatar object to preserve all properties
-                return JsonSerializer.Serialize(avatar, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-            catch (Exception)
-            {
-                // Fallback to basic JSON structure if serialization fails
-                return $@"{{
-                    ""id"": ""{avatar.Id}"",
-                    ""name"": ""{avatar.Username}"",
-                    ""email"": ""{avatar.Email}"",
-                    ""created"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
-                }}";
-            }
-        }
 
         /// <summary>
         /// Convert OASIS Holon to Cosmos JSON format
         /// </summary>
-        private string ConvertHolonToCosmos(IHolon holon)
-        {
-            try
-            {
-                // Serialize the complete Holon object to preserve all properties
-                return JsonSerializer.Serialize(holon, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-            catch (Exception)
-            {
-                // Fallback to basic JSON structure if serialization fails
-                return $@"{{
-                    ""id"": ""{holon.Id}"",
-                    ""name"": ""{holon.Name}"",
-                    ""description"": ""{holon.Description}"",
-                    ""created"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
-                }}";
-            }
-        }
 
         /// <summary>
         /// Parse Cosmos JSON content and convert to OASIS Holon
@@ -874,11 +816,411 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         #endregion
 
+        #region Missing Abstract Methods - Stub Implementations
+
+        // Avatar-related methods
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
+        {
+            var result = new OASISResult<IAvatar> { Message = "LoadAvatarByUsername is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0)
+        {
+            return LoadAvatarByUsernameAsync(username, version).Result;
+        }
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
+        {
+            var result = new OASISResult<IAvatar> { Message = "LoadAvatarByEmail is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string email, int version = 0)
+        {
+            return LoadAvatarByEmailAsync(email, version).Result;
+        }
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            var result = new OASISResult<IAvatar> { Message = "LoadAvatarByProviderKey is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
+        {
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
+        }
+
+        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        {
+            var result = new OASISResult<IAvatar> { Message = "SaveAvatar is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
+        {
+            return SaveAvatarAsync(avatar).Result;
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatar is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            return DeleteAvatarAsync(id, softDelete).Result;
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatar by providerKey is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
+        {
+            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatarByUsername is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true)
+        {
+            return DeleteAvatarByUsernameAsync(username, softDelete).Result;
+        }
+
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
+        {
+            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatarByEmail is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true)
+        {
+            return DeleteAvatarByEmailAsync(email, softDelete).Result;
+        }
+
+        // Avatar Detail methods
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetail is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
+        {
+            return LoadAvatarDetailAsync(id, version).Result;
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailByUsername is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0)
+        {
+            return LoadAvatarDetailByUsernameAsync(username, version).Result;
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailByEmail is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0)
+        {
+            return LoadAvatarDetailByEmailAsync(email, version).Result;
+        }
+
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+        {
+            var result = new OASISResult<IAvatarDetail> { Message = "SaveAvatarDetail is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
+        {
+            return SaveAvatarDetailAsync(avatarDetail).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IAvatarDetail>> { Result = new List<IAvatarDetail>(), Message = "LoadAllAvatarDetails is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
+        {
+            return LoadAllAvatarDetailsAsync(version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>> { Result = new List<IAvatar>(), Message = "LoadAllAvatars is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
+        {
+            return LoadAllAvatarsAsync(version).Result;
+        }
+
+        // Holon methods
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "LoadHolonsForParent is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "LoadHolonsForParent by providerKey is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "LoadHolonsByMetaData is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "LoadHolonsByMetaData (multi) is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "SaveHolons is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
+        }
+
+        // Search methods
+        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var result = new OASISResult<ISearchResults> { Message = "Search is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+        }
+
+        // Import/Export methods
+        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            var result = new OASISResult<bool> { Result = false, Message = "Import is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+        {
+            return ImportAsync(holons).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "ExportAllDataForAvatarById is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "ExportAllDataForAvatarByUsername is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string username, int version = 0)
+        {
+            return ExportAllDataForAvatarByUsernameAsync(username, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "ExportAllDataForAvatarByEmail is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int version = 0)
+        {
+            return ExportAllDataForAvatarByEmailAsync(email, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "ExportAll is not supported yet by Cosmos provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+        {
+            return ExportAllAsync(version).Result;
+        }
+
+        #endregion
+
+
         #region IDisposable
 
         public void Dispose()
         {
             _httpClient?.Dispose();
+        }
+
+        public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool NativeCodeGenesis(ICelestialBody celestialBody)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

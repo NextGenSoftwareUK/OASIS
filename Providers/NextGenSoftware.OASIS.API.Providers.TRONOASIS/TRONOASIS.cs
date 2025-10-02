@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
@@ -796,11 +797,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 // This would query TRON smart contracts for NFT metadata
                 var nft = new OASISNFT
                 {
-                    TokenId = nftTokenAddress,
-                    TokenURI = $"https://api.trongrid.io/v1/contracts/{nftTokenAddress}/tokens",
-                    Name = "TRON NFT",
+                    NFTTokenAddress = nftTokenAddress,
+                    JSONMetaDataURL = $"https://api.trongrid.io/v1/contracts/{nftTokenAddress}/tokens",
+                    Title = "TRON NFT",
                     Description = "NFT from TRON blockchain",
-                    Image = "https://tronscan.org/images/logo.png"
+                    ImageUrl = "https://tronscan.org/images/logo.png"
                 };
                 
                 response.Result = nft;
@@ -823,11 +824,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 // This would query TRON smart contracts for NFT metadata
                 var nft = new OASISNFT
                 {
-                    TokenId = nftTokenAddress,
-                    TokenURI = $"https://api.trongrid.io/v1/contracts/{nftTokenAddress}/tokens",
-                    Name = "TRON NFT",
+                    NFTTokenAddress = nftTokenAddress,
+                    JSONMetaDataURL = $"https://api.trongrid.io/v1/contracts/{nftTokenAddress}/tokens",
+                    Title = "TRON NFT",
                     Description = "NFT from TRON blockchain",
-                    Image = "https://tronscan.org/images/logo.png"
+                    ImageUrl = "https://tronscan.org/images/logo.png"
                 };
                 
                 response.Result = nft;

@@ -209,7 +209,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (result.IsError)
                     return BadRequest(result);
 
-                var filteredMissions = result.Result?.Where(m => m.MissionType?.ToString() == type);
+                var filteredMissions = result.Result?.Where(m => m.MissionType.ToString() == type);
                 return Ok(new OASISResult<IEnumerable<Mission>>
                 {
                     Result = filteredMissions,
