@@ -65,9 +65,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Pinata response missing IpfsHash" }, { status: 502 });
     }
 
+    const url = `${PINATA_GATEWAY.replace(/\/$/, "")}/ipfs/${hash}`;
     return NextResponse.json({
       hash,
-      url: `${PINATA_GATEWAY.replace(/\/$/, "")}/ipfs/${hash}`,
+      url,
+      result: url,
     });
   } catch (error) {
     console.error("Pinata upload failed", error);
