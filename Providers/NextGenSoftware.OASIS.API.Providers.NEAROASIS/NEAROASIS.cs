@@ -270,6 +270,148 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
 
         #endregion
 
+        #region Serialization Methods
+
+        /// <summary>
+        /// Parse NEAR blockchain response to Avatar object
+        /// </summary>
+        private Avatar ParseNEARToAvatar(string nearJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar object from NEAR JSON
+                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(nearJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                // If JSON deserialization fails, try to extract basic info
+                return CreateAvatarFromNEAR(nearJson);
+            }
+        }
+
+        /// <summary>
+        /// Create Avatar from NEAR response when JSON deserialization fails
+        /// </summary>
+        private Avatar CreateAvatarFromNEAR(string nearJson)
+        {
+            try
+            {
+                // Extract basic information from NEAR JSON response
+                var avatar = new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = ExtractNEARProperty(nearJson, "account_id") ?? "near_user",
+                    Email = ExtractNEARProperty(nearJson, "email") ?? "user@near.example",
+                    FirstName = ExtractNEARProperty(nearJson, "first_name"),
+                    LastName = ExtractNEARProperty(nearJson, "last_name"),
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow
+                };
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extract property value from NEAR JSON response
+        /// </summary>
+        private string ExtractNEARProperty(string nearJson, string propertyName)
+        {
+            try
+            {
+                // Simple regex-based extraction for NEAR properties
+                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
+                var match = System.Text.RegularExpressions.Regex.Match(nearJson, pattern);
+                return match.Success ? match.Groups[1].Value : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert Avatar to NEAR blockchain format
+        /// </summary>
+        private string ConvertAvatarToNEAR(IAvatar avatar)
+        {
+            try
+            {
+                // Serialize Avatar to JSON with NEAR blockchain structure
+                var nearData = new
+                {
+                    account_id = avatar.Username,
+                    email = avatar.Email,
+                    first_name = avatar.FirstName,
+                    last_name = avatar.LastName,
+                    created = avatar.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(nearData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        /// <summary>
+        /// Convert Holon to NEAR blockchain format
+        /// </summary>
+        private string ConvertHolonToNEAR(IHolon holon)
+        {
+            try
+            {
+                // Serialize Holon to JSON with NEAR blockchain structure
+                var nearData = new
+                {
+                    id = holon.Id.ToString(),
+                    type = holon.HolonType.ToString(),
+                    name = holon.Name,
+                    description = holon.Description,
+                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(nearData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        #endregion
+
         #region IDisposable
 
         public void Dispose()

@@ -45,8 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             get
             {
                 if (_avatarManager == null)
-                    _avatarManager = new AvatarManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
-                    //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO/Telos METHODS IMPLEMENTED...
+                    _avatarManager = new AvatarManager(this);
 
                 return _avatarManager;
             }
@@ -57,8 +56,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             get
             {
                 if (_keyManager == null)
-                    _keyManager = new KeyManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
-                    //_keyManager = new KeyManager(this, AvatarManager); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+                    _keyManager = new KeyManager(this, AvatarManager);
 
                 return _keyManager;
             }

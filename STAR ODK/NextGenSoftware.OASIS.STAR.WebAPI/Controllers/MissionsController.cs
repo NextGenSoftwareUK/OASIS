@@ -22,9 +22,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
         /// <summary>
-        /// Retrieves all missions for the authenticated avatar.
+        /// Retrieves all missions in the system.
         /// </summary>
-        /// <returns>List of all missions associated with the current avatar.</returns>
+        /// <returns>List of all missions available in the STAR system.</returns>
         /// <response code="200">Missions retrieved successfully</response>
         /// <response code="400">Error retrieving missions</response>
         [HttpGet]
@@ -104,7 +104,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Updates an existing mission by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the mission to update.</param>
+        /// <param name="mission">The updated mission details.</param>
+        /// <returns>The updated mission with modified data.</returns>
+        /// <response code="200">Mission updated successfully</response>
+        /// <response code="400">Error updating mission</response>
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(OASISResult<IMission>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IMission>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateMission(Guid id, [FromBody] IMission mission)
         {
             try
@@ -124,7 +134,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes a mission by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the mission to delete.</param>
+        /// <returns>Confirmation of successful deletion.</returns>
+        /// <response code="200">Mission deleted successfully</response>
+        /// <response code="400">Error deleting mission</response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DeleteMission(Guid id)
         {
             try
@@ -143,7 +162,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Clones an existing mission with a new name.
+        /// </summary>
+        /// <param name="id">The unique identifier of the mission to clone.</param>
+        /// <param name="request">Clone request containing the new name for the cloned mission.</param>
+        /// <returns>The newly created cloned mission.</returns>
+        /// <response code="200">Mission cloned successfully</response>
+        /// <response code="400">Error cloning mission</response>
         [HttpPost("{id}/clone")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CloneMission(Guid id, [FromBody] CloneRequest request)
         {
             try
@@ -157,6 +186,120 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 {
                     IsError = true,
                     Message = $"Error cloning mission: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves missions by a specific type.
+        /// </summary>
+        /// <param name="type">The mission type to filter by.</param>
+        /// <returns>List of missions matching the specified type.</returns>
+        /// <response code="200">Missions retrieved successfully</response>
+        /// <response code="400">Error retrieving missions by type</response>
+        [HttpGet("by-type/{type}")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Mission>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Mission>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetMissionsByType(string type)
+        {
+            try
+            {
+                var result = await _starAPI.Missions.LoadAllAsync(AvatarId, 0);
+                if (result.IsError)
+                    return BadRequest(result);
+
+                var filteredMissions = result.Result?.Where(m => m.MissionType?.ToString() == type);
+                return Ok(new OASISResult<IEnumerable<Mission>>
+                {
+                    Result = filteredMissions,
+                    IsError = false,
+                    Message = "Missions retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<Mission>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving missions by type: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Retrieves missions by status.
+        /// </summary>
+        /// <param name="status">The mission status to filter by.</param>
+        /// <returns>List of missions matching the specified status.</returns>
+        /// <response code="200">Missions retrieved successfully</response>
+        /// <response code="400">Error retrieving missions by status</response>
+        [HttpGet("by-status/{status}")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Mission>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Mission>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetMissionsByStatus(string status)
+        {
+            try
+            {
+                var result = await _starAPI.Missions.LoadAllAsync(AvatarId, 0);
+                if (result.IsError)
+                    return BadRequest(result);
+
+                var filteredMissions = result.Result?.Where(m => m.Status?.ToString() == status);
+                return Ok(new OASISResult<IEnumerable<Mission>>
+                {
+                    Result = filteredMissions,
+                    IsError = false,
+                    Message = "Missions retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<Mission>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving missions by status: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Searches missions by name or description.
+        /// </summary>
+        /// <param name="query">The search query string.</param>
+        /// <returns>List of missions matching the search query.</returns>
+        /// <response code="200">Missions retrieved successfully</response>
+        /// <response code="400">Error searching missions</response>
+        [HttpGet("search")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Mission>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Mission>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> SearchMissions([FromQuery] string query)
+        {
+            try
+            {
+                var result = await _starAPI.Missions.LoadAllAsync(AvatarId, 0);
+                if (result.IsError)
+                    return BadRequest(result);
+
+                var filteredMissions = result.Result?.Where(m => 
+                    m.Name?.Contains(query, StringComparison.OrdinalIgnoreCase) == true ||
+                    m.Description?.Contains(query, StringComparison.OrdinalIgnoreCase) == true);
+                
+                return Ok(new OASISResult<IEnumerable<Mission>>
+                {
+                    Result = filteredMissions,
+                    IsError = false,
+                    Message = "Missions retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<Mission>>
+                {
+                    IsError = true,
+                    Message = $"Error searching missions: {ex.Message}",
                     Exception = ex
                 });
             }

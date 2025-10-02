@@ -11,13 +11,25 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// NFTs management endpoints for creating, updating, and managing STAR NFTs.
+    /// NFTs represent non-fungible tokens and digital assets within the STAR universe.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class NFTsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all NFTs in the system.
+        /// </summary>
+        /// <returns>List of all NFTs available in the STAR system.</returns>
+        /// <response code="200">NFTs retrieved successfully</response>
+        /// <response code="400">Error retrieving NFTs</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARNFT>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARNFT>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllNFTs()
         {
             try
@@ -36,7 +48,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific NFT by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the NFT to retrieve.</param>
+        /// <returns>The requested NFT details.</returns>
+        /// <response code="200">NFT retrieved successfully</response>
+        /// <response code="400">Error retrieving NFT</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(OASISResult<STARNFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARNFT>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetNFT(Guid id)
         {
             try
@@ -55,7 +76,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates a new NFT for the authenticated avatar.
+        /// </summary>
+        /// <param name="nft">The NFT details to create.</param>
+        /// <returns>The created NFT with assigned ID and metadata.</returns>
+        /// <response code="200">NFT created successfully</response>
+        /// <response code="400">Error creating NFT</response>
         [HttpPost]
+        [ProducesResponseType(typeof(OASISResult<STARNFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARNFT>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateNFT([FromBody] STARNFT nft)
         {
             try

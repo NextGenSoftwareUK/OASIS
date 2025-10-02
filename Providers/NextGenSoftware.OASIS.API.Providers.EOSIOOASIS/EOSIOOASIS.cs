@@ -76,8 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             get
             {
                 if (_avatarManager == null)
-                    //_avatarManager = new AvatarManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS), OASISDNA);
-                    _avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+                    _avatarManager = new AvatarManager(this);
                 
                 return _avatarManager;
             }

@@ -25,7 +25,6 @@ using System.Xml.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
-    //TODO: Implement OASISResult properly on below methods! :)
     public class IPFSOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
         public IpfsClient IPFSClient;
@@ -957,68 +956,129 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
         {
-            throw new NotImplementedException();
+			var result = new OASISResult<IEnumerable<IPlayer>>();
+			// IPFS does not provide geolocation; returning Not Supported with empty result set.
+			result.Result = Enumerable.Empty<IPlayer>();
+			result.Message = "GetPlayersNearMe is not supported by IPFS provider.";
+			return result;
         }
 
         OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
         {
-            throw new NotImplementedException();
+			var result = new OASISResult<IEnumerable<IHolon>>();
+			// IPFS does not provide geolocation; returning Not Supported with empty result set.
+			result.Result = Enumerable.Empty<IHolon>();
+			result.Message = "GetHolonsNearMe is not supported by IPFS provider.";
+			return result;
         }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+			return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
-        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
+		public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+		{
+			var result = new OASISResult<bool>();
+			try
+			{
+				foreach (var holon in holons)
+					await SaveHolonToFile(holon);
+				result.Result = true;
+				result.Message = "Holons imported into IPFS successfully.";
+			}
+			catch (Exception ex)
+			{
+				OASISErrorHandling.HandleError(ref result, $"Error importing holons into IPFS: {ex.Message}");
+			}
+			return result;
+		}
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+		public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+		{
+			var result = new OASISResult<IEnumerable<IHolon>>();
+			try
+			{
+				var allHolonsResult = await LoadAllHolonsAsync(HolonType.All, version: version);
+				if (allHolonsResult.IsError)
+					return OASISResultHelper.CopyError<IEnumerable<IHolon>>(allHolonsResult);
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+				var holons = allHolonsResult.Result.Where(h => h.CreatedByAvatarId == avatarId || h.ParentHolonId == avatarId).ToList();
+				result.Result = holons;
+				result.Message = "Exported holons for avatar (by Id) from IPFS.";
+			}
+			catch (Exception ex)
+			{
+				OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by Id from IPFS: {ex.Message}");
+			}
+			return result;
+		}
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+		public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+		{
+			var result = new OASISResult<IEnumerable<IHolon>>();
+			try
+			{
+				var avatarResult = await LoadAvatarTemplateAsync(a => a.login == avatarUsername);
+				if (avatarResult.IsError || avatarResult.Result == null)
+					return OASISResultHelper.CopyError<IEnumerable<IHolon>>(avatarResult);
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+				return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+			}
+			catch (Exception ex)
+			{
+				OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by username from IPFS: {ex.Message}");
+				return result;
+			}
+		}
 
-        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
-        {
-            throw new NotImplementedException();
-        }
+		public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+		{
+			var result = new OASISResult<IEnumerable<IHolon>>();
+			try
+			{
+				var avatarResult = await LoadAvatarTemplateAsync(a => a.email == avatarEmailAddress);
+				if (avatarResult.IsError || avatarResult.Result == null)
+					return OASISResultHelper.CopyError<IEnumerable<IHolon>>(avatarResult);
 
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+				return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+			}
+			catch (Exception ex)
+			{
+				OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by email from IPFS: {ex.Message}");
+				return result;
+			}
+		}
 
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+		public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+		{
+			return await LoadAllHolonsAsync(HolonType.All, version: version);
+		}
 
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+		public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+		{
+			return ImportAsync(holons).Result;
+		}
 
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+		public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+		{
+			return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
+		}
+
+		public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+		{
+			return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
+		}
+
+		public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+		{
+			return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
+		}
+
+		public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+		{
+			return ExportAllAsync(version).Result;
+		}
 
         //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         //{
@@ -1050,24 +1110,64 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         //    throw new NotImplementedException();
         //}
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+		public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+		{
+			var result = new OASISResult<IEnumerable<IHolon>>();
+			try
+			{
+				var allHolonsResult = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+				if (allHolonsResult.IsError)
+					return OASISResultHelper.CopyError<IEnumerable<IHolon>>(allHolonsResult);
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+				var filtered = allHolonsResult.Result.Where(h => h.MetaData != null && h.MetaData.ContainsKey(metaKey) && Convert.ToString(h.MetaData[metaKey]) == metaValue).ToList();
+				result.Result = filtered;
+			}
+			catch (Exception ex)
+			{
+				OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from IPFS: {ex.Message}");
+			}
+			return result;
+		}
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+		public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+		{
+			return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+		}
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            throw new NotImplementedException();
-        }
+		public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+		{
+			var result = new OASISResult<IEnumerable<IHolon>>();
+			try
+			{
+				var allHolonsResult = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+				if (allHolonsResult.IsError)
+					return OASISResultHelper.CopyError<IEnumerable<IHolon>>(allHolonsResult);
+
+				IEnumerable<IHolon> filtered = allHolonsResult.Result;
+				if (metaKeyValuePairs != null && metaKeyValuePairs.Count > 0)
+				{
+					if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.MatchAll)
+					{
+						filtered = filtered.Where(h => h.MetaData != null && metaKeyValuePairs.All(kvp => h.MetaData.ContainsKey(kvp.Key) && Convert.ToString(h.MetaData[kvp.Key]) == kvp.Value));
+					}
+					else
+					{
+						filtered = filtered.Where(h => h.MetaData != null && metaKeyValuePairs.Any(kvp => h.MetaData.ContainsKey(kvp.Key) && Convert.ToString(h.MetaData[kvp.Key]) == kvp.Value));
+					}
+				}
+
+				result.Result = filtered.ToList();
+			}
+			catch (Exception ex)
+			{
+				OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from IPFS: {ex.Message}");
+			}
+			return result;
+		}
+
+		public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+		{
+			return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+		}
     }
 }

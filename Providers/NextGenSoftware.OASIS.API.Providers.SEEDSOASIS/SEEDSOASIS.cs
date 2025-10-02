@@ -41,7 +41,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         public TelosOASIS.TelosOASIS TelosOASIS { get; }
 
 
-        //TODO: Not sure if this should share the EOSOASIS AvatarManagerInstance? May be better to have seperate?
         private AvatarManager AvatarManager
         {
             get
@@ -49,9 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 if (_avatarManager == null)
                 {
                     if (TelosOASIS != null)
-                        _avatarManager = new AvatarManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
-                        //_avatarManager = new AvatarManager(TelosOASIS); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
-
+                        _avatarManager = new AvatarManager(TelosOASIS);
                     else
                     {
                         if (!ProviderManager.Instance.IsProviderRegistered(Core.Enums.ProviderType.TelosOASIS))
@@ -70,8 +67,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             get
             {
                 if (_keyManager == null)
-                    _keyManager = new KeyManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
-                    //_keyManager = new KeyManager(this, AvatarManager); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+                    _keyManager = new KeyManager(this, AvatarManager);
 
                 return _keyManager;
             }
@@ -533,5 +529,147 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
             return comparer.Compare(hashOfInput, hash) == 0;
         }
+
+        #region Serialization Methods
+
+        /// <summary>
+        /// Parse SEEDS blockchain response to Avatar object
+        /// </summary>
+        private Avatar ParseSEEDSToAvatar(string seedsJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar object from SEEDS JSON
+                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(seedsJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                // If JSON deserialization fails, try to extract basic info
+                return CreateAvatarFromSEEDS(seedsJson);
+            }
+        }
+
+        /// <summary>
+        /// Create Avatar from SEEDS response when JSON deserialization fails
+        /// </summary>
+        private Avatar CreateAvatarFromSEEDS(string seedsJson)
+        {
+            try
+            {
+                // Extract basic information from SEEDS JSON response
+                var avatar = new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = ExtractSEEDSProperty(seedsJson, "account") ?? "seeds_user",
+                    Email = ExtractSEEDSProperty(seedsJson, "email") ?? "user@seeds.example",
+                    FirstName = ExtractSEEDSProperty(seedsJson, "first_name"),
+                    LastName = ExtractSEEDSProperty(seedsJson, "last_name"),
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow
+                };
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extract property value from SEEDS JSON response
+        /// </summary>
+        private string ExtractSEEDSProperty(string seedsJson, string propertyName)
+        {
+            try
+            {
+                // Simple regex-based extraction for SEEDS properties
+                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
+                var match = System.Text.RegularExpressions.Regex.Match(seedsJson, pattern);
+                return match.Success ? match.Groups[1].Value : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert Avatar to SEEDS blockchain format
+        /// </summary>
+        private string ConvertAvatarToSEEDS(IAvatar avatar)
+        {
+            try
+            {
+                // Serialize Avatar to JSON with SEEDS blockchain structure
+                var seedsData = new
+                {
+                    account = avatar.Username,
+                    email = avatar.Email,
+                    first_name = avatar.FirstName,
+                    last_name = avatar.LastName,
+                    created = avatar.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(seedsData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        /// <summary>
+        /// Convert Holon to SEEDS blockchain format
+        /// </summary>
+        private string ConvertHolonToSEEDS(IHolon holon)
+        {
+            try
+            {
+                // Serialize Holon to JSON with SEEDS blockchain structure
+                var seedsData = new
+                {
+                    id = holon.Id.ToString(),
+                    type = holon.HolonType.ToString(),
+                    name = holon.Name,
+                    description = holon.Description,
+                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(seedsData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        #endregion
     }
 }

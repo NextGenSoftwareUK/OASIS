@@ -12,13 +12,25 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Plugins management endpoints for creating, updating, and managing STAR plugins.
+    /// Plugins represent modular extensions and add-ons that enhance STAR functionality.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class PluginsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all plugins in the system.
+        /// </summary>
+        /// <returns>List of all plugins available in the STAR system.</returns>
+        /// <response code="200">Plugins retrieved successfully</response>
+        /// <response code="400">Error retrieving plugins</response>
         [HttpGet]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAllPlugins()
         {
             try
@@ -37,7 +49,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific plugin by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the plugin to retrieve.</param>
+        /// <returns>The requested plugin details.</returns>
+        /// <response code="200">Plugin retrieved successfully</response>
+        /// <response code="400">Error retrieving plugin</response>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetPlugin(Guid id)
         {
             try
@@ -56,7 +77,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates a new plugin for the authenticated avatar.
+        /// </summary>
+        /// <param name="request">The plugin creation request details.</param>
+        /// <returns>The created plugin with assigned ID and metadata.</returns>
+        /// <response code="200">Plugin created successfully</response>
+        /// <response code="400">Error creating plugin</response>
         [HttpPost]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreatePlugin([FromBody] CreatePluginRequest request)
         {
             try

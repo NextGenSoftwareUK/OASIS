@@ -73,11 +73,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///     Register a new avatar. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to
         ///     be used only for this request or true for it to be used for all future requests too.
         /// </summary>
-        /// <param name="model"></param>
-        /// <param name="providerType"></param>
-        /// <param name="setGlobally"></param>
-        /// <returns></returns>
+        /// <param name="model">Registration details including username, email, password, and optional provider preferences.</param>
+        /// <param name="providerType">The OASIS provider type to use for registration.</param>
+        /// <param name="setGlobally">Whether to set this provider globally for all future requests.</param>
+        /// <returns>OASIS result containing the newly created avatar or error details.</returns>
+        /// <response code="200">Avatar successfully registered</response>
+        /// <response code="400">Invalid registration data or user already exists</response>
         [HttpPost("register/{providerType}/{setGlobally}")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IAvatar>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
@@ -89,9 +93,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///     Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by
         ///     the link in the email.
         /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
+        /// <param name="token">The verification token sent via email.</param>
+        /// <returns>OASIS result indicating whether email verification was successful.</returns>
+        /// <response code="200">Email verification completed (success or failure)</response>
+        /// <response code="400">Invalid or expired verification token</response>
         [HttpGet("verify-email")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(string token)
         {
             return HttpResponseHelper.FormatResponse(AvatarManager.VerifyEmail(token));
@@ -103,11 +111,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///     Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to
         ///     be used for all future requests too.
         /// </summary>
-        /// <param name="token"></param>
-        /// <param name="providerType"></param>
-        /// <param name="setGlobally"></param>
-        /// <returns></returns>
+        /// <param name="token">The verification token sent via email.</param>
+        /// <param name="providerType">The OASIS provider type to use for verification.</param>
+        /// <param name="setGlobally">Whether to set this provider globally for all future requests.</param>
+        /// <returns>OASIS result indicating whether email verification was successful.</returns>
+        /// <response code="200">Email verification completed (success or failure)</response>
+        /// <response code="400">Invalid or expired verification token</response>
         [HttpGet("verify-email/{providerType}/{setGlobally}")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(string token, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
@@ -118,10 +130,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///     Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by
         ///     the REST API or other methods that need to POST the data rather than GET.
         /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
+        /// <param name="model">The verification request containing the token.</param>
+        /// <returns>OASIS result indicating whether email verification was successful.</returns>
+        /// <response code="200">Email verification completed (success or failure)</response>
+        /// <response code="400">Invalid or expired verification token</response>
         [ResponseType(typeof(OASISHttpResponseMessage<bool>))]
         [HttpPost("verify-email")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(VerifyEmailRequest model)
         {
             return await VerifyEmail(model.Token);
@@ -132,12 +148,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///     Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to
         ///     be used for all future requests too.
         /// </summary>
-        /// <param name="model"></param>
-        /// <param name="providerType"></param>
-        /// <param name="setGlobally"></param>
-        /// <returns></returns>
+        /// <param name="model">The verification request containing the token.</param>
+        /// <param name="providerType">The OASIS provider type to use for verification.</param>
+        /// <param name="setGlobally">Whether to set this provider globally for all future requests.</param>
+        /// <returns>OASIS result indicating whether email verification was successful.</returns>
+        /// <response code="200">Email verification completed (success or failure)</response>
+        /// <response code="400">Invalid or expired verification token</response>
         [ResponseType(typeof(OASISHttpResponseMessage<bool>))]
         [HttpPost("verify-email/{providerType}/{setGlobally}")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(VerifyEmailRequest model, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
