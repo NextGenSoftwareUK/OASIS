@@ -1001,7 +1001,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 			{
 				var allHolonsResult = await LoadAllHolonsAsync(HolonType.All, version: version);
 				if (allHolonsResult.IsError)
-					return OASISResultHelper.CopyError<IEnumerable<IHolon>>(allHolonsResult);
+					result.IsError = true;
+					result.Message = allHolonsResult.Message;
+					result.Exception = allHolonsResult.Exception;
+					return result;
 
 				var holons = allHolonsResult.Result.Where(h => h.CreatedByAvatarId == avatarId || h.ParentHolonId == avatarId).ToList();
 				result.Result = holons;
@@ -1021,7 +1024,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 			{
 				var avatarResult = await LoadAvatarTemplateAsync(a => a.login == avatarUsername);
 				if (avatarResult.IsError || avatarResult.Result == null)
-					return OASISResultHelper.CopyError<IEnumerable<IHolon>>(avatarResult);
+					result.IsError = true;
+					result.Message = avatarResult.Message;
+					result.Exception = avatarResult.Exception;
+					return result;
 
 				return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
 			}
@@ -1039,7 +1045,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 			{
 				var avatarResult = await LoadAvatarTemplateAsync(a => a.email == avatarEmailAddress);
 				if (avatarResult.IsError || avatarResult.Result == null)
-					return OASISResultHelper.CopyError<IEnumerable<IHolon>>(avatarResult);
+					result.IsError = true;
+					result.Message = avatarResult.Message;
+					result.Exception = avatarResult.Exception;
+					return result;
 
 				return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
 			}
@@ -1117,7 +1126,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 			{
 				var allHolonsResult = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
 				if (allHolonsResult.IsError)
-					return OASISResultHelper.CopyError<IEnumerable<IHolon>>(allHolonsResult);
+					result.IsError = true;
+					result.Message = allHolonsResult.Message;
+					result.Exception = allHolonsResult.Exception;
+					return result;
 
 				var filtered = allHolonsResult.Result.Where(h => h.MetaData != null && h.MetaData.ContainsKey(metaKey) && Convert.ToString(h.MetaData[metaKey]) == metaValue).ToList();
 				result.Result = filtered;
@@ -1141,12 +1153,15 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 			{
 				var allHolonsResult = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
 				if (allHolonsResult.IsError)
-					return OASISResultHelper.CopyError<IEnumerable<IHolon>>(allHolonsResult);
+					result.IsError = true;
+					result.Message = allHolonsResult.Message;
+					result.Exception = allHolonsResult.Exception;
+					return result;
 
 				IEnumerable<IHolon> filtered = allHolonsResult.Result;
 				if (metaKeyValuePairs != null && metaKeyValuePairs.Count > 0)
 				{
-					if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.MatchAll)
+					if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
 					{
 						filtered = filtered.Where(h => h.MetaData != null && metaKeyValuePairs.All(kvp => h.MetaData.ContainsKey(kvp.Key) && Convert.ToString(h.MetaData[kvp.Key]) == kvp.Value));
 					}

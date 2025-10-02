@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -148,8 +149,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        // Convert IAvatar to IAvatarDetail - for now return null as this needs proper implementation
+                        response.Result = null;
+                        response.Message = "AvatarDetail conversion not implemented yet for ActivityPub provider";
                     }
                     else
                     {
@@ -200,8 +202,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        // Convert IAvatar to IAvatarDetail - for now return null as this needs proper implementation
+                        response.Result = null;
+                        response.Message = "AvatarDetail conversion not implemented yet for ActivityPub provider";
                     }
                     else
                     {
@@ -251,8 +254,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        // Convert IAvatar to IAvatarDetail - for now return null as this needs proper implementation
+                        response.Result = null;
+                        response.Message = "AvatarDetail conversion not implemented yet for ActivityPub provider";
                     }
                     else
                     {
@@ -303,8 +307,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        // Convert IAvatar to IAvatarDetail - for now return null as this needs proper implementation
+                        response.Result = null;
+                        response.Message = "AvatarDetail conversion not implemented yet for ActivityPub provider";
                     }
                     else
                     {
@@ -354,8 +359,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        // Convert IAvatar to IAvatarDetail - for now return null as this needs proper implementation
+                        response.Result = null;
+                        response.Message = "AvatarDetail conversion not implemented yet for ActivityPub provider";
                     }
                     else
                     {
@@ -405,8 +411,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        // Convert IAvatar to IAvatarDetail - for now return null as this needs proper implementation
+                        response.Result = null;
+                        response.Message = "AvatarDetail conversion not implemented yet for ActivityPub provider";
                     }
                     else
                     {
@@ -456,8 +463,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        // Convert IAvatar to IAvatarDetail - for now return null as this needs proper implementation
+                        response.Result = null;
+                        response.Message = "AvatarDetail conversion not implemented yet for ActivityPub provider";
                     }
                     else
                     {
@@ -507,7 +515,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
+                        // Convert single IAvatar to IEnumerable<IAvatar>
+                        response.Result = new List<IAvatar> { avatar };
                         response.Message = "Avatar loaded from ActivityPub successfully";
                     }
                     else
@@ -558,8 +567,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        // Convert IAvatar to IAvatarDetail - for now return null as this needs proper implementation
+                        response.Result = null;
+                        response.Message = "AvatarDetail conversion not implemented yet for ActivityPub provider";
                     }
                     else
                     {
@@ -889,7 +899,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadHolonAsync(id, version).Result;
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -939,7 +949,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadHolonByProviderKeyAsync(providerKey, version).Result;
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -989,7 +999,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadAllHolonsAsync(version).Result;
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -1037,7 +1047,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            var response = new OASISResult<bool>();
+            var response = new OASISResult<IHolon>();
 
             try
             {
@@ -1054,7 +1064,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    response.Result = true;
+                    response.Result = null; // Return null since holon is deleted
                     response.Message = "Holon deleted from ActivityPub instance successfully";
                 }
                 else
@@ -1073,12 +1083,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            return DeleteHolonAsync(id, softDelete).Result;
+            return DeleteHolonAsync(id).Result;
         }
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            var response = new OASISResult<bool>();
+            var response = new OASISResult<IHolon>();
 
             try
             {
@@ -1095,7 +1105,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    response.Result = true;
+                    response.Result = null; // Return null since holon is deleted
                     response.Message = "Holon deleted from ActivityPub instance successfully";
                 }
                 else
@@ -1114,7 +1124,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            return DeleteHolonAsync(providerKey, softDelete).Result;
+            return DeleteHolonAsync(providerKey).Result;
         }
 
         #endregion
@@ -1136,17 +1146,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 // Get players near me from ActivityPub instance
                 var apiUrl = $"{_instanceUrl}/api/v1/accounts/followers";
                 
-                var httpResponse = await _httpClient.GetAsync(apiUrl);
+                var httpResponse = _httpClient.GetAsync(apiUrl).Result;
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // Parse ActivityPub JSON and create Player collection
                     // Parse ActivityPub JSON and create Avatar object
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        // Convert IAvatar to IAvatarDetail - for now return null as this needs proper implementation
+                        response.Result = null;
+                        response.Message = "AvatarDetail conversion not implemented yet for ActivityPub provider";
                     }
                     else
                     {
@@ -1182,17 +1193,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 // Get holons near me from ActivityPub instance
                 var apiUrl = $"{_instanceUrl}/api/v1/statuses?type={Type}";
                 
-                var httpResponse = await _httpClient.GetAsync(apiUrl);
+                var httpResponse = _httpClient.GetAsync(apiUrl).Result;
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // Parse ActivityPub JSON and create Holon collection
                     // Parse ActivityPub JSON and create Avatar object
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
+                        // Convert IAvatar to IAvatarDetail - for now return null as this needs proper implementation
+                        response.Result = null;
+                        response.Message = "AvatarDetail conversion not implemented yet for ActivityPub provider";
                     }
                     else
                     {
@@ -1379,6 +1391,134 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         public void Dispose()
         {
             _httpClient?.Dispose();
+        }
+
+        #endregion
+
+        #region Missing Abstract Methods - Stub Implementations
+
+        // Holon methods
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "LoadHolonsForParent is not supported yet by ActivityPub provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "LoadHolonsForParent by providerKey is not supported yet by ActivityPub provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "LoadHolonsByMetaData is not supported yet by ActivityPub provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "LoadHolonsByMetaData (multi) is not supported yet by ActivityPub provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "SaveHolons is not supported yet by ActivityPub provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
+        }
+
+        // Search methods
+        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var result = new OASISResult<ISearchResults> { Message = "Search is not supported yet by ActivityPub provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+        }
+
+        // Import/Export methods
+        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            var result = new OASISResult<bool> { Result = false, Message = "Import is not supported yet by ActivityPub provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+        {
+            return ImportAsync(holons).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "ExportAllDataForAvatarById is not supported yet by ActivityPub provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "ExportAllDataForAvatarByUsername is not supported yet by ActivityPub provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string username, int version = 0)
+        {
+            return ExportAllDataForAvatarByUsernameAsync(username, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "ExportAllDataForAvatarByEmail is not supported yet by ActivityPub provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int version = 0)
+        {
+            return ExportAllDataForAvatarByEmailAsync(email, version).Result;
+        }
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "ExportAll is not supported yet by ActivityPub provider." };
+            return Task.FromResult(result);
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+        {
+            return ExportAllAsync(version).Result;
         }
 
         #endregion
