@@ -121,10 +121,6 @@ export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMin
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[var(--color-card-border)]/60 bg-[rgba(4,8,24,0.95)] p-4 text-xs text-[var(--muted)]">
-        <pre className="max-h-80 overflow-auto">{JSON.stringify(payload, null, 2)}</pre>
-      </div>
-
       <div className="flex flex-col gap-3 border-t border-[var(--color-card-border)]/30 pt-4">
         <p className="text-sm text-[var(--muted)]">
           If you included uploads above, the mint endpoint will push files to Pinata automatically; otherwise ensure the URLs are set.
@@ -173,6 +169,9 @@ export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMin
           </Button>
         </div>
         {mintError ? <p className="text-xs text-[var(--negative)]">{mintError}</p> : null}
+      </div>
+      <div className="rounded-2xl border border-[var(--color-card-border)]/60 bg-[rgba(4,8,24,0.95)] p-4 text-xs text-[var(--muted)]">
+        <pre className="max-h-80 overflow-auto">{JSON.stringify(payload, null, 2)}</pre>
       </div>
       {showSuccessModal ? (
         <MintSuccessModal
