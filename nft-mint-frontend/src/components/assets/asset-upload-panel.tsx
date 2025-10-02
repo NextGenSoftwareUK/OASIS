@@ -78,17 +78,18 @@ export function AssetUploadPanel({ value, onChange, baseUrl, token }: AssetUploa
   );
 
   const uploadToPinata = async (kind: "image" | "thumbnail", base64: string, fileName?: string, contentType?: string) => {
-    if (!normalizedBase || !token || !base64) return;
+    if (!base64) return;
+    const endpoint = normalizedBase ? `${normalizedBase}${PINATA_FILE_ENDPOINT}` : PINATA_FILE_ENDPOINT;
 
     const setterKey = kind === "image" ? "imageUploading" : "thumbnailUploading";
     updateDraft({ [setterKey]: true } as Partial<AssetDraft>);
 
     try {
-      const response = await fetch(`${normalizedBase}${PINATA_FILE_ENDPOINT}`, {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           base64,
@@ -115,7 +116,7 @@ export function AssetUploadPanel({ value, onChange, baseUrl, token }: AssetUploa
   };
 
   const uploadMetadataJson = async () => {
-    if (!normalizedBase || !token) return;
+    const endpoint = normalizedBase ? `${normalizedBase}${PINATA_JSON_ENDPOINT}` : PINATA_JSON_ENDPOINT;
     const metadata = {
       name: draft.title,
       symbol: draft.symbol,
@@ -137,11 +138,11 @@ export function AssetUploadPanel({ value, onChange, baseUrl, token }: AssetUploa
     updateDraft({ metadataUploading: true });
 
     try {
-      const response = await fetch(`${normalizedBase}${PINATA_JSON_ENDPOINT}`, {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           content: metadata,
