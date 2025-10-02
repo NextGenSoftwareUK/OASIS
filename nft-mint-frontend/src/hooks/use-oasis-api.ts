@@ -30,6 +30,13 @@ export function useOasisApi(config: OasisConfig) {
       }
 
       if (!response.ok) {
+        if (process.env.NODE_ENV !== "production") {
+          console.error("[oasis-api] request failed", {
+            path,
+            status: response.status,
+            body: text,
+          });
+        }
         throw new Error(json?.message ?? `HTTP ${response.status}`);
       }
 

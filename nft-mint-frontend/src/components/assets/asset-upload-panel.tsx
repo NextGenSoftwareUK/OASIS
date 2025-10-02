@@ -96,12 +96,13 @@ export function AssetUploadPanel({ value, onChange, token }: AssetUploadPanelPro
         }),
       });
 
-      const json: { isError?: boolean; message?: string; result?: string } = await response.json();
+      const json: { isError?: boolean; message?: string; result?: string; url?: string } = await response.json();
       if (!response.ok || json?.isError) {
         throw new Error(json?.message ?? "Failed to upload file to Pinata");
       }
 
-      const url = json?.result ?? "";
+      const url = json?.result ?? json?.url ?? "";
+      console.log(`[pinata] uploaded ${kind}`, url);
       if (kind === "image") {
         updateDraft({ imageUrl: url, imageData: undefined, imageUploading: false });
       } else {
@@ -148,12 +149,13 @@ export function AssetUploadPanel({ value, onChange, token }: AssetUploadPanelPro
         }),
       });
 
-      const json: { isError?: boolean; message?: string; result?: string } = await response.json();
+      const json: { isError?: boolean; message?: string; result?: string; url?: string } = await response.json();
       if (!response.ok || json?.isError) {
         throw new Error(json?.message ?? "Failed to upload metadata to Pinata");
       }
 
-      const url = json?.result ?? "";
+      const url = json?.result ?? json?.url ?? "";
+      console.log("[pinata] metadata pinned", url);
       updateDraft({ jsonUrl: url, metadataUploading: false });
     } catch (error) {
       console.error("Metadata upload failed", error);
@@ -189,8 +191,6 @@ export function AssetUploadPanel({ value, onChange, token }: AssetUploadPanelPro
       }
     }
   };
-
-  const canGenerateMetadata = Boolean(draft.title && draft.symbol && draft.description && draft.imageUrl);
 
   return (
     <div className="space-y-8">
@@ -307,11 +307,18 @@ export function AssetUploadPanel({ value, onChange, token }: AssetUploadPanelPro
           </div>
           <Button
             variant="secondary"
-            disabled={!canGenerateMetadata || draft.metadataUploading}
+            disabled={draft.metadataUploading || !draft.imageUrl || !draft.title || !draft.symbol}
             onClick={uploadMetadataJson}
           >
-            {draft.metadataUploading ? "Uploading metadata..." : "Generate & Pin Metadata"}
+            {draft.metadataUploading
+              ? "Uploading metadata..."
+              : draft.jsonUrl
+              ? "Metadata pinned"
+              : "Generate & Pin Metadata"}
           </Button>
+          {draft.jsonUrl ? (
+            <p className="text-[11px] text-[var(--positive)]/80">Metadata stored at {draft.jsonUrl}</p>
+          ) : null}
         </div>
       </section>
 
