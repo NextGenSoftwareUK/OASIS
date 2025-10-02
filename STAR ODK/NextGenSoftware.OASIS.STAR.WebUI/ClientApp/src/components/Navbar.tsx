@@ -160,7 +160,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
+            style={{ display: 'flex', alignItems: 'center' }}
           >
+            {/* STAR Logo */}
+            <img 
+              src="/star-logo.png" 
+              alt="STAR Logo" 
+              style={{ 
+                height: '40px', 
+                width: 'auto',
+                marginRight: '12px',
+                filter: 'drop-shadow(0 0 10px rgba(0, 188, 212, 0.3))'
+              }}
+            />
             <Typography 
               variant="h6" 
               noWrap 
