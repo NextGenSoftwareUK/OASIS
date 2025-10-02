@@ -31,12 +31,18 @@ export async function POST(request: NextRequest) {
 
     const matches = /^data:(?<type>[^;]+);base64,(?<data>.+)$/u.exec(base64);
     const buffer = Buffer.from(matches?.groups?.data ?? base64, "base64");
+    const isNodeRuntime = typeof Blob === "undefined";
     const inferredType = matches?.groups?.type ?? contentType ?? "application/octet-stream";
     const safeName = fileName ?? `upload-${Date.now()}`;
 
     const form = new FormData();
-    const blob = new Blob([buffer], { type: inferredType });
-    form.append("file", blob, safeName);
+    if (isNodeRuntime) {
+      // Running in Node (Next.js route) – use buffer
+      form.append("file", buffer, safeName);
+    } else {
+      const blob = new Blob([buffer], { type: inferredType });
+      form.append("file", blob, safeName);
+    }
     form.append("pinataMetadata", JSON.stringify({ name: safeName }));
     form.append("pinataOptions", JSON.stringify({ cidVersion: 1 }));
 
