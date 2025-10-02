@@ -43,11 +43,10 @@ export const DEFAULT_ASSET_DRAFT: AssetDraft = {
 export type AssetUploadPanelProps = {
   value?: AssetDraft;
   onChange?: (draft: AssetDraft) => void;
-  baseUrl?: string;
   token?: string;
 };
 
-export function AssetUploadPanel({ value, onChange, baseUrl, token }: AssetUploadPanelProps) {
+export function AssetUploadPanel({ value, onChange, token }: AssetUploadPanelProps) {
   const [draft, setDraft] = useState<AssetDraft>(value ?? DEFAULT_ASSET_DRAFT);
 
   useEffect(() => {
@@ -62,7 +61,6 @@ export function AssetUploadPanel({ value, onChange, baseUrl, token }: AssetUploa
     onChange?.(next);
   };
 
-  const normalizedBase = baseUrl ? baseUrl.replace(/\/$/, "") : undefined;
 
   const previewPayload = useMemo(
     () => ({
@@ -79,7 +77,7 @@ export function AssetUploadPanel({ value, onChange, baseUrl, token }: AssetUploa
 
   const uploadToPinata = async (kind: "image" | "thumbnail", base64: string, fileName?: string, contentType?: string) => {
     if (!base64) return;
-    const endpoint = normalizedBase ? `${normalizedBase}${PINATA_FILE_ENDPOINT}` : PINATA_FILE_ENDPOINT;
+    const endpoint = PINATA_FILE_ENDPOINT;
 
     const setterKey = kind === "image" ? "imageUploading" : "thumbnailUploading";
     updateDraft({ [setterKey]: true } as Partial<AssetDraft>);
@@ -89,7 +87,7 @@ export function AssetUploadPanel({ value, onChange, baseUrl, token }: AssetUploa
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           base64,
@@ -116,7 +114,7 @@ export function AssetUploadPanel({ value, onChange, baseUrl, token }: AssetUploa
   };
 
   const uploadMetadataJson = async () => {
-    const endpoint = normalizedBase ? `${normalizedBase}${PINATA_JSON_ENDPOINT}` : PINATA_JSON_ENDPOINT;
+    const endpoint = PINATA_JSON_ENDPOINT;
     const metadata = {
       name: draft.title,
       symbol: draft.symbol,
