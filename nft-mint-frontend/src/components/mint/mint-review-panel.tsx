@@ -70,9 +70,27 @@ export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token, av
   }, [assetDraft, avatarId, numberToMint, price, retrySeconds, storeOnChain, waitSeconds, waitTillSent]);
 
   const mintDisabled = useMemo(() => {
-    const hasUrls = Boolean(assetDraft.jsonUrl && assetDraft.imageUrl);
+    const hasJson = Boolean(assetDraft.jsonUrl);
+    const hasImage = Boolean(assetDraft.imageUrl);
     const hasUploads = Boolean(assetDraft.imageData);
-    return !hasUrls && !hasUploads;
+    const hasRecipient = Boolean(assetDraft.sendToAddress);
+    const hasTitle = Boolean(assetDraft.title);
+    const hasDescription = Boolean(assetDraft.description);
+    const hasSymbol = Boolean(assetDraft.symbol);
+    return (!(hasJson && hasImage) && !hasUploads) || !hasRecipient || !hasTitle || !hasDescription || !hasSymbol;
+  }, [assetDraft]);
+
+  const missingFields = useMemo(() => {
+    const items: string[] = [];
+    if (!assetDraft.title) items.push("title");
+    if (!assetDraft.symbol) items.push("symbol");
+    if (!assetDraft.description) items.push("description");
+    if (!assetDraft.sendToAddress) items.push("recipient wallet");
+    if (!assetDraft.imageData) {
+      if (!assetDraft.imageUrl) items.push("image url");
+      if (!assetDraft.jsonUrl) items.push("json metadata url");
+    }
+    return items;
   }, [assetDraft]);
 
   return (
@@ -107,6 +125,11 @@ export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token, av
         <p className="text-sm text-[var(--muted)]">
           If you included uploads above, the mint endpoint will push files to Pinata automatically; otherwise ensure the URLs are set.
         </p>
+        {mintDisabled && missingFields.length ? (
+          <p className="text-xs text-[var(--warning)]">
+            Complete before minting: {missingFields.join(", ")}
+          </p>
+        ) : null}
         <div className="flex flex-wrap gap-3">
           <Button
             variant="primary"
@@ -122,10 +145,16 @@ export function MintReviewPanel({ assetDraft, onStatusChange, baseUrl, token, av
                 });
 
                 setMintResult(response);
+                if (process.env.NODE_ENV !== "production") {
+                  console.log("[mint] success", response);
+                }
                 onStatusChange?.("ready");
               } catch (error: unknown) {
                 const message = error instanceof Error ? error.message : "Minting failed";
                 setMintError(message);
+                if (process.env.NODE_ENV !== "production") {
+                  console.error("[mint] failed", error);
+                }
                 onStatusChange?.("idle");
               } finally {
                 setMinting(false);

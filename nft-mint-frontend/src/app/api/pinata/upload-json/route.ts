@@ -24,6 +24,9 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { content, name } = body ?? {};
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[pinata-json] request", { hasContent: Boolean(content), name });
+    }
 
     if (!content) {
       return NextResponse.json({ message: "content field is required" }, { status: 400 });
@@ -43,18 +46,29 @@ export async function POST(request: NextRequest) {
 
     const text = await response.text();
     if (!response.ok) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[pinata-json] upload failed", response.status, text);
+      }
       return NextResponse.json({ message: text || "Pinata JSON upload failed" }, { status: response.status });
     }
 
     const json = text ? JSON.parse(text) : {};
     const hash = json?.IpfsHash;
     if (!hash) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("[pinata-json] missing hash", json);
+      }
       return NextResponse.json({ message: "Pinata response missing IpfsHash" }, { status: 502 });
     }
 
+    const url = `${PINATA_GATEWAY.replace(/\/$/, "")}/ipfs/${hash}`;
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[pinata-json] success", url);
+    }
     return NextResponse.json({
       hash,
-      url: `${PINATA_GATEWAY.replace(/\/$/, "")}/ipfs/${hash}`,
+      url,
+      result: url,
     });
   } catch (error) {
     console.error("Pinata JSON upload failed", error);
