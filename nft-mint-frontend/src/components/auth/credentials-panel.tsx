@@ -27,6 +27,7 @@ export function CredentialsPanel({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [authenticated, setAuthenticated] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const authenticate = async () => {
     try {
@@ -50,14 +51,21 @@ export function CredentialsPanel({
         throw new Error(data?.message ?? `Authentication failed (HTTP ${response.status})`);
       }
 
-      onToken?.(data.token);
-      onAuthenticated?.({ token: data.token, avatarId: data.avatarId ?? null });
+      const token = data.token;
+      const avatarId = data?.result?.avatarId ?? data?.result?.avatar?.id ?? null;
+
+      onToken?.(token);
+      onAuthenticated?.({ token, avatarId });
       setAuthenticated(true);
+      setSuccess(true);
+      setError(null);
+      setTimeout(() => setSuccess(false), 4000);
     } catch (err: unknown) {
       console.error("Authentication error", err);
       const message = err instanceof Error ? err.message : "Authentication failed";
       setError(message);
       setAuthenticated(false);
+      setSuccess(false);
     } finally {
       setIsLoading(false);
     }
@@ -107,6 +115,7 @@ export function CredentialsPanel({
               Acquire Avatar
             </Button>
           )}
+          {success ? <span className="rounded-full border border-[var(--color-positive)]/60 bg-[rgba(20,118,96,0.25)] px-3 py-1 text-xs text-[var(--color-positive)]">Authentication Successful</span> : null}
         </div>
       </div>
       <p className="text-xs text-[var(--muted)]">

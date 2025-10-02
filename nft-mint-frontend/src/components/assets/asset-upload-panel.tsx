@@ -41,12 +41,13 @@ export const DEFAULT_ASSET_DRAFT: AssetDraft = {
 };
 
 export type AssetUploadPanelProps = {
-  value?: AssetDraft;
-  onChange?: (draft: AssetDraft) => void;
+  value: AssetDraft;
+  onChange: (draft: AssetDraft) => void;
   token?: string;
+  onNext?: () => void;
 };
 
-export function AssetUploadPanel({ value, onChange, token }: AssetUploadPanelProps) {
+export function AssetUploadPanel({ value, onChange, token, onNext }: AssetUploadPanelProps) {
   const [draft, setDraft] = useState<AssetDraft>(value ?? DEFAULT_ASSET_DRAFT);
 
   useEffect(() => {
@@ -335,6 +336,16 @@ export function AssetUploadPanel({ value, onChange, token }: AssetUploadPanelPro
 {JSON.stringify(previewPayload, null, 2)}
         </pre>
       </section>
+
+      <div className="flex justify-end">
+        <Button
+          variant="primary"
+          disabled={!draft.jsonUrl || !draft.imageUrl || !draft.sendToAddress || draft.metadataUploading || draft.imageUploading}
+          onClick={() => onNext?.()}
+        >
+          Next
+        </Button>
+      </div>
     </div>
   );
 }

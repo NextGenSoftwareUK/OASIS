@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { SOLANA_CHAIN } from "@/types/chains";
 import { AppLayout } from "@/components/layout/app-layout";
-import { StatCard } from "@/components/layout/stat-card";
 import { WizardShell } from "@/components/wizard/wizard-shell";
 import { SolanaConfigStep } from "@/components/wizard/chain-step";
 import { CredentialsPanel } from "@/components/auth/credentials-panel";
@@ -81,6 +80,21 @@ export default function PageContent() {
 
   const { call } = useOasisApi({ baseUrl, token: authToken ?? undefined });
 
+  const providerActive = useMemo(() => providerStates.every((provider) => provider.state === "active"), [providerStates]);
+
+  const canProceed = useMemo(() => {
+    switch (activeStep) {
+      case "solana-config":
+        return true;
+      case "auth":
+        return Boolean(authToken && providerActive);
+      case "assets":
+        return Boolean(assetDraft.imageUrl && assetDraft.jsonUrl && assetDraft.sendToAddress);
+      default:
+        return false;
+    }
+  }, [activeStep, authToken, providerActive, assetDraft.imageUrl, assetDraft.jsonUrl, assetDraft.sendToAddress]);
+
   const renderSessionSummary = (
     <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-[var(--color-card-border)]/50 bg-[rgba(8,12,26,0.7)] px-4 py-3 text-[11px] text-[var(--muted)]">
       <span className="text-[9px] uppercase tracking-[0.4em] text-[var(--muted)]">Session Summary</span>
@@ -151,7 +165,45 @@ export default function PageContent() {
             Each configuration ensures compliance with Metaplex and OASIS contract expectations.
           </p>
         </div>
-        <WizardShell steps={WIZARD_STEPS} activeStep={activeStep} onStepChange={setActiveStep}>
+        <WizardShell
+          steps={WIZARD_STEPS}
+          activeStep={activeStep}
+          onStepChange={setActiveStep}
+          footer={
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-wrap gap-2 text-[11px] text-[var(--muted)]">
+                <span>Need help? Follow the checklist above.</span>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  disabled={activeStep === WIZARD_STEPS[0]?.id}
+                  onClick={() => {
+                    const currentIndex = WIZARD_STEPS.findIndex((step) => step.id === activeStep);
+                    if (currentIndex > 0) {
+                      setActiveStep(WIZARD_STEPS[currentIndex - 1].id);
+                    }
+                  }}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    const currentIndex = WIZARD_STEPS.findIndex((step) => step.id === activeStep);
+                    const nextStep = WIZARD_STEPS[currentIndex + 1];
+                    if (nextStep) {
+                      setActiveStep(nextStep.id);
+                    }
+                  }}
+                  disabled={activeStep === WIZARD_STEPS[WIZARD_STEPS.length - 1]?.id || !canProceed}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          }
+        >
           {activeStep === "solana-config" ? (
             <SolanaConfigStep selectedOption={configPreset} onSelect={(option) => setConfigPreset(option)} />
           ) : null}
@@ -176,6 +228,13 @@ export default function PageContent() {
                   onAuthenticated={({ token, avatarId }) => {
                     setAuthToken(token);
                     if (avatarId) setAvatarId(avatarId);
+                  }}
+                  onSuccess={() => {
+                    const currentIndex = WIZARD_STEPS.findIndex((step) => step.id === "auth");
+                    const nextStep = WIZARD_STEPS[currentIndex + 1];
+                    if (nextStep) {
+                      setActiveStep(nextStep.id);
+                    }
                   }}
                 />
               </div>
@@ -231,7 +290,12 @@ export default function PageContent() {
             </div>
           ) : null}
           {activeStep === "assets" ? (
-            <AssetUploadPanel value={assetDraft} onChange={setAssetDraft} token={authToken ?? undefined} />
+            <AssetUploadPanel
+              value={assetDraft}
+              onChange={setAssetDraft}
+              token={authToken ?? undefined}
+              onNext={() => setActiveStep("mint")}
+            />
           ) : null}
           {activeStep === "mint" ? (
             <div className="space-y-8">
@@ -245,6 +309,12 @@ export default function PageContent() {
                   avatarId={avatarId ?? undefined}
                   onStatusChange={(state) => {
                     setMintReady(state === "ready");
+                  }}
+                  onMintStart={() => {
+                    setStatusState("idle");
+                  }}
+                  onMintSuccess={() => {
+                    setStatusState("ready");
                   }}
                   baseUrl={baseUrl}
                   token={authToken ?? undefined}
