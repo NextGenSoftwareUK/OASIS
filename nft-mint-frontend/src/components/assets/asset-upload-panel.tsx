@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -44,10 +44,9 @@ export type AssetUploadPanelProps = {
   value: AssetDraft;
   onChange: (draft: AssetDraft) => void;
   token?: string;
-  onNext?: () => void;
 };
 
-export function AssetUploadPanel({ value, onChange, token, onNext }: AssetUploadPanelProps) {
+export function AssetUploadPanel({ value, onChange, token }: AssetUploadPanelProps) {
   const [draft, setDraft] = useState<AssetDraft>(value ?? DEFAULT_ASSET_DRAFT);
 
   useEffect(() => {
@@ -61,20 +60,6 @@ export function AssetUploadPanel({ value, onChange, token, onNext }: AssetUpload
     setDraft(next);
     onChange?.(next);
   };
-
-
-  const previewPayload = useMemo(
-    () => ({
-      Title: draft.title,
-      Description: draft.description,
-      Symbol: draft.symbol,
-      JSONMetaDataURL: draft.jsonUrl,
-      ImageUrl: draft.imageUrl,
-      ThumbnailUrl: draft.thumbnailUrl,
-      SendToAddressAfterMinting: draft.sendToAddress,
-    }),
-    [draft]
-  );
 
   const uploadToPinata = async (kind: "image" | "thumbnail", base64: string, fileName?: string, contentType?: string) => {
     if (!base64) return;
@@ -322,30 +307,6 @@ export function AssetUploadPanel({ value, onChange, token, onNext }: AssetUpload
           ) : null}
         </div>
       </section>
-
-      <section className="rounded-2xl border border-[var(--color-card-border)]/60 bg-[rgba(8,12,28,0.85)] p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h4 className="text-lg font-semibold text-[var(--color-foreground)]">Request Snapshot</h4>
-            <p className="text-sm text-[var(--muted)]">
-              Reference scaffold before final mint. The review step will add provider enums and mint options automatically.
-            </p>
-          </div>
-        </div>
-        <pre className="mt-4 max-h-80 overflow-auto rounded-xl bg-[rgba(4,8,24,0.95)] p-4 text-xs text-[var(--muted)]">
-{JSON.stringify(previewPayload, null, 2)}
-        </pre>
-      </section>
-
-      <div className="flex justify-end">
-        <Button
-          variant="primary"
-          disabled={!draft.jsonUrl || !draft.imageUrl || !draft.sendToAddress || draft.metadataUploading || draft.imageUploading}
-          onClick={() => onNext?.()}
-        >
-          Next
-        </Button>
-      </div>
     </div>
   );
 }
