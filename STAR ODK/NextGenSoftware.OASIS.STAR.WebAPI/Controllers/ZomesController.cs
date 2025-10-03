@@ -7,17 +7,30 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
+    /// <summary>
+    /// Zomes management endpoints for creating, updating, and managing STAR zomes.
+    /// Zomes represent Holochain applications and distributed computing modules within the STAR ecosystem.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public class IZomesController : STARControllerBase
+    public class ZomesController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        /// <summary>
+        /// Retrieves all zomes in the system.
+        /// </summary>
+        /// <returns>List of all zomes available in the STAR system.</returns>
+        /// <response code="200">Zomes retrieved successfully</response>
+        /// <response code="400">Error retrieving zomes</response>
         [HttpGet]
-        public async Task<IActionResult> GetAllIZomes()
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARZome>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARZome>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetAllZomes()
         {
             try
             {
@@ -26,7 +39,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IZome>>
+                return BadRequest(new OASISResult<IEnumerable<STARZome>>
                 {
                     IsError = true,
                     Message = $"Error loading zomes: {ex.Message}",
@@ -35,8 +48,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific zome by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the zome to retrieve.</param>
+        /// <returns>The requested zome details.</returns>
+        /// <response code="200">Zome retrieved successfully</response>
+        /// <response code="400">Error retrieving zome</response>
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetIZome(Guid id)
+        [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetZome(Guid id)
         {
             try
             {
@@ -45,7 +67,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IZome>
+                return BadRequest(new OASISResult<STARZome>
                 {
                     IsError = true,
                     Message = $"Error loading zome: {ex.Message}",
@@ -54,17 +76,26 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates a new zome for the authenticated avatar.
+        /// </summary>
+        /// <param name="zome">The zome details to create.</param>
+        /// <returns>The created zome with assigned ID and metadata.</returns>
+        /// <response code="200">Zome created successfully</response>
+        /// <response code="400">Error creating zome</response>
         [HttpPost]
-        public async Task<IActionResult> CreateIZome([FromBody] IZome zome)
+        [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARZome>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CreateZome([FromBody] STARZome zome)
         {
             try
             {
-                var result = await _starAPI.Zomes.UpdateAsync(AvatarId, (STARZome)zome);
+                var result = await _starAPI.Zomes.UpdateAsync(AvatarId, zome);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IZome>
+                return BadRequest(new OASISResult<STARZome>
                 {
                     IsError = true,
                     Message = $"Error creating zome: {ex.Message}",
@@ -74,17 +105,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateIZome(Guid id, [FromBody] IZome zome)
+        public async Task<IActionResult> UpdateZome(Guid id, [FromBody] STARZome zome)
         {
             try
             {
                 zome.Id = id;
-                var result = await _starAPI.Zomes.UpdateAsync(AvatarId, (STARZome)zome);
+                var result = await _starAPI.Zomes.UpdateAsync(AvatarId, zome);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IZome>
+                return BadRequest(new OASISResult<STARZome>
                 {
                     IsError = true,
                     Message = $"Error updating zome: {ex.Message}",
@@ -94,7 +125,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteIZome(Guid id)
+        public async Task<IActionResult> DeleteZome(Guid id)
         {
             try
             {
@@ -113,7 +144,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("by-type/{type}")]
-        public async Task<IActionResult> GetIZomesByType(string type)
+        public async Task<IActionResult> GetZomesByType(string type)
         {
             try
             {
@@ -121,7 +152,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IZome>>
+                return BadRequest(new OASISResult<IEnumerable<STARZome>>
                 {
                     IsError = true,
                     Message = $"Error loading zomes of type {type}: {ex.Message}",
@@ -131,7 +162,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         [HttpGet("in-space/{spaceId}")]
-        public async Task<IActionResult> GetIZomesInSpace(Guid spaceId)
+        public async Task<IActionResult> GetZomesInSpace(Guid spaceId)
         {
             try
             {
@@ -139,7 +170,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IZome>>
+                return BadRequest(new OASISResult<IEnumerable<STARZome>>
                 {
                     IsError = true,
                     Message = $"Error loading zomes in space: {ex.Message}",

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Newtonsoft.Json;
 using EOSNewYork.EOSCore.ActionArgs;
 using EOSNewYork.EOSCore.Response.API;
@@ -13,13 +14,17 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.Membranes;
-using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Events;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 {
-    public class SEEDSOASIS : OASISProvider, IOASISApplicationProvider
+    public class SEEDSOASIS : OASISProvider, IOASISApplicationProvider, IOASISStorageProvider
     {
         private static Random _random = new Random();
         private AvatarManager _avatarManager = null;
@@ -41,7 +46,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         public TelosOASIS.TelosOASIS TelosOASIS { get; }
 
 
-        //TODO: Not sure if this should share the EOSOASIS AvatarManagerInstance? May be better to have seperate?
         private AvatarManager AvatarManager
         {
             get
@@ -49,9 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 if (_avatarManager == null)
                 {
                     if (TelosOASIS != null)
-                        _avatarManager = new AvatarManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
-                        //_avatarManager = new AvatarManager(TelosOASIS); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
-
+                        _avatarManager = new AvatarManager(TelosOASIS, OASISDNA);
                     else
                     {
                         if (!ProviderManager.Instance.IsProviderRegistered(Core.Enums.ProviderType.TelosOASIS))
@@ -70,8 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             get
             {
                 if (_keyManager == null)
-                    _keyManager = new KeyManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
-                    //_keyManager = new KeyManager(this, AvatarManager); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+                    _keyManager = new KeyManager(this, OASISDNA);
 
                 return _keyManager;
             }
@@ -88,6 +89,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
            // TelosOASIS = new TelosOASIS.TelosOASIS(telosConnectionString);
         }
+
+        //event EventDelegates.StorageProviderError IOASISStorageProvider.OnStorageProviderError
+        //{
+        //    add
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    remove
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+        //}
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
@@ -533,5 +547,505 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
             return comparer.Compare(hashOfInput, hash) == 0;
         }
+
+        #region Serialization Methods
+
+        /// <summary>
+        /// Parse SEEDS blockchain response to Avatar object
+        /// </summary>
+        private Avatar ParseSEEDSToAvatar(string seedsJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar object from SEEDS JSON
+                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(seedsJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                // If JSON deserialization fails, try to extract basic info
+                return CreateAvatarFromSEEDS(seedsJson);
+            }
+        }
+
+        /// <summary>
+        /// Create Avatar from SEEDS response when JSON deserialization fails
+        /// </summary>
+        private Avatar CreateAvatarFromSEEDS(string seedsJson)
+        {
+            try
+            {
+                // Extract basic information from SEEDS JSON response
+                var avatar = new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = ExtractSEEDSProperty(seedsJson, "account") ?? "seeds_user",
+                    Email = ExtractSEEDSProperty(seedsJson, "email") ?? "user@seeds.example",
+                    FirstName = ExtractSEEDSProperty(seedsJson, "first_name"),
+                    LastName = ExtractSEEDSProperty(seedsJson, "last_name"),
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow
+                };
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extract property value from SEEDS JSON response
+        /// </summary>
+        private string ExtractSEEDSProperty(string seedsJson, string propertyName)
+        {
+            try
+            {
+                // Simple regex-based extraction for SEEDS properties
+                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
+                var match = System.Text.RegularExpressions.Regex.Match(seedsJson, pattern);
+                return match.Success ? match.Groups[1].Value : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert Avatar to SEEDS blockchain format
+        /// </summary>
+        private string ConvertAvatarToSEEDS(IAvatar avatar)
+        {
+            try
+            {
+                // Serialize Avatar to JSON with SEEDS blockchain structure
+                var seedsData = new
+                {
+                    account = avatar.Username,
+                    email = avatar.Email,
+                    first_name = avatar.FirstName,
+                    last_name = avatar.LastName,
+                    created = avatar.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(seedsData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        /// <summary>
+        /// Convert Holon to SEEDS blockchain format
+        /// </summary>
+        private string ConvertHolonToSEEDS(IHolon holon)
+        {
+            try
+            {
+                // Serialize Holon to JSON with SEEDS blockchain structure
+                var seedsData = new
+                {
+                    id = holon.Id.ToString(),
+                    type = holon.HolonType.ToString(),
+                    name = holon.Name,
+                    description = holon.Description,
+                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(seedsData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        #endregion
+
+        #region IOASISStorageProvider Interface Implementation
+
+        // Stub implementations for IOASISStorageProvider interface
+        public OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
+        {
+            return new OASISResult<IAvatar> { Message = "LoadAvatar is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatar> { Message = "LoadAvatarAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IAvatar> LoadAvatar(string providerKey, int version = 0)
+        {
+            return new OASISResult<IAvatar> { Message = "LoadAvatar by providerKey is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IAvatar>> LoadAvatarAsync(string providerKey, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatar> { Message = "LoadAvatarAsync by providerKey is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IAvatar> LoadAvatarByEmail(string email, int version = 0)
+        {
+            return new OASISResult<IAvatar> { Message = "LoadAvatarByEmail is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatar> { Message = "LoadAvatarByEmailAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0)
+        {
+            return new OASISResult<IAvatar> { Message = "LoadAvatarByUsername is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatar> { Message = "LoadAvatarByUsernameAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
+        {
+            return new OASISResult<IEnumerable<IAvatar>> { Message = "LoadAllAvatars is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IAvatar>> { Message = "LoadAllAvatarsAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
+        {
+            return new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetail is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0)
+        {
+            return new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailByEmail is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailByEmailAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0)
+        {
+            return new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailByUsername is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailByUsernameAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
+        {
+            return new OASISResult<IEnumerable<IAvatarDetail>> { Message = "LoadAllAvatarDetails is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IAvatarDetail>> { Message = "LoadAllAvatarDetailsAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
+        {
+            return new OASISResult<IAvatar> { Message = "SaveAvatar is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        {
+            return Task.FromResult(new OASISResult<IAvatar> { Message = "SaveAvatarAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
+        {
+            return new OASISResult<IAvatarDetail> { Message = "SaveAvatarDetail is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+        {
+            return Task.FromResult(new OASISResult<IAvatarDetail> { Message = "SaveAvatarDetailAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            return new OASISResult<bool> { Message = "DeleteAvatar is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            return Task.FromResult(new OASISResult<bool> { Message = "DeleteAvatarAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true)
+        {
+            return new OASISResult<bool> { Message = "DeleteAvatarByEmail is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
+        {
+            return Task.FromResult(new OASISResult<bool> { Message = "DeleteAvatarByEmailAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true)
+        {
+            return new OASISResult<bool> { Message = "DeleteAvatarByUsername is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
+        {
+            return Task.FromResult(new OASISResult<bool> { Message = "DeleteAvatarByUsernameAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            return new OASISResult<bool> { Message = "DeleteAvatar by providerKey is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            return Task.FromResult(new OASISResult<bool> { Message = "DeleteAvatarAsync by providerKey is not supported yet by SEEDS provider." });
+        }
+
+        // Additional IOASISStorageProvider interface members
+        public OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
+        {
+            return new OASISResult<IAvatar> { Message = "LoadAvatarByProviderKey is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IAvatar> { Message = "LoadAvatarByProviderKeyAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
+        {
+            return new OASISResult<KarmaAkashicRecord> { Message = "AddKarmaToAvatar is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
+        {
+            return Task.FromResult(new OASISResult<KarmaAkashicRecord> { Message = "AddKarmaToAvatarAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
+        {
+            return new OASISResult<KarmaAkashicRecord> { Message = "RemoveKarmaFromAvatar is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
+        {
+            return Task.FromResult(new OASISResult<KarmaAkashicRecord> { Message = "RemoveKarmaFromAvatarAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true)
+        {
+            return new OASISResult<IHolon> { Message = "SaveHolon is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true)
+        {
+            return Task.FromResult(new OASISResult<IHolon> { Message = "SaveHolonAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int continueOnError = 0, bool sendKarma = true, bool reloadChildren = true)
+        {
+            return new OASISResult<IEnumerable<IHolon>> { Message = "SaveHolons is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int continueOnError = 0, bool sendKarma = true, bool reloadChildren = true)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "SaveHolonsAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return new OASISResult<IHolon> { Message = "LoadHolon is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IHolon> { Message = "LoadHolonAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return new OASISResult<IHolon> { Message = "LoadHolon by providerKey is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IHolon> { Message = "LoadHolonAsync by providerKey is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParent is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParentAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParent by providerKey is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParentAsync by providerKey is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaData is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaDataAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode = MetaKeyValuePairMatchMode.All, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaData with Dictionary is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode = MetaKeyValuePairMatchMode.All, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaDataAsync with Dictionary is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>> { Message = "LoadAllHolons is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadAllHolonsAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IHolon> DeleteHolon(Guid id)
+        {
+            return new OASISResult<IHolon> { Message = "DeleteHolon is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        {
+            return Task.FromResult(new OASISResult<IHolon> { Message = "DeleteHolonAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IHolon> DeleteHolon(string providerKey)
+        {
+            return new OASISResult<IHolon> { Message = "DeleteHolon by providerKey is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        {
+            return Task.FromResult(new OASISResult<IHolon> { Message = "DeleteHolonAsync by providerKey is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<bool> Import(IEnumerable<IHolon> holons)
+        {
+            return new OASISResult<bool> { Message = "Import is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            return Task.FromResult(new OASISResult<bool> { Message = "ImportAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarById is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByIdAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string username, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByUsername is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
+        {
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByUsernameAsync is not supported yet by SEEDS provider." });
+        }
+
+        public OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int version = 0)
+        {
+            return new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByEmail is not supported yet by SEEDS provider." };
+        }
+
+        public Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        OASISResult<ISearchResults> IOASISStorageProvider.Search(ISearchParams searchParams, bool loadChildren, bool recursive, int maxChildDepth, bool continueOnError, int version)
+        {
+            throw new NotImplementedException();
+        }
+
+        public event EventDelegates.StorageProviderError OnStorageProviderError;
+
+        #endregion
     }
 }

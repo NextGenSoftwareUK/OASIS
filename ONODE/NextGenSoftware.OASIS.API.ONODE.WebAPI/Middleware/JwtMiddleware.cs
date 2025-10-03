@@ -85,9 +85,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                     //if (context.Response.Body.CanRead)
                     //    context.Response.ContentLength = context.Response.Body.Length;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-
+                    // Ignore exceptions during response body reading
                 }
             }
         }

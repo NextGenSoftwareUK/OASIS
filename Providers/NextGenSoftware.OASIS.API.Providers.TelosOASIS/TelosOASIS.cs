@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using EOSNewYork.EOSCore.Response.API;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -27,6 +30,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         private static Dictionary<Guid, GetAccountResponseDto> _avatarIdToTelosAccountLookup = new Dictionary<Guid, GetAccountResponseDto>();
         private AvatarManager _avatarManager = null;
         private KeyManager _keyManager = null;
+        private readonly HttpClient _httpClient;
+        private const string TELOS_API_BASE_URL = "https://api.telos.net";
 
         public EOSIOOASIS.EOSIOOASIS EOSIOOASIS { get; set; }
 
@@ -36,6 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             this.ProviderDescription = "Telos Provider";
             this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.TelosOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            _httpClient = new HttpClient();
 
             EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(host, eosAccountName, eosChainId, eosAccountPk);
         }
@@ -45,8 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             get
             {
                 if (_avatarManager == null)
-                    _avatarManager = new AvatarManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
-                    //_avatarManager = new AvatarManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO/Telos METHODS IMPLEMENTED...
+                    _avatarManager = new AvatarManager(this);
 
                 return _avatarManager;
             }
@@ -57,8 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             get
             {
                 if (_keyManager == null)
-                    _keyManager = new KeyManager(ProviderManager.Instance.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
-                    //_keyManager = new KeyManager(this, AvatarManager); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+                    _keyManager = new KeyManager(this, OASISDNA);
 
                 return _keyManager;
             }
@@ -171,42 +175,53 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IAvatar>>
+            {
+                Result = new List<IAvatar>(),
+                Message = "LoadAllAvatars is not supported yet by Telos provider."
+            };
+            return Task.FromResult(result);
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAllAvatarsAsync(version).Result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            result.Message = "LoadAvatar by Id is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            result.Message = "LoadAvatar by Email is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            result.Message = "LoadAvatar by Username is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarAsync(Id, version).Result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByEmailAsync(avatarEmail, version).Result;
         }
 
         //public override Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
@@ -222,117 +237,140 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            result.Message = "LoadAvatar by ProviderKey is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailAsync(id, version).Result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            result.Message = "LoadAvatarDetail is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            result.Message = "LoadAvatarDetail by Username is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            result.Message = "LoadAvatarDetail by Email is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAllAvatarDetailsAsync(version).Result;
         }
 
         public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IAvatarDetail>>
+            {
+                Result = new List<IAvatarDetail>(),
+                Message = "LoadAllAvatarDetails is not supported yet by Telos provider."
+            };
+            return Task.FromResult(result);
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
         {
-            throw new NotImplementedException();
+            return SaveAvatarAsync(Avatar).Result;
         }
 
         public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            result.Message = "SaveAvatar is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
         {
-            throw new NotImplementedException();
+            return SaveAvatarDetailAsync(Avatar).Result;
         }
 
         public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            result.Message = "SaveAvatarDetail is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return DeleteAvatarAsync(id, softDelete).Result;
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
         }
 
         public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatar is not supported yet by Telos provider." };
+            return Task.FromResult(result);
         }
 
         public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatar by Email is not supported yet by Telos provider." };
+            return Task.FromResult(result);
         }
 
         public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatar by Username is not supported yet by Telos provider." };
+            return Task.FromResult(result);
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
         public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool> { Result = false, Message = "DeleteAvatar by ProviderKey is not supported yet by Telos provider." };
+            return Task.FromResult(result);
         }
 
         public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ISearchResults>();
+            result.Message = "Search is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -407,362 +445,490 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                Message = "LoadHolonsByMetaData is not supported yet by Telos provider."
+            };
+            return Task.FromResult(result);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                Message = "LoadHolonsByMetaData (multi) is not supported yet by Telos provider."
+            };
+            return Task.FromResult(result);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                Message = "LoadAllHolons is not supported yet by Telos provider."
+            };
+            return await Task.FromResult(result);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+            return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
         public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IHolon>();
+            result.Message = "SaveHolon is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                Message = "SaveHolons is not supported yet by Telos provider."
+            };
+            return Task.FromResult(result);
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            throw new NotImplementedException();
+            return DeleteHolonAsync(id).Result;
         }
 
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IHolon>();
+            result.Message = "DeleteHolon by Id is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            throw new NotImplementedException();
+            return DeleteHolonAsync(providerKey).Result;
         }
 
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IHolon>();
+            result.Message = "DeleteHolon by ProviderKey is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IPlayer>> { Result = new List<IPlayer>(), Message = "GetPlayersNearMe is not supported by Telos provider." };
+            return result;
         }
 
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "GetHolonsNearMe is not supported by Telos provider." };
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            return SendTransactionAsync(transation).Result;
         }
 
         public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            result.Message = "SendTransaction is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            result.Message = "SendTransactionById is not supported yet by Telos provider.";
+            return await Task.FromResult(result);
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            result.Message = "SendTransactionByUsername is not supported yet by Telos provider.";
+            return await Task.FromResult(result);
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            result.Message = "SendTransactionByEmail is not supported yet by Telos provider.";
+            return await Task.FromResult(result);
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            result.Message = "SendTransactionByDefaultWallet is not supported yet by Telos provider.";
+            return await Task.FromResult(result);
         }
 
         public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            return SendNFTAsync(transation).Result;
         }
 
         public Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<INFTTransactionRespone>();
+            result.Message = "SendNFT is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ISearchResults>();
+            result.Message = "Search is not supported yet by Telos provider.";
+            return result;
         }
 
         public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            result.Message = "Import is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                Message = "ExportAllDataForAvatarById is not supported yet by Telos provider."
+            };
+            return Task.FromResult(result);
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                Message = "ExportAllDataForAvatarByUsername is not supported yet by Telos provider."
+            };
+            return Task.FromResult(result);
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                Message = "ExportAllDataForAvatarByEmail is not supported yet by Telos provider."
+            };
+            return Task.FromResult(result);
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>
+            {
+                Result = new List<IHolon>(),
+                Message = "ExportAll is not supported yet by Telos provider."
+            };
+            return Task.FromResult(result);
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            return ImportAsync(holons).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllAsync(version).Result;
         }
 
         public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
         }
 
         public Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            result.Message = "SendTransactionById with token is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            result.Message = "SendTransactionByUsername with token is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
         }
 
         public Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            result.Message = "SendTransactionByEmail with token is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
         }
 
         OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            result.Message = "IOASISBlockchainStorageProvider.SendTransactionById with token is not supported yet by Telos provider.";
+            return result;
         }
 
         Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            result.Message = "IOASISBlockchainStorageProvider.SendTransactionByIdAsync with token is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            result.Message = "IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync with token is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            result.Message = "IOASISBlockchainStorageProvider.SendTransactionByUsername with token is not supported yet by Telos provider.";
+            return result;
         }
 
         Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            result.Message = "IOASISBlockchainStorageProvider.SendTransactionByEmailAsync with token is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            result.Message = "IOASISBlockchainStorageProvider.SendTransactionByEmail with token is not supported yet by Telos provider.";
+            return result;
         }
 
         Task<OASISResult<INFTTransactionRespone>> IOASISNFTProvider.SendNFTAsync(INFTWalletTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<INFTTransactionRespone>();
+            result.Message = "IOASISNFTProvider.SendNFTAsync is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            return MintNFTAsync(transation).Result;
         }
 
         public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<INFTTransactionRespone>();
+            result.Message = "MintNFT is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<IOASISNFT> LoadNFT(Guid id)
         {
-            throw new NotImplementedException();
+            return LoadNFTAsync(id).Result;
         }
 
         public Task<OASISResult<IOASISNFT>> LoadNFTAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISNFT>();
+            result.Message = "LoadNFT by Id is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<IOASISNFT> LoadNFT(string hash)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISNFT>();
+            result.Message = "LoadNFT by Hash is not supported yet by Telos provider.";
+            return result;
         }
 
         public Task<OASISResult<IOASISNFT>> LoadNFTAsync(string hash)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISNFT>();
+            result.Message = "LoadNFTAsync by Hash is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForAvatar(Guid avatarId)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<List<IOASISGeoSpatialNFT>>();
+            result.Result = new List<IOASISGeoSpatialNFT>();
+            result.Message = "LoadAllGeoNFTsForAvatar is not supported yet by Telos provider.";
+            return result;
         }
 
         public Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<List<IOASISGeoSpatialNFT>>();
+            result.Result = new List<IOASISGeoSpatialNFT>();
+            result.Message = "LoadAllGeoNFTsForAvatarAsync is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForMintAddress(string mintWalletAddress)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<List<IOASISGeoSpatialNFT>>();
+            result.Result = new List<IOASISGeoSpatialNFT>();
+            result.Message = "LoadAllGeoNFTsForMintAddress is not supported yet by Telos provider.";
+            return result;
         }
 
         public Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<List<IOASISGeoSpatialNFT>>();
+            result.Result = new List<IOASISGeoSpatialNFT>();
+            result.Message = "LoadAllGeoNFTsForMintAddressAsync is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<List<IOASISNFT>> LoadAllNFTsForAvatar(Guid avatarId)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<List<IOASISNFT>>();
+            result.Result = new List<IOASISNFT>();
+            result.Message = "LoadAllNFTsForAvatar is not supported yet by Telos provider.";
+            return result;
         }
 
         public Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<List<IOASISNFT>>();
+            result.Result = new List<IOASISNFT>();
+            result.Message = "LoadAllNFTsForAvatarAsync is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<List<IOASISNFT>> LoadAllNFTsForMintAddress(string mintWalletAddress)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<List<IOASISNFT>>();
+            result.Result = new List<IOASISNFT>();
+            result.Message = "LoadAllNFTsForMintAddress is not supported yet by Telos provider.";
+            return result;
         }
 
         public Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<List<IOASISNFT>>();
+            result.Result = new List<IOASISNFT>();
+            result.Message = "LoadAllNFTsForMintAddressAsync is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<IOASISGeoSpatialNFT> PlaceGeoNFT(IPlaceGeoSpatialNFTRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISGeoSpatialNFT>();
+            result.Message = "PlaceGeoNFT is not supported yet by Telos provider.";
+            return result;
         }
 
         public Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceGeoSpatialNFTRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISGeoSpatialNFT>();
+            result.Message = "PlaceGeoNFTAsync is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<IOASISGeoSpatialNFT> MintAndPlaceGeoNFT(IMintAndPlaceGeoSpatialNFTRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISGeoSpatialNFT>();
+            result.Message = "MintAndPlaceGeoNFT is not supported yet by Telos provider.";
+            return result;
         }
 
         public Task<OASISResult<IOASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceGeoSpatialNFTRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISGeoSpatialNFT>();
+            result.Message = "MintAndPlaceGeoNFTAsync is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
 
         public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISNFT>();
+            result.Message = "LoadOnChainNFTData is not supported yet by Telos provider.";
+            return result;
         }
 
         public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISNFT>();
+            result.Message = "LoadOnChainNFTDataAsync is not supported yet by Telos provider.";
+            return Task.FromResult(result);
         }
     }
 }

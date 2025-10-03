@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
@@ -23,36 +24,65 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
+    /// <summary>
+    /// Avatar management endpoints for user registration, authentication, profile management, and session handling.
+    /// Supports all OASIS providers with automatic failover and load balancing.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class AvatarController : OASISControllerBase
     {
-        private readonly IAvatarService _avatarService;
-        public AvatarController(IAvatarService avatarService)
+        // Directly use AvatarManager instead of service layer
+        private AvatarManager AvatarManager => Program.AvatarManager;
+        
+        // Temporary service access for methods not yet migrated (being phased out)
+        // Note: AvatarService is being phased out, use AvatarManager directly
+        // private IAvatarService _avatarService => Program.AvatarService;
+        
+        public AvatarController()
         {
-            _avatarService = avatarService;
         }
 
         /// <summary>
-        ///     Register a new avatar.
+        /// Register a new avatar with the OASIS system.
         /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
+        /// <param name="model">Registration details including username, email, password, and optional provider preferences.</param>
+        /// <returns>OASIS result containing the newly created avatar or error details.</returns>
+        /// <response code="200">Avatar successfully registered</response>
+        /// <response code="400">Invalid registration data or user already exists</response>
         [HttpPost("register")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IAvatar>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.RegisterAsync(model, Request.Headers["origin"]));
+            // Call AvatarManager directly
+            var result = await AvatarManager.RegisterAsync(
+                model.Title,
+                model.FirstName,
+                model.LastName,
+                model.Email,
+                model.Password,
+                model.Username,
+                model.AvatarType != null ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType) : AvatarType.User,
+                OASISType.OASISAPIREST
+            );
+            
+            return HttpResponseHelper.FormatResponse(result);
         }
 
         /// <summary>
         ///     Register a new avatar. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to
         ///     be used only for this request or true for it to be used for all future requests too.
         /// </summary>
-        /// <param name="model"></param>
-        /// <param name="providerType"></param>
-        /// <param name="setGlobally"></param>
-        /// <returns></returns>
+        /// <param name="model">Registration details including username, email, password, and optional provider preferences.</param>
+        /// <param name="providerType">The OASIS provider type to use for registration.</param>
+        /// <param name="setGlobally">Whether to set this provider globally for all future requests.</param>
+        /// <returns>OASIS result containing the newly created avatar or error details.</returns>
+        /// <response code="200">Avatar successfully registered</response>
+        /// <response code="400">Invalid registration data or user already exists</response>
         [HttpPost("register/{providerType}/{setGlobally}")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IAvatar>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
@@ -64,12 +94,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///     Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by
         ///     the link in the email.
         /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
+        /// <param name="token">The verification token sent via email.</param>
+        /// <returns>OASIS result indicating whether email verification was successful.</returns>
+        /// <response code="200">Email verification completed (success or failure)</response>
+        /// <response code="400">Invalid or expired verification token</response>
         [HttpGet("verify-email")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(string token)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.VerifyEmail(token));
+            return HttpResponseHelper.FormatResponse(AvatarManager.VerifyEmail(token));
         }
 
         /// <summary>
@@ -78,24 +112,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///     Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to
         ///     be used for all future requests too.
         /// </summary>
-        /// <param name="token"></param>
-        /// <param name="providerType"></param>
-        /// <param name="setGlobally"></param>
-        /// <returns></returns>
+        /// <param name="token">The verification token sent via email.</param>
+        /// <param name="providerType">The OASIS provider type to use for verification.</param>
+        /// <param name="setGlobally">Whether to set this provider globally for all future requests.</param>
+        /// <returns>OASIS result indicating whether email verification was successful.</returns>
+        /// <response code="200">Email verification completed (success or failure)</response>
+        /// <response code="400">Invalid or expired verification token</response>
         [HttpGet("verify-email/{providerType}/{setGlobally}")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(string token, ProviderType providerType, bool setGlobally = false)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.VerifyEmail(token));
+            await GetAndActivateProviderAsync(providerType, setGlobally);
+            return HttpResponseHelper.FormatResponse(AvatarManager.VerifyEmail(token));
         }
 
         /// <summary>
         ///     Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by
         ///     the REST API or other methods that need to POST the data rather than GET.
         /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
+        /// <param name="model">The verification request containing the token.</param>
+        /// <returns>OASIS result indicating whether email verification was successful.</returns>
+        /// <response code="200">Email verification completed (success or failure)</response>
+        /// <response code="400">Invalid or expired verification token</response>
         [ResponseType(typeof(OASISHttpResponseMessage<bool>))]
         [HttpPost("verify-email")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(VerifyEmailRequest model)
         {
             return await VerifyEmail(model.Token);
@@ -106,12 +149,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///     Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to
         ///     be used for all future requests too.
         /// </summary>
-        /// <param name="model"></param>
-        /// <param name="providerType"></param>
-        /// <param name="setGlobally"></param>
-        /// <returns></returns>
+        /// <param name="model">The verification request containing the token.</param>
+        /// <param name="providerType">The OASIS provider type to use for verification.</param>
+        /// <param name="setGlobally">Whether to set this provider globally for all future requests.</param>
+        /// <returns>OASIS result indicating whether email verification was successful.</returns>
+        /// <response code="200">Email verification completed (success or failure)</response>
+        /// <response code="400">Invalid or expired verification token</response>
         [ResponseType(typeof(OASISHttpResponseMessage<bool>))]
         [HttpPost("verify-email/{providerType}/{setGlobally}")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(VerifyEmailRequest model, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
@@ -119,12 +166,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Authenticate and log in using the given avatar credentials.
+        /// Authenticate and log in using avatar credentials.
         /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <param name="request">Authentication request containing username/email and password.</param>
+        /// <returns>OASIS result containing authenticated avatar with JWT token or error details.</returns>
+        /// <response code="200">Authentication successful</response>
+        /// <response code="401">Invalid credentials</response>
+        /// <response code="400">Invalid request data</response>
         [HttpPost("authenticate")]
-        [ResponseType(typeof(OASISHttpResponseMessage<IAvatar>))]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IAvatar>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<IAvatar>> Authenticate(AuthenticateRequest request)
         {
             OASISConfigResult<IAvatar> configResult = await ConfigureOASISEngineAsync<IAvatar>(request);
@@ -191,7 +243,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("authenticate-token/{JWTToken}")]
         public async Task<OASISHttpResponseMessage<string>> Authenticate(string JWTToken)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.ValidateAccountToken(JWTToken));
+            // TODO: Implement ValidateAccountTokenAsync in AvatarManager or use alternative method
+            return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "ValidateAccountTokenAsync not yet implemented in AvatarManager" });
         }
 
         /// <summary>
@@ -218,7 +271,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<IAvatar>> RefreshToken()
         {
             var refreshToken = Request.Cookies["refreshToken"];
-            var response = await _avatarService.RefreshToken(refreshToken, ipAddress());
+            var response = AvatarManager.RefreshToken(refreshToken, ipAddress());
 
             if (!response.IsError && response.Result != null)
                 setTokenCookie(response.Result.RefreshToken);
@@ -261,7 +314,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!Avatar.OwnsToken(token) && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<string>() { Result = "Unauthorized", IsError = true }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.RevokeToken(token, ipAddress()));
+            return HttpResponseHelper.FormatResponse(AvatarManager.RevokeToken(token, ipAddress()));
         }
 
         /// <summary>
@@ -323,7 +376,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("validate-reset-token")]
         public async Task<OASISHttpResponseMessage<string>> ValidateResetToken(ValidateResetTokenRequest model)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.ValidateResetToken(model));
+            return HttpResponseHelper.FormatResponse(AvatarManager.ValidateResetToken(model.Token));
         }
 
         /// <summary>
@@ -380,7 +433,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("create/{model}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> Create(CreateRequest model)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.Create(model));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "AvatarService.Create not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -409,7 +463,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-terms")]
         public async Task<OASISHttpResponseMessage<string>> GetTerms()
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetTerms());
+            return HttpResponseHelper.FormatResponse(new OASISResult<string> { Result = OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Terms });
         }
 
         /// <summary>
@@ -426,7 +480,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarPortraitById(id));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait> { IsError = true, Message = "AvatarService.GetAvatarPortraitById not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -460,7 +515,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarPortraitByUsername(username));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait> { IsError = true, Message = "AvatarService.GetAvatarPortraitByUsername not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -493,7 +549,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarPortraitByEmail(email));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<AvatarPortrait> { IsError = true, Message = "AvatarService.GetAvatarPortraitByEmail not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -527,7 +584,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (avatarPortrait.AvatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<bool>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.UploadAvatarPortrait(avatarPortrait));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "AvatarService.UploadAvatarPortrait not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -925,7 +983,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<KarmaAkashicRecord>> AddKarmaToAvatar(Guid avatarId,
             AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.AddKarmaToAvatar(avatarId, addKarmaToAvatarRequest));
+            try
+            {
+                var result = await AvatarManager.AddKarmaToAvatarAsync(
+                    avatarId, 
+                    (KarmaTypePositive)Enum.Parse(typeof(KarmaTypePositive), addKarmaToAvatarRequest.KarmaType), 
+                    (KarmaSourceType)Enum.Parse(typeof(KarmaSourceType), addKarmaToAvatarRequest.karmaSourceType), 
+                    addKarmaToAvatarRequest.KaramSourceTitle, 
+                    addKarmaToAvatarRequest.KarmaSourceDesc, 
+                    null); // KarmaSourceWebLink not available in request
+                return HttpResponseHelper.FormatResponse(new OASISResult<KarmaAkashicRecord> { Result = result });
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<KarmaAkashicRecord> { IsError = true, Message = ex.Message, Exception = ex });
+            }
         }
 
         /// <summary>
@@ -972,7 +1044,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<KarmaAkashicRecord>> RemoveKarmaFromAvatar(Guid avatarId,
             AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.RemoveKarmaFromAvatar(avatarId, addKarmaToAvatarRequest));
+            try
+            {
+                var result = await AvatarManager.RemoveKarmaFromAvatarAsync(
+                    avatarId, 
+                    (KarmaTypeNegative)Enum.Parse(typeof(KarmaTypeNegative), addKarmaToAvatarRequest.KarmaType), 
+                    (KarmaSourceType)Enum.Parse(typeof(KarmaSourceType), addKarmaToAvatarRequest.karmaSourceType), 
+                    addKarmaToAvatarRequest.KaramSourceTitle, 
+                    addKarmaToAvatarRequest.KarmaSourceDesc, 
+                    null); // KarmaSourceWebLink not available in request
+                return HttpResponseHelper.FormatResponse(new OASISResult<KarmaAkashicRecord> { Result = result });
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<KarmaAkashicRecord> { IsError = true, Message = ex.Message, Exception = ex });
+            }
         }
 
         /// <summary>
@@ -1018,7 +1104,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.Update(id, avatar));
+            // TODO: Convert UpdateRequest to IAvatarDetail or use different method
+            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "UpdateRequest to IAvatarDetail conversion not yet implemented" });
         }
 
         /// <summary>
@@ -1057,7 +1144,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.UpdateByEmail(email, avatar));
+            // TODO: Convert UpdateRequest to IAvatarDetail or use different method
+            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "UpdateRequest to IAvatarDetail conversion not yet implemented" });
         }
 
         /// <summary>
@@ -1092,7 +1180,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            return HttpResponseHelper.FormatResponse(await _avatarService.UpdateByUsername(username, avatar));
+            // TODO: Convert UpdateRequest to IAvatarDetail or use different method
+            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "UpdateRequest to IAvatarDetail conversion not yet implemented" });
         }
 
         /// <summary>
@@ -1332,7 +1421,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-uma-json-by-id/{id}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonById(Guid id)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarUmaJsonById(id));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "AvatarService.GetAvatarUmaJsonById not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -1362,7 +1452,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-uma-json-by-username/{username}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByUsername(string username)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarUmaJsonByUsername(username));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "AvatarService.GetAvatarUmaJsonByUsername not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -1392,7 +1483,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-uma-json-by-email/{email}")]
         public async Task<OASISHttpResponseMessage<string>> GetUmaJsonByEmail(string email)
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetAvatarUmaJsonByEmail(email));
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "AvatarService.GetAvatarUmaJsonByEmail not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -1421,7 +1513,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-logged-in-avatar")]
         public async Task<OASISHttpResponseMessage<IAvatar>> GetLoggedInAvatar()
         {
-            return HttpResponseHelper.FormatResponse(await _avatarService.GetLoggedInAvatar());
+            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { Result = AvatarManager.LoggedInAvatar });
         }
 
         /// <summary>
@@ -1720,7 +1812,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{id:Guid}/{telosAccountName}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> LinkTelosAccountToAvatar(Guid id, string telosAccountName)
         {
-            return await _avatarService.LinkProviderKeyToAvatar(id, ProviderType.TelosOASIS, telosAccountName);
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "AvatarService.LinkProviderKeyToAvatar not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -1734,8 +1827,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> LinkTelosAccountToAvatar2(
             LinkProviderKeyToAvatar linkProviderKeyToAvatar)
         {
-            return await _avatarService.LinkProviderKeyToAvatar(linkProviderKeyToAvatar.AvatarID,
-                ProviderType.TelosOASIS, linkProviderKeyToAvatar.ProviderUniqueStorageKey);
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "AvatarService.LinkProviderKeyToAvatar not yet migrated to AvatarManager" });
         }
 
 
@@ -1749,7 +1842,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{avatarId}/{eosioAccountName}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> LinkEOSIOAccountToAvatar(Guid avatarId, string eosioAccountName)
         {
-            return await _avatarService.LinkProviderKeyToAvatar(avatarId, ProviderType.EOSIOOASIS, eosioAccountName);
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "AvatarService.LinkProviderKeyToAvatar not yet migrated to AvatarManager" });
         }
 
         /// <summary>
@@ -1763,7 +1857,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> LinkHolochainAgentIDToAvatar(Guid avatarId,
             string holochainAgentID)
         {
-            return await _avatarService.LinkProviderKeyToAvatar(avatarId, ProviderType.HoloOASIS, holochainAgentID);
+            // TODO: Replace with AvatarManager equivalent
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "AvatarService.LinkProviderKeyToAvatar not yet migrated to AvatarManager" });
         }*/
 
         ///// <summary>
@@ -1808,5 +1903,163 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    else
         //        currentAutoFailOverList = ProviderManager.GetProviderListAsString(listResult.Result.ToList());
         //}
+
+        #region Session Management - OASIS SSO System 🚀
+
+        /// <summary>
+        /// Get all active sessions for a specific avatar (OASIS SSO System)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <returns>List of active sessions</returns>
+        [HttpGet("{avatarId}/sessions")]
+        [Authorize]
+        public async Task<OASISHttpResponseMessage<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionManagement>> GetAvatarSessions(Guid avatarId)
+        {
+            try
+            {
+                var result = await AvatarManager.GetAvatarSessionsAsync(avatarId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionManagement>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving avatar sessions: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Logout avatar from specific sessions (OASIS SSO System)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <param name="sessionIds">List of session IDs to logout</param>
+        /// <returns>Success status</returns>
+        [HttpPost("{avatarId}/sessions/logout")]
+        [Authorize]
+        public async Task<OASISHttpResponseMessage<bool>> LogoutAvatarSessions(Guid avatarId, [FromBody] List<string> sessionIds)
+        {
+            try
+            {
+                var result = await AvatarManager.LogoutAvatarSessionsAsync(avatarId, sessionIds);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error logging out avatar sessions: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Logout avatar from all sessions (OASIS SSO System)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <returns>Success status</returns>
+        [HttpPost("{avatarId}/sessions/logout-all")]
+        [Authorize]
+        public async Task<OASISHttpResponseMessage<bool>> LogoutAllAvatarSessions(Guid avatarId)
+        {
+            try
+            {
+                var result = await AvatarManager.LogoutAllAvatarSessionsAsync(avatarId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error logging out all avatar sessions: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Create a new session for an avatar (OASIS SSO System)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <param name="sessionData">Session information</param>
+        /// <returns>Created session</returns>
+        [HttpPost("{avatarId}/sessions")]
+        [Authorize]
+        public async Task<OASISHttpResponseMessage<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession>> CreateAvatarSession(Guid avatarId, [FromBody] NextGenSoftware.OASIS.API.Core.Objects.Avatar.CreateSessionRequest sessionData)
+        {
+            try
+            {
+                var result = await AvatarManager.CreateAvatarSessionAsync(avatarId, sessionData);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession>
+                {
+                    IsError = true,
+                    Message = $"Error creating avatar session: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Update an existing session (OASIS SSO System)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <param name="sessionId">The session ID</param>
+        /// <param name="sessionData">Updated session information</param>
+        /// <returns>Updated session</returns>
+        [HttpPut("{avatarId}/sessions/{sessionId}")]
+        [Authorize]
+        public async Task<OASISHttpResponseMessage<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession>> UpdateAvatarSession(Guid avatarId, string sessionId, [FromBody] NextGenSoftware.OASIS.API.Core.Objects.Avatar.UpdateSessionRequest sessionData)
+        {
+            try
+            {
+                var result = await AvatarManager.UpdateAvatarSessionAsync(avatarId, sessionId, sessionData);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession>
+                {
+                    IsError = true,
+                    Message = $"Error updating avatar session: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Get session statistics for an avatar (OASIS SSO System)
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <returns>Session statistics</returns>
+        [HttpGet("{avatarId}/sessions/stats")]
+        [Authorize]
+        public async Task<OASISHttpResponseMessage<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionStats>> GetAvatarSessionStats(Guid avatarId)
+        {
+            try
+            {
+                var result = await AvatarManager.GetAvatarSessionStatsAsync(avatarId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionStats>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving avatar session stats: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        #endregion
     }
 }

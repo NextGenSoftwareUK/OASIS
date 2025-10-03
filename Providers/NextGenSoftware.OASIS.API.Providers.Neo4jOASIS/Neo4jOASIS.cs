@@ -1,35 +1,34 @@
-﻿//using Neo4jClient;
-//using NextGenSoftware.OASIS.API.Core;
-//using System;
-//using System.Collections.Generic;
-//using System.Threading.Tasks;
-//using System.Linq;
-//using NextGenSoftware.OASIS.API.Core.Interfaces;
-//using NextGenSoftware.OASIS.API.Core.Enums;
-//using NextGenSoftware.OASIS.API.Core.Holons;
-//using NextGenSoftware.OASIS.API.Core.Helpers;
+﻿using NextGenSoftware.OASIS.API.Core;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Linq;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 
-//namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
-//{
-//    public class Neo4jOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider
-//    {
-//        public GraphClient GraphClient { get; set; }
-//        public string Host { get; set; }
-//        public string Username { get; set; }
-//        public string Password { get; set; }
-//        public bool IsVersionControlEnabled { get; set; }
+namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
+{
+    public class Neo4jOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider
+    {
+        public string Host { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public bool IsVersionControlEnabled { get; set; }
 
-//        public Neo4jOASIS(string host, string username, string password)
-//        {
-//            this.ProviderName = "Neo4jOASIS";
-//            this.ProviderDescription = "Neo4j Provider";
-//            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
-//            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        public Neo4jOASIS(string host, string username, string password)
+        {
+            this.ProviderName = "Neo4jOASIS";
+            this.ProviderDescription = "Neo4j Provider";
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-//            Host = host;
-//            Username = username;
-//            Password = password;
-//        }
+            Host = host;
+            Username = username;
+            Password = password;
+        }
 
 //        private async Task<bool> Connect()
 //        {
