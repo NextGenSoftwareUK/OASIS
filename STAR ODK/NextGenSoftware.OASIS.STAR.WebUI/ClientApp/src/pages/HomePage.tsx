@@ -30,6 +30,12 @@ import {
   AccountCircle,
   Login,
   PersonAdd,
+  AutoAwesome,
+  Memory,
+  Storage,
+  Psychology,
+  Build,
+  Apps,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -39,42 +45,42 @@ const HomePage: React.FC = () => {
 
   const features = [
     {
-      icon: <Star sx={{ fontSize: 40, color: '#ffd700' }} />,
-      title: 'OASIS Integration',
-      description: 'Seamlessly connect with the OASIS universe and access all its features',
+      icon: <AutoAwesome sx={{ fontSize: 40, color: '#ffd700' }} />,
+      title: 'OASIS HyperDrive',
+      description: 'Revolutionary auto-failover system that intelligently switches between Web2 and Web3 providers for optimal performance',
     },
     {
       icon: <Rocket sx={{ fontSize: 40, color: '#ff6b35' }} />,
-      title: 'Lightning Fast',
-      description: 'Built for speed with cutting-edge technology and optimized performance',
+      title: 'Universal Data Aggregation',
+      description: 'Single API that connects everything to everything - the first universal Web2/Web3 aggregation system',
     },
     {
       icon: <Security sx={{ fontSize: 40, color: '#4caf50' }} />,
-      title: 'Secure & Private',
-      description: 'Enterprise-grade security with end-to-end encryption and privacy protection',
+      title: 'Zero-Downtime Architecture',
+      description: 'Impossible to shutdown with distributed, redundant architecture and hot-swappable providers',
     },
     {
-      icon: <Public sx={{ fontSize: 40, color: '#2196f3' }} />,
-      title: 'Global Network',
-      description: 'Connect with users worldwide in the largest virtual reality network',
+      icon: <Build sx={{ fontSize: 40, color: '#2196f3' }} />,
+      title: 'STAR ODK Platform',
+      description: 'Low-code metaverse development with OAPPs, missions, NFTs, and comprehensive gamification',
     },
     {
-      icon: <Cloud sx={{ fontSize: 40, color: '#9c27b0' }} />,
-      title: 'Cloud Powered',
-      description: 'Leverage the power of cloud computing for unlimited scalability',
+      icon: <Memory sx={{ fontSize: 40, color: '#9c27b0' }} />,
+      title: 'Future-Proof Technology',
+      description: 'Never learn new tech stacks again - universal API abstraction with HOT swappable plugins',
     },
     {
-      icon: <Science sx={{ fontSize: 40, color: '#ff9800' }} />,
-      title: 'AI Enhanced',
-      description: 'Advanced AI integration for intelligent automation and assistance',
+      icon: <Psychology sx={{ fontSize: 40, color: '#ff9800' }} />,
+      title: 'Karma & Reputation System',
+      description: 'Universal reputation tracking across all platforms with cross-platform contribution rewards',
     },
   ];
 
   const stats = [
-    { label: 'Active Users', value: '2.5M+', color: '#00bcd4' },
-    { label: 'Virtual Worlds', value: '10K+', color: '#00acc1' },
-    { label: 'Transactions', value: '$50M+', color: '#0097a7' },
-    { label: 'Countries', value: '180+', color: '#00838f' },
+    { label: 'OASIS Users', value: '2.5M+', color: '#00bcd4' },
+    { label: 'Supported Providers', value: '50+', color: '#00acc1' },
+    { label: 'OAPPs Deployed', value: '15K+', color: '#0097a7' },
+    { label: 'Karma Points', value: '12.5M+', color: '#00838f' },
   ];
 
   const containerVariants = {
@@ -153,12 +159,13 @@ const HomePage: React.FC = () => {
               </Box>
               
               <Typography variant="h2" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-                Welcome to STARNET
+                Welcome to OASIS
               </Typography>
               
-              <Typography variant="h5" sx={{ mb: 4, opacity: 0.9, maxWidth: 600, mx: 'auto' }}>
-                The ultimate platform for the OASIS Omniverse. Connect, create, and explore 
-                in the most advanced interoperable AR/VR/IR Metaverse ecosystem ever built.
+              <Typography variant="h5" sx={{ mb: 4, opacity: 0.9, maxWidth: 800, mx: 'auto' }}>
+                The Universal Web4/Web5 Infrastructure that unifies all Web2 and Web3 technologies 
+                into a single, intelligent, auto-failover system. The first universal API that 
+                connects everything to everything.
               </Typography>
               
               <Stack direction="row" spacing={2} justifyContent="center" sx={{ mb: 6 }}>
@@ -206,7 +213,7 @@ const HomePage: React.FC = () => {
         <Container maxWidth="lg">
           <motion.div variants={itemVariants}>
             <Typography variant="h4" align="center" gutterBottom sx={{ mb: 6, fontWeight: 'bold' }}>
-              Trusted by Millions Worldwide
+              OASIS Ecosystem Metrics
             </Typography>
             
             <Grid container spacing={4}>
@@ -239,7 +246,7 @@ const HomePage: React.FC = () => {
         <Container maxWidth="lg">
           <motion.div variants={itemVariants}>
             <Typography variant="h4" align="center" gutterBottom sx={{ mb: 8, fontWeight: 'bold' }}>
-              Why Choose STARNET?
+              Revolutionary OASIS Technology
             </Typography>
             
             <Grid container spacing={4}>
@@ -276,7 +283,7 @@ const HomePage: React.FC = () => {
         <Container maxWidth="lg">
           <motion.div variants={itemVariants}>
             <Typography variant="h4" align="center" gutterBottom sx={{ mb: 8, fontWeight: 'bold' }}>
-              Complete OASIS Platform
+              OASIS Architecture Overview
             </Typography>
             
             <Grid container spacing={4}>
@@ -284,20 +291,21 @@ const HomePage: React.FC = () => {
                 <Paper sx={{ p: 4, height: '100%' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                      <Explore />
+                      <Storage />
                     </Avatar>
                     <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                      Virtual Worlds
+                      WEB4 OASIS API
                     </Typography>
                   </Box>
                   <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                    Explore thousands of virtual worlds, from fantasy realms to futuristic cities. 
-                    Each world offers unique experiences and endless possibilities.
+                    The foundational data aggregation and identity layer with OASIS HyperDrive 
+                    auto-failover system. Universal data aggregation across all Web2 and Web3 providers.
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
-                    <Chip label="3D Environments" size="small" />
-                    <Chip label="Social Interaction" size="small" />
-                    <Chip label="Real-time Events" size="small" />
+                    <Chip label="Auto-Failover" size="small" />
+                    <Chip label="Universal Data" size="small" />
+                    <Chip label="Identity Management" size="small" />
+                    <Chip label="Karma System" size="small" />
                   </Stack>
                 </Paper>
               </Grid>
@@ -306,20 +314,21 @@ const HomePage: React.FC = () => {
                 <Paper sx={{ p: 4, height: '100%' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Avatar sx={{ bgcolor: 'secondary.main', mr: 2 }}>
-                      <Code />
+                      <Apps />
                     </Avatar>
                     <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                      Development Tools
+                      WEB5 STAR API
                     </Typography>
                   </Box>
                   <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                    Build and deploy applications with our comprehensive development platform. 
-                    From simple scripts to complex AI systems.
+                    The gamification and business layer with STAR ODK (Omniverse Interoperable 
+                    Metaverse Low Code Generator). Build OAPPs, manage missions, and create NFTs.
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
-                    <Chip label="SDK & APIs" size="small" />
-                    <Chip label="AI Integration" size="small" />
-                    <Chip label="Cloud Deployment" size="small" />
+                    <Chip label="STAR ODK" size="small" />
+                    <Chip label="OAPPs Framework" size="small" />
+                    <Chip label="Missions & NFTs" size="small" />
+                    <Chip label="Low-Code Development" size="small" />
                   </Stack>
                 </Paper>
               </Grid>
@@ -331,17 +340,18 @@ const HomePage: React.FC = () => {
                       <Store />
                     </Avatar>
                     <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                      Marketplace
+                      Provider Ecosystem
                     </Typography>
                   </Box>
                   <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                    Buy, sell, and trade digital assets in our secure marketplace. 
-                    From virtual real estate to unique digital collectibles.
+                    Support for 50+ Web2 and Web3 providers including Ethereum, Solana, Holochain, 
+                    IPFS, AWS, Azure, and more. Hot-swappable provider architecture.
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
-                    <Chip label="NFT Trading" size="small" />
-                    <Chip label="Virtual Real Estate" size="small" />
-                    <Chip label="Digital Art" size="small" />
+                    <Chip label="50+ Providers" size="small" />
+                    <Chip label="Hot-Swappable" size="small" />
+                    <Chip label="Auto-Optimization" size="small" />
+                    <Chip label="Zero Vendor Lock-in" size="small" />
                   </Stack>
                 </Paper>
               </Grid>
@@ -353,17 +363,41 @@ const HomePage: React.FC = () => {
                       <Group />
                     </Avatar>
                     <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                      Community
+                      Universal Identity
                     </Typography>
                   </Box>
                   <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                    Join millions of users in the largest virtual community. 
-                    Collaborate, learn, and grow together in the OASIS.
+                    Single identity across all platforms with DID support, cross-platform authentication, 
+                    and privacy-preserving identity management with karma integration.
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
-                    <Chip label="Global Network" size="small" />
-                    <Chip label="Collaboration Tools" size="small" />
-                    <Chip label="Knowledge Sharing" size="small" />
+                    <Chip label="DID Support" size="small" />
+                    <Chip label="Cross-Platform Auth" size="small" />
+                    <Chip label="Privacy-Preserving" size="small" />
+                    <Chip label="Karma Integration" size="small" />
+                  </Stack>
+                </Paper>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Paper sx={{ p: 4, height: '100%' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <Avatar sx={{ bgcolor: 'info.main', mr: 2 }}>
+                      <Store />
+                    </Avatar>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                      STARNET Web UI
+                    </Typography>
+                  </Box>
+                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                    Comprehensive web interface and app store for STAR, STARNET & The OASIS. 
+                    Drag-and-drop OAPP builder, asset management, and publishing platform.
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                    <Chip label="App Store" size="small" />
+                    <Chip label="OAPP Builder" size="small" />
+                    <Chip label="Asset Management" size="small" />
+                    <Chip label="Publishing Platform" size="small" />
                   </Stack>
                 </Paper>
               </Grid>
@@ -378,11 +412,12 @@ const HomePage: React.FC = () => {
           <motion.div variants={itemVariants}>
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-                Ready to Enter the OASIS?
+                Ready to Build the Future?
               </Typography>
               <Typography variant="h6" sx={{ mb: 6, opacity: 0.9 }}>
-                Join the future of virtual reality and be part of the most advanced 
-                digital ecosystem ever created.
+                Join the OASIS ecosystem and be part of the first universal Web4/Web5 infrastructure 
+                that connects everything to everything. Use STARNET Web UI to build OAPPs, manage assets, 
+                earn karma, and shape the future of the metaverse.
               </Typography>
               <Stack direction="row" spacing={2} justifyContent="center">
                 <Button

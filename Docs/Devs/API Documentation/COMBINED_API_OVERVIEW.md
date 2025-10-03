@@ -336,7 +336,9 @@ await star.starODK.deploy(build.id, ['Web', 'Mobile', 'VR']);
 
 - **WEB4 OASIS API**: [Complete Documentation](./WEB4_OASIS_API_Documentation.md)
 - **WEB5 STAR API**: [Complete Documentation](./WEB5_STAR_API_Documentation.md)
-- **Architecture Overview**: [OASIS Architecture](../Docs/OASIS_ARCHITECTURE_OVERVIEW.md)
+- **STAR API Complete Endpoints**: [Complete Endpoints Reference](./STAR_API_Complete_Endpoints_Reference.md)
+- **STAR Metadata System**: [Metadata System Documentation](./STAR_Metadata_System_Documentation.md)
+- **Architecture Overview**: [OASIS Architecture](../OASIS_ARCHITECTURE_OVERVIEW.md)
 - **Getting Started**: [Quick Start Guide](../README.md)
 
 ## 🆘 **Support & Community**

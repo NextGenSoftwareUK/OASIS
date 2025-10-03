@@ -7,7 +7,7 @@ const isDemoMode = () => {
   return saved ? JSON.parse(saved) : true;
 };
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:50564/api'; // STAR Web API
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5099/api'; // STAR Web API
 const WEB4_API_BASE_URL = process.env.REACT_APP_WEB4_API_URL || 'http://localhost:5000/api'; // ONODE WEB4 OASIS API
 
 const api = axios.create({
