@@ -11,6 +11,7 @@ import {
   Typography,
   Collapse,
   IconButton,
+  Button,
 } from '@mui/material';
 import {
   Dashboard,
@@ -33,9 +34,14 @@ import {
   ExpandLess,
   ExpandMore,
   Star,
+  EmojiEvents,
+  CloudUpload,
+  Code,
+  DataObject,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAvatar } from '../contexts/AvatarContext';
 
 interface SidebarProps {
   open: boolean;
@@ -48,6 +54,7 @@ const drawerWidth = 240;
 const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isLoggedIn } = useAvatar();
   const [expandedItems, setExpandedItems] = React.useState<string[]>(['star']);
 
   const menuItems = [
@@ -175,6 +182,20 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           description: 'OAPP Templates',
         },
         {
+          id: 'holons',
+          title: 'Holons',
+          icon: <DataObject />,
+          path: '/holons',
+          description: 'OASIS Data Objects',
+        },
+        {
+          id: 'zomes',
+          title: 'Zomes',
+          icon: <Extension />,
+          path: '/zomes',
+          description: 'OASIS Code Modules',
+        },
+        {
           id: 'plugins',
           title: 'Plugins',
           icon: <Extension />,
@@ -202,7 +223,35 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           path: '/avatars',
           description: 'User Management',
         },
+        {
+          id: 'karma',
+          title: 'Karma',
+          icon: <EmojiEvents />,
+          path: '/karma',
+          description: 'Karma Leaderboard',
+        },
+        {
+          id: 'my-data',
+          title: 'My Data',
+          icon: <CloudUpload />,
+          path: '/my-data',
+          description: 'OASIS Hyperdrive',
+        },
       ],
+    },
+    {
+      id: 'dev-portal',
+      title: 'Dev Portal',
+      icon: <Code />,
+      path: '/dev-portal',
+      description: 'Developer Resources & Tools',
+    },
+    {
+      id: 'star-plugins',
+      title: 'STAR Plugins',
+      icon: <Extension />,
+      path: '/star-plugins',
+      description: 'STAR & STARNET Plugins',
     },
     {
       id: 'settings',
@@ -312,7 +361,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            STAR Navigation
+            STARNET Navigation
           </Typography>
           <Typography variant="caption" color="text.secondary">
             OASIS Omniverse Interface
@@ -322,13 +371,33 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
 
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         <List>
-          {menuItems.map((item) => renderMenuItem(item))}
+          {isLoggedIn ? (
+            menuItems.map((item) => renderMenuItem(item))
+          ) : (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Please sign in to access menu
+              </Typography>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AccountCircle />}
+                onClick={() => {
+                  navigate('/avatar/signin');
+                  onClose();
+                }}
+                sx={{ mt: 2 }}
+              >
+                Sign In
+              </Button>
+            </Box>
+          )}
         </List>
       </Box>
 
       <Box sx={{ p: 2, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
         <Typography variant="caption" color="text.secondary" align="center" display="block">
-          STAR Web UI v1.0.0
+          STARNET v1.0.0
         </Typography>
         <Typography variant="caption" color="text.secondary" align="center" display="block">
           {isConnected ? 'Connected to STAR' : 'Disconnected'}

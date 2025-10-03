@@ -3,6 +3,10 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
+    /// <summary>
+    /// Chat and messaging endpoints for real-time communication features.
+    /// Provides chat session management, messaging, and communication capabilities within the OASIS ecosystem.
+    /// </summary>
     [ApiController]
     [Route("api/chat")]
     public class ChatController : OASISControllerBase

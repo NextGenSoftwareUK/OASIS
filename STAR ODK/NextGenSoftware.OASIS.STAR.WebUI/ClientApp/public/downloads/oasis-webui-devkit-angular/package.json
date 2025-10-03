@@ -1,0 +1,43 @@
+{
+  "name": "@oasis/webui-devkit-angular",
+  "version": "1.0.0",
+  "description": "OASIS Web UI Development Kit for Angular - Complete component library",
+  "main": "bundles/oasis-webui-devkit-angular.umd.js",
+  "module": "fesm2020/oasis-webui-devkit-angular.mjs",
+  "es2020": "fesm2020/oasis-webui-devkit-angular.mjs",
+  "esm2020": "esm2020/oasis-webui-devkit-angular.mjs",
+  "fesm2020": "fesm2020/oasis-webui-devkit-angular.mjs",
+  "typings": "index.d.ts",
+  "scripts": {
+    "build": "ng-packagr -p ng-package.json",
+    "test": "ng test",
+    "lint": "ng lint"
+  },
+  "keywords": [
+    "oasis",
+    "angular",
+    "web3",
+    "components",
+    "ui-kit",
+    "blockchain",
+    "nft"
+  ],
+  "author": "OASIS Network",
+  "license": "MIT",
+  "peerDependencies": {
+    "@angular/common": "^15.0.0 || ^16.0.0",
+    "@angular/core": "^15.0.0 || ^16.0.0",
+    "rxjs": "^7.0.0"
+  },
+  "dependencies": {
+    "@oasis/api-client": "^2.0.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/cli": "^16.0.0",
+    "@angular/compiler-cli": "^16.0.0",
+    "ng-packagr": "^16.0.0",
+    "typescript": "~5.0.0"
+  }
+}
+

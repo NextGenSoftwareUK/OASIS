@@ -9,7 +9,8 @@ class SignalRService {
   private reconnectInterval = 5000;
 
   constructor() {
-    this.initializeConnection();
+    // Don't auto-initialize - wait for explicit start() call
+    // this.initializeConnection();
   }
 
   private initializeConnection() {

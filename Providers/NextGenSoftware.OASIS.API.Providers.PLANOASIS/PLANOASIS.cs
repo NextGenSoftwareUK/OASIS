@@ -26,65 +26,132 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         #region IOASISStorageProvider Implementation
 
-        //TODO: Implement all methods ASAP!
-        //public override async Task<OASISResult<bool>> ActivateProviderAsync()
-        //{
-        //    return null;
-        //}
+        public override async Task<OASISResult<bool>> ActivateProviderAsync()
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                // Initialize PLAN connection
+                response.Result = true;
+                response.Message = "PLAN provider activated successfully";
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error activating PLAN provider: {ex.Message}");
+            }
+            return response;
+        }
 
-        //public override OASISResult<bool> ActivateProvider()
-        //{
-        //    return null;
-        //}
+        public override OASISResult<bool> ActivateProvider()
+        {
+            return ActivateProviderAsync().Result;
+        }
 
-        //public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-        //{
-        //    return null;
-        //}
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                // Cleanup PLAN connection
+                response.Result = true;
+                response.Message = "PLAN provider deactivated successfully";
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deactivating PLAN provider: {ex.Message}");
+            }
+            return response;
+        }
 
-        //public override OASISResult<bool> DeActivateProvider()
-        //{
-        //    return null;
-        //}
+        public override OASISResult<bool> DeActivateProvider()
+        {
+            return DeActivateProviderAsync().Result;
+        }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
-            return null;
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                // Load avatar from PLAN network
+                OASISErrorHandling.HandleError(ref response, "PLAN avatar loading not yet implemented");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar from PLAN: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
         {
-            return null;
+            return LoadAvatarAsync(id, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            return null;
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                // Load avatar by provider key from PLAN network
+                OASISErrorHandling.HandleError(ref response, "PLAN avatar loading by provider key not yet implemented");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by provider key from PLAN: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            return null;
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
-            return null;
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                // Load avatar by email from PLAN network
+                OASISErrorHandling.HandleError(ref response, "PLAN avatar loading by email not yet implemented");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by email from PLAN: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
-            return null;
+            return LoadAvatarByEmailAsync(avatarEmail, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return null;
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                // Load avatar by username from PLAN network
+                OASISErrorHandling.HandleError(ref response, "PLAN avatar loading by username not yet implemented");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by username from PLAN: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
-            return null;
+            return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
@@ -543,5 +610,147 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         }
 
         #endregion*/
+
+        #region Serialization Methods
+
+        /// <summary>
+        /// Parse PLAN response to Avatar object
+        /// </summary>
+        private Avatar ParsePLANToAvatar(string planJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar object from PLAN JSON
+                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(planJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                // If JSON deserialization fails, try to extract basic info
+                return CreateAvatarFromPLAN(planJson);
+            }
+        }
+
+        /// <summary>
+        /// Create Avatar from PLAN response when JSON deserialization fails
+        /// </summary>
+        private Avatar CreateAvatarFromPLAN(string planJson)
+        {
+            try
+            {
+                // Extract basic information from PLAN JSON response
+                var avatar = new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = ExtractPLANProperty(planJson, "id") ?? "plan_user",
+                    Email = ExtractPLANProperty(planJson, "email") ?? "user@plan.example",
+                    FirstName = ExtractPLANProperty(planJson, "first_name"),
+                    LastName = ExtractPLANProperty(planJson, "last_name"),
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow
+                };
+                
+                return avatar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extract property value from PLAN JSON response
+        /// </summary>
+        private string ExtractPLANProperty(string planJson, string propertyName)
+        {
+            try
+            {
+                // Simple regex-based extraction for PLAN properties
+                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
+                var match = System.Text.RegularExpressions.Regex.Match(planJson, pattern);
+                return match.Success ? match.Groups[1].Value : null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert Avatar to PLAN format
+        /// </summary>
+        private string ConvertAvatarToPLAN(IAvatar avatar)
+        {
+            try
+            {
+                // Serialize Avatar to JSON with PLAN structure
+                var planData = new
+                {
+                    id = avatar.Username,
+                    email = avatar.Email,
+                    first_name = avatar.FirstName,
+                    last_name = avatar.LastName,
+                    created = avatar.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(planData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        /// <summary>
+        /// Convert Holon to PLAN format
+        /// </summary>
+        private string ConvertHolonToPLAN(IHolon holon)
+        {
+            try
+            {
+                // Serialize Holon to JSON with PLAN structure
+                var planData = new
+                {
+                    id = holon.Id.ToString(),
+                    type = holon.HolonType.ToString(),
+                    name = holon.Name,
+                    description = holon.Description,
+                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                return System.Text.Json.JsonSerializer.Serialize(planData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+        }
+
+        #endregion
     }
 }

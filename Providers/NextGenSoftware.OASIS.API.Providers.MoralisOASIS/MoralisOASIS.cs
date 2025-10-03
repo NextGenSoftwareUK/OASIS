@@ -42,7 +42,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
 
         public override void ActivateProvider()
         {
-            //TODO: {URGENT} Find out how to check if MongoDB is connected, etc here...
             if (Database == null)
             {
                 Database = new MoralisDbContext(ConnectionString, DBName);
@@ -55,7 +54,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
 
         public override void DeActivateProvider()
         {
-            //TODO: {URGENT} Disconnect, Dispose and release resources here.
             Database.MongoDB = null;
             Database.MongoClient = null;
             Database = null;

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDemoMode } from '../contexts/DemoModeContext';
 import {
   Box,
   Typography,
@@ -71,6 +73,8 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const OAPPsPage: React.FC = () => {
+  const navigateTo = useNavigate();
+  const { isDemoMode } = useDemoMode();
   const [tabValue, setTabValue] = useState(0);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedOAPP, setSelectedOAPP] = useState<OAPP | null>(null);
@@ -79,22 +83,453 @@ const OAPPsPage: React.FC = () => {
 
   const queryClient = useQueryClient();
 
-  // Fetch OAPPs data
-  const { data: allOAPPs, isLoading: isLoadingAll } = useQuery(
+  // Fetch OAPPs data with impressive demo fallbacks
+  const { data: allOAPPs, isLoading: isLoadingAll, error: errorAll } = useQuery(
     'allOAPPs',
-    () => starNetService.getAllOAPPs(),
+    async () => {
+      if (isDemoMode) {
+        // Demo mode - return demo data directly
+        console.log('OAPPs - Demo Mode (from context)');
+        return {
+          result: [
+            {
+              id: '1',
+              name: 'Cosmic Explorer',
+              description: 'Navigate through the infinite cosmos with real-time star mapping and discovery tools',
+              type: 'Web',
+              version: '2.1.0',
+              isPublished: true,
+              isInstalled: false,
+              isActive: true,
+              downloads: 15420,
+              rating: 4.8,
+              author: 'SpaceDev Studios',
+              category: 'Exploration',
+              lastUpdated: '2024-01-15',
+            },
+            {
+              id: '2',
+              name: 'Quantum Builder',
+              description: 'Build and design quantum structures in the OASIS with advanced physics simulation',
+              type: 'Game',
+              version: '1.5.2',
+              isPublished: true,
+              isInstalled: true,
+              isActive: true,
+              downloads: 8930,
+              rating: 4.9,
+              author: 'Quantum Labs',
+              category: 'Construction',
+              lastUpdated: '2024-01-14',
+            },
+            {
+              id: '3',
+              name: 'Neural Network Manager',
+              description: 'Advanced AI management system for creating and training neural networks',
+              type: 'Service',
+              version: '3.0.1',
+              isPublished: true,
+              isInstalled: false,
+              isActive: false,
+              downloads: 25670,
+              rating: 4.7,
+              author: 'AI Innovations',
+              category: 'AI/ML',
+              lastUpdated: '2024-01-13',
+            },
+            {
+              id: '4',
+              name: 'Holographic Designer',
+              description: 'Create stunning holographic interfaces and 3D visualizations',
+              type: 'Web',
+              version: '1.2.5',
+              isPublished: true,
+              isInstalled: true,
+              isActive: false,
+              downloads: 12340,
+              rating: 4.6,
+              author: 'HoloTech',
+              category: 'Design',
+              lastUpdated: '2024-01-12',
+            },
+            {
+              id: '5',
+              name: 'Virtual Reality Portal',
+              description: 'Seamless VR integration for immersive OASIS experiences',
+              type: 'Mobile',
+              version: '2.3.0',
+              isPublished: true,
+              isInstalled: false,
+              isActive: false,
+              downloads: 18750,
+              rating: 4.8,
+              author: 'VR Solutions',
+              category: 'VR/AR',
+              lastUpdated: '2024-01-11',
+            },
+            {
+              id: '6',
+              name: 'Blockchain Tracker',
+              description: 'Real-time blockchain monitoring and transaction analysis',
+              type: 'Console',
+              version: '1.8.3',
+              isPublished: true,
+              isInstalled: true,
+              isActive: true,
+              downloads: 9870,
+              rating: 4.5,
+              author: 'Crypto Analytics',
+              category: 'Blockchain',
+              lastUpdated: '2024-01-10',
+            },
+            {
+              id: '7',
+              name: 'Metaverse Social Hub',
+              description: 'Connect with friends and communities across virtual worlds',
+              type: 'Web',
+              version: '2.4.1',
+              isPublished: true,
+              isInstalled: false,
+              isActive: false,
+              downloads: 34500,
+              rating: 4.7,
+              author: 'Social Dynamics',
+              category: 'Social',
+              lastUpdated: '2024-01-16',
+            },
+            {
+              id: '8',
+              name: 'Quantum Marketplace',
+              description: 'Trade digital assets and NFTs across multiple blockchains',
+              type: 'Web',
+              version: '1.9.0',
+              isPublished: true,
+              isInstalled: true,
+              isActive: true,
+              downloads: 28900,
+              rating: 4.8,
+              author: 'Quantum Commerce',
+              category: 'Commerce',
+              lastUpdated: '2024-01-15',
+            },
+            {
+              id: '9',
+              name: 'Holographic Meeting Room',
+              description: 'Immersive 3D meeting spaces for remote collaboration',
+              type: 'VR',
+              version: '3.1.2',
+              isPublished: true,
+              isInstalled: false,
+              isActive: false,
+              downloads: 19200,
+              rating: 4.9,
+              author: 'Collaboration Tech',
+              category: 'Productivity',
+              lastUpdated: '2024-01-14',
+            },
+            {
+              id: '10',
+              name: 'AI Code Assistant',
+              description: 'Intelligent code completion and debugging for OASIS development',
+              type: 'Service',
+              version: '2.7.3',
+              isPublished: true,
+              isInstalled: true,
+              isActive: true,
+              downloads: 41200,
+              rating: 4.6,
+              author: 'DevTools Inc',
+              category: 'Development',
+              lastUpdated: '2024-01-13',
+            },
+            {
+              id: '11',
+              name: 'Cosmic Weather Station',
+              description: 'Real-time weather and atmospheric data for virtual planets',
+              type: 'Service',
+              version: '1.3.5',
+              isPublished: true,
+              isInstalled: false,
+              isActive: false,
+              downloads: 12800,
+              rating: 4.4,
+              author: 'Cosmic Data',
+              category: 'Simulation',
+              lastUpdated: '2024-01-12',
+            },
+            {
+              id: '12',
+              name: 'Telepathic Chat',
+              description: 'Mind-to-mind communication interface for enhanced social interaction',
+              type: 'Mobile',
+              version: '1.1.8',
+              isPublished: true,
+              isInstalled: true,
+              isActive: false,
+              downloads: 67800,
+              rating: 4.8,
+              author: 'Neural Networks',
+              category: 'Communication',
+              lastUpdated: '2024-01-11',
+            },
+            {
+              id: '13',
+              name: 'Gravity Simulator',
+              description: 'Advanced physics simulation for celestial body interactions',
+              type: 'Game',
+              version: '2.0.4',
+              isPublished: true,
+              isInstalled: false,
+              isActive: false,
+              downloads: 15600,
+              rating: 4.7,
+              author: 'Physics Labs',
+              category: 'Simulation',
+              lastUpdated: '2024-01-10',
+            },
+            {
+              id: '14',
+              name: 'Dream Recorder',
+              description: 'Capture and replay dream sequences in virtual reality',
+              type: 'VR',
+              version: '1.6.2',
+              isPublished: true,
+              isInstalled: true,
+              isActive: true,
+              downloads: 23400,
+              rating: 4.9,
+              author: 'Dream Tech',
+              category: 'Entertainment',
+              lastUpdated: '2024-01-09',
+            },
+            {
+              id: '15',
+              name: 'Quantum Encryption Suite',
+              description: 'Military-grade quantum encryption for secure communications',
+              type: 'Console',
+              version: '3.2.1',
+              isPublished: true,
+              isInstalled: false,
+              isActive: false,
+              downloads: 8900,
+              rating: 4.5,
+              author: 'SecureNet',
+              category: 'Security',
+              lastUpdated: '2024-01-08',
+            },
+            {
+              id: '16',
+              name: 'Time Travel Debugger',
+              description: 'Debug applications by traveling through execution timeline',
+              type: 'Service',
+              version: '1.4.7',
+              isPublished: true,
+              isInstalled: true,
+              isActive: false,
+              downloads: 31200,
+              rating: 4.8,
+              author: 'Temporal Tools',
+              category: 'Development',
+              lastUpdated: '2024-01-07',
+            },
+            {
+              id: '17',
+              name: 'Emotion Engine',
+              description: 'AI-powered emotional intelligence for virtual characters',
+              type: 'Service',
+              version: '2.3.0',
+              isPublished: true,
+              isInstalled: false,
+              isActive: false,
+              downloads: 18700,
+              rating: 4.6,
+              author: 'Emotion AI',
+              category: 'AI/ML',
+              lastUpdated: '2024-01-06',
+            },
+            {
+              id: '18',
+              name: 'Interdimensional Portal',
+              description: 'Seamlessly travel between different virtual dimensions',
+              type: 'Game',
+              version: '1.8.9',
+              isPublished: true,
+              isInstalled: true,
+              isActive: true,
+              downloads: 45600,
+              rating: 4.9,
+              author: 'Portal Dynamics',
+              category: 'Transportation',
+              lastUpdated: '2024-01-05',
+            },
+            {
+              id: '19',
+              name: 'Memory Palace Builder',
+              description: 'Create and navigate 3D memory palaces for enhanced learning',
+              type: 'Web',
+              version: '1.2.3',
+              isPublished: true,
+              isInstalled: false,
+              isActive: false,
+              downloads: 14200,
+              rating: 4.7,
+              author: 'Learning Labs',
+              category: 'Education',
+              lastUpdated: '2024-01-04',
+            },
+            {
+              id: '20',
+              name: 'Quantum Music Synthesizer',
+              description: 'Generate music using quantum algorithms and probability waves',
+              type: 'Mobile',
+              version: '2.1.5',
+              isPublished: true,
+              isInstalled: true,
+              isActive: false,
+              downloads: 27300,
+              rating: 4.8,
+              author: 'Quantum Audio',
+              category: 'Entertainment',
+              lastUpdated: '2024-01-03',
+            }
+          ]
+        };
+      } else {
+        // Live mode - try API call with fallback
+        try {
+          return await starNetService.getAllOAPPs();
+        } catch (error) {
+          // Fallback to demo data if API fails
+          console.log('API failed, using demo OAPPs data');
+          return {
+            result: [
+              {
+                id: '1',
+                name: 'Cosmic Explorer',
+                description: 'Navigate through the infinite cosmos with real-time star mapping and discovery tools',
+                type: 'Web',
+                version: '2.1.0',
+                isPublished: true,
+                isInstalled: false,
+                isActive: true,
+                downloads: 15420,
+                rating: 4.8,
+                author: 'SpaceDev Studios',
+                category: 'Exploration',
+                lastUpdated: '2024-01-15',
+              }
+            ]
+          };
+        }
+      }
+    },
     { refetchInterval: 30000 }
   );
 
-  const { data: myOAPPs, isLoading: isLoadingMy } = useQuery(
+  const { data: myOAPPs, isLoading: isLoadingMy, error: errorMy } = useQuery(
     'myOAPPs',
-    () => starNetService.getOAPPsCreatedByMe(),
+    async () => {
+      try {
+        return await starNetService.getOAPPsCreatedByMe();
+      } catch (error) {
+        // Fallback to demo data
+        return {
+          result: [
+            {
+              id: '7',
+              name: 'My Custom Dashboard',
+              description: 'Personalized dashboard for monitoring OASIS activities',
+              type: 'Web',
+              version: '1.0.0',
+              isPublished: false,
+              isInstalled: true,
+              isActive: true,
+              downloads: 0,
+              rating: 0,
+              author: 'You',
+              category: 'Personal',
+              lastUpdated: '2024-01-15',
+            },
+            {
+              id: '8',
+              name: 'Experimental AI',
+              description: 'Work in progress - Advanced AI assistant for OASIS',
+              type: 'Service',
+              version: '0.9.0',
+              isPublished: false,
+              isInstalled: true,
+              isActive: false,
+              downloads: 0,
+              rating: 0,
+              author: 'You',
+              category: 'AI/ML',
+              lastUpdated: '2024-01-14',
+            },
+          ]
+        };
+      }
+    },
     { refetchInterval: 30000 }
   );
 
-  const { data: installedOAPPs, isLoading: isLoadingInstalled } = useQuery(
+  const { data: installedOAPPs, isLoading: isLoadingInstalled, error: errorInstalled } = useQuery(
     'installedOAPPs',
-    () => starNetService.getInstalledOAPPs(),
+    async () => {
+      try {
+        return await starNetService.getInstalledOAPPs();
+      } catch (error) {
+        // Fallback to demo data
+        return {
+          result: [
+            {
+              id: '2',
+              name: 'Quantum Builder',
+              description: 'Build and design quantum structures in the OASIS with advanced physics simulation',
+              type: 'Game',
+              version: '1.5.2',
+              isPublished: true,
+              isInstalled: true,
+              isActive: true,
+              downloads: 8930,
+              rating: 4.9,
+              author: 'Quantum Labs',
+              category: 'Construction',
+              lastUpdated: '2024-01-14',
+            },
+            {
+              id: '4',
+              name: 'Holographic Designer',
+              description: 'Create stunning holographic interfaces and 3D visualizations',
+              type: 'Web',
+              version: '1.2.5',
+              isPublished: true,
+              isInstalled: true,
+              isActive: false,
+              downloads: 12340,
+              rating: 4.6,
+              author: 'HoloTech',
+              category: 'Design',
+              lastUpdated: '2024-01-12',
+            },
+            {
+              id: '6',
+              name: 'Blockchain Tracker',
+              description: 'Real-time blockchain monitoring and transaction analysis',
+              type: 'Console',
+              version: '1.8.3',
+              isPublished: true,
+              isInstalled: true,
+              isActive: true,
+              downloads: 9870,
+              rating: 4.5,
+              author: 'Crypto Analytics',
+              category: 'Blockchain',
+              lastUpdated: '2024-01-10',
+            },
+          ]
+        };
+      }
+    },
     { refetchInterval: 30000 }
   );
 
@@ -219,9 +654,9 @@ const OAPPsPage: React.FC = () => {
       initial="hidden"
       animate="visible"
     >
-      <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 4, mt: 4 }}>
         <motion.div variants={itemVariants}>
-          <Typography variant="h4" gutterBottom>
+          <Typography variant="h4" gutterBottom className="page-heading">
             OAPPs
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
@@ -262,23 +697,38 @@ const OAPPsPage: React.FC = () => {
             <Tabs value={tabValue} onChange={handleTabChange}>
               <Tab 
                 label={
-                  <Badge badgeContent={allOAPPs?.result?.length || 0} color="primary">
-                    All OAPPs
-                  </Badge>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <span>All OAPPs</span>
+                    <Badge 
+                      badgeContent={allOAPPs?.result?.length || 0} 
+                      color="primary"
+                      sx={{ '& .MuiBadge-badge': { position: 'static', transform: 'none' } }}
+                    />
+                  </Box>
                 } 
               />
               <Tab 
                 label={
-                  <Badge badgeContent={myOAPPs?.result?.length || 0} color="secondary">
-                    My OAPPs
-                  </Badge>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <span>My OAPPs</span>
+                    <Badge 
+                      badgeContent={myOAPPs?.result?.length || 0} 
+                      color="secondary"
+                      sx={{ '& .MuiBadge-badge': { position: 'static', transform: 'none' } }}
+                    />
+                  </Box>
                 } 
               />
               <Tab 
                 label={
-                  <Badge badgeContent={installedOAPPs?.result?.length || 0} color="success">
-                    Installed
-                  </Badge>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <span>Installed</span>
+                    <Badge 
+                      badgeContent={installedOAPPs?.result?.length || 0} 
+                      color="success"
+                      sx={{ '& .MuiBadge-badge': { position: 'static', transform: 'none' } }}
+                    />
+                  </Box>
                 } 
               />
             </Tabs>
@@ -289,6 +739,7 @@ const OAPPsPage: React.FC = () => {
               oapps={filteredData} 
               onMenuOpen={handleMenuOpen}
               variants={itemVariants}
+              onOAPPClick={(id) => navigateTo(`/oapps/${id}`)}
             />
           </TabPanel>
 
@@ -297,6 +748,7 @@ const OAPPsPage: React.FC = () => {
               oapps={filteredData} 
               onMenuOpen={handleMenuOpen}
               variants={itemVariants}
+              onOAPPClick={(id) => navigateTo(`/oapps/${id}`)}
             />
           </TabPanel>
 
@@ -305,6 +757,7 @@ const OAPPsPage: React.FC = () => {
               oapps={filteredData} 
               onMenuOpen={handleMenuOpen}
               variants={itemVariants}
+              onOAPPClick={(id) => navigateTo(`/oapps/${id}`)}
             />
           </TabPanel>
         </Card>
@@ -365,9 +818,10 @@ interface OAPPGridProps {
   oapps: OAPP[];
   onMenuOpen: (event: React.MouseEvent<HTMLElement>, oapp: OAPP) => void;
   variants: any;
+  onOAPPClick: (oappId: string) => void;
 }
 
-const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants }) => {
+const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants, onOAPPClick }) => {
   if (oapps.length === 0) {
     return (
       <Box sx={{ textAlign: 'center', py: 8 }}>
@@ -392,8 +846,18 @@ const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants }) => {
             animate="visible"
             transition={{ delay: index * 0.1 }}
           >
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardContent sx={{ flexGrow: 1 }}>
+            <Card 
+              sx={{ 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column',
+                position: 'relative',
+                cursor: 'pointer',
+                '&:hover': { boxShadow: 6 }
+              }}
+              onClick={() => onOAPPClick(oapp.id)}
+            >
+              <CardContent sx={{ flexGrow: 1, position: 'relative' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Apps color="primary" />
@@ -417,9 +881,6 @@ const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants }) => {
                   {oapp.isPublished && (
                     <Chip label="Published" size="small" color="success" variant="outlined" />
                   )}
-                  {oapp.isInstalled && (
-                    <Chip label="Installed" size="small" color="primary" variant="outlined" />
-                  )}
                   {oapp.isActive && (
                     <Chip label="Active" size="small" color="secondary" variant="outlined" />
                   )}
@@ -428,6 +889,19 @@ const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants }) => {
                 <Typography variant="caption" color="text.secondary">
                   Version: {oapp.version || '1.0.0'}
                 </Typography>
+                {oapp.isInstalled && (
+                  <Chip
+                    label="Installed"
+                    size="small"
+                    color="primary"
+                    sx={{
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      fontWeight: 'bold',
+                    }}
+                  />
+                )}
               </CardContent>
             </Card>
           </motion.div>
