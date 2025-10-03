@@ -1319,9 +1319,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         //}
 
         // Avatar Session Management Implementation
-        public async Task<OASISResult<Models.Avatar.AvatarSessionManagement>> GetAvatarSessionsAsync(Guid avatarId)
+        public async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionManagement>> GetAvatarSessionsAsync(Guid avatarId)
         {
-            var response = new OASISResult<Models.Avatar.AvatarSessionManagement>();
+            var response = new OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionManagement>();
             
             try
             {
@@ -1345,7 +1345,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 }
 
                 // TODO: AvatarService is being phased out - type conversion not implemented
-                // response.Result = sessionsResult.Result as Models.Avatar.AvatarSessionManagement;
+                // response.Result = sessionsResult.Result as NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionManagement;
                 response.IsSaved = true;
                 return response;
             }
@@ -1406,9 +1406,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
         }
 
-        public async Task<OASISResult<Models.Avatar.AvatarSession>> CreateAvatarSessionAsync(Guid avatarId, NextGenSoftware.OASIS.API.Core.Objects.Avatar.CreateSessionRequest request)
+        public async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession>> CreateAvatarSessionAsync(Guid avatarId, NextGenSoftware.OASIS.API.Core.Objects.Avatar.CreateSessionRequest request)
         {
-            var response = new OASISResult<Models.Avatar.AvatarSession>();
+            var response = new OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession>();
             
             try
             {
@@ -1417,7 +1417,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 var result = await AvatarManager.CreateAvatarSessionAsync(avatarId, request);
                 
                 // TODO: AvatarService is being phased out - type conversion not implemented
-                // response.Result = result.Result as Models.Avatar.AvatarSession;
+                // response.Result = result.Result as NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession;
                 response.IsError = result.IsError;
                 response.Message = result.Message;
                 response.IsSaved = !result.IsError;
@@ -1433,9 +1433,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
         }
 
-        public async Task<OASISResult<Models.Avatar.AvatarSession>> UpdateAvatarSessionAsync(Guid avatarId, string sessionId, NextGenSoftware.OASIS.API.Core.Objects.Avatar.UpdateSessionRequest request)
+        public async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession>> UpdateAvatarSessionAsync(Guid avatarId, string sessionId, NextGenSoftware.OASIS.API.Core.Objects.Avatar.UpdateSessionRequest request)
         {
-            var response = new OASISResult<Models.Avatar.AvatarSession>();
+            var response = new OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession>();
             
             try
             {
@@ -1443,7 +1443,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 
                 var result = await AvatarManager.UpdateAvatarSessionAsync(avatarId, sessionId, request);
                 
-                response.Result = result.Result as Models.Avatar.AvatarSession;
+                // TODO: AvatarService is being phased out - type conversion not implemented
+                // response.Result = result.Result as NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession;
                 response.IsError = result.IsError;
                 response.Message = result.Message;
                 response.IsSaved = !result.IsError;
@@ -1459,15 +1460,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
         }
 
-        public async Task<OASISResult<Models.Avatar.AvatarSessionStats>> GetAvatarSessionStatsAsync(Guid avatarId)
+        public async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionStats>> GetAvatarSessionStatsAsync(Guid avatarId)
         {
-            var response = new OASISResult<Models.Avatar.AvatarSessionStats>();
+            var response = new OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionStats>();
             
             try
             {
                 var result = await AvatarManager.GetAvatarSessionStatsAsync(avatarId);
                 
-                response.Result = result.Result as Models.Avatar.AvatarSessionStats;
+                // TODO: AvatarService is being phased out - type conversion not implemented
+                // response.Result = result.Result as NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionStats;
                 response.IsError = result.IsError;
                 response.Message = result.Message;
                 response.IsSaved = !result.IsError;

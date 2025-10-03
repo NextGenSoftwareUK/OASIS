@@ -7,7 +7,7 @@ interface AvatarContextType {
   currentAvatar: OASISAvatar | null;
   isLoggedIn: boolean;
   isLoading: boolean;
-  signin: (username: string, password: string) => Promise<boolean>;
+  signin: (username: string, password: string, provider?: string) => Promise<boolean>;
   signup: (data: SignupData) => Promise<boolean>;
   signout: () => Promise<void>;
   updateAvatar: (data: Partial<OASISAvatar>) => Promise<boolean>;
@@ -40,10 +40,15 @@ export const AvatarProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     loadStoredAvatar();
   }, []);
 
-  const signin = async (username: string, password: string): Promise<boolean> => {
+  const signin = async (username: string, password: string, provider?: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const result = await avatarService.signin({ username, password });
+      // Only pass providerType if it's not 'Auto' or 'Default'
+      const signinData: any = { username, password };
+      if (provider && provider !== 'Auto' && provider !== 'Default') {
+        signinData.providerType = provider;
+      }
+      const result = await avatarService.signin(signinData);
       
       if (result.isError || !result.result) {
         toast.error(result.message || 'Sign in failed');

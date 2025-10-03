@@ -39,6 +39,28 @@ Authorization: Avatar YOUR_AVATAR_ID
 
 ## 📚 **API Endpoints**
 
+### **Core API**
+
+#### **Get OASIS Status**
+```http
+GET /api/core/status
+```
+
+#### **Get OASIS Configuration**
+```http
+GET /api/core/config
+```
+
+#### **Get Provider Information**
+```http
+GET /api/core/providers
+```
+
+#### **Get OASIS Statistics**
+```http
+GET /api/core/stats
+```
+
 ### **Avatar API**
 
 #### **Get All Avatars**
@@ -337,6 +359,571 @@ DELETE /data/delete-file/{id}
 
 **Parameters:**
 - `id` (string, required): File UUID
+
+### **NFT API**
+
+#### **Get NFT by ID**
+```http
+GET /api/nft/load-nft-by-id/{id}
+```
+
+#### **Get NFT by Hash**
+```http
+GET /api/nft/load-nft-by-hash/{hash}
+```
+
+#### **Get All NFTs for Avatar**
+```http
+GET /api/nft/load-all-nfts-for_avatar/{avatarId}
+```
+
+#### **Get All NFTs for Mint Address**
+```http
+GET /api/nft/load-all-nfts-for-mint-wallet-address/{mintWalletAddress}
+```
+
+#### **Get All GeoNFTs for Avatar**
+```http
+GET /api/nft/load-all-geo-nfts-for-avatar/{avatarId}
+```
+
+#### **Get All GeoNFTs for Mint Address**
+```http
+GET /api/nft/load-all-geo-nfts-for-mint-wallet-address/{mintWalletAddress}
+```
+
+#### **Get All NFTs**
+```http
+GET /api/nft/load-all-nfts
+```
+
+#### **Get All GeoNFTs**
+```http
+GET /api/nft/load-all-geo-nfts
+```
+
+#### **Send NFT**
+```http
+POST /api/nft/send-nft
+```
+
+#### **Mint NFT**
+```http
+POST /api/nft/mint-nft
+```
+
+#### **Place GeoNFT**
+```http
+POST /api/nft/place-geo-nft
+```
+
+#### **Mint and Place GeoNFT**
+```http
+POST /api/nft/mint-and-place-geo-nft
+```
+
+#### **Get NFT Provider**
+```http
+GET /api/nft/get-nft-provider-from-provider-type/{providerType}
+```
+
+### **Search API**
+
+#### **Search**
+```http
+GET /api/search
+```
+
+#### **Advanced Search**
+```http
+GET /api/search/advanced
+```
+
+### **Wallet API**
+
+#### **Send Token**
+```http
+POST /api/wallet/send-token
+```
+
+#### **Get Wallet Balance**
+```http
+GET /api/wallet/balance
+```
+
+#### **Get Wallet Transactions**
+```http
+GET /api/wallet/transactions
+```
+
+### **Keys API**
+
+#### **Link Telos Account**
+```http
+POST /api/keys/link-telos-account
+```
+
+#### **Link EOSIO Account**
+```http
+POST /api/keys/link-eosio-account
+```
+
+#### **Link Holochain Agent**
+```http
+POST /api/keys/link-holochain-agent
+```
+
+#### **Get Provider Key**
+```http
+GET /api/keys/provider-key/{avatarUsername}/{providerType}
+```
+
+### **OLand API**
+
+#### **Get OLand Price**
+```http
+GET /api/oland/price/{count}
+```
+
+#### **Purchase OLand**
+```http
+POST /api/oland/purchase
+```
+
+#### **Get All OLand**
+```http
+GET /api/oland/load-all
+```
+
+#### **Get OLand by ID**
+```http
+GET /api/oland/{olandId}
+```
+
+#### **Delete OLand**
+```http
+DELETE /api/oland/{avatarId}/{olandId}
+```
+
+#### **Save OLand**
+```http
+POST /api/oland/save
+```
+
+#### **Update OLand**
+```http
+PUT /api/oland/update
+```
+
+### **Files API**
+
+#### **Get All Files for Avatar**
+```http
+GET /api/files/avatar-files
+```
+
+#### **Upload File**
+```http
+POST /api/files/upload
+```
+
+#### **Download File**
+```http
+GET /api/files/download/{fileId}
+```
+
+#### **Delete File**
+```http
+DELETE /api/files/{fileId}
+```
+
+### **Chat API**
+
+#### **Send Message**
+```http
+POST /api/chat/send
+```
+
+#### **Get Messages**
+```http
+GET /api/chat/messages
+```
+
+#### **Get Chat Rooms**
+```http
+GET /api/chat/rooms
+```
+
+#### **Create Chat Room**
+```http
+POST /api/chat/rooms
+```
+
+### **Messaging API**
+
+#### **Send Message**
+```http
+POST /api/messaging/send
+```
+
+#### **Get Messages**
+```http
+GET /api/messaging/messages
+```
+
+#### **Get Conversations**
+```http
+GET /api/messaging/conversations
+```
+
+### **Social API**
+
+#### **Get Friends**
+```http
+GET /api/social/friends
+```
+
+#### **Add Friend**
+```http
+POST /api/social/friends
+```
+
+#### **Remove Friend**
+```http
+DELETE /api/social/friends/{friendId}
+```
+
+#### **Get Followers**
+```http
+GET /api/social/followers
+```
+
+#### **Follow User**
+```http
+POST /api/social/follow
+```
+
+#### **Unfollow User**
+```http
+DELETE /api/social/follow/{userId}
+```
+
+### **Share API**
+
+#### **Share Content**
+```http
+POST /api/share/content
+```
+
+#### **Get Shared Content**
+```http
+GET /api/share/content
+```
+
+#### **Get Share Statistics**
+```http
+GET /api/share/stats
+```
+
+### **Settings API**
+
+#### **Get User Settings**
+```http
+GET /api/settings/user
+```
+
+#### **Update User Settings**
+```http
+PUT /api/settings/user
+```
+
+#### **Get Privacy Settings**
+```http
+GET /api/settings/privacy
+```
+
+#### **Update Privacy Settings**
+```http
+PUT /api/settings/privacy
+```
+
+### **Seeds API**
+
+#### **Get Seeds Balance**
+```http
+GET /api/seeds/balance
+```
+
+#### **Get Seeds Transactions**
+```http
+GET /api/seeds/transactions
+```
+
+#### **Transfer Seeds**
+```http
+POST /api/seeds/transfer
+```
+
+### **Stats API**
+
+#### **Get User Statistics**
+```http
+GET /api/stats/user
+```
+
+#### **Get System Statistics**
+```http
+GET /api/stats/system
+```
+
+#### **Get Provider Statistics**
+```http
+GET /api/stats/provider
+```
+
+### **Video API**
+
+#### **Upload Video**
+```http
+POST /api/video/upload
+```
+
+#### **Get Video**
+```http
+GET /api/video/{videoId}
+```
+
+#### **Get User Videos**
+```http
+GET /api/video/user-videos
+```
+
+#### **Delete Video**
+```http
+DELETE /api/video/{videoId}
+```
+
+### **Solana API**
+
+#### **Mint NFT**
+```http
+POST /api/solana/mint
+```
+
+#### **Send Transaction**
+```http
+POST /api/solana/send
+```
+
+#### **Get Balance**
+```http
+GET /api/solana/balance
+```
+
+### **Telos API**
+
+#### **Get Telos Account**
+```http
+GET /api/telos/account
+```
+
+#### **Get Telos Balance**
+```http
+GET /api/telos/balance
+```
+
+#### **Send Telos Transaction**
+```http
+POST /api/telos/send
+```
+
+### **Holochain API**
+
+#### **Get Holochain Agent**
+```http
+GET /api/holochain/agent
+```
+
+#### **Get Holochain Data**
+```http
+GET /api/holochain/data
+```
+
+#### **Store Holochain Data**
+```http
+POST /api/holochain/store
+```
+
+### **EOSIO API**
+
+#### **Get EOSIO Account**
+```http
+GET /api/eosio/account
+```
+
+#### **Get EOSIO Balance**
+```http
+GET /api/eosio/balance
+```
+
+#### **Send EOSIO Transaction**
+```http
+POST /api/eosio/send
+```
+
+### **Mission API**
+
+#### **Get All Missions**
+```http
+GET /api/mission/missions
+```
+
+#### **Get Mission by ID**
+```http
+GET /api/mission/{missionId}
+```
+
+#### **Create Mission**
+```http
+POST /api/mission/create
+```
+
+#### **Update Mission**
+```http
+PUT /api/mission/{missionId}
+```
+
+#### **Delete Mission**
+```http
+DELETE /api/mission/{missionId}
+```
+
+### **Quest API**
+
+#### **Get All Quests**
+```http
+GET /api/quest/quests
+```
+
+#### **Get Quest by ID**
+```http
+GET /api/quest/{questId}
+```
+
+#### **Create Quest**
+```http
+POST /api/quest/create
+```
+
+#### **Update Quest**
+```http
+PUT /api/quest/{questId}
+```
+
+#### **Delete Quest**
+```http
+DELETE /api/quest/{questId}
+```
+
+### **Map API**
+
+#### **Get Map Data**
+```http
+GET /api/map/data
+```
+
+#### **Update Map Data**
+```http
+PUT /api/map/data
+```
+
+#### **Get Map Layers**
+```http
+GET /api/map/layers
+```
+
+### **OAPP API**
+
+#### **Get All OAPPs**
+```http
+GET /api/oapp/oapps
+```
+
+#### **Get OAPP by ID**
+```http
+GET /api/oapp/{oappId}
+```
+
+#### **Create OAPP**
+```http
+POST /api/oapp/create
+```
+
+#### **Update OAPP**
+```http
+PUT /api/oapp/{oappId}
+```
+
+#### **Delete OAPP**
+```http
+DELETE /api/oapp/{oappId}
+```
+
+### **Cargo API**
+
+#### **Get Cargo Orders**
+```http
+GET /api/cargo/orders
+```
+
+#### **Create Cargo Order**
+```http
+POST /api/cargo/orders
+```
+
+#### **Update Cargo Order**
+```http
+PUT /api/cargo/orders/{orderId}
+```
+
+#### **Delete Cargo Order**
+```http
+DELETE /api/cargo/orders/{orderId}
+```
+
+### **Gifts API**
+
+#### **Get All Gifts**
+```http
+GET /api/gifts/all
+```
+
+#### **Send Gift**
+```http
+POST /api/gifts/send
+```
+
+#### **Receive Gift**
+```http
+POST /api/gifts/receive
+```
+
+### **Eggs API**
+
+#### **Get All Eggs**
+```http
+GET /api/eggs/all
+```
+
+#### **Get Current Egg Quests**
+```http
+GET /api/eggs/quests
+```
+
+#### **Get Egg Quest Leaderboard**
+```http
+GET /api/eggs/leaderboard
+```
 
 ### **Provider API**
 

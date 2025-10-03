@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -13,43 +14,57 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
+    /// <summary>
+    /// Karma management endpoints for tracking and managing user karma points, achievements, and spiritual growth.
+    /// Supports karma weighting, positive/negative karma tracking, and spiritual development metrics.
+    /// </summary>
     [Route("api/karma")]
     [ApiController]
-
-    //[EnableCors(origins: "http://mywebclient.azurewebsites.net", headers: "*", methods: "*")]
     [EnableCors()]
     public class KarmaController : OASISControllerBase
     {
         /// <summary>
-        /// Get karma weighting for a given positive karma cateogey.
+        /// Get karma weighting for a given positive karma category.
         /// </summary>
-        /// <param name="karmaType"></param>
-        /// <returns></returns>
+        /// <param name="karmaType">The positive karma type to get weighting for.</param>
+        /// <returns>OASIS result containing the karma weighting value.</returns>
+        /// <response code="200">Karma weighting retrieved successfully</response>
+        /// <response code="400">Invalid karma type provided</response>
         [HttpGet("get-positive-karma-weighting/{karmaType}")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public OASISResult<bool> GetPositiveKarmaWeighting(KarmaTypePositive karmaType)
         {
             return new();
         }
 
         /// <summary>
-        /// Get karma weighting for a given positive karma cateogey.
+        /// Get karma weighting for a given positive karma category with specific provider.
         /// </summary>
-        /// <param name="karmaType"></param>
-        /// <param name="providerType">Pass in the provider you wish to use.</param>
-        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-        /// <returns></returns>
+        /// <param name="karmaType">The positive karma type to get weighting for.</param>
+        /// <param name="providerType">The OASIS provider type to use for the operation.</param>
+        /// <param name="setGlobally">Whether to set this provider globally for all future requests.</param>
+        /// <returns>OASIS result containing the karma weighting value.</returns>
+        /// <response code="200">Karma weighting retrieved successfully</response>
+        /// <response code="400">Invalid karma type or provider type provided</response>
         [HttpGet("get-positive-karma-weighting/{karmaType}/{providerType}/{setGlobally}")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public OASISResult<bool> GetPositiveKarmaWeighting(KarmaTypePositive karmaType, ProviderType providerType, bool setGlobally = false)
         {
             return new();
         }
 
         /// <summary>
-        /// Get karma weighting for a given negative karma cateogey.
+        /// Get karma weighting for a given negative karma category.
         /// </summary>
-        /// <param name="karmaType"></param>
-        /// <returns></returns>
+        /// <param name="karmaType">The negative karma type to get weighting for.</param>
+        /// <returns>OASIS result containing the karma weighting value.</returns>
+        /// <response code="200">Karma weighting retrieved successfully</response>
+        /// <response code="400">Invalid karma type provided</response>
         [HttpGet("get-negative-karma-weighting/{karmaType}")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public OASISResult<bool> GetNegativeKarmaWeighting(KarmaTypeNegative karmaType)
         {
             return new();

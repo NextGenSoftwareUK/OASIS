@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { OASISResult, STARNETItem, OAPP, Quest, NFT, GeoNFT, Mission, Chapter, CelestialBody, CelestialSpace, Runtime, Library, Template, InventoryItem, Plugin, GeoHotSpot, SearchParams } from '../types/star';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:50564/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5099/api';
 
 // Helper function to check demo mode
 const isDemoMode = () => {
