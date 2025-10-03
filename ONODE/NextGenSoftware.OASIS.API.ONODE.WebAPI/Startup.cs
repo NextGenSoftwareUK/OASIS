@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -19,6 +20,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Startup
     {
+        // Helper method to get a unique display name for types, including generic types
+        private static string GetTypeDisplayName(Type type)
+        {
+            if (!type.IsGenericType)
+                return type.Name;
+            
+            var genericTypeName = type.Name.Split('`')[0];
+            var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
+            return $"{genericTypeName}Of{genericArgs}";
+        }
         private const string VERSION = "WEB 4 OASIS API v3.3.4";
         //readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
@@ -47,6 +58,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
             {
+                // Configure custom schema ID resolver to handle duplicate class names and generic types
+                c.CustomSchemaIds(type => 
+                {
+                    // If the type is from the WebAPI Models namespace, use a different schema ID
+                    if (type.Namespace != null && type.Namespace.Contains("NextGenSoftware.OASIS.API.ONODE.WebAPI.Models"))
+                    {
+                        return $"{type.Name}WebAPI";
+                    }
+                    
+                    // Handle generic types to include the full generic parameter information
+                    if (type.IsGenericType)
+                    {
+                        var genericTypeName = type.Name.Split('`')[0]; // Get the base name (e.g., "EnumValue")
+                        var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
+                        return $"{genericTypeName}Of{genericArgs}";
+                    }
+                    
+                    // For all other types, use the default behavior
+                    return type.Name;
+                });
+                
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Contact = new OpenApiContact()
@@ -186,7 +218,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             // services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             // configure DI for application services
-            services.AddScoped<IAvatarService, AvatarService>();
+            // services.AddScoped<IAvatarService, AvatarService>(); // AvatarService is being phased out
             //services.AddScoped<IEmailService, EmailService>();
             //services.AddScoped<ISolanaService, SolanaService>(); //TODO: Not sure we need this? Want to remove this along with all other services ASAP! Use Managers in OASIS.API.Core and OASIS.API.ONODE.Core instead!
             //services.AddScoped<ICargoService, CargoService>();

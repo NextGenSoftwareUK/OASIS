@@ -57,10 +57,14 @@ The OASIS consists of two main layers:
 - **Innovation**: STAR ODK (Omniverse Interoperable Metaverse Low Code Generator)
 - **Location**: `STAR ODK/` namespace
 - **Key Features**:
-  - Low-code metaverse development
-  - Missions, NFTs, and inventory management
-  - Templates, libraries, and plugins
+  - Low-code metaverse development with drag-and-drop OAPP builder
+  - Missions, NFTs, GeoNFTs, and inventory management
+  - Templates, libraries, runtimes, and plugins
   - OAPPs (OASIS Applications) framework
+  - Celestial Bodies, Spaces, Zomes, and Holons management
+  - Advanced metadata system with DNA management
+  - Comprehensive STARNET Web UI with Dashboard and MetaData pages
+  - STARNET integration for publishing, downloading, and versioning
 
 ## 🏛️ Visual Architecture
 
@@ -200,11 +204,13 @@ Universal reputation system that:
 
 ### 7. **Low-Code Metaverse Generator**
 Visual development tools for metaverse creation:
-- Drag-and-drop interface builder
+- Drag-and-drop OAPP builder with component mixing
 - Pre-built UI components library
 - Automated deployment pipelines
 - Cross-platform compatibility
-- STAR CLI Low/No code generator wizards and templating system.
+- STAR CLI Low/No code generator wizards and templating system
+- Web-based OAPP builder with zomes, holons, and metadata integration
+- Real-time preview and testing capabilities
 
 ### 8. **Complete Smart Contract Interoperability**
 - Deploy contracts on any supported network
@@ -278,10 +284,13 @@ Sophisticated tokenomics with:
 - Compliance ready
 
 ### 🎮 Gamification & Metaverse
-- Low-code development tools
-- Pre-built components
+- Low-code development tools with drag-and-drop OAPP builder
+- Pre-built components and metadata system
 - Cross-platform deployment
 - Real-time collaboration
+- Advanced metadata management with DNA system
+- Comprehensive STARNET Web UI with Dashboard and MetaData pages
+- STARNET integration for publishing and versioning
 
 ### 🤖 AI & Machine Learning
 - Cross-platform data analysis
@@ -291,16 +300,32 @@ Sophisticated tokenomics with:
 
 ## 📚 Documentation
 
-### Core Documentation
-- **[Investor Evaluation Guide](./Docs/INVESTOR_EVALUATION_GUIDE.md)** - Comprehensive investment analysis and market opportunities
-- **[OASIS Architecture Overview](./Docs/OASIS_ARCHITECTURE_OVERVIEW.md)** - Detailed technical architecture and system design
-- **[Unique Selling Propositions](./Docs/OASIS_UNIQUE_SELLING_PROPOSITIONS.md)** - Complete USP analysis and competitive advantages
+### 🚀 **Quick Start Guides**
+- **[Developer Documentation Index](./Docs/Devs/DEVELOPER_DOCUMENTATION_INDEX.md)** - Complete documentation guide
+- **[OASIS Quick Start Guide](./Docs/Devs/OASIS_Quick_Start_Guide.md)** - Get started with OASIS in 10 minutes
+- **[STARNET Web UI Quick Start](./Docs/Devs/STARNET_QUICK_START_GUIDE.md)** - Get started with STARNET Web UI in 5 minutes
+- **[Development Environment Setup](./Docs/Devs/DEVELOPMENT_ENVIRONMENT_SETUP.md)** - Complete development setup guide
 
-### Developer Documentation
-- **[OASIS API Reference](./Docs/Devs/OASIS_API_Reference.md)** - Complete API documentation and endpoints
+### 📖 **Core Documentation**
+- **[Investor Evaluation Guide](./Docs/INVESTOR_EVALUATION_GUIDE.md)** - Comprehensive investment analysis and market opportunities
+- **[OASIS Architecture Overview](./Docs/Devs/OASIS_ARCHITECTURE_OVERVIEW.md)** - Detailed technical architecture and system design
+- **[Unique Selling Propositions](./Docs/OASIS_UNIQUE_SELLING_PROPOSITIONS.md)** - Complete USP analysis and competitive advantages
+- **[STARNET Web UI Overview](./Docs/STARNET_WEB_UI_OVERVIEW.md)** - Complete STARNET Web UI guide
+
+### 🔧 **Developer Documentation**
+- **[API Documentation](./Docs/Devs/API%20Documentation/)** - Complete API reference for WEB4 OASIS and WEB5 STAR APIs
+- **[Tutorials](./Docs/Devs/TUTORIALS/)** - Step-by-step tutorials and guides
 - **[OASIS Best Practices](./Docs/Devs/OASIS-BEST-PRACTICES.md)** - Development guidelines and best practices
 - **[Provider Development Guide](./Docs/Devs/OASIS_Provider_Development_Guide.md)** - Guide for creating custom providers
+- **[Contributing Guide](./Docs/Devs/CONTRIBUTING.md)** - How to contribute to the project
 - **[Quick Start Guide](./Docs/Devs/OASIS_Quick_Start_Guide.md)** - Getting started with OASIS development
+
+### STAR Web API Documentation
+- **[WEB5 STAR API Documentation](./Docs/Devs/API%20Documentation/WEB5_STAR_API_Documentation.md)** - Complete STAR API documentation
+- **[STAR API Complete Endpoints Reference](./Docs/Devs/API%20Documentation/STAR_API_Complete_Endpoints_Reference.md)** - All STAR API endpoints
+- **[STAR Metadata System Documentation](./Docs/Devs/API%20Documentation/STAR_Metadata_System_Documentation.md)** - Metadata system guide
+- **[STAR OAPP Builder Documentation](./Docs/Devs/API%20Documentation/STAR_OAPP_Builder_Documentation.md)** - OAPP Builder guide
+- **[Combined API Overview](./Docs/Devs/API%20Documentation/COMBINED_API_OVERVIEW.md)** - WEB4 + WEB5 integration guide
 
 ### Testing & Quality
 - **[Test Coverage Summary](./Docs/Devs/TEST-COVERAGE-SUMMARY.md)** - Testing coverage and quality metrics
@@ -385,6 +410,48 @@ var mission = new Mission
 var missionResult = await oasisAPI.Missions.SaveMissionAsync(mission);
 ```
 
+## 🌟 STARNET Web UI & OAPP Builder
+
+### **Revolutionary Web Interface**
+The STARNET Web UI provides a comprehensive, modern web interface for managing the entire OASIS ecosystem:
+
+#### **Dashboard**
+- **Real-time Analytics**: Live charts and graphs showing system performance
+- **Summary Information**: Overview of all OASIS components (OAPPs, Templates, Runtimes, etc.)
+- **Quick Actions**: Direct access to create, manage, and deploy applications
+- **Interactive Navigation**: Click-through to detailed pages for each component
+
+#### **OAPP Builder**
+- **Drag-and-Drop Interface**: Visual component mixing for creating unique OAPPs
+- **Component Library**: Access to Runtimes, Libraries, NFTs, GeoNFTs, Celestial Bodies, Spaces, Inventory Items
+- **Metadata Integration**: Seamless integration with Celestial Bodies, Zomes, and Holons metadata
+- **Real-time Preview**: Live preview of OAPP components and functionality
+- **Version Control**: Built-in versioning and rollback capabilities
+
+#### **MetaData Management**
+- **Celestial Bodies MetaData**: Manage metadata for stars, planets, moons, and other celestial objects
+- **Zomes MetaData**: Configure code module metadata and properties
+- **Holons MetaData**: Manage data object metadata and relationships
+- **Key-Value Pairs**: Flexible metadata system supporting strings, integers, booleans, and datetimes
+- **DNA Management**: Advanced metadata DNA system for complex configurations
+
+#### **Enhanced Pages**
+- **OAPPs Page**: Complete OAPP lifecycle management
+- **Templates Page**: Template management with drag-and-drop builder integration
+- **Runtimes Page**: Runtime configuration and deployment management
+- **Libraries Page**: Library management and dependency tracking
+- **NFTs/GeoNFTs Pages**: NFT creation, management, and marketplace integration
+- **Celestial Bodies Page**: Universe management and celestial object creation
+- **Spaces Page**: Virtual space creation and management
+- **Inventory Page**: Item management and trading system
+
+### **STARNET Integration**
+- **Publishing**: One-click publishing to STARNET with version control
+- **Downloading**: Easy download and installation of published components
+- **Versioning**: Complete version history and rollback capabilities
+- **Search**: Advanced search across all published components
+- **Sharing**: Community sharing and collaboration features
+
 ## 📁 Project Structure
 
 ```
@@ -399,7 +466,17 @@ OASIS/
 │   └── Models/                # Data models
 ├── STAR ODK/                   # WEB5 STAR Web API (Gamification Layer)
 │   ├── NextGenSoftware.OASIS.STAR.WebAPI/
+│   │   ├── Controllers/        # API controllers including new metadata controllers
+│   │   │   ├── CelestialBodiesMetaDataController.cs
+│   │   │   ├── ZomesMetaDataController.cs
+│   │   │   └── HolonsMetaDataController.cs
+│   │   └── Models/             # Request/response models
 │   └── NextGenSoftware.OASIS.STAR.WebUI/
+│       ├── ClientApp/          # React-based Web UI
+│       │   ├── src/pages/      # Dashboard, OAPP Builder, MetaData pages
+│       │   ├── src/components/ # Reusable UI components
+│       │   └── src/services/   # API integration services
+│       └── wwwroot/           # Static assets
 ├── Providers/                  # Provider implementations
 │   ├── Blockchain/            # Blockchain providers
 │   ├── Database/              # Database providers

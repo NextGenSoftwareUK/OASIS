@@ -20,6 +20,8 @@ import HomePage from './pages/HomePage';
 import Dashboard from './pages/Dashboard';
 import OAPPsPage from './pages/OAPPsPage';
 import OAPPDetailPage from './pages/OAPPDetailPage';
+import OAPPBuilderPage from './pages/OAPPBuilderPage';
+import MetaDataPage from './pages/MetaDataPage';
 import QuestsPage from './pages/QuestsPage';
 import NFTsPage from './pages/NFTsPage';
 import NFTDetailPage from './pages/NFTDetailPage';
@@ -704,6 +706,62 @@ const App: React.FC = () => {
                     transition={pageTransition}
                   >
                     <STARNETDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/oapps" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <OAPPsPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/oapps/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <OAPPDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/oapp-builder" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <OAPPBuilderPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/metadata" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <MetaDataPage />
                   </motion.div>
                 } 
               />

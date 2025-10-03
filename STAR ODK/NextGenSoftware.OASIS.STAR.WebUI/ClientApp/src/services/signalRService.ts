@@ -14,7 +14,7 @@ class SignalRService {
   }
 
   private initializeConnection() {
-    const hubUrl = process.env.REACT_APP_HUB_URL || 'http://localhost:50564/starhub';
+    const hubUrl = process.env.REACT_APP_HUB_URL || 'http://localhost:5099/starhub';
     
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {

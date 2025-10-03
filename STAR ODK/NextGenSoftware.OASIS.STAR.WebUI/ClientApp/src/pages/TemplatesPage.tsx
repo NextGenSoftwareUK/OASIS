@@ -36,11 +36,16 @@ import {
   Refresh,
   FilterList,
   ContentCopy,
+  Upload,
+  PlayArrow,
+  Pause,
+  Info,
+  Help,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { starService } from '../services/starService';
+import { Templates as TemplatesAPI } from '../services/starApiClient';
 import { useNavigate } from 'react-router-dom';
 
 interface Template {
@@ -106,7 +111,7 @@ const TemplatesPage: React.FC = () => {
     async () => {
       try {
         // Try to get real data first
-        const response = await starService.getAllTemplates?.();
+        const { data: response } = await TemplatesAPI.list();
         // Check if the real data has meaningful values, if not use demo data
         console.log('API Response for Templates:', response);
         if (response?.result && response.result.length > 0) {
@@ -400,9 +405,15 @@ const TemplatesPage: React.FC = () => {
 
   const createTemplateMutation = useMutation(
     async (templateData: Partial<Template>) => {
-      // Simulate API call for demo
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true, id: Date.now().toString() };
+      const payload = {
+        name: templateData.name || 'New Template',
+        description: templateData.description || '',
+        holonSubType: 0,
+        sourceFolderPath: templateData.imageUrl || '',
+        createOptions: null,
+      };
+      const { data } = await TemplatesAPI.create(payload);
+      return data;
     },
     {
       onSuccess: () => {
@@ -440,9 +451,8 @@ const TemplatesPage: React.FC = () => {
 
   const deleteTemplateMutation = useMutation(
     async (id: string) => {
-      // Simulate API call for demo
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return { success: true };
+      const { data } = await TemplatesAPI.delete(id);
+      return data;
     },
     {
       onSuccess: () => {
@@ -465,6 +475,45 @@ const TemplatesPage: React.FC = () => {
 
   const handleDeleteTemplate = (id: string) => {
     deleteTemplateMutation.mutate(id);
+  };
+
+  const publishTemplateMutation = useMutation(
+    async (id: string) => {
+      const { data } = await TemplatesAPI.publish(id, {});
+      return data;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('templates');
+        toast.success('Template published successfully!');
+      },
+      onError: () => {
+        toast.error('Failed to publish template');
+      },
+    }
+  );
+
+  const downloadTemplateMutation = useMutation(
+    async (id: string) => {
+      const { data } = await TemplatesAPI.download(id, './downloads', true);
+      return data;
+    },
+    {
+      onSuccess: () => {
+        toast.success('Template downloaded successfully!');
+      },
+      onError: () => {
+        toast.error('Failed to download template');
+      },
+    }
+  );
+
+  const handlePublishTemplate = (id: string) => {
+    publishTemplateMutation.mutate(id);
+  };
+
+  const handleDownloadTemplate = (id: string) => {
+    downloadTemplateMutation.mutate(id);
   };
 
   const getCategoryIcon = (category: string) => {
@@ -541,12 +590,25 @@ const TemplatesPage: React.FC = () => {
       <>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, mt: 4 }}>
           <Box>
-            <Typography variant="h4" gutterBottom className="page-heading">
-              Templates
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+              <Typography variant="h4" gutterBottom className="page-heading">
+                Templates
+              </Typography>
+              <Tooltip title="Templates are pre-built project structures that help you start new projects quickly. You can publish your own templates, download existing ones, and manage different versions.">
+                <IconButton size="small" color="primary">
+                  <Help />
+                </IconButton>
+              </Tooltip>
+            </Box>
             <Typography variant="subtitle1" color="text.secondary">
               Discover and use pre-built templates to accelerate your development
             </Typography>
+            <Box sx={{ mt: 1, p: 2, bgcolor: 'info.light', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Info color="primary" />
+              <Typography variant="body2" color="text.primary">
+                <strong>Quick Actions:</strong> Click <strong>Download</strong> to get a template locally, <strong>Publish</strong> to share your templates, <strong>Versions</strong> to view different template versions
+              </Typography>
+            </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl size="small" sx={{ minWidth: 140 }}>
@@ -730,18 +792,48 @@ const TemplatesPage: React.FC = () => {
                         </Typography>
                       </Box>
                       
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<Upload />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePublishTemplate(template.id);
+                          }}
+                          disabled={publishTemplateMutation.isLoading}
+                        >
+                          Publish
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<Download />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadTemplate(template.id);
+                          }}
+                          disabled={downloadTemplateMutation.isLoading}
+                        >
+                          Download
+                        </Button>
                         <Button
                           variant="outlined"
                           size="small"
                           startIcon={<Visibility />}
-                          onClick={() => toast.success('Opening template details')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/templates/${template.id}`);
+                          }}
                         >
                           View
                         </Button>
                         <IconButton
                           size="small"
-                          onClick={() => handleDeleteTemplate(template.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTemplate(template.id);
+                          }}
                           disabled={deleteTemplateMutation.isLoading}
                           color="error"
                         >

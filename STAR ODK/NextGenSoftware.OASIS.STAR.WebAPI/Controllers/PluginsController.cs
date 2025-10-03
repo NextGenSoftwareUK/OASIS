@@ -3,12 +3,15 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -328,6 +331,423 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// Creates a new plugin with specified parameters.
+        /// </summary>
+        /// <param name="request">Create request containing plugin details and source folder path.</param>
+        /// <returns>Result of the plugin creation operation.</returns>
+        /// <response code="200">Plugin created successfully</response>
+        /// <response code="400">Error creating plugin</response>
+        [HttpPost("create")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CreatePluginWithOptions([FromBody] CreatePluginWithOptionsRequest request)
+        {
+            try
+            {
+                var result = await _starAPI.Plugins.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error creating plugin: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Loads a plugin by ID with optional version and holon type.
+        /// </summary>
+        /// <param name="id">The unique identifier of the plugin to load.</param>
+        /// <param name="version">The version of the plugin to load (0 for latest).</param>
+        /// <param name="holonType">The type of holon to load.</param>
+        /// <returns>The requested plugin details.</returns>
+        /// <response code="200">Plugin loaded successfully</response>
+        /// <response code="400">Error loading plugin</response>
+        [HttpGet("{id}/load")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> LoadPlugin(Guid id, [FromQuery] int version = 0, [FromQuery] string holonType = "Default")
+        {
+            try
+            {
+                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var result = await _starAPI.Plugins.LoadAsync(AvatarId, id, version, holonTypeEnum);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error loading plugin: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Loads a plugin from source or installed folder path.
+        /// </summary>
+        /// <param name="path">The source or installed folder path.</param>
+        /// <param name="holonType">The type of holon to load.</param>
+        /// <returns>The loaded plugin details.</returns>
+        /// <response code="200">Plugin loaded successfully</response>
+        /// <response code="400">Error loading plugin</response>
+        [HttpGet("load-from-path")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> LoadPluginFromPath([FromQuery] string path, [FromQuery] string holonType = "Default")
+        {
+            try
+            {
+                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var result = await _starAPI.Plugins.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error loading plugin from path: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Loads a plugin from a published file.
+        /// </summary>
+        /// <param name="publishedFilePath">The path to the published plugin file.</param>
+        /// <returns>The loaded plugin details.</returns>
+        /// <response code="200">Plugin loaded successfully</response>
+        /// <response code="400">Error loading plugin</response>
+        [HttpGet("load-from-published")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> LoadPluginFromPublished([FromQuery] string publishedFilePath)
+        {
+            try
+            {
+                var result = await _starAPI.Plugins.LoadForPublishedFileAsync(AvatarId, publishedFilePath);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error loading plugin from published file: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Loads all plugins for the authenticated avatar.
+        /// </summary>
+        /// <param name="showAllVersions">Whether to show all versions of plugins.</param>
+        /// <param name="version">Specific version to load (0 for latest).</param>
+        /// <returns>List of all plugins for the avatar.</returns>
+        /// <response code="200">Plugins loaded successfully</response>
+        /// <response code="400">Error loading plugins</response>
+        [HttpGet("load-all-for-avatar")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> LoadAllPluginsForAvatar([FromQuery] bool showAllVersions = false, [FromQuery] int version = 0)
+        {
+            try
+            {
+                var result = await _starAPI.Plugins.LoadAllForAvatarAsync(AvatarId, showAllVersions, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<object>>
+                {
+                    IsError = true,
+                    Message = $"Error loading plugins for avatar: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Publishes a plugin to the STARNET system.
+        /// </summary>
+        /// <param name="id">The unique identifier of the plugin to publish.</param>
+        /// <param name="request">Publish request containing source path, launch target, and publish options.</param>
+        /// <returns>Result of the plugin publish operation.</returns>
+        /// <response code="200">Plugin published successfully</response>
+        /// <response code="400">Error publishing plugin</response>
+        [HttpPost("{id}/publish")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> PublishPlugin(Guid id, [FromBody] PublishRequest request)
+        {
+            try
+            {
+                var result = await _starAPI.Plugins.PublishAsync(
+                    AvatarId, 
+                    request.SourcePath, 
+                    request.LaunchTarget, 
+                    request.PublishPath, 
+                    request.Edit, 
+                    request.RegisterOnSTARNET, 
+                    request.GenerateBinary, 
+                    request.UploadToCloud
+                );
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error publishing plugin: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Downloads a plugin from the STARNET system.
+        /// </summary>
+        /// <param name="id">The unique identifier of the plugin to download.</param>
+        /// <param name="version">The version of the plugin to download.</param>
+        /// <param name="downloadPath">Optional path where the plugin should be downloaded.</param>
+        /// <param name="reInstall">Whether to reinstall if already installed.</param>
+        /// <returns>Result of the plugin download operation.</returns>
+        /// <response code="200">Plugin downloaded successfully</response>
+        /// <response code="400">Error downloading plugin</response>
+        [HttpPost("{id}/download")]
+        [ProducesResponseType(typeof(OASISResult<DownloadedPlugin>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<DownloadedPlugin>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DownloadPlugin(Guid id, [FromQuery] int version = 0, [FromQuery] string downloadPath = "", [FromQuery] bool reInstall = false)
+        {
+            try
+            {
+                var result = await _starAPI.Plugins.DownloadAsync(AvatarId, id, version, downloadPath, reInstall);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<DownloadedPlugin>
+                {
+                    IsError = true,
+                    Message = $"Error downloading plugin: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets all versions of a specific plugin.
+        /// </summary>
+        /// <param name="id">The unique identifier of the plugin to get versions for.</param>
+        /// <returns>List of all versions of the specified plugin.</returns>
+        /// <response code="200">Versions retrieved successfully</response>
+        /// <response code="400">Error retrieving versions</response>
+        [HttpGet("{id}/versions")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetPluginVersions(Guid id)
+        {
+            try
+            {
+                var result = await _starAPI.Plugins.LoadVersionsAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<object>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving plugin versions: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Loads a specific version of a plugin.
+        /// </summary>
+        /// <param name="id">The unique identifier of the plugin.</param>
+        /// <param name="version">The version string to load.</param>
+        /// <returns>The requested plugin version details.</returns>
+        /// <response code="200">Plugin version loaded successfully</response>
+        /// <response code="400">Error loading plugin version</response>
+        [HttpGet("{id}/version/{version}")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> LoadPluginVersion(Guid id, string version)
+        {
+            try
+            {
+                var result = await _starAPI.Plugins.LoadVersionAsync(id, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error loading plugin version: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Edits a plugin with new DNA configuration.
+        /// </summary>
+        /// <param name="id">The unique identifier of the plugin to edit.</param>
+        /// <param name="request">Edit request containing new DNA configuration.</param>
+        /// <returns>Result of the plugin edit operation.</returns>
+        /// <response code="200">Plugin edited successfully</response>
+        /// <response code="400">Error editing plugin</response>
+        [HttpPost("{id}/edit")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> EditPlugin(Guid id, [FromBody] EditPluginRequest request)
+        {
+            try
+            {
+                var result = await _starAPI.Plugins.EditAsync(id, request.NewDNA, AvatarId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error editing plugin: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Unpublishes a plugin from the STARNET system.
+        /// </summary>
+        /// <param name="id">The unique identifier of the plugin to unpublish.</param>
+        /// <param name="version">The version of the plugin to unpublish.</param>
+        /// <returns>Result of the plugin unpublish operation.</returns>
+        /// <response code="200">Plugin unpublished successfully</response>
+        /// <response code="400">Error unpublishing plugin</response>
+        [HttpPost("{id}/unpublish")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UnpublishPlugin(Guid id, [FromQuery] int version = 0)
+        {
+            try
+            {
+                var result = await _starAPI.Plugins.UnpublishAsync(AvatarId, id, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error unpublishing plugin: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Republishes a plugin to the STARNET system.
+        /// </summary>
+        /// <param name="id">The unique identifier of the plugin to republish.</param>
+        /// <param name="version">The version of the plugin to republish.</param>
+        /// <returns>Result of the plugin republish operation.</returns>
+        /// <response code="200">Plugin republished successfully</response>
+        /// <response code="400">Error republishing plugin</response>
+        [HttpPost("{id}/republish")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RepublishPlugin(Guid id, [FromQuery] int version = 0)
+        {
+            try
+            {
+                var result = await _starAPI.Plugins.RepublishAsync(AvatarId, id, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error republishing plugin: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Activates a plugin.
+        /// </summary>
+        /// <param name="id">The unique identifier of the plugin to activate.</param>
+        /// <param name="version">The version of the plugin to activate.</param>
+        /// <returns>Result of the plugin activation operation.</returns>
+        /// <response code="200">Plugin activated successfully</response>
+        /// <response code="400">Error activating plugin</response>
+        [HttpPost("{id}/activate")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ActivatePlugin(Guid id, [FromQuery] int version = 0)
+        {
+            try
+            {
+                var result = await _starAPI.Plugins.ActivateAsync(AvatarId, id, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error activating plugin: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Deactivates a plugin.
+        /// </summary>
+        /// <param name="id">The unique identifier of the plugin to deactivate.</param>
+        /// <param name="version">The version of the plugin to deactivate.</param>
+        /// <returns>Result of the plugin deactivation operation.</returns>
+        /// <response code="200">Plugin deactivated successfully</response>
+        /// <response code="400">Error deactivating plugin</response>
+        [HttpPost("{id}/deactivate")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DeactivatePlugin(Guid id, [FromQuery] int version = 0)
+        {
+            try
+            {
+                var result = await _starAPI.Plugins.DeactivateAsync(AvatarId, id, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error deactivating plugin: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
     }
 
     public class CreatePluginRequest
@@ -347,4 +767,27 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string? Category { get; set; }
         public string? Version { get; set; }
     }
+
+    public class CreatePluginWithOptionsRequest
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public HolonType HolonSubType { get; set; } = HolonType.Plugin;
+        public string SourceFolderPath { get; set; } = "";
+        public ISTARNETCreateOptions<Plugin, STARNETDNA> CreateOptions { get; set; } = null;
+    }
+
+    public class EditPluginRequest
+    {
+        public STARNETDNA NewDNA { get; set; } = null;
+    }
+
+
+    public class DownloadedPlugin
+    {
+        public object Plugin { get; set; } = new object();
+        public string DownloadPath { get; set; } = "";
+        public bool Success { get; set; } = false;
+    }
+
 }

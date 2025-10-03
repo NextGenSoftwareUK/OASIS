@@ -41,6 +41,28 @@ Authorization: Avatar YOUR_AVATAR_ID
 
 ## 📚 **API Endpoints**
 
+### **Avatar API**
+
+#### **Get Avatar Information**
+```http
+GET /api/avatar
+```
+
+#### **Create Avatar**
+```http
+POST /api/avatar
+```
+
+#### **Update Avatar**
+```http
+PUT /api/avatar/{id}
+```
+
+#### **Delete Avatar**
+```http
+DELETE /api/avatar/{id}
+```
+
 ### **Missions API**
 
 #### **Get All Missions**
@@ -2007,30 +2029,237 @@ PUT /api/geonfts/{id}
 DELETE /api/geonfts/{id}
 ```
 
-### **DNA Management APIs**
+### **Metadata Management APIs**
 
-#### **CelestialBody DNA Management**
+#### **Celestial Bodies MetaData API**
 ```http
-GET /api/celestialbodiesdna
-POST /api/celestialbodiesdna
-PUT /api/celestialbodiesdna/{id}
-DELETE /api/celestialbodiesdna/{id}
+GET /api/celestialbodiesmetadata                    # Get all metadata
+GET /api/celestialbodiesmetadata/{id}              # Get specific metadata
+POST /api/celestialbodiesmetadata                  # Create metadata
+PUT /api/celestialbodiesmetadata/{id}              # Update metadata
+DELETE /api/celestialbodiesmetadata/{id}           # Delete metadata
+POST /api/celestialbodiesmetadata/{id}/clone       # Clone metadata
+POST /api/celestialbodiesmetadata/{id}/publish     # Publish metadata
+POST /api/celestialbodiesmetadata/{id}/download    # Download metadata
+GET /api/celestialbodiesmetadata/{id}/versions      # Get versions
+POST /api/celestialbodiesmetadata/search           # Search metadata
+POST /api/celestialbodiesmetadata/{id}/edit        # Edit metadata
+POST /api/celestialbodiesmetadata/{id}/unpublish   # Unpublish metadata
+POST /api/celestialbodiesmetadata/{id}/republish    # Republish metadata
+POST /api/celestialbodiesmetadata/{id}/activate    # Activate metadata
+POST /api/celestialbodiesmetadata/{id}/deactivate  # Deactivate metadata
 ```
 
-#### **Zome DNA Management**
+#### **Zomes MetaData API**
 ```http
-GET /api/zomesdna
-POST /api/zomesdna
-PUT /api/zomesdna/{id}
-DELETE /api/zomesdna/{id}
+GET /api/zomesmetadata                    # Get all metadata
+GET /api/zomesmetadata/{id}              # Get specific metadata
+POST /api/zomesmetadata                  # Create metadata
+PUT /api/zomesmetadata/{id}              # Update metadata
+DELETE /api/zomesmetadata/{id}           # Delete metadata
+POST /api/zomesmetadata/{id}/clone       # Clone metadata
+POST /api/zomesmetadata/{id}/publish     # Publish metadata
+POST /api/zomesmetadata/{id}/download    # Download metadata
+GET /api/zomesmetadata/{id}/versions     # Get versions
+POST /api/zomesmetadata/search           # Search metadata
+POST /api/zomesmetadata/{id}/edit        # Edit metadata
+POST /api/zomesmetadata/{id}/unpublish   # Unpublish metadata
+POST /api/zomesmetadata/{id}/republish   # Republish metadata
+POST /api/zomesmetadata/{id}/activate    # Activate metadata
+POST /api/zomesmetadata/{id}/deactivate  # Deactivate metadata
 ```
 
-#### **Holon DNA Management**
+#### **Holons MetaData API**
 ```http
-GET /api/holonsdna
-POST /api/holonsdna
-PUT /api/holonsdna/{id}
-DELETE /api/holonsdna/{id}
+GET /api/holonsmetadata                    # Get all metadata
+GET /api/holonsmetadata/{id}              # Get specific metadata
+POST /api/holonsmetadata                  # Create metadata
+PUT /api/holonsmetadata/{id}              # Update metadata
+DELETE /api/holonsmetadata/{id}           # Delete metadata
+POST /api/holonsmetadata/{id}/clone       # Clone metadata
+POST /api/holonsmetadata/{id}/publish     # Publish metadata
+POST /api/holonsmetadata/{id}/download    # Download metadata
+GET /api/holonsmetadata/{id}/versions     # Get versions
+POST /api/holonsmetadata/search           # Search metadata
+POST /api/holonsmetadata/{id}/edit        # Edit metadata
+POST /api/holonsmetadata/{id}/unpublish   # Unpublish metadata
+POST /api/holonsmetadata/{id}/republish   # Republish metadata
+POST /api/holonsmetadata/{id}/activate    # Activate metadata
+POST /api/holonsmetadata/{id}/deactivate  # Deactivate metadata
+```
+
+### **Metadata System Overview**
+
+The metadata system provides comprehensive management of key-value pairs for Celestial Bodies, Zomes, and Holons. Each metadata type supports:
+
+- **Basic Types**: Strings, integers, booleans, datetimes
+- **Complex Structures**: Nested objects and arrays
+- **Versioning**: Complete version history and rollback
+- **Publishing**: STARNET integration for sharing and distribution
+- **Search**: Advanced search capabilities across all metadata
+- **Lifecycle Management**: Create, update, delete, clone, publish, download
+
+### **STAR Controller API**
+
+#### **Get STAR Information**
+```http
+GET /api/star
+```
+
+#### **Get STAR Status**
+```http
+GET /api/star/status
+```
+
+#### **Get STAR Configuration**
+```http
+GET /api/star/config
+```
+
+#### **Update STAR Configuration**
+```http
+PUT /api/star/config
+```
+
+### **Chapters API**
+
+#### **Get All Chapters**
+```http
+GET /api/chapters
+```
+
+#### **Get Chapter by ID**
+```http
+GET /api/chapters/{id}
+```
+
+#### **Create Chapter**
+```http
+POST /api/chapters
+```
+
+#### **Update Chapter**
+```http
+PUT /api/chapters/{id}
+```
+
+#### **Delete Chapter**
+```http
+DELETE /api/chapters/{id}
+```
+
+#### **Search Chapters**
+```http
+POST /api/chapters/search
+```
+
+#### **Get Chapter Versions**
+```http
+GET /api/chapters/{id}/versions
+```
+
+#### **Publish Chapter**
+```http
+POST /api/chapters/{id}/publish
+```
+
+#### **Download Chapter**
+```http
+POST /api/chapters/{id}/download
+```
+
+### **GeoHotSpots API**
+
+#### **Get All GeoHotSpots**
+```http
+GET /api/geohotspots
+```
+
+#### **Get GeoHotSpot by ID**
+```http
+GET /api/geohotspots/{id}
+```
+
+#### **Create GeoHotSpot**
+```http
+POST /api/geohotspots
+```
+
+#### **Update GeoHotSpot**
+```http
+PUT /api/geohotspots/{id}
+```
+
+#### **Delete GeoHotSpot**
+```http
+DELETE /api/geohotspots/{id}
+```
+
+#### **Search GeoHotSpots**
+```http
+POST /api/geohotspots/search
+```
+
+#### **Get GeoHotSpot Versions**
+```http
+GET /api/geohotspots/{id}/versions
+```
+
+#### **Publish GeoHotSpot**
+```http
+POST /api/geohotspots/{id}/publish
+```
+
+#### **Download GeoHotSpot**
+```http
+POST /api/geohotspots/{id}/download
+```
+
+### **Maps API**
+
+#### **Get All Maps**
+```http
+GET /api/maps
+```
+
+#### **Get Map by ID**
+```http
+GET /api/maps/{id}
+```
+
+#### **Create Map**
+```http
+POST /api/maps
+```
+
+#### **Update Map**
+```http
+PUT /api/maps/{id}
+```
+
+#### **Delete Map**
+```http
+DELETE /api/maps/{id}
+```
+
+#### **Search Maps**
+```http
+POST /api/maps/search
+```
+
+#### **Get Map Versions**
+```http
+GET /api/maps/{id}/versions
+```
+
+#### **Publish Map**
+```http
+POST /api/maps/{id}/publish
+```
+
+#### **Download Map**
+```http
+POST /api/maps/{id}/download
 ```
 
 ## 🎮 **STAR ODK (Omniverse Interoperable Metaverse Low Code Generator)**

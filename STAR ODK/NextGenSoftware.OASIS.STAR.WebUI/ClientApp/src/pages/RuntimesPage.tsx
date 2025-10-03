@@ -37,11 +37,15 @@ import {
   Refresh,
   FilterList,
   Memory,
+  Upload,
+  Download,
+  Help,
+  Info,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { starService } from '../services/starService';
+import { Runtimes as RuntimesAPI } from '../services/starApiClient';
 import { useNavigate } from 'react-router-dom';
 import { Runtime } from '../types/star';
 
@@ -74,13 +78,15 @@ const RuntimesPage: React.FC = () => {
     ['runtimes', viewScope],
     async () => {
       if (viewScope === 'installed') {
-        return await starService.getInstalledRuntimes();
+        const { data } = await RuntimesAPI.listForAvatar();
+        return data;
       }
       if (viewScope === 'mine') {
-        // In future, pass real avatar id
-        return await starService.getRuntimesForAvatar('me');
+        const { data } = await RuntimesAPI.listForAvatar();
+        return data;
       }
-      return await starService.getAllRuntimes();
+      const { data } = await RuntimesAPI.list();
+      return data;
     },
     {
       refetchInterval: 30000,
@@ -90,9 +96,15 @@ const RuntimesPage: React.FC = () => {
 
   const createRuntimeMutation = useMutation(
     async (runtimeData: Partial<Runtime>) => {
-      // Simulate API call for demo
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true, id: Date.now().toString() };
+      const payload = {
+        name: runtimeData.name || 'New Runtime',
+        description: runtimeData.description || '',
+        holonSubType: 0,
+        sourceFolderPath: runtimeData.imageUrl || '',
+        createOptions: null,
+      };
+      const { data } = await RuntimesAPI.create(payload);
+      return data;
     },
     {
       onSuccess: () => {
@@ -126,9 +138,8 @@ const RuntimesPage: React.FC = () => {
 
   const deleteRuntimeMutation = useMutation(
     async (id: string) => {
-      // Simulate API call for demo
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return { success: true };
+      const { data } = await RuntimesAPI.delete(id);
+      return data;
     },
     {
       onSuccess: () => {
@@ -137,6 +148,69 @@ const RuntimesPage: React.FC = () => {
       },
       onError: () => {
         toast.error('Failed to delete runtime');
+      },
+    }
+  );
+
+  const publishRuntimeMutation = useMutation(
+    async (id: string) => {
+      const { data } = await RuntimesAPI.publish(id, {});
+      return data;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('runtimes');
+        toast.success('Runtime published successfully!');
+      },
+      onError: () => {
+        toast.error('Failed to publish runtime');
+      },
+    }
+  );
+
+  const downloadRuntimeMutation = useMutation(
+    async (id: string) => {
+      const { data } = await RuntimesAPI.download(id, './downloads', true);
+      return data;
+    },
+    {
+      onSuccess: () => {
+        toast.success('Runtime downloaded successfully!');
+      },
+      onError: () => {
+        toast.error('Failed to download runtime');
+      },
+    }
+  );
+
+  const activateRuntimeMutation = useMutation(
+    async (id: string) => {
+      const { data } = await RuntimesAPI.activate(id);
+      return data;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('runtimes');
+        toast.success('Runtime activated successfully!');
+      },
+      onError: () => {
+        toast.error('Failed to activate runtime');
+      },
+    }
+  );
+
+  const deactivateRuntimeMutation = useMutation(
+    async (id: string) => {
+      const { data } = await RuntimesAPI.deactivate(id);
+      return data;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('runtimes');
+        toast.success('Runtime deactivated successfully!');
+      },
+      onError: () => {
+        toast.error('Failed to deactivate runtime');
       },
     }
   );
@@ -151,6 +225,22 @@ const RuntimesPage: React.FC = () => {
 
   const handleDeleteRuntime = (id: string) => {
     deleteRuntimeMutation.mutate(id);
+  };
+
+  const handlePublishRuntime = (id: string) => {
+    publishRuntimeMutation.mutate(id);
+  };
+
+  const handleDownloadRuntime = (id: string) => {
+    downloadRuntimeMutation.mutate(id);
+  };
+
+  const handleActivateRuntime = (id: string) => {
+    activateRuntimeMutation.mutate(id);
+  };
+
+  const handleDeactivateRuntime = (id: string) => {
+    deactivateRuntimeMutation.mutate(id);
   };
 
   const getTypeIcon = (type: string) => {
@@ -225,12 +315,25 @@ const RuntimesPage: React.FC = () => {
       <>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, mt: 4 }}>
           <Box>
-            <Typography variant="h4" gutterBottom className="page-heading">
-              Runtimes
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+              <Typography variant="h4" gutterBottom className="page-heading">
+                Runtimes
+              </Typography>
+              <Tooltip title="Runtimes are execution environments for your applications. You can publish, download, activate/deactivate runtimes, and manage different versions.">
+                <IconButton size="small" color="primary">
+                  <Help />
+                </IconButton>
+              </Tooltip>
+            </Box>
             <Typography variant="subtitle1" color="text.secondary">
               Manage and monitor application runtimes and execution environments
             </Typography>
+            <Box sx={{ mt: 1, p: 2, bgcolor: 'info.light', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Info color="primary" />
+              <Typography variant="body2" color="text.primary">
+                <strong>Quick Actions:</strong> Click <strong>Download</strong> to get a runtime locally, <strong>Publish</strong> to share your runtimes, <strong>Activate/Deactivate</strong> to control runtime status
+              </Typography>
+            </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl size="small" sx={{ minWidth: 140 }}>
@@ -409,7 +512,47 @@ const RuntimesPage: React.FC = () => {
                         </Typography>
                       </Box>
                       
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<Upload />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePublishRuntime(runtime.id);
+                          }}
+                          disabled={publishRuntimeMutation.isLoading}
+                        >
+                          Publish
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<Download />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadRuntime(runtime.id);
+                          }}
+                          disabled={downloadRuntimeMutation.isLoading}
+                        >
+                          Download
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={runtime.isActive ? <Pause /> : <PlayArrow />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (runtime.isActive) {
+                              handleDeactivateRuntime(runtime.id);
+                            } else {
+                              handleActivateRuntime(runtime.id);
+                            }
+                          }}
+                          disabled={activateRuntimeMutation.isLoading || deactivateRuntimeMutation.isLoading}
+                        >
+                          {runtime.isActive ? 'Deactivate' : 'Activate'}
+                        </Button>
                         <Button
                           variant="outlined"
                           size="small"
