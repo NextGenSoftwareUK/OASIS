@@ -9,16 +9,37 @@ import { toast } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import LoadingSpinner from './components/LoadingSpinner';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// Contexts
+import { DemoModeProvider } from './contexts/DemoModeContext';
+import { AvatarProvider } from './contexts/AvatarContext';
 
 // Pages
+import HomePage from './pages/HomePage';
 import Dashboard from './pages/Dashboard';
 import OAPPsPage from './pages/OAPPsPage';
+import OAPPDetailPage from './pages/OAPPDetailPage';
 import QuestsPage from './pages/QuestsPage';
 import NFTsPage from './pages/NFTsPage';
+import NFTDetailPage from './pages/NFTDetailPage';
 import GeoNFTsPage from './pages/GeoNFTsPage';
+import GeoNFTDetailPage from './pages/GeoNFTDetailPage';
+import InventoryDetailPage from './pages/InventoryDetailPage';
+import MissionDetailPage from './pages/MissionDetailPage';
+import QuestDetailPage from './pages/QuestDetailPage';
+import ChapterDetailPage from './pages/ChapterDetailPage';
+import RuntimeDetailPage from './pages/RuntimeDetailPage';
+import LibraryDetailPage from './pages/LibraryDetailPage';
+import TemplateDetailPage from './pages/TemplateDetailPage';
+import CelestialBodyDetailPage from './pages/CelestialBodyDetailPage';
+import CelestialSpaceDetailPage from './pages/CelestialSpaceDetailPage';
 import MissionsPage from './pages/MissionsPage';
+import AvatarSigninPage from './pages/AvatarSigninPage';
+import AvatarSignupPage from './pages/AvatarSignupPage';
 import ChaptersPage from './pages/ChaptersPage';
 import AvatarsPage from './pages/AvatarsPage';
+import AvatarDetailPage from './pages/AvatarDetailPage';
 import CelestialBodiesPage from './pages/CelestialBodiesPage';
 import CelestialSpacesPage from './pages/CelestialSpacesPage';
 import RuntimesPage from './pages/RuntimesPage';
@@ -26,9 +47,19 @@ import LibrariesPage from './pages/LibrariesPage';
 import TemplatesPage from './pages/TemplatesPage';
 import InventoryPage from './pages/InventoryPage';
 import PluginsPage from './pages/PluginsPage';
+import PluginDetailPage from './pages/PluginDetailPage';
 import GeoHotSpotsPage from './pages/GeoHotSpotsPage';
 import STARNETStorePage from './pages/STARNETStorePage';
+import STARNETDetailPage from './pages/STARNETDetailPage';
 import SettingsPage from './pages/SettingsPage';
+import KarmaDetailPage from './pages/KarmaDetailPage';
+import MyDataDetailPage from './pages/MyDataDetailPage';
+import KarmaPage from './pages/KarmaPage';
+import MyDataPage from './pages/MyDataPage';
+import DevPortalPage from './pages/DevPortalPage';
+import HolonsPage from './pages/HolonsPage';
+import ZomesPage from './pages/ZomesPage';
+import STARPluginsPage from './pages/STARPluginsPage';
 
 // Services
 import { starService } from './services/starService';
@@ -39,7 +70,7 @@ import { STARStatus } from './types/star';
 
 const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isConnected, connectionStatus } = useSTARConnection();
+  const { isConnected, connectionStatus, igniteSTAR, extinguishStar, reconnect } = useSTARConnection();
 
   // STAR status is now managed by useSTARConnection hook
 
@@ -62,14 +93,19 @@ const App: React.FC = () => {
   // Remove loading check since useSTARConnection handles this
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
-      <CssBaseline />
+    <DemoModeProvider>
+      <AvatarProvider>
+        <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+        <CssBaseline />
       
       {/* Navigation */}
       <Navbar 
         onMenuClick={handleSidebarToggle}
         isConnected={isConnected}
         connectionStatus={connectionStatus}
+        igniteSTAR={igniteSTAR}
+        extinguishStar={extinguishStar}
+        reconnect={reconnect}
       />
       
       {/* Sidebar */}
@@ -94,9 +130,9 @@ const App: React.FC = () => {
         <Container maxWidth="xl">
           <AnimatePresence mode="wait">
             <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<Navigate to="/home" replace />} />
               <Route 
-                path="/dashboard" 
+                path="/home" 
                 element={
                   <motion.div
                     initial="initial"
@@ -105,54 +141,140 @@ const App: React.FC = () => {
                     variants={pageVariants}
                     transition={pageTransition}
                   >
-                    <Dashboard isConnected={isConnected} />
+                    <HomePage />
                   </motion.div>
+                } 
+              />
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <Dashboard isConnected={isConnected} />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/oapps" 
                 element={
-                  <motion.div
-                    initial="initial"
-                    animate="in"
-                    exit="out"
-                    variants={pageVariants}
-                    transition={pageTransition}
-                  >
-                    <OAPPsPage />
-                  </motion.div>
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <OAPPsPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/oapps/:id" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <OAPPDetailPage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/quests" 
                 element={
-                  <motion.div
-                    initial="initial"
-                    animate="in"
-                    exit="out"
-                    variants={pageVariants}
-                    transition={pageTransition}
-                  >
-                    <QuestsPage />
-                  </motion.div>
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <QuestsPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/quests/:id" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <QuestDetailPage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/nfts" 
                 element={
-                  <motion.div
-                    initial="initial"
-                    animate="in"
-                    exit="out"
-                    variants={pageVariants}
-                    transition={pageTransition}
-                  >
-                    <NFTsPage />
-                  </motion.div>
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <NFTsPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/nfts/:id" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <NFTDetailPage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
                 path="/geonfts" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <GeoNFTsPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/geonfts/:id" 
                 element={
                   <motion.div
                     initial="initial"
@@ -161,7 +283,7 @@ const App: React.FC = () => {
                     variants={pageVariants}
                     transition={pageTransition}
                   >
-                    <GeoNFTsPage />
+                    <GeoNFTDetailPage />
                   </motion.div>
                 } 
               />
@@ -180,6 +302,20 @@ const App: React.FC = () => {
                 } 
               />
               <Route 
+                path="/missions/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <MissionDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
                 path="/chapters" 
                 element={
                   <motion.div
@@ -190,6 +326,20 @@ const App: React.FC = () => {
                     transition={pageTransition}
                   >
                     <ChaptersPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/chapters/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <ChapterDetailPage />
                   </motion.div>
                 } 
               />
@@ -208,6 +358,20 @@ const App: React.FC = () => {
                 } 
               />
               <Route 
+                path="/avatars/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <AvatarDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
                 path="/celestial-bodies" 
                 element={
                   <motion.div
@@ -218,6 +382,20 @@ const App: React.FC = () => {
                     transition={pageTransition}
                   >
                     <CelestialBodiesPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/celestial-bodies/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <CelestialBodyDetailPage />
                   </motion.div>
                 } 
               />
@@ -236,6 +414,20 @@ const App: React.FC = () => {
                 } 
               />
               <Route 
+                path="/celestial-spaces/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <CelestialSpaceDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
                 path="/runtimes" 
                 element={
                   <motion.div
@@ -246,6 +438,20 @@ const App: React.FC = () => {
                     transition={pageTransition}
                   >
                     <RuntimesPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/runtimes/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <RuntimeDetailPage />
                   </motion.div>
                 } 
               />
@@ -264,6 +470,20 @@ const App: React.FC = () => {
                 } 
               />
               <Route 
+                path="/libraries/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <LibraryDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
                 path="/templates" 
                 element={
                   <motion.div
@@ -278,6 +498,20 @@ const App: React.FC = () => {
                 } 
               />
               <Route 
+                path="/templates/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <TemplateDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
                 path="/inventory" 
                 element={
                   <motion.div
@@ -288,6 +522,20 @@ const App: React.FC = () => {
                     transition={pageTransition}
                   >
                     <InventoryPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/inventory/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <InventoryDetailPage />
                   </motion.div>
                 } 
               />
@@ -347,11 +595,181 @@ const App: React.FC = () => {
                   </motion.div>
                 } 
               />
+              <Route 
+                path="/avatar/signin" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <AvatarSigninPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/avatar/signup" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <AvatarSignupPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/karma" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <KarmaPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/my-data" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <MyDataPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/karma/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <KarmaDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/my-data/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <MyDataDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/plugins/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <PluginDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/starnet-store/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <STARNETDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/dev-portal" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <DevPortalPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/holons" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <HolonsPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/zomes" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <ZomesPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/star-plugins" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <STARPluginsPage />
+                  </motion.div>
+                } 
+              />
             </Routes>
           </AnimatePresence>
         </Container>
       </Box>
     </Box>
+      </AvatarProvider>
+    </DemoModeProvider>
   );
 };
 

@@ -25,7 +25,8 @@ using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 {
     //TODO: Want to phase this out, not needed, moving more and more code into AvatarManager.
-    public class AvatarService : IAvatarService
+    [Obsolete("AvatarService is being phased out. Controllers should call AvatarManager directly.")]
+    public class AvatarService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
@@ -1316,5 +1317,170 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         //    // convert random bytes to hex string
         //    return BitConverter.ToString(randomBytes).Replace("-", "");
         //}
+
+        // Avatar Session Management Implementation
+        public async Task<OASISResult<Models.Avatar.AvatarSessionManagement>> GetAvatarSessionsAsync(Guid avatarId)
+        {
+            var response = new OASISResult<Models.Avatar.AvatarSessionManagement>();
+            
+            try
+            {
+                var avatarResult = await AvatarManager.LoadAvatarAsync(avatarId);
+                
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    response.IsError = true;
+                    response.Message = $"Error loading avatar: {avatarResult.Message}";
+                    return response;
+                }
+
+                // Use AvatarManager session methods - returns Core type, we use WebAPI.Models type in service
+                var sessionsResult = await AvatarManager.GetAvatarSessionsAsync(avatarId);
+                
+                if (sessionsResult.IsError)
+                {
+                    response.IsError = true;
+                    response.Message = sessionsResult.Message;
+                    return response;
+                }
+
+                // TODO: AvatarService is being phased out - type conversion not implemented
+                // response.Result = sessionsResult.Result as Models.Avatar.AvatarSessionManagement;
+                response.IsSaved = true;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsError = true;
+                response.Message = $"Error getting avatar sessions: {ex.Message}";
+                response.Exception = ex;
+                return response;
+            }
+        }
+
+        public async Task<OASISResult<bool>> LogoutAvatarSessionsAsync(Guid avatarId, System.Collections.Generic.List<string> sessionIds)
+        {
+            var response = new OASISResult<bool>();
+            
+            try
+            {
+                var result = await AvatarManager.LogoutAvatarSessionsAsync(avatarId, sessionIds);
+                
+                response.Result = !result.IsError;
+                response.IsError = result.IsError;
+                response.Message = result.Message;
+                response.IsSaved = !result.IsError;
+                
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsError = true;
+                response.Message = $"Error logging out sessions: {ex.Message}";
+                response.Exception = ex;
+                return response;
+            }
+        }
+
+        public async Task<OASISResult<bool>> LogoutAllAvatarSessionsAsync(Guid avatarId)
+        {
+            var response = new OASISResult<bool>();
+            
+            try
+            {
+                var result = await AvatarManager.LogoutAllAvatarSessionsAsync(avatarId);
+                
+                response.Result = !result.IsError;
+                response.IsError = result.IsError;
+                response.Message = result.Message;
+                response.IsSaved = !result.IsError;
+                
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsError = true;
+                response.Message = $"Error logging out all sessions: {ex.Message}";
+                response.Exception = ex;
+                return response;
+            }
+        }
+
+        public async Task<OASISResult<Models.Avatar.AvatarSession>> CreateAvatarSessionAsync(Guid avatarId, NextGenSoftware.OASIS.API.Core.Objects.Avatar.CreateSessionRequest request)
+        {
+            var response = new OASISResult<Models.Avatar.AvatarSession>();
+            
+            try
+            {
+                // Request is already Core.Objects type
+                
+                var result = await AvatarManager.CreateAvatarSessionAsync(avatarId, request);
+                
+                // TODO: AvatarService is being phased out - type conversion not implemented
+                // response.Result = result.Result as Models.Avatar.AvatarSession;
+                response.IsError = result.IsError;
+                response.Message = result.Message;
+                response.IsSaved = !result.IsError;
+                
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsError = true;
+                response.Message = $"Error creating session: {ex.Message}";
+                response.Exception = ex;
+                return response;
+            }
+        }
+
+        public async Task<OASISResult<Models.Avatar.AvatarSession>> UpdateAvatarSessionAsync(Guid avatarId, string sessionId, NextGenSoftware.OASIS.API.Core.Objects.Avatar.UpdateSessionRequest request)
+        {
+            var response = new OASISResult<Models.Avatar.AvatarSession>();
+            
+            try
+            {
+                // Request is already Core.Objects type
+                
+                var result = await AvatarManager.UpdateAvatarSessionAsync(avatarId, sessionId, request);
+                
+                response.Result = result.Result as Models.Avatar.AvatarSession;
+                response.IsError = result.IsError;
+                response.Message = result.Message;
+                response.IsSaved = !result.IsError;
+                
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsError = true;
+                response.Message = $"Error updating session: {ex.Message}";
+                response.Exception = ex;
+                return response;
+            }
+        }
+
+        public async Task<OASISResult<Models.Avatar.AvatarSessionStats>> GetAvatarSessionStatsAsync(Guid avatarId)
+        {
+            var response = new OASISResult<Models.Avatar.AvatarSessionStats>();
+            
+            try
+            {
+                var result = await AvatarManager.GetAvatarSessionStatsAsync(avatarId);
+                
+                response.Result = result.Result as Models.Avatar.AvatarSessionStats;
+                response.IsError = result.IsError;
+                response.Message = result.Message;
+                response.IsSaved = !result.IsError;
+                
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.IsError = true;
+                response.Message = $"Error getting session stats: {ex.Message}";
+                response.Exception = ex;
+                return response;
+            }
+        }
     }
 }

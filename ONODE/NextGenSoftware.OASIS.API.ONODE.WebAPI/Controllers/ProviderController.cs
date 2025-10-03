@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -10,6 +11,10 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
+    /// <summary>
+    /// OASIS provider management endpoints for configuring and managing storage, blockchain, and network providers.
+    /// Provides access to provider information, switching between providers, and provider configuration.
+    /// </summary>
     [ApiController]
     [Route("api/provider")]
     public class ProviderController : OASISControllerBase
@@ -29,9 +34,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Get's the current active storage provider.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>OASIS result containing the current active storage provider.</returns>
+        /// <response code="200">Current storage provider retrieved successfully</response>
+        /// <response code="401">Unauthorized - Wizard access required</response>
         [Authorize(AvatarType.Wizard)]
         [HttpGet("get-current-storage-provider")]
+        [ProducesResponseType(typeof(OASISResult<IOASISStorageProvider>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public OASISResult<IOASISStorageProvider> GetCurrentStorageProvider()
         {
             return new(ProviderManager.Instance.CurrentStorageProvider);
@@ -40,9 +49,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// Get's the current active storage provider type.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>OASIS result containing the current active storage provider type.</returns>
+        /// <response code="200">Current storage provider type retrieved successfully</response>
+        /// <response code="401">Unauthorized - authentication required</response>
         [Authorize]
         [HttpGet("get-current-storage-provider-type")]
+        [ProducesResponseType(typeof(OASISResult<EnumValue<ProviderType>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public OASISResult<EnumValue<ProviderType>> GetCurrentStorageProviderType()
         {
             return new(ProviderManager.Instance.CurrentStorageProviderType);

@@ -1,4 +1,4 @@
-using NextGenSoftware.OASIS.STAR.WebUI.Services;
+// using NextGenSoftware.OASIS.STAR.WebUI.Services; // Commented out - using separate STAR Web API
 using NextGenSoftware.OASIS.STAR.WebUI.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
@@ -26,8 +26,8 @@ builder.Services.AddSignalR();
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
-// Add custom services
-builder.Services.AddScoped<ISTARService, STARService>();
+// Add custom services - Commented out since we're using separate STAR Web API
+// builder.Services.AddScoped<ISTARService, STARService>();
 
 // Add HttpClient
 builder.Services.AddHttpClient();

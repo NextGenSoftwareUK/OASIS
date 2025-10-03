@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
 {
+    [Obsolete("IAvatarService is being phased out. Controllers should call AvatarManager directly.")]
     public interface IAvatarService
     {
         //TODO: Want to phase this out, not needed, moving more and more code into AvatarManager.
@@ -54,5 +55,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         //Task<OASISResult<string>> GetPrivateProviderKeyForAvatar(Guid avatarId, ProviderType providerType);
         Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addRemoveKarmaToAvatarRequest);
         Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest);
+        
+        // Avatar Session Management
+        Task<OASISResult<AvatarSessionManagement>> GetAvatarSessionsAsync(Guid avatarId);
+        Task<OASISResult<bool>> LogoutAvatarSessionsAsync(Guid avatarId, System.Collections.Generic.List<string> sessionIds);
+        Task<OASISResult<bool>> LogoutAllAvatarSessionsAsync(Guid avatarId);
+        Task<OASISResult<AvatarSession>> CreateAvatarSessionAsync(Guid avatarId, CreateSessionRequest request);
+        Task<OASISResult<AvatarSession>> UpdateAvatarSessionAsync(Guid avatarId, string sessionId, UpdateSessionRequest request);
+        Task<OASISResult<AvatarSessionStats>> GetAvatarSessionStatsAsync(Guid avatarId);
     }
 }

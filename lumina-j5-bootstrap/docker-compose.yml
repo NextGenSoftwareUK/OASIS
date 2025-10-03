@@ -1,0 +1,185 @@
+version: '3.8'
+
+services:
+  # Lumina J5 Bootstrap Service
+  lumina-j5:
+    build:
+      context: ./bootcode
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - RUNTIME_ENV=development
+      - SERVICE_DOMAIN=lumina.local
+      - KMS_KEY_ID=default-key
+      - VAULT_PATH_SECRETS=secret/data/j5
+      - NATS_URL=nats://nats:4222
+      - REDIS_URL=redis://redis:6379
+      - PG_CONN=Host=postgres;Database=lumina_j5;Username=lumina;Password=lumina123;Port=5432
+      - S3_AUDIT_BUCKET=lumina-audit
+      - OTLP_ENDPOINT=http://otel:4317
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    networks:
+      - lumina-network
+    volumes:
+      - ./config:/app/config:ro
+    restart: unless-stopped
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=lumina_j5
+      - POSTGRES_USER=lumina
+      - POSTGRES_PASSWORD=lumina123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - lumina-network
+    restart: unless-stopped
+
+  # Redis Cache/Queue
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - lumina-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # NATS Message Bus
+  nats:
+    image: nats:2.10-alpine
+    ports:
+      - "4222:4222"
+      - "8222:8222"  # HTTP monitoring
+    volumes:
+      - nats_data:/data
+    networks:
+      - lumina-network
+    restart: unless-stopped
+    command: >
+      nats-server
+      --jetstream
+      --store_dir=/data
+      --http_port=8222
+      --cluster_name=lumina-cluster
+
+  # OpenTelemetry Collector
+  otel:
+    image: otel/opentelemetry-collector-contrib:latest
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8889:8889"   # Prometheus metrics
+    volumes:
+      - ./otel-config.yaml:/etc/otelcol-contrib/otel-collector-config.yaml:ro
+    networks:
+      - lumina-network
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol-contrib/otel-collector-config.yaml"]
+
+  # Prometheus for Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - lumina-network
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  # Grafana for Visualization
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - lumina-network
+    restart: unless-stopped
+
+  # MinIO for S3-compatible storage (audit logs)
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin123
+    volumes:
+      - minio_data:/data
+    networks:
+      - lumina-network
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+
+  # Vault for Secrets Management
+  vault:
+    image: vault:1.15
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=root
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+    volumes:
+      - vault_data:/vault/data
+    networks:
+      - lumina-network
+    restart: unless-stopped
+    cap_add:
+      - IPC_LOCK
+    command: vault server -dev
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - lumina-network
+    restart: unless-stopped
+    depends_on:
+      - lumina-j5
+
+volumes:
+  postgres_data:
+  redis_data:
+  nats_data:
+  prometheus_data:
+  grafana_data:
+  minio_data:
+  vault_data:
+
+networks:
+  lumina-network:
+    driver: bridge
+

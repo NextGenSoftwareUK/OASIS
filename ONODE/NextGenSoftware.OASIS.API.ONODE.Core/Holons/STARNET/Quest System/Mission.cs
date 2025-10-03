@@ -14,6 +14,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         }
 
         [CustomOASISProperty]
+        public MissionType MissionType { get; set; }
+
+        [CustomOASISProperty]
         public IList<IChapter> Chapters { get; set; } = new List<IChapter>(); //optional (large collection of quests can be broken into chapters.)
     }
 }

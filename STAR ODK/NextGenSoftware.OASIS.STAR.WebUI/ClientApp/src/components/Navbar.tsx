@@ -22,19 +22,31 @@ import {
   Refresh,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { useSTARConnection } from '../hooks/useSTARConnection';
+import { useNavigate } from 'react-router-dom';
+import { useDemoMode } from '../contexts/DemoModeContext';
+import { useAvatar } from '../contexts/AvatarContext';
 import { toast } from 'react-hot-toast';
+import { Button } from '@mui/material';
+import { Login, PersonAdd, Logout } from '@mui/icons-material';
 
 interface NavbarProps {
   onMenuClick: () => void;
   isConnected: boolean;
   connectionStatus: string;
+  igniteSTAR: () => Promise<any>;
+  extinguishStar: () => Promise<any>;
+  reconnect: () => Promise<any>;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionStatus }) => {
-  const { igniteSTAR, extinguishStar, reconnect } = useSTARConnection();
+const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionStatus, igniteSTAR, extinguishStar, reconnect }) => {
+  const navigate = useNavigate();
+  const { isDemoMode } = useDemoMode();
+  const { isLoggedIn, currentAvatar, signout } = useAvatar();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = React.useState<null | HTMLElement>(null);
+
+  // Debug logging
+  console.log('Navbar received props:', { isConnected, connectionStatus, isDemoMode });
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -51,18 +63,26 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
 
   const handleIgniteSTAR = async () => {
     try {
-      await igniteSTAR();
-      toast.success('STAR ignited successfully!');
+      const result = await igniteSTAR();
+      if (result.isError || result.result === false) {
+        toast.error('Could not connect to STAR');
+      } else {
+        toast.success(isDemoMode ? 'STAR ignited successfully! (Demo Mode)' : 'STAR ignited successfully!');
+      }
     } catch (error) {
-      toast.error('Failed to ignite STAR');
+      toast.error('Could not connect to STAR');
     }
     handleMenuClose();
   };
 
   const handleExtinguishStar = async () => {
     try {
-      await extinguishStar();
-      toast.success('STAR extinguished successfully!');
+      const result = await extinguishStar();
+      if (result.isError) {
+        toast.error(result.message || 'Failed to extinguish STAR');
+      } else {
+        toast.success(isDemoMode ? 'STAR extinguished successfully! (Demo Mode)' : 'STAR extinguished successfully!');
+      }
     } catch (error) {
       toast.error('Failed to extinguish STAR');
     }
@@ -72,10 +92,20 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
   const handleReconnect = async () => {
     try {
       await reconnect();
-      toast.success('Reconnected to STAR');
+      // Check if we're actually connected by looking at the connection status
+      if (isConnected) {
+        toast.success(isDemoMode ? 'Reconnected to STAR (Demo Mode)' : 'Reconnected to STAR');
+      } else {
+        toast.error(isDemoMode ? 'Could not reconnect to STAR (Demo Mode)' : 'Could not reconnect to STAR');
+      }
     } catch (error) {
-      toast.error('Failed to reconnect');
+      toast.error(isDemoMode ? 'Could not reconnect to STAR (Demo Mode)' : 'Could not reconnect to STAR');
     }
+    handleMenuClose();
+  };
+
+  const handleSettingsClick = () => {
+    navigate('/settings');
     handleMenuClose();
   };
 
@@ -130,22 +160,83 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
+            style={{ display: 'flex', alignItems: 'center' }}
           >
-            <Typography 
-              variant="h6" 
-              noWrap 
-              component="div"
-              sx={{ 
-                fontWeight: 300,
-                background: 'linear-gradient(45deg, #00bcd4, #ff4081)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                mr: 2,
+            {/* STAR Logo */}
+            <img 
+              src="/star-logo-navbar.png" 
+              alt="STAR Logo" 
+              style={{ 
+                height: '50px', 
+                width: 'auto',
+                marginRight: '2px',
+                filter: 'drop-shadow(0 0 10px rgba(0, 188, 212, 0.3))'
               }}
-            >
-              STAR Web UI
-            </Typography>
+                      />
+
+                      <img
+                          src="/STARNET.png"
+                          alt="STAR NET Logo"
+                          style={{
+                              height: '50px',
+                              width: 'auto',
+                              marginRight: '2px'
+                          }}
+                      />
+
+                       {/*<motion.div*/}
+                       {/*    style={{*/}
+                       {/*        position: 'relative',*/}
+                       {/*        display: 'inline-block'*/}
+                       {/*    }}*/}
+                       {/*    animate={{*/}
+                       {/*        textShadow: [*/}
+                       {/*            '0 0 15px rgba(0, 188, 212, 0.6)',*/}
+                       {/*            '0 0 25px rgba(0, 188, 212, 0.8)',*/}
+                       {/*            '0 0 15px rgba(0, 188, 212, 0.6)'*/}
+                       {/*        ]*/}
+                       {/*    }}*/}
+                       {/*    transition={{*/}
+                       {/*        duration: 2,*/}
+                       {/*        repeat: Infinity,*/}
+                       {/*        ease: 'easeInOut'*/}
+                       {/*    }}*/}
+                       {/*>*/}
+                       {/*    <Typography */}
+                       {/*        variant="h6" */}
+                       {/*        noWrap */}
+                       {/*        component="div"*/}
+                       {/*        sx={{ */}
+                       {/*            fontWeight: 700,*/}
+                       {/*            fontSize: '1.5rem',*/}
+                       {/*            background: 'linear-gradient(45deg, #00bcd4, #ff4081)',*/}
+                       {/*            backgroundClip: 'text',*/}
+                       {/*            WebkitBackgroundClip: 'text',*/}
+                       {/*            WebkitTextFillColor: 'transparent',*/}
+                       {/*            mr: 2,*/}
+                       {/*            fontFamily: 'monospace',*/}
+                       {/*            letterSpacing: '0.1em'*/}
+                       {/*        }}*/}
+                       {/*    >*/}
+                       {/*        STARNET*/}
+                       {/*    </Typography>*/}
+                       {/*</motion.div>*/}
+                      
+            {/*<Typography */}
+            {/*  variant="h6" */}
+            {/*  noWrap */}
+            {/*  component="div"*/}
+            {/*  sx={{ */}
+            {/*    fontWeight: 300,*/}
+            {/*    background: 'linear-gradient(45deg, #00bcd4, #ff4081)',*/}
+            {/*    backgroundClip: 'text',*/}
+            {/*    WebkitBackgroundClip: 'text',*/}
+            {/*    WebkitTextFillColor: 'transparent',*/}
+            {/*    mr: 2,*/}
+            {/*  }}*/}
+            {/*>*/}
+            {/*  STARNET*/}
+            {/*</Typography>*/}
           </motion.div>
 
           <Chip
@@ -209,11 +300,72 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isConnected, connectionSta
             <Refresh sx={{ mr: 1 }} />
             Reconnect
           </MenuItem>
-          <MenuItem onClick={handleMenuClose}>
+          <MenuItem onClick={handleSettingsClick}>
             <Settings sx={{ mr: 1 }} />
             Settings
           </MenuItem>
         </Menu>
+
+        {/* Avatar Authentication */}
+        {!isLoggedIn ? (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Login />}
+              onClick={() => navigate('/avatar/signin')}
+              sx={{
+                borderColor: '#00bcd4',
+                color: '#00bcd4',
+                '&:hover': {
+                  borderColor: '#00acc1',
+                  bgcolor: 'rgba(0, 188, 212, 0.1)',
+                },
+              }}
+            >
+              Sign In
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<PersonAdd />}
+              onClick={() => navigate('/avatar/signup')}
+              sx={{
+                bgcolor: '#00bcd4',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: '#00acc1',
+                },
+              }}
+            >
+              Sign Up
+            </Button>
+          </Box>
+        ) : (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {currentAvatar?.username || 'Avatar'}
+            </Typography>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Logout />}
+              onClick={async () => {
+                await signout();
+                navigate('/home');
+              }}
+              sx={{
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                color: 'white',
+                '&:hover': {
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                },
+              }}
+            >
+              Sign Out
+            </Button>
+          </Box>
+        )}
 
         {/* Notifications Menu */}
         <Menu

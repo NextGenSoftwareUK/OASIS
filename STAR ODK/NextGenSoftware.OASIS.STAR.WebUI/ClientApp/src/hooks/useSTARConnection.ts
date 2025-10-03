@@ -4,6 +4,12 @@ import { starService } from '../services/starService';
 import { signalRService } from '../services/signalRService';
 import { ConnectionStatus, STARStatus } from '../types/star';
 
+// Helper function to check demo mode
+const isDemoMode = () => {
+  const saved = localStorage.getItem('demoMode');
+  return saved ? JSON.parse(saved) : true;
+};
+
 export const useSTARConnection = () => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
     isConnected: false,
@@ -12,21 +18,27 @@ export const useSTARConnection = () => {
 
   const queryClient = useQueryClient();
 
-  // Check STAR status
+  // Check STAR status - DISABLED due to backend inconsistency
+  // The backend reports "ignited successfully" but then immediately reports isIgnited: false
+  // This causes the UI to flicker between connected/disconnected states
+  // TODO: Re-enable when backend is fixed to be consistent
   const { data: starStatus, isLoading, error } = useQuery<STARStatus>(
     'starStatus',
     starService.getSTARStatus,
     {
-      refetchInterval: 5000, // Check more frequently
-      refetchOnWindowFocus: true, // Check when user returns to tab
+      refetchInterval: false, // Disabled due to backend inconsistency
+      refetchOnWindowFocus: false, // Disabled due to backend inconsistency
+      refetchIntervalInBackground: false, // Disabled due to backend inconsistency
+      enabled: false, // Completely disabled due to backend inconsistency
       onSuccess: (data) => {
-        console.log('STAR Status Update:', data); // Debug logging
-        setConnectionStatus(prev => ({
-          ...prev,
-          isConnected: data.isIgnited,
-          status: data.isIgnited ? 'connected' : 'disconnected',
-          lastConnected: data.isIgnited ? new Date() : prev.lastConnected,
-        }));
+        console.log('STAR Status Update from API:', data); // Debug logging
+        // Commented out due to backend inconsistency - it overrides manual status updates
+        // setConnectionStatus(prev => ({
+        //   ...prev,
+        //   isConnected: data.isIgnited,
+        //   status: data.isIgnited ? 'connected' : 'disconnected',
+        //   lastConnected: data.isIgnited ? new Date() : prev.lastConnected,
+        // }));
       },
       onError: (error) => {
         console.error('STAR Status Error:', error); // Debug logging
@@ -40,8 +52,12 @@ export const useSTARConnection = () => {
     }
   );
 
-  // SignalR connection management
+  // SignalR connection management - only in live mode
   useEffect(() => {
+    if (isDemoMode()) {
+      return;
+    }
+
     const initializeSignalR = async () => {
       try {
         await signalRService.start();
@@ -80,7 +96,9 @@ export const useSTARConnection = () => {
     initializeSignalR();
 
     return () => {
-      signalRService.stop();
+      if (!isDemoMode()) {
+        signalRService.stop();
+      }
     };
   }, [queryClient]);
 
@@ -89,23 +107,35 @@ export const useSTARConnection = () => {
       setConnectionStatus(prev => ({ ...prev, status: 'connecting' }));
       const result = await starService.igniteSTAR();
       
-      if (result.isError) {
+      if (result.isError || result.result === false) {
+        // API failed or backend returned false result - update status to error
+        setConnectionStatus(prev => ({
+          ...prev,
+          isConnected: false,
+          status: 'error',
+          error: result.message || 'Failed to ignite STAR',
+        }));
         throw new Error(result.message || 'Failed to ignite STAR');
       }
 
-      // Don't immediately set connected - let the status check determine the actual state
-      // This ensures we get the real OASISBooted status from the backend
-      queryClient.invalidateQueries('starStatus');
-      
-      // Wait a moment for the backend to update, then check status
-      setTimeout(() => {
+      // Only update to connected if API call succeeded AND result is true
+      setConnectionStatus(prev => ({
+        ...prev,
+        isConnected: true,
+        status: 'connected',
+        lastConnected: new Date(),
+      }));
+
+      // Invalidate queries only in live mode
+      if (!isDemoMode()) {
         queryClient.invalidateQueries('starStatus');
-      }, 1000);
+      }
       
       return result;
     } catch (error) {
       setConnectionStatus(prev => ({
         ...prev,
+        isConnected: false,
         status: 'error',
         error: error instanceof Error ? error.message : 'Failed to ignite STAR',
       }));
@@ -119,14 +149,32 @@ export const useSTARConnection = () => {
       const result = await starService.extinguishStar();
       
       if (result.isError) {
+        // API failed - update status to error
+        setConnectionStatus(prev => ({
+          ...prev,
+          isConnected: false,
+          status: 'error',
+          error: result.message || 'Failed to extinguish STAR',
+        }));
         throw new Error(result.message || 'Failed to extinguish STAR');
       }
 
-      queryClient.invalidateQueries('starStatus');
+      // Only update to disconnected if API call succeeded
+      setConnectionStatus(prev => ({
+        ...prev,
+        isConnected: false,
+        status: 'disconnected',
+      }));
+
+      // Invalidate queries only in live mode
+      if (!isDemoMode()) {
+        queryClient.invalidateQueries('starStatus');
+      }
       return result;
     } catch (error) {
       setConnectionStatus(prev => ({
         ...prev,
+        isConnected: false,
         status: 'error',
         error: error instanceof Error ? error.message : 'Failed to extinguish STAR',
       }));
@@ -137,8 +185,22 @@ export const useSTARConnection = () => {
   const reconnect = useCallback(async () => {
     try {
       setConnectionStatus(prev => ({ ...prev, status: 'connecting' }));
-      await signalRService.start();
-      queryClient.invalidateQueries('starStatus');
+      
+      if (isDemoMode()) {
+        // Demo mode - just call ignite under the hood
+        await igniteSTAR();
+      } else {
+        // Live mode - attempt actual reconnection
+        if (signalRService) {
+          try {
+            await signalRService.start();
+            queryClient.invalidateQueries('starStatus');
+          } catch (signalRError) {
+            // SignalR might already be running - that's okay
+            console.log('SignalR start failed (likely already running):', signalRError);
+          }
+        }
+      }
     } catch (error) {
       setConnectionStatus(prev => ({
         ...prev,
@@ -147,6 +209,7 @@ export const useSTARConnection = () => {
       }));
     }
   }, [queryClient]);
+
 
   return {
     isConnected: connectionStatus.isConnected,

@@ -7,6 +7,7 @@
         Default,
         SolanaOASIS, //Chains
         ArbitrumOASIS,
+        AvalancheOASIS,
         BaseOASIS,
         EthereumOASIS,
         PolygonOASIS,
@@ -42,6 +43,15 @@
         SOLIDOASIS,
         ActivityPubOASIS,
         ScuttlebuttOASIS,
-        LocalFileOASIS
+        LocalFileOASIS,
+        CardanoOASIS,
+        PolkadotOASIS,
+        BitcoinOASIS,
+        NEAROASIS,
+        SuiOASIS,
+        AptosOASIS,
+        OptimismOASIS,
+        BNBChainOASIS,
+        FantomOASIS
     }
 }

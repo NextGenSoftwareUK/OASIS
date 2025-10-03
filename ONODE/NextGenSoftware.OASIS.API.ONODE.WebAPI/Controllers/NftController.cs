@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
@@ -14,6 +15,10 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
+    /// <summary>
+    /// NFT (Non-Fungible Token) management endpoints for creating, managing, and trading digital assets.
+    /// Provides comprehensive NFT functionality including minting, transferring, and metadata management.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
@@ -45,9 +50,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    return await NFTManager.Instance.CreateNftTransactionAsync(request);
         //}
 
+        /// <summary>
+        /// Loads an NFT by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the NFT to load.</param>
+        /// <returns>OASIS result containing the NFT details or error information.</returns>
+        /// <response code="200">NFT loaded successfully</response>
+        /// <response code="400">Error loading NFT</response>
+        /// <response code="401">Unauthorized - authentication required</response>
         [Authorize]
         [HttpGet]
         [Route("load-nft-by-id/{id}")]
+        [ProducesResponseType(typeof(OASISResult<IOASISNFT>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<IOASISNFT>> LoadNftByIdAsync(Guid id)
         {
             return await NFTManager.LoadNftAsync(id);

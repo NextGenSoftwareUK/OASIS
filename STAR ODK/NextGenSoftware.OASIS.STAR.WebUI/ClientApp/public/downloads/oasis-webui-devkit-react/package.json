@@ -1,0 +1,48 @@
+{
+  "name": "@oasis/webui-devkit-react",
+  "version": "1.0.0",
+  "description": "OASIS Web UI Development Kit for React - Complete component library",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "keywords": [
+    "oasis",
+    "react",
+    "web3",
+    "components",
+    "ui-kit",
+    "blockchain",
+    "nft",
+    "karma"
+  ],
+  "author": "OASIS Network",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "dependencies": {
+    "@oasis/api-client": "^2.0.0",
+    "framer-motion": "^10.0.0",
+    "react-query": "^3.39.0",
+    "axios": "^1.6.0",
+    "date-fns": "^2.30.0",
+    "react-hook-form": "^7.48.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.0",
+    "rollup": "^3.29.0",
+    "@rollup/plugin-typescript": "^11.1.0"
+  }
+}
+
