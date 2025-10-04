@@ -25,6 +25,7 @@ import MetaDataPage from './pages/MetaDataPage';
 import QuestsPage from './pages/QuestsPage';
 import NFTsPage from './pages/NFTsPage';
 import NFTDetailPage from './pages/NFTDetailPage';
+import NFTMintingPage from './pages/NFTMintingPage';
 import GeoNFTsPage from './pages/GeoNFTsPage';
 import GeoNFTDetailPage from './pages/GeoNFTDetailPage';
 import InventoryDetailPage from './pages/InventoryDetailPage';
@@ -62,6 +63,8 @@ import DevPortalPage from './pages/DevPortalPage';
 import HolonsPage from './pages/HolonsPage';
 import ZomesPage from './pages/ZomesPage';
 import STARPluginsPage from './pages/STARPluginsPage';
+import WalletsPage from './pages/WalletsPage';
+import STARCLIPage from './pages/STARCLIPage';
 
 // Services
 import { starCoreService } from './services';
@@ -255,6 +258,22 @@ const App: React.FC = () => {
                       transition={pageTransition}
                     >
                       <NFTDetailPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/nfts/mint" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <NFTMintingPage />
                     </motion.div>
                   </ProtectedRoute>
                 } 
@@ -581,6 +600,38 @@ const App: React.FC = () => {
                   >
                     <STARNETStorePage />
                   </motion.div>
+                } 
+              />
+              <Route 
+                path="/wallets" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <WalletsPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/star-cli" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <STARCLIPage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
