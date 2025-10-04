@@ -50,7 +50,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starService } from '../services/starService';
+import { starCoreService, avatarService } from '../services';
 import { useDemoMode } from '../contexts/DemoModeContext';
 import toast from 'react-hot-toast';
 
@@ -166,7 +166,7 @@ const SettingsPage: React.FC = () => {
   const saveSettingsMutation = useMutation(
     async (newSettings: Settings) => {
       try {
-        return await starService.updateSettings(newSettings);
+        return await starCoreService.updateSettings(newSettings);
       } catch (error) {
         // For demo purposes, simulate success
         toast.success('Settings saved successfully! (Demo Mode)');

@@ -304,6 +304,7 @@ Sophisticated tokenomics with:
 - **[Developer Documentation Index](./Docs/Devs/DEVELOPER_DOCUMENTATION_INDEX.md)** - Complete documentation guide
 - **[OASIS Quick Start Guide](./Docs/Devs/OASIS_Quick_Start_Guide.md)** - Get started with OASIS in 10 minutes
 - **[STARNET Web UI Quick Start](./Docs/Devs/STARNET_QUICK_START_GUIDE.md)** - Get started with STARNET Web UI in 5 minutes
+- **[STAR CLI Quick Start](./Docs/Devs/STAR_CLI_QUICK_START_GUIDE.md)** - Get started with STAR CLI in 5 minutes
 - **[Development Environment Setup](./Docs/Devs/DEVELOPMENT_ENVIRONMENT_SETUP.md)** - Complete development setup guide
 
 ### 📖 **Core Documentation**
@@ -314,6 +315,8 @@ Sophisticated tokenomics with:
 
 ### 🔧 **Developer Documentation**
 - **[API Documentation](./Docs/Devs/API%20Documentation/)** - Complete API reference for WEB4 OASIS and WEB5 STAR APIs
+- **[STAR CLI Documentation](./Docs/Devs/STAR_CLI_DOCUMENTATION.md)** - Complete CLI reference for developers
+- **[DNA System Guide](./Docs/Devs/DNA_SYSTEM_GUIDE.md)** - STARNETHolon dependency management
 - **[Tutorials](./Docs/Devs/TUTORIALS/)** - Step-by-step tutorials and guides
 - **[OASIS Best Practices](./Docs/Devs/OASIS-BEST-PRACTICES.md)** - Development guidelines and best practices
 - **[Provider Development Guide](./Docs/Devs/OASIS_Provider_Development_Guide.md)** - Guide for creating custom providers

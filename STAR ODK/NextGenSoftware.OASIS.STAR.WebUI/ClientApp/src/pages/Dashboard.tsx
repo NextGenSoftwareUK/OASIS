@@ -59,7 +59,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
-import { starService } from '../services/starService';
+import { starCoreService, avatarService } from '../services';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 
@@ -77,7 +77,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
     async () => {
       try {
         // Try to get real data first
-        const response = await starService.getDashboardData?.();
+        const response = await starCoreService.getDashboardData?.();
         return response;
       } catch (error) {
         // Fallback to impressive demo data

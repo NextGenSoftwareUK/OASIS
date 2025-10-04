@@ -38,7 +38,7 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { starService } from '../services/starService';
+import { celestialBodyService } from '../services';
 import { useNavigate } from 'react-router-dom';
 
 interface CelestialBody {
@@ -93,7 +93,7 @@ const CelestialBodiesPage: React.FC = () => {
     async () => {
       try {
         // Try to get real data first
-        const response = await starService.getAllCelestialBodies?.();
+        const response = await celestialBodyService.getAll();
         return response;
       } catch (error) {
         // Fallback to impressive demo data

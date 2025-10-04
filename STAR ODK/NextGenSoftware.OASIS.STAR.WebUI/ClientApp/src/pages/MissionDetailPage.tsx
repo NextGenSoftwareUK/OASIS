@@ -55,7 +55,7 @@ import {
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starNetService } from '../services/starNetService';
+import { missionService } from '../services';
 import { Mission } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -75,7 +75,7 @@ const MissionDetailPage: React.FC = () => {
     async () => {
       if (!id) throw new Error('Mission ID is required');
       // For now, we'll get it from the list and filter by ID
-      const response = await starNetService.getAllMissions();
+      const response = await missionService.getAll();
       const foundMission = response.result?.find((m: Mission) => m.id === id);
       if (!foundMission) throw new Error('Mission not found');
       return { result: foundMission };
@@ -94,7 +94,7 @@ const MissionDetailPage: React.FC = () => {
   const updateMissionMutation = useMutation(
     async (data: any) => {
       if (!id) throw new Error('Mission ID is required');
-      return await starNetService.updateMission(id, data);
+      return await missionService.update(id, data);
     },
     {
       onSuccess: () => {
@@ -114,7 +114,7 @@ const MissionDetailPage: React.FC = () => {
   const deleteMissionMutation = useMutation(
     async () => {
       if (!id) throw new Error('Mission ID is required');
-      return await starNetService.deleteMission(id);
+      return await missionService.delete(id);
     },
     {
       onSuccess: () => {

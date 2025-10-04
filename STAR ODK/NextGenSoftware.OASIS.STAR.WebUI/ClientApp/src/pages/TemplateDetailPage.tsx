@@ -53,7 +53,7 @@ import {
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starNetService } from '../services/starNetService';
+import { templateService } from '../services';
 import { Template } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -73,7 +73,7 @@ const TemplateDetailPage: React.FC = () => {
     async () => {
       if (!id) throw new Error('Template ID is required');
       // For now, we'll get it from the list and filter by ID
-      const response = await starNetService.getAllTemplates();
+      const response = await templateService.getAll();
       const foundTemplate = response.result?.find((t: Template) => t.id === id);
       if (!foundTemplate) throw new Error('Template not found');
       return { result: foundTemplate };
@@ -92,7 +92,7 @@ const TemplateDetailPage: React.FC = () => {
   const updateTemplateMutation = useMutation(
     async (data: any) => {
       if (!id) throw new Error('Template ID is required');
-      return await starNetService.updateTemplate(id, data);
+      return await templateService.update(id, data);
     },
     {
       onSuccess: () => {
@@ -112,7 +112,7 @@ const TemplateDetailPage: React.FC = () => {
   const deleteTemplateMutation = useMutation(
     async () => {
       if (!id) throw new Error('Template ID is required');
-      return await starNetService.deleteTemplate(id);
+      return await templateService.delete(id);
     },
     {
       onSuccess: () => {

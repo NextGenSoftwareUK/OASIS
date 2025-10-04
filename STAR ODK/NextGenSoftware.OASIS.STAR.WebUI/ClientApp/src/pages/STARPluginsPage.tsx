@@ -34,7 +34,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
-import { starService } from '../services/starService';
+import { pluginService } from '../services';
 import toast from 'react-hot-toast';
 
 interface Plugin {
@@ -64,7 +64,7 @@ const STARPluginsPage: React.FC = () => {
 
   const { data: pluginsData, isLoading } = useQuery(
     'star-plugins',
-    () => starService.getSTARPlugins()
+    () => pluginService.getAll()
   );
 
   const plugins = pluginsData?.result || [];

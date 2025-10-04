@@ -45,7 +45,7 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { Templates as TemplatesAPI } from '../services/starApiClient';
+import { templateService } from '../services';
 import { useNavigate } from 'react-router-dom';
 
 interface Template {
@@ -111,7 +111,7 @@ const TemplatesPage: React.FC = () => {
     async () => {
       try {
         // Try to get real data first
-        const { data: response } = await TemplatesAPI.list();
+        const response = await templateService.getAll();
         // Check if the real data has meaningful values, if not use demo data
         console.log('API Response for Templates:', response);
         if (response?.result && response.result.length > 0) {
@@ -412,8 +412,8 @@ const TemplatesPage: React.FC = () => {
         sourceFolderPath: templateData.imageUrl || '',
         createOptions: null,
       };
-      const { data } = await TemplatesAPI.create(payload);
-      return data;
+      const response = await templateService.create(payload);
+      return response.result;
     },
     {
       onSuccess: () => {
@@ -451,8 +451,8 @@ const TemplatesPage: React.FC = () => {
 
   const deleteTemplateMutation = useMutation(
     async (id: string) => {
-      const { data } = await TemplatesAPI.delete(id);
-      return data;
+      const response = await templateService.delete(id);
+      return response.result;
     },
     {
       onSuccess: () => {
@@ -479,8 +479,8 @@ const TemplatesPage: React.FC = () => {
 
   const publishTemplateMutation = useMutation(
     async (id: string) => {
-      const { data } = await TemplatesAPI.publish(id, {});
-      return data;
+      const response = await templateService.publish(id, {});
+      return response.result;
     },
     {
       onSuccess: () => {
@@ -495,8 +495,8 @@ const TemplatesPage: React.FC = () => {
 
   const downloadTemplateMutation = useMutation(
     async (id: string) => {
-      const { data } = await TemplatesAPI.download(id, './downloads', true);
-      return data;
+      const response = await templateService.download(id, './downloads', true);
+      return response.result;
     },
     {
       onSuccess: () => {

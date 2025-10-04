@@ -1,643 +1,638 @@
+/**
+ * Missions Page
+ * Complete Mission management interface
+ */
+
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDemoMode } from '../contexts/DemoModeContext';
 import {
   Box,
   Typography,
+  Button,
   Card,
   CardContent,
   Grid,
-  Button,
   Chip,
   IconButton,
+  Menu,
+  MenuItem,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  Select,
-  MenuItem,
   FormControl,
   InputLabel,
-  Alert,
-  CircularProgress,
-  LinearProgress,
+  Select,
+  Fab,
+  Tooltip,
+  Tabs,
+  Tab,
   Badge,
+  Stack,
+  Avatar,
+  CardMedia,
+  CardActions,
+  Divider,
+  LinearProgress,
 } from '@mui/material';
 import {
-  FlightTakeoff,
   Add,
-  Refresh,
-  FilterList,
-  Visibility,
-  Delete,
+  MoreVert,
   PlayArrow,
   Pause,
+  Download,
+  Upload,
+  Delete,
+  Edit,
+  Visibility,
+  Assignment,
+  FilterList,
+  Search,
+  Help,
+  Info,
+  Build,
+  Star,
   CheckCircle,
   Schedule,
-  Star,
-  Public,
-  Security,
-  Science,
+  TrendingUp,
+  Flag,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starService } from '../services/starService';
-import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { missionService } from '../services';
+import { toast } from 'react-hot-toast';
 
-interface Mission {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-  status: string;
-  priority: string;
-  progress: number;
-  reward: number;
-  difficulty: string;
-  estimatedTime: string;
-  assignedTo: string;
-  createdAt: string;
-  dueDate: string;
-  tags: string[];
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`mission-tabpanel-${index}`}
+      aria-labelledby={`mission-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
 }
 
 const MissionsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { isDemoMode } = useDemoMode();
+  const queryClient = useQueryClient();
+  const [tabValue, setTabValue] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [newMission, setNewMission] = useState({
-    title: '',
-    description: '',
-    type: 'Exploration',
-    priority: 'Medium',
-    difficulty: 'Normal',
-    estimatedTime: '',
-    dueDate: '',
-    reward: 0,
+  const [selectedMission, setSelectedMission] = useState<any>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  // Fetch Missions
+  const { data: missions, isLoading, error } = useQuery('missions', missionService.getAll);
+
+  // Create Mission mutation
+  const createMissionMutation = useMutation(
+    async (missionData: any) => {
+      const response = await missionService.create(missionData);
+      return response.result;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('missions');
+        toast.success('Mission created successfully!');
+        setCreateDialogOpen(false);
+      },
+      onError: (error: any) => {
+        toast.error('Failed to create Mission: ' + error.message);
+      },
+    }
+  );
+
+  // Start Mission mutation
+  const startMissionMutation = useMutation(
+    async (missionId: string) => {
+      const response = await missionService.start(missionId);
+      return response.result;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('missions');
+        toast.success('Mission started successfully!');
+      },
+      onError: (error: any) => {
+        toast.error('Failed to start Mission: ' + error.message);
+      },
+    }
+  );
+
+  // Complete Mission mutation
+  const completeMissionMutation = useMutation(
+    async (missionId: string) => {
+      const response = await missionService.complete(missionId);
+      return response.result;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('missions');
+        toast.success('Mission completed successfully!');
+      },
+      onError: (error: any) => {
+        toast.error('Failed to complete Mission: ' + error.message);
+      },
+    }
+  );
+
+  const handleCreateMission = (missionData: any) => {
+    createMissionMutation.mutate(missionData);
+  };
+
+  const handleStartMission = (missionId: string) => {
+    startMissionMutation.mutate(missionId);
+  };
+
+  const handleCompleteMission = (missionId: string) => {
+    completeMissionMutation.mutate(missionId);
+  };
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, mission: any) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedMission(mission);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedMission(null);
+  };
+
+  const filteredMissions = missions?.result?.filter((mission: any) => {
+    const matchesSearch = mission.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         mission.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterType === 'all' || mission.status === filterType;
+    return matchesSearch && matchesFilter;
+  }) || [];
+
+  const sortedMissions = [...filteredMissions].sort((a: any, b: any) => {
+    switch (sortBy) {
+      case 'newest':
+        return new Date(b.createdOn || 0).getTime() - new Date(a.createdOn || 0).getTime();
+      case 'oldest':
+        return new Date(a.createdOn || 0).getTime() - new Date(b.createdOn || 0).getTime();
+      case 'name':
+        return (a.name || '').localeCompare(b.name || '');
+      case 'priority':
+        return (b.priority || 0) - (a.priority || 0);
+      default:
+        return 0;
+    }
   });
 
-  const queryClient = useQueryClient();
-
-  const { data: missionsData, isLoading, error, refetch } = useQuery(
-    'missions',
-    async () => {
-      try {
-        // Try to get real data first
-        const response = await starService.getAllMissions?.();
-        return response;
-      } catch (error) {
-        // Fallback to impressive demo data
-        console.log('Using demo Missions data for investor presentation');
-        return {
-          result: [
-            {
-              id: '1',
-              title: 'Deep Space Exploration',
-              description: 'Explore uncharted regions of the galaxy and document new celestial phenomena',
-              type: 'Exploration',
-              status: 'active',
-              priority: 'High',
-              progress: 75,
-              reward: 5000,
-              difficulty: 'Hard',
-              estimatedTime: '2 weeks',
-              assignedTo: 'Captain Nova',
-              createdAt: '2024-01-10',
-              dueDate: '2024-01-24',
-              tags: ['Space', 'Research', 'Discovery'],
-            },
-            {
-              id: '2',
-              title: 'OASIS Security Protocol',
-              description: 'Implement enhanced security measures across the OASIS network',
-              type: 'Security',
-              status: 'completed',
-              priority: 'Critical',
-              progress: 100,
-              reward: 8000,
-              difficulty: 'Expert',
-              estimatedTime: '1 week',
-              assignedTo: 'Agent Shield',
-              createdAt: '2024-01-05',
-              dueDate: '2024-01-12',
-              tags: ['Security', 'Network', 'Protocol'],
-            },
-            {
-              id: '3',
-              title: 'Quantum Research Initiative',
-              description: 'Conduct advanced quantum computing research for next-gen applications',
-              type: 'Research',
-              status: 'pending',
-              priority: 'Medium',
-              progress: 0,
-              reward: 12000,
-              difficulty: 'Expert',
-              estimatedTime: '1 month',
-              assignedTo: 'Dr. Quantum',
-              createdAt: '2024-01-15',
-              dueDate: '2024-02-15',
-              tags: ['Quantum', 'Computing', 'Research'],
-            },
-            {
-              id: '4',
-              title: 'Planetary Survey Mission',
-              description: 'Survey newly discovered planets for potential colonization',
-              type: 'Exploration',
-              status: 'active',
-              priority: 'High',
-              progress: 45,
-              reward: 6000,
-              difficulty: 'Hard',
-              estimatedTime: '3 weeks',
-              assignedTo: 'Surveyor Alpha',
-              createdAt: '2024-01-12',
-              dueDate: '2024-02-02',
-              tags: ['Planets', 'Survey', 'Colonization'],
-            },
-            {
-              id: '5',
-              title: 'AI System Optimization',
-              description: 'Optimize AI systems for better performance and efficiency',
-              type: 'Technical',
-              status: 'in_progress',
-              priority: 'Medium',
-              progress: 60,
-              reward: 3500,
-              difficulty: 'Normal',
-              estimatedTime: '1 week',
-              assignedTo: 'Tech Specialist',
-              createdAt: '2024-01-14',
-              dueDate: '2024-01-21',
-              tags: ['AI', 'Optimization', 'Performance'],
-            },
-            {
-              id: '6',
-              title: 'Diplomatic Outreach',
-              description: 'Establish diplomatic relations with newly discovered civilizations',
-              type: 'Diplomatic',
-              status: 'pending',
-              priority: 'High',
-              progress: 0,
-              reward: 10000,
-              difficulty: 'Hard',
-              estimatedTime: '2 weeks',
-              assignedTo: 'Ambassador Peace',
-              createdAt: '2024-01-16',
-              dueDate: '2024-01-30',
-              tags: ['Diplomacy', 'Civilization', 'Outreach'],
-            },
-          ]
-        };
-      }
-    },
-    {
-      refetchInterval: 30000,
-      refetchOnWindowFocus: true,
-    }
-  );
-
-  const createMissionMutation = useMutation(
-    async (missionData: Partial<Mission>) => {
-      try {
-        return await starService.createMission?.(missionData);
-      } catch (error) {
-        // For demo purposes, simulate success
-        toast.success('Mission created successfully! (Demo Mode)');
-        return { success: true, id: Date.now().toString() };
-      }
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries('missions');
-        setCreateDialogOpen(false);
-        setNewMission({
-          title: '',
-          description: '',
-          type: 'Exploration',
-          priority: 'Medium',
-          difficulty: 'Normal',
-          estimatedTime: '',
-          dueDate: '',
-          reward: 0,
-        });
-      },
-      onError: () => {
-        toast.error('Failed to create mission');
-      },
-    }
-  );
-
-  const deleteMissionMutation = useMutation(
-    async (id: string) => {
-      try {
-        return await starService.deleteMission?.(id);
-      } catch (error) {
-        // For demo purposes, simulate success
-        toast.success('Mission deleted successfully! (Demo Mode)');
-        return { success: true };
-      }
-    },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries('missions');
-      },
-      onError: () => {
-        toast.error('Failed to delete mission');
-      },
-    }
-  );
-
-  const handleCreateMission = () => {
-    if (!newMission.title || !newMission.description) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-    createMissionMutation.mutate(newMission);
-  };
-
-  const handleDeleteMission = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this mission?')) {
-      deleteMissionMutation.mutate(id);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase() || '') {
-      case 'completed': return 'success';
-      case 'active': return 'primary';
-      case 'in_progress': return 'warning';
-      case 'pending': return 'default';
-      default: return 'default';
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority?.toLowerCase() || '') {
-      case 'critical': return '#f44336';
-      case 'high': return '#ff9800';
-      case 'medium': return '#2196f3';
-      case 'low': return '#4caf50';
-      default: return '#9e9e9e';
-    }
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty?.toLowerCase() || '') {
-      case 'expert': return '#9c27b0';
-      case 'hard': return '#f44336';
-      case 'normal': return '#2196f3';
-      case 'easy': return '#4caf50';
-      default: return '#9e9e9e';
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type?.toLowerCase() || '') {
-      case 'exploration': return <Public />;
-      case 'security': return <Security />;
-      case 'research': return <Science />;
-      case 'technical': return <Star />;
-      case 'diplomatic': return <CheckCircle />;
-      default: return <FlightTakeoff />;
-    }
-  };
-
-  const statuses = ['all', 'pending', 'active', 'in_progress', 'completed'];
-  const filteredMissions = (missionsData?.result || []).filter((mission: any) =>
-    filterStatus === 'all' || mission.status === filterStatus
-  );
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
+  const missionStats = {
+    total: missions?.result?.length || 0,
+    active: missions?.result?.filter((mission: any) => mission.status === 'active').length || 0,
+    completed: missions?.result?.filter((mission: any) => mission.status === 'completed').length || 0,
+    averagePriority: missions?.result?.reduce((sum: number, mission: any) => sum + (mission.priority || 0), 0) / (missions?.result?.length || 1) || 0,
   };
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      <>
-      <Box sx={{ mb: 4, mt: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Box>
-            <Typography variant="h4" gutterBottom className="page-heading">
-              Missions
-            </Typography>
-            <Typography variant="subtitle1" color="text.secondary">
-              Mission management and tracking system
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              variant="outlined"
-              startIcon={<Refresh />}
-              onClick={() => refetch()}
-              disabled={isLoading}
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => setCreateDialogOpen(true)}
-              sx={{
-                background: '#1976d2',
-                '&:hover': {
-                  background: '#1565c0',
-                },
-              }}
-            >
-              Create Mission
-            </Button>
-          </Box>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Missions
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Manage your Missions and Tasks
+          </Typography>
         </Box>
-
-        {/* Filter */}
-        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <FilterList color="action" />
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={filterStatus}
-              label="Status"
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              {statuses.map((status) => (
-                <MenuItem key={status} value={status}>
-                  {status === 'all' ? 'All Statuses' : status.charAt(0).toUpperCase() + status.slice(1)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => setCreateDialogOpen(true)}
+          sx={{ borderRadius: 2 }}
+        >
+          Create Mission
+        </Button>
       </Box>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          Failed to load missions: {error instanceof Error ? error.message : 'Unknown error'}
-        </Alert>
-      )}
+      {/* Stats Cards */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Flag color="primary" sx={{ mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">{missionStats.total}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Total Missions
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <PlayArrow color="success" sx={{ mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">{missionStats.active}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Active
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <CheckCircle color="info" sx={{ mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">{missionStats.completed}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Completed
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <TrendingUp color="warning" sx={{ mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">{missionStats.averagePriority.toFixed(1)}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Avg Priority
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
-      {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <Grid container spacing={3}>
-          {filteredMissions.map((mission: any, index: number) => (
-            <Grid item xs={12} md={6} lg={4} key={mission.id}>
-              <motion.div
-                variants={itemVariants}
-                whileHover={{ 
-                  scale: 1.02,
-                  transition: { duration: 0.2 }
+      {/* Filters and Search */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                placeholder="Search Missions..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
                 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Card 
-                  sx={{ height: '100%', position: 'relative', cursor: 'pointer' }}
-                  onClick={() => navigate(`/missions/${mission.id}`)}
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>Filter by Status</InputLabel>
+                <Select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
                 >
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      {getTypeIcon(mission.type)}
-                      <Typography variant="h6" sx={{ ml: 1, flexGrow: 1 }}>
-                        {mission.title}
+                  <MenuItem value="all">All Status</MenuItem>
+                  <MenuItem value="draft">Draft</MenuItem>
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="completed">Completed</MenuItem>
+                  <MenuItem value="paused">Paused</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>Sort by</InputLabel>
+                <Select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <MenuItem value="newest">Newest</MenuItem>
+                  <MenuItem value="oldest">Oldest</MenuItem>
+                  <MenuItem value="name">Name</MenuItem>
+                  <MenuItem value="priority">Priority</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<FilterList />}
+              >
+                More Filters
+              </Button>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+
+      {/* Missions Grid */}
+      <Grid container spacing={3}>
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Card>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Avatar sx={{ mr: 2 }} />
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" sx={{ mb: 1 }}>
+                        Loading...
                       </Typography>
-                      <Chip
-                        label={mission.status}
-                        color={getStatusColor(mission.status) as any}
-                        size="small"
-                        sx={{ textTransform: 'capitalize' }}
-                      />
+                      <Typography variant="body2" color="text.secondary">
+                        Loading Mission details...
+                      </Typography>
                     </Box>
-                    
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        ) : error ? (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                <Typography variant="h6" color="error" gutterBottom>
+                  Failed to load Missions
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {error instanceof Error ? error.message : 'An error occurred'}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ) : sortedMissions.length === 0 ? (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                <Flag sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  No Missions found
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  {searchTerm ? 'Try adjusting your search criteria' : 'Create your first Mission to get started'}
+                </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<Add />}
+                  onClick={() => setCreateDialogOpen(true)}
+                >
+                  Create Mission
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        ) : (
+          sortedMissions.map((mission: any) => (
+            <Grid item xs={12} sm={6} md={4} key={mission.id}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={mission.imageUrl || '/api/placeholder/400/200'}
+                    alt={mission.name}
+                    sx={{ objectFit: 'cover' }}
+                  />
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Typography variant="h6" component="h3" noWrap>
+                        {mission.name}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMenuClick(e, mission)}
+                      >
+                        <MoreVert />
+                      </IconButton>
+                    </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                       {mission.description}
                     </Typography>
-                    
-                    <Box sx={{ mb: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Progress
-                        </Typography>
-                        <Typography variant="body2" fontWeight="bold">
-                          {mission.progress}%
-                        </Typography>
-                      </Box>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={mission.progress} 
-                        sx={{ height: 8, borderRadius: 4 }}
-                      />
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-                      <Chip
-                        label={mission.priority}
-                        size="small"
-                        sx={{ 
-                          bgcolor: getPriorityColor(mission.priority),
-                          color: 'white',
-                          fontWeight: 'bold'
-                        }}
-                      />
-                      <Chip
-                        label={mission.difficulty}
-                        size="small"
-                        sx={{ 
-                          bgcolor: getDifficultyColor(mission.difficulty),
-                          color: 'white',
-                          fontWeight: 'bold'
-                        }}
-                      />
-                    </Box>
-                    
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          Reward: <strong>{mission.reward.toLocaleString()} Credits</strong>
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Assigned: {mission.assignedTo || 'Unassigned'}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ textAlign: 'right' }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Due: {mission.dueDate ? new Date(mission.dueDate).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          }) : 'Not set'}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Est: {mission.estimatedTime || 'TBD'}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-                      {(mission.tags || []).map((tag: string, tagIndex: number) => (
-                        <Chip
-                          key={tagIndex}
-                          label={tag}
-                          size="small"
-                          variant="outlined"
-                        />
-                      ))}
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Button
-                        variant="outlined"
+                      <Chip
+                        label={mission.status || 'Draft'}
                         size="small"
-                        startIcon={<Visibility />}
-                        onClick={() => toast.success('Viewing mission details')}
-                      >
-                        View
-                      </Button>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton
-                          size="small"
-                          onClick={() => toast.success('Mission started!')}
-                          color="primary"
-                        >
-                          <PlayArrow />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDeleteMission(mission.id)}
-                          disabled={deleteMissionMutation.isLoading}
-                          color="error"
-                        >
-                          <Delete />
-                        </IconButton>
+                        color={mission.status === 'completed' ? 'success' : mission.status === 'active' ? 'primary' : 'default'}
+                        variant="outlined"
+                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Star sx={{ fontSize: 16, mr: 0.5, color: 'warning.main' }} />
+                        <Typography variant="body2">
+                          Priority: {mission.priority || 1}/5
+                        </Typography>
+                      </Box>
+                    </Box>
+                    {mission.progress !== undefined && (
+                      <Box sx={{ mb: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            Progress
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {mission.progress}%
+                          </Typography>
+                        </Box>
+                        <LinearProgress variant="determinate" value={mission.progress} />
+                      </Box>
+                    )}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {mission.rewards || 'No rewards'}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                          {mission.duration || 'Unknown'} duration
+                        </Typography>
                       </Box>
                     </Box>
                   </CardContent>
+                  <Divider />
+                  <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
+                    <Button
+                      size="small"
+                      startIcon={<Visibility />}
+                      onClick={() => navigate(`/missions/${mission.id}`)}
+                    >
+                      View
+                    </Button>
+                    <Box>
+                      {mission.status === 'draft' && (
+                        <Button
+                          size="small"
+                          startIcon={<PlayArrow />}
+                          onClick={() => handleStartMission(mission.id)}
+                          disabled={startMissionMutation.isLoading}
+                        >
+                          Start
+                        </Button>
+                      )}
+                      {mission.status === 'active' && (
+                        <Button
+                          size="small"
+                          startIcon={<CheckCircle />}
+                          onClick={() => handleCompleteMission(mission.id)}
+                          disabled={completeMissionMutation.isLoading}
+                        >
+                          Complete
+                        </Button>
+                      )}
+                    </Box>
+                  </CardActions>
                 </Card>
               </motion.div>
             </Grid>
-          ))}
-        </Grid>
-      )}
+          ))
+        )}
+      </Grid>
 
       {/* Create Mission Dialog */}
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Create New Mission</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-            <TextField
-              label="Title"
-              value={newMission.title}
-              onChange={(e) => setNewMission({ ...newMission, title: e.target.value })}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Description"
-              value={newMission.description}
-              onChange={(e) => setNewMission({ ...newMission, description: e.target.value })}
-              fullWidth
-              multiline
-              rows={3}
-              required
-            />
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel>Type</InputLabel>
-                <Select
-                  value={newMission.type}
-                  label="Type"
-                  onChange={(e) => setNewMission({ ...newMission, type: e.target.value })}
-                >
-                  <MenuItem value="Exploration">Exploration</MenuItem>
-                  <MenuItem value="Security">Security</MenuItem>
-                  <MenuItem value="Research">Research</MenuItem>
-                  <MenuItem value="Technical">Technical</MenuItem>
-                  <MenuItem value="Diplomatic">Diplomatic</MenuItem>
-                </Select>
-              </FormControl>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Mission Name"
+                placeholder="Enter Mission name"
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Description"
+                placeholder="Enter Mission description"
+                multiline
+                rows={3}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <InputLabel>Priority</InputLabel>
-                <Select
-                  value={newMission.priority}
-                  label="Priority"
-                  onChange={(e) => setNewMission({ ...newMission, priority: e.target.value })}
-                >
-                  <MenuItem value="Low">Low</MenuItem>
-                  <MenuItem value="Medium">Medium</MenuItem>
-                  <MenuItem value="High">High</MenuItem>
-                  <MenuItem value="Critical">Critical</MenuItem>
+                <Select defaultValue="1">
+                  <MenuItem value="1">Low</MenuItem>
+                  <MenuItem value="2">Medium</MenuItem>
+                  <MenuItem value="3">High</MenuItem>
+                  <MenuItem value="4">Critical</MenuItem>
+                  <MenuItem value="5">Emergency</MenuItem>
                 </Select>
               </FormControl>
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel>Difficulty</InputLabel>
-                <Select
-                  value={newMission.difficulty}
-                  label="Difficulty"
-                  onChange={(e) => setNewMission({ ...newMission, difficulty: e.target.value })}
-                >
-                  <MenuItem value="Easy">Easy</MenuItem>
-                  <MenuItem value="Normal">Normal</MenuItem>
-                  <MenuItem value="Hard">Hard</MenuItem>
-                  <MenuItem value="Expert">Expert</MenuItem>
-                </Select>
-              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
               <TextField
-                label="Estimated Time"
-                value={newMission.estimatedTime}
-                onChange={(e) => setNewMission({ ...newMission, estimatedTime: e.target.value })}
                 fullWidth
+                label="Duration"
+                placeholder="e.g., 2 hours"
               />
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            </Grid>
+            <Grid item xs={12}>
               <TextField
-                label="Due Date"
-                type="date"
-                value={newMission.dueDate}
-                onChange={(e) => setNewMission({ ...newMission, dueDate: e.target.value })}
                 fullWidth
-                InputLabelProps={{ shrink: true }}
+                label="Rewards"
+                placeholder="Enter Mission rewards"
               />
+            </Grid>
+            <Grid item xs={12}>
               <TextField
-                label="Reward (Credits)"
-                type="number"
-                value={newMission.reward}
-                onChange={(e) => setNewMission({ ...newMission, reward: parseFloat(e.target.value) })}
                 fullWidth
+                label="Image URL"
+                placeholder="https://example.com/image.png"
               />
-            </Box>
-          </Box>
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setCreateDialogOpen(false)}>
+            Cancel
+          </Button>
           <Button
-            onClick={handleCreateMission}
             variant="contained"
+            onClick={() => handleCreateMission({})}
             disabled={createMissionMutation.isLoading}
           >
             {createMissionMutation.isLoading ? 'Creating...' : 'Create Mission'}
           </Button>
         </DialogActions>
       </Dialog>
-      </>
-    </motion.div>
+
+      {/* Context Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={() => {
+          if (selectedMission) navigate(`/missions/${selectedMission.id}`);
+          handleMenuClose();
+        }}>
+          <Visibility sx={{ mr: 1 }} />
+          View Details
+        </MenuItem>
+        <MenuItem onClick={() => {
+          if (selectedMission) handleStartMission(selectedMission.id);
+          handleMenuClose();
+        }}>
+          <PlayArrow sx={{ mr: 1 }} />
+          Start Mission
+        </MenuItem>
+        <MenuItem onClick={() => {
+          if (selectedMission) handleCompleteMission(selectedMission.id);
+          handleMenuClose();
+        }}>
+          <CheckCircle sx={{ mr: 1 }} />
+          Complete Mission
+        </MenuItem>
+        <MenuItem onClick={handleMenuClose}>
+          <Edit sx={{ mr: 1 }} />
+          Edit
+        </MenuItem>
+        <MenuItem onClick={handleMenuClose} sx={{ color: 'error.main' }}>
+          <Delete sx={{ mr: 1 }} />
+          Delete
+        </MenuItem>
+      </Menu>
+
+      {/* Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="create mission"
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        onClick={() => setCreateDialogOpen(true)}
+      >
+        <Add />
+      </Fab>
+    </Box>
   );
 };
 

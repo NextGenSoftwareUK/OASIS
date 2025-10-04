@@ -46,7 +46,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { OAPPs as OAPPsAPI } from '../services/starApiClient';
+import { oappService } from '../services';
 import { OAPP } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -213,8 +213,8 @@ const OAPPsPage: React.FC = () => {
       }
 
       try {
-        const response = await OAPPsAPI.list();
-        return response.data;
+        const response = await oappService.getAll();
+        return response.result;
         } catch (error) {
         console.error('Error fetching OAPPs:', error);
         throw error;
@@ -262,8 +262,8 @@ const OAPPsPage: React.FC = () => {
       }
 
       try {
-        const response = await OAPPsAPI.listForAvatar();
-        return response.data;
+        const response = await oappService.getAll();
+        return response.result;
       } catch (error) {
         console.error('Error fetching my OAPPs:', error);
         throw error;
@@ -311,8 +311,8 @@ const OAPPsPage: React.FC = () => {
       }
 
       try {
-        const response = await OAPPsAPI.listForAvatar();
-        return response.data;
+        const response = await oappService.getAll();
+        return response.result;
       } catch (error) {
         console.error('Error fetching installed OAPPs:', error);
         throw error;
@@ -328,8 +328,8 @@ const OAPPsPage: React.FC = () => {
   // Create OAPP mutation
   const createOAPPMutation = useMutation(
     async (oappData: Partial<OAPP>) => {
-      const response = await OAPPsAPI.create(oappData);
-      return response.data;
+      const response = await oappService.create(oappData);
+      return response.result;
     },
     {
       onSuccess: () => {
@@ -348,8 +348,8 @@ const OAPPsPage: React.FC = () => {
   // Publish OAPP mutation
   const publishOAPPMutation = useMutation(
     async (oappId: string) => {
-      const response = await OAPPsAPI.publish(oappId, {});
-      return response.data;
+      const response = await oappService.publish(oappId, {});
+      return response.result;
     },
     {
       onSuccess: () => {
@@ -367,8 +367,8 @@ const OAPPsPage: React.FC = () => {
   // Install OAPP mutation
   const installOAPPMutation = useMutation(
     async (oappId: string) => {
-      const response = await OAPPsAPI.download(oappId, './downloads', true);
-      return response.data;
+      const response = await oappService.download(oappId, './downloads', true);
+      return response.result;
     },
     {
       onSuccess: () => {
@@ -581,7 +581,7 @@ const OAPPsPage: React.FC = () => {
             <Typography color="error">Error loading OAPPs</Typography>
           </Box>
         ) : (
-          <OAPPGrid oapps={allOAPPs?.result || []} />
+          <OAPPGrid oapps={(allOAPPs as any)?.result || []} />
         )}
           </TabPanel>
 
@@ -595,7 +595,7 @@ const OAPPsPage: React.FC = () => {
             <Typography color="error">Error loading my OAPPs</Typography>
           </Box>
         ) : (
-          <OAPPGrid oapps={myOAPPs?.result || []} showActions={false} />
+          <OAPPGrid oapps={(myOAPPs as any)?.result || []} showActions={false} />
         )}
           </TabPanel>
 
@@ -609,7 +609,7 @@ const OAPPsPage: React.FC = () => {
             <Typography color="error">Error loading installed OAPPs</Typography>
           </Box>
         ) : (
-          <OAPPGrid oapps={installedOAPPs?.result || []} />
+          <OAPPGrid oapps={(installedOAPPs as any)?.result || []} />
         )}
           </TabPanel>
 

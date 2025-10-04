@@ -47,7 +47,7 @@ import {
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starNetService } from '../services/starNetService';
+import { nftService } from '../services';
 import { NFT } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -67,7 +67,7 @@ const NFTDetailPage: React.FC = () => {
     async () => {
       if (!id) throw new Error('NFT ID is required');
       // For now, we'll get it from the list and filter by ID
-      const response = await starNetService.getAllNFTs();
+      const response = await nftService.getAll();
       const foundNft = response.result?.find((n: NFT) => n.id === id);
       if (!foundNft) throw new Error('NFT not found');
       return { result: foundNft };
@@ -86,7 +86,7 @@ const NFTDetailPage: React.FC = () => {
   const updateNftMutation = useMutation(
     async (data: any) => {
       if (!id) throw new Error('NFT ID is required');
-      return await starNetService.updateNFT(id, data);
+      return await nftService.update(id, data);
     },
     {
       onSuccess: () => {
@@ -106,7 +106,7 @@ const NFTDetailPage: React.FC = () => {
   const deleteNftMutation = useMutation(
     async () => {
       if (!id) throw new Error('NFT ID is required');
-      return await starNetService.deleteNFT(id);
+      return await nftService.delete(id);
     },
     {
       onSuccess: () => {

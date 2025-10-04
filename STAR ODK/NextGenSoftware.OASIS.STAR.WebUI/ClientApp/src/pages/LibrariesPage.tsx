@@ -37,7 +37,7 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { starService } from '../services/starService';
+import { libraryService } from '../services';
 import { useNavigate } from 'react-router-dom';
 
 interface Library {
@@ -89,7 +89,7 @@ const LibrariesPage: React.FC = () => {
     async () => {
       try {
         // Try to get real data first
-        const response = await starService.getAllLibraries?.();
+        const response = await libraryService.getAll();
         // Check if the real data has meaningful values, if not use demo data
         if (response?.result && response.result.length > 0) {
           const hasRealData = response.result.some((library: any) => 

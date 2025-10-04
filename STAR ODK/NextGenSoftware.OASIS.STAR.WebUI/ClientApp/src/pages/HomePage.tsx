@@ -401,6 +401,29 @@ const HomePage: React.FC = () => {
                   </Stack>
                 </Paper>
               </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Paper sx={{ p: 4, height: '100%' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <Avatar sx={{ bgcolor: 'error.main', mr: 2 }}>
+                      <Code />
+                    </Avatar>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                      STAR CLI & DNA System
+                    </Typography>
+                  </Box>
+                  <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                    Powerful command-line interface for developers. Link any STARNETHolon to any other 
+                    STARNETHolon as dependencies. Unlimited combinations and creativity.
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                    <Chip label="STAR CLI" size="small" />
+                    <Chip label="DNA System" size="small" />
+                    <Chip label="Dependencies" size="small" />
+                    <Chip label="Developer Tools" size="small" />
+                  </Stack>
+                </Paper>
+              </Grid>
             </Grid>
           </motion.div>
         </Container>
@@ -416,8 +439,8 @@ const HomePage: React.FC = () => {
               </Typography>
               <Typography variant="h6" sx={{ mb: 6, opacity: 0.9 }}>
                 Join the OASIS ecosystem and be part of the first universal Web4/Web5 infrastructure 
-                that connects everything to everything. Use STARNET Web UI to build OAPPs, manage assets, 
-                earn karma, and shape the future of the metaverse.
+                that connects everything to everything. Use STAR CLI and STARNET Web UI to build OAPPs, 
+                link STARNETHolons as dependencies, manage assets, earn karma, and shape the future of the metaverse.
               </Typography>
               <Stack direction="row" spacing={2} justifyContent="center">
                 <Button
