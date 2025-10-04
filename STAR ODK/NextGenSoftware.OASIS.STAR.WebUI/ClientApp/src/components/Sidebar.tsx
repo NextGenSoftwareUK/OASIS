@@ -38,6 +38,8 @@ import {
   CloudUpload,
   Code,
   DataObject,
+  AccountBalanceWallet,
+  Terminal,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -110,6 +112,13 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           icon: <Image />,
           path: '/nfts',
           description: 'Digital Assets',
+        },
+        {
+          id: 'nft-minting',
+          title: 'NFT Minting',
+          icon: <CloudUpload />,
+          path: '/nfts/mint',
+          description: 'Mint New NFTs',
         },
         {
           id: 'geonfts',
@@ -202,6 +211,13 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           path: '/plugins',
           description: 'Extensions & Plugins',
         },
+        {
+          id: 'star-cli',
+          title: 'STAR CLI',
+          icon: <Terminal />,
+          path: '/star-cli',
+          description: 'Command Line Interface',
+        },
       ],
     },
     {
@@ -236,6 +252,13 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           icon: <CloudUpload />,
           path: '/my-data',
           description: 'OASIS Hyperdrive',
+        },
+        {
+          id: 'wallets',
+          title: 'Wallets',
+          icon: <AccountBalanceWallet />,
+          path: '/wallets',
+          description: 'OASIS Universal Wallet',
         },
       ],
     },

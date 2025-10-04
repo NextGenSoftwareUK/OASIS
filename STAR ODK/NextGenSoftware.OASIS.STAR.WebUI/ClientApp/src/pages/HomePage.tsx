@@ -36,6 +36,25 @@ import {
   Psychology,
   Build,
   Apps,
+  Image,
+  LocationOn,
+  Assignment,
+  FlightTakeoff,
+  MenuBook,
+  Inventory,
+  SpaceDashboard,
+  DataObject,
+  LibraryBooks,
+  Extension,
+  AccountBalanceWallet,
+  Terminal,
+  Gamepad,
+  ViewInAr,
+  School,
+  Business,
+  ShoppingCart,
+  LocalHospital,
+  AttachMoney,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -73,6 +92,51 @@ const HomePage: React.FC = () => {
       icon: <Psychology sx={{ fontSize: 40, color: '#ff9800' }} />,
       title: 'Karma & Reputation System',
       description: 'Universal reputation tracking across all platforms with cross-platform contribution rewards',
+    },
+    {
+      icon: <Apps sx={{ fontSize: 40, color: '#e91e63' }} />,
+      title: 'STARNETHolons Linking',
+      description: 'Revolutionary linking system - any STARNETHolon can be connected to any other STARNETHolon as dependencies',
+    },
+    {
+      icon: <Code sx={{ fontSize: 40, color: '#795548' }} />,
+      title: 'STAR CLI',
+      description: 'Revolutionary Interoperable Low/No Code Generator for all metaverses, games, apps, sites, and platforms',
+    },
+    {
+      icon: <AccountBalanceWallet sx={{ fontSize: 40, color: '#00bcd4' }} />,
+      title: 'OASIS Universal Wallet',
+      description: 'Unified digital asset management across 50+ blockchain networks with cross-chain support and DeFi integration',
+    },
+    {
+      icon: <Gamepad sx={{ fontSize: 40, color: '#4caf50' }} />,
+      title: 'Our World AR Game',
+      description: 'Groundbreaking AR geo-location game that encourages environmental stewardship and community service',
+    },
+    {
+      icon: <ViewInAr sx={{ fontSize: 40, color: '#9c27b0' }} />,
+      title: 'One World MMORPG',
+      description: 'Benevolent MMORPG with optional VR, similar to Minecraft and Pax Dei with infinite building possibilities',
+    },
+    {
+      icon: <Public sx={{ fontSize: 40, color: '#ff5722' }} />,
+      title: 'Cross-Platform Universal System',
+      description: 'ALL STARNETHolons can be shared across ANY OAPP (apps, games, sites, services, platforms) with infinite use cases',
+    },
+    {
+      icon: <Terminal sx={{ fontSize: 40, color: '#795548' }} />,
+      title: 'HoloNET Integration',
+      description: 'World-first .NET and Unity client for Holochain, bringing P2P architecture to mainstream development',
+    },
+    {
+      icon: <Image sx={{ fontSize: 40, color: '#ff9800' }} />,
+      title: 'Revolutionary NFT System',
+      description: 'Cross-chain NFTs with shared metadata, Geo-NFTs, and universal NFT standard across all platforms',
+    },
+    {
+      icon: <Storage sx={{ fontSize: 40, color: '#607d8b' }} />,
+      title: 'OASIS COSMIC ORM',
+      description: 'Universal data abstraction layer for all Web2/Web3 providers with simple .Load(), .Save(), .Delete() commands',
     },
   ];
 
@@ -278,8 +342,153 @@ const HomePage: React.FC = () => {
         </Container>
       </Box>
 
-      {/* Platform Overview */}
+      {/* Infinite Use Cases Section */}
       <Box sx={{ py: 12, bgcolor: 'background.default' }}>
+        <Container maxWidth="lg">
+          <motion.div variants={itemVariants}>
+            <Typography variant="h4" align="center" gutterBottom sx={{ mb: 8, fontWeight: 'bold' }}>
+              Infinite Use Cases - The Future of Everything
+            </Typography>
+            
+            <Typography variant="h6" align="center" color="text.secondary" sx={{ mb: 6 }}>
+              ALL STARNETHolons can be shared across ANY OAPP (apps, games, sites, services, platforms, etc.) - 
+              creating infinite possibilities for games, businesses, shops, e-commerce, finance, education, healthcare, and everything else!
+            </Typography>
+            
+            <Grid container spacing={4}>
+              {[
+                { name: 'Games', description: 'AR/VR Games, MMORPGs, Mobile Games', icon: <Gamepad />, color: '#4caf50' },
+                { name: 'Business', description: 'Enterprise Applications, CRM, ERP', icon: <Business />, color: '#2196f3' },
+                { name: 'E-Commerce', description: 'Online Stores, Marketplaces, Shopping', icon: <ShoppingCart />, color: '#ff9800' },
+                { name: 'Finance', description: 'Banking, Trading, DeFi, Payments', icon: <AttachMoney />, color: '#4caf50' },
+                { name: 'Education', description: 'Learning Platforms, Training, Schools', icon: <School />, color: '#9c27b0' },
+                { name: 'Healthcare', description: 'Medical Apps, Telemedicine, Health', icon: <LocalHospital />, color: '#f44336' },
+                { name: 'Social', description: 'Social Networks, Communities, Chat', icon: <Group />, color: '#00bcd4' },
+                { name: 'Entertainment', description: 'Streaming, Media, Content Creation', icon: <Public />, color: '#ff5722' },
+              ].map((useCase, index) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                  <motion.div
+                    variants={itemVariants}
+                    whileHover={{ y: -5, scale: 1.02 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Card sx={{ 
+                      height: '100%', 
+                      p: 2, 
+                      textAlign: 'center',
+                      border: 1,
+                      borderColor: 'divider',
+                      '&:hover': {
+                        borderColor: useCase.color,
+                        boxShadow: `0 4px 20px rgba(0,0,0,0.1)`,
+                      }
+                    }}>
+                      <CardContent>
+                        <Box sx={{ mb: 2, color: useCase.color }}>
+                          {React.cloneElement(useCase.icon, { sx: { fontSize: 40 } })}
+                        </Box>
+                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                          {useCase.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {useCase.description}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </Grid>
+              ))}
+            </Grid>
+          </motion.div>
+        </Container>
+      </Box>
+
+      {/* STARNETHolons Section */}
+      <Box sx={{ py: 12, bgcolor: 'background.paper' }}>
+        <Container maxWidth="lg">
+          <motion.div variants={itemVariants}>
+            <Typography variant="h4" align="center" gutterBottom sx={{ mb: 8, fontWeight: 'bold' }}>
+              STARNETHolons - The Building Blocks of the Metaverse
+            </Typography>
+            
+            <Typography variant="h6" align="center" color="text.secondary" sx={{ mb: 6 }}>
+              Any STARNETHolon can be linked to any other STARNETHolon as dependencies, creating infinite possibilities for unique combinations
+            </Typography>
+            
+            <Grid container spacing={4}>
+              {[
+                { name: 'OAPPs', description: 'OASIS Applications', icon: <Apps />, color: '#2196f3' },
+                { name: 'Runtimes', description: 'Execution Environments', icon: <Build />, color: '#673ab7' },
+                { name: 'Libraries', description: 'Code Libraries', icon: <LibraryBooks />, color: '#8bc34a' },
+                { name: 'Templates', description: 'Reusable Templates', icon: <Code />, color: '#ff5722' },
+                { name: 'NFTs', description: 'Non-Fungible Tokens', icon: <Image />, color: '#ff9800' },
+                { name: 'GeoNFTs', description: 'Geospatial NFTs', icon: <LocationOn />, color: '#4caf50' },
+                { name: 'GeoHotSpots', description: 'Location-based Hotspots', icon: <LocationOn />, color: '#4caf50' },
+                { name: 'Quests', description: 'Interactive Quests', icon: <Assignment />, color: '#9c27b0' },
+                { name: 'Missions', description: 'Mission Objectives', icon: <FlightTakeoff />, color: '#f44336' },
+                { name: 'Chapters', description: 'Story Chapters', icon: <MenuBook />, color: '#795548' },
+                { name: 'Inventory Items', description: 'Game Items & Rewards', icon: <Inventory />, color: '#607d8b' },
+                { name: 'Celestial Spaces', description: 'Virtual Environments', icon: <Public />, color: '#00bcd4' },
+                { name: 'Celestial Bodies', description: 'Planets & Moons', icon: <SpaceDashboard />, color: '#3f51b5' },
+                { name: 'Zomes', description: 'Holochain Zomes', icon: <Memory />, color: '#e91e63' },
+                { name: 'Holons', description: 'Basic Data Structures', icon: <DataObject />, color: '#009688' },
+                { name: 'MetaDataDNA', description: 'DNA Metadata', icon: <Code />, color: '#ff5722' },
+              ].map((holon, index) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                  <motion.div
+                    variants={itemVariants}
+                    whileHover={{ y: -5, scale: 1.02 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Card sx={{ 
+                      height: '100%', 
+                      p: 2, 
+                      textAlign: 'center',
+                      border: 1,
+                      borderColor: 'divider',
+                      '&:hover': {
+                        borderColor: holon.color,
+                        boxShadow: `0 4px 20px rgba(0,0,0,0.1)`,
+                      }
+                    }}>
+                      <CardContent>
+                        <Box sx={{ mb: 2, color: holon.color }}>
+                          {React.cloneElement(holon.icon, { sx: { fontSize: 40 } })}
+                        </Box>
+                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                          {holon.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {holon.description}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </Grid>
+              ))}
+            </Grid>
+            
+            <Box sx={{ mt: 6, textAlign: 'center' }}>
+              <Typography variant="h6" gutterBottom>
+                Example Linkings - Infinite Possibilities:
+              </Typography>
+              <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap">
+                <Chip label="Quest + GeoNFT" color="primary" />
+                <Chip label="OAPP + NFT" color="secondary" />
+                <Chip label="Mission + Inventory Items" color="success" />
+                <Chip label="GeoHotSpot + Quest" color="warning" />
+                <Chip label="Template + Library" color="info" />
+                <Chip label="Runtime + Zome" color="error" />
+                <Chip label="Celestial Space + Celestial Body" color="primary" />
+                <Chip label="Any STARNETHolon + Any STARNETHolon!" color="secondary" />
+              </Stack>
+            </Box>
+          </motion.div>
+        </Container>
+      </Box>
+
+      {/* Platform Overview */}
+      <Box sx={{ py: 12, bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
           <motion.div variants={itemVariants}>
             <Typography variant="h4" align="center" gutterBottom sx={{ mb: 8, fontWeight: 'bold' }}>
@@ -440,7 +649,8 @@ const HomePage: React.FC = () => {
               <Typography variant="h6" sx={{ mb: 6, opacity: 0.9 }}>
                 Join the OASIS ecosystem and be part of the first universal Web4/Web5 infrastructure 
                 that connects everything to everything. Use STAR CLI and STARNET Web UI to build OAPPs, 
-                link STARNETHolons as dependencies, manage assets, earn karma, and shape the future of the metaverse.
+                link ALL STARNETHolons as dependencies, manage assets, earn karma, and shape the future of 
+                games, businesses, shops, e-commerce, finance, education, healthcare, and everything else!
               </Typography>
               <Stack direction="row" spacing={2} justifyContent="center">
                 <Button
