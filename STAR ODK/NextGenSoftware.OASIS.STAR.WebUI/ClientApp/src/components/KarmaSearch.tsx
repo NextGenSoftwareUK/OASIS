@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { OAPPKarmaData } from '../types/star';
-import { starService } from '../services/starService';
+import { starCoreService, avatarService } from '../services';
 import { toast } from 'react-hot-toast';
 import KarmaVisualization from './KarmaVisualization';
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Grid, Card, CardContent, Typography, LinearProgress } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
-import { starService } from '../services/starService';
+import { starCoreService, avatarService } from '../services';
 
 interface StatCardProps {
   title: string;

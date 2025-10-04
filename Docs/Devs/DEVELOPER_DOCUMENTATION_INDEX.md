@@ -15,7 +15,9 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **WEB4 OASIS API**: Data aggregation and identity layer
 - **WEB5 STAR API**: Gamification and business layer  
 - **STARNET Web UI**: Comprehensive web interface and app store
+- **STAR CLI**: Command-line interface for developers
 - **OAPP Builder**: Drag-and-drop application builder
+- **DNA System**: STARNETHolon dependency management
 
 ## 📚 **API Documentation**
 
@@ -29,6 +31,11 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[STAR API Complete Endpoints](./API%20Documentation/STAR_API_Complete_Endpoints_Reference.md)** - All STAR endpoints
 - **[STAR Metadata System](./API%20Documentation/STAR_Metadata_System_Documentation.md)** - Metadata management
 - **[STAR OAPP Builder](./API%20Documentation/STAR_OAPP_Builder_Documentation.md)** - OAPP Builder guide
+
+### **STAR CLI & DNA System**
+- **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** - Complete CLI reference
+- **[DNA System Guide](./DNA_SYSTEM_GUIDE.md)** - STARNETHolon dependency management
+- **[Dependency Management Guide](./DEPENDENCY_MANAGEMENT_GUIDE.md)** - Advanced dependency management
 
 ## 🎮 **STARNET Web UI Documentation**
 
@@ -49,6 +56,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[OASIS Quick Start Guide](./OASIS_Quick_Start_Guide.md)** - Get started with OASIS
 - **[STAR Quick Start Guide](./STAR_QUICK_START_GUIDE.md)** - Get started with STAR
 - **[STARNET Web UI Quick Start](./STARNET_QUICK_START_GUIDE.md)** - Get started with STARNET Web UI
+- **[STAR CLI Quick Start](./STAR_CLI_QUICK_START_GUIDE.md)** - Get started with STAR CLI
 
 ### **Installation & Setup**
 - **[Development Environment Setup](./DEVELOPMENT_ENVIRONMENT_SETUP.md)** - Complete setup guide

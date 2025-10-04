@@ -33,7 +33,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
-import { starService } from '../services/starService';
+import { starCoreService, avatarService } from '../services';
 import toast from 'react-hot-toast';
 
 const STARNETStorePage: React.FC = () => {
@@ -43,7 +43,7 @@ const STARNETStorePage: React.FC = () => {
     async () => {
       try {
         // Try to get real data first
-        const response = await starService.getStoreItems?.();
+        const response = await starCoreService.getStoreItems?.();
         return response;
       } catch (error) {
         // Fallback to impressive demo data

@@ -56,7 +56,7 @@ import {
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starNetService } from '../services/starNetService';
+import { geoNftService } from '../services';
 import { GeoNFT } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -76,7 +76,7 @@ const GeoNFTDetailPage: React.FC = () => {
     async () => {
       if (!id) throw new Error('GeoNFT ID is required');
       // For now, we'll get it from the list and filter by ID
-      const response = await starNetService.getAllGeoNFTs();
+      const response = await geoNftService.getAll();
       const foundGeoNFT = response.result?.find((gn: GeoNFT) => gn.id === id);
       if (!foundGeoNFT) throw new Error('GeoNFT not found');
       return { result: foundGeoNFT };
@@ -95,7 +95,7 @@ const GeoNFTDetailPage: React.FC = () => {
   const updateGeoNFTMutation = useMutation(
     async (data: any) => {
       if (!id) throw new Error('GeoNFT ID is required');
-      return await starNetService.updateGeoNFT(id, data);
+      return await geoNftService.update(id, data);
     },
     {
       onSuccess: () => {
@@ -115,7 +115,7 @@ const GeoNFTDetailPage: React.FC = () => {
   const deleteGeoNFTMutation = useMutation(
     async () => {
       if (!id) throw new Error('GeoNFT ID is required');
-      return await starNetService.deleteGeoNFT(id);
+      return await geoNftService.delete(id);
     },
     {
       onSuccess: () => {

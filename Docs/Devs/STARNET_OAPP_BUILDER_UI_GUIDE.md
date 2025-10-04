@@ -12,12 +12,26 @@ The STARNET OAPP Builder is a powerful drag-and-drop visual interface for creati
 - **Real-time Preview**: Live preview of your application
 - **Component Connections**: Visual component linking
 
-### **Component Types**
+### **STARNETHolon Types**
+The OAPP Builder supports ALL STARNETHolon types as components:
+
+- **OAPPs**: OASIS Applications
+- **Templates**: Application templates
+- **Runtimes**: Execution environments
+- **Libraries**: Code libraries and frameworks
+- **NFTs**: Non-fungible tokens
+- **GeoNFTs**: Location-based NFTs
+- **GeoHotSpots**: Geographic interaction points
+- **Quests**: Game quests and objectives
+- **Missions**: Mission system
+- **Chapters**: Story chapters
+- **InventoryItems**: Game items and rewards
+- **CelestialSpaces**: Virtual spaces
+- **CelestialBodies**: Virtual worlds
 - **Zomes**: Code modules and functionality
 - **Holons**: Data objects and structures
-- **Metadata**: Configuration and settings
-- **Assets**: 3D models, textures, sounds
-- **Templates**: Pre-built application templates
+- **MetaData**: CelestialBodies, Zomes, and Holons metadata
+- **Assets**: 3D models, textures, sounds, documents
 
 ## 🏗️ **Builder Interface**
 
@@ -37,12 +51,14 @@ The STARNET OAPP Builder is a powerful drag-and-drop visual interface for creati
 └─────────────────────────────────────────────────────────┘
 ```
 
-### **Component Library Panel**
-- **Search**: Find components quickly
-- **Categories**: Browse by component type
-- **Favorites**: Bookmark frequently used components
-- **Recent**: Recently used components
+### **STARNETHolon Library Panel**
+- **Search**: Find STARNETHolons quickly across all types
+- **Categories**: Browse by STARNETHolon type (OAPPs, Quests, NFTs, etc.)
+- **Dependencies**: View available dependencies for each STARNETHolon
+- **Favorites**: Bookmark frequently used STARNETHolons
+- **Recent**: Recently used STARNETHolons
 - **Templates**: Pre-built application templates
+- **Community**: Browse community-created STARNETHolons
 
 ### **Canvas Area**
 - **Grid System**: Snap-to-grid alignment

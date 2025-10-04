@@ -89,7 +89,7 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { starService } from '../services/starService';
+import { starCoreService, avatarService } from '../services';
 
 import { OASIS_PROVIDERS } from '../constants/providers';
 
@@ -185,7 +185,7 @@ const MyDataPage: React.FC = () => {
       try {
         // Force demo data for now
         throw 'Forcing demo data for My Data files';
-        const response = await starService.getMyDataFiles?.();
+        const response = await starCoreService.getMyDataFiles?.();
         return response;
       } catch (error) {
         // Fallback to impressive demo data - only log to console
@@ -868,7 +868,7 @@ const MyDataPage: React.FC = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const filteredFiles = filesData?.result?.files?.filter((file: DataFile) => 
+  const filteredFiles = (filesData?.result as any)?.files?.filter((file: DataFile) => 
     file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (file.metadata?.tags || []).some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
@@ -877,8 +877,8 @@ const MyDataPage: React.FC = () => {
   console.log('MyDataPage Debug:', {
     filesData: filesData,
     hasResult: !!filesData?.result,
-    hasFiles: !!filesData?.result?.files,
-    filesCount: filesData?.result?.files?.length || 0,
+    hasFiles: !!(filesData?.result as any)?.files,
+    filesCount: (filesData?.result as any)?.files?.length || 0,
     filteredCount: filteredFiles.length,
     searchTerm: searchTerm
   });
@@ -942,7 +942,7 @@ const MyDataPage: React.FC = () => {
                 <CardContent sx={{ textAlign: 'center', color: 'white' }}>
                   <Storage sx={{ fontSize: 40, mb: 1 }} />
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {filesData?.result?.stats?.totalFiles || 0}
+                    {(filesData?.result as any)?.stats?.totalFiles || 0}
                   </Typography>
                   <Typography variant="body2">Total Files</Typography>
                 </CardContent>
@@ -953,7 +953,7 @@ const MyDataPage: React.FC = () => {
                 <CardContent sx={{ textAlign: 'center', color: 'white' }}>
                   <Memory sx={{ fontSize: 40, mb: 1 }} />
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {formatFileSize(filesData?.result?.stats?.totalSize || 0)}
+                    {formatFileSize((filesData?.result as any)?.stats?.totalSize || 0)}
                   </Typography>
                   <Typography variant="body2">Total Storage</Typography>
                 </CardContent>
@@ -964,7 +964,7 @@ const MyDataPage: React.FC = () => {
                 <CardContent sx={{ textAlign: 'center', color: 'white' }}>
                   <CloudSync sx={{ fontSize: 40, mb: 1 }} />
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {filesData?.result?.stats?.replicationFactor || 0}x
+                    {(filesData?.result as any)?.stats?.replicationFactor || 0}x
                   </Typography>
                   <Typography variant="body2">Replication</Typography>
                 </CardContent>
@@ -975,7 +975,7 @@ const MyDataPage: React.FC = () => {
                 <CardContent sx={{ textAlign: 'center', color: 'white' }}>
                   <Shield sx={{ fontSize: 40, mb: 1 }} />
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {filesData?.result?.stats?.encryptionCoverage || 0}%
+                    {(filesData?.result as any)?.stats?.encryptionCoverage || 0}%
                   </Typography>
                   <Typography variant="body2">Encrypted</Typography>
                 </CardContent>
@@ -1012,7 +1012,7 @@ const MyDataPage: React.FC = () => {
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
             <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
               <Tab label={`My Files (${filteredFiles.length})`} />
-              <Tab label={`Storage Nodes (${filesData?.result?.nodes?.length || 0})`} />
+              <Tab label={`Storage Nodes (${(filesData?.result as any)?.nodes?.length || 0})`} />
               <Tab label="Security & Permissions" />
             </Tabs>
           </Box>
@@ -1108,7 +1108,7 @@ const MyDataPage: React.FC = () => {
               {/* Storage Nodes Tab */}
               {tabValue === 1 && (
                 <Grid container spacing={3}>
-                  {filesData?.result?.nodes?.map((node: StorageNode) => (
+                  {(filesData?.result as any)?.nodes?.map((node: StorageNode) => (
                     <Grid item xs={12} sm={6} md={4} key={node.id}>
                       <motion.div
                         variants={itemVariants}
@@ -1204,11 +1204,11 @@ const MyDataPage: React.FC = () => {
                           </Typography>
                           <LinearProgress
                             variant="determinate"
-                            value={filesData?.result?.stats?.encryptionCoverage || 0}
+                            value={(filesData?.result as any)?.stats?.encryptionCoverage || 0}
                             sx={{ height: 8, borderRadius: 4 }}
                           />
                           <Typography variant="caption" color="text.secondary">
-                            {filesData?.result?.stats?.encryptionCoverage || 0}% of files encrypted
+                            {(filesData?.result as any)?.stats?.encryptionCoverage || 0}% of files encrypted
                           </Typography>
                         </Box>
                         <List>

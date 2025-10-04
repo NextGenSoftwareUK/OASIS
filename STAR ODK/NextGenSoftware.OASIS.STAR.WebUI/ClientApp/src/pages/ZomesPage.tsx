@@ -44,7 +44,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
-import { starService } from '../services/starService';
+import { zomeService } from '../services';
 import { Link } from 'react-router-dom';
 
 interface Zome {
@@ -104,11 +104,11 @@ const ZomesPage: React.FC = () => {
     ['zomes', viewFilter],
     async () => {
       if (viewFilter === 'Installed') {
-        return starService.getInstalledZomes();
+        return zomeService.getInstalled();
       } else if (viewFilter === 'My Zomes') {
-        return starService.getZomesForAvatar('current-avatar-id');
+        return zomeService.getForAvatar('current-avatar-id');
       } else {
-        return starService.getAllZomes();
+        return zomeService.getAll();
       }
     }
   );
