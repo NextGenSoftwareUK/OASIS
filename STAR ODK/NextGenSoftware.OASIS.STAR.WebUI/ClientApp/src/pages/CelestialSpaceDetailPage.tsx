@@ -55,7 +55,7 @@ import {
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starNetService } from '../services/starNetService';
+import { celestialSpaceService } from '../services';
 import { CelestialSpace } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -75,7 +75,7 @@ const CelestialSpaceDetailPage: React.FC = () => {
     async () => {
       if (!id) throw new Error('Celestial Space ID is required');
       // For now, we'll get it from the list and filter by ID
-      const response = await starNetService.getAllCelestialSpaces();
+      const response = await celestialSpaceService.getAll();
       const foundCelestialSpace = response.result?.find((cs: CelestialSpace) => cs.id === id);
       if (!foundCelestialSpace) throw new Error('Celestial Space not found');
       return { result: foundCelestialSpace };
@@ -94,7 +94,7 @@ const CelestialSpaceDetailPage: React.FC = () => {
   const updateCelestialSpaceMutation = useMutation(
     async (data: any) => {
       if (!id) throw new Error('Celestial Space ID is required');
-      return await starNetService.updateCelestialSpace(id, data);
+      return await celestialSpaceService.update(id, data);
     },
     {
       onSuccess: () => {
@@ -114,7 +114,7 @@ const CelestialSpaceDetailPage: React.FC = () => {
   const deleteCelestialSpaceMutation = useMutation(
     async () => {
       if (!id) throw new Error('Celestial Space ID is required');
-      return await starNetService.deleteCelestialSpace(id);
+      return await celestialSpaceService.delete(id);
     },
     {
       onSuccess: () => {

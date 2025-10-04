@@ -44,7 +44,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
-import { starService } from '../services/starService';
+import { holonService } from '../services';
 import { Link } from 'react-router-dom';
 
 interface Holon {
@@ -103,11 +103,11 @@ const HolonsPage: React.FC = () => {
     ['holons', viewFilter],
     async () => {
       if (viewFilter === 'Installed') {
-        return starService.getInstalledHolons();
+        return holonService.getInstalled();
       } else if (viewFilter === 'My Holons') {
-        return starService.getHolonsForAvatar('current-avatar-id');
+        return holonService.getForAvatar('current-avatar-id');
       } else {
-        return starService.getAllHolons();
+        return holonService.getAll();
       }
     }
   );

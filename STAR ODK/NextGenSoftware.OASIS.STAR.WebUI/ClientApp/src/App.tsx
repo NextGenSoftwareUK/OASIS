@@ -64,7 +64,7 @@ import ZomesPage from './pages/ZomesPage';
 import STARPluginsPage from './pages/STARPluginsPage';
 
 // Services
-import { starService } from './services/starService';
+import { starCoreService } from './services';
 import { useSTARConnection } from './hooks/useSTARConnection';
 
 // Types

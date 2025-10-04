@@ -52,8 +52,7 @@ import {
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starService } from '../services/starService';
-import { starNetService } from '../services/starNetService';
+import { runtimeService } from '../services';
 import { Runtime } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -73,7 +72,7 @@ const RuntimeDetailPage: React.FC = () => {
     async () => {
       if (!id) throw new Error('Runtime ID is required');
       // For now, we'll get it from the list and filter by ID
-      const response = await starService.getAllRuntimes();
+      const response = await runtimeService.getAll();
       const foundRuntime = response.result?.find((r: Runtime) => String((r as any).id) === String(id));
       if (!foundRuntime) throw new Error('Runtime not found');
       return { result: foundRuntime };
@@ -92,7 +91,7 @@ const RuntimeDetailPage: React.FC = () => {
   const updateRuntimeMutation = useMutation(
     async (data: any) => {
       if (!id) throw new Error('Runtime ID is required');
-      return await starNetService.updateRuntime(id, data);
+      return await runtimeService.update(id, data);
     },
     {
       onSuccess: () => {
@@ -112,7 +111,7 @@ const RuntimeDetailPage: React.FC = () => {
   const deleteRuntimeMutation = useMutation(
     async () => {
       if (!id) throw new Error('Runtime ID is required');
-      return await starNetService.deleteRuntime(id);
+      return await runtimeService.delete(id);
     },
     {
       onSuccess: () => {

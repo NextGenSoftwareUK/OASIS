@@ -132,7 +132,7 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { starService } from '../services/starService';
+import { starCoreService, avatarService } from '../services';
 
 interface DevResource {
   id: string;
@@ -190,7 +190,7 @@ const DevPortalPage: React.FC = () => {
     'devPortalStats',
     async () => {
       try {
-        const response = await starService.getDevPortalStats?.();
+        const response = await starCoreService.getDevPortalStats();
         return response;
       } catch (error) {
         // Fallback to impressive demo data
@@ -220,7 +220,7 @@ const DevPortalPage: React.FC = () => {
     'devPortalResources',
     async () => {
       try {
-        const response = await starService.getDevPortalResources?.();
+        const response = await starCoreService.getDevPortalResources();
         return response;
       } catch (error) {
         // Fallback to impressive demo data

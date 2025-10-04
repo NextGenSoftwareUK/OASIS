@@ -45,7 +45,7 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { Runtimes as RuntimesAPI } from '../services/starApiClient';
+import { runtimeService } from '../services';
 import { useNavigate } from 'react-router-dom';
 import { Runtime } from '../types/star';
 
@@ -78,15 +78,15 @@ const RuntimesPage: React.FC = () => {
     ['runtimes', viewScope],
     async () => {
       if (viewScope === 'installed') {
-        const { data } = await RuntimesAPI.listForAvatar();
-        return data;
+        const response = await runtimeService.getForAvatar();
+        return response.result;
       }
       if (viewScope === 'mine') {
-        const { data } = await RuntimesAPI.listForAvatar();
-        return data;
+        const response = await runtimeService.getForAvatar();
+        return response.result;
       }
-      const { data } = await RuntimesAPI.list();
-      return data;
+        const response = await runtimeService.getAll();
+      return response.result;
     },
     {
       refetchInterval: 30000,
@@ -103,8 +103,8 @@ const RuntimesPage: React.FC = () => {
         sourceFolderPath: runtimeData.imageUrl || '',
         createOptions: null,
       };
-      const { data } = await RuntimesAPI.create(payload);
-      return data;
+      const response = await runtimeService.create(payload);
+      return response.result;
     },
     {
       onSuccess: () => {
@@ -138,8 +138,8 @@ const RuntimesPage: React.FC = () => {
 
   const deleteRuntimeMutation = useMutation(
     async (id: string) => {
-      const { data } = await RuntimesAPI.delete(id);
-      return data;
+      const response = await runtimeService.delete(id);
+      return response.result;
     },
     {
       onSuccess: () => {
@@ -154,8 +154,8 @@ const RuntimesPage: React.FC = () => {
 
   const publishRuntimeMutation = useMutation(
     async (id: string) => {
-      const { data } = await RuntimesAPI.publish(id, {});
-      return data;
+      const response = await runtimeService.publish(id, {});
+      return response.result;
     },
     {
       onSuccess: () => {
@@ -170,8 +170,8 @@ const RuntimesPage: React.FC = () => {
 
   const downloadRuntimeMutation = useMutation(
     async (id: string) => {
-      const { data } = await RuntimesAPI.download(id, './downloads', true);
-      return data;
+      const response = await runtimeService.download(id, './downloads', true);
+      return response.result;
     },
     {
       onSuccess: () => {
@@ -185,8 +185,8 @@ const RuntimesPage: React.FC = () => {
 
   const activateRuntimeMutation = useMutation(
     async (id: string) => {
-      const { data } = await RuntimesAPI.activate(id);
-      return data;
+      const response = await runtimeService.activate(id);
+      return response.result;
     },
     {
       onSuccess: () => {
@@ -201,8 +201,8 @@ const RuntimesPage: React.FC = () => {
 
   const deactivateRuntimeMutation = useMutation(
     async (id: string) => {
-      const { data } = await RuntimesAPI.deactivate(id);
-      return data;
+      const response = await runtimeService.deactivate(id);
+      return response.result;
     },
     {
       onSuccess: () => {
@@ -275,7 +275,7 @@ const RuntimesPage: React.FC = () => {
     }
   };
 
-  const filteredRuntimes = runtimesData?.result?.filter((runtime: Runtime) => 
+  const filteredRuntimes = (runtimesData as any)?.result?.filter((runtime: Runtime) => 
     filterType === 'all' || runtime.type === filterType
   ).map((runtime: Runtime) => ({
     ...runtime,

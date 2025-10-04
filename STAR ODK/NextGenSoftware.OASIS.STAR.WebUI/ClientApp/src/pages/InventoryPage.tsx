@@ -37,7 +37,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starService } from '../services/starService';
+import { inventoryService } from '../services';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -313,7 +313,7 @@ const InventoryPage: React.FC = () => {
   const createItemMutation = useMutation(
     async (itemData: Partial<InventoryItem>) => {
       try {
-        return await starService.createInventoryItem?.(itemData);
+        return await inventoryService.create(itemData);
       } catch (error) {
         // For demo purposes, simulate success
         toast.success('Item created successfully! (Demo Mode)');
@@ -344,7 +344,7 @@ const InventoryPage: React.FC = () => {
   const deleteItemMutation = useMutation(
     async (id: string) => {
       try {
-        return await starService.deleteInventoryItem?.(id);
+        return await inventoryService.delete(id);
       } catch (error) {
         // For demo purposes, simulate success
         toast.success('Item deleted successfully! (Demo Mode)');
