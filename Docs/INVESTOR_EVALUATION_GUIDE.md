@@ -58,6 +58,16 @@ The OASIS (Open Advanced Secure Interoperable System) represents a revolutionary
 
 **Investment Value**: Massive market opportunity in $50+ billion digital asset management market, first-mover advantage.
 
+### 3a. OASIS Web4 Subscription Plans (Bronze, Silver, Gold, Enterprise)
+**Overview**: Ongoing SaaS revenue via subscription plans for API usage and premium features.
+
+- **Bronze**: Entry plan, core API usage tier
+- **Silver**: Higher API limits + Wallet API
+- **Gold**: Priority support, DeFi features, Analytics
+- **Enterprise**: Custom limits, SLAs, dedicated support
+
+**Checkout**: Plans integrate with the WEB4 OASIS WebAPI Subscription API and a payment gateway (e.g., Stripe). The frontend marketing site exists under `oasisweb4.com`.
+
 ### 4. Our World - The Benevolent Pokemon Go and Beyond
 **Revolutionary Innovation**: The world's first AR geo-location educational game that encourages environmental stewardship and community service, inspired by Buckminster Fuller's world peace game vision:
 
@@ -249,6 +259,13 @@ The OASIS (Open Advanced Secure Interoperable System) represents a revolutionary
 - **Revenue Model**: Data licensing, AI model training
 
 ## Competitive Advantages
+## Grants & Case Studies (from existing oasisweb4.com)
+
+- **Radix DLT**: Native bridge development between Radix and Solana tokens
+- **Arbitrum (Grant Ships)**: Endangered Tokens NFTs integrated into AR World treasure hunt
+- **Arbitrum (Thrive)**: HoloNET API connected to Stellar Gate (browser-based, Arbitrum-enabled space game)
+- **Solana Superteam UK**: AR World Phygital mobile game with geo-cached Solana NFTs
+
 
 ### 1. First-Mover Advantage
 - No existing universal Web2/Web3 aggregation system

@@ -2,11 +2,6 @@
 
 ## High-Level OASIS Ecosystem Architecture
 
-![High-Level OASIS Ecosystem](../../Images/Diagrams/high_level_oasis.svg)
-
-<details>
-<summary>Mermaid source</summary>
-
 ```mermaid
 graph TB
     subgraph "OASIS Ecosystem"
@@ -93,14 +88,7 @@ graph TB
     NODEN --> HYPERDRIVE
 ```
 
-</details>
-
 ## OASIS HyperDrive Auto-Failover System
-
-![OASIS HyperDrive Auto-Failover](../../Images/Diagrams/hyperdrive_auto_failover.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TD
@@ -133,14 +121,7 @@ graph TD
     MONITOR --> RELIABILITY
 ```
 
-</details>
-
 ## OASIS Torus Architecture
-
-![OASIS Torus Architecture](../../Images/Diagrams/torus.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TB
@@ -272,14 +253,7 @@ graph TB
     HYPERDRIVE --> PINATA
 ```
 
-</details>
-
 ## OASIS Data Flow Architecture
-
-![OASIS Data Flow](../../Images/Diagrams/data_flow.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 sequenceDiagram
@@ -313,14 +287,7 @@ sequenceDiagram
     Note over HD: Auto-failover ensures<br/>zero downtime and<br/>optimal performance
 ```
 
-</details>
-
 ## OASIS Provider Ecosystem
-
-![OASIS Provider Ecosystem](../../Images/Diagrams/provider_ecosystem.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph LR
@@ -393,14 +360,7 @@ graph LR
     HYPERDRIVE --> XMPP
 ```
 
-</details>
-
 ## OASIS Karma System Architecture
-
-![OASIS Karma System](../../Images/Diagrams/karma_system.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TD
@@ -427,14 +387,7 @@ graph TD
     end
 ```
 
-</details>
-
 ## OASIS Avatar & Identity System
-
-![OASIS Avatar & Identity](../../Images/Diagrams/avatar_identity.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TB
@@ -472,14 +425,7 @@ graph TB
     end
 ```
 
-</details>
-
 ## OASIS OAPPs (OASIS Applications) Framework
-
-![OASIS OAPPs Framework](../../Images/Diagrams/oapps_framework.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TD
@@ -521,14 +467,7 @@ graph TD
     end
 ```
 
-</details>
-
 ## OASIS Security & Privacy Architecture
-
-![OASIS Security & Privacy](../../Images/Diagrams/security_privacy.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TB
@@ -571,14 +510,7 @@ graph TB
     end
 ```
 
-</details>
-
 ## OASIS Network (ONET) Architecture
-
-![OASIS ONET Network](../../Images/Diagrams/onet_network.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TB
@@ -624,14 +556,7 @@ graph TB
     end
 ```
 
-</details>
-
 ## OASIS AI/ML Integration Architecture
-
-![OASIS AI/ML Integration](../../Images/Diagrams/ai_ml_integration.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TD
@@ -674,14 +599,7 @@ graph TD
     end
 ```
 
-</details>
-
 ## OASIS Token Economy
-
-![OASIS Token Economy](../../Images/Diagrams/token_economy.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TB
@@ -723,14 +641,7 @@ graph TB
     end
 ```
 
-</details>
-
 ## OASIS HyperDrive Architecture
-
-![OASIS HyperDrive Architecture](../../Images/Diagrams/hyperdrive_architecture.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TB
@@ -821,14 +732,7 @@ graph TB
     MONITORING --> SLOW
 ```
 
-</details>
-
 ## OASIS COSMIC ORM Architecture
-
-![OASIS COSMIC ORM Architecture](../../Images/Diagrams/cosmic_orm_architecture.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TB
@@ -897,14 +801,7 @@ graph TB
     PROVIDERINTERFACE --> POLYGON
 ```
 
-</details>
-
 ## OASIS NFT System Architecture
-
-![OASIS NFT System Architecture](../../Images/Diagrams/nft_system_architecture.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TB
@@ -1014,14 +911,7 @@ graph TB
     TELOS_NFT -.-> SEEDS_NFT
 ```
 
-</details>
-
 ## OASIS Universal Wallet System Architecture
-
-![OASIS Universal Wallet System](../../Images/Diagrams/universal_wallet_architecture.svg)
-
-<details>
-<summary>Mermaid source</summary>
 
 ```mermaid
 graph TB
@@ -1168,8 +1058,6 @@ graph TB
     SECURITY --> COMPLIANCE
     SECURITY --> BACKUP
 ```
-
-</details>
 
 ---
 
