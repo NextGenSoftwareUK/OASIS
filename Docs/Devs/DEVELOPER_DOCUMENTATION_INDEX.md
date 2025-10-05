@@ -18,6 +18,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **STAR CLI**: Command-line interface for developers
 - **OAPP Builder**: Drag-and-drop application builder
 - **DNA System**: STARNETHolon dependency management
+ - **Core WEB4 APIs** (from oasisweb4.com): AVATAR, KARMA, DATA, WALLET, NFT, KEYS
 
 ### **Revolutionary Systems**
 - **OASIS HyperDrive**: 100% uptime auto-failover system with intelligent routing
@@ -29,6 +30,11 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **One World**: Benevolent MMORPG with optional VR, similar to Minecraft and Pax Dei with cross-platform asset sharing
 - **OASIS/STAR Cross-Platform Universal System**: Revolutionary interoperable universal system with universal STARNETHolon sharing
 - **HoloNET**: Revolutionary Holochain integration bringing P2P architecture to .NET and Unity ecosystems
+
+### **OASIS Web4 Site & Plans**
+- Marketing site scaffold: `oasisweb4.com` (Vite + React + TS)
+- Plans: Bronze, Silver, Gold, Enterprise
+- Frontend checkout calls WEB4 OASIS WebAPI Subscription API (to be implemented): `/api/subscriptions/checkout`
 
 ## 🚀 **Revolutionary Systems Documentation**
 
@@ -52,6 +58,12 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[OASIS Universal Wallet System Whitepaper](../OASIS_UNIVERSAL_WALLET_WHITEPAPER.md)** - Complete wallet system documentation
 - **Features**: Unified interface, cross-chain support, portfolio aggregation, DeFi integration
 - **Benefits**: Single dashboard for all assets, one-click transfers, enhanced security, 100% uptime
+
+### **Grants & Case Studies**
+- Radix DLT: Native bridge between Radix and Solana tokens
+- Arbitrum (Grant Ships): Endangered Tokens NFTs in AR World treasure hunt
+- Arbitrum (Thrive): HoloNET API -> Stellar Gate browser game
+- Solana Superteam UK: AR World Phygital game with geo-cached Solana NFTs
 
 ### **STAR CLI - Revolutionary Interoperable Low/No Code Generator**
 - **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** - Complete STAR CLI guide

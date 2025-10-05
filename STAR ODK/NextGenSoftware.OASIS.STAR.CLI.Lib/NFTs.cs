@@ -243,10 +243,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
                 else
                 {
-                    IImportWeb3NFTRequest request = await NFTCommon.GenerateNFTRequestAsync();
+                    IMintNFTTransactionRequest request = await NFTCommon.GenerateNFTRequestAsync();
 
-                    CLIEngine.ShowWorkingMessage("Importing OASIS NFT...");
-                    OASISResult<IOASISNFT> importResult = await STAR.OASISAPI.NFTs.ImportWeb3NFTAsync(request);
+                    CLIEngine.ShowWorkingMessage("Minting OASIS NFT...");
+                    OASISResult<INFTTransactionRespone> importResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
 
                     if (importResult != null && importResult.Result != null && !importResult.IsError)
                     {

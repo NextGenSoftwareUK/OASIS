@@ -54,6 +54,16 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 **Investment Value**: Massive market opportunity in $50+ billion digital asset management market, first-mover advantage.
 
+### 3a. OASIS Web4 Subscription Plans
+**Innovation**: Clear, tiered plans powering predictable SaaS revenue and enterprise adoption.
+
+- **Bronze**: Core API access, community support
+- **Silver**: Increased limits, Wallet API, email support
+- **Gold**: Priority support, DeFi + Analytics
+- **Enterprise**: Custom SLAs, dedicated support, bespoke integrations
+
+**Competitive/Investment Value**: Monetization aligned to adoption stages; enables self-serve scale-up and enterprise SLAs.
+
 ### 4. Our World - The Benevolent Pokemon Go and Beyond
 **Revolutionary Innovation**: The world's first AR geo-location educational game that encourages environmental stewardship and community service, inspired by Buckminster Fuller's world peace game vision:
 

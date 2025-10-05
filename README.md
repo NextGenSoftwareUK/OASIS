@@ -19,11 +19,47 @@ The OASIS (Open Advanced Secure Interoperable System) is a revolutionary Web4/We
 - [Core Features](#-core-features)
 - [Revolutionary Systems](#-revolutionary-systems)
 - [Documentation](#-documentation)
+- [OASIS Web4 Site & Subscription Plans](#-oasis-web4-site--subscription-plans)
 - [Getting Started](#-getting-started)
 - [Project Structure](#-project-structure)
 - [Contributing](#-contributing)
 - [License](#-license)
 - [Support](#-support)
+
+## 🌐 Supported Blockchain Providers (from existing oasisweb4.com)
+
+Current highlighted networks and systems include: Solana, Radix, Ethereum, Polygon, Arbitrum, Rootstock, Holochain, IPFS, and more via OASIS Providers.
+
+## 🔑 Core WEB4 APIs (from existing oasisweb4.com)
+
+- AVATAR: Centralized user data and identity across the internet
+- KARMA: Track positive actions and build digital reputation
+- DATA: Move/share data seamlessly between Web2 and Web3
+- WALLET: High-security cross-chain wallet (future fiat integration)
+- NFT: Cross-chain NFTs with geo-caching for AR/gaming
+- KEYS: Secure key storage and backup
+
+## 🏆 Grants & Case Studies (from existing oasisweb4.com)
+
+- Radix DLT: Native bridge work between Radix and Solana tokens
+- Arbitrum (Grant Ships): Endangered Tokens NFTs integrated into AR World treasure hunt
+- Arbitrum (Thrive): HoloNET API connected to Stellar Gate (browser-based, Arbitrum-enabled space game)
+- Solana Superteam UK: AR World Phygital mobile game with geo-cached Solana NFTs
+
+## 🌐 OASIS Web4 Site & Subscription Plans
+
+The new marketing site scaffold lives in `oasisweb4.com` (Vite + React + TypeScript).
+
+- Plans: Bronze, Silver, Gold, Enterprise
+- Frontend checkout uses a placeholder endpoint. Configure `VITE_WEB4_API_BASE` and implement `/api/subscriptions/checkout` in the WEB4 OASIS WebAPI.
+- Navigate to `oasisweb4.com` and run:
+
+```bash
+npm install
+npm run dev
+```
+
+Once the Subscription API is implemented, the Plans page will redirect to a hosted checkout (e.g., Stripe) via the backend’s response URL.
 
 
 ## ⚡ Quick Start
