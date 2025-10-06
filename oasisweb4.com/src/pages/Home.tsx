@@ -1,10 +1,18 @@
 import { Box, Button, Grid, Typography, Card, CardContent, CardActions } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { AccountBalanceWallet, Code, Cloud, Security } from '@mui/icons-material';
+import { Helmet } from 'react-helmet-async';
 
 export default function Home() {
   return (
-    <Box>
+    <>
+      <Helmet>
+        <title>OASIS Web4 - Universal Web4/Web5 Infrastructure for Apps, Games & Platforms</title>
+        <meta name="description" content="Build on OASIS Web4 - Unified data, identity, wallets, and gamification APIs. Universal wallet system, STAR CLI, cross-platform STARNETHolons sharing. 100% uptime with auto-failover." />
+        <meta name="keywords" content="Web4, Web5, OASIS, API, blockchain, wallet, identity, gamification, STARNETHolons, universal wallet, STAR CLI, cross-platform, 100% uptime" />
+        <link rel="canonical" href="https://oasisweb4.com/" />
+      </Helmet>
+      <Box>
       <Typography variant="h2" gutterBottom sx={{ fontWeight: 'bold', background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
         Build on WEB4 OASIS
       </Typography>
@@ -74,7 +82,8 @@ export default function Home() {
           Get Started Now
         </Button>
       </Box>
-    </Box>
+      </Box>
+    </>
   );
 }
 

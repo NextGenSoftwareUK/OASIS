@@ -302,6 +302,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseMiddleware<JwtMiddleware>();
+            app.UseMiddleware<SubscriptionMiddleware>();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 

@@ -1,0 +1,99 @@
+Project(s)
+----------
+..\holochain-client-csharp\NextGenSoftware.Holochain.HoloNET.Client\NextGenSoftware.Holochain.HoloNET.Client.csproj
+..\holochain-client-csharp\NextGenSoftware.Holochain.HoloNET.ORM\NextGenSoftware.Holochain.HoloNET.ORM.csproj
+..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.CLI.Engine\NextGenSoftware.CLI.Engine.csproj
+..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.ErrorHandling\NextGenSoftware.ErrorHandling.csproj
+..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Logging.NLog\NextGenSoftware.Logging.NLog.csproj
+..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Logging\NextGenSoftware.Logging.csproj
+..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj
+..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.WebSocket\NextGenSoftware.WebSocket.csproj
+External Libs\net-ipfs-http-client-master\src\IpfsHttpClient.csproj
+External Libs\Spectre.Console\Spectre.Console\Spectre.Console.csproj
+Native EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.TestHarness\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.TestHarness.csproj
+Native EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj
+OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj
+OASIS Architecture\NextGenSoftware.OASIS.API.Core.TestHarness\NextGenSoftware.OASIS.API.Core.TestHarness.csproj
+OASIS Architecture\NextGenSoftware.OASIS.API.Core.UnitTests\NextGenSoftware.OASIS.API.Core.UnitTests.csproj
+OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj
+OASIS Architecture\NextGenSoftware.OASIS.API.DNA.UnitTests\NextGenSoftware.OASIS.API.DNA.UnitTests.csproj
+OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj
+OASIS Architecture\NextGenSoftware.OASIS.Common.UnitTests\NextGenSoftware.OASIS.Common.UnitTests.csproj
+OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj
+OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader.UnitTests\NextGenSoftware.OASIS.OASISBootLoader.UnitTests.csproj
+OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj
+ONODE\NextGenSoftware.OASIS.API.ONODE.Core.TestHarness\NextGenSoftware.OASIS.API.ONode.Core.TestHarness.csproj
+ONODE\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj
+ONODE\NextGenSoftware.OASIS.API.ONODE.OPORTAL\NextGenSoftware.OASIS.API.ONODE.OPORTAL.csproj
+ONODE\NextGenSoftware.OASIS.API.ONode.WebAPI\NextGenSoftware.OASIS.API.ONode.WebAPI.csproj
+Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.csproj
+Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.TestHarness.csproj
+Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj
+Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.TestHarness.csproj
+Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness\NextGenSoftware.OASIS.API.Core.Apollo.Server.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Core.Apollo.Server\NextGenSoftware.OASIS.API.Core.Apollo.Server.csproj
+Providers\NextGenSoftware.OASIS.API.Core.ARC.Membrane.TestHarness\NextGenSoftware.OASIS.API.Core.ARC.Membrane.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Core.ARC.Membrane\NextGenSoftware.OASIS.API.Core.ARC.Membrane.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS\NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.CargoOASIS\NextGenSoftware.OASIS.API.Providers.CargoOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.ElrondOASIS\NextGenSoftware.OASIS.API.Providers.ElrondOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.GOMapOASIS\NextGenSoftware.OASIS.API.Providers.GOMapOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.HoloOASIS\NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.HoloWeb\NextGenSoftware.OASIS.API.Providers.HoloWebOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.MapboxOASIS\NextGenSoftware.OASIS.API.Providers.MapboxOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.TestHarness\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS\NextGenSoftware.OASIS.API.Providers.OrionProtocolOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.PinataOASIS.TestHarnes\NextGenSoftware.OASIS.API.Providers.PinataOASIS.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.PinataOASIS\NextGenSoftware.OASIS.API.Providers.PinataOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.PLANOASIS\NextGenSoftware.OASIS.API.Providers.PLANOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS\NextGenSoftware.OASIS.API.Providers.ProviderNameOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.RootstockOASIS\NextGenSoftware.OASIS.API.Providers.RootstockOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.TestHarness.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.TelosOASIS\NextGenSoftware.OASIS.API.Providers.TelosOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj
+Providers\NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS\NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.CLI.Lib.TestHarness\NextGenSoftware.OASIS.STAR.CLI.Lib.TestHarness.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests\NextGenSoftware.OASIS.STAR.CLI.Lib.UnitTests.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.CLI.Lib\NextGenSoftware.OASIS.STAR.CLI.Lib.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.CLI.UnitTests\NextGenSoftware.OASIS.STAR.CLI.UnitTests.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.CLI\NextGenSoftware.OASIS.STAR.CLI.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA.UnitTests\NextGenSoftware.OASIS.STAR.STARDNA.UnitTests.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\NextGenSoftware.OASIS.STAR.DNA.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.TestHarness\NextGenSoftware.OASIS.STAR.TestHarness.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.UnitTests\NextGenSoftware.OASIS.STAR.UnitTests.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests\NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI.UnitTests\NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\NextGenSoftware.OASIS.STAR.WebAPI.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests\NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR.WebUI\NextGenSoftware.OASIS.STAR.WebUI.csproj
+STAR ODK\NextGenSoftware.OASIS.STAR\NextGenSoftware.OASIS.STAR.csproj
+STAR ODK\STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.DLL.csproj
+STAR ODK\STAR OAPP DNA Templates\NextGenSoftware.OASIS.STAR.DNATemplates.OAPP.Console.NuGet\NextGenSoftware.OASIS.STAR.DNATemplates.OApp.Console.NuGet.csproj

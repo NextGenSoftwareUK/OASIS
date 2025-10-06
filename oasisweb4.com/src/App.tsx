@@ -1,5 +1,5 @@
 import { AppBar, Box, Button, Container, Toolbar, Typography } from '@mui/material';
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link as RouterLink, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Plans from './pages/Plans';
 import Providers from './pages/Providers';
@@ -11,10 +11,10 @@ export default function App() {
       <AppBar position="static" color="transparent" elevation={0}>
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>OASIS Web4</Typography>
-          <Button component={Link} to="/" color="primary">Home</Button>
-          <Button component={Link} to="/plans" color="primary">Plans</Button>
-          <Button component={Link} to="/providers" color="primary">Providers</Button>
-          <Button component={Link} to="/apis" color="primary">APIs</Button>
+          <Button component={RouterLink} to="/" color="primary">Home</Button>
+          <Button component={RouterLink} to="/plans" color="primary">Plans</Button>
+          <Button component={RouterLink} to="/providers" color="primary">Providers</Button>
+          <Button component={RouterLink} to="/apis" color="primary">APIs</Button>
         </Toolbar>
       </AppBar>
       <Box component="main" sx={{ flexGrow: 1, py: 6 }}>

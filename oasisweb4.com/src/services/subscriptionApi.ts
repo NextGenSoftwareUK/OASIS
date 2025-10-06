@@ -1,6 +1,6 @@
 export async function createCheckoutSession(planId: string): Promise<void> {
   // Calls existing SubscriptionController endpoint
-  const apiBase = import.meta.env.VITE_WEB4_API_BASE ?? 'http://localhost:5000/api';
+  const apiBase = (import.meta as any).env?.VITE_WEB4_API_BASE ?? 'http://localhost:5000/api';
   try {
     const res = await fetch(`${apiBase}/subscription/checkout/session`, {
       method: 'POST',
