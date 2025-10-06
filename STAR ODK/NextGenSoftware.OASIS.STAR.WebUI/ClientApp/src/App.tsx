@@ -65,6 +65,10 @@ import ZomesPage from './pages/ZomesPage';
 import STARPluginsPage from './pages/STARPluginsPage';
 import WalletsPage from './pages/WalletsPage';
 import STARCLIPage from './pages/STARCLIPage';
+import SubscriptionPlansPage from './pages/SubscriptionPlansPage';
+import SubscriptionSuccessPage from './pages/SubscriptionSuccessPage';
+import SubscriptionManagePage from './pages/SubscriptionManagePage';
+import UsagePage from './pages/UsagePage';
 
 // Services
 import { starCoreService } from './services';
@@ -870,6 +874,66 @@ const App: React.FC = () => {
                   >
                     <STARPluginsPage />
                   </motion.div>
+                } 
+              />
+              <Route 
+                path="/subscription/plans" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <SubscriptionPlansPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/subscription/success" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <SubscriptionSuccessPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/subscription/manage" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <SubscriptionManagePage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/subscription/usage" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <UsagePage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
             </Routes>

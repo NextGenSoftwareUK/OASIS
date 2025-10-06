@@ -4,6 +4,7 @@
     {
         FirstSaveAttempt,
         AutoFailOver,
-        AutoReplication
+        AutoReplication,
+        AutoLoadBalance
     }
 }

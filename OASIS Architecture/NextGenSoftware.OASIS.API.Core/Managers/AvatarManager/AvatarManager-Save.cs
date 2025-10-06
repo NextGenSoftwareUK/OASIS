@@ -158,6 +158,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     //TODO: Auto-Failover should also re-try in a background thread after reporting the intial error above and then report after the retries either failed or succeeded later...
                     if ((autoReplicationMode == AutoReplicationMode.UseGlobalDefaultInOASISDNA && ProviderManager.Instance.IsAutoReplicationEnabled) || autoReplicationMode == AutoReplicationMode.True)
                         result = AutoReplicateAvatar(avatar, result, previousProviderType, waitForAutoReplicationResult);
+
+                    // Auto-Load Balancing: Distribute load across multiple providers
+                    if ((autoLoadBalanceMode == AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA && ProviderManager.Instance.IsAutoLoadBalanceEnabled) || autoLoadBalanceMode == AutoLoadBalanceMode.True)
+                    {
+                        var loadBalancedProvider = ProviderManager.Instance.SelectOptimalProviderForLoadBalancing();
+                        if (loadBalancedProvider.Value != currentProviderType)
+                        {
+                            // Save to load-balanced provider for better performance distribution
+                            var loadBalanceResult = SaveAvatarForProvider(avatar, new OASISResult<IAvatar>(), SaveMode.AutoLoadBalance, loadBalancedProvider.Value);
+                            
+                            if (!loadBalanceResult.IsError && loadBalanceResult.Result != null)
+                            {
+                                result.InnerMessages.Add($"Auto-load balanced to {loadBalancedProvider.Name} provider for optimal performance");
+                            }
+                        }
+                    }
                 }
 
                 ProviderManager.Instance.SetAndActivateCurrentStorageProvider(currentProviderType);
@@ -285,6 +301,45 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Background retry logic for failed avatar save operations
+        /// </summary>
+        private async Task RetryAvatarSaveInBackgroundAsync(IAvatar avatar, AutoReplicationMode autoReplicationMode, AutoFailOverMode autoFailOverMode, AutoLoadBalanceMode autoLoadBalanceMode, ProviderType providerType)
+        {
+            try
+            {
+                var config = OASISDNAManager.Instance.OASISDNA;
+                var maxRetryAttempts = config?.RetrySettings?.MaxRetryAttempts ?? 3;
+                var retryIntervalSeconds = config?.RetrySettings?.RetryIntervalSeconds ?? 5;
+
+                for (int attempt = 1; attempt <= maxRetryAttempts; attempt++)
+                {
+                    await Task.Delay(retryIntervalSeconds * 1000);
+
+                    try
+                    {
+                        var retryResult = await SaveAvatarAsync(avatar, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, false, providerType);
+                        
+                        if (retryResult.IsSuccess)
+                        {
+                            Console.WriteLine($"Background retry succeeded for avatar {avatar.Name} on attempt {attempt}");
+                            return;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Background retry attempt {attempt} failed for avatar {avatar.Name}: {ex.Message}");
+                    }
+                }
+
+                Console.WriteLine($"All background retry attempts failed for avatar {avatar.Name}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Background retry process failed for avatar {avatar.Name}: {ex.Message}");
+            }
         }
     }
 }

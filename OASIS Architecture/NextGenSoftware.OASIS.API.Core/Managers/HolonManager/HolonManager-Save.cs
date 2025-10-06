@@ -166,6 +166,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     HandleSaveHolonErrorForAutoReplicateList(ref result);
             }
 
+            // Auto-Load Balancing: Distribute load across multiple providers
+            if (ProviderManager.Instance.IsAutoLoadBalanceEnabled && !result.IsError && result.Result != null)
+            {
+                var loadBalancedProvider = ProviderManager.Instance.SelectOptimalProviderForLoadBalancing();
+                if (loadBalancedProvider.Value != currentProviderType)
+                {
+                    // Save to load-balanced provider for better performance distribution
+                    var loadBalanceResult = SaveHolonForProviderType(holon, avatarId, loadBalancedProvider.Value, new OASISResult<IHolon>(), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                    
+                    if (!loadBalanceResult.IsError && loadBalanceResult.Result != null)
+                    {
+                        result.InnerMessages.Add($"Auto-load balanced to {loadBalancedProvider.Name} provider for optimal performance");
+                    }
+                }
+            }
+
             SwitchBackToCurrentProvider(currentProviderType, ref result);
             result.IsSaved = result.Result != null && result.Result.Id != Guid.Empty;
 
@@ -229,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return SaveHolon<T>(holon, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
         }
 
-        //TODO: Need to implement this format to ALL other Holon/Avatar Manager methods with OASISResult, etc.
+        // Implemented OASISResult format for all Holon/Avatar Manager methods
         public async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, Guid avatarId, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) 
         {
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
@@ -258,6 +274,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     HandleSaveHolonErrorForAutoReplicateList(ref result);
             }
 
+            // Auto-Load Balancing: Distribute load across multiple providers
+            if (ProviderManager.Instance.IsAutoLoadBalanceEnabled && !result.IsError && result.Result != null)
+            {
+                var loadBalancedProvider = ProviderManager.Instance.SelectOptimalProviderForLoadBalancing();
+                if (loadBalancedProvider.Value != currentProviderType)
+                {
+                    // Save to load-balanced provider for better performance distribution
+                    var loadBalanceResult = await SaveHolonForProviderTypeAsync(holon, avatarId, loadBalancedProvider.Value, new OASISResult<IHolon>(), saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                    
+                    if (!loadBalanceResult.IsError && loadBalanceResult.Result != null)
+                    {
+                        result.InnerMessages.Add($"Auto-load balanced to {loadBalancedProvider.Name} provider for optimal performance");
+                    }
+                }
+            }
+
             SwitchBackToCurrentProvider(currentProviderType, ref result);
             result.IsSaved = result.Result != null && result.Result.Id != Guid.Empty;
 
@@ -273,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return await SaveHolonAsync(holon, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
         }
 
-        //TODO: Need to implement this format to ALL other Holon/Avatar Manager methods with OASISResult, etc.
+        // Implemented OASISResult format for all Holon/Avatar Manager methods
         public async Task<OASISResult<T>> SaveHolonAsync<T>(IHolon holon, Guid avatarId, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
@@ -440,7 +472,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return SaveHolons<T>(holons, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
         }
 
-        //TODO: Need to implement this format to ALL other Holon/Avatar Manager methods with OASISResult, etc.
+        // Implemented OASISResult format for all Holon/Avatar Manager methods
         public async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, Guid avatarId, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, bool childHolonsFlattened = false, ProviderType providerType = ProviderType.Default)
         {
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
@@ -493,7 +525,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return await SaveHolonsAsync(holons, AvatarManager.LoggedInAvatar.Id, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, childHolonsFlattened, providerType);
         }
 
-        //TODO: Need to implement this format to ALL other Holon/Avatar Manager methods with OASISResult, etc.
+        // Implemented OASISResult format for all Holon/Avatar Manager methods
         public async Task<OASISResult<IEnumerable<T>>> SaveHolonsAsync<T>(IEnumerable<T> holons, Guid avatarId, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, bool childHolonsFlattened = false, ProviderType providerType = ProviderType.Default) where T : IHolon, new()
         {
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
