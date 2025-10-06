@@ -40,6 +40,8 @@ import {
   DataObject,
   AccountBalanceWallet,
   Terminal,
+  CreditCard,
+  TrendingUp,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -259,6 +261,20 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           icon: <AccountBalanceWallet />,
           path: '/wallets',
           description: 'OASIS Universal Wallet',
+        },
+        {
+          id: 'subscription-plans',
+          title: 'Subscription Plans',
+          icon: <CreditCard />,
+          path: '/subscription/plans',
+          description: 'OASIS Subscription Plans',
+        },
+        {
+          id: 'usage',
+          title: 'Usage & Billing',
+          icon: <TrendingUp />,
+          path: '/subscription/usage',
+          description: 'API Usage & Billing',
         },
       ],
     },

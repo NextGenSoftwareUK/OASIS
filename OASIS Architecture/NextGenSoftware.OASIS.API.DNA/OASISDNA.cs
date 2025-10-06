@@ -1,6 +1,7 @@
 ﻿using System;
 using NextGenSoftware.ErrorHandling;
 using NextGenSoftware.Logging;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 
 namespace NextGenSoftware.OASIS.API.DNA
 {
@@ -20,6 +21,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public SecuritySettings Security { get; set; }
         public EmailSettings Email { get; set; }
         public StorageProviderSettings StorageProviders { get; set; }
+        public OASISHyperDriveConfig OASISHyperDriveConfig { get; set; }
         public string OASISSystemAccountId { get; set; }
         public string OASISAPIURL { get; set; }
     }

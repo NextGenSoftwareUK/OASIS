@@ -9,12 +9,14 @@
     "preview": "vite preview --port 5173"
   },
   "dependencies": {
-    "@mui/icons-material": "^6.1.6",
-    "@mui/material": "^6.1.6",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^6.1.6",
+    "@mui/material": "^6.1.6",
+    "@vitejs/plugin-react": "^5.0.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-helmet-async": "^2.0.5",
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
@@ -29,4 +31,3 @@
     "vite": "^5.4.8"
   }
 }
-
