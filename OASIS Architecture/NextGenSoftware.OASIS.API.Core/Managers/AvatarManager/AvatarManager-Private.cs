@@ -128,7 +128,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
 
-            if (!IsValidEmail(email))
+            if (!ValidationHelper.IsValidEmail(email))
             {
                 result.IsError = true;
                 result.Message = "The email is not valid.";

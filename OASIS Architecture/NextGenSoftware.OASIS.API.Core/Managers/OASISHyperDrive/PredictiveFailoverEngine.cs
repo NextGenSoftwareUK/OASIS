@@ -419,7 +419,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // Remove current provider from alternatives
             availableProviders.Remove(currentProvider);
 
-            return await _aiEngine.SelectOptimalProviderAsync(availableProviders, LoadBalancingStrategy.Performance);
+            var recommendations = await _aiEngine.GetProviderRecommendationsAsync(new StorageOperationRequest(), availableProviders);
+            return recommendations.FirstOrDefault()?.Value ?? availableProviders.First();
         }
 
         /// <summary>
