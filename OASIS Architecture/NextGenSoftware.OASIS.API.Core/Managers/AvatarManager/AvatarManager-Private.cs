@@ -322,22 +322,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                         if (!result.IsError && result.Result != null)
                             break;
-        }
-
-        private bool IsValidEmail(string email)
-        {
-            try
-            {
-                var addr = new System.Net.Mail.MailAddress(email);
-                return addr.Address == email;
+                    }
+                }
             }
-            catch
-            {
-                return false;
-            }
-        }
-    }
-}
 
             if (result.Result == null)
                 OASISErrorHandling.HandleError(ref result, String.Concat("All registered OASIS Providers in the AutoFailOverList failed to load avatar, ", param1, ". Please view the logs or DetailedMessage property for more information. Providers in the list are: ", ProviderManager.Instance.GetProviderAutoFailOverListAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)));
