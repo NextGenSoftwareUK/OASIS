@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
@@ -16,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Core
     /// </summary>
     public class OASISHyperDrive
     {
-        private readonly ProviderManager _providerManager;
+        private readonly ProviderManagerNew _providerManager;
         private readonly PerformanceMonitor _performanceMonitor;
         private readonly OASISHyperDriveConfigManager _configManager;
         private readonly AIOptimizationEngine _aiEngine;
@@ -25,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         public OASISHyperDrive()
         {
-            _providerManager = ProviderManager.Instance;
+            _providerManager = ProviderManagerNew.Instance;
             _performanceMonitor = PerformanceMonitor.Instance;
             _configManager = OASISHyperDriveConfigManager.Instance;
             _aiEngine = AIOptimizationEngine.Instance;
@@ -44,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.Core
             {
                 // 1. Check subscription quotas before proceeding
                 var quotaCheck = await CheckQuotaBeforeOperationAsync(request);
-                if (!quotaCheck.IsSuccess)
+                if (quotaCheck.IsError)
                 {
                     return new OASISResult<T>
                     {
@@ -118,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.Core
                 foreach (var provider in failoverProviders)
                 {
                     var result = await RouteToProviderAsync<T>(request, provider);
-                    if (result.IsSuccess)
+                    if (!result.IsError)
                     {
                         return result;
                     }
@@ -154,7 +157,7 @@ namespace NextGenSoftware.OASIS.API.Core
                 foreach (var provider in replicationProviders)
                 {
                     var result = await RouteToProviderAsync<T>(request, provider);
-                    if (result.IsSuccess && result.Result != null)
+                    if (!result.IsError && result.Result != null)
                     {
                         results.Add(result.Result);
                     }
@@ -163,7 +166,6 @@ namespace NextGenSoftware.OASIS.API.Core
                 return new OASISResult<List<T>>
                 {
                     Result = results,
-                    IsSuccess = true,
                     Message = $"Replicated to {results.Count} providers"
                 };
             }
@@ -326,7 +328,7 @@ namespace NextGenSoftware.OASIS.API.Core
                     if (subscriptionConfig.PayAsYouGoEnabled)
                     {
                         // Allow with pay-as-you-go
-                        return new OASISResult<bool> { Result = true, IsSuccess = true };
+                        return new OASISResult<bool> { Result = true };
                     }
                     else
                     {
@@ -338,7 +340,7 @@ namespace NextGenSoftware.OASIS.API.Core
                     }
                 }
                 
-                return new OASISResult<bool> { Result = true, IsSuccess = true };
+                return new OASISResult<bool> { Result = true };
             }
             catch (Exception ex)
             {
@@ -355,7 +357,7 @@ namespace NextGenSoftware.OASIS.API.Core
 
         private SubscriptionConfig GetSubscriptionConfig()
         {
-            var dna = OASISDNAManager.Instance.OASISDNA;
+            var dna = OASISDNAManager.OASISDNA;
             return dna?.SubscriptionConfig ?? new SubscriptionConfig();
         }
 
@@ -395,11 +397,8 @@ namespace NextGenSoftware.OASIS.API.Core
             // This would typically come from a usage tracking service
             return operationType switch
             {
-                "Replications" => 45,
-                "Failovers" => 3,
-                "Storage" => 2,
-                "Requests" => 1250,
-                _ => 0
+                "Replications" => await Task.FromResult(0),
+                _ => await Task.FromResult(0)
             };
         }
 
@@ -407,23 +406,8 @@ namespace NextGenSoftware.OASIS.API.Core
         {
             return operationType switch
             {
-                "Replications" => config.MaxReplicationsPerMonth,
-                "Failovers" => config.MaxFailoversPerMonth,
-                "Storage" => config.MaxStorageGB,
-                "Requests" => GetRequestLimit(config.PlanType),
-                _ => 0
-            };
-        }
-
-        private int GetRequestLimit(string planType)
-        {
-            return planType switch
-            {
-                "Free" => 1000,
-                "Basic" => 10000,
-                "Pro" => 100000,
-                "Enterprise" => int.MaxValue,
-                _ => 1000
+                "Replications" => config.MaxReplications,
+                _ => config.MaxRequests
             };
         }
 
@@ -451,17 +435,7 @@ namespace NextGenSoftware.OASIS.API.Core
         }
     }
 
-    // Supporting classes and enums
-    public enum LoadBalancingStrategy
-    {
-        Auto,
-        RoundRobin,
-        WeightedRoundRobin,
-        LeastConnections,
-        Geographic,
-        CostBased,
-        Performance
-    }
+    // Supporting classes
 
     public class ProviderPerformanceMetrics
     {

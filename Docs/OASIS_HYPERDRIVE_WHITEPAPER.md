@@ -7,6 +7,11 @@
 
 The OASIS HyperDrive represents a revolutionary breakthrough in data infrastructure, introducing the world's first truly universal auto-failover system that provides 100% uptime across all Web2 and Web3 platforms. This system automatically manages data routing, load balancing, and replication to ensure seamless operation regardless of network conditions, geographic location, or provider availability.
 
+### Versions (Legacy vs OASIS HyperDrive 2)
+
+- Legacy (v1): Auto-Replication, Auto-Failover
+- OASIS HyperDrive 2 (v2): Adds Auto-Load Balancing, Intelligent Selection (latency-first), Predictive Failover, Enhanced Replication Rules (provider/data-type/schedule/cost/permissions), Advanced Analytics (performance, cost, predictive), Subscription-aware quotas & alerts, Full WebAPI + STAR UI config, Mode switch with v2→v1 fallback.
+
 ## Table of Contents
 
 1. [Introduction](#introduction)
@@ -160,91 +165,6 @@ The HyperDrive automatically replicates data across multiple providers:
 - **Version Control**: Maintain data version history
 - **Integrity Checks**: Ensure data integrity
 - **Rollback Capability**: Ability to rollback changes
-
----
-
-## Architecture Overview
-
-### HyperDrive Core Components
-
-```mermaid
-graph TB
-    subgraph "OASIS HyperDrive Architecture"
-        subgraph "Application Layer"
-            APP[Your Application]
-            API[OASIS API]
-        end
-        
-        subgraph "HyperDrive Core"
-            ROUTING[Intelligent Routing Engine]
-            FAILOVER[Auto-Failover System]
-            LOADBAL[Auto-Load Balancing]
-            REPLICATION[Auto-Replication]
-            MONITORING[Performance Monitoring]
-        end
-        
-        subgraph "Provider Network"
-            subgraph "Web2 Providers"
-                MONGODB[MongoDB]
-                POSTGRES[PostgreSQL]
-                REDIS[Redis]
-                AZURE[Azure]
-                AWS[AWS]
-                GCP[Google Cloud]
-            end
-            
-            subgraph "Web3 Providers"
-                ETHEREUM[Ethereum]
-                SOLANA[Solana]
-                IPFS[IPFS]
-                HOLOCHAIN[Holochain]
-                ARBITRUM[Arbitrum]
-                POLYGON[Polygon]
-            end
-            
-            subgraph "Local Providers"
-                SQLITE[SQLite]
-                LOCALFILE[Local File]
-                HOLOCHAIN_LOCAL[Holochain Local]
-            end
-        end
-        
-        subgraph "Geographic Distribution"
-            US[United States]
-            EU[Europe]
-            ASIA[Asia]
-            AFRICA[Africa]
-            OCEANIA[Oceania]
-        end
-    end
-    
-    APP --> API
-    API --> ROUTING
-    ROUTING --> FAILOVER
-    ROUTING --> LOADBAL
-    ROUTING --> REPLICATION
-    ROUTING --> MONITORING
-    
-    FAILOVER --> MONGODB
-    FAILOVER --> POSTGRES
-    FAILOVER --> REDIS
-    FAILOVER --> ETHEREUM
-    FAILOVER --> SOLANA
-    FAILOVER --> IPFS
-    FAILOVER --> SQLITE
-    FAILOVER --> LOCALFILE
-    
-    LOADBAL --> US
-    LOADBAL --> EU
-    LOADBAL --> ASIA
-    LOADBAL --> AFRICA
-    LOADBAL --> OCEANIA
-    
-    REPLICATION --> MONGODB
-    REPLICATION --> ETHEREUM
-    REPLICATION --> IPFS
-    REPLICATION --> HOLOCHAIN
-```
 
 ---
 
@@ -513,9 +433,90 @@ The HyperDrive provides full operation even with no network:
 
 ---
 
-## Technical Implementation
+## Architecture Overview
 
-### HyperDrive Core Engine
+### HyperDrive Core Components
+
+```mermaid
+graph TB
+    subgraph "OASIS HyperDrive Architecture"
+        subgraph "Application Layer"
+            APP[Your Application]
+            API[OASIS API]
+        end
+        
+        subgraph "HyperDrive Core"
+            ROUTING[Intelligent Routing Engine]
+            FAILOVER[Auto-Failover System]
+            LOADBAL[Auto-Load Balancing]
+            REPLICATION[Auto-Replication]
+            MONITORING[Performance Monitoring]
+        end
+        
+        subgraph "Provider Network"
+            subgraph "Web2 Providers"
+                MONGODB[MongoDB]
+                POSTGRES[PostgreSQL]
+                REDIS[Redis]
+                AZURE[Azure]
+                AWS[AWS]
+                GCP[Google Cloud]
+            end
+            
+            subgraph "Web3 Providers"
+                ETHEREUM[Ethereum]
+                SOLANA[Solana]
+                IPFS[IPFS]
+                HOLOCHAIN[Holochain]
+                ARBITRUM[Arbitrum]
+                POLYGON[Polygon]
+            end
+            
+            subgraph "Local Providers"
+                SQLITE[SQLite]
+                LOCALFILE[Local File]
+                HOLOCHAIN_LOCAL[Holochain Local]
+            end
+        end
+        
+        subgraph "Geographic Distribution"
+            US[United States]
+            EU[Europe]
+            ASIA[Asia]
+            AFRICA[Africa]
+            OCEANIA[Oceania]
+        end
+    end
+    
+    APP --> API
+    API --> ROUTING
+    ROUTING --> FAILOVER
+    ROUTING --> LOADBAL
+    ROUTING --> REPLICATION
+    ROUTING --> MONITORING
+    
+    FAILOVER --> MONGODB
+    FAILOVER --> POSTGRES
+    FAILOVER --> REDIS
+    FAILOVER --> ETHEREUM
+    FAILOVER --> SOLANA
+    FAILOVER --> IPFS
+    FAILOVER --> SQLITE
+    FAILOVER --> LOCALFILE
+    
+    LOADBAL --> US
+    LOADBAL --> EU
+    LOADBAL --> ASIA
+    LOADBAL --> AFRICA
+    LOADBAL --> OCEANIA
+    
+    REPLICATION --> MONGODB
+    REPLICATION --> ETHEREUM
+    REPLICATION --> IPFS
+    REPLICATION --> HOLOCHAIN
+```
+
+### Implementation Components
 
 ```csharp
 public class OASISHyperDrive

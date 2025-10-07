@@ -1,20 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using NextGenSoftware.OASIS.API.Core.Enums;
+// Note: Avoid referencing Core enums here to prevent project cycles
 
 namespace NextGenSoftware.OASIS.API.Core.Configuration
 {
-    /// <summary>
-    /// OASIS HyperDrive Configuration settings
-    /// </summary>
     public class OASISHyperDriveConfig
     {
         [Required]
         public bool IsEnabled { get; set; } = true;
 
         [Required]
-        public LoadBalancingStrategy DefaultStrategy { get; set; } = LoadBalancingStrategy.Auto;
+        public string DefaultStrategy { get; set; } = "Auto";
 
         [Required]
         public bool AutoFailoverEnabled { get; set; } = true;
@@ -59,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
 
         [Required]
         [Range(0.1, 10.0)]
-        public double LatencyWeight { get; set; } = 0.5; // Primary criteria for lag/ping
+        public double LatencyWeight { get; set; } = 0.5;
 
         [Required]
         [Range(0.1, 10.0)]
@@ -82,18 +79,18 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         public double MinUptimeThreshold { get; set; } = 99.0;
 
         [Required]
-        public List<ProviderType> EnabledProviders { get; set; } = new List<ProviderType>();
+        public List<string> EnabledProviders { get; set; } = new List<string>();
 
         [Required]
-        public List<ProviderType> AutoFailoverProviders { get; set; } = new List<ProviderType>();
+        public List<string> AutoFailoverProviders { get; set; } = new List<string>();
 
         [Required]
-        public List<ProviderType> AutoReplicationProviders { get; set; } = new List<ProviderType>();
+        public List<string> AutoReplicationProviders { get; set; } = new List<string>();
 
         [Required]
-        public List<ProviderType> LoadBalancingProviders { get; set; } = new List<ProviderType>();
+        public List<string> LoadBalancingProviders { get; set; } = new List<string>();
 
-        public Dictionary<ProviderType, ProviderConfig> ProviderConfigs { get; set; } = new Dictionary<ProviderType, ProviderConfig>();
+        public Dictionary<string, ProviderConfig> ProviderConfigs { get; set; } = new Dictionary<string, ProviderConfig>();
 
         public GeographicConfig GeographicConfig { get; set; } = new GeographicConfig();
 
@@ -106,13 +103,10 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         public MonitoringConfig MonitoringConfig { get; set; } = new MonitoringConfig();
     }
 
-    /// <summary>
-    /// Individual provider configuration
-    /// </summary>
     public class ProviderConfig
     {
         [Required]
-        public ProviderType ProviderType { get; set; }
+        public string ProviderType { get; set; }
 
         [Required]
         public bool IsEnabled { get; set; } = true;
@@ -147,9 +141,6 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         public Dictionary<string, string> CustomSettings { get; set; } = new Dictionary<string, string>();
     }
 
-    /// <summary>
-    /// Geographic configuration for routing
-    /// </summary>
     public class GeographicConfig
     {
         [Required]
@@ -176,9 +167,6 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         public Dictionary<string, GeographicRegion> Regions { get; set; } = new Dictionary<string, GeographicRegion>();
     }
 
-    /// <summary>
-    /// Geographic region information
-    /// </summary>
     public class GeographicRegion
     {
         [Required]
@@ -208,9 +196,6 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         public int MaxNetworkHops { get; set; } = 5;
     }
 
-    /// <summary>
-    /// Cost configuration for provider selection
-    /// </summary>
     public class CostConfig
     {
         [Required]
@@ -235,12 +220,23 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         [Range(0.0, 1000.0)]
         public double MaxNetworkCostPerGB { get; set; } = 0.05;
 
-        public Dictionary<ProviderType, CostAnalysis> ProviderCosts { get; set; } = new Dictionary<ProviderType, CostAnalysis>();
+        public Dictionary<string, CostAnalysisDNA> ProviderCosts { get; set; } = new Dictionary<string, CostAnalysisDNA>();
     }
 
-    /// <summary>
-    /// Performance configuration
-    /// </summary>
+    public class CostAnalysisDNA
+    {
+        public string ProviderType { get; set; }
+        public double StorageCostPerGB { get; set; }
+        public double ComputeCostPerHour { get; set; }
+        public double NetworkCostPerGB { get; set; }
+        public double TransactionCost { get; set; }
+        public double ApiCallCost { get; set; }
+        public double TotalCost { get; set; }
+        public string Currency { get; set; }
+        public DateTime LastUpdated { get; set; }
+        public int CostEfficiencyScore { get; set; }
+    }
+
     public class PerformanceConfig
     {
         [Required]
@@ -279,9 +275,6 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         public double MaxMemoryUsage { get; set; } = 80.0;
     }
 
-    /// <summary>
-    /// Security configuration
-    /// </summary>
     public class SecurityConfig
     {
         [Required]
@@ -302,7 +295,7 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
 
         [Required]
         [Range(1000, 3600000)]
-        public int SessionTimeoutMs { get; set; } = 300000; // 5 minutes
+        public int SessionTimeoutMs { get; set; } = 300000;
 
         [Required]
         [Range(1, 100)]
@@ -313,9 +306,6 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         public Dictionary<string, string> SecurityHeaders { get; set; } = new Dictionary<string, string>();
     }
 
-    /// <summary>
-    /// Monitoring configuration
-    /// </summary>
     public class MonitoringConfig
     {
         [Required]
@@ -323,7 +313,7 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
 
         [Required]
         [Range(1000, 3600000)]
-        public int MetricsCollectionIntervalMs { get; set; } = 30000; // 30 seconds
+        public int MetricsCollectionIntervalMs { get; set; } = 30000;
 
         [Required]
         [Range(1, 1000)]
@@ -349,14 +339,11 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         public Dictionary<string, string> CustomMetrics { get; set; } = new Dictionary<string, string>();
     }
 
-    /// <summary>
-    /// Load balancing strategy weights
-    /// </summary>
     public class LoadBalancingWeights
     {
         [Required]
         [Range(0.0, 1.0)]
-        public double LatencyWeight { get; set; } = 0.5; // Primary criteria
+        public double LatencyWeight { get; set; } = 0.5;
 
         [Required]
         [Range(0.0, 1.0)]
@@ -387,3 +374,5 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         public double ConnectionWeight { get; set; } = 0.0;
     }
 }
+
+

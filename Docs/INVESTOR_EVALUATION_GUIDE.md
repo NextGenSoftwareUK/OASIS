@@ -23,6 +23,10 @@ The OASIS (Open Advanced Secure Interoperable System) represents a revolutionary
 ### 1. OASIS HyperDrive - 100% Uptime System
 **Revolutionary Innovation**: The world's first universal auto-failover system that provides 100% uptime:
 
+**v1 vs v2**
+- Legacy (v1): Auto-Replication, Auto-Failover
+- OASIS HyperDrive 2 (v2): Adds Auto-Load Balancing, Predictive Failover, AI Optimization, Advanced Analytics, Granular Replication Rules (provider/data-type/schedule/cost/permissions), Subscription-aware quotas & alerts, Mode switch with safe v2→v1 fallback
+
 - **Auto-Failover**: Automatically switches between providers when issues occur
 - **Auto-Load Balancing**: Intelligently distributes load across optimal providers  
 - **Auto-Replication**: Automatically replicates data when conditions improve

@@ -1,5 +1,8 @@
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Providers;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         // Provider Instances
         public Dictionary<ProviderType, IOASISStorageProvider> StorageProviders { get; set; } = new Dictionary<ProviderType, IOASISStorageProvider>();
-        public Dictionary<ProviderType, IOASISNetworkProvider> NetworkProviders { get; set; } = new Dictionary<ProviderType, IOASISNetworkProvider>();
+        public Dictionary<ProviderType, IOASISNETProvider> NetworkProviders { get; set; } = new Dictionary<ProviderType, IOASISNETProvider>();
         public Dictionary<ProviderType, IOASISKeyManagerProvider> KeyManagerProviders { get; set; } = new Dictionary<ProviderType, IOASISKeyManagerProvider>();
         public Dictionary<ProviderType, IOASISSearchProvider> SearchProviders { get; set; } = new Dictionary<ProviderType, IOASISSearchProvider>();
         public Dictionary<ProviderType, IOASISNFTProvider> NFTProviders { get; set; } = new Dictionary<ProviderType, IOASISNFTProvider>();
@@ -114,7 +117,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         /// <summary>
         /// Registers a network provider
         /// </summary>
-        public void RegisterNetworkProvider(ProviderType providerType, IOASISNetworkProvider provider)
+        public void RegisterNetworkProvider(ProviderType providerType, IOASISNETProvider provider)
         {
             NetworkProviders[providerType] = provider;
         }
@@ -162,7 +165,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         /// <summary>
         /// Gets a network provider instance
         /// </summary>
-        public IOASISNetworkProvider GetNetworkProvider(ProviderType providerType)
+        public IOASISNETProvider GetNetworkProvider(ProviderType providerType)
         {
             return NetworkProviders.TryGetValue(providerType, out var provider) ? provider : null;
         }
