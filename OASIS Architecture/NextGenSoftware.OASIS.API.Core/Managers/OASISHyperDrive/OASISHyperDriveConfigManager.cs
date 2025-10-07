@@ -78,9 +78,9 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
             try
             {
                 var dna = OASISDNAManager.OASISDNA;
-                if (dna?.OASISHyperDriveConfig != null)
+                if (dna?.OASIS?.OASISHyperDriveConfig != null)
                 {
-                    _config = dna.OASISHyperDriveConfig;
+                    _config = dna.OASIS.OASISHyperDriveConfig;
                 }
                 else
                 {
@@ -102,9 +102,9 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
             try
             {
                 var dna = OASISDNAManager.OASISDNA;
-                if (dna != null)
+                if (dna?.OASIS != null)
                 {
-                    dna.OASISHyperDriveConfig = _config;
+                    dna.OASIS.OASISHyperDriveConfig = _config;
                     OASISDNAManager.SaveDNA();
                 }
             }

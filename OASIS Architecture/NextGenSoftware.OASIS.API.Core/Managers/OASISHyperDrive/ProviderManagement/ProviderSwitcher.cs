@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -136,7 +137,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 await LogProviderSwitchAsync(currentProvider, newProviderType, category);
 
                 // Update performance metrics
-                await _performanceMonitor.RecordProviderSwitchAsync(currentProvider, newProviderType);
+                await _performanceMonitor.RecordProviderSwitchAsync(new EnumValue<ProviderType>(currentProvider), new EnumValue<ProviderType>(newProviderType));
 
                 return new OASISResult<bool>
                 {

@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -39,6 +42,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public double CostScore { get; set; }
         public double GeographicScore { get; set; }
         public double OverallScore { get; set; }
+        public double AverageResponseTime { get; set; }
+        public double TotalResponseTime { get; set; }
+        public DateTime LastActivity { get; set; }
     }
 
     /// <summary>
@@ -75,6 +81,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     }
 
     /// <summary>
+    /// Provider switch tracking for analytics
+    /// </summary>
+    public class ProviderSwitch
+    {
+        public ProviderType FromProvider { get; set; }
+        public ProviderType ToProvider { get; set; }
+        public DateTime Timestamp { get; set; }
+        public string Reason { get; set; }
+        public double PerformanceGain { get; set; }
+    }
+
+    /// <summary>
     /// Performance monitoring and metrics collection
     /// </summary>
     public class PerformanceMonitor
@@ -85,6 +103,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private readonly Dictionary<ProviderType, CostAnalysis> _costAnalysis;
         private readonly Dictionary<ProviderType, int> _activeConnections;
         private readonly Dictionary<ProviderType, Queue<DateTime>> _requestHistory;
+        private readonly List<ProviderSwitch> _providerSwitches;
+        private readonly AIOptimizationEngine _aiEngine;
         private readonly object _lockObject = new object();
 
         public static PerformanceMonitor Instance
@@ -104,6 +124,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             _costAnalysis = new Dictionary<ProviderType, CostAnalysis>();
             _activeConnections = new Dictionary<ProviderType, int>();
             _requestHistory = new Dictionary<ProviderType, Queue<DateTime>>();
+            _providerSwitches = new List<ProviderSwitch>();
+            _aiEngine = new AIOptimizationEngine();
         }
 
         /// <summary>
@@ -216,6 +238,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 return _metrics.ContainsKey(providerType) ? _metrics[providerType] : null;
             }
+        }
+
+        /// <summary>
+        /// Gets provider metrics for AI optimization
+        /// </summary>
+        public ProviderPerformanceMetrics GetProviderMetrics(ProviderType providerType)
+        {
+            return GetMetrics(providerType);
         }
 
         /// <summary>
@@ -416,6 +446,58 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 _geographicInfo.Clear();
                 _costAnalysis.Clear();
                 _requestHistory.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Records a provider switch asynchronously
+        /// </summary>
+        public async Task RecordProviderSwitchAsync(EnumValue<ProviderType> fromProvider, EnumValue<ProviderType> toProvider)
+        {
+            try
+            {
+                var switchRecord = new ProviderSwitch
+                {
+                    FromProvider = fromProvider.Value,
+                    ToProvider = toProvider.Value,
+                    Timestamp = DateTime.UtcNow,
+                    Reason = "Performance Optimization"
+                };
+
+                lock (_lockObject)
+                {
+                    _providerSwitches.Add(switchRecord);
+
+                    // Keep only recent switches (last 24 hours)
+                    var cutoffTime = DateTime.UtcNow.AddHours(-24);
+                    _providerSwitches.RemoveAll(s => s.Timestamp < cutoffTime);
+                }
+
+                // Log the switch for monitoring
+                Logger.LogInfo($"Provider switched from {fromProvider.Name} to {toProvider.Name} at {switchRecord.Timestamp}");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Error recording provider switch: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Updates metrics asynchronously
+        /// </summary>
+        public async Task UpdateMetricsAsync(EnumValue<ProviderType> providerType, OASISResult<object> result)
+        {
+            try
+            {
+                // Update performance metrics
+                RecordRequest(providerType.Value, !result.IsError, result.ResponseTimeMs);
+
+                // Log performance data for AI learning
+                await _aiEngine.RecordPerformanceDataAsync(providerType.Value, new StorageOperationRequest(), result, result.ResponseTimeMs);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Error updating metrics for {providerType.Name}: {ex.Message}");
             }
         }
     }
