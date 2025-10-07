@@ -474,30 +474,30 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Log the switch for monitoring
-                Logger.LogInfo($"Provider switched from {fromProvider.Name} to {toProvider.Name} at {switchRecord.Timestamp}");
+                LoggingManager.Logger.Log($"Provider switched from {fromProvider.Name} to {toProvider.Name} at {switchRecord.Timestamp}", LogType.Info);
             }
             catch (Exception ex)
             {
-                Logger.LogError($"Error recording provider switch: {ex.Message}");
+                LoggingManager.Logger.Log($"Error recording provider switch: {ex.Message}", LogType.Error);
             }
         }
 
         /// <summary>
         /// Updates metrics asynchronously
         /// </summary>
-        public async Task UpdateMetricsAsync(EnumValue<ProviderType> providerType, OASISResult<object> result)
+        public async Task UpdateMetricsAsync(EnumValue<ProviderType> providerType, OASISResult<object> result, long responseTimeMs)
         {
             try
             {
                 // Update performance metrics
-                RecordRequest(providerType.Value, !result.IsError, result.ResponseTimeMs);
+                RecordRequest(providerType.Value, !result.IsError, responseTimeMs);
 
                 // Log performance data for AI learning
-                await _aiEngine.RecordPerformanceDataAsync(providerType.Value, new StorageOperationRequest(), result, result.ResponseTimeMs);
+                await _aiEngine.RecordPerformanceDataAsync(providerType.Value, new StorageOperationRequest(), result, responseTimeMs);
             }
             catch (Exception ex)
             {
-                Logger.LogError($"Error updating metrics for {providerType.Name}: {ex.Message}");
+                LoggingManager.Logger.Log($"Error updating metrics for {providerType.Name}: {ex.Message}", LogType.Error);
             }
         }
     }
