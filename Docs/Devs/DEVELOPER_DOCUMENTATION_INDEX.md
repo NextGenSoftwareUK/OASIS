@@ -19,9 +19,13 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **OAPP Builder**: Drag-and-drop application builder
 - **DNA System**: STARNETHolon dependency management
  - **Core WEB4 APIs** (from oasisweb4.com): AVATAR, KARMA, DATA, WALLET, NFT, KEYS
+ - **ProviderManagement Refactor**: Registry, Selector, Switcher, Configurator, Facade, with `ProviderManagerNew` facade and legacy `ProviderManager` marked [Obsolete]
 
 ### **Revolutionary Systems**
 - **OASIS HyperDrive**: 100% uptime auto-failover system with intelligent routing
+  - Legacy (v1): Auto-Replication, Auto-Failover
+  - OASIS HyperDrive 2 (v2): Adds Auto-Load Balancing, Intelligent Selection (latency-first), Predictive Failover, Enhanced Replication Rules (provider/data-type/schedule/cost/permissions), Advanced Analytics, Subscription-aware quotas & alerts, Mode switch with v2→v1 fallback
+  - Docs: [README HyperDrive section](../../README.md), [HyperDrive Whitepaper](../OASIS_HYPERDRIVE_WHITEPAPER.md)
 - **OASIS COSMIC ORM**: Universal data abstraction layer for all Web2/Web3 providers
 - **OASIS NFT System**: Revolutionary NFT system with cross-chain support
 - **OASIS Universal Wallet System**: Unified digital asset management across 50+ blockchain networks

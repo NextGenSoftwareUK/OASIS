@@ -8,9 +8,28 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
+    /// <summary>
+    /// ⚠️ OBSOLETE WARNING: This ProviderManager class is being refactored for better separation of concerns.
+    /// 
+    /// NEW ARCHITECTURE:
+    /// - ProviderRegistry: Manages provider registration and basic operations
+    /// - ProviderSelector: Handles all provider selection algorithms
+    /// - ProviderSwitcher: Manages provider switching logic
+    /// - ProviderConfigurator: Handles provider configuration and lists
+    /// - ProviderManagerNew: Acts as a facade/orchestrator
+    /// 
+    /// MIGRATION PATH:
+    /// 1. Use the new facade methods (ending with "New") for immediate access to new system
+    /// 2. Gradually migrate to direct usage of specialized classes
+    /// 3. This class will be deprecated once all dependencies are migrated
+    /// 
+    /// BACKWARD COMPATIBILITY: All existing methods remain functional during transition period.
+    /// </summary>
+    [Obsolete("ProviderManager is being refactored. Use ProviderManagerNew or specialized classes (ProviderRegistry, ProviderSelector, ProviderSwitcher, ProviderConfigurator) instead. See class documentation for migration path.")]
     public class ProviderManager : OASISManager
     {
         private static ProviderManager _instance = null;
@@ -1027,18 +1046,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         /// <summary>
         /// Gets the list of providers configured for auto-load balancing
         /// </summary>
-        public List<EnumValue<ProviderType>> GetProviderAutoLoadBalanceList()
-        {
-            return _providerAutoLoadBalanceList;
-        }
+        // Duplicate removed: method already defined earlier
 
         /// <summary>
         /// Gets the auto-load balance list as a string for logging/debugging
         /// </summary>
-        public string GetProviderAutoLoadBalanceListAsString()
-        {
-            return string.Join(", ", _providerAutoLoadBalanceList.Select(x => x.Name));
-        }
+        // Duplicate removed: method already defined earlier
 
         /// <summary>
         /// Adds providers to the auto-load balance list
@@ -1500,17 +1513,132 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         #endregion
     }
 
-    /// <summary>
-    /// Load balancing strategies for auto-load balancing
-    /// </summary>
-    public enum LoadBalancingStrategy
+    // LoadBalancingStrategy moved to NextGenSoftware.OASIS.API.Core.Enums
+
+    #region NEW REFACTORED SYSTEM - Facade Methods for Backward Compatibility
+/*
+    // New refactored system instances
+    private static ProviderManagerNew _newProviderManager;
+    private static ProviderManagerNew NewProviderManager
     {
-        Auto,
-        RoundRobin,
-        WeightedRoundRobin,
-        LeastConnections,
-        Geographic,
-        CostBased,
-        Performance
+        get
+        {
+            if (_newProviderManager == null)
+                _newProviderManager = ProviderManagerNew.Instance;
+            return _newProviderManager;
+        }
     }
+
+    /// <summary>
+    /// FACADE METHOD: Delegates to new ProviderRegistry
+    /// Gets all available providers using the new system
+    /// </summary>
+    [Obsolete("This method will be moved to ProviderRegistry. Use ProviderRegistry.Instance.GetAvailableProviders() instead.")]
+    public List<EnumValue<ProviderType>> GetAvailableProvidersNew()
+    {
+        return NewProviderManager.GetAvailableProviders();
+    }
+
+    /// <summary>
+    /// FACADE METHOD: Delegates to new ProviderSelector
+    /// Selects optimal provider for load balancing using the new system
+    /// </summary>
+    [Obsolete("This method will be moved to ProviderSelector. Use ProviderSelector.Instance.SelectOptimalProviderForLoadBalancing() instead.")]
+    public EnumValue<ProviderType> SelectOptimalProviderForLoadBalancingNew(LoadBalancingStrategy strategy = LoadBalancingStrategy.Auto)
+    {
+        return NewProviderManager.SelectOptimalProviderForLoadBalancing(strategy);
+    }
+
+    /// <summary>
+    /// FACADE METHOD: Delegates to new ProviderSwitcher
+    /// Switches storage provider using the new system
+    /// </summary>
+    [Obsolete("This method will be moved to ProviderSwitcher. Use ProviderSwitcher.Instance.SwitchStorageProviderAsync() instead.")]
+    public async Task<OASISResult<bool>> SwitchStorageProviderAsyncNew(ProviderType newProviderType)
+    {
+        return await NewProviderManager.SwitchStorageProviderAsync(newProviderType);
+    }
+
+    /// <summary>
+    /// FACADE METHOD: Delegates to new ProviderConfigurator
+    /// Adds provider to auto-failover list using the new system
+    /// </summary>
+    [Obsolete("This method will be moved to ProviderConfigurator. Use ProviderConfigurator.Instance.AddToAutoFailOverList() instead.")]
+    public OASISResult<bool> AddToAutoFailOverListNew(ProviderType providerType)
+    {
+        return NewProviderManager.AddToAutoFailOverList(providerType);
+    }
+
+    /// <summary>
+    /// FACADE METHOD: Delegates to new ProviderConfigurator
+    /// Removes provider from auto-failover list using the new system
+    /// </summary>
+    [Obsolete("This method will be moved to ProviderConfigurator. Use ProviderConfigurator.Instance.RemoveFromAutoFailOverList() instead.")]
+    public OASISResult<bool> RemoveFromAutoFailOverListNew(ProviderType providerType)
+    {
+        return NewProviderManager.RemoveFromAutoFailOverList(providerType);
+    }
+
+    /// <summary>
+    /// FACADE METHOD: Delegates to new ProviderConfigurator
+    /// Adds provider to auto-replication list using the new system
+    /// </summary>
+    [Obsolete("This method will be moved to ProviderConfigurator. Use ProviderConfigurator.Instance.AddToAutoReplicationList() instead.")]
+    public OASISResult<bool> AddToAutoReplicationListNew(ProviderType providerType)
+    {
+        return NewProviderManager.AddToAutoReplicationList(providerType);
+    }
+
+    /// <summary>
+    /// FACADE METHOD: Delegates to new ProviderConfigurator
+    /// Removes provider from auto-replication list using the new system
+    /// </summary>
+    [Obsolete("This method will be moved to ProviderConfigurator. Use ProviderConfigurator.Instance.RemoveFromAutoReplicationList() instead.")]
+    public OASISResult<bool> RemoveFromAutoReplicationListNew(ProviderType providerType)
+    {
+        return NewProviderManager.RemoveFromAutoReplicationList(providerType);
+    }
+
+    /// <summary>
+    /// FACADE METHOD: Delegates to new ProviderConfigurator
+    /// Adds provider to auto-load-balance list using the new system
+    /// </summary>
+    [Obsolete("This method will be moved to ProviderConfigurator. Use ProviderConfigurator.Instance.AddToAutoLoadBalanceList() instead.")]
+    public OASISResult<bool> AddToAutoLoadBalanceListNew(ProviderType providerType)
+    {
+        return NewProviderManager.AddToAutoLoadBalanceList(providerType);
+    }
+
+    /// <summary>
+    /// FACADE METHOD: Delegates to new ProviderConfigurator
+    /// Removes provider from auto-load-balance list using the new system
+    /// </summary>
+    [Obsolete("This method will be moved to ProviderConfigurator. Use ProviderConfigurator.Instance.RemoveFromAutoLoadBalanceList() instead.")]
+    public OASISResult<bool> RemoveFromAutoLoadBalanceListNew(ProviderType providerType)
+    {
+        return NewProviderManager.RemoveFromAutoLoadBalanceList(providerType);
+    }
+
+    /// <summary>
+    /// FACADE METHOD: Delegates to new ProviderConfigurator
+    /// Gets provider configuration using the new system
+    /// </summary>
+    [Obsolete("This method will be moved to ProviderConfigurator. Use ProviderConfigurator.Instance.GetProviderConfiguration() instead.")]
+    public OASISResult<ProviderConfiguration> GetProviderConfigurationNew()
+    {
+        return NewProviderManager.GetProviderConfiguration();
+    }
+
+    /// <summary>
+    /// FACADE METHOD: Delegates to new ProviderSwitcher
+    /// Gets switching status using the new system
+    /// </summary>
+    [Obsolete("This method will be moved to ProviderSwitcher. Use ProviderSwitcher.Instance.GetSwitchStatus() instead.")]
+    public OASISResult<ProviderSwitchStatus> GetSwitchStatusNew()
+    {
+        return NewProviderManager.GetSwitchStatus();
+    }
+    */
+
+    #endregion
 }

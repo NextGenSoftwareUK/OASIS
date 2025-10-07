@@ -13,6 +13,27 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     {
         public async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
+            // HyperDrive v2 routing with safe fallback to legacy
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA;
+                if (dna?.OASIS?.HyperDriveMode == "OASISHyperDrive2")
+                {
+                    var hyperDrive = new OASISHyperDrive();
+                    var request = new StorageOperationRequest
+                    {
+                        Operation = "SaveAvatar",
+                        AvatarId = avatar.Id,
+                        Payload = avatar,
+                        PreferredProvider = providerType
+                    };
+
+                    var hdResult = await hyperDrive.RouteRequestAsync<IAvatar>(request, LoadBalancingStrategy.Auto);
+                    if (hdResult != null && !hdResult.IsError && hdResult.Result != null)
+                        return hdResult;
+                }
+            }
+            catch { /* fallback to legacy */ }
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             ProviderType previousProviderType = ProviderType.Default;

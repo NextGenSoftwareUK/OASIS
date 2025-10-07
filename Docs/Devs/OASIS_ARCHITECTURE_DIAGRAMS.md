@@ -99,6 +99,8 @@ graph TB
 
 ![OASIS HyperDrive Auto-Failover](../../Images/Diagrams/hyperdrive_auto_failover.svg)
 
+> v1 vs v2 Overlay: v2 adds Auto-Load Balancing and an AI/Analytics layer on top of the core failover/replication engine.
+
 <details>
 <summary>Mermaid source</summary>
 
@@ -138,6 +140,8 @@ graph TD
 ## OASIS Torus Architecture
 
 ![OASIS Torus Architecture](../../Images/Diagrams/torus.svg)
+
+> WebAPI & STAR UI: HyperDriveController exposes mode toggle (Legacy vs v2), configuration, metrics, replication/failover rules, and analytics endpoints; STAR WebUI includes a mode toggle and a v1 vs v2 comparison panel.
 
 <details>
 <summary>Mermaid source</summary>
