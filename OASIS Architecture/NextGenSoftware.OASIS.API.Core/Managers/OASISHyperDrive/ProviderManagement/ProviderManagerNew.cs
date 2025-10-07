@@ -36,7 +36,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
         }
 
-        private ProviderManagerNew() { }
+        // Ensure base constructor is satisfied; pass nulls to keep it inactive by default
+        private ProviderManagerNew() : base(null, null) { }
 
         // New specialized managers
         private readonly ProviderRegistry _registry = ProviderRegistry.Instance;

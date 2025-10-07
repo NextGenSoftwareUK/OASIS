@@ -1089,7 +1089,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (strategy == LoadBalancingStrategy.Auto)
             {
                 var config = OASISHyperDriveConfigManager.Instance.GetConfiguration();
-                strategy = config.DefaultStrategy;
+                var configured = config?.DefaultStrategy;
+                if (!string.IsNullOrWhiteSpace(configured) && Enum.TryParse(configured, true, out LoadBalancingStrategy parsed))
+                    strategy = parsed;
+                else
+                    strategy = LoadBalancingStrategy.Auto;
             }
 
             return strategy switch

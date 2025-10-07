@@ -5,6 +5,21 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+
+namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
+{
+    /// <summary>
+    /// Priority levels for analytics recommendations
+    /// </summary>
+    public enum Priority
+    {
+        Low,
+        Medium,
+        High,
+        Critical
+    }
+}
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {

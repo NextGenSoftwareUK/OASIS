@@ -8,6 +8,8 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using System.Linq;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -127,10 +129,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // HyperDrive v2 routing with safe fallback to legacy
             try
             {
-                var dna = OASISDNAManager.Instance.OASISDNA;
-                if (dna?.HyperDriveMode == "OASISHyperDrive2")
+                var dna = OASISDNAManager.OASISDNA;
+                if (dna?.OASIS?.HyperDriveMode == "OASISHyperDrive2")
                 {
-                    var hyperDrive = new OASISHyperDrive();
+                    var hyperDrive = new NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive();
                     var request = new StorageOperationRequest
                     {
                         Operation = "LoadHolon",
