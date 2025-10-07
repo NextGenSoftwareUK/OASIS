@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Core
 {
@@ -21,6 +22,10 @@ namespace NextGenSoftware.OASIS.API.Core
         private readonly FailoverManager _failoverManager;
         private readonly GeographicRouter _geographicRouter;
         private readonly CostOptimizer _costOptimizer;
+        private readonly OASISHyperDriveConfigManager _configManager;
+        private readonly SubscriptionManager _subscriptionManager;
+        private readonly DataPermissionsManager _dataPermissionsManager;
+        private readonly IntelligentModeManager _intelligentModeManager;
 
         public OASISHyperDrive()
         {
@@ -31,6 +36,10 @@ namespace NextGenSoftware.OASIS.API.Core
             _failoverManager = new FailoverManager(_performanceMonitor);
             _geographicRouter = new GeographicRouter();
             _costOptimizer = new CostOptimizer();
+            _configManager = new OASISHyperDriveConfigManager();
+            _subscriptionManager = new SubscriptionManager();
+            _dataPermissionsManager = new DataPermissionsManager();
+            _intelligentModeManager = new IntelligentModeManager();
         }
 
         /// <summary>
@@ -413,5 +422,298 @@ namespace NextGenSoftware.OASIS.API.Core
         public string Country { get; set; }
         public string Region { get; set; }
         public string City { get; set; }
+    }
+
+    // Enhanced HyperDrive Management Classes
+
+    /// <summary>
+    /// Manages subscription-based HyperDrive configuration
+    /// </summary>
+    public class SubscriptionManager
+    {
+        public async Task<OASISResult<SubscriptionConfig>> GetSubscriptionConfigAsync()
+        {
+            try
+            {
+                var dna = OASISDNAManager.Instance.OASISDNA;
+                return new OASISResult<SubscriptionConfig>
+                {
+                    Result = dna?.SubscriptionConfig ?? new SubscriptionConfig(),
+                    IsSuccess = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<SubscriptionConfig>
+                {
+                    IsError = true,
+                    Message = $"Failed to get subscription config: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
+        public async Task<OASISResult<bool>> UpdateSubscriptionConfigAsync(SubscriptionConfig config)
+        {
+            try
+            {
+                var dna = OASISDNAManager.Instance.OASISDNA;
+                if (dna != null)
+                {
+                    dna.SubscriptionConfig = config;
+                    await OASISDNAManager.Instance.SaveOASISDNAAsync();
+                }
+                
+                return new OASISResult<bool>
+                {
+                    Result = true,
+                    IsSuccess = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to update subscription config: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
+        public async Task<OASISResult<bool>> CheckQuotaStatusAsync(string quotaType, int currentUsage)
+        {
+            try
+            {
+                var config = await GetSubscriptionConfigAsync();
+                if (config.IsError) return new OASISResult<bool> { IsError = true, Message = config.Message };
+
+                var limits = GetQuotaLimits(config.Result);
+                var limit = limits.ContainsKey(quotaType) ? limits[quotaType] : 0;
+                
+                return new OASISResult<bool>
+                {
+                    Result = currentUsage < limit,
+                    IsSuccess = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to check quota status: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
+        private Dictionary<string, int> GetQuotaLimits(SubscriptionConfig config)
+        {
+            return new Dictionary<string, int>
+            {
+                { "Replications", config.MaxReplicationsPerMonth },
+                { "Failovers", config.MaxFailoversPerMonth },
+                { "Storage", config.MaxStorageGB },
+                { "Requests", GetRequestLimit(config.PlanType) }
+            };
+        }
+
+        private int GetRequestLimit(string planType)
+        {
+            return planType switch
+            {
+                "Free" => 1000,
+                "Basic" => 10000,
+                "Pro" => 100000,
+                "Enterprise" => int.MaxValue,
+                _ => 1000
+            };
+        }
+    }
+
+    /// <summary>
+    /// Manages data permissions for HyperDrive
+    /// </summary>
+    public class DataPermissionsManager
+    {
+        public async Task<OASISResult<DataPermissionsConfig>> GetDataPermissionsAsync()
+        {
+            try
+            {
+                var dna = OASISDNAManager.Instance.OASISDNA;
+                return new OASISResult<DataPermissionsConfig>
+                {
+                    Result = dna?.DataPermissions ?? new DataPermissionsConfig(),
+                    IsSuccess = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<DataPermissionsConfig>
+                {
+                    IsError = true,
+                    Message = $"Failed to get data permissions: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
+        public async Task<OASISResult<bool>> UpdateDataPermissionsAsync(DataPermissionsConfig permissions)
+        {
+            try
+            {
+                var dna = OASISDNAManager.Instance.OASISDNA;
+                if (dna != null)
+                {
+                    dna.DataPermissions = permissions;
+                    await OASISDNAManager.Instance.SaveOASISDNAAsync();
+                }
+                
+                return new OASISResult<bool>
+                {
+                    Result = true,
+                    IsSuccess = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to update data permissions: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
+        public async Task<OASISResult<bool>> CheckFieldPermissionAsync(string fieldName, string providerType, string dataType)
+        {
+            try
+            {
+                var permissions = await GetDataPermissionsAsync();
+                if (permissions.IsError) return new OASISResult<bool> { IsError = true, Message = permissions.Message };
+
+                // Check if field is allowed for this provider and data type
+                var isAllowed = CheckFieldAccess(permissions.Result, fieldName, providerType, dataType);
+                
+                return new OASISResult<bool>
+                {
+                    Result = isAllowed,
+                    IsSuccess = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to check field permission: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
+        private bool CheckFieldAccess(DataPermissionsConfig permissions, string fieldName, string providerType, string dataType)
+        {
+            // Check avatar field permissions
+            if (dataType == "Avatar")
+            {
+                var fieldPermission = permissions.AvatarPermissions.Fields.FirstOrDefault(f => f.FieldName == fieldName);
+                if (fieldPermission != null)
+                {
+                    return fieldPermission.ProviderTypes.Contains(providerType);
+                }
+            }
+
+            // Check holon field permissions
+            var holonPermission = permissions.HolonPermissions.HolonTypes.FirstOrDefault(h => h.HolonType == dataType);
+            if (holonPermission != null)
+            {
+                return holonPermission.ProviderTypes.Contains(providerType);
+            }
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Manages intelligent mode for HyperDrive
+    /// </summary>
+    public class IntelligentModeManager
+    {
+        public async Task<OASISResult<IntelligentModeConfig>> GetIntelligentModeAsync()
+        {
+            try
+            {
+                var dna = OASISDNAManager.Instance.OASISDNA;
+                return new OASISResult<IntelligentModeConfig>
+                {
+                    Result = dna?.IntelligentMode ?? new IntelligentModeConfig(),
+                    IsSuccess = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<IntelligentModeConfig>
+                {
+                    IsError = true,
+                    Message = $"Failed to get intelligent mode: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
+        public async Task<OASISResult<bool>> UpdateIntelligentModeAsync(IntelligentModeConfig mode)
+        {
+            try
+            {
+                var dna = OASISDNAManager.Instance.OASISDNA;
+                if (dna != null)
+                {
+                    dna.IntelligentMode = mode;
+                    await OASISDNAManager.Instance.SaveOASISDNAAsync();
+                }
+                
+                return new OASISResult<bool>
+                {
+                    Result = true,
+                    IsSuccess = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to update intelligent mode: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
+        public async Task<OASISResult<bool>> IsIntelligentModeEnabledAsync()
+        {
+            try
+            {
+                var mode = await GetIntelligentModeAsync();
+                if (mode.IsError) return new OASISResult<bool> { IsError = true, Message = mode.Message };
+                
+                return new OASISResult<bool>
+                {
+                    Result = mode.Result.IsEnabled,
+                    IsSuccess = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to check intelligent mode: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
     }
 }

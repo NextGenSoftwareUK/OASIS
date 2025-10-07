@@ -47,6 +47,8 @@ import {
   Edit as EditIcon,
   Check as CheckIcon,
   Close as CloseIcon,
+  Rocket as RocketIcon,
+  Tune as TuneIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -317,13 +319,34 @@ const SettingsPage: React.FC = () => {
       {/* OASIS Provider Management */}
       <Card sx={{ mb: 3, background: 'linear-gradient(135deg, #9c27b015, #9c27b005)', border: '2px solid #9c27b030' }}>
         <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-            <Avatar sx={{ bgcolor: '#9c27b0', width: 50, height: 50 }}>
-              <CloudIcon />
-            </Avatar>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              🌐 OASIS Provider Management
-            </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: '#9c27b0', width: 50, height: 50 }}>
+                <CloudIcon />
+              </Avatar>
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                🌐 OASIS Provider Management
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              startIcon={<RocketIcon />}
+              sx={{
+                bgcolor: '#ff6b35',
+                '&:hover': { bgcolor: '#e55a2b' },
+                fontWeight: 'bold',
+                px: 3,
+                py: 1.5,
+                borderRadius: 2,
+                boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)',
+              }}
+              onClick={() => {
+                // Navigate to HyperDrive page
+                window.location.href = '/hyperdrive';
+              }}
+            >
+              Configure HyperDrive
+            </Button>
           </Box>
 
           <Grid container spacing={3}>
