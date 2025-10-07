@@ -67,4 +67,10 @@
 	  <ProjectReference Include="..\..\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\NextGenSoftware.OASIS.STAR.DNA.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Remove="NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests\**" />
+		<EmbeddedResource Remove="NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests\**" />
+		<None Remove="NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests\**" />
+	</ItemGroup>
+
 </Project>
