@@ -255,7 +255,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 var dna = OASISDNAManager.OASISDNA;
                 if (dna?.OASIS?.HyperDriveMode == "OASISHyperDrive2")
                 {
-                    var hyperDrive = new OASISHyperDrive();
+                    var hyperDrive = new NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive();
                     var request = new StorageOperationRequest
                     {
                         Operation = "SaveHolon",
