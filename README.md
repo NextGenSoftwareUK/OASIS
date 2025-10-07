@@ -139,6 +139,41 @@ The **STAR CLI** is not just a command-line interface - it's a revolutionary **I
 - **Runtimes** (Execution environments)
 - **Plugins** (Extensible plugins)
 
+## 🚀 OASIS HyperDrive (v1 vs v2)
+
+HyperDrive intelligently routes all data operations across providers (Web2/Web3) for uptime, performance, and cost.
+
+- Legacy (v1)
+  - Auto-Replication
+  - Auto-Failover
+
+- OASIS HyperDrive 2 (v2)
+  - Auto-Load Balancing (round-robin, weighted, least-connections, latency-first)
+  - Enhanced Auto-Replication (provider/data-type/schedule/cost/permissions)
+  - Predictive Failover + escalation rules
+  - AI Optimization & smart recommendations
+  - Advanced analytics (performance, cost, predictive)
+  - Subscription-aware quotas, alerts, notifications
+  - Full WebAPI + STAR WebUI configuration
+  - Mode switch with safe fallback (v2 → v1)
+
+Mode Switch
+- DNA: `OASIS.HyperDriveMode` = `Legacy` | `OASISHyperDrive2`
+- WebAPI: GET `api/hyperdrive/mode`, PUT `api/hyperdrive/mode`
+
+Key New/Updated Endpoints (selection)
+- Replication rules/triggers/provider-rules/data-type-rules/schedule-rules/cost-optimization
+- Failover rules/triggers/provider-rules/escalation-rules
+- Costs: current/history/projections/limits
+- Recommendations: smart/security
+
+Provider Management Refactor
+- `ProviderRegistry` (instances) · `ProviderSelector` (algorithms) · `ProviderSwitcher` (switching) · `ProviderConfigurator` (lists/flags) · `ProviderManagerNew` (facade)
+- Legacy `ProviderManager` remains with [Obsolete] note and facade helpers for gradual migration.
+
+UI
+- STAR WebUI HyperDrive page includes a Legacy vs v2 toggle and a comparison panel.
+
 ## 🌍 Our World - The Benevolent Pokemon Go and Beyond!
 
 **Our World** is a groundbreaking AR geo-location educational game built on top of the WEB4 OASIS API and WEB5 STAR API. It's designed to teach individuals how to care for themselves, others, and the planet using cutting-edge technology, emphasizing real-life connections and encouraging engagement with nature through Augmented Reality.

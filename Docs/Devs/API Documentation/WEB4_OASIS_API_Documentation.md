@@ -7,7 +7,7 @@ The WEB4 OASIS API is the foundational data aggregation and identity layer that 
 ## 🏗️ **Architecture**
 
 ### **Core Components**
-- **OASIS HyperDrive**: Intelligent auto-failover system
+- **OASIS HyperDrive**: Intelligent routing system (v1: auto-replication/failover; v2 adds auto-load balancing, AI optimization, analytics)
 - **Avatar API**: Universal identity and profile management
 - **Karma API**: Reputation and reward system
 - **Data API**: Universal data storage and retrieval
@@ -38,6 +38,71 @@ Authorization: Avatar YOUR_AVATAR_ID
 ```
 
 ## 📚 **API Endpoints**
+### **HyperDrive API**
+
+#### **Get/Set HyperDrive Mode**
+```http
+GET /api/hyperdrive/mode
+PUT /api/hyperdrive/mode  (body: "Legacy" | "OASISHyperDrive2")
+```
+
+#### **Configuration**
+```http
+GET /api/hyperdrive/config
+PUT /api/hyperdrive/config
+POST /api/hyperdrive/config/validate
+POST /api/hyperdrive/config/reset
+```
+
+#### **Metrics & Connections**
+```http
+GET /api/hyperdrive/metrics
+GET /api/hyperdrive/metrics/{providerType}
+POST /api/hyperdrive/metrics/{providerType}/reset
+POST /api/hyperdrive/metrics/reset-all
+GET /api/hyperdrive/connections
+GET /api/hyperdrive/best-provider?strategy=Auto|RoundRobin|WeightedRoundRobin|LeastConnections|Geographic|CostBased|Performance
+```
+
+#### **Replication**
+```http
+GET /api/hyperdrive/replication/rules
+PUT /api/hyperdrive/replication/rules
+POST /api/hyperdrive/replication/triggers
+PUT /api/hyperdrive/replication/triggers/{id}
+DELETE /api/hyperdrive/replication/triggers/{id}
+GET /api/hyperdrive/replication/provider-rules
+PUT /api/hyperdrive/replication/provider-rules
+GET /api/hyperdrive/replication/data-type-rules
+PUT /api/hyperdrive/replication/data-type-rules
+GET /api/hyperdrive/replication/schedule-rules
+PUT /api/hyperdrive/replication/schedule-rules
+GET /api/hyperdrive/replication/cost-optimization
+PUT /api/hyperdrive/replication/cost-optimization
+```
+
+#### **Failover**
+```http
+GET /api/hyperdrive/failover/rules
+PUT /api/hyperdrive/failover/rules
+POST /api/hyperdrive/failover/triggers
+PUT /api/hyperdrive/failover/triggers/{id}
+DELETE /api/hyperdrive/failover/triggers/{id}
+GET /api/hyperdrive/failover/provider-rules
+PUT /api/hyperdrive/failover/provider-rules
+GET /api/hyperdrive/failover/escalation-rules
+PUT /api/hyperdrive/failover/escalation-rules
+```
+
+#### **Costs & Recommendations**
+```http
+GET /api/hyperdrive/costs/current
+GET /api/hyperdrive/costs/history?timeRange=Last30Days
+GET /api/hyperdrive/costs/projections
+PUT /api/hyperdrive/costs/limits
+GET /api/hyperdrive/recommendations/smart
+GET /api/hyperdrive/recommendations/security
+```
 
 ### **Core API**
 

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.Configuration
@@ -58,7 +59,6 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
                     _config = config;
                     SaveConfiguration();
                     result.Result = true;
-                    result.IsSuccess = true;
                     result.Message = "HyperDrive configuration updated successfully.";
                 }
             }
@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         {
             try
             {
-                var dna = OASISDNAManager.Instance.OASISDNA;
+                var dna = OASISDNAManager.OASISDNA;
                 if (dna?.OASISHyperDriveConfig != null)
                 {
                     _config = dna.OASISHyperDriveConfig;
@@ -101,11 +101,11 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         {
             try
             {
-                var dna = OASISDNAManager.Instance.OASISDNA;
+                var dna = OASISDNAManager.OASISDNA;
                 if (dna != null)
                 {
                     dna.OASISHyperDriveConfig = _config;
-                    OASISDNAManager.Instance.SaveOASISDNA();
+                    OASISDNAManager.SaveDNA();
                 }
             }
             catch (Exception ex)
@@ -122,7 +122,7 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
             return new OASISHyperDriveConfig
             {
                 IsEnabled = true,
-                DefaultStrategy = LoadBalancingStrategy.Auto,
+                DefaultStrategy = "Auto",
                 AutoFailoverEnabled = true,
                 AutoReplicationEnabled = true,
                 AutoLoadBalancingEnabled = true,
@@ -140,29 +140,29 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
                 MaxLatencyThresholdMs = 200,
                 MaxErrorRateThreshold = 0.05,
                 MinUptimeThreshold = 99.0,
-                EnabledProviders = new List<ProviderType>
+                EnabledProviders = new List<string>
                 {
-                    ProviderType.MongoDBOASIS,
-                    ProviderType.SQLLiteDBOASIS,
-                    ProviderType.EthereumOASIS,
-                    ProviderType.IPFSOASIS
+                    nameof(ProviderType.MongoDBOASIS),
+                    nameof(ProviderType.SQLLiteDBOASIS),
+                    nameof(ProviderType.EthereumOASIS),
+                    nameof(ProviderType.IPFSOASIS)
                 },
-                AutoFailoverProviders = new List<ProviderType>
+                AutoFailoverProviders = new List<string>
                 {
-                    ProviderType.MongoDBOASIS,
-                    ProviderType.SQLLiteDBOASIS
+                    nameof(ProviderType.MongoDBOASIS),
+                    nameof(ProviderType.SQLLiteDBOASIS)
                 },
-                AutoReplicationProviders = new List<ProviderType>
+                AutoReplicationProviders = new List<string>
                 {
-                    ProviderType.EthereumOASIS,
-                    ProviderType.IPFSOASIS
+                    nameof(ProviderType.EthereumOASIS),
+                    nameof(ProviderType.IPFSOASIS)
                 },
-                LoadBalancingProviders = new List<ProviderType>
+                LoadBalancingProviders = new List<string>
                 {
-                    ProviderType.MongoDBOASIS,
-                    ProviderType.SQLLiteDBOASIS,
-                    ProviderType.EthereumOASIS,
-                    ProviderType.IPFSOASIS
+                    nameof(ProviderType.MongoDBOASIS),
+                    nameof(ProviderType.SQLLiteDBOASIS),
+                    nameof(ProviderType.EthereumOASIS),
+                    nameof(ProviderType.IPFSOASIS)
                 },
                 ProviderConfigs = CreateDefaultProviderConfigs(),
                 GeographicConfig = CreateDefaultGeographicConfig(),
@@ -176,14 +176,14 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
         /// <summary>
         /// Creates default provider configurations
         /// </summary>
-        private Dictionary<ProviderType, ProviderConfig> CreateDefaultProviderConfigs()
+        private Dictionary<string, ProviderConfig> CreateDefaultProviderConfigs()
         {
-            var configs = new Dictionary<ProviderType, ProviderConfig>();
+            var configs = new Dictionary<string, ProviderConfig>();
 
             // MongoDB Configuration
-            configs[ProviderType.MongoDBOASIS] = new ProviderConfig
+            configs[nameof(ProviderType.MongoDBOASIS)] = new ProviderConfig
             {
-                ProviderType = ProviderType.MongoDBOASIS,
+                ProviderType = nameof(ProviderType.MongoDBOASIS),
                 IsEnabled = true,
                 Weight = 80,
                 TimeoutMs = 5000,
@@ -194,9 +194,9 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
             };
 
             // SQLite Configuration
-            configs[ProviderType.SQLLiteDBOASIS] = new ProviderConfig
+            configs[nameof(ProviderType.SQLLiteDBOASIS)] = new ProviderConfig
             {
-                ProviderType = ProviderType.SQLLiteDBOASIS,
+                ProviderType = nameof(ProviderType.SQLLiteDBOASIS),
                 IsEnabled = true,
                 Weight = 90,
                 TimeoutMs = 3000,
@@ -207,9 +207,9 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
             };
 
             // Ethereum Configuration
-            configs[ProviderType.EthereumOASIS] = new ProviderConfig
+            configs[nameof(ProviderType.EthereumOASIS)] = new ProviderConfig
             {
-                ProviderType = ProviderType.EthereumOASIS,
+                ProviderType = nameof(ProviderType.EthereumOASIS),
                 IsEnabled = true,
                 Weight = 70,
                 TimeoutMs = 10000,
@@ -220,9 +220,9 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
             };
 
             // IPFS Configuration
-            configs[ProviderType.IPFSOASIS] = new ProviderConfig
+            configs[nameof(ProviderType.IPFSOASIS)] = new ProviderConfig
             {
-                ProviderType = ProviderType.IPFSOASIS,
+                ProviderType = nameof(ProviderType.IPFSOASIS),
                 IsEnabled = true,
                 Weight = 75,
                 TimeoutMs = 8000,
@@ -311,11 +311,11 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
                 MaxStorageCostPerGB = 0.1,
                 MaxComputeCostPerHour = 0.5,
                 MaxNetworkCostPerGB = 0.05,
-                ProviderCosts = new Dictionary<ProviderType, CostAnalysis>
+                ProviderCosts = new Dictionary<string, CostAnalysisDNA>
                 {
-                    [ProviderType.MongoDBOASIS] = new CostAnalysis
+                    [nameof(ProviderType.MongoDBOASIS)] = new CostAnalysisDNA
                     {
-                        ProviderType = ProviderType.MongoDBOASIS,
+                        ProviderType = nameof(ProviderType.MongoDBOASIS),
                         StorageCostPerGB = 0.05,
                         ComputeCostPerHour = 0.10,
                         NetworkCostPerGB = 0.02,
@@ -326,9 +326,9 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
                         LastUpdated = DateTime.UtcNow,
                         CostEfficiencyScore = 85
                     },
-                    [ProviderType.SQLLiteDBOASIS] = new CostAnalysis
+                    [nameof(ProviderType.SQLLiteDBOASIS)] = new CostAnalysisDNA
                     {
-                        ProviderType = ProviderType.SQLLiteDBOASIS,
+                        ProviderType = nameof(ProviderType.SQLLiteDBOASIS),
                         StorageCostPerGB = 0.01,
                         ComputeCostPerHour = 0.05,
                         NetworkCostPerGB = 0.00,
@@ -339,9 +339,9 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
                         LastUpdated = DateTime.UtcNow,
                         CostEfficiencyScore = 95
                     },
-                    [ProviderType.EthereumOASIS] = new CostAnalysis
+                    [nameof(ProviderType.EthereumOASIS)] = new CostAnalysisDNA
                     {
-                        ProviderType = ProviderType.EthereumOASIS,
+                        ProviderType = nameof(ProviderType.EthereumOASIS),
                         StorageCostPerGB = 0.20,
                         ComputeCostPerHour = 0.50,
                         NetworkCostPerGB = 0.10,
@@ -352,9 +352,9 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
                         LastUpdated = DateTime.UtcNow,
                         CostEfficiencyScore = 60
                     },
-                    [ProviderType.IPFSOASIS] = new CostAnalysis
+                    [nameof(ProviderType.IPFSOASIS)] = new CostAnalysisDNA
                     {
-                        ProviderType = ProviderType.IPFSOASIS,
+                        ProviderType = nameof(ProviderType.IPFSOASIS),
                         StorageCostPerGB = 0.03,
                         ComputeCostPerHour = 0.15,
                         NetworkCostPerGB = 0.01,
@@ -447,7 +447,6 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
                     _config = CreateDefaultConfiguration();
                     SaveConfiguration();
                     result.Result = true;
-                    result.IsSuccess = true;
                     result.Message = "HyperDrive configuration reset to defaults successfully.";
                 }
             }
@@ -504,7 +503,6 @@ namespace NextGenSoftware.OASIS.API.Core.Configuration
                 }
 
                 result.Result = true;
-                result.IsSuccess = true;
                 result.Message = "Configuration is valid.";
             }
             catch (Exception ex)

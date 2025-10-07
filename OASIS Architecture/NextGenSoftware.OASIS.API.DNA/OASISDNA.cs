@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using NextGenSoftware.ErrorHandling;
 using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core.Configuration;
@@ -22,6 +23,9 @@ namespace NextGenSoftware.OASIS.API.DNA
         public EmailSettings Email { get; set; }
         public StorageProviderSettings StorageProviders { get; set; }
         public OASISHyperDriveConfig OASISHyperDriveConfig { get; set; }
+        
+        // HyperDrive mode switch: "Legacy" or "OASISHyperDrive2"
+        public string HyperDriveMode { get; set; } = "Legacy";
         
         // Enhanced HyperDrive Configuration
         public ReplicationRulesConfig ReplicationRules { get; set; } = new ReplicationRulesConfig();

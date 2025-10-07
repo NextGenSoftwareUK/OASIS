@@ -7,6 +7,8 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -69,6 +71,27 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
+            // HyperDrive v2 routing with safe fallback to legacy
+            try
+            {
+                var dna = OASISDNAManager.Instance.OASISDNA;
+                if (dna?.HyperDriveMode == "OASISHyperDrive2")
+                {
+                    var hyperDrive = new OASISHyperDrive();
+                    var request = new StorageOperationRequest
+                    {
+                        Operation = "LoadAvatar",
+                        AvatarId = id,
+                        PreferredProvider = providerType
+                    };
+
+                    var hdResult = await hyperDrive.RouteRequestAsync<IAvatar>(request, LoadBalancingStrategy.Auto);
+                    if (hdResult != null && !hdResult.IsError && hdResult.Result != null)
+                        return hdResult;
+                }
+            }
+            catch { /* fallback to legacy */ }
+
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             ProviderType previousProviderType = ProviderType.Default;
