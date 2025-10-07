@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 var dna = OASISDNAManager.OASISDNA;
                 if (dna?.OASIS?.HyperDriveMode == "OASISHyperDrive2")
                 {
-                    var hyperDrive = new OASISHyperDrive();
+                    var hyperDrive = new NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive();
                     var request = new StorageOperationRequest
                     {
                         Operation = "SaveAvatar",
@@ -331,9 +331,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                var config = OASISDNAManager.Instance.OASISDNA;
-                var maxRetryAttempts = config?.RetrySettings?.MaxRetryAttempts ?? 3;
-                var retryIntervalSeconds = config?.RetrySettings?.RetryIntervalSeconds ?? 5;
+                var config = OASISDNAManager.OASISDNA;
+                var maxRetryAttempts = 3; // config?.RetrySettings?.MaxRetryAttempts ?? 3;
+                var retryIntervalSeconds = 5; // config?.RetrySettings?.RetryIntervalSeconds ?? 5;
 
                 for (int attempt = 1; attempt <= maxRetryAttempts; attempt++)
                 {
@@ -343,7 +343,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         var retryResult = await SaveAvatarAsync(avatar, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, false, providerType);
                         
-                        if (retryResult.IsSuccess)
+                        if (!retryResult.IsError)
                         {
                             Console.WriteLine($"Background retry succeeded for avatar {avatar.Name} on attempt {attempt}");
                             return;

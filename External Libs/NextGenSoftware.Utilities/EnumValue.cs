@@ -12,6 +12,12 @@ namespace NextGenSoftware.Utilities
             Value = value;
         }
 
+        public EnumValue(T value, double score)
+        {
+            Value = value;
+            Score = score;
+        }
+
         
         public T Value
         {
@@ -33,5 +39,11 @@ namespace NextGenSoftware.Utilities
                 return _name;
             }
         }
+
+        /// <summary>
+        /// AI-driven score for provider recommendations (0.0 to 1.0)
+        /// Higher scores indicate better performance/recommendation
+        /// </summary>
+        public double Score { get; set; } = 0.0;
     }
 }

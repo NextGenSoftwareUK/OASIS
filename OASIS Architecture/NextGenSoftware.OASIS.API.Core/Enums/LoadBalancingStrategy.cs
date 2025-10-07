@@ -8,7 +8,8 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         LeastConnections,
         Geographic,
         CostBased,
-        Performance
+        Performance,
+        Intelligent
     }
 }
 

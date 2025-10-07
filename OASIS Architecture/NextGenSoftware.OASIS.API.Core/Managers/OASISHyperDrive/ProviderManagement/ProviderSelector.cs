@@ -2,6 +2,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,7 +57,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (strategy == LoadBalancingStrategy.Auto)
             {
                 var config = _configManager.GetConfiguration();
-                strategy = config.DefaultStrategy;
+                var configured = config?.DefaultStrategy;
+                if (!string.IsNullOrWhiteSpace(configured) && Enum.TryParse(configured, true, out LoadBalancingStrategy parsed))
+                    strategy = parsed;
             }
 
             return strategy switch
@@ -149,7 +152,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         /// <summary>
         /// Performance-based provider selection
         /// </summary>
-        private EnumValue<ProviderType> SelectPerformanceBasedProvider(List<EnumValue<ProviderType>> providers)
+        internal EnumValue<ProviderType> SelectPerformanceBasedProvider(List<EnumValue<ProviderType>> providers)
         {
             if (!providers.Any()) return _registry.CurrentStorageProviderType;
 
@@ -185,7 +188,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             // Use AI optimization engine for intelligent selection
             var aiEngine = AIOptimizationEngine.Instance;
-            var selectedProvider = aiEngine.SelectOptimalProviderAsync(providers.Select(p => p.Value).ToList()).Result;
+            var recommendations = aiEngine.GetProviderRecommendationsAsync(new StorageOperationRequest(), providers.Select(p => p.Value).ToList()).Result;
+            var selectedProvider = recommendations.FirstOrDefault()?.Value ?? providers.First().Value;
             
             return new EnumValue<ProviderType>(selectedProvider);
         }
