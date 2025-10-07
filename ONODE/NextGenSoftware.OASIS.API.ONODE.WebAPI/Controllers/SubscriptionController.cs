@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -527,6 +529,328 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class TogglePayAsYouGoRequest
     {
         public bool Enabled { get; set; }
+    }
+
+    // HyperDrive Integration Methods
+
+    /// <summary>
+    /// Updates HyperDrive configuration based on subscription plan
+    /// </summary>
+    [HttpPost("update-hyperdrive-config")]
+    public async Task<ActionResult<OASISResult<bool>>> UpdateHyperDriveConfig([FromBody] UpdateHyperDriveConfigRequest request)
+    {
+        try
+        {
+            var dna = OASISDNAManager.Instance.OASISDNA;
+            if (dna != null)
+            {
+                // Update subscription configuration
+                dna.SubscriptionConfig.PlanType = request.PlanType;
+                dna.SubscriptionConfig.PayAsYouGoEnabled = request.PayAsYouGoEnabled;
+                
+                // Update HyperDrive limits based on plan
+                var limits = GetPlanLimits(request.PlanType);
+                dna.SubscriptionConfig.MaxReplicationsPerMonth = limits.MaxReplications;
+                dna.SubscriptionConfig.MaxFailoversPerMonth = limits.MaxFailovers;
+                dna.SubscriptionConfig.MaxStorageGB = limits.MaxStorageGB;
+                
+                // Update cost settings
+                dna.SubscriptionConfig.CostPerReplication = limits.CostPerReplication;
+                dna.SubscriptionConfig.CostPerFailover = limits.CostPerFailover;
+                dna.SubscriptionConfig.CostPerGB = limits.CostPerGB;
+                
+                // Update replication rules for free providers only on free plan
+                if (request.PlanType == "Free")
+                {
+                    dna.ReplicationRules.FreeProvidersOnly = true;
+                    dna.ReplicationRules.CostThreshold = 0;
+                }
+                else
+                {
+                    dna.ReplicationRules.FreeProvidersOnly = false;
+                    dna.ReplicationRules.CostThreshold = limits.CostThreshold;
+                }
+                
+                // Update failover rules
+                if (request.PlanType == "Free")
+                {
+                    dna.FailoverRules.FreeProvidersOnly = true;
+                    dna.FailoverRules.CostThreshold = 0;
+                }
+                else
+                {
+                    dna.FailoverRules.FreeProvidersOnly = false;
+                    dna.FailoverRules.CostThreshold = limits.CostThreshold;
+                }
+                
+                await OASISDNAManager.Instance.SaveOASISDNAAsync();
+            }
+            
+            return Ok(new OASISResult<bool>
+            {
+                Result = true,
+                IsSuccess = true,
+                Message = "HyperDrive configuration updated successfully for subscription plan."
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new OASISResult<bool>
+            {
+                IsError = true,
+                Message = $"Failed to update HyperDrive configuration: {ex.Message}",
+                Exception = ex
+            });
+        }
+    }
+
+    /// <summary>
+    /// Gets HyperDrive usage statistics for current subscription
+    /// </summary>
+    [HttpGet("hyperdrive-usage")]
+    public ActionResult<OASISResult<HyperDriveUsageDto>> GetHyperDriveUsage()
+    {
+        try
+        {
+            var dna = OASISDNAManager.Instance.OASISDNA;
+            var config = dna?.SubscriptionConfig ?? new SubscriptionConfig();
+            
+            // This would typically come from a usage tracking service
+            var usage = new HyperDriveUsageDto
+            {
+                PlanType = config.PlanType,
+                PayAsYouGoEnabled = config.PayAsYouGoEnabled,
+                CurrentUsage = new Dictionary<string, int>
+                {
+                    { "Replications", 45 },
+                    { "Failovers", 3 },
+                    { "Storage", 2 },
+                    { "Requests", 1250 }
+                },
+                Limits = new Dictionary<string, int>
+                {
+                    { "Replications", config.MaxReplicationsPerMonth },
+                    { "Failovers", config.MaxFailoversPerMonth },
+                    { "Storage", config.MaxStorageGB },
+                    { "Requests", GetRequestLimit(config.PlanType) }
+                },
+                Costs = new Dictionary<string, decimal>
+                {
+                    { "PerReplication", config.CostPerReplication },
+                    { "PerFailover", config.CostPerFailover },
+                    { "PerGB", config.CostPerGB }
+                }
+            };
+            
+            return Ok(new OASISResult<HyperDriveUsageDto>
+            {
+                Result = usage,
+                IsSuccess = true,
+                Message = "HyperDrive usage retrieved successfully."
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new OASISResult<HyperDriveUsageDto>
+            {
+                IsError = true,
+                Message = $"Failed to get HyperDrive usage: {ex.Message}",
+                Exception = ex
+            });
+        }
+    }
+
+    /// <summary>
+    /// Checks if user can perform HyperDrive operation based on quota
+    /// </summary>
+    [HttpPost("check-hyperdrive-quota")]
+    public ActionResult<OASISResult<QuotaCheckResult>> CheckHyperDriveQuota([FromBody] QuotaCheckRequest request)
+    {
+        try
+        {
+            var dna = OASISDNAManager.Instance.OASISDNA;
+            var config = dna?.SubscriptionConfig ?? new SubscriptionConfig();
+            
+            var limits = GetPlanLimits(config.PlanType);
+            var currentUsage = GetCurrentUsage(request.OperationType);
+            var limit = GetLimitForOperation(request.OperationType, limits);
+            
+            var result = new QuotaCheckResult
+            {
+                CanProceed = currentUsage < limit,
+                CurrentUsage = currentUsage,
+                Limit = limit,
+                Remaining = Math.Max(0, limit - currentUsage),
+                WouldExceedQuota = currentUsage >= limit,
+                RequiresPayAsYouGo = currentUsage >= limit && config.PayAsYouGoEnabled,
+                EstimatedCost = currentUsage >= limit ? GetEstimatedCost(request.OperationType, config) : 0
+            };
+            
+            return Ok(new OASISResult<QuotaCheckResult>
+            {
+                Result = result,
+                IsSuccess = true,
+                Message = "Quota check completed successfully."
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new OASISResult<QuotaCheckResult>
+            {
+                IsError = true,
+                Message = $"Failed to check quota: {ex.Message}",
+                Exception = ex
+            });
+        }
+    }
+
+    private PlanLimits GetPlanLimits(string planType)
+    {
+        return planType switch
+        {
+            "Free" => new PlanLimits
+            {
+                MaxReplications = 100,
+                MaxFailovers = 10,
+                MaxStorageGB = 1,
+                CostThreshold = 0,
+                CostPerReplication = 0,
+                CostPerFailover = 0,
+                CostPerGB = 0
+            },
+            "Basic" => new PlanLimits
+            {
+                MaxReplications = 1000,
+                MaxFailovers = 100,
+                MaxStorageGB = 10,
+                CostThreshold = 10,
+                CostPerReplication = 0.01m,
+                CostPerFailover = 0.05m,
+                CostPerGB = 0.10m
+            },
+            "Pro" => new PlanLimits
+            {
+                MaxReplications = 10000,
+                MaxFailovers = 1000,
+                MaxStorageGB = 100,
+                CostThreshold = 50,
+                CostPerReplication = 0.005m,
+                CostPerFailover = 0.025m,
+                CostPerGB = 0.05m
+            },
+            "Enterprise" => new PlanLimits
+            {
+                MaxReplications = int.MaxValue,
+                MaxFailovers = int.MaxValue,
+                MaxStorageGB = int.MaxValue,
+                CostThreshold = 100,
+                CostPerReplication = 0.001m,
+                CostPerFailover = 0.01m,
+                CostPerGB = 0.01m
+            },
+            _ => new PlanLimits
+            {
+                MaxReplications = 100,
+                MaxFailovers = 10,
+                MaxStorageGB = 1,
+                CostThreshold = 0,
+                CostPerReplication = 0,
+                CostPerFailover = 0,
+                CostPerGB = 0
+            }
+        };
+    }
+
+    private int GetRequestLimit(string planType)
+    {
+        return planType switch
+        {
+            "Free" => 1000,
+            "Basic" => 10000,
+            "Pro" => 100000,
+            "Enterprise" => int.MaxValue,
+            _ => 1000
+        };
+    }
+
+    private int GetCurrentUsage(string operationType)
+    {
+        // This would typically come from a usage tracking service
+        return operationType switch
+        {
+            "Replications" => 45,
+            "Failovers" => 3,
+            "Storage" => 2,
+            "Requests" => 1250,
+            _ => 0
+        };
+    }
+
+    private int GetLimitForOperation(string operationType, PlanLimits limits)
+    {
+        return operationType switch
+        {
+            "Replications" => limits.MaxReplications,
+            "Failovers" => limits.MaxFailovers,
+            "Storage" => limits.MaxStorageGB,
+            "Requests" => GetRequestLimit(limits.PlanType),
+            _ => 0
+        };
+    }
+
+    private decimal GetEstimatedCost(string operationType, SubscriptionConfig config)
+    {
+        return operationType switch
+        {
+            "Replications" => config.CostPerReplication,
+            "Failovers" => config.CostPerFailover,
+            "Storage" => config.CostPerGB,
+            _ => 0
+        };
+    }
+
+    // Supporting classes for HyperDrive integration
+    public class UpdateHyperDriveConfigRequest
+    {
+        public string PlanType { get; set; }
+        public bool PayAsYouGoEnabled { get; set; }
+    }
+
+    public class HyperDriveUsageDto
+    {
+        public string PlanType { get; set; }
+        public bool PayAsYouGoEnabled { get; set; }
+        public Dictionary<string, int> CurrentUsage { get; set; }
+        public Dictionary<string, int> Limits { get; set; }
+        public Dictionary<string, decimal> Costs { get; set; }
+    }
+
+    public class QuotaCheckRequest
+    {
+        public string OperationType { get; set; }
+    }
+
+    public class QuotaCheckResult
+    {
+        public bool CanProceed { get; set; }
+        public int CurrentUsage { get; set; }
+        public int Limit { get; set; }
+        public int Remaining { get; set; }
+        public bool WouldExceedQuota { get; set; }
+        public bool RequiresPayAsYouGo { get; set; }
+        public decimal EstimatedCost { get; set; }
+    }
+
+    public class PlanLimits
+    {
+        public int MaxReplications { get; set; }
+        public int MaxFailovers { get; set; }
+        public int MaxStorageGB { get; set; }
+        public decimal CostThreshold { get; set; }
+        public decimal CostPerReplication { get; set; }
+        public decimal CostPerFailover { get; set; }
+        public decimal CostPerGB { get; set; }
+        public string PlanType { get; set; }
     }
 }
 
