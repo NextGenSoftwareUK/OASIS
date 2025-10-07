@@ -55,6 +55,7 @@ import GeoHotSpotsPage from './pages/GeoHotSpotsPage';
 import STARNETStorePage from './pages/STARNETStorePage';
 import STARNETDetailPage from './pages/STARNETDetailPage';
 import SettingsPage from './pages/SettingsPage';
+import HyperDrivePage from './pages/HyperDrivePage';
 import KarmaDetailPage from './pages/KarmaDetailPage';
 import MyDataDetailPage from './pages/MyDataDetailPage';
 import KarmaPage from './pages/KarmaPage';
@@ -650,6 +651,22 @@ const App: React.FC = () => {
                   >
                     <SettingsPage />
                   </motion.div>
+                } 
+              />
+              <Route 
+                path="/hyperdrive" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <HyperDrivePage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
