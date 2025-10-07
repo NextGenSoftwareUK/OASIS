@@ -33,4 +33,25 @@
     <Folder Include="ClientApp\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="NextGenSoftware.OASIS.STAR.WebUI.UnitTests\**" />
+    <EmbeddedResource Remove="NextGenSoftware.OASIS.STAR.WebUI.UnitTests\**" />
+    <None Remove="NextGenSoftware.OASIS.STAR.WebUI.UnitTests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="ClientApp\build\downloads\oasis-web4-unity-sdk\**" />
+    <Compile Remove="ClientApp\public\downloads\oasis-web4-unity-sdk\**" />
+    <Compile Remove="ClientApp\build\downloads\oasis-web5-star-unity-sdk\**" />
+    <Compile Remove="ClientApp\public\downloads\oasis-web5-star-unity-sdk\**" />
+    <EmbeddedResource Remove="ClientApp\build\downloads\oasis-web4-unity-sdk\**" />
+    <EmbeddedResource Remove="ClientApp\public\downloads\oasis-web4-unity-sdk\**" />
+    <EmbeddedResource Remove="ClientApp\build\downloads\oasis-web5-star-unity-sdk\**" />
+    <EmbeddedResource Remove="ClientApp\public\downloads\oasis-web5-star-unity-sdk\**" />
+    <None Remove="ClientApp\build\downloads\oasis-web4-unity-sdk\**" />
+    <None Remove="ClientApp\public\downloads\oasis-web4-unity-sdk\**" />
+    <None Remove="ClientApp\build\downloads\oasis-web5-star-unity-sdk\**" />
+    <None Remove="ClientApp\public\downloads\oasis-web5-star-unity-sdk\**" />
+  </ItemGroup>
+
 </Project>
