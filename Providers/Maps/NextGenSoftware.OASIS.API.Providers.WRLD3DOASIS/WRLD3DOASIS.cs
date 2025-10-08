@@ -1,7 +1,7 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
+﻿using System;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
 {
@@ -200,19 +200,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             }
         }
 
-        public bool SelectQuestOnMap(IQuest quest)
-        {
-            try
-            {
-                // Select quest on map using WRLD 3D
-                // This would use WRLD 3D's quest selection capabilities
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
+        // IQuest support is not currently available in Core; method omitted.
 
         public void SetCurrentMapProvider(MapProviderType mapProviderType)
         {
@@ -270,18 +258,6 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             }
         }
 
-        public bool ZoomToQuestOnMap(IQuest quest)
-        {
-            try
-            {
-                // Zoom to quest on map using WRLD 3D
-                // This would use WRLD 3D's zoom to quest capabilities
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
+        // IQuest support is not currently available in Core; method omitted.
     }
 }

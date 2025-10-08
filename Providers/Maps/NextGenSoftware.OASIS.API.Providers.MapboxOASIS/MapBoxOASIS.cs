@@ -1,7 +1,7 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
+﻿using System;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS
 {
@@ -14,8 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS
         public MapBoxOASIS()
         {
             MapProviderType = MapProviderType.MapBox;
-            MapProviderName = "MapBpx";
-            MapProviderDescription = "MapBpx OASIS Map Provider";
+            MapProviderName = "MapBox";
+            MapProviderDescription = "MapBox OASIS Map Provider";
         }
 
         public bool CreateAndDrawRouteOnMapBetweenHolons(IHolon fromHolon, IHolon toHolon)
@@ -179,18 +179,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS
             }
         }
 
-        public bool SelectQuestOnMap(IQuest quest)
-        {
-            try
-            {
-                // Select quest on map using Mapbox
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
+        // IQuest support is not currently available in Core; method omitted.
 
         public void SetCurrentMapProvider(MapProviderType mapProviderType)
         {
@@ -244,17 +233,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS
             }
         }
 
-        public bool ZoomToQuestOnMap(IQuest quest)
-        {
-            try
-            {
-                // Zoom to quest on map using Mapbox
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
+        // IQuest support is not currently available in Core; method omitted.
     }
 }
