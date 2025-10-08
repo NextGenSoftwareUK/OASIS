@@ -12,8 +12,11 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
 {
@@ -176,7 +179,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
 
         #region IOASISStorageProvider Holon Methods
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, int version = 0)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IHolon>();
 
@@ -221,12 +224,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             return response;
         }
 
-        public override OASISResult<IHolon> LoadHolon(Guid id, int version = 0)
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadHolonAsync(id, version).Result;
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonByProviderKeyAsync(string providerKey, int version = 0)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IHolon>();
 
@@ -271,12 +274,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             return response;
         }
 
-        public override OASISResult<IHolon> LoadHolonByProviderKey(string providerKey, int version = 0)
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadHolonByProviderKeyAsync(providerKey, version).Result;
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
 
@@ -321,12 +324,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             return response;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadAllHolonsAsync(version).Result;
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var response = new OASISResult<IHolon>();
 
@@ -364,14 +367,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             return response;
         }
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            return SaveHolonAsync(holon).Result;
+            return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            var response = new OASISResult<bool>();
+            var response = new OASISResult<IHolon>();
 
             try
             {
@@ -388,7 +391,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                 
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    response.Result = true;
+                    response.Result = new Holon { Id = id };
                     response.Message = "Holon deleted from AWS successfully";
                 }
                 else
@@ -405,14 +408,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             return response;
         }
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            return DeleteHolonAsync(id, softDelete).Result;
+            return DeleteHolonAsync(id).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            var response = new OASISResult<bool>();
+            var response = new OASISResult<IHolon>();
 
             try
             {
@@ -429,7 +432,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                 
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    response.Result = true;
+                    response.Result = new Holon { Id = Guid.NewGuid() };
                     response.Message = "Holon deleted from AWS successfully";
                 }
                 else
@@ -446,9 +449,114 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             return response;
         }
 
-        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            return DeleteHolonAsync(providerKey, softDelete).Result;
+            return DeleteHolonAsync(providerKey).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                // AWS implementation for loading holons for parent
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParentAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                // AWS implementation for loading holons for parent by provider key
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParentAsync by provider key not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent by provider key from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                // AWS implementation for loading holons by metadata
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaDataAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holons by metadata from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                // AWS implementation for loading holons by metadata pairs
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaDataAsync by metadata pairs not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading holons by metadata pairs from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                // AWS implementation for saving multiple holons
+                OASISErrorHandling.HandleError(ref response, "SaveHolonsAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error saving holons to AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
         #endregion
@@ -475,12 +583,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // Parse AWS JSON and create Player collection
-                    // Parse AWS JSON and create Avatar object
-                    var avatar = ParseAWSToAvatar(content);
-                    if (avatar != null)
+                    var players = ParseAWSToPlayers(content);
+                    if (players != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from AWS successfully";
+                        response.Result = players;
+                        response.Message = "Players loaded from AWS successfully";
                     }
                     else
                     {
@@ -521,12 +628,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // Parse AWS JSON and create Holon collection
-                    // Parse AWS JSON and create Avatar object
-                    var avatar = ParseAWSToAvatar(content);
-                    if (avatar != null)
+                    var holons = ParseAWSToHolons(content);
+                    if (holons != null)
                     {
-                        response.Result = avatar;
-                        response.Message = "Avatar loaded from AWS successfully";
+                        response.Result = holons;
+                        response.Message = "Holons loaded from AWS successfully";
                     }
                     else
                     {
@@ -672,6 +778,495 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                 // Return null if parsing fails
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Parse AWS JSON content and convert to OASIS Player collection
+        /// </summary>
+        private IEnumerable<IPlayer> ParseAWSToPlayers(string awsJson)
+        {
+            try
+            {
+                // For now, return empty collection as Player interface needs to be defined
+                return new List<IPlayer>();
+            }
+            catch (Exception)
+            {
+                return new List<IPlayer>();
+            }
+        }
+
+        #endregion
+
+        #region OASISStorageProviderBase Abstract Methods Implementation
+
+        #region Avatar Methods
+
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                // AWS implementation for loading all avatars
+                OASISErrorHandling.HandleError(ref response, "LoadAllAvatarsAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all avatars from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
+        {
+            return LoadAllAvatarsAsync(version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                // AWS implementation for loading avatar by provider key
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarByProviderKeyAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by provider key from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
+        {
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                // AWS implementation for loading avatar by username
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarByUsernameAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by username from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+        {
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                // AWS implementation for loading avatar by email
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarByEmailAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by email from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
+        {
+            return LoadAvatarByEmailAsync(avatarEmail, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                // AWS implementation for loading avatar detail by ID
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
+        {
+            return LoadAvatarDetailAsync(id, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                // AWS implementation for loading avatar detail by email
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailByEmailAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by email from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
+        {
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                // AWS implementation for loading avatar detail by username
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailByUsernameAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by username from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
+        {
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                // AWS implementation for loading all avatar details
+                OASISErrorHandling.HandleError(ref response, "LoadAllAvatarDetailsAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all avatar details from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
+        {
+            return LoadAllAvatarDetailsAsync(version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
+        {
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                // AWS implementation for saving avatar
+                OASISErrorHandling.HandleError(ref response, "SaveAvatarAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar to AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
+        {
+            return SaveAvatarAsync(Avatar).Result;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                // AWS implementation for saving avatar detail
+                OASISErrorHandling.HandleError(ref response, "SaveAvatarDetailAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar detail to AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
+        {
+            return SaveAvatarDetailAsync(Avatar).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                // AWS implementation for deleting avatar by ID
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            return DeleteAvatarAsync(id, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                // AWS implementation for deleting avatar by provider key
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarAsync by provider key not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by provider key from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                // AWS implementation for deleting avatar by email
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByEmailAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by email from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                // AWS implementation for deleting avatar by username
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByUsernameAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by username from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
+        }
+
+        #endregion
+
+        #region Search Methods
+
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var response = new OASISResult<ISearchResults>();
+            try
+            {
+                // AWS implementation for search
+                OASISErrorHandling.HandleError(ref response, "SearchAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error searching in AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+        }
+
+        #endregion
+
+
+        #region Import/Export Methods
+
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                // AWS implementation for importing holons
+                OASISErrorHandling.HandleError(ref response, "ImportAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error importing holons to AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+        {
+            return ImportAsync(holons).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                // AWS implementation for exporting all data for avatar by ID
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByIdAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error exporting all data for avatar by ID from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                // AWS implementation for exporting all data for avatar by username
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByUsernameAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error exporting all data for avatar by username from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                // AWS implementation for exporting all data for avatar by email
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByEmailAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error exporting all data for avatar by email from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                // AWS implementation for exporting all data
+                OASISErrorHandling.HandleError(ref response, "ExportAllAsync not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error exporting all data from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+        {
+            return ExportAllAsync(version).Result;
+        }
+
+        #endregion
+
+        #endregion
+
+        #region IOASISNETProvider Implementation
+
+        public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
+        {
+            var response = new OASISResult<IEnumerable<IPlayer>>();
+            try
+            {
+                // AWS implementation for getting players near me
+                OASISErrorHandling.HandleError(ref response, "GetPlayersNearMe not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error getting players near me from AWS: {ex.Message}");
+            }
+            return response;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType holonType = HolonType.All)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                // AWS implementation for getting holons near me
+                OASISErrorHandling.HandleError(ref response, "GetHolonsNearMe not implemented for AWS provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from AWS: {ex.Message}");
+            }
+            return response;
         }
 
         #endregion

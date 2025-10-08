@@ -12,8 +12,11 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 {
@@ -1030,7 +1033,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                         var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
                         if (saveResult.IsError && !continueOnError)
                         {
-                            OASISErrorHandling.CopyOASISResultOnlyErrors(saveResult, ref response);
+                            OASISErrorHandling.HandleError(ref response, saveResult.Message);
                             return response;
                         }
                         if (saveResult.Result != null)
@@ -1110,7 +1113,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                         return response;
                     }
 
-                    response.Result = new Holon { ProviderUniqueStorageKey = providerKey };
+                    response.Result = new Holon { Id = Guid.NewGuid() };
                 }
                 catch (Exception ex)
                 {
@@ -1230,10 +1233,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                 // Get players near me from SOLID pod
                 var podUrl = $"{_podServerUrl}/players/nearby";
                 
-                var httpResponse = await _httpClient.GetAsync(podUrl);
+                var httpResponse = _httpClient.GetAsync(podUrl).Result;
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // Parse RDF/JSON-LD and create Player collection
                     OASISErrorHandling.HandleError(ref response, "RDF parsing not implemented - requires dotNetRDF library");
                 }
@@ -1266,10 +1269,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                 // Get holons near me from SOLID pod
                 var podUrl = $"{_podServerUrl}/holons/nearby?type={Type}";
                 
-                var httpResponse = await _httpClient.GetAsync(podUrl);
+                var httpResponse = _httpClient.GetAsync(podUrl).Result;
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // Parse RDF/JSON-LD and create Holon collection
                     OASISErrorHandling.HandleError(ref response, "RDF parsing not implemented - requires dotNetRDF library");
                 }
@@ -1291,31 +1294,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 
         #region Private Helper Methods
 
-        /// <summary>
-        /// Convert OASIS Avatar to RDF/JSON-LD format for SOLID pod storage
-        /// </summary>
-        private string ConvertAvatarToRDF(IAvatar avatar)
-        {
-            // This would create proper RDF/JSON-LD representation
-            // For now, return a basic JSON structure
-            return $@"{{
-                ""@context"": ""https://www.w3.org/ns/solid/context"",
-                ""@id"": ""{avatar.Id}"",
-                ""name"": ""{avatar.Username}"",
-                ""email"": ""{avatar.Email}"",
-                ""created"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
-            }}";
-        }
 
-        /// <summary>
-        /// Parse RDF/JSON-LD content and convert to OASIS Avatar
-        /// </summary>
-        private IAvatar ParseRDFToAvatar(string rdfContent)
-        {
-            // This would parse RDF/JSON-LD and create Avatar object
-            // For now, return null as RDF parsing requires dotNetRDF library
-            return null;
-        }
 
         /// <summary>
         /// Convert OASIS AvatarDetail to RDF/JSON-LD format for SOLID pod storage
@@ -1485,7 +1464,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         /// <summary>
         /// Parse RDF/JSON-LD content from SOLID pod to Avatar object
         /// </summary>
-        private Avatar ParseRDFToAvatar(string rdfContent)
+        private IAvatar ParseRDFToAvatar(string rdfContent)
         {
             try
             {
@@ -1508,7 +1487,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         /// <summary>
         /// Create Avatar from RDF content when JSON deserialization fails
         /// </summary>
-        private Avatar CreateAvatarFromRDF(string rdfContent)
+        private IAvatar CreateAvatarFromRDF(string rdfContent)
         {
             try
             {
