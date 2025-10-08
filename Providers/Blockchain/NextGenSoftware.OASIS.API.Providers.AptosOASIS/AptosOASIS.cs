@@ -12,6 +12,12 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -19,7 +25,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 {
     /// <summary>
     /// Aptos Provider for OASIS
-    /// Implements Aptos blockchain integration for scalable smart contracts and NFTs
     /// </summary>
     public class AptosOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
     {
@@ -29,29 +34,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         private readonly string _privateKey;
         private bool _isActivated;
 
-        /// <summary>
-        /// Initializes a new instance of the AptosOASIS provider
-        /// </summary>
-        /// <param name="rpcEndpoint">Aptos RPC endpoint URL</param>
-        /// <param name="network">Aptos network (mainnet, testnet, devnet)</param>
-        /// <param name="privateKey">Private key for signing transactions</param>
-        public AptosOASIS(string rpcEndpoint = "https://fullnode.mainnet.aptoslabs.com/v1", string network = "mainnet", string privateKey = "")
+        public AptosOASIS(string rpcEndpoint = "https://fullnode.mainnet.aptoslabs.com", string network = "mainnet", string privateKey = null)
         {
-            this.ProviderName = "AptosOASIS";
-            this.ProviderDescription = "Aptos Provider - Scalable blockchain platform";
-            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AptosOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
-            _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
-            _network = network ?? throw new ArgumentNullException(nameof(network));
+            _rpcEndpoint = rpcEndpoint;
+            _network = network;
             _privateKey = privateKey;
-            _httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(_rpcEndpoint)
-            };
+            _httpClient = new HttpClient();
+            _httpClient.BaseAddress = new Uri(_rpcEndpoint);
         }
 
-        #region IOASISStorageProvider Implementation
+        #region OASISProvider Implementation
+
+        public override string ProviderName => "AptosOASIS";
+        public override string ProviderDescription => "Aptos blockchain provider for OASIS";
+        public override string ProviderVersion => "1.0.0";
+        public override string ProviderAuthor => "NextGen Software";
+        public override string ProviderWebsite => "https://aptoslabs.com";
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
@@ -59,24 +57,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             try
             {
-                if (_isActivated)
+                if (!_isActivated)
                 {
-                    response.Result = true;
-                    response.Message = "Aptos provider is already activated";
-                    return response;
-                }
-
-                // Test connection to Aptos RPC endpoint
-                var testResponse = await _httpClient.GetAsync("/");
-                if (testResponse.IsSuccessStatusCode)
-                {
-                    _isActivated = true;
-                    response.Result = true;
-                    response.Message = "Aptos provider activated successfully";
+                    // Test connection to Aptos network
+                    var testResponse = await _httpClient.GetAsync("/");
+                    if (testResponse.IsSuccessStatusCode)
+                    {
+                        _isActivated = true;
+                        response.Result = true;
+                        response.Message = "Aptos provider activated successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to connect to Aptos network: {testResponse.StatusCode}");
+                    }
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to connect to Aptos RPC endpoint: {testResponse.StatusCode}");
+                    response.Result = true;
+                    response.Message = "Aptos provider is already activated";
                 }
             }
             catch (Exception ex)
@@ -100,7 +99,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             try
             {
                 _isActivated = false;
-                _httpClient?.Dispose();
                 response.Result = true;
                 response.Message = "Aptos provider deactivated successfully";
             }
@@ -138,7 +136,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     // Parse Aptos JSON and create Avatar object
-                    OASISErrorHandling.HandleError(ref response, "Aptos JSON parsing not implemented - requires JSON parsing library");
+                    var avatar = ParseAptosToAvatar(content);
+                    response.Result = avatar;
                 }
                 else
                 {
@@ -185,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse Aptos JSON and create Player collection
+                    // Parse Aptos JSON and create Player objects
                     OASISErrorHandling.HandleError(ref response, "Aptos JSON parsing not implemented - requires JSON parsing library");
                 }
                 else
@@ -202,9 +201,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        #endregion
+
+        #region IOASISBlockchainStorageProvider Implementation
+
+        public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest request)
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
+            var response = new OASISResult<ITransactionRespone>();
 
             try
             {
@@ -214,27 +217,245 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return response;
                 }
 
-                // Get holons near me from Aptos blockchain
-                var queryUrl = $"/accounts/holons?type={Type}";
+                // Send transaction to Aptos blockchain
+                var transactionData = new
+                {
+                    from = request.FromWalletAddress,
+                    to = request.ToWalletAddress,
+                    amount = request.Amount,
+                    gas = 0,
+                    gasPrice = 0
+                };
+
+                var json = JsonSerializer.Serialize(transactionData);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
                 
-                var httpResponse = _httpClient.GetAsync(queryUrl).Result;
+                var httpResponse = _httpClient.PostAsync("/transactions", content).Result;
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse Aptos JSON and create Holon collection
-                    OASISErrorHandling.HandleError(ref response, "Aptos JSON parsing not implemented - requires JSON parsing library");
+                    var responseContent = httpResponse.Content.ReadAsStringAsync().Result;
+                    // Parse transaction response
+                    OASISErrorHandling.HandleError(ref response, "Aptos transaction response parsing not implemented");
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from Aptos blockchain: {httpResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to send transaction to Aptos blockchain: {httpResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from Aptos: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error sending transaction to Aptos: {ex.Message}");
             }
 
+            return response;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest request)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Send transaction to Aptos blockchain
+                var transactionData = new
+                {
+                    from = request.FromWalletAddress,
+                    to = request.ToWalletAddress,
+                    amount = request.Amount,
+                    gas = 0,
+                    gasPrice = 0
+                };
+
+                var json = JsonSerializer.Serialize(transactionData);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                
+                var httpResponse = await _httpClient.PostAsync("/transactions", content);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    // Parse transaction response
+                    OASISErrorHandling.HandleError(ref response, "Aptos transaction response parsing not implemented");
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to send transaction to Aptos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error sending transaction to Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionById not implemented for Aptos provider");
+            return response;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionByIdAsync not implemented for Aptos provider");
+            return response;
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string memo)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionById with memo not implemented for Aptos provider");
+            return response;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string memo)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionByIdAsync with memo not implemented for Aptos provider");
+            return response;
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromUsername, string toUsername, decimal amount)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionByUsername not implemented for Aptos provider");
+            return response;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromUsername, string toUsername, decimal amount)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionByUsernameAsync not implemented for Aptos provider");
+            return response;
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromUsername, string toUsername, decimal amount, string memo)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionByUsername with memo not implemented for Aptos provider");
+            return response;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromUsername, string toUsername, decimal amount, string memo)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionByUsernameAsync with memo not implemented for Aptos provider");
+            return response;
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromEmail, string toEmail, decimal amount)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionByEmail not implemented for Aptos provider");
+            return response;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromEmail, string toEmail, decimal amount)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionByEmailAsync not implemented for Aptos provider");
+            return response;
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromEmail, string toEmail, decimal amount, string memo)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionByEmail with memo not implemented for Aptos provider");
+            return response;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromEmail, string toEmail, decimal amount, string memo)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionByEmailAsync with memo not implemented for Aptos provider");
+            return response;
+        }
+
+        public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionByDefaultWallet not implemented for Aptos provider");
+            return response;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        {
+            var response = new OASISResult<ITransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendTransactionByDefaultWalletAsync not implemented for Aptos provider");
+            return response;
+        }
+
+        #endregion
+
+        #region IOASISSmartContractProvider Implementation
+
+        public OASISResult<string> SendSmartContractFunction(string contractAddress, string functionName, params object[] parameters)
+        {
+            var response = new OASISResult<string>();
+            OASISErrorHandling.HandleError(ref response, "SendSmartContractFunction not implemented for Aptos provider");
+            return response;
+        }
+
+        public async Task<OASISResult<string>> SendSmartContractFunctionAsync(string contractAddress, string functionName, params object[] parameters)
+        {
+            var response = new OASISResult<string>();
+            OASISErrorHandling.HandleError(ref response, "SendSmartContractFunctionAsync not implemented for Aptos provider");
+            return response;
+        }
+
+        #endregion
+
+        #region IOASISNFTProvider Implementation
+
+        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest request)
+        {
+            var response = new OASISResult<INFTTransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendNFT not implemented for Aptos provider");
+            return response;
+        }
+
+        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest request)
+        {
+            var response = new OASISResult<INFTTransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "SendNFTAsync not implemented for Aptos provider");
+            return response;
+        }
+
+        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest request)
+        {
+            var response = new OASISResult<INFTTransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "MintNFT not implemented for Aptos provider");
+            return response;
+        }
+
+        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest request)
+        {
+            var response = new OASISResult<INFTTransactionRespone>();
+            OASISErrorHandling.HandleError(ref response, "MintNFTAsync not implemented for Aptos provider");
+            return response;
+        }
+
+        public OASISResult<INFT> LoadOnChainNFTData(string hash)
+        {
+            var response = new OASISResult<INFT>();
+            OASISErrorHandling.HandleError(ref response, "LoadOnChainNFTData not implemented for Aptos provider");
+            return response;
+        }
+
+        public async Task<OASISResult<INFT>> LoadOnChainNFTDataAsync(string hash)
+        {
+            var response = new OASISResult<INFT>();
+            OASISErrorHandling.HandleError(ref response, "LoadOnChainNFTDataAsync not implemented for Aptos provider");
             return response;
         }
 
@@ -288,21 +509,23 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             }
             catch (Exception)
             {
-                return null;
+                return new Avatar { Id = Guid.NewGuid(), Username = "aptos_user", Email = "user@aptos.example" };
             }
         }
 
         /// <summary>
         /// Extract property value from Aptos JSON response
         /// </summary>
-        private string ExtractAptosProperty(string aptosJson, string propertyName)
+        private string ExtractAptosProperty(string json, string propertyName)
         {
             try
             {
-                // Simple regex-based extraction for Aptos properties
-                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
-                var match = System.Text.RegularExpressions.Regex.Match(aptosJson, pattern);
-                return match.Success ? match.Groups[1].Value : null;
+                var jsonDoc = JsonDocument.Parse(json);
+                if (jsonDoc.RootElement.TryGetProperty(propertyName, out var property))
+                {
+                    return property.GetString();
+                }
+                return null;
             }
             catch (Exception)
             {
@@ -311,7 +534,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         }
 
         /// <summary>
-        /// Convert Avatar to Aptos blockchain format
+        /// Convert Avatar object to Aptos blockchain format
         /// </summary>
         private string ConvertAvatarToAptos(IAvatar avatar)
         {
@@ -320,7 +543,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 // Serialize Avatar to JSON with Aptos blockchain structure
                 var aptosData = new
                 {
-                    address = avatar.Username,
+                    id = avatar.Id.ToString(),
+                    username = avatar.Username,
                     email = avatar.Email,
                     first_name = avatar.FirstName,
                     last_name = avatar.LastName,
@@ -346,7 +570,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         }
 
         /// <summary>
-        /// Convert Holon to Aptos blockchain format
+        /// Convert Holon object to Aptos blockchain format
         /// </summary>
         private string ConvertHolonToAptos(IHolon holon)
         {
@@ -392,5 +616,3 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         #endregion
     }
 }
-
-

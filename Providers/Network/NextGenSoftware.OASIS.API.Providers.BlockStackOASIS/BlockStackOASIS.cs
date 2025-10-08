@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
@@ -16,6 +19,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -253,7 +257,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 var avatarResult = await LoadAvatarAsync(id, version);
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
-                    var detail = new AvatarDetail(avatarResult.Result);
+                    var detail = new AvatarDetail();
+                    detail.Id = avatarResult.Result.Id;
+                    detail.Username = avatarResult.Result.Username;
+                    detail.Email = avatarResult.Result.Email;
+                    detail.CreatedDate = avatarResult.Result.CreatedDate;
+                    detail.ModifiedDate = avatarResult.Result.ModifiedDate;
                     result.Result = detail;
                     result.Message = "Avatar detail loaded from BlockStack successfully";
                 }
@@ -283,7 +292,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 var avatarResult = await LoadAvatarByEmailAsync(avatarEmail, version);
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
-                    result.Result = new AvatarDetail(avatarResult.Result);
+                    var detail = new AvatarDetail();
+                    detail.Id = avatarResult.Result.Id;
+                    detail.Username = avatarResult.Result.Username;
+                    detail.Email = avatarResult.Result.Email;
+                    detail.CreatedDate = avatarResult.Result.CreatedDate;
+                    detail.ModifiedDate = avatarResult.Result.ModifiedDate;
+                    result.Result = detail;
                     result.Message = "Avatar detail loaded by email from BlockStack successfully";
                 }
                 else
@@ -310,7 +325,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
-                    result.Result = new AvatarDetail(avatarResult.Result);
+                    var detail = new AvatarDetail();
+                    detail.Id = avatarResult.Result.Id;
+                    detail.Username = avatarResult.Result.Username;
+                    detail.Email = avatarResult.Result.Email;
+                    detail.CreatedDate = avatarResult.Result.CreatedDate;
+                    detail.ModifiedDate = avatarResult.Result.ModifiedDate;
+                    result.Result = detail;
                     result.Message = "Avatar detail loaded by username from BlockStack successfully";
                 }
                 else
@@ -352,7 +373,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 var list = new List<IAvatarDetail>();
                 foreach (var a in avatars.Result)
-                    list.Add(new AvatarDetail(a));
+                {
+                    var detail = new AvatarDetail();
+                    detail.Id = a.Id;
+                    detail.Username = a.Username;
+                    detail.Email = a.Email;
+                    detail.CreatedDate = a.CreatedDate;
+                    detail.ModifiedDate = a.ModifiedDate;
+                    list.Add(detail);
+                }
                 result.Result = list;
                 result.Message = avatars.Message?.Replace("avatars", "avatar details");
                 return result;
