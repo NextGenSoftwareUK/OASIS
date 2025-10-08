@@ -41,15 +41,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             _privateKey = privateKey;
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(_rpcEndpoint);
+
+            this.ProviderName = "AptosOASIS";
+            this.ProviderDescription = "Aptos blockchain provider for OASIS";
+            this.ProviderVersion = "1.0.0";
+            this.ProviderAuthor = "NextGen Software";
+            this.ProviderWebsite = "https://aptoslabs.com";
         }
 
         #region OASISProvider Implementation
 
-        public override string ProviderName => "AptosOASIS";
-        public override string ProviderDescription => "Aptos blockchain provider for OASIS";
-        public override string ProviderVersion => "1.0.0";
-        public override string ProviderAuthor => "NextGen Software";
-        public override string ProviderWebsite => "https://aptoslabs.com";
+        // Provider metadata set in constructor
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
