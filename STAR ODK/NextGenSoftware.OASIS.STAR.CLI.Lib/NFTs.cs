@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     CLIEngine.ShowWorkingMessage("Minting OASIS NFT...");
                     OASISResult<INFTTransactionRespone> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
-                    Console.WriteLine(nftResult.Message);           
+         
                     if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
                     {
                         CLIEngine.ShowSuccessMessage(nftResult.Message);
@@ -243,70 +243,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
                 else
                 {
-                    IMintNFTTransactionRequest request = await NFTCommon.GenerateNFTRequestAsync();
-
-                    CLIEngine.ShowWorkingMessage("Minting OASIS NFT...");
-                     OASISResult<INFTTransactionRespone> mintResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
-                    Console.WriteLine(mintResult.Message);
-                    if (mintResult != null && mintResult.Result != null && !mintResult.IsError)
-                    {
-                        CLIEngine.ShowSuccessMessage(mintResult.Message);
-                        result.Result = mintResult.Result.OASISNFT;
-                    }
-                    else
-                    {
-                        string msg = mintResult != null ? mintResult.Message : "";
-                        CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
-                    }
-
-                    //ImportWeb3NFTRequest request = await NFTCommon.GenerateNFTRequestAsync();
-
-                    //ImportWeb3NFTRequest request = new ImportWeb3NFTRequest();
-
-                    ////WEB3 NFT Import from Token Address
-                    //request. = CLIEngine.GetValidInput("Please enter the token address of the NFT you wish to import: ");
-
-
                     // Import Web3 NFT functionality
                     try
                     {
-                        CLIEngine.ShowWorkingMessage("Starting Web3 NFT import process...");
-                        
-                        // Get token address from user
-                        string tokenAddress = CLIEngine.GetValidInput("Please enter the token address of the NFT you wish to import: ");
-                        
-                        if (string.IsNullOrEmpty(tokenAddress))
-                        {
-                            result.IsError = true;
-                            result.Message = "Token address cannot be empty.";
-                            return result;
-                        }
-
-                        // Get additional metadata from user
-                        string title = CLIEngine.GetValidInput("What is the NFT's title? (optional, press Enter to skip): ");
-                        string description = CLIEngine.GetValidInput("What is the NFT's description? (optional, press Enter to skip): ");
-                        string imageUrl = CLIEngine.GetValidInput("What is the NFT's image URL? (optional, press Enter to skip): ");
-
+                        IImportWeb3NFTRequest request = await NFTCommon.GenerateImportNFTRequestAsync();
                         CLIEngine.ShowWorkingMessage("Importing Web3 NFT...");
 
-                        // Create import request
-                        var importRequest = new ImportWeb3NFTRequest
-                        {
-                            NFTTokenAddress = tokenAddress,
-                            Title = string.IsNullOrEmpty(title) ? "Imported Web3 NFT" : title,
-                            Description = string.IsNullOrEmpty(description) ? "Imported from Web3 blockchain" : description,
-                            ImageUrl = imageUrl,
-                            ImportedByByAvatarId = STAR.BeamedInAvatar.Id
-                        };
+                        var importResult = await NFTCommon.NFTManager.ImportWeb3NFTAsync(request);
 
-                        // Import the NFT using NFTManager
-                        var importResult = await NFTCommon.NFTManager.ImportWeb3NFTAsync(importRequest);
-                        
-                        if (importResult.IsError)
+                        if (importResult != null && importResult.Result != null && !importResult.IsError)
                         {
-                            result.IsError = true;
-                            result.Message = $"Failed to import Web3 NFT: {importResult.Message}";
-                            return result;
+                            CLIEngine.ShowSuccessMessage(importResult.Message);
+                            result.Result = importResult.Result;
+                        }
+                        else
+                        {
+                            string msg = importResult != null ? importResult.Message : "";
+                            CLIEngine.ShowErrorMessage($"Failed to import Web3 NFT: {msg}");
                         }
 
                         result.Result = importResult.Result;
@@ -328,8 +281,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 // WEB4 OASIS NFT Import
                 try
                 {
-                    CLIEngine.ShowWorkingMessage("Starting WEB4 OASIS NFT import process...");
-                    
                     // Get OASIS NFT ID from user
                     string oasisNFTId = CLIEngine.GetValidInput("Please enter the OASIS NFT ID you wish to import: ");
                     
