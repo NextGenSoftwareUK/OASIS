@@ -159,8 +159,183 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return LoadAvatarAsync(id, version).Result;
         }
 
-        // Additional methods would be implemented here following the same pattern...
-        // For brevity, I'll implement the key methods and mark others as "not yet implemented"
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
+                    return response;
+                }
+
+                // Query Bitcoin blockchain for avatar by address
+                var queryUrl = $"/address/{providerKey}";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var addressData = JsonSerializer.Deserialize<JsonElement>(content);
+                    
+                    var avatar = ParseBitcoinToAvatar(addressData, providerKey);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded from Bitcoin successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse Bitcoin address data");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from Bitcoin: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar from Bitcoin: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
+        {
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+        {
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
+                    return response;
+                }
+
+                // Query Bitcoin blockchain for avatar by email using OP_RETURN data
+                var queryUrl = $"/address/{avatarEmail}/txs";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var txData = JsonSerializer.Deserialize<JsonElement[]>(content);
+                    
+                    // Search for transactions containing email in OP_RETURN
+                    foreach (var tx in txData)
+                    {
+                        if (tx.TryGetProperty("vout", out var vout))
+                        {
+                            foreach (var output in vout.EnumerateArray())
+                            {
+                                if (output.TryGetProperty("scriptpubkey", out var script) && 
+                                    script.TryGetProperty("asm", out var asm) && 
+                                    asm.GetString().Contains(avatarEmail))
+                                {
+                                    var avatar = ParseBitcoinToAvatar(tx, avatarEmail);
+                                    if (avatar != null)
+                                    {
+                                        response.Result = avatar;
+                                        response.IsError = false;
+                                        response.Message = "Avatar loaded from Bitcoin by email successfully";
+                                        return response;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    OASISErrorHandling.HandleError(ref response, "Avatar not found with that email on Bitcoin blockchain");
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from Bitcoin: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by email from Bitcoin: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
+        {
+            return LoadAvatarByEmailAsync(avatarEmail, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
+                    return response;
+                }
+
+                // Query Bitcoin blockchain for avatar by username using OP_RETURN data
+                var queryUrl = $"/address/{avatarUsername}/txs";
+                
+                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var txData = JsonSerializer.Deserialize<JsonElement[]>(content);
+                    
+                    // Search for transactions containing username in OP_RETURN
+                    foreach (var tx in txData)
+                    {
+                        if (tx.TryGetProperty("vout", out var vout))
+                        {
+                            foreach (var output in vout.EnumerateArray())
+                            {
+                                if (output.TryGetProperty("scriptpubkey", out var script) && 
+                                    script.TryGetProperty("asm", out var asm) && 
+                                    asm.GetString().Contains(avatarUsername))
+                                {
+                                    var avatar = ParseBitcoinToAvatar(tx, avatarUsername);
+                                    if (avatar != null)
+                                    {
+                                        response.Result = avatar;
+                                        response.IsError = false;
+                                        response.Message = "Avatar loaded from Bitcoin by username successfully";
+                                        return response;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    OASISErrorHandling.HandleError(ref response, "Avatar not found with that username on Bitcoin blockchain");
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from Bitcoin: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by username from Bitcoin: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
+        }
 
         #endregion
 
@@ -387,6 +562,58 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         public void Dispose()
         {
             _httpClient?.Dispose();
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Parse Bitcoin blockchain response to Avatar object
+        /// </summary>
+        private Avatar ParseBitcoinToAvatar(JsonElement bitcoinData, string identifier)
+        {
+            try
+            {
+                var avatar = new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = identifier,
+                    Email = bitcoinData.TryGetProperty("address", out var address) ? address.GetString() : identifier,
+                    FirstName = "Bitcoin",
+                    LastName = "User",
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow,
+                    Version = 1,
+                    IsActive = true
+                };
+
+                // Add Bitcoin-specific metadata
+                if (bitcoinData.TryGetProperty("chain_stats", out var chainStats))
+                {
+                    if (chainStats.TryGetProperty("funded_txo_sum", out var funded))
+                    {
+                        avatar.ProviderMetaData.Add("bitcoin_balance", funded.GetInt64().ToString());
+                    }
+                    if (chainStats.TryGetProperty("spent_txo_sum", out var spent))
+                    {
+                        avatar.ProviderMetaData.Add("bitcoin_spent", spent.GetInt64().ToString());
+                    }
+                }
+                if (bitcoinData.TryGetProperty("mempool_stats", out var mempoolStats))
+                {
+                    if (mempoolStats.TryGetProperty("funded_txo_sum", out var mempoolFunded))
+                    {
+                        avatar.ProviderMetaData.Add("bitcoin_mempool_balance", mempoolFunded.GetInt64().ToString());
+                    }
+                }
+
+                return avatar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         #endregion
