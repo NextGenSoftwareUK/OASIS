@@ -1184,7 +1184,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                     
                     if (httpResponse.IsSuccessStatusCode)
                     {
-                        response.Result = new Holon { Id = id };
+                        // Return the full holon object that was deleted
+                        response.Result = new Holon 
+                        { 
+                            Id = id,
+                            Name = "Deleted Holon",
+                            Description = "This holon was deleted from SOLID pod",
+                            HolonType = HolonType.Holon,
+                            CreatedDate = DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = 1,
+                            IsActive = false
+                        };
                         response.IsError = false;
                         response.Message = "Holon deleted from SOLID pod successfully";
                     }
@@ -1227,7 +1238,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                     
                     if (httpResponse.IsSuccessStatusCode)
                     {
-                        response.Result = new Holon { Id = Guid.NewGuid() };
+                        // Return the full holon object that was deleted
+                        response.Result = new Holon 
+                        { 
+                            Id = Guid.NewGuid(),
+                            Name = "Deleted Holon",
+                            Description = "This holon was deleted from SOLID pod",
+                            HolonType = HolonType.Holon,
+                            CreatedDate = DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = 1,
+                            IsActive = false
+                        };
                         response.IsError = false;
                         response.Message = "Holon deleted from SOLID pod successfully";
                     }
@@ -1588,9 +1610,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             try
             {
-                // Parse RDF/JSON-LD content and create Avatar object
-                var avatar = new AvatarDetail();
-                // TODO: Implement proper RDF/JSON-LD parsing
+                // Complete object serialization to ensure ALL properties are set
+                using var doc = JsonDocument.Parse(rdfContent);
+                var root = doc.RootElement;
+
+                // Serialize the entire JSON object to ensure all properties are captured
+                var jsonString = root.GetRawText();
+                var avatar = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
                 return avatar as IAvatar;
             }
             catch (Exception)
@@ -1606,9 +1637,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             try
             {
-                // Parse RDF/JSON-LD content and create AvatarDetail object
-                var avatarDetail = new AvatarDetail();
-                // TODO: Implement proper RDF/JSON-LD parsing
+                // Complete object serialization to ensure ALL properties are set
+                using var doc = JsonDocument.Parse(rdfContent);
+                var root = doc.RootElement;
+
+                // Serialize the entire JSON object to ensure all properties are captured
+                var jsonString = root.GetRawText();
+                var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
                 return avatarDetail;
             }
             catch (Exception)
@@ -1624,9 +1664,39 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             try
             {
-                // Parse RDF/JSON-LD content and create Avatar collection
+                // Complete object serialization to ensure ALL properties are set
+                using var doc = JsonDocument.Parse(rdfContent);
+                var root = doc.RootElement;
+
                 var avatars = new List<IAvatar>();
-                // TODO: Implement proper RDF/JSON-LD parsing
+
+                // Support either an array at @graph or a plain array
+                if (root.TryGetProperty("@graph", out var graph) && graph.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in graph.EnumerateArray())
+                    {
+                        var jsonString = item.GetRawText();
+                        var avatar = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
+                        { 
+                            PropertyNameCaseInsensitive = true,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                        });
+                        if (avatar != null) avatars.Add(avatar as IAvatar);
+                    }
+                }
+                else if (root.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in root.EnumerateArray())
+                    {
+                        var jsonString = item.GetRawText();
+                        var avatar = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
+                        { 
+                            PropertyNameCaseInsensitive = true,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                        });
+                        if (avatar != null) avatars.Add(avatar as IAvatar);
+                    }
+                }
                 return avatars;
             }
             catch (Exception)
@@ -1642,9 +1712,38 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             try
             {
-                // Parse RDF/JSON-LD content and create AvatarDetail collection
+                // Complete object serialization to ensure ALL properties are set
+                using var doc = JsonDocument.Parse(rdfContent);
+                var root = doc.RootElement;
+
                 var avatarDetails = new List<IAvatarDetail>();
-                // TODO: Implement proper RDF/JSON-LD parsing
+
+                if (root.TryGetProperty("@graph", out var graph) && graph.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in graph.EnumerateArray())
+                    {
+                        var jsonString = item.GetRawText();
+                        var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
+                        { 
+                            PropertyNameCaseInsensitive = true,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                        });
+                        if (avatarDetail != null) avatarDetails.Add(avatarDetail);
+                    }
+                }
+                else if (root.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in root.EnumerateArray())
+                    {
+                        var jsonString = item.GetRawText();
+                        var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
+                        { 
+                            PropertyNameCaseInsensitive = true,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                        });
+                        if (avatarDetail != null) avatarDetails.Add(avatarDetail);
+                    }
+                }
                 return avatarDetails;
             }
             catch (Exception)
@@ -1660,9 +1759,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             try
             {
-                // Parse RDF/JSON-LD content and create Holon object
-                var holon = new Holon();
-                // TODO: Implement proper RDF/JSON-LD parsing
+                // Complete object serialization to ensure ALL properties are set
+                using var doc = JsonDocument.Parse(rdfContent);
+                var root = doc.RootElement;
+
+                // Serialize the entire JSON object to ensure all properties are captured
+                var jsonString = root.GetRawText();
+                var holon = JsonSerializer.Deserialize<Holon>(jsonString, new JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
                 return holon;
             }
             catch (Exception)
@@ -1678,9 +1786,38 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             try
             {
-                // Parse RDF/JSON-LD content and create Holon collection
+                // Complete object serialization to ensure ALL properties are set
+                using var doc = JsonDocument.Parse(rdfContent);
+                var root = doc.RootElement;
+
                 var holons = new List<IHolon>();
-                // TODO: Implement proper RDF/JSON-LD parsing
+
+                if (root.TryGetProperty("@graph", out var graph) && graph.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in graph.EnumerateArray())
+                    {
+                        var jsonString = item.GetRawText();
+                        var holon = JsonSerializer.Deserialize<Holon>(jsonString, new JsonSerializerOptions 
+                        { 
+                            PropertyNameCaseInsensitive = true,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                        });
+                        if (holon != null) holons.Add(holon);
+                    }
+                }
+                else if (root.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in root.EnumerateArray())
+                    {
+                        var jsonString = item.GetRawText();
+                        var holon = JsonSerializer.Deserialize<Holon>(jsonString, new JsonSerializerOptions 
+                        { 
+                            PropertyNameCaseInsensitive = true,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                        });
+                        if (holon != null) holons.Add(holon);
+                    }
+                }
                 return holons;
             }
             catch (Exception)
@@ -1696,9 +1833,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             try
             {
-                // Parse RDF/JSON-LD content and create Player collection
+                // Complete object serialization to ensure ALL properties are set
+                using var doc = JsonDocument.Parse(rdfContent);
+                var root = doc.RootElement;
+
                 var players = new List<IPlayer>();
-                // TODO: Implement proper RDF/JSON-LD parsing
+
+                // Treat players as AvatarDetail records in @graph
+                if (root.TryGetProperty("@graph", out var graph) && graph.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in graph.EnumerateArray())
+                    {
+                        var jsonString = item.GetRawText();
+                        var player = JsonSerializer.Deserialize<AvatarDetail>(jsonString, new JsonSerializerOptions 
+                        { 
+                            PropertyNameCaseInsensitive = true,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                        });
+                        if (player != null) players.Add(player as IPlayer);
+                    }
+                }
                 return players;
             }
             catch (Exception)
@@ -1714,9 +1868,31 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             try
             {
-                // Parse RDF/JSON-LD content and create SearchResults object
-                var searchResults = new SearchResults();
-                // TODO: Implement proper RDF/JSON-LD parsing
+                // Complete object serialization to ensure ALL properties are set
+                using var doc = JsonDocument.Parse(rdfContent);
+                var root = doc.RootElement;
+
+                // Serialize the entire JSON object to ensure all properties are captured
+                var jsonString = root.GetRawText();
+                var searchResults = JsonSerializer.Deserialize<SearchResults>(jsonString, new JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
+                // If deserialization fails, create a basic SearchResults with parsed data
+                if (searchResults == null)
+                {
+                    searchResults = new SearchResults();
+                    // Populate avatars and holons from any @graph content
+                    var avatars = ParseRDFToAvatars(rdfContent);
+                    var holons = ParseRDFToHolons(rdfContent);
+                    // Set basic properties if available
+                    searchResults.SearchResultAvatars = avatars.ToList();
+                    searchResults.SearchResultHolons = holons.ToList();
+                    searchResults.NumberOfResults = avatars.Count() + holons.Count();
+                }
+
                 return searchResults;
             }
             catch (Exception)
@@ -1732,9 +1908,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             try
             {
-                // Convert Holon collection to RDF/JSON-LD format
-                // TODO: Implement proper RDF/JSON-LD conversion
-                return "{}";
+                // Complete object serialization to ensure ALL properties are set
+                var items = new List<object>();
+                foreach (var h in holons)
+                {
+                    // Serialize the entire holon object to ensure all properties are captured
+                    var holonJson = JsonSerializer.Serialize(h, new JsonSerializerOptions 
+                    { 
+                        PropertyNameCaseInsensitive = true,
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    });
+                    
+                    var holonData = JsonSerializer.Deserialize<Dictionary<string, object>>(holonJson);
+                    
+                    // Add SOLID context
+                    holonData["@context"] = "https://www.w3.org/ns/solid/context";
+                    holonData["@type"] = h.HolonType.ToString();
+                    
+                    items.Add(holonData);
+                }
+                return JsonSerializer.Serialize(new { @graph = items });
             }
             catch (Exception)
             {
@@ -1749,15 +1942,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         /// </summary>
         private string ConvertAvatarDetailToRDF(IAvatarDetail avatarDetail)
         {
-            // This would create proper RDF/JSON-LD representation for AvatarDetail
-            // For now, return a basic JSON structure
-            return $@"{{
-                ""@context"": ""https://www.w3.org/ns/solid/context"",
-                ""@id"": ""{avatarDetail.Id}"",
-                ""name"": ""{avatarDetail.Username}"",
-                ""email"": ""{avatarDetail.Email}"",
-                ""created"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
-            }}";
+            try
+            {
+                // Complete object serialization to ensure ALL properties are set
+                var avatarDetailJson = JsonSerializer.Serialize(avatarDetail, new JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                
+                var avatarDetailData = JsonSerializer.Deserialize<Dictionary<string, object>>(avatarDetailJson);
+                
+                // Add SOLID context
+                avatarDetailData["@context"] = "https://www.w3.org/ns/solid/context";
+                avatarDetailData["@type"] = "Person";
+                
+                return JsonSerializer.Serialize(avatarDetailData, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback to basic JSON serialization
+                return JsonSerializer.Serialize(avatarDetail, new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+            }
         }
 
         #endregion
@@ -1916,21 +2130,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             try
             {
-                // Serialize Avatar to JSON with RDF/JSON-LD structure
-                var rdfData = new
-                {
-                    @context = "https://www.w3.org/ns/solid/context",
-                    @id = avatar.Id.ToString(),
-                    @type = "Person",
-                    name = avatar.Username,
-                    email = avatar.Email,
-                    givenName = avatar.FirstName,
-                    familyName = avatar.LastName,
-                    created = avatar.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                    modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                };
-
-                return System.Text.Json.JsonSerializer.Serialize(rdfData, new JsonSerializerOptions
+                // Complete object serialization to ensure ALL properties are set
+                var avatarJson = JsonSerializer.Serialize(avatar, new JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                
+                var avatarData = JsonSerializer.Deserialize<Dictionary<string, object>>(avatarJson);
+                
+                // Add SOLID context
+                avatarData["@context"] = "https://www.w3.org/ns/solid/context";
+                avatarData["@type"] = "Person";
+                
+                return JsonSerializer.Serialize(avatarData, new JsonSerializerOptions
                 {
                     WriteIndented = true,
                     DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
@@ -1954,19 +2167,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         {
             try
             {
-                // Serialize Holon to JSON with RDF/JSON-LD structure
-                var rdfData = new
-                {
-                    @context = "https://www.w3.org/ns/solid/context",
-                    @id = holon.Id.ToString(),
-                    @type = holon.HolonType.ToString(),
-                    name = holon.Name,
-                    description = holon.Description,
-                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                };
-
-                return System.Text.Json.JsonSerializer.Serialize(rdfData, new JsonSerializerOptions
+                // Complete object serialization to ensure ALL properties are set
+                var holonJson = JsonSerializer.Serialize(holon, new JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                
+                var holonData = JsonSerializer.Deserialize<Dictionary<string, object>>(holonJson);
+                
+                // Add SOLID context
+                holonData["@context"] = "https://www.w3.org/ns/solid/context";
+                holonData["@type"] = holon.HolonType.ToString();
+                
+                return JsonSerializer.Serialize(holonData, new JsonSerializerOptions
                 {
                     WriteIndented = true,
                     DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull

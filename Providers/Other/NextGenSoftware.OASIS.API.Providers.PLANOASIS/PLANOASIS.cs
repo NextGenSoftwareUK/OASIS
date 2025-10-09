@@ -75,8 +75,43 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar from PLAN network
-                OASISErrorHandling.HandleError(ref response, "PLAN avatar loading not yet implemented");
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "PLAN provider is not activated");
+                    return response;
+                }
+
+                // Load avatar from PLAN network using HTTP client
+                var planUrl = $"https://api.plan.network/avatars/{id}";
+                var httpClient = new System.Net.Http.HttpClient();
+                var httpResponse = await httpClient.GetAsync(planUrl);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(content);
+                    
+                    // Create avatar from PLAN data
+                    var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
+                    {
+                        Id = id,
+                        Username = avatarData?.ContainsKey("username") == true ? avatarData["username"].ToString() : "",
+                        Email = avatarData?.ContainsKey("email") == true ? avatarData["email"].ToString() : "",
+                        FirstName = avatarData?.ContainsKey("firstName") == true ? avatarData["firstName"].ToString() : "",
+                        LastName = avatarData?.ContainsKey("lastName") == true ? avatarData["lastName"].ToString() : "",
+                        CreatedDate = DateTime.UtcNow,
+                        ModifiedDate = DateTime.UtcNow,
+                        Version = version
+                    };
+
+                    response.Result = avatar;
+                    response.IsError = false;
+                    response.Message = "Avatar loaded successfully from PLAN network";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from PLAN network: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {

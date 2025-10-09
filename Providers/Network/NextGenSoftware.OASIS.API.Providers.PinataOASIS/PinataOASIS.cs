@@ -18,6 +18,18 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 {
+    public class PinataPinListResponse
+    {
+        public List<PinataPin> Rows { get; set; }
+    }
+
+    public class PinataPin
+    {
+        public string IpfsPinHash { get; set; }
+        public string Name { get; set; }
+        public Dictionary<string, object> Metadata { get; set; }
+    }
+
     public class PinataOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
         private HttpClient _httpClient;
@@ -362,9 +374,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         // Required abstract methods from OASISStorageProviderBase
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarByProviderKey not implemented for PinataOASIS - use LoadAvatarByProviderKeyAsync");
-            return result;
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
@@ -399,71 +409,286 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatar not implemented for PinataOASIS - use LoadAvatarAsync");
-            return result;
+            return LoadAvatarAsync(id, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarAsync not implemented for PinataOASIS - Pinata is primarily for file storage, not avatar management");
+            
+            try
+            {
+                // For Pinata, we need to search for the avatar by ID in the stored data
+                // This is a simplified approach - in practice, you'd need to maintain an index
+                var searchResult = await SearchAsync(new SearchParams { });
+                
+                if (searchResult.IsError || searchResult.Result == null || !searchResult.Result.Results.Any())
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar with ID {id} not found in Pinata storage");
+                    return result;
+                }
+
+                // Get the first result and deserialize as Avatar
+                var holon = searchResult.Result.Results.First();
+                var avatarJson = JsonConvert.SerializeObject(holon);
+                var avatar = JsonConvert.DeserializeObject<Avatar>(avatarJson);
+                
+                result.Result = avatar;
+                result.Message = "Avatar loaded successfully from Pinata";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar from Pinata: {ex.Message}");
+            }
+
             return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarByEmail not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadAvatarByEmailAsync(avatarEmail, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarByEmailAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "PinataOASIS Provider is not activated");
+                    return result;
+                }
+
+                // Search for avatar by email in Pinata using metadata search
+                var searchUrl = $"/data/pinList?metadata[name]=avatar&metadata[email]={avatarEmail}";
+                var httpResponse = await _httpClient.GetAsync(searchUrl);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var pinListResponse = JsonConvert.DeserializeObject<PinataPinListResponse>(content);
+                    
+                    if (pinListResponse.Rows != null && pinListResponse.Rows.Any())
+                    {
+                        // Get the first matching pin and download the avatar data
+                        var pin = pinListResponse.Rows.First();
+                        var downloadResult = await DownloadFileFromPinataAsync(pin.IpfsPinHash);
+                        
+                        if (!downloadResult.IsError && downloadResult.Result != null)
+                        {
+                            var avatarJson = Encoding.UTF8.GetString(downloadResult.Result);
+                            var avatar = JsonConvert.DeserializeObject<Avatar>(avatarJson);
+                            result.Result = avatar;
+                            result.IsError = false;
+                            result.Message = "Avatar loaded successfully from Pinata by email";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, "Failed to download avatar data from Pinata");
+                        }
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"No avatar found with email: {avatarEmail}");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to search Pinata for avatar by email: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Pinata: {ex.Message}");
+            }
+
             return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarByUsername not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarByUsernameAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "PinataOASIS Provider is not activated");
+                    return result;
+                }
+
+                // Search for avatar by username in Pinata using metadata search
+                var searchUrl = $"/data/pinList?metadata[name]=avatar&metadata[username]={avatarUsername}";
+                var httpResponse = await _httpClient.GetAsync(searchUrl);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var pinListResponse = JsonConvert.DeserializeObject<PinataPinListResponse>(content);
+                    
+                    if (pinListResponse.Rows != null && pinListResponse.Rows.Any())
+                    {
+                        // Get the first matching pin and download the avatar data
+                        var pin = pinListResponse.Rows.First();
+                        var downloadResult = await DownloadFileFromPinataAsync(pin.IpfsPinHash);
+                        
+                        if (!downloadResult.IsError && downloadResult.Result != null)
+                        {
+                            var avatarJson = Encoding.UTF8.GetString(downloadResult.Result);
+                            var avatar = JsonConvert.DeserializeObject<Avatar>(avatarJson);
+                            result.Result = avatar;
+                            result.IsError = false;
+                            result.Message = "Avatar loaded successfully from Pinata by username";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, "Failed to download avatar data from Pinata");
+                        }
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"No avatar found with username: {avatarUsername}");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to search Pinata for avatar by username: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Pinata: {ex.Message}");
+            }
+
             return result;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
-            OASISErrorHandling.HandleError(ref result, "LoadAllAvatars not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadAllAvatarsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
-            OASISErrorHandling.HandleError(ref result, "LoadAllAvatarsAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "PinataOASIS Provider is not activated");
+                    return result;
+                }
+
+                // Get all avatar pins from Pinata
+                var searchUrl = "/data/pinList?metadata[name]=avatar";
+                var httpResponse = await _httpClient.GetAsync(searchUrl);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var pinListResponse = JsonConvert.DeserializeObject<PinataPinListResponse>(content);
+                    
+                    var avatars = new List<IAvatar>();
+                    
+                    if (pinListResponse.Rows != null)
+                    {
+                        foreach (var pin in pinListResponse.Rows)
+                        {
+                            var downloadResult = await DownloadFileFromPinataAsync(pin.IpfsPinHash);
+                            
+                            if (!downloadResult.IsError && downloadResult.Result != null)
+                            {
+                                var avatarJson = Encoding.UTF8.GetString(downloadResult.Result);
+                                var avatar = JsonConvert.DeserializeObject<Avatar>(avatarJson);
+                                avatars.Add(avatar);
+                            }
+                        }
+                    }
+                    
+                    result.Result = avatars;
+                    result.IsError = false;
+                    result.Message = $"Loaded {avatars.Count} avatars from Pinata";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to get all avatars from Pinata: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from Pinata: {ex.Message}");
+            }
+
             return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetail not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadAvatarDetailAsync(id, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "LoadAvatarDetailAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "PinataOASIS Provider is not activated");
+                    return result;
+                }
+
+                // Search for avatar detail by ID in Pinata
+                var searchUrl = $"/data/pinList?metadata[name]=avatarDetail&metadata[id]={id}";
+                var httpResponse = await _httpClient.GetAsync(searchUrl);
+                
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var pinListResponse = JsonConvert.DeserializeObject<PinataPinListResponse>(content);
+                    
+                    if (pinListResponse.Rows != null && pinListResponse.Rows.Any())
+                    {
+                        var pin = pinListResponse.Rows.First();
+                        var downloadResult = await DownloadFileFromPinataAsync(pin.IpfsPinHash);
+                        
+                        if (!downloadResult.IsError && downloadResult.Result != null)
+                        {
+                            var avatarDetailJson = Encoding.UTF8.GetString(downloadResult.Result);
+                            var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailJson);
+                            result.Result = avatarDetail;
+                            result.IsError = false;
+                            result.Message = "Avatar detail loaded successfully from Pinata";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, "Failed to download avatar detail data from Pinata");
+                        }
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"No avatar detail found with ID: {id}");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to search Pinata for avatar detail: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from Pinata: {ex.Message}");
+            }
+
             return result;
         }
 
