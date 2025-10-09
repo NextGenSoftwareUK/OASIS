@@ -136,7 +136,43 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarAsync(id, softDelete).Result;
+    }
+
+    public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+    {
+        var response = new OASISResult<bool>();
+        try
+        {
+            if (!this.IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref response, "Avalanche provider is not activated");
+                return response;
+            }
+
+            // Delete avatar from Avalanche blockchain using smart contract call
+            var deleteData = JsonSerializer.Serialize(new { avatar_id = id.ToString(), soft_delete = softDelete });
+            
+            var transaction = await _contractHandler.GetFunction("deleteAvatar").SendTransactionAsync(
+                _oasisAccount.Address, _gasLimit, null, deleteData);
+
+            if (transaction != null)
+            {
+                response.Result = true;
+                response.IsError = false;
+                response.Message = $"Avatar deleted from Avalanche blockchain successfully. Transaction: {transaction}";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref response, "Failed to delete avatar from Avalanche blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            response.Exception = ex;
+            OASISErrorHandling.HandleError(ref response, $"Error deleting avatar from Avalanche: {ex.Message}");
+        }
+        return response;
     }
 
     public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)

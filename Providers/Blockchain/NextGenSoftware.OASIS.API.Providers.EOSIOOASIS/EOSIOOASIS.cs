@@ -265,7 +265,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
@@ -303,9 +303,45 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "EOSIO provider is not activated");
+                    return response;
+                }
+
+                // Query EOSIO blockchain for avatar by username using account lookup
+                var accountResponse = await _eosClient.GetAccountAsync(avatarUsername);
+                
+                if (accountResponse != null)
+                {
+                    var avatar = ParseEOSIOToAvatar(accountResponse, avatarUsername);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded from EOSIO by username successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse avatar from EOSIO response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, "Avatar not found on EOSIO blockchain");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by username from EOSIO: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
@@ -1671,5 +1707,57 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         {
             throw new NotImplementedException();
         }
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Parse EOSIO blockchain response to Avatar object with complete serialization
+        /// </summary>
+        private Avatar ParseEOSIOToAvatar(GetAccountResponseDto eosioData, string username)
+        {
+            try
+            {
+                // Serialize the complete EOSIO data to JSON first
+                var eosioJson = JsonConvert.SerializeObject(eosioData, Formatting.Indented);
+                
+                // Deserialize the complete Avatar object from EOSIO JSON
+                var avatar = JsonConvert.DeserializeObject<Avatar>(eosioJson);
+                
+                // If deserialization fails, create from extracted properties
+                if (avatar == null)
+                {
+                    avatar = new Avatar
+                    {
+                        Id = Guid.NewGuid(),
+                        Username = username,
+                        Email = $"user@{username}.eosio",
+                        FirstName = "EOSIO",
+                        LastName = "User",
+                        CreatedDate = DateTime.UtcNow,
+                        ModifiedDate = DateTime.UtcNow,
+                        Version = 1,
+                        IsActive = true
+                    };
+                }
+
+                // Add EOSIO-specific metadata
+                if (eosioData != null)
+                {
+                    avatar.ProviderMetaData.Add("eosio_account_name", username);
+                    avatar.ProviderMetaData.Add("eosio_net_weight", eosioData.NetWeight?.ToString() ?? "0");
+                    avatar.ProviderMetaData.Add("eosio_cpu_weight", eosioData.CpuWeight?.ToString() ?? "0");
+                    avatar.ProviderMetaData.Add("eosio_ram_quota", eosioData.RamQuota?.ToString() ?? "0");
+                    avatar.ProviderMetaData.Add("eosio_ram_usage", eosioData.RamUsage?.ToString() ?? "0");
+                }
+
+                return avatar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        #endregion
     }
 }

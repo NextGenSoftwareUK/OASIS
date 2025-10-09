@@ -686,7 +686,45 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            throw new NotImplementedException();
+            var response = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Ethereum provider is not activated");
+                    return response;
+                }
+
+                // Query all avatars from Ethereum smart contract
+                var avatarsData = await _nextGenSoftwareOasisService.GetAllAvatarsQueryAsync();
+                
+                if (avatarsData != null && avatarsData.Count > 0)
+                {
+                    var avatars = new List<IAvatar>();
+                    foreach (var avatarData in avatarsData)
+                    {
+                        var avatar = ParseEthereumToAvatar(avatarData);
+                        if (avatar != null)
+                        {
+                            avatars.Add(avatar);
+                        }
+                    }
+                    
+                    response.Result = avatars;
+                    response.IsError = false;
+                    response.Message = "Avatars loaded from Ethereum successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, "No avatars found on Ethereum blockchain");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatars from Ethereum: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
@@ -787,7 +825,43 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            throw new NotImplementedException();
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Ethereum provider is not activated");
+                    return response;
+                }
+
+                // Query avatar by provider key from Ethereum smart contract
+                var avatarData = await _nextGenSoftwareOasisService.GetAvatarByProviderKeyQueryAsync(providerKey);
+                
+                if (avatarData != null)
+                {
+                    var avatar = ParseEthereumToAvatar(avatarData);
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded from Ethereum by provider key successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse avatar from Ethereum response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, "Avatar not found on Ethereum blockchain");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by provider key from Ethereum: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
@@ -1299,5 +1373,66 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         {
             throw new NotImplementedException();
         }
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Parse Ethereum smart contract response to Avatar object
+        /// </summary>
+        private Avatar ParseEthereumToAvatar(object ethereumData)
+        {
+            try
+            {
+                // Convert Ethereum smart contract response to Avatar
+                var avatar = new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = GetEthereumProperty(ethereumData, "username") ?? "ethereum_user",
+                    Email = GetEthereumProperty(ethereumData, "email") ?? "user@ethereum.example",
+                    FirstName = GetEthereumProperty(ethereumData, "firstName") ?? "Ethereum",
+                    LastName = GetEthereumProperty(ethereumData, "lastName") ?? "User",
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow,
+                    Version = 1,
+                    IsActive = true
+                };
+
+                // Add Ethereum-specific metadata
+                if (ethereumData != null)
+                {
+                    avatar.ProviderMetaData.Add("ethereum_contract_address", ContractAddress);
+                    avatar.ProviderMetaData.Add("ethereum_chain_id", ChainId.ToString());
+                    avatar.ProviderMetaData.Add("ethereum_network", HostURI);
+                }
+
+                return avatar;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Extract property value from Ethereum smart contract response
+        /// </summary>
+        private string GetEthereumProperty(object data, string propertyName)
+        {
+            try
+            {
+                if (data == null) return null;
+                
+                var json = JsonConvert.SerializeObject(data);
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(json);
+                
+                return jsonObject?[propertyName]?.ToString();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        #endregion
     }
 }

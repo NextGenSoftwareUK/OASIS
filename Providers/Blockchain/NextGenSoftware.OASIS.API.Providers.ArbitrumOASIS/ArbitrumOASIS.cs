@@ -352,9 +352,47 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         throw new NotImplementedException();
     }
 
-    public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+    public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        var response = new OASISResult<IEnumerable<IAvatar>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref response, "Arbitrum provider is not activated");
+                return response;
+            }
+
+            // Query all avatars from Arbitrum smart contract
+            var avatarsData = await _contractHandler.GetFunction("getAllAvatars").CallAsync<object[]>();
+            
+            if (avatarsData != null && avatarsData.Length > 0)
+            {
+                var avatars = new List<IAvatar>();
+                foreach (var avatarData in avatarsData)
+                {
+                    var avatar = ParseArbitrumToAvatar(avatarData);
+                    if (avatar != null)
+                    {
+                        avatars.Add(avatar);
+                    }
+                }
+                
+                response.Result = avatars;
+                response.IsError = false;
+                response.Message = "Avatars loaded from Arbitrum successfully";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref response, "No avatars found on Arbitrum blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            response.Exception = ex;
+            OASISErrorHandling.HandleError(ref response, $"Error loading avatars from Arbitrum: {ex.Message}");
+        }
+        return response;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
