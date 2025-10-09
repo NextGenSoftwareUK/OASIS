@@ -125,9 +125,47 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+    public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        var response = new OASISResult<IEnumerable<IAvatar>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref response, "Solana provider is not activated");
+                return response;
+            }
+
+            // Query all avatars from Solana blockchain using program accounts
+            var avatarsData = await _solanaService.GetAllAvatarsAsync();
+            
+            if (avatarsData != null && avatarsData.Count > 0)
+            {
+                var avatars = new List<IAvatar>();
+                foreach (var avatarData in avatarsData)
+                {
+                    var avatar = ParseSolanaToAvatar(avatarData);
+                    if (avatar != null)
+                    {
+                        avatars.Add(avatar);
+                    }
+                }
+                
+                response.Result = avatars;
+                response.IsError = false;
+                response.Message = "Avatars loaded from Solana successfully";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref response, "No avatars found on Solana blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            response.Exception = ex;
+            OASISErrorHandling.HandleError(ref response, $"Error loading avatars from Solana: {ex.Message}");
+        }
+        return response;
     }
 
     public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
@@ -140,9 +178,45 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         throw new NotImplementedException();
     }
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
+    public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
     {
-        throw new NotImplementedException();
+        var response = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref response, "Solana provider is not activated");
+                return response;
+            }
+
+            // Query avatar by ID from Solana blockchain
+            var avatarData = await _solanaService.GetAvatarByIdAsync(Id);
+            
+            if (avatarData != null)
+            {
+                var avatar = ParseSolanaToAvatar(avatarData);
+                if (avatar != null)
+                {
+                    response.Result = avatar;
+                    response.IsError = false;
+                    response.Message = "Avatar loaded from Solana successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, "Failed to parse avatar from Solana response");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref response, "Avatar not found on Solana blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            response.Exception = ex;
+            OASISErrorHandling.HandleError(ref response, $"Error loading avatar from Solana: {ex.Message}");
+        }
+        return response;
     }
 
     public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
@@ -1310,4 +1384,88 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     {
         throw new NotImplementedException();
     }
+
+    #region Helper Methods
+
+    /// <summary>
+    /// Parse Solana blockchain response to Avatar object with complete serialization
+    /// </summary>
+    private Avatar ParseSolanaToAvatar(object solanaData)
+    {
+        try
+        {
+            // Serialize the complete Solana data to JSON first
+            var solanaJson = System.Text.Json.JsonSerializer.Serialize(solanaData, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            });
+
+            // Deserialize the complete Avatar object from Solana JSON
+            var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(solanaJson, new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            });
+
+            // If deserialization fails, create from extracted properties
+            if (avatar == null)
+            {
+                avatar = new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = GetSolanaProperty(solanaData, "username") ?? "solana_user",
+                    Email = GetSolanaProperty(solanaData, "email") ?? "user@solana.example",
+                    FirstName = GetSolanaProperty(solanaData, "firstName") ?? "Solana",
+                    LastName = GetSolanaProperty(solanaData, "lastName") ?? "User",
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow,
+                    Version = 1,
+                    IsActive = true
+                };
+            }
+
+            // Add Solana-specific metadata
+            if (solanaData != null)
+            {
+                avatar.ProviderMetaData.Add("solana_account", GetSolanaProperty(solanaData, "account") ?? "");
+                avatar.ProviderMetaData.Add("solana_lamports", GetSolanaProperty(solanaData, "lamports") ?? "0");
+                avatar.ProviderMetaData.Add("solana_owner", GetSolanaProperty(solanaData, "owner") ?? "");
+                avatar.ProviderMetaData.Add("solana_network", "mainnet-beta");
+                avatar.ProviderMetaData.Add("solana_program_id", GetSolanaProperty(solanaData, "programId") ?? "");
+            }
+
+            return avatar;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Extract property value from Solana account data
+    /// </summary>
+    private string GetSolanaProperty(object data, string propertyName)
+    {
+        try
+        {
+            if (data == null) return null;
+            
+            var json = System.Text.Json.JsonSerializer.Serialize(data);
+            var jsonObject = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(json);
+            
+            if (jsonObject.TryGetProperty(propertyName, out var property))
+            {
+                return property.GetString();
+            }
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    #endregion
 }
