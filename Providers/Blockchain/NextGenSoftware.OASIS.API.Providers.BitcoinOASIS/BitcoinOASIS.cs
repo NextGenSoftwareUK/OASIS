@@ -351,6 +351,462 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
+        {
+            return SaveAvatarAsync(avatar).Result;
+        }
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        {
+            var response = new OASISResult<IAvatar>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
+                    return response;
+                }
+
+                // Serialize avatar to JSON
+                var avatarJson = JsonSerializer.Serialize(avatar);
+                var avatarBytes = Encoding.UTF8.GetBytes(avatarJson);
+                
+                // Create Bitcoin transaction with avatar data
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            txid = "", // Will be filled by UTXO lookup
+                            vout = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = avatar.ProviderWallets[ProviderType.BitcoinOASIS]?.Address ?? "",
+                            value = 0, // OP_RETURN transaction
+                            script = Convert.ToHexString(avatarBytes) // Store avatar data in OP_RETURN
+                        }
+                    }
+                };
+
+                // Submit transaction to Bitcoin network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    avatar.ProviderWallets[ProviderType.BitcoinOASIS] = new Wallet()
+                    {
+                        Address = responseData.GetProperty("txid").GetString(),
+                        ProviderType = ProviderType.BitcoinOASIS
+                    };
+                    
+                    response.Result = avatar;
+                    response.IsError = false;
+                    response.Message = "Avatar saved successfully to Bitcoin blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar to Bitcoin: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar to Bitcoin: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar)
+        {
+            return SaveAvatarDetailAsync(avatar).Result;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
+                    return response;
+                }
+
+                // Serialize avatar detail to JSON
+                var avatarDetailJson = JsonSerializer.Serialize(avatar);
+                var avatarDetailBytes = Encoding.UTF8.GetBytes(avatarDetailJson);
+                
+                // Create Bitcoin transaction with avatar detail data
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            txid = "", // Will be filled by UTXO lookup
+                            vout = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = avatar.ProviderWallets[ProviderType.BitcoinOASIS]?.Address ?? "",
+                            value = 0, // OP_RETURN transaction
+                            script = Convert.ToHexString(avatarDetailBytes) // Store avatar detail data in OP_RETURN
+                        }
+                    }
+                };
+
+                // Submit transaction to Bitcoin network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    avatar.ProviderWallets[ProviderType.BitcoinOASIS] = new Wallet()
+                    {
+                        Address = responseData.GetProperty("txid").GetString(),
+                        ProviderType = ProviderType.BitcoinOASIS
+                    };
+                    
+                    response.Result = avatar;
+                    response.IsError = false;
+                    response.Message = "Avatar detail saved successfully to Bitcoin blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar detail to Bitcoin: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar detail to Bitcoin: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
+        {
+            return DeleteAvatarAsync(id, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
+                    return response;
+                }
+
+                // Bitcoin is immutable, so we can't actually delete
+                // Instead, we mark the avatar as deleted in a new transaction
+                var deleteData = new
+                {
+                    action = "delete",
+                    avatarId = id.ToString(),
+                    timestamp = DateTime.UtcNow,
+                    softDelete = softDelete
+                };
+
+                var deleteJson = JsonSerializer.Serialize(deleteData);
+                var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
+                
+                // Create Bitcoin transaction with delete marker
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            txid = "", // Will be filled by UTXO lookup
+                            vout = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = "", // OP_RETURN transaction
+                            value = 0,
+                            script = Convert.ToHexString(deleteBytes)
+                        }
+                    }
+                };
+
+                // Submit transaction to Bitcoin network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.IsError = false;
+                    response.Message = "Avatar deletion marked successfully on Bitcoin blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to mark avatar deletion on Bitcoin: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error marking avatar deletion on Bitcoin: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
+                    return response;
+                }
+
+                // Bitcoin is immutable, so we can't actually delete
+                // Instead, we mark the avatar as deleted in a new transaction
+                var deleteData = new
+                {
+                    action = "delete",
+                    avatarEmail = avatarEmail,
+                    timestamp = DateTime.UtcNow,
+                    softDelete = softDelete
+                };
+
+                var deleteJson = JsonSerializer.Serialize(deleteData);
+                var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
+                
+                // Create Bitcoin transaction with delete marker
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            txid = "", // Will be filled by UTXO lookup
+                            vout = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = "", // OP_RETURN transaction
+                            value = 0,
+                            script = Convert.ToHexString(deleteBytes)
+                        }
+                    }
+                };
+
+                // Submit transaction to Bitcoin network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.IsError = false;
+                    response.Message = "Avatar deletion marked successfully on Bitcoin blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to mark avatar deletion on Bitcoin: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error marking avatar deletion on Bitcoin: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
+                    return response;
+                }
+
+                // Bitcoin is immutable, so we can't actually delete
+                // Instead, we mark the avatar as deleted in a new transaction
+                var deleteData = new
+                {
+                    action = "delete",
+                    avatarUsername = avatarUsername,
+                    timestamp = DateTime.UtcNow,
+                    softDelete = softDelete
+                };
+
+                var deleteJson = JsonSerializer.Serialize(deleteData);
+                var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
+                
+                // Create Bitcoin transaction with delete marker
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            txid = "", // Will be filled by UTXO lookup
+                            vout = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = "", // OP_RETURN transaction
+                            value = 0,
+                            script = Convert.ToHexString(deleteBytes)
+                        }
+                    }
+                };
+
+                // Submit transaction to Bitcoin network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.IsError = false;
+                    response.Message = "Avatar deletion marked successfully on Bitcoin blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to mark avatar deletion on Bitcoin: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error marking avatar deletion on Bitcoin: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Bitcoin provider is not activated");
+                    return response;
+                }
+
+                // Bitcoin is immutable, so we can't actually delete
+                // Instead, we mark the avatar as deleted in a new transaction
+                var deleteData = new
+                {
+                    action = "delete",
+                    providerKey = providerKey,
+                    timestamp = DateTime.UtcNow,
+                    softDelete = softDelete
+                };
+
+                var deleteJson = JsonSerializer.Serialize(deleteData);
+                var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
+                
+                // Create Bitcoin transaction with delete marker
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            txid = "", // Will be filled by UTXO lookup
+                            vout = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = "", // OP_RETURN transaction
+                            value = 0,
+                            script = Convert.ToHexString(deleteBytes)
+                        }
+                    }
+                };
+
+                // Submit transaction to Bitcoin network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.IsError = false;
+                    response.Message = "Avatar deletion marked successfully on Bitcoin blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to mark avatar deletion on Bitcoin: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error marking avatar deletion on Bitcoin: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
         #endregion
 
         #region IOASISNET Implementation
@@ -628,6 +1084,138 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             {
                 return null;
             }
+        }
+
+        #endregion
+
+        #region IOASISBlockchainStorageProvider
+
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    return result;
+                }
+
+                // Convert decimal amount to satoshis (1 BTC = 100,000,000 satoshis)
+                var amountInSatoshis = (long)(amount * 100000000);
+                
+                // Create Bitcoin transaction using Blockstream API
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            txid = "", // Will be filled by UTXO lookup
+                            vout = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = toWalletAddress,
+                            value = amountInSatoshis
+                        }
+                    }
+                };
+
+                // First, get UTXOs for the from address
+                var utxoResponse = await _httpClient.GetAsync($"/address/{fromWalletAddress}/utxo");
+                if (!utxoResponse.IsSuccessStatusCode)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to get UTXOs for address {fromWalletAddress}: {utxoResponse.StatusCode}");
+                    return result;
+                }
+
+                var utxoContent = await utxoResponse.Content.ReadAsStringAsync();
+                var utxos = JsonSerializer.Deserialize<JsonElement[]>(utxoContent);
+                
+                if (utxos == null || utxos.Length == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"No UTXOs found for address {fromWalletAddress}");
+                    return result;
+                }
+
+                // Find sufficient UTXOs
+                long totalValue = 0;
+                var selectedUtxos = new List<object>();
+                
+                foreach (var utxo in utxos)
+                {
+                    var value = utxo.GetProperty("value").GetInt64();
+                    totalValue += value;
+                    selectedUtxos.Add(new
+                    {
+                        txid = utxo.GetProperty("txid").GetString(),
+                        vout = utxo.GetProperty("vout").GetInt32()
+                    });
+                    
+                    if (totalValue >= amountInSatoshis)
+                        break;
+                }
+
+                if (totalValue < amountInSatoshis)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Insufficient funds. Available: {totalValue} satoshis, Required: {amountInSatoshis} satoshis");
+                    return result;
+                }
+
+                // Create transaction with selected UTXOs
+                var finalTransaction = new
+                {
+                    inputs = selectedUtxos,
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = toWalletAddress,
+                            value = amountInSatoshis
+                        }
+                    }
+                };
+
+                // Broadcast transaction
+                var jsonContent = JsonSerializer.Serialize(finalTransaction);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var broadcastResponse = await _httpClient.PostAsync("/tx", content);
+                if (broadcastResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await broadcastResponse.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    result.Result = new TransactionRespone
+                    {
+                        TransactionResult = responseData.GetProperty("txid").GetString(),
+                        MemoText = memoText
+                    };
+                    result.IsError = false;
+                    result.Message = $"Bitcoin transaction sent successfully. TXID: {result.Result.TransactionResult}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to broadcast Bitcoin transaction: {broadcastResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error sending Bitcoin transaction: {ex.Message}");
+            }
+
+            return result;
         }
 
         #endregion

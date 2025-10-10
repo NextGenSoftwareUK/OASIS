@@ -340,6 +340,94 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
 
         #endregion
 
+        #region IOASISBlockchainStorageProvider
+
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                // Convert decimal amount to wei (1 BNB = 10^18 wei)
+                var amountInWei = (long)(amount * 1000000000000000000);
+                
+                // Get account balance and nonce
+                var accountResponse = await _httpClient.GetAsync($"/api/v1/account/{fromWalletAddress}");
+                if (!accountResponse.IsSuccessStatusCode)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to get account info for BNB Chain address {fromWalletAddress}: {accountResponse.StatusCode}");
+                    return result;
+                }
+
+                var accountContent = await accountResponse.Content.ReadAsStringAsync();
+                var accountData = JsonSerializer.Deserialize<JsonElement>(accountContent);
+                
+                var balance = accountData.GetProperty("balance").GetInt64();
+                if (balance < amountInWei)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Insufficient balance. Available: {balance} wei, Required: {amountInWei} wei");
+                    return result;
+                }
+
+                var nonce = accountData.GetProperty("sequence").GetInt64();
+
+                // Create BNB Chain transaction
+                var transactionRequest = new
+                {
+                    from = fromWalletAddress,
+                    to = toWalletAddress,
+                    value = $"0x{amountInWei:x}",
+                    gas = "0x5208", // 21000 gas for simple transfer
+                    gasPrice = "0x3b9aca00", // 1 gwei
+                    nonce = $"0x{nonce:x}",
+                    data = "0x" // Empty data for simple transfer
+                };
+
+                // Submit transaction to BNB Chain network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/api/v1/broadcast", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    result.Result = new TransactionRespone
+                    {
+                        TransactionResult = responseData.GetProperty("txhash").GetString(),
+                        MemoText = memoText
+                    };
+                    result.IsError = false;
+                    result.Message = $"BNB Chain transaction sent successfully. TX Hash: {result.Result.TransactionResult}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to submit BNB Chain transaction: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error sending BNB Chain transaction: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        #endregion
+
         #region IDisposable
 
         public void Dispose()

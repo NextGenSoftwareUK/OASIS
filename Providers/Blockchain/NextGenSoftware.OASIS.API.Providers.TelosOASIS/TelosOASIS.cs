@@ -551,16 +551,111 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transation)
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            return SendTransactionAsync(transation).Result;
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transation)
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             var result = new OASISResult<ITransactionRespone>();
-            result.Message = "SendTransaction is not supported yet by Telos provider.";
-            return Task.FromResult(result);
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
+                    return result;
+                }
+
+                // Convert decimal amount to TLOS (1 TLOS = 10^4 precision)
+                var amountInTLOS = (long)(amount * 10000);
+                
+                // Get account info for balance check
+                var accountResponse = await _httpClient.GetAsync($"/v1/chain/get_account");
+                var accountRequest = new
+                {
+                    account_name = fromWalletAddress
+                };
+                
+                var accountJson = JsonSerializer.Serialize(accountRequest);
+                var accountContent = new StringContent(accountJson, Encoding.UTF8, "application/json");
+                var accountResult = await _httpClient.PostAsync("/v1/chain/get_account", accountContent);
+                
+                if (!accountResult.IsSuccessStatusCode)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to get account info for Telos address {fromWalletAddress}: {accountResult.StatusCode}");
+                    return result;
+                }
+
+                var accountData = JsonSerializer.Deserialize<JsonElement>(await accountResult.Content.ReadAsStringAsync());
+                var balance = accountData.GetProperty("core_liquid_balance").GetString();
+                var balanceValue = long.Parse(balance.Replace(" TLOS", "").Replace(".", ""));
+                
+                if (balanceValue < amountInTLOS)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Insufficient balance. Available: {balanceValue} TLOS, Required: {amountInTLOS} TLOS");
+                    return result;
+                }
+
+                // Create Telos transfer transaction
+                var transferRequest = new
+                {
+                    actions = new[]
+                    {
+                        new
+                        {
+                            account = "eosio.token",
+                            name = "transfer",
+                            authorization = new[]
+                            {
+                                new
+                                {
+                                    actor = fromWalletAddress,
+                                    permission = "active"
+                                }
+                            },
+                            data = new
+                            {
+                                from = fromWalletAddress,
+                                to = toWalletAddress,
+                                quantity = $"{amount:F4} TLOS",
+                                memo = memoText
+                            }
+                        }
+                    }
+                };
+
+                // Submit transaction to Telos network
+                var jsonContent = JsonSerializer.Serialize(transferRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/v1/chain/push_transaction", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    result.Result = new TransactionRespone
+                    {
+                        TransactionResult = responseData.GetProperty("transaction_id").GetString(),
+                        MemoText = memoText
+                    };
+                    result.IsError = false;
+                    result.Message = $"Telos transaction sent successfully. TX ID: {result.Result.TransactionResult}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to submit Telos transaction: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error sending Telos transaction: {ex.Message}");
+            }
+
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)

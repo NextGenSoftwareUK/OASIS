@@ -1377,15 +1377,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         }
 
 
-        public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transaction)
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            return SendTransactionAsync(transaction).Result;
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction)
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             return await _transferRepository.TransferEosToken(
-                transaction.FromWalletAddress, transaction.ToWalletAddress, transaction.Amount);
+                fromWalletAddress, toWalletAddress, amount, memoText);
         }
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)

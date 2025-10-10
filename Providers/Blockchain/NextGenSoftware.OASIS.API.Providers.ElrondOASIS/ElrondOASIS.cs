@@ -743,14 +743,92 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
         #region IOASISBlockchainStorageProvider
 
-        public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transation)
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            throw new NotImplementedException();
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transation)
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
+                    return result;
+                }
+
+                // Convert decimal amount to EGLD (1 EGLD = 10^18 wei)
+                var amountInWei = (long)(amount * 1000000000000000000);
+                
+                // Get account info for balance check
+                var accountResponse = await _httpClient.GetAsync($"/accounts/{fromWalletAddress}");
+                if (!accountResponse.IsSuccessStatusCode)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to get account info for Elrond address {fromWalletAddress}: {accountResponse.StatusCode}");
+                    return result;
+                }
+
+                var accountContent = await accountResponse.Content.ReadAsStringAsync();
+                var accountData = JsonSerializer.Deserialize<JsonElement>(accountContent);
+                
+                var balance = accountData.GetProperty("balance").GetString();
+                var balanceValue = long.Parse(balance);
+                
+                if (balanceValue < amountInWei)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Insufficient balance. Available: {balanceValue} wei, Required: {amountInWei} wei");
+                    return result;
+                }
+
+                var nonce = accountData.GetProperty("nonce").GetInt64();
+
+                // Create Elrond transaction
+                var transactionRequest = new
+                {
+                    nonce = nonce,
+                    value = amountInWei.ToString(),
+                    receiver = toWalletAddress,
+                    sender = fromWalletAddress,
+                    gasPrice = 1000000000, // 1 GWei
+                    gasLimit = 50000,
+                    data = memoText,
+                    chainID = "1", // Mainnet
+                    version = 1
+                };
+
+                // Submit transaction to Elrond network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/transactions", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    result.Result = new TransactionRespone
+                    {
+                        TransactionResult = responseData.GetProperty("txHash").GetString(),
+                        MemoText = memoText
+                    };
+                    result.IsError = false;
+                    result.Message = $"Elrond transaction sent successfully. TX Hash: {result.Result.TransactionResult}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to submit Elrond transaction: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error sending Elrond transaction: {ex.Message}");
+            }
+
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
