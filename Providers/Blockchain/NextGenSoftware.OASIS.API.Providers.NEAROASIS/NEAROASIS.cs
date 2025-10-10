@@ -1129,9 +1129,73 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             return response;
         }
 
-        public OASISResult<string> SendTransaction(IWalletTransactionRequest transaction)
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            return SendTransactionAsync(transaction).Result;
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "NEAR provider is not activated");
+                    return result;
+                }
+
+                // Convert decimal amount to yoctoNEAR (1 NEAR = 10^24 yoctoNEAR)
+                var amountInYoctoNEAR = (long)(amount * 1000000000000000000000000);
+                
+                // Create NEAR transaction
+                var transactionRequest = new
+                {
+                    actions = new[]
+                    {
+                        new
+                        {
+                            Transfer = new
+                            {
+                                deposit = amountInYoctoNEAR.ToString()
+                            }
+                        }
+                    },
+                    receiver_id = toWalletAddress,
+                    signer_id = fromWalletAddress
+                };
+
+                // Submit transaction to NEAR network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/api/v1/transactions", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    result.Result = new TransactionRespone
+                    {
+                        TransactionResult = responseData.GetProperty("transaction_hash").GetString(),
+                        MemoText = memoText
+                    };
+                    result.IsError = false;
+                    result.Message = $"NEAR transaction sent successfully. TX Hash: {result.Result.TransactionResult}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to submit NEAR transaction: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error sending NEAR transaction: {ex.Message}");
+            }
+
+            return result;
         }
 
         #endregion

@@ -525,53 +525,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
         #region IOASISBlockchainStorageProvider Implementation
 
-        public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest request)
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            var response = new OASISResult<ITransactionRespone>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
-                }
-
-                // Send transaction to Aptos blockchain
-                var transactionData = new
-                {
-                    from = request.FromWalletAddress,
-                    to = request.ToWalletAddress,
-                    amount = request.Amount,
-                    gas = 0,
-                    gasPrice = 0
-                };
-
-                var json = JsonSerializer.Serialize(transactionData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                
-                var httpResponse = _httpClient.PostAsync("/transactions", content).Result;
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse transaction response
-                    response.Result = new TransactionRespone { TransactionResult = responseContent };
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to send transaction to Aptos blockchain: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error sending transaction to Aptos: {ex.Message}");
-            }
-
-            return response;
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest request)
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             var response = new OASISResult<ITransactionRespone>();
 
@@ -583,29 +542,42 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return response;
                 }
 
-                // Send transaction to Aptos blockchain
-                var transactionData = new
+                var transactionPayload = new
                 {
-                    from = request.FromWalletAddress,
-                    to = request.ToWalletAddress,
-                    amount = request.Amount,
-                    gas = 0,
-                    gasPrice = 0
+                    sender = fromWalletAddress,
+                    sequence_number = "0",
+                    max_gas_amount = "1000",
+                    gas_unit_price = "1",
+                    expiration_timestamp_secs = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds().ToString(),
+                    payload = new
+                    {
+                        type = "entry_function_payload",
+                        function = "0x1::coin::transfer",
+                        type_arguments = new[] { "0x1::aptos_coin::AptosCoin" },
+                        arguments = new[] { toWalletAddress, amount.ToString() }
+                    }
                 };
 
-                var json = JsonSerializer.Serialize(transactionData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                
-                var httpResponse = await _httpClient.PostAsync("/transactions", content);
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(transactionPayload);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("/v1/transactions", content);
+
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse transaction response
-                    response.Result = new TransactionRespone { TransactionResult = responseContent };
+                    var transactionResult = System.Text.Json.JsonSerializer.Deserialize<AptosTransactionResponse>(responseContent);
+
+                    response.Result = new TransactionRespone
+                    {
+                        TransactionResult = $"Transaction sent successfully. Hash: {transactionResult.Hash}"
+                    };
+                    response.IsError = false;
+                    response.Message = "Transaction sent successfully to Aptos blockchain";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to send transaction to Aptos blockchain: {httpResponse.StatusCode}");
+                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                    OASISErrorHandling.HandleError(ref response, $"Aptos API error: {httpResponse.StatusCode} - {errorContent}");
                 }
             }
             catch (Exception ex)

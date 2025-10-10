@@ -590,7 +590,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IOASISNFT>> ImportOASISNFTAsync(IOASISNFT OASISNFT, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
+        public async Task<OASISResult<IOASISNFT>> ImportOASISNFTAsync(Guid importedByAvatarId, IOASISNFT OASISNFT, ProviderType providerType = ProviderType.Default, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
             string errorMessage = "Error occured in ImportWeb3NFT in NFTManager. Reason:";
@@ -602,7 +602,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (OASISNFT.OffChainProvider.Value == ProviderType.None)
                     OASISNFT.OffChainProvider.Value = ProviderType.MongoDBOASIS;
 
-                OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(CreateNFTMetaDataHolon(result.Result, request), request.ImportedByByAvatarId, true, true, 0, true, false, request.OffChainProvider.Value);
+                OASISResult<IHolon> saveHolonResult = await Data.SaveHolonAsync(CreateNFTMetaDataHolon(OASISNFT), importedByAvatarId, true, true, 0, true, false, providerType);
 
                 if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
                     result.Message = FormatSuccessMessage(request, result, responseFormatType);
@@ -1922,6 +1922,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return message;
         }
 
+        private string FormatSuccessMessage(OASISResult<IOASISNFT> response, Guid importedByByAvatarId, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = FORMAT_SUCCESS_MESSAGE_COL_WIDTH)
+        {
+            string lineBreak = "";
+
+            if (responseFormatType == ResponseFormatType.SimpleText)
+            {
+                string JSONMetaDataURIHolonId = "";
+
+                if (response.Result.JSONMetaDataURLHolonId != Guid.Empty)
+                    JSONMetaDataURIHolonId = string.Concat("JSON MetaData URI Holon Id: ", response.Result.JSONMetaDataURLHolonId, " ");
+
+                return $"Successfully imported the Web3 NFT on the {response.Result.OnChainProvider.Name} provider with NFTTokenAddress {response.Result.NFTTokenAddress} and title '{response.Result.Title}' by AvatarId {response.Result.ImportedByByAvatarId}. NFT minted using wallet address: {response.Result.NFTMintedUsingWalletAddress}. Price: {response.Result.Price}. The OASIS metadata is stored on the {response.Result.OnChainProvider.Name} provider with the id {response.Result.Id} and JSON URL {response.Result.JSONMetaDataURL}. {JSONMetaDataURIHolonId}Image URL: {response.Result.ImageUrl}, Imported Date: {response.Result.MintedOn}.";
+            }
+
+            if (responseFormatType == ResponseFormatType.HTML)
+                lineBreak = "<br>";
+
+            string message = "";
+            message = string.Concat(message, $"Successfully imported the Web3 NFT!{lineBreak}");
+            message = string.Concat(message, lineBreak);
+            message = string.Concat(message, GenerateNFTSummary(response.Result, lineBreak, colWidth));
+
+            if (response.IsWarning)
+                message = string.Concat(message, " Warning:".PadRight(colWidth), response.Message, lineBreak);
+
+            return message;
+        }
+
         private string FormatSuccessMessage(IMintNFTTransactionRequest request, OASISResult<IOASISGeoSpatialNFT> response, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = 40)
         {
             string lineBreak = "\n";
@@ -2363,7 +2391,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             };
         }
 
-        private IHolon CreateNFTMetaDataHolon(IOASISNFT nftMetaData, IMintNFTTransactionRequest request)
+        private IHolon CreateNFTMetaDataHolon(IOASISNFT nftMetaData, IMintNFTTransactionRequest request = null)
         {
             IHolon holonNFT = new Holon(HolonType.NFT);
             //holonNFT.Id = result.Result.OASISNFT.OffChainProviderHolonId;
@@ -2387,7 +2415,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             holonNFT.MetaData["NFT.Description"] = nftMetaData.Description;
             holonNFT.MetaData["NFT.Price"] = nftMetaData.Price.ToString();
             holonNFT.MetaData["NFT.Discount"] = nftMetaData.Discount.ToString();
-            holonNFT.MetaData["NFT.NumberToMint"] = request.NumberToMint.ToString();
+            holonNFT.MetaData["NFT.NumberToMint"] = request != null ? request.NumberToMint.ToString() : "";
             holonNFT.MetaData["NFT.OnChainProvider"] = nftMetaData.OnChainProvider.Name;
             holonNFT.MetaData["NFT.OffChainProvider"] = nftMetaData.OffChainProvider.Name;
             holonNFT.MetaData["NFT.StoreNFTMetaDataOnChain"] = nftMetaData.StoreNFTMetaDataOnChain ? "True" : "False";

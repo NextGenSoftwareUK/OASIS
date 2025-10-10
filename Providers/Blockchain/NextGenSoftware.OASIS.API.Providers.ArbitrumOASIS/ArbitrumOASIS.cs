@@ -939,25 +939,39 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         throw new NotImplementedException();
     }
 
-    public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transaction)
+    public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
-        return SendTransactionAsync(transaction).Result;
+        return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
     }
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
         OASISResult<ITransactionRespone> result = new();
         string errorMessage = "Error in SendTransactionAsync method in ArbitrumOASIS sending transaction. Reason: ";
 
         try
         {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Ensure the configured account matches the requested from address
+            if (_oasisAccount == null || !string.Equals(_oasisAccount.Address, fromWalletAddress, StringComparison.OrdinalIgnoreCase))
+            {
+                OASISErrorHandling.HandleError(ref result, $"From address {fromWalletAddress} does not match configured provider account {_oasisAccount?.Address}. Configure provider with the correct private key.");
+                return result;
+            }
+
+            // For EVM chains, a memo can be supplied via data field if needed; for plain transfers we omit it
             TransactionReceipt transactionResult = await _web3Client.Eth.GetEtherTransferService()
-                .TransferEtherAndWaitForReceiptAsync(transaction.ToWalletAddress, transaction.Amount);
+                .TransferEtherAndWaitForReceiptAsync(toWalletAddress, amount);
 
             if (transactionResult.HasErrors() is true)
             {
                 result.Message = string.Concat(errorMessage, "Arbitrum transaction performing failed! " +
-                                 $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {transaction.Amount}." +
+                                 $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {amount}." +
                                  $"Reason: {transactionResult.Logs}");
                 OASISErrorHandling.HandleError(ref result, result.Message);
                 return result;

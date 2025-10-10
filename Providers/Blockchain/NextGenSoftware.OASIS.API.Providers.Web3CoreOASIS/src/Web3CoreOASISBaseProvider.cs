@@ -785,17 +785,17 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         throw new NotImplementedException();
     }
 
-    public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transaction)
+    public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
-        return SendTransactionAsync(transaction).Result;
+        return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
     }
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
         OASISResult<ITransactionRespone> result = new();
         string errorMessage = "Error in SendTransactionAsync method in Web3CoreOASIS sending transaction. Reason: ";
 
-        if (transaction.Amount <= 0)
+        if (amount <= 0)
         {
             OASISErrorHandling.HandleError(
                 ref result, Web3CoreOASISBaseProviderHelper.InvalidAmountError);
@@ -811,12 +811,12 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
         try
         {
-            TransactionReceipt transactionResult = await _web3CoreOASIS.SendTransactionAsync(transaction.ToWalletAddress, transaction.Amount);
+            TransactionReceipt transactionResult = await _web3CoreOASIS.SendTransactionAsync(toWalletAddress, amount);
 
             if (transactionResult.HasErrors() is true)
             {
                 result.Message = string.Concat(errorMessage, "Web3CoreOASIS transaction performing failed! " +
-                                 $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {transaction.Amount}." +
+                                 $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {amount}." +
                                  $"Reason: {transactionResult.Logs}");
                 OASISErrorHandling.HandleError(ref result, result.Message);
                 return result;

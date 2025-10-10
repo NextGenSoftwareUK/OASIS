@@ -901,31 +901,35 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         throw new NotImplementedException();
     }
 
-    public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transaction)
+    public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
-        return SendTransactionAsync(transaction).Result;
+        return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
     }
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
         OASISResult<ITransactionRespone> result = new();
         string errorMessage = "Error in SendTransactionAsync method in BaseOASIS sending transaction. Reason: ";
 
         try
         {
+            // Convert decimal amount to Wei (Base uses 18 decimals like Ethereum)
+            var amountInWei = Nethereum.Util.UnitConversion.Convert.ToWei(amount, Nethereum.Util.UnitConversion.EthUnit.Ether);
+            
             TransactionReceipt transactionResult = await _web3Client.Eth.GetEtherTransferService()
-                .TransferEtherAndWaitForReceiptAsync(transaction.ToWalletAddress, transaction.Amount);
+                .TransferEtherAndWaitForReceiptAsync(toWalletAddress, amountInWei);
 
             if (transactionResult.HasErrors() is true)
             {
                 result.Message = string.Concat(errorMessage, "Base transaction performing failed! " +
-                                 $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {transaction.Amount}." +
+                                 $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {amount}." +
                                  $"Reason: {transactionResult.Logs}");
                 OASISErrorHandling.HandleError(ref result, result.Message);
                 return result;
             }
 
             result.Result.TransactionResult = transactionResult.TransactionHash;
+            result.Message = $"Base transaction successful. Hash: {transactionResult.TransactionHash}";
             TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
         }
         catch (RpcResponseException ex)

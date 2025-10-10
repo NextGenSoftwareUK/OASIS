@@ -889,6 +889,128 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
 
         #endregion
 
+        #region IOASISBlockchainStorageProvider
+
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Cardano provider is not activated");
+                    return result;
+                }
+
+                // Convert decimal amount to lovelace (1 ADA = 1,000,000 lovelace)
+                var amountInLovelace = (long)(amount * 1000000);
+                
+                // Get UTXOs for the from address using Blockfrost API
+                var utxoResponse = await _httpClient.GetAsync($"/addresses/{fromWalletAddress}/utxos");
+                if (!utxoResponse.IsSuccessStatusCode)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to get UTXOs for Cardano address {fromWalletAddress}: {utxoResponse.StatusCode}");
+                    return result;
+                }
+
+                var utxoContent = await utxoResponse.Content.ReadAsStringAsync();
+                var utxos = JsonSerializer.Deserialize<JsonElement[]>(utxoContent);
+                
+                if (utxos == null || utxos.Length == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"No UTXOs found for Cardano address {fromWalletAddress}");
+                    return result;
+                }
+
+                // Find sufficient UTXOs
+                long totalValue = 0;
+                var selectedUtxos = new List<object>();
+                
+                foreach (var utxo in utxos)
+                {
+                    var value = utxo.GetProperty("amount").GetProperty("quantity").GetInt64();
+                    totalValue += value;
+                    selectedUtxos.Add(new
+                    {
+                        tx_hash = utxo.GetProperty("tx_hash").GetString(),
+                        output_index = utxo.GetProperty("output_index").GetInt32()
+                    });
+                    
+                    if (totalValue >= amountInLovelace)
+                        break;
+                }
+
+                if (totalValue < amountInLovelace)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Insufficient funds. Available: {totalValue} lovelace, Required: {amountInLovelace} lovelace");
+                    return result;
+                }
+
+                // Create Cardano transaction
+                var transactionRequest = new
+                {
+                    inputs = selectedUtxos,
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = toWalletAddress,
+                            amount = new[]
+                            {
+                                new
+                                {
+                                    unit = "lovelace",
+                                    quantity = amountInLovelace.ToString()
+                                }
+                            }
+                        }
+                    },
+                    metadata = new
+                    {
+                        memo = memoText
+                    }
+                };
+
+                // Submit transaction to Cardano network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx/submit", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    result.Result = new TransactionRespone
+                    {
+                        TransactionResult = responseData.GetProperty("tx_hash").GetString(),
+                        MemoText = memoText
+                    };
+                    result.IsError = false;
+                    result.Message = $"Cardano transaction sent successfully. TX Hash: {result.Result.TransactionResult}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to submit Cardano transaction: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error sending Cardano transaction: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        #endregion
+
         #region IDisposable
 
         public void Dispose()

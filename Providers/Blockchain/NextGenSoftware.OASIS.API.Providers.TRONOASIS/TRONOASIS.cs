@@ -683,12 +683,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         #region IOASISBlockchainStorageProvider
 
-        public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transation)
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            return new OASISResult<ITransactionRespone> { Message = "SendTransaction is not implemented yet for TRON provider." };
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction)
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             var response = new OASISResult<ITransactionRespone>();
             
@@ -700,16 +700,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     return response;
                 }
 
-                // Create TRON transaction using TRON API
-                var transactionData = new
+                var transactionRequest = new
                 {
-                    from = transaction.FromWalletAddress,
-                    to = transaction.ToWalletAddress,
-                    amount = transaction.Amount,
-                    asset = "TRX" // Default to TRX token
+                    to_address = toWalletAddress,
+                    owner_address = fromWalletAddress,
+                    amount = (long)(amount * 1000000)
                 };
 
-                var json = JsonSerializer.Serialize(transactionData);
+                var json = JsonSerializer.Serialize(transactionRequest);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 
                 var httpResponse = await _httpClient.PostAsync($"{TRON_API_BASE_URL}/wallet/createtransaction", content);

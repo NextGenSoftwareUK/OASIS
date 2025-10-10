@@ -1300,25 +1300,26 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transaction)
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            return SendTransactionAsync(transaction).Result;
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
-        
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction)
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             var result = new OASISResult<ITransactionRespone>();
             string errorMessage = "Error in SendTransactionAsync method in EthereumOASIS sending transaction. Reason: ";
-            
+
             try
             {
+                // Note: memoText can be encoded into data field; EtherTransferService does not include data
                 var transactionResult = await Web3Client.Eth.GetEtherTransferService()
-                    .TransferEtherAndWaitForReceiptAsync(transaction.ToWalletAddress, transaction.Amount);
+                    .TransferEtherAndWaitForReceiptAsync(toWalletAddress, amount);
 
                 if (transactionResult.HasErrors() is true)
                 {
                     result.Message = string.Concat(errorMessage, "Ethereum transaction performing failed! " +
-                                     $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {transaction.Amount}." +
+                                     $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {amount}." +
                                      $"Reason: {transactionResult.Logs}");
                     OASISErrorHandling.HandleError(ref result, result.Message);
                     return result;
