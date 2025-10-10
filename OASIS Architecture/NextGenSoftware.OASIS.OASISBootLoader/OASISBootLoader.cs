@@ -25,6 +25,23 @@ using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
+using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
+using NextGenSoftware.OASIS.API.Providers.CardanoOASIS;
+using NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
+using NextGenSoftware.OASIS.API.Providers.BNBChainOASIS;
+using NextGenSoftware.OASIS.API.Providers.FantomOASIS;
+using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
+using NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS;
+using NextGenSoftware.OASIS.API.Providers.ElrondOASIS;
+using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
+using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
+using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
+using NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
+using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
+using NextGenSoftware.OASIS.API.Providers.NEAROASIS;
+using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
+using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
+using NextGenSoftware.OASIS.API.Providers.MoralisOASIS;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.Utilities;
 using System.Runtime.InteropServices;
@@ -955,6 +972,174 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                                 azureCosmosDBOASIS.OnStorageProviderError += AzureCosmosDBOASIS_StorageProviderError;
                                 result.Result = azureCosmosDBOASIS;
+                            }
+                            break;
+
+                        // Missing Blockchain Providers
+                        case ProviderType.BitcoinOASIS:
+                            {
+                                BitcoinOASIS bitcoinOASIS = new BitcoinOASIS(
+                                    OASISDNA.OASIS.StorageProviders.BitcoinOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.BitcoinOASIS.Network);
+                                result.Result = bitcoinOASIS;
+                            }
+                            break;
+
+                        case ProviderType.CardanoOASIS:
+                            {
+                                CardanoOASIS cardanoOASIS = new CardanoOASIS(
+                                    OASISDNA.OASIS.StorageProviders.CardanoOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.CardanoOASIS.NetworkId);
+                                result.Result = cardanoOASIS;
+                            }
+                            break;
+
+                        case ProviderType.PolkadotOASIS:
+                            {
+                                PolkadotOASIS polkadotOASIS = new PolkadotOASIS(
+                                    OASISDNA.OASIS.StorageProviders.PolkadotOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.PolkadotOASIS.Network);
+                                result.Result = polkadotOASIS;
+                            }
+                            break;
+
+                        case ProviderType.BNBChainOASIS:
+                            {
+                                BNBChainOASIS bnbChainOASIS = new BNBChainOASIS(
+                                    OASISDNA.OASIS.StorageProviders.BNBChainOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.BNBChainOASIS.NetworkId,
+                                    OASISDNA.OASIS.StorageProviders.BNBChainOASIS.ChainId);
+                                result.Result = bnbChainOASIS;
+                            }
+                            break;
+
+                        case ProviderType.FantomOASIS:
+                            {
+                                FantomOASIS fantomOASIS = new FantomOASIS(
+                                    OASISDNA.OASIS.StorageProviders.FantomOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.FantomOASIS.NetworkId,
+                                    OASISDNA.OASIS.StorageProviders.FantomOASIS.ChainId);
+                                result.Result = fantomOASIS;
+                            }
+                            break;
+
+                        case ProviderType.OptimismOASIS:
+                            {
+                                OptimismOASIS optimismOASIS = new OptimismOASIS(
+                                    OASISDNA.OASIS.StorageProviders.OptimismOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.OptimismOASIS.NetworkId,
+                                    OASISDNA.OASIS.StorageProviders.OptimismOASIS.ChainId);
+                                result.Result = optimismOASIS;
+                            }
+                            break;
+
+                        case ProviderType.ChainLinkOASIS:
+                            {
+                                ChainLinkOASIS chainLinkOASIS = new ChainLinkOASIS(
+                                    OASISDNA.OASIS.StorageProviders.ChainLinkOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.ChainLinkOASIS.NetworkId,
+                                    OASISDNA.OASIS.StorageProviders.ChainLinkOASIS.ChainId);
+                                result.Result = chainLinkOASIS;
+                            }
+                            break;
+
+                        case ProviderType.ElrondOASIS:
+                            {
+                                ElrondOASIS elrondOASIS = new ElrondOASIS(
+                                    OASISDNA.OASIS.StorageProviders.ElrondOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.ElrondOASIS.Network,
+                                    OASISDNA.OASIS.StorageProviders.ElrondOASIS.ChainId);
+                                result.Result = elrondOASIS;
+                            }
+                            break;
+
+                        case ProviderType.AptosOASIS:
+                            {
+                                AptosOASIS aptosOASIS = new AptosOASIS(
+                                    OASISDNA.OASIS.StorageProviders.AptosOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.AptosOASIS.Network,
+                                    OASISDNA.OASIS.StorageProviders.AptosOASIS.ChainId);
+                                result.Result = aptosOASIS;
+                            }
+                            break;
+
+                        case ProviderType.TRONOASIS:
+                            {
+                                TRONOASIS tronOASIS = new TRONOASIS(
+                                    OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.TRONOASIS.Network,
+                                    OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId);
+                                result.Result = tronOASIS;
+                            }
+                            break;
+
+                        case ProviderType.HashgraphOASIS:
+                            {
+                                HashgraphOASIS hashgraphOASIS = new HashgraphOASIS(
+                                    OASISDNA.OASIS.StorageProviders.HashgraphOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.HashgraphOASIS.Network,
+                                    OASISDNA.OASIS.StorageProviders.HashgraphOASIS.ChainId);
+                                result.Result = hashgraphOASIS;
+                            }
+                            break;
+
+                        case ProviderType.AvalancheOASIS:
+                            {
+                                AvalancheOASIS avalancheOASIS = new AvalancheOASIS(
+                                    OASISDNA.OASIS.StorageProviders.AvalancheOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.AvalancheOASIS.NetworkId,
+                                    OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainId);
+                                result.Result = avalancheOASIS;
+                            }
+                            break;
+
+                        case ProviderType.CosmosBlockChainOASIS:
+                            {
+                                CosmosBlockChainOASIS cosmosOASIS = new CosmosBlockChainOASIS(
+                                    OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.Network,
+                                    OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.ChainId);
+                                result.Result = cosmosOASIS;
+                            }
+                            break;
+
+                        case ProviderType.NEAROASIS:
+                            {
+                                NEAROASIS nearOASIS = new NEAROASIS(
+                                    OASISDNA.OASIS.StorageProviders.NEAROASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.NEAROASIS.Network,
+                                    OASISDNA.OASIS.StorageProviders.NEAROASIS.ChainId);
+                                result.Result = nearOASIS;
+                            }
+                            break;
+
+                        case ProviderType.BaseOASIS:
+                            {
+                                BaseOASIS baseOASIS = new BaseOASIS(
+                                    OASISDNA.OASIS.StorageProviders.BaseOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.BaseOASIS.NetworkId,
+                                    OASISDNA.OASIS.StorageProviders.BaseOASIS.ChainId);
+                                result.Result = baseOASIS;
+                            }
+                            break;
+
+                        case ProviderType.SuiOASIS:
+                            {
+                                SuiOASIS suiOASIS = new SuiOASIS(
+                                    OASISDNA.OASIS.StorageProviders.SuiOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.SuiOASIS.Network,
+                                    OASISDNA.OASIS.StorageProviders.SuiOASIS.ChainId);
+                                result.Result = suiOASIS;
+                            }
+                            break;
+
+                        case ProviderType.MoralisOASIS:
+                            {
+                                MoralisOASIS moralisOASIS = new MoralisOASIS(
+                                    OASISDNA.OASIS.StorageProviders.MoralisOASIS.ApiKey,
+                                    OASISDNA.OASIS.StorageProviders.MoralisOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.MoralisOASIS.Network);
+                                result.Result = moralisOASIS;
                             }
                             break;
                     }
