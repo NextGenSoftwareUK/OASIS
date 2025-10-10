@@ -1117,41 +1117,41 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         throw new NotImplementedException();
     }
 
-    OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionById(Guid fromAvatarId,
-        Guid toAvatarId, decimal amount, string token)
-    {
-        throw new NotImplementedException();
-    }
+    //OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionById(Guid fromAvatarId,
+    //    Guid toAvatarId, decimal amount, string token)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
-    Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByIdAsync(
-        Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
-    {
-        throw new NotImplementedException();
-    }
+    //Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByIdAsync(
+    //    Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
-    Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(
-        string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-    {
-        throw new NotImplementedException();
-    }
+    //Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(
+    //    string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
-    OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByUsername(
-        string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-    {
-        throw new NotImplementedException();
-    }
+    //OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByUsername(
+    //    string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
-    Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByEmailAsync(
-        string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-    {
-        throw new NotImplementedException();
-    }
+    //Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByEmailAsync(
+    //    string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
-    OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByEmail(string fromAvatarEmail,
-        string toAvatarEmail, decimal amount, string token)
-    {
-        throw new NotImplementedException();
-    }
+    //OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByEmail(string fromAvatarEmail,
+    //    string toAvatarEmail, decimal amount, string token)
+    //{
+    //    throw new NotImplementedException();
+    //}
 
     public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
     {
@@ -1428,11 +1428,11 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             // Add Solana-specific metadata
             if (solanaData != null)
             {
-                avatar.ProviderMetaData.Add("solana_account", GetSolanaProperty(solanaData, "account") ?? "");
-                avatar.ProviderMetaData.Add("solana_lamports", GetSolanaProperty(solanaData, "lamports") ?? "0");
-                avatar.ProviderMetaData.Add("solana_owner", GetSolanaProperty(solanaData, "owner") ?? "");
-                avatar.ProviderMetaData.Add("solana_network", "mainnet-beta");
-                avatar.ProviderMetaData.Add("solana_program_id", GetSolanaProperty(solanaData, "programId") ?? "");
+                avatar.ProviderMetaData[Core.Enums.ProviderType.SolanaOASIS].Add("solana_account", GetSolanaProperty(solanaData, "account") ?? "");
+                avatar.ProviderMetaData[Core.Enums.ProviderType.SolanaOASIS].Add("solana_lamports", GetSolanaProperty(solanaData, "lamports") ?? "0");
+                avatar.ProviderMetaData[Core.Enums.ProviderType.SolanaOASIS].Add("solana_owner", GetSolanaProperty(solanaData, "owner") ?? "");
+                avatar.ProviderMetaData[Core.Enums.ProviderType.SolanaOASIS].Add("solana_network", "mainnet-beta");
+                avatar.ProviderMetaData[Core.Enums.ProviderType.SolanaOASIS].Add("solana_program_id", GetSolanaProperty(solanaData, "programId") ?? "");
             }
 
             return avatar;
@@ -1465,6 +1465,16 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         {
             return null;
         }
+    }
+
+    public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddres, decimal amount, string memoText)
+    {
+        throw new NotImplementedException();
     }
 
     #endregion

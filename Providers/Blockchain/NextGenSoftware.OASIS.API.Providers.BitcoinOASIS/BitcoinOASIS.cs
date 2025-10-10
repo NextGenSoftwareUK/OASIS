@@ -28,6 +28,18 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         private readonly string _network;
         private readonly string _privateKey;
         private bool _isActivated;
+        private WalletManager _walletManager;
+
+        public WalletManager WalletManager
+        {
+            get
+            {
+                if (_walletManager == null)
+                    _walletManager = WalletManager.Instance;
+                return _walletManager;
+            }
+            set => _walletManager = value;
+        }
 
         /// <summary>
         /// Initializes a new instance of the BitcoinOASIS provider
@@ -35,8 +47,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         /// <param name="rpcEndpoint">Bitcoin RPC endpoint URL</param>
         /// <param name="network">Bitcoin network (mainnet, testnet, regtest)</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public BitcoinOASIS(string rpcEndpoint = "https://blockstream.info/api", string network = "mainnet", string privateKey = "")
+        /// <param name="walletManager">WalletManager for wallet operations</param>
+        public BitcoinOASIS(string rpcEndpoint = "https://blockstream.info/api", string network = "mainnet", string privateKey = "", WalletManager walletManager = null)
         {
+            _walletManager = walletManager;
             this.ProviderName = "BitcoinOASIS";
             this.ProviderDescription = "Bitcoin Provider - First and largest cryptocurrency";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BitcoinOASIS);

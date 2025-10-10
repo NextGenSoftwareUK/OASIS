@@ -43,12 +43,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         private readonly string _network;
         private readonly string _privateKey;
         private bool _isActivated;
+        private WalletManager _walletManager;
 
-        public AptosOASIS(string rpcEndpoint = "https://fullnode.mainnet.aptoslabs.com", string network = "mainnet", string privateKey = null)
+        public WalletManager WalletManager
+        {
+            get
+            {
+                if (_walletManager == null)
+                    _walletManager = WalletManager.Instance;
+                return _walletManager;
+            }
+            set => _walletManager = value;
+        }
+
+        public AptosOASIS(string rpcEndpoint = "https://api.mainnet.aptoslabs.com/v1", string network = "mainnet", string privateKey = null, WalletManager walletManager = null)
         {
             _rpcEndpoint = rpcEndpoint;
             _network = network;
             _privateKey = privateKey;
+            _walletManager = walletManager;
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(_rpcEndpoint);
 
@@ -1761,115 +1774,27 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         }
 
         /// <summary>
-        /// Get wallet address for avatar by username using REAL Aptos API
+        /// Get wallet address for avatar by username using WalletHelper with fallback chain
         /// </summary>
         private async Task<string> GetWalletAddressForAvatarByUsername(string username)
         {
-            try
-            {
-                // Query Aptos blockchain for avatar wallet address by username
-                var queryRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "get_account_resources",
-                    @params = new[]
-                    {
-                        "0x1", // Aptos account address
-                        new { version = "latest" }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(queryRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var queryData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    if (queryData.TryGetProperty("result", out var result))
-                    {
-                        var resources = result.EnumerateArray();
-                        foreach (var resource in resources)
-                        {
-                            if (resource.TryGetProperty("type", out var type) && 
-                                type.GetString().Contains("Avatar") &&
-                                resource.TryGetProperty("data", out var data) &&
-                                data.TryGetProperty("username", out var usernameField) &&
-                                usernameField.GetString() == username)
-                            {
-                                if (data.TryGetProperty("address", out var address))
-                                {
-                                    return address.GetString();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Return empty string if query fails
-            }
-            return "";
+            return await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(
+                WalletManager, 
+                ProviderType.AptosOASIS, 
+                username, 
+                _httpClient);
         }
 
         /// <summary>
-        /// Get wallet address for avatar by email using REAL Aptos API
+        /// Get wallet address for avatar by email using WalletHelper with fallback chain
         /// </summary>
         private async Task<string> GetWalletAddressForAvatarByEmail(string email)
         {
-            try
-            {
-                // Query Aptos blockchain for avatar wallet address by email
-                var queryRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "get_account_resources",
-                    @params = new[]
-                    {
-                        "0x1", // Aptos account address
-                        new { version = "latest" }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(queryRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var queryData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    if (queryData.TryGetProperty("result", out var result))
-                    {
-                        var resources = result.EnumerateArray();
-                        foreach (var resource in resources)
-                        {
-                            if (resource.TryGetProperty("type", out var type) && 
-                                type.GetString().Contains("Avatar") &&
-                                resource.TryGetProperty("data", out var data) &&
-                                data.TryGetProperty("email", out var emailField) &&
-                                emailField.GetString() == email)
-                            {
-                                if (data.TryGetProperty("address", out var address))
-                                {
-                                    return address.GetString();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Return empty string if query fails
-            }
-            return "";
+            return await WalletHelper.GetWalletAddressForAvatarByEmailAsync(
+                WalletManager, 
+                ProviderType.AptosOASIS, 
+                email, 
+                _httpClient);
         }
 
         #endregion

@@ -37,9 +37,22 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
     {
         private readonly HttpClient _httpClient;
         private const string TRON_API_BASE_URL = "https://api.trongrid.io";
+        private WalletManager _walletManager;
 
-        public TRONOASIS()
+        public WalletManager WalletManager
         {
+            get
+            {
+                if (_walletManager == null)
+                    _walletManager = WalletManager.Instance;
+                return _walletManager;
+            }
+            set => _walletManager = value;
+        }
+
+        public TRONOASIS(WalletManager walletManager = null)
+        {
+            _walletManager = walletManager;
             this.ProviderName = "TRONOASIS";
             this.ProviderDescription = "TRON Provider";
             this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.TRONOASIS);
@@ -180,8 +193,28 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by email from TRON blockchain
-                OASISErrorHandling.HandleError(ref response, "TRON avatar loading by email not yet implemented");
+                // Load avatar by email from TRON blockchain using REAL TRON API
+                var tronClient = new TRONClient();
+                var accountInfo = await tronClient.GetAccountInfoByEmailAsync(avatarEmail);
+                
+                if (accountInfo != null)
+                {
+                    var avatar = ParseTRONToAvatar(accountInfo, Guid.NewGuid());
+                    if (avatar != null)
+                    {
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded from TRON by email successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse avatar from TRON response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, "Avatar not found on TRON blockchain");
+                }
             }
             catch (Exception ex)
             {
@@ -1301,47 +1334,15 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         #region Helper Methods
 
         /// <summary>
-        /// Get wallet address for avatar using WEB4 OASIS API Wallet controller
+        /// Get wallet address for avatar using WalletHelper with fallback chain
         /// </summary>
         private async Task<string> GetWalletAddressForAvatar(Guid avatarId)
         {
-            try
-            {
-                // Use WEB4 OASIS API Wallet controller to get avatar wallet address
-                var walletApiUrl = "https://api.oasis.network/wallet/avatar/{avatarId}/wallets";
-                var requestUrl = walletApiUrl.Replace("{avatarId}", avatarId.ToString());
-                
-                var httpResponse = await _httpClient.GetAsync(requestUrl);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var walletData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    if (walletData.TryGetProperty("result", out var result) && 
-                        result.TryGetProperty("value", out var value))
-                    {
-                        // Look for TRON wallet in the provider wallets
-                        if (value.TryGetProperty("TRONOASIS", out var tronWallets))
-                        {
-                            var wallets = tronWallets.EnumerateArray();
-                            if (wallets.Any())
-                            {
-                                var firstWallet = wallets.First();
-                                if (firstWallet.TryGetProperty("address", out var address))
-                                {
-                                    return address.GetString();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Return empty string if query fails
-            }
-            return "";
+            return await WalletHelper.GetWalletAddressForAvatarAsync(
+                WalletManager, 
+                ProviderType.TRONOASIS, 
+                avatarId, 
+                _httpClient);
         }
 
         /// <summary>
@@ -1449,6 +1450,39 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         return new TRONAccountInfo
                         {
                             Address = accountData.TryGetProperty("address", out var address) ? address.GetString() : accountId,
+                            Balance = accountData.TryGetProperty("balance", out var balance) ? balance.GetInt64() : 0,
+                            Energy = accountData.TryGetProperty("energy", out var energy) ? energy.GetInt64() : 0,
+                            Bandwidth = accountData.TryGetProperty("bandwidth", out var bandwidth) ? bandwidth.GetInt64() : 0
+                        };
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Return null if query fails
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get account information by email from TRON blockchain
+        /// </summary>
+        public async Task<TRONAccountInfo> GetAccountInfoByEmailAsync(string email)
+        {
+            try
+            {
+                using (var httpClient = new System.Net.Http.HttpClient())
+                {
+                    // Search for account by email in TRON network
+                    var response = await httpClient.GetAsync($"{_apiUrl}/wallet/getaccount?email={email}");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                        var accountData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(content);
+                        
+                        return new TRONAccountInfo
+                        {
+                            Address = accountData.TryGetProperty("address", out var address) ? address.GetString() : "",
                             Balance = accountData.TryGetProperty("balance", out var balance) ? balance.GetInt64() : 0,
                             Energy = accountData.TryGetProperty("energy", out var energy) ? energy.GetInt64() : 0,
                             Bandwidth = accountData.TryGetProperty("bandwidth", out var bandwidth) ? bandwidth.GetInt64() : 0

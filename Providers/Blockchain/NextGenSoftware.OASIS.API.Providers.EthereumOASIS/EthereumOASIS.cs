@@ -21,6 +21,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using Nethereum.StandardTokenEIP20;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
@@ -919,12 +920,90 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    return result;
+                }
+
+                // Query avatar from Ethereum smart contract by email
+                var avatarData = await _nextGenSoftwareOasisService.GetAvatarByEmailQueryAsync(avatarEmail);
+                
+                if (avatarData != null && !string.IsNullOrEmpty(avatarData))
+                {
+                    var avatar = JsonConvert.DeserializeObject<Avatar>(avatarData);
+                    if (avatar != null)
+                    {
+                        // Ensure all properties are properly set using full object serialization
+                        var serializedAvatar = JsonConvert.SerializeObject(avatar, Formatting.Indented);
+                        var deserializedAvatar = JsonConvert.DeserializeObject<Avatar>(serializedAvatar);
+                        
+                        result.Result = deserializedAvatar;
+                        result.IsError = false;
+                        result.Message = "Avatar loaded successfully from Ethereum";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar data");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found with email: " + avatarEmail);
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    return result;
+                }
+
+                // Query avatar from Ethereum smart contract by username
+                var avatarData = await _nextGenSoftwareOasisService.GetAvatarByUsernameQueryAsync(avatarUsername);
+                
+                if (avatarData != null && !string.IsNullOrEmpty(avatarData))
+                {
+                    var avatar = JsonConvert.DeserializeObject<Avatar>(avatarData);
+                    if (avatar != null)
+                    {
+                        // Ensure all properties are properly set using full object serialization
+                        var serializedAvatar = JsonConvert.SerializeObject(avatar, Formatting.Indented);
+                        var deserializedAvatar = JsonConvert.DeserializeObject<Avatar>(serializedAvatar);
+                        
+                        result.Result = deserializedAvatar;
+                        result.IsError = false;
+                        result.Message = "Avatar loaded successfully from Ethereum";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar data");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found with username: " + avatarUsername);
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
@@ -1290,38 +1369,32 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            //TODO: Implement ASAP!
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
         }
 
         public Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            //TODO: Implement ASAP!
-            throw new NotImplementedException();
+            return SendTransactionByIdInternalAsync(fromAvatarId, toAvatarId, amount, token);
         }
 
         public Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            //TODO: Implement ASAP!
-            throw new NotImplementedException();
+            return SendTransactionByUsernameInternalAsync(fromAvatarUsername, toAvatarUsername, amount, token);
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            //TODO: Implement ASAP!
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
         }
 
         public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            //TODO: Implement ASAP!
-            throw new NotImplementedException();
+            return SendTransactionByEmailInternalAsync(fromAvatarEmail, toAvatarEmail, amount, token);
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            //TODO: Implement ASAP!
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
         }
 
         //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1431,6 +1504,147 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             {
                 return null;
             }
+        }
+
+        private async Task<OASISResult<ITransactionRespone>> SendTransactionByIdInternalAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            string errorMessage = "Error in SendTransactionByIdAsync (token) in EthereumOASIS. Reason: ";
+
+            try
+            {
+                var senderPrivateKeysResult = KeyManager.GetProviderPrivateKeysForAvatarById(fromAvatarId, Core.Enums.ProviderType.EthereumOASIS);
+                if (senderPrivateKeysResult.IsError || senderPrivateKeysResult.Result == null || senderPrivateKeysResult.Result.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderPrivateKeysResult.Message), senderPrivateKeysResult.Exception);
+                    return result;
+                }
+
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.EthereumOASIS, toAvatarId);
+                if (toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message), toWalletResult.Exception);
+                    return result;
+                }
+
+                var senderPrivateKey = senderPrivateKeysResult.Result[0];
+                var toAddress = toWalletResult.Result;
+
+                if (!string.IsNullOrWhiteSpace(token))
+                    return await SendEthereumErc20Transaction(senderPrivateKey, token, toAddress, amount);
+                else
+                    return await SendEthereumTransaction(senderPrivateKey, toAddress, amount);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                return result;
+            }
+        }
+
+        private async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameInternalAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            string errorMessage = "Error in SendTransactionByUsernameAsync (token) in EthereumOASIS. Reason: ";
+
+            try
+            {
+                var senderPrivateKeysResult = KeyManager.GetProviderPrivateKeysForAvatarByUsername(fromAvatarUsername, Core.Enums.ProviderType.EthereumOASIS);
+                if (senderPrivateKeysResult.IsError || senderPrivateKeysResult.Result == null || senderPrivateKeysResult.Result.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderPrivateKeysResult.Message), senderPrivateKeysResult.Exception);
+                    return result;
+                }
+
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, Core.Enums.ProviderType.EthereumOASIS, toAvatarUsername);
+                if (toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message), toWalletResult.Exception);
+                    return result;
+                }
+
+                var senderPrivateKey = senderPrivateKeysResult.Result[0];
+                var toAddress = toWalletResult.Result;
+
+                if (!string.IsNullOrWhiteSpace(token))
+                    return await SendEthereumErc20Transaction(senderPrivateKey, token, toAddress, amount);
+                else
+                    return await SendEthereumTransaction(senderPrivateKey, toAddress, amount);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                return result;
+            }
+        }
+
+        private async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailInternalAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            string errorMessage = "Error in SendTransactionByEmailAsync (token) in EthereumOASIS. Reason: ";
+
+            try
+            {
+                var senderPrivateKeysResult = KeyManager.GetProviderPrivateKeysForAvatarByEmail(fromAvatarEmail, Core.Enums.ProviderType.EthereumOASIS);
+                if (senderPrivateKeysResult.IsError || senderPrivateKeysResult.Result == null || senderPrivateKeysResult.Result.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderPrivateKeysResult.Message), senderPrivateKeysResult.Exception);
+                    return result;
+                }
+
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, Core.Enums.ProviderType.EthereumOASIS, toAvatarEmail);
+                if (toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message), toWalletResult.Exception);
+                    return result;
+                }
+
+                var senderPrivateKey = senderPrivateKeysResult.Result[0];
+                var toAddress = toWalletResult.Result;
+
+                if (!string.IsNullOrWhiteSpace(token))
+                    return await SendEthereumErc20Transaction(senderPrivateKey, token, toAddress, amount);
+                else
+                    return await SendEthereumTransaction(senderPrivateKey, toAddress, amount);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                return result;
+            }
+        }
+
+        private async Task<OASISResult<ITransactionRespone>> SendEthereumErc20Transaction(string senderAccountPrivateKey, string tokenContractAddress, string receiverAccountAddress, decimal amount)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            string errorMessage = "Error in SendEthereumErc20Transaction in EthereumOASIS. Reason: ";
+
+            try
+            {
+                var senderEthAccount = new Account(senderAccountPrivateKey);
+                var web3Client = new Web3(senderEthAccount);
+
+                var tokenService = new StandardTokenService(web3Client, tokenContractAddress);
+                var decimals = await tokenService.DecimalsQueryAsync();
+
+                var multiplier = Nethereum.Util.BigIntegerExtensions.Pow(10, (int)decimals);
+                var amountBigInt = new System.Numerics.BigInteger(amount * (decimal)multiplier);
+
+                var receipt = await tokenService.TransferRequestAndWaitForReceiptAsync(receiverAccountAddress, amountBigInt);
+                if (receipt.HasErrors() == true)
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-20 transfer failed."));
+                    return result;
+                }
+
+                result.Result.TransactionResult = receipt.TransactionHash;
+                TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+            return result;
         }
 
         #endregion

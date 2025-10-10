@@ -1248,17 +1248,84 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            string errorMessage = "Error in SendTransactionByIdAsync (token) in EOSIOOASIS. Reason: ";
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, fromAvatarId);
+                if (fromWalletResult.IsError || string.IsNullOrWhiteSpace(fromWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message), fromWalletResult.Exception);
+                    return result;
+                }
+
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, toAvatarId);
+                if (toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message), toWalletResult.Exception);
+                    return result;
+                }
+
+                // token parameter currently defaults to network native token in repository (EOS)
+                var transferResult = await _transferRepository.TransferEosToken(fromWalletResult.Result, toWalletResult.Result, amount);
+                OASISResultHelper.CopyResult(transferResult, result);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            string errorMessage = "Error in SendTransactionByUsernameAsync (token) in EOSIOOASIS. Reason: ";
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, fromAvatarUsername);
+                if (fromWalletResult.IsError || string.IsNullOrWhiteSpace(fromWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message), fromWalletResult.Exception);
+                    return result;
+                }
+
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, toAvatarUsername);
+                if (toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message), toWalletResult.Exception);
+                    return result;
+                }
+
+                var transferResult = await _transferRepository.TransferEosToken(fromWalletResult.Result, toWalletResult.Result, amount);
+                OASISResultHelper.CopyResult(transferResult, result);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
@@ -1268,7 +1335,40 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            string errorMessage = "Error in SendTransactionByEmailAsync (token) in EOSIOOASIS. Reason: ";
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, fromAvatarEmail);
+                if (fromWalletResult.IsError || string.IsNullOrWhiteSpace(fromWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromWalletResult.Message), fromWalletResult.Exception);
+                    return result;
+                }
+
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, toAvatarEmail);
+                if (toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result))
+                {
+                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toWalletResult.Message), toWalletResult.Exception);
+                    return result;
+                }
+
+                var transferResult = await _transferRepository.TransferEosToken(fromWalletResult.Result, toWalletResult.Result, amount);
+                OASISResultHelper.CopyResult(transferResult, result);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            }
+
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
@@ -1635,12 +1735,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token);
         }
 
         Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token);
         }
 
         public void Dispose()

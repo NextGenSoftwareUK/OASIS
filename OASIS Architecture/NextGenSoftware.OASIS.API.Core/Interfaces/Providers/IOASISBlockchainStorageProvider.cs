@@ -16,7 +16,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         // Central Storage/DB's by default can update the same record, if this flag is set below then they will act more like a Blockchain and store a new copy of the record and link to the previous version.
         // You cannot turn VersionControl off for Blockchains because it is built in.
         // public bool IsVersionControlEnabled { get; set; }
-        
+
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText);
+        public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddres, decimal amount, string memoText);
+
+        /*
         public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transaction);
         public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction);
         
@@ -41,5 +45,6 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 
         public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount);
         public Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount);
+        */
     }
 }
