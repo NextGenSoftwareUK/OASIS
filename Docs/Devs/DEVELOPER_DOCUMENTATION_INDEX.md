@@ -11,6 +11,12 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[OASIS Architecture Diagrams](./OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual system diagrams
 - **[Combined API Overview](./API%20Documentation/COMBINED_API_OVERVIEW.md)** - WEB4 + WEB5 integration
 
+### **Core Managers & Systems**
+- **[OASIS Managers Complete Guide](./OASIS-Managers-Complete-Guide.md)** - Core managers (AvatarManager, WalletManager, KeyManager)
+- **[OASIS Managers Part 2](./OASIS-Managers-Part2.md)** - Additional managers (HolonManager, NFTManager, SearchManager, CacheManager, EmailManager)
+- **[OASIS Managers Part 3](./OASIS-Managers-Part3.md)** - Advanced managers & OASISHyperDrive
+- **[Wallet Management System](./Wallet-Management-System.md)** - Comprehensive wallet management guide
+
 ### **Core Components**
 - **WEB4 OASIS API**: Data aggregation and identity layer
 - **WEB5 STAR API**: Gamification and business layer  

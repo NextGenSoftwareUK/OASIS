@@ -1072,6 +1072,12 @@ Sophisticated tokenomics with:
 
 ### 📖 **Core Documentation**
 - **[Investor Evaluation Guide](./Docs/INVESTOR_EVALUATION_GUIDE.md)** - Comprehensive investment analysis and market opportunities
+
+### 🏗️ **OASIS Managers & Systems**
+- **[OASIS Managers Complete Guide](./Docs/Devs/OASIS-Managers-Complete-Guide.md)** - Core managers (AvatarManager, WalletManager, KeyManager)
+- **[OASIS Managers Part 2](./Docs/Devs/OASIS-Managers-Part2.md)** - Additional managers (HolonManager, NFTManager, SearchManager, CacheManager, EmailManager)
+- **[OASIS Managers Part 3](./Docs/Devs/OASIS-Managers-Part3.md)** - Advanced managers & OASISHyperDrive
+- **[Wallet Management System](./Docs/Devs/Wallet-Management-System.md)** - Comprehensive wallet management guide
 - **[OASIS Architecture Overview](./Docs/Devs/OASIS_ARCHITECTURE_OVERVIEW.md)** - Detailed technical architecture and system design
 - **[Unique Selling Propositions](./Docs/OASIS_UNIQUE_SELLING_PROPOSITIONS.md)** - Complete USP analysis and competitive advantages
 - **[STARNET Web UI Overview](./Docs/STARNET_WEB_UI_OVERVIEW.md)** - Complete STARNET Web UI guide

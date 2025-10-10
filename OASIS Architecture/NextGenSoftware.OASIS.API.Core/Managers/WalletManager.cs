@@ -42,17 +42,53 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
             string errorMessage = "Error Occured in SendTokenAsync function. Reason: ";
 
-            IOASISBlockchainStorageProvider oasisBlockchainProvider =  ProviderManager.Instance.GetProvider(request.FromProvider.Value) as IOASISBlockchainStorageProvider;
-
-            if (oasisBlockchainProvider != null)
+            if (request.FromProvider.Name == request.ToProvider.Name)
             {
-                result = await oasisBlockchainProvider.SendTransactionAsync(request);
+                IOASISBlockchainStorageProvider oasisBlockchainProvider = ProviderManager.Instance.GetProvider(request.FromProvider.Value) as IOASISBlockchainStorageProvider;
 
-                if (result == null || (result != null && result.IsError || result.Result == null))
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error whilst calling the SendTransactionAsync function. Reason: {result.Message}");
+                if (oasisBlockchainProvider != null)
+                {
+                    if (string.IsNullOrEmpty(request.FromWalletAddress))
+                    {
+                        //Try and lookup the wallet address from the avatar id/username/email if one of those is provided.
+                        OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> walletsResult = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+                        
+                        if (request.FromAvatarId != Guid.Empty)
+                            walletsResult = await LoadProviderWalletsForAvatarByIdAsync(request.FromAvatarId, request.FromProvider.Value);
+                        
+                        else if (!string.IsNullOrEmpty(request.FromAvatarUsername))
+                            walletsResult = await LoadProviderWalletsForAvatarByUsernameAsync(request.FromAvatarUsername, request.FromProvider.Value);
+                        
+                        else if (!string.IsNullOrEmpty(request.FromAvatarEmail))
+                            walletsResult = await LoadProviderWalletsForAvatarByEmailAsync(request.FromAvatarEmail, request.FromProvider.Value);
+                        
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} You must provide at least one of the following to identify the sender: FromWalletAddress, FromAvatarId, FromAvatarUsername or FromAvatarEmail.");
+                        if (!walletsResult.IsError && walletsResult.Result != null && walletsResult.Result.ContainsKey(request.FromProvider.Value) && walletsResult.Result[request.FromProvider.Value] != null)
+                        {
+                            IProviderWallet wallet = walletsResult.Result[request.FromProvider.Value].FirstOrDefault();
+                            if (wallet != null)
+                                request.FromWalletAddress = wallet.WalletAddress;
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar could not be found or does not have a wallet for provider {request.FromProvider.Name} so the transaction cannot be sent.");
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} The avatar could not be found or does not have a wallet for provider {request.FromProvider.Name} so the transaction cannot be sent. Reason: {walletsResult.Message}", walletsResult.DetailedMessage);
+                    }
+
+                    result = await oasisBlockchainProvider.SendTransactionAsync(request.FromWalletAddress, request.ToWalletAddress, request.Amount, request.MemoText);
+
+                    if (result == null || (result != null && result.IsError || result.Result == null))
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} There was an error whilst calling the SendTransactionAsync function. Reason: {result.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProvider)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} The FromProviderType {Enum.GetName(typeof(ProviderType), request.FromProvider)} is not a OASIS Blockchain  Provider. Please make sure you sepcify a OASIS Blockchain Provider.");
+            {
+                //TODO: Implement cross chain transfer logic here.
+            }
+
 
             return result;
         }
