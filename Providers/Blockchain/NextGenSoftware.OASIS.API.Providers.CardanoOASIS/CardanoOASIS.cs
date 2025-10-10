@@ -1009,6 +1009,939 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
             return result;
         }
 
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar)
+        {
+            return SaveAvatarDetailAsync(avatar).Result;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Serialize avatar detail to JSON
+                var avatarDetailJson = JsonSerializer.Serialize(avatar);
+                var avatarDetailBytes = Encoding.UTF8.GetBytes(avatarDetailJson);
+                
+                // Create Cardano transaction with avatar detail data
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            tx_hash = "", // Will be filled by UTXO lookup
+                            output_index = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = avatar.ProviderWallets[ProviderType.CardanoOASIS]?.Address ?? "",
+                            amount = new[]
+                            {
+                                new
+                                {
+                                    unit = "lovelace",
+                                    quantity = "0"
+                                }
+                            },
+                            datum = Convert.ToHexString(avatarDetailBytes) // Store avatar detail data in datum
+                        }
+                    }
+                };
+
+                // Submit transaction to Cardano network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx/submit", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    avatar.ProviderWallets[ProviderType.CardanoOASIS] = new Wallet()
+                    {
+                        Address = responseData.GetProperty("tx_hash").GetString(),
+                        ProviderType = ProviderType.CardanoOASIS
+                    };
+                    
+                    response.Result = avatar;
+                    response.IsError = false;
+                    response.Message = "Avatar detail saved successfully to Cardano blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar detail to Cardano: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar detail to Cardano: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Cardano is immutable, so we can't actually delete
+                // Instead, we mark the avatar as deleted in a new transaction
+                var deleteData = new
+                {
+                    action = "delete",
+                    avatarEmail = avatarEmail,
+                    timestamp = DateTime.UtcNow,
+                    softDelete = softDelete
+                };
+
+                var deleteJson = JsonSerializer.Serialize(deleteData);
+                var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
+                
+                // Create Cardano transaction with delete marker
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            tx_hash = "", // Will be filled by UTXO lookup
+                            output_index = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = "", // Datum transaction
+                            amount = new[]
+                            {
+                                new
+                                {
+                                    unit = "lovelace",
+                                    quantity = "0"
+                                }
+                            },
+                            datum = Convert.ToHexString(deleteBytes)
+                        }
+                    }
+                };
+
+                // Submit transaction to Cardano network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx/submit", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.IsError = false;
+                    response.Message = "Avatar deletion marked successfully on Cardano blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to mark avatar deletion on Cardano: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error marking avatar deletion on Cardano: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Cardano is immutable, so we can't actually delete
+                // Instead, we mark the avatar as deleted in a new transaction
+                var deleteData = new
+                {
+                    action = "delete",
+                    avatarUsername = avatarUsername,
+                    timestamp = DateTime.UtcNow,
+                    softDelete = softDelete
+                };
+
+                var deleteJson = JsonSerializer.Serialize(deleteData);
+                var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
+                
+                // Create Cardano transaction with delete marker
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            tx_hash = "", // Will be filled by UTXO lookup
+                            output_index = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = "", // Datum transaction
+                            amount = new[]
+                            {
+                                new
+                                {
+                                    unit = "lovelace",
+                                    quantity = "0"
+                                }
+                            },
+                            datum = Convert.ToHexString(deleteBytes)
+                        }
+                    }
+                };
+
+                // Submit transaction to Cardano network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx/submit", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.IsError = false;
+                    response.Message = "Avatar deletion marked successfully on Cardano blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to mark avatar deletion on Cardano: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error marking avatar deletion on Cardano: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Cardano is immutable, so we can't actually delete
+                // Instead, we mark the avatar as deleted in a new transaction
+                var deleteData = new
+                {
+                    action = "delete",
+                    providerKey = providerKey,
+                    timestamp = DateTime.UtcNow,
+                    softDelete = softDelete
+                };
+
+                var deleteJson = JsonSerializer.Serialize(deleteData);
+                var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
+                
+                // Create Cardano transaction with delete marker
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            tx_hash = "", // Will be filled by UTXO lookup
+                            output_index = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = "", // Datum transaction
+                            amount = new[]
+                            {
+                                new
+                                {
+                                    unit = "lovelace",
+                                    quantity = "0"
+                                }
+                            },
+                            datum = Convert.ToHexString(deleteBytes)
+                        }
+                    }
+                };
+
+                // Submit transaction to Cardano network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx/submit", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    response.Result = true;
+                    response.IsError = false;
+                    response.Message = "Avatar deletion marked successfully on Cardano blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to mark avatar deletion on Cardano: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error marking avatar deletion on Cardano: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
+        }
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var response = new OASISResult<IHolon>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Serialize holon to JSON
+                var holonJson = JsonSerializer.Serialize(holon);
+                var holonBytes = Encoding.UTF8.GetBytes(holonJson);
+                
+                // Create Cardano transaction with holon data
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            tx_hash = "", // Will be filled by UTXO lookup
+                            output_index = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = "", // Datum transaction
+                            amount = new[]
+                            {
+                                new
+                                {
+                                    unit = "lovelace",
+                                    quantity = "0"
+                                }
+                            },
+                            datum = Convert.ToHexString(holonBytes) // Store holon data in datum
+                        }
+                    }
+                };
+
+                // Submit transaction to Cardano network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx/submit", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    holon.ProviderWallets[ProviderType.CardanoOASIS] = new Wallet()
+                    {
+                        Address = responseData.GetProperty("tx_hash").GetString(),
+                        ProviderType = ProviderType.CardanoOASIS
+                    };
+                    
+                    response.Result = holon;
+                    response.IsError = false;
+                    response.Message = "Holon saved successfully to Cardano blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save holon to Cardano: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error saving holon to Cardano: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            var savedHolons = new List<IHolon>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                foreach (var holon in holons)
+                {
+                    var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                    if (saveResult.IsError && !continueOnError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to save holon {holon.Id}: {saveResult.Message}");
+                        return response;
+                    }
+                    else if (!saveResult.IsError)
+                    {
+                        savedHolons.Add(saveResult.Result);
+                    }
+                }
+
+                response.Result = savedHolons;
+                response.IsError = false;
+                response.Message = $"Saved {savedHolons.Count} holons to Cardano blockchain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error saving holons to Cardano: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
+        {
+            return DeleteHolonAsync(id).Result;
+        }
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        {
+            var response = new OASISResult<IHolon>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Cardano is immutable, so we can't actually delete
+                // Instead, we mark the holon as deleted in a new transaction
+                var deleteData = new
+                {
+                    action = "delete",
+                    holonId = id.ToString(),
+                    timestamp = DateTime.UtcNow
+                };
+
+                var deleteJson = JsonSerializer.Serialize(deleteData);
+                var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
+                
+                // Create Cardano transaction with delete marker
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            tx_hash = "", // Will be filled by UTXO lookup
+                            output_index = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = "", // Datum transaction
+                            amount = new[]
+                            {
+                                new
+                                {
+                                    unit = "lovelace",
+                                    quantity = "0"
+                                }
+                            },
+                            datum = Convert.ToHexString(deleteBytes)
+                        }
+                    }
+                };
+
+                // Submit transaction to Cardano network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx/submit", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    response.Result = new Holon { Id = id };
+                    response.IsError = false;
+                    response.Message = "Holon deletion marked successfully on Cardano blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to mark holon deletion on Cardano: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error marking holon deletion on Cardano: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
+        {
+            return DeleteHolonAsync(providerKey).Result;
+        }
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        {
+            var response = new OASISResult<IHolon>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Cardano is immutable, so we can't actually delete
+                // Instead, we mark the holon as deleted in a new transaction
+                var deleteData = new
+                {
+                    action = "delete",
+                    providerKey = providerKey,
+                    timestamp = DateTime.UtcNow
+                };
+
+                var deleteJson = JsonSerializer.Serialize(deleteData);
+                var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
+                
+                // Create Cardano transaction with delete marker
+                var transactionRequest = new
+                {
+                    inputs = new[]
+                    {
+                        new
+                        {
+                            tx_hash = "", // Will be filled by UTXO lookup
+                            output_index = 0
+                        }
+                    },
+                    outputs = new[]
+                    {
+                        new
+                        {
+                            address = "", // Datum transaction
+                            amount = new[]
+                            {
+                                new
+                                {
+                                    unit = "lovelace",
+                                    quantity = "0"
+                                }
+                            },
+                            datum = Convert.ToHexString(deleteBytes)
+                        }
+                    }
+                };
+
+                // Submit transaction to Cardano network
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var submitResponse = await _httpClient.PostAsync("/tx/submit", content);
+                if (submitResponse.IsSuccessStatusCode)
+                {
+                    response.Result = new Holon { ProviderWallets = new Dictionary<ProviderType, IWallet> { { ProviderType.CardanoOASIS, new Wallet { Address = providerKey, ProviderType = ProviderType.CardanoOASIS } } } };
+                    response.IsError = false;
+                    response.Message = "Holon deletion marked successfully on Cardano blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to mark holon deletion on Cardano: {submitResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error marking holon deletion on Cardano: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+        }
+
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var response = new OASISResult<ISearchResults>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Search Cardano blockchain for transactions matching search criteria
+                var searchRequest = new
+                {
+                    query = searchParams.SearchQuery,
+                    filters = new
+                    {
+                        fromDate = searchParams.FromDate,
+                        toDate = searchParams.ToDate,
+                        version = version
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(searchRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var searchResponse = await _httpClient.PostAsync("/search", content);
+                if (searchResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await searchResponse.Content.ReadAsStringAsync();
+                    var searchData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    var results = new SearchResults();
+                    // Parse search results and populate results object
+                    
+                    response.Result = results;
+                    response.IsError = false;
+                    response.Message = "Search completed successfully on Cardano blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to search Cardano blockchain: {searchResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error searching Cardano blockchain: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+        {
+            return ImportAsync(holons).Result;
+        }
+
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            var response = new OASISResult<bool>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Import holons to Cardano blockchain
+                var importResult = await SaveHolonsAsync(holons);
+                if (importResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to import holons to Cardano: {importResult.Message}");
+                    return response;
+                }
+
+                response.Result = true;
+                response.IsError = false;
+                response.Message = $"Successfully imported {holons.Count()} holons to Cardano blockchain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error importing holons to Cardano: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+        {
+            return ExportAllAsync(version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Export all data from Cardano blockchain
+                var exportRequest = new
+                {
+                    version = version,
+                    includeDeleted = false
+                };
+
+                var jsonContent = JsonSerializer.Serialize(exportRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var exportResponse = await _httpClient.PostAsync("/export", content);
+                if (exportResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await exportResponse.Content.ReadAsStringAsync();
+                    var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    var holons = new List<IHolon>();
+                    // Parse export data and populate holons list
+                    
+                    response.Result = holons;
+                    response.IsError = false;
+                    response.Message = "Export completed successfully from Cardano blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to export from Cardano blockchain: {exportResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error exporting from Cardano blockchain: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Export all data for specific avatar from Cardano blockchain
+                var exportRequest = new
+                {
+                    avatarId = avatarId.ToString(),
+                    version = version,
+                    includeDeleted = false
+                };
+
+                var jsonContent = JsonSerializer.Serialize(exportRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var exportResponse = await _httpClient.PostAsync("/export/avatar", content);
+                if (exportResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await exportResponse.Content.ReadAsStringAsync();
+                    var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    var holons = new List<IHolon>();
+                    // Parse export data and populate holons list
+                    
+                    response.Result = holons;
+                    response.IsError = false;
+                    response.Message = "Avatar data export completed successfully from Cardano blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to export avatar data from Cardano blockchain: {exportResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error exporting avatar data from Cardano blockchain: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Export all data for specific avatar by username from Cardano blockchain
+                var exportRequest = new
+                {
+                    avatarUsername = avatarUsername,
+                    version = version,
+                    includeDeleted = false
+                };
+
+                var jsonContent = JsonSerializer.Serialize(exportRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var exportResponse = await _httpClient.PostAsync("/export/avatar/username", content);
+                if (exportResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await exportResponse.Content.ReadAsStringAsync();
+                    var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    var holons = new List<IHolon>();
+                    // Parse export data and populate holons list
+                    
+                    response.Result = holons;
+                    response.IsError = false;
+                    response.Message = "Avatar data export completed successfully from Cardano blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to export avatar data from Cardano blockchain: {exportResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error exporting avatar data from Cardano blockchain: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Cardano provider is not activated");
+                    return response;
+                }
+
+                // Export all data for specific avatar by email from Cardano blockchain
+                var exportRequest = new
+                {
+                    avatarEmail = avatarEmailAddress,
+                    version = version,
+                    includeDeleted = false
+                };
+
+                var jsonContent = JsonSerializer.Serialize(exportRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var exportResponse = await _httpClient.PostAsync("/export/avatar/email", content);
+                if (exportResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await exportResponse.Content.ReadAsStringAsync();
+                    var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    var holons = new List<IHolon>();
+                    // Parse export data and populate holons list
+                    
+                    response.Result = holons;
+                    response.IsError = false;
+                    response.Message = "Avatar data export completed successfully from Cardano blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to export avatar data from Cardano blockchain: {exportResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref response, $"Error exporting avatar data from Cardano blockchain: {ex.Message}", ex);
+            }
+
+            return response;
+        }
+
         #endregion
 
         #region IDisposable

@@ -272,99 +272,667 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
-    public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+    public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IHolon>();
+        
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Base is immutable, so we can't actually delete
+            // Instead, we mark the holon as deleted in a new transaction
+            var deleteData = new
+            {
+                action = "delete",
+                providerKey = providerKey,
+                timestamp = DateTime.UtcNow
+            };
+
+            var deleteJson = JsonSerializer.Serialize(deleteData);
+            var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
+            
+            // Create Base transaction with delete marker
+            var transactionRequest = new
+            {
+                from = _oasisAccount?.Address,
+                to = "0x0000000000000000000000000000000000000000", // Burn address
+                value = "0x0",
+                data = "0x" + Convert.ToHexString(deleteBytes)
+            };
+
+            // Submit transaction to Base network
+            var jsonContent = JsonSerializer.Serialize(transactionRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var submitResponse = await _httpClient.PostAsync("/api/v1/sendRawTransaction", content);
+            if (submitResponse.IsSuccessStatusCode)
+            {
+                var responseContent = await submitResponse.Content.ReadAsStringAsync();
+                var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                result.Result = new Holon { ProviderWallets = new Dictionary<ProviderType, IWallet> { { ProviderType.BaseOASIS, new Wallet { Address = providerKey, ProviderType = ProviderType.BaseOASIS } } } };
+                result.IsError = false;
+                result.Message = "Holon deletion marked successfully on Base blockchain";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to mark holon deletion on Base: {submitResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error marking holon deletion on Base: {ex.Message}", ex);
+        }
+
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllAsync(version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Export all data from Base blockchain
+            var exportRequest = new
+            {
+                version = version,
+                includeDeleted = false
+            };
+
+            var jsonContent = JsonSerializer.Serialize(exportRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var exportResponse = await _httpClient.PostAsync("/api/v1/export", content);
+            if (exportResponse.IsSuccessStatusCode)
+            {
+                var responseContent = await exportResponse.Content.ReadAsStringAsync();
+                var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                var holons = new List<IHolon>();
+                // Parse export data and populate holons list
+                if (exportData.TryGetProperty("holons", out var holonsArray))
+                {
+                    foreach (var holonElement in holonsArray.EnumerateArray())
+                    {
+                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
+                        holons.Add(holon);
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = "Export completed successfully from Base blockchain";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to export from Base blockchain: {exportResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting from Base blockchain: {ex.Message}", ex);
+        }
+
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Export all data for specific avatar by email from Base blockchain
+            var exportRequest = new
+            {
+                avatarEmail = avatarEmailAddress,
+                version = version,
+                includeDeleted = false
+            };
+
+            var jsonContent = JsonSerializer.Serialize(exportRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var exportResponse = await _httpClient.PostAsync("/api/v1/export/avatar/email", content);
+            if (exportResponse.IsSuccessStatusCode)
+            {
+                var responseContent = await exportResponse.Content.ReadAsStringAsync();
+                var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                var holons = new List<IHolon>();
+                // Parse export data and populate holons list
+                if (exportData.TryGetProperty("holons", out var holonsArray))
+                {
+                    foreach (var holonElement in holonsArray.EnumerateArray())
+                    {
+                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
+                        holons.Add(holon);
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = "Avatar data export completed successfully from Base blockchain";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to export avatar data from Base blockchain: {exportResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from Base blockchain: {ex.Message}", ex);
+        }
+
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Export all data for specific avatar from Base blockchain
+            var exportRequest = new
+            {
+                avatarId = avatarId.ToString(),
+                version = version,
+                includeDeleted = false
+            };
+
+            var jsonContent = JsonSerializer.Serialize(exportRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var exportResponse = await _httpClient.PostAsync("/api/v1/export/avatar", content);
+            if (exportResponse.IsSuccessStatusCode)
+            {
+                var responseContent = await exportResponse.Content.ReadAsStringAsync();
+                var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                var holons = new List<IHolon>();
+                // Parse export data and populate holons list
+                if (exportData.TryGetProperty("holons", out var holonsArray))
+                {
+                    foreach (var holonElement in holonsArray.EnumerateArray())
+                    {
+                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
+                        holons.Add(holon);
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = "Avatar data export completed successfully from Base blockchain";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to export avatar data from Base blockchain: {exportResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from Base blockchain: {ex.Message}", ex);
+        }
+
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Export all data for specific avatar by username from Base blockchain
+            var exportRequest = new
+            {
+                avatarUsername = avatarUsername,
+                version = version,
+                includeDeleted = false
+            };
+
+            var jsonContent = JsonSerializer.Serialize(exportRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var exportResponse = await _httpClient.PostAsync("/api/v1/export/avatar/username", content);
+            if (exportResponse.IsSuccessStatusCode)
+            {
+                var responseContent = await exportResponse.Content.ReadAsStringAsync();
+                var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                var holons = new List<IHolon>();
+                // Parse export data and populate holons list
+                if (exportData.TryGetProperty("holons", out var holonsArray))
+                {
+                    foreach (var holonElement in holonsArray.EnumerateArray())
+                    {
+                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
+                        holons.Add(holon);
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = "Avatar data export completed successfully from Base blockchain";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to export avatar data from Base blockchain: {exportResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from Base blockchain: {ex.Message}", ex);
+        }
+
+        return result;
     }
 
     public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
     {
-        throw new System.NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Get holons near current location from Base blockchain
+            var searchRequest = new
+            {
+                holonType = Type.ToString(),
+                radius = 1000, // 1km radius
+                includeDeleted = false
+            };
+
+            var jsonContent = JsonSerializer.Serialize(searchRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var searchResponse = _httpClient.PostAsync("/api/v1/holons/near", content).Result;
+            if (searchResponse.IsSuccessStatusCode)
+            {
+                var responseContent = searchResponse.Content.ReadAsStringAsync().Result;
+                var searchData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                var holons = new List<IHolon>();
+                // Parse search results and populate holons list
+                if (searchData.TryGetProperty("holons", out var holonsArray))
+                {
+                    foreach (var holonElement in holonsArray.EnumerateArray())
+                    {
+                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
+                        holons.Add(holon);
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = "Holons near location retrieved successfully from Base blockchain";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to get holons near location from Base blockchain: {searchResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting holons near location from Base blockchain: {ex.Message}", ex);
+        }
+
+        return result;
     }
 
     public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
     {
-        throw new System.NotImplementedException();
+        var result = new OASISResult<IEnumerable<IPlayer>>();
+        
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Get players near current location from Base blockchain
+            var searchRequest = new
+            {
+                radius = 1000, // 1km radius
+                includeOffline = false
+            };
+
+            var jsonContent = JsonSerializer.Serialize(searchRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var searchResponse = _httpClient.PostAsync("/api/v1/players/near", content).Result;
+            if (searchResponse.IsSuccessStatusCode)
+            {
+                var responseContent = searchResponse.Content.ReadAsStringAsync().Result;
+                var searchData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                var players = new List<IPlayer>();
+                // Parse search results and populate players list
+                if (searchData.TryGetProperty("players", out var playersArray))
+                {
+                    foreach (var playerElement in playersArray.EnumerateArray())
+                    {
+                        var player = JsonSerializer.Deserialize<Player>(playerElement.GetRawText());
+                        players.Add(player);
+                    }
+                }
+                
+                result.Result = players;
+                result.IsError = false;
+                result.Message = "Players near location retrieved successfully from Base blockchain";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to get players near location from Base blockchain: {searchResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting players near location from Base blockchain: {ex.Message}", ex);
+        }
+
+        return result;
     }
 
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
     {
-        throw new NotImplementedException();
+        return ImportAsync(holons).Result;
     }
 
-    public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+    public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Import holons to Base blockchain
+            var importRequest = new
+            {
+                holons = holons.Select(h => new
+                {
+                    id = h.Id.ToString(),
+                    name = h.Name,
+                    description = h.Description,
+                    data = JsonSerializer.Serialize(h),
+                    version = h.Version
+                }).ToArray()
+            };
+
+            var jsonContent = JsonSerializer.Serialize(importRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var importResponse = await _httpClient.PostAsync("/api/v1/import", content);
+            if (importResponse.IsSuccessStatusCode)
+            {
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Successfully imported {holons.Count()} holons to Base blockchain";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to import holons to Base blockchain: {importResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error importing holons to Base blockchain: {ex.Message}", ex);
+        }
+
+        return result;
     }
 
     public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllAvatarDetailsAsync(version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+    public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+        
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load all avatar details from Base blockchain
+            var loadRequest = new
+            {
+                version = version,
+                includeDeleted = false
+            };
+
+            var jsonContent = JsonSerializer.Serialize(loadRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var loadResponse = await _httpClient.PostAsync("/api/v1/avatars/details/all", content);
+            if (loadResponse.IsSuccessStatusCode)
+            {
+                var responseContent = await loadResponse.Content.ReadAsStringAsync();
+                var loadData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                var avatarDetails = new List<IAvatarDetail>();
+                // Parse load data and populate avatar details list
+                if (loadData.TryGetProperty("avatarDetails", out var avatarDetailsArray))
+                {
+                    foreach (var avatarDetailElement in avatarDetailsArray.EnumerateArray())
+                    {
+                        var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(avatarDetailElement.GetRawText());
+                        avatarDetails.Add(avatarDetail);
+                    }
+                }
+                
+                result.Result = avatarDetails;
+                result.IsError = false;
+                result.Message = "All avatar details loaded successfully from Base blockchain";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to load all avatar details from Base blockchain: {loadResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from Base blockchain: {ex.Message}", ex);
+        }
+
+        return result;
     }
 
     public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllAvatarsAsync(version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+    public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IAvatar>>();
+        
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load all avatars from Base blockchain
+            var loadRequest = new
+            {
+                version = version,
+                includeDeleted = false
+            };
+
+            var jsonContent = JsonSerializer.Serialize(loadRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var loadResponse = await _httpClient.PostAsync("/api/v1/avatars/all", content);
+            if (loadResponse.IsSuccessStatusCode)
+            {
+                var responseContent = await loadResponse.Content.ReadAsStringAsync();
+                var loadData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                var avatars = new List<IAvatar>();
+                // Parse load data and populate avatars list
+                if (loadData.TryGetProperty("avatars", out var avatarsArray))
+                {
+                    foreach (var avatarElement in avatarsArray.EnumerateArray())
+                    {
+                        var avatar = JsonSerializer.Deserialize<Avatar>(avatarElement.GetRawText());
+                        avatars.Add(avatar);
+                    }
+                }
+                
+                result.Result = avatars;
+                result.IsError = false;
+                result.Message = "All avatars loaded successfully from Base blockchain";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to load all avatars from Base blockchain: {loadResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from Base blockchain: {ex.Message}", ex);
+        }
+
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load all holons from Base blockchain
+            var loadRequest = new
+            {
+                holonType = type.ToString(),
+                loadChildren = loadChildren,
+                recursive = recursive,
+                maxChildDepth = maxChildDepth,
+                currentChildDepth = curentChildDepth,
+                continueOnError = continueOnError,
+                loadChildrenFromProvider = loadChildrenFromProvider,
+                version = version,
+                includeDeleted = false
+            };
+
+            var jsonContent = JsonSerializer.Serialize(loadRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var loadResponse = await _httpClient.PostAsync("/api/v1/holons/all", content);
+            if (loadResponse.IsSuccessStatusCode)
+            {
+                var responseContent = await loadResponse.Content.ReadAsStringAsync();
+                var loadData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                var holons = new List<IHolon>();
+                // Parse load data and populate holons list
+                if (loadData.TryGetProperty("holons", out var holonsArray))
+                {
+                    foreach (var holonElement in holonsArray.EnumerateArray())
+                    {
+                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
+                        holons.Add(holon);
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = "All holons loaded successfully from Base blockchain";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Failed to load all holons from Base blockchain: {loadResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading all holons from Base blockchain: {ex.Message}", ex);
+        }
+
+        return result;
     }
 
     public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)

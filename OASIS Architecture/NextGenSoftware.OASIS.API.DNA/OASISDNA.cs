@@ -254,6 +254,25 @@ namespace NextGenSoftware.OASIS.API.DNA
         public CargoOASISSettings CargoOASIS { get; set; }
         public LocalFileOASISSettings LocalFileOASIS { get; set; }
         public PinataOASISSettings PinataOASIS { get; set; }
+        
+        // Missing Blockchain Providers
+        public BitcoinOASISProviderSettings BitcoinOASIS { get; set; }
+        public CardanoOASISProviderSettings CardanoOASIS { get; set; }
+        public PolkadotOASISProviderSettings PolkadotOASIS { get; set; }
+        public BNBChainOASISProviderSettings BNBChainOASIS { get; set; }
+        public FantomOASISProviderSettings FantomOASIS { get; set; }
+        public OptimismOASISProviderSettings OptimismOASIS { get; set; }
+        public ChainLinkOASISProviderSettings ChainLinkOASIS { get; set; }
+        public ElrondOASISProviderSettings ElrondOASIS { get; set; }
+        public AptosOASISProviderSettings AptosOASIS { get; set; }
+        public TRONOASISProviderSettings TRONOASIS { get; set; }
+        public HashgraphOASISProviderSettings HashgraphOASIS { get; set; }
+        public AvalancheOASISProviderSettings AvalancheOASIS { get; set; }
+        public CosmosBlockChainOASISProviderSettings CosmosBlockChainOASIS { get; set; }
+        public NEAROASISProviderSettings NEAROASIS { get; set; }
+        public BaseOASISProviderSettings BaseOASIS { get; set; }
+        public SuiOASISProviderSettings SuiOASIS { get; set; }
+        public MoralisOASISProviderSettings MoralisOASIS { get; set; }
     }
 
     public class EmailSettings
@@ -762,5 +781,123 @@ namespace NextGenSoftware.OASIS.API.DNA
         public decimal Weight { get; set; }
         public decimal Target { get; set; }
         public bool IsEnabled { get; set; } = true;
+    }
+
+    // Missing Blockchain Provider Settings Classes
+    public class BitcoinOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://blockstream.info/api";
+        public string Network { get; set; } = "mainnet";
+    }
+
+    public class CardanoOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://cardano-mainnet.blockfrost.io/api/v0";
+        public string NetworkId { get; set; } = "mainnet";
+        public string ProjectId { get; set; }
+    }
+
+    public class PolkadotOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "wss://rpc.polkadot.io";
+        public string Network { get; set; } = "polkadot";
+    }
+
+    public class BNBChainOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://bsc-dataseed.binance.org";
+        public string NetworkId { get; set; } = "56";
+        public string ChainId { get; set; } = "0x38";
+    }
+
+    public class FantomOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://rpc.ftm.tools";
+        public string NetworkId { get; set; } = "250";
+        public string ChainId { get; set; } = "0xfa";
+    }
+
+    public class OptimismOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://mainnet.optimism.io";
+        public string NetworkId { get; set; } = "10";
+        public string ChainId { get; set; } = "0xa";
+    }
+
+    public class ChainLinkOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://mainnet.infura.io/v3/YOUR_PROJECT_ID";
+        public string NetworkId { get; set; } = "1";
+        public string ChainId { get; set; } = "0x1";
+    }
+
+    public class ElrondOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://api.elrond.com";
+        public string Network { get; set; } = "mainnet";
+        public string ChainId { get; set; } = "1";
+    }
+
+    public class AptosOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://api.mainnet.aptoslabs.com/v1";
+        public string Network { get; set; } = "mainnet";
+        public string ChainId { get; set; } = "1";
+    }
+
+    public class TRONOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://api.trongrid.io";
+        public string Network { get; set; } = "mainnet";
+        public string ChainId { get; set; } = "0x2b6653dc";
+    }
+
+    public class HashgraphOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://mainnet-public.mirrornode.hedera.com/api/v1";
+        public string Network { get; set; } = "mainnet";
+        public string ChainId { get; set; } = "295";
+    }
+
+    public class AvalancheOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://api.avax.network/ext/bc/C/rpc";
+        public string NetworkId { get; set; } = "43114";
+        public string ChainId { get; set; } = "0xa86a";
+    }
+
+    public class CosmosBlockChainOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://cosmos-rpc.polkachu.com";
+        public string Network { get; set; } = "cosmos";
+        public string ChainId { get; set; } = "cosmoshub-4";
+    }
+
+    public class NEAROASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://rpc.mainnet.near.org";
+        public string Network { get; set; } = "mainnet";
+        public string ChainId { get; set; } = "mainnet";
+    }
+
+    public class BaseOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://mainnet.base.org";
+        public string NetworkId { get; set; } = "8453";
+        public string ChainId { get; set; } = "0x2105";
+    }
+
+    public class SuiOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://fullnode.mainnet.sui.io:443";
+        public string Network { get; set; } = "mainnet";
+        public string ChainId { get; set; } = "mainnet";
+    }
+
+    public class MoralisOASISProviderSettings : ProviderSettingsBase
+    {
+        public string ApiKey { get; set; }
+        public string RpcEndpoint { get; set; } = "https://speedy-nodes-nyc.moralis.io/YOUR_API_KEY/eth/mainnet";
+        public string Network { get; set; } = "mainnet";
     }
 }
