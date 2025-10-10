@@ -1,0 +1,14 @@
+{
+  "OASIS": {
+    "TelegramOASIS": {
+      "BotToken": "7927576561:AAEFHa3k1t6kj0t6wOu6QtU61KRsNxOoeMo",
+      "WebhookUrl": "https://oasisweb4.one/api/telegram/webhook",
+      "MongoConnectionString": "mongodb+srv://OASISWEB4:Uppermall1!@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4",
+      "TreasuryWalletAddress": "Be51B1n3m1MCtZYvH8JEX3LnZZwoREyH4rYoyhMrkxJs",
+      "RewardTokenMintAddress": "",
+      "RewardTokenSymbol": "EXP",
+      "SolanaCluster": "devnet"
+    }
+  }
+}
+
