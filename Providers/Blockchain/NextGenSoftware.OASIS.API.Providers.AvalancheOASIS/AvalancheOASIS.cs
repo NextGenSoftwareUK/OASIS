@@ -937,12 +937,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         throw new NotImplementedException();
     }
 
-    public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transaction)
+    public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
-        return SendTransactionAsync(transaction).Result;
+        return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
     }
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
         OASISResult<ITransactionRespone> result = new();
         string errorMessage = "Error in SendTransactionAsync method in AvalancheOASIS sending transaction. Reason: ";
@@ -950,12 +950,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         try
         {
             TransactionReceipt transactionResult = await _web3Client.Eth.GetEtherTransferService()
-                .TransferEtherAndWaitForReceiptAsync(transaction.ToWalletAddress, transaction.Amount);
+                .TransferEtherAndWaitForReceiptAsync(toWalletAddress, amount);
 
             if (transactionResult.HasErrors() is true)
             {
                 result.Message = string.Concat(errorMessage, "Avalanche transaction performing failed! " +
-                                 $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {transaction.Amount}." +
+                                 $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {amount}." +
                                  $"Reason: {transactionResult.Logs}");
                 OASISErrorHandling.HandleError(ref result, result.Message);
                 return result;

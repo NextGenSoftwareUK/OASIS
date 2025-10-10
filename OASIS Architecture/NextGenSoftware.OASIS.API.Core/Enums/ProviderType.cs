@@ -32,7 +32,7 @@
         AptosOASIS,
         OptimismOASIS,
         BNBChainOASIS,
-        FantomOASIS
+        FantomOASIS,
         IPFSOASIS, //IPFS
         PinataOASIS,
         HoloOASIS, //Holochain

@@ -1128,12 +1128,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             _httpClient?.Dispose();
         }
 
-        public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transaction)
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            return SendTransactionAsync(transaction).Result;
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction)
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             var response = new OASISResult<ITransactionRespone>();
             try
@@ -1144,7 +1144,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     return response;
                 }
 
-                // Create Cosmos transaction using REST API
                 var txRequest = new
                 {
                     tx = new
@@ -1158,57 +1157,35 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                                     type = "cosmos.bank.v1beta1.MsgSend",
                                     value = new
                                     {
-                                        from_address = transaction.FromWalletAddress,
-                                        to_address = transaction.ToWalletAddress,
+                                        from_address = fromWalletAddress,
+                                        to_address = toWalletAddress,
                                         amount = new[]
                                         {
                                             new
                                             {
                                                 denom = "uatom",
-                                                amount = (transaction.Amount * 1000000).ToString() // Convert to micro-atoms
+                                                amount = (amount * 1000000).ToString()
                                             }
                                         }
                                     }
                                 }
                             },
-                            memo = "OASIS transaction",
+                            memo = string.IsNullOrWhiteSpace(memoText) ? "OASIS transaction" : memoText,
                             timeout_height = "0"
                         },
                         auth_info = new
                         {
-                            signer_infos = new[]
-                            {
-                                new
-                                {
-                                    public_key = new
-                                    {
-                                        type = "cosmos.crypto.secp256k1.PubKey",
-                                        value = "..." // This would be the actual public key
-                                    },
-                                    mode_info = new
-                                    {
-                                        single = new
-                                        {
-                                            mode = "SIGN_MODE_DIRECT"
-                                        }
-                                    },
-                                    sequence = "0"
-                                }
-                            },
+                            signer_infos = Array.Empty<object>(),
                             fee = new
                             {
                                 amount = new[]
                                 {
-                                    new
-                                    {
-                                        denom = "uatom",
-                                        amount = "5000" // Gas fee
-                                    }
+                                    new { denom = "uatom", amount = "5000" }
                                 },
                                 gas_limit = "200000"
                             }
                         },
-                        signatures = new[] { "..." } // This would be the actual signature
+                        signatures = Array.Empty<string>()
                     },
                     mode = "BROADCAST_MODE_SYNC"
                 };
@@ -1221,14 +1198,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
+
                     var transactionResponse = new TransactionRespone
                     {
-                        TransactionHash = txResponse.TryGetProperty("tx_response", out var txResp) && 
+                        TransactionHash = txResponse.TryGetProperty("tx_response", out var txResp) &&
                                          txResp.TryGetProperty("txhash", out var hash) ? hash.GetString() : "",
-                        Success = txResponse.TryGetProperty("tx_response", out var txResp2) && 
+                        Success = txResponse.TryGetProperty("tx_response", out var txResp2) &&
                                 txResp2.TryGetProperty("code", out var code) && code.GetInt32() == 0,
-                        Message = txResponse.TryGetProperty("tx_response", out var txResp3) && 
+                        Message = txResponse.TryGetProperty("tx_response", out var txResp3) &&
                                 txResp3.TryGetProperty("raw_log", out var log) ? log.GetString() : "Transaction submitted"
                     };
 

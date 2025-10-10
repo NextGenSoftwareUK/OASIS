@@ -574,14 +574,56 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         #region IOASISBlockchainStorageProvider
 
-        public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transation)
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            throw new NotImplementedException();
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transation)
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                    return result;
+                }
+
+                var transactionData = new
+                {
+                    from = fromWalletAddress,
+                    to = toWalletAddress,
+                    amount = amount,
+                    memo = memoText
+                };
+
+                var hashgraphClient = new HashgraphClient();
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
+
+                if (transactionResult != null)
+                {
+                    result.Result = new TransactionRespone
+                    {
+                        TransactionHash = transactionResult.TransactionId,
+                        FromAddress = fromWalletAddress,
+                        ToAddress = toWalletAddress,
+                        Amount = amount,
+                        Status = "Success"
+                    };
+                    result.IsError = false;
+                    result.Message = "Hashgraph transaction sent successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to send Hashgraph transaction");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionAsync: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
