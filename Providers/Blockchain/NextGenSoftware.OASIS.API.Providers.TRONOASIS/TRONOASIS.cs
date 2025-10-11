@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             set => _walletManager = value;
         }
 
-        public TRONOASIS(WalletManager walletManager = null)
+        public TRONOASIS(string rpcEndpoint = "https://api.trongrid.io", string network = "mainnet", string chainId = "0x2b6653dc", WalletManager walletManager = null)
         {
             _walletManager = walletManager;
             this.ProviderName = "TRONOASIS";
@@ -58,6 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.TRONOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             _httpClient = new HttpClient();
+            _httpClient.BaseAddress = new Uri(rpcEndpoint);
         }
 
         #region IOASISStorageProvider Implementation

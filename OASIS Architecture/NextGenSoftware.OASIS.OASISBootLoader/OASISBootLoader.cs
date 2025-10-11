@@ -42,6 +42,8 @@ using NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 using NextGenSoftware.OASIS.API.Providers.MoralisOASIS;
+using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
+using NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.Utilities;
 using System.Runtime.InteropServices;
@@ -1140,6 +1142,43 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                     OASISDNA.OASIS.StorageProviders.MoralisOASIS.RpcEndpoint,
                                     OASISDNA.OASIS.StorageProviders.MoralisOASIS.Network);
                                 result.Result = moralisOASIS;
+                            }
+                            break;
+
+                        case ProviderType.TelosOASIS:
+                            {
+                                TelosOASIS telosOASIS = new TelosOASIS(
+                                    OASISDNA.OASIS.StorageProviders.TelosOASIS.RpcEndpoint,
+                                    OASISDNA.OASIS.StorageProviders.TelosOASIS.Network,
+                                    OASISDNA.OASIS.StorageProviders.TelosOASIS.ChainId,
+                                    "");
+                                result.Result = telosOASIS;
+                            }
+                            break;
+
+                        case ProviderType.ActivityPubOASIS:
+                            {
+                                AcitvityPubOASIS activityPubOASIS = new AcitvityPubOASIS(
+                                    OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.BaseUrl,
+                                    OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.UserAgent,
+                                    OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.AcceptHeader,
+                                    OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.TimeoutSeconds);
+                                result.Result = activityPubOASIS;
+                            }
+                            break;
+
+                        case ProviderType.GoogleCloudOASIS:
+                            {
+                                GoogleCloudOASIS googleCloudOASIS = new GoogleCloudOASIS(
+                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.ProjectId,
+                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.BucketName,
+                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.CredentialsPath,
+                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.FirestoreDatabaseId,
+                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.BigQueryDatasetId,
+                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.EnableStorage,
+                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.EnableFirestore,
+                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.EnableBigQuery);
+                                result.Result = googleCloudOASIS;
                             }
                             break;
                     }

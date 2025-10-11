@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             set => _walletManager = value;
         }
 
-        public HashgraphOASIS(WalletManager walletManager = null)
+        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null)
         {
             _walletManager = walletManager;
             this.ProviderName = "HashgraphOASIS";

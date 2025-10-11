@@ -273,6 +273,11 @@ namespace NextGenSoftware.OASIS.API.DNA
         public BaseOASISProviderSettings BaseOASIS { get; set; }
         public SuiOASISProviderSettings SuiOASIS { get; set; }
         public MoralisOASISProviderSettings MoralisOASIS { get; set; }
+        public TelosOASISProviderSettings TelosOASIS { get; set; }
+        
+        // Network Providers
+        public ActivityPubOASISProviderSettings ActivityPubOASIS { get; set; }
+        public GoogleCloudOASISProviderSettings GoogleCloudOASIS { get; set; }
     }
 
     public class EmailSettings
@@ -899,5 +904,34 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ApiKey { get; set; }
         public string RpcEndpoint { get; set; } = "https://speedy-nodes-nyc.moralis.io/YOUR_API_KEY/eth/mainnet";
         public string Network { get; set; } = "mainnet";
+    }
+
+    public class TelosOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://api.telos.net";
+        public string Network { get; set; } = "mainnet";
+        public string ChainId { get; set; } = "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11";
+    }
+
+    public class ActivityPubOASISProviderSettings : ProviderSettingsBase
+    {
+        public string BaseUrl { get; set; } = "https://mastodon.social/api/v1";
+        public string UserAgent { get; set; } = "OASIS-ActivityPub-Provider/1.0";
+        public string AcceptHeader { get; set; } = "application/json";
+        public int TimeoutSeconds { get; set; } = 30;
+        public bool EnableCaching { get; set; } = true;
+        public int CacheExpirationMinutes { get; set; } = 15;
+    }
+
+    public class GoogleCloudOASISProviderSettings : ProviderSettingsBase
+    {
+        public string ProjectId { get; set; } = "oasis-project";
+        public string BucketName { get; set; } = "oasis-storage";
+        public string CredentialsPath { get; set; }
+        public string FirestoreDatabaseId { get; set; } = "(default)";
+        public string BigQueryDatasetId { get; set; } = "oasis_data";
+        public bool EnableStorage { get; set; } = true;
+        public bool EnableFirestore { get; set; } = true;
+        public bool EnableBigQuery { get; set; } = true;
     }
 }

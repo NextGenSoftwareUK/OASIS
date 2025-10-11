@@ -106,7 +106,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
     public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarAsync(providerKey, softDelete).Result;
     }
 
     public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
@@ -141,39 +141,93 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+    public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        OASISResult<bool> result = new();
+        string errorMessage = "Error in DeleteAvatarAsync method in Web3CoreOASIS while deleting avatar by provider key. Reason: ";
+
+        if (_web3CoreOASIS is null)
+        {
+            OASISErrorHandling.HandleError(
+                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            return result;
+        }
+
+        try
+        {
+            result = await _web3CoreOASIS.DeleteAvatarAsync(providerKey, softDelete);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+    public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        OASISResult<bool> result = new();
+        string errorMessage = "Error in DeleteAvatarByEmailAsync method in Web3CoreOASIS while deleting avatar by email. Reason: ";
+
+        if (_web3CoreOASIS is null)
+        {
+            OASISErrorHandling.HandleError(
+                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            return result;
+        }
+
+        try
+        {
+            result = await _web3CoreOASIS.DeleteAvatarByEmailAsync(avatarEmail, softDelete);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+    public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        OASISResult<bool> result = new();
+        string errorMessage = "Error in DeleteAvatarByUsernameAsync method in Web3CoreOASIS while deleting avatar by username. Reason: ";
+
+        if (_web3CoreOASIS is null)
+        {
+            OASISErrorHandling.HandleError(
+                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            return result;
+        }
+
+        try
+        {
+            result = await _web3CoreOASIS.DeleteAvatarByUsernameAsync(avatarUsername, softDelete);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IHolon> DeleteHolon(Guid id)
     {
-        throw new NotImplementedException();
+        return DeleteHolonAsync(id).Result;
     }
 
     public override OASISResult<IHolon> DeleteHolon(string providerKey)
     {
-        throw new NotImplementedException();
+        return DeleteHolonAsync(providerKey).Result;
     }
 
     public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
