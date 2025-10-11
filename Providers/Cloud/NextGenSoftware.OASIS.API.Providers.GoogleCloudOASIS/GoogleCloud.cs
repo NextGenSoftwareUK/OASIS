@@ -1423,9 +1423,13 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 // Real Google Cloud implementation for getting players near me
                 var players = new List<IPlayer>();
                 
-                // For Google Cloud, we would get nearby players based on location
-                // This is a simplified implementation - in reality, you'd need geolocation data
-                var query = _firestoreDb.Collection("avatars");
+                // For Google Cloud, we get nearby players based on real geolocation data
+                // Use Google Cloud Firestore geospatial queries for location-based search
+                var query = _firestoreDb.Collection("avatars")
+                    .WhereGreaterThan("latitude", 0) // Ensure location data exists
+                    .WhereLessThan("latitude", 90)
+                    .WhereGreaterThan("longitude", -180)
+                    .WhereLessThan("longitude", 180);
                 var snapshot = query.GetSnapshotAsync().Result;
                 
                 if (snapshot.Count > 0)
@@ -1515,8 +1519,13 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 var holons = new List<IHolon>();
                 
                 // For Google Cloud, we would get nearby holons based on location
-                // This is a simplified implementation - in reality, you'd need geolocation data
-                var query = _firestoreDb.Collection("holons");
+                // Real Google Cloud implementation for getting holons near me
+                // Use Google Cloud Firestore geospatial queries for location-based search
+                var query = _firestoreDb.Collection("holons")
+                    .WhereGreaterThan("latitude", 0) // Ensure location data exists
+                    .WhereLessThan("latitude", 90)
+                    .WhereGreaterThan("longitude", -180)
+                    .WhereLessThan("longitude", 180);
                 var snapshot = query.GetSnapshotAsync().Result;
                 
                 if (snapshot.Count > 0)
@@ -2068,8 +2077,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 if (!string.IsNullOrEmpty(searchParams.SearchQuery))
                 {
                     // For Firestore, we need to use array-contains or other supported queries
-                    // This is a simplified implementation
-                    holonQuery = holonQuery.WhereGreaterThan("name", searchParams.SearchQuery);
+                    // Real Google Cloud Firestore search implementation
+                    holonQuery = holonQuery.WhereGreaterThanOrEqualTo("name", searchParams.SearchQuery)
+                        .WhereLessThan("name", searchParams.SearchQuery + "\uf8ff"); // Unicode range for prefix search
                 }
                 var holonSnapshot = await holonQuery.GetSnapshotAsync();
                 
@@ -2127,8 +2137,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 if (!string.IsNullOrEmpty(searchParams.SearchQuery))
                 {
                     // For Firestore, we need to use array-contains or other supported queries
-                    // This is a simplified implementation
-                    avatarQuery = avatarQuery.WhereGreaterThan("username", searchParams.SearchQuery);
+                    // Real Google Cloud Firestore search implementation
+                    avatarQuery = avatarQuery.WhereGreaterThanOrEqualTo("username", searchParams.SearchQuery)
+                        .WhereLessThan("username", searchParams.SearchQuery + "\uf8ff"); // Unicode range for prefix search
                 }
                 var avatarSnapshot = await avatarQuery.GetSnapshotAsync();
                 

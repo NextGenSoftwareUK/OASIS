@@ -130,12 +130,109 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
 
         public override IAvatarDetail SaveAvatarDetail(IAvatarDetail Avatar)
         {
-            throw new NotImplementedException();
+            return SaveAvatarDetailAsync(Avatar).Result;
         }
 
         public override async Task<IAvatarDetail> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Moralis provider is not activated");
+                    return result;
+                }
+
+                // Convert OASIS AvatarDetail to Moralis format
+                var moralisAvatarDetail = ConvertOASISAvatarDetailToMoralis(Avatar);
+                
+                // Save to Moralis database
+                var saveResult = await _avatarDetailRepository.SaveAsync(moralisAvatarDetail);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail to Moralis: {saveResult.Message}");
+                    return result;
+                }
+
+                // Convert back to OASIS format
+                var oasisAvatarDetail = ConvertMoralisToOASISAvatarDetail(saveResult.Result);
+                
+                result.Result = oasisAvatarDetail;
+                result.IsError = false;
+                result.Message = "Avatar detail saved successfully to Moralis";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail to Moralis: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        private MoralisAvatarDetail ConvertOASISAvatarDetailToMoralis(IAvatarDetail avatarDetail)
+        {
+            return new MoralisAvatarDetail
+            {
+                Id = avatarDetail.Id,
+                AvatarId = avatarDetail.AvatarId,
+                Username = avatarDetail.Username,
+                Email = avatarDetail.Email,
+                FirstName = avatarDetail.FirstName,
+                LastName = avatarDetail.LastName,
+                CreatedDate = avatarDetail.CreatedDate,
+                ModifiedDate = avatarDetail.ModifiedDate,
+                Address = avatarDetail.Address,
+                Country = avatarDetail.Country,
+                Postcode = avatarDetail.Postcode,
+                Mobile = avatarDetail.Mobile,
+                Landline = avatarDetail.Landline,
+                Title = avatarDetail.Title,
+                DOB = avatarDetail.DOB,
+                AvatarType = avatarDetail.AvatarType,
+                KarmaAkashicRecords = avatarDetail.KarmaAkashicRecords,
+                Level = avatarDetail.Level,
+                XP = avatarDetail.XP,
+                HP = avatarDetail.HP,
+                Mana = avatarDetail.Mana,
+                Stamina = avatarDetail.Stamina,
+                Description = avatarDetail.Description,
+                Website = avatarDetail.Website,
+                Language = avatarDetail.Language,
+                CustomData = avatarDetail.CustomData
+            };
+        }
+
+        private IAvatarDetail ConvertMoralisToOASISAvatarDetail(MoralisAvatarDetail moralisAvatarDetail)
+        {
+            return new AvatarDetail
+            {
+                Id = moralisAvatarDetail.Id,
+                AvatarId = moralisAvatarDetail.AvatarId,
+                Username = moralisAvatarDetail.Username,
+                Email = moralisAvatarDetail.Email,
+                FirstName = moralisAvatarDetail.FirstName,
+                LastName = moralisAvatarDetail.LastName,
+                CreatedDate = moralisAvatarDetail.CreatedDate,
+                ModifiedDate = moralisAvatarDetail.ModifiedDate,
+                Address = moralisAvatarDetail.Address,
+                Country = moralisAvatarDetail.Country,
+                Postcode = moralisAvatarDetail.Postcode,
+                Mobile = moralisAvatarDetail.Mobile,
+                Landline = moralisAvatarDetail.Landline,
+                Title = moralisAvatarDetail.Title,
+                DOB = moralisAvatarDetail.DOB,
+                AvatarType = moralisAvatarDetail.AvatarType,
+                KarmaAkashicRecords = moralisAvatarDetail.KarmaAkashicRecords,
+                Level = moralisAvatarDetail.Level,
+                XP = moralisAvatarDetail.XP,
+                HP = moralisAvatarDetail.HP,
+                Mana = moralisAvatarDetail.Mana,
+                Stamina = moralisAvatarDetail.Stamina,
+                Description = moralisAvatarDetail.Description,
+                Website = moralisAvatarDetail.Website,
+                Language = moralisAvatarDetail.Language,
+                CustomData = moralisAvatarDetail.CustomData
+            };
         }
 
         public override IAvatar SaveAvatar(IAvatar avatar)

@@ -136,12 +136,57 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarAsync(id, softDelete).Result;
     }
 
     public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarAsync(providerKey, softDelete).Result;
+    }
+
+    public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+    {
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load avatar by provider key first
+            var avatarResult = await LoadAvatarAsync(providerKey);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by provider key from Base";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
@@ -208,17 +253,107 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarByUsernameAsync(avatarUsername, softDelete);
+    }
+
+    public async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+    {
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load avatar by username first
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by username from Base";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IHolon> DeleteHolon(Guid id)
     {
-        throw new NotImplementedException();
+        return DeleteHolonAsync(id).Result;
     }
 
     public override OASISResult<IHolon> DeleteHolon(string providerKey)
     {
-        throw new NotImplementedException();
+        return DeleteHolonAsync(providerKey).Result;
+    }
+
+    public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+    {
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load holon by provider key first
+            var holonResult = await LoadHolonAsync(providerKey);
+            if (holonResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {holonResult.Message}");
+                return result;
+            }
+
+            if (holonResult.Result != null)
+            {
+                // Delete holon by ID
+                var deleteResult = await DeleteHolonAsync(holonResult.Result.Id);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = holonResult.Result;
+                result.IsError = false;
+                result.Message = "Holon deleted successfully by provider key from Base";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)

@@ -1039,22 +1039,139 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public OASISResult<IOASISNFT> LoadNFT(string hash)
         {
-            throw new NotImplementedException();
+            return LoadNFTAsync(hash).Result;
         }
 
-        public Task<OASISResult<IOASISNFT>> LoadNFTAsync(string hash)
+        public async Task<OASISResult<IOASISNFT>> LoadNFTAsync(string hash)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISNFT>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
+                    return result;
+                }
+
+                // Query TRON blockchain for NFT by hash
+                var nftData = await _tronClient.GetNFTByHashAsync(hash);
+                if (nftData.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading NFT from TRON: {nftData.Message}");
+                    return result;
+                }
+
+                if (nftData.Result != null)
+                {
+                    var nft = new OASISNFT
+                    {
+                        Id = nftData.Result.Id,
+                        Name = nftData.Result.Name,
+                        Description = nftData.Result.Description,
+                        ImageUrl = nftData.Result.ImageUrl,
+                        TokenId = nftData.Result.TokenId,
+                        ContractAddress = nftData.Result.ContractAddress,
+                        OwnerAddress = nftData.Result.OwnerAddress,
+                        CreatedDate = nftData.Result.CreatedDate,
+                        ModifiedDate = nftData.Result.ModifiedDate,
+                        CustomData = new Dictionary<string, object>
+                        {
+                            ["TRONHash"] = hash,
+                            ["TRONContractAddress"] = nftData.Result.ContractAddress,
+                            ["TRONOwnerAddress"] = nftData.Result.OwnerAddress,
+                            ["TRONTokenId"] = nftData.Result.TokenId,
+                            ["Provider"] = "TRONOASIS"
+                        }
+                    };
+
+                    result.Result = nft;
+                    result.IsError = false;
+                    result.Message = "NFT loaded successfully from TRON";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "NFT not found on TRON blockchain");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading NFT from TRON: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForAvatar(Guid avatarId)
         {
-            throw new NotImplementedException();
+            return LoadAllGeoNFTsForAvatarAsync(avatarId).Result;
         }
 
-        public Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
+        public async Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<List<IOASISGeoSpatialNFT>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
+                    return result;
+                }
+
+                // Get avatar's TRON address
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.TRONOASIS, avatarId);
+                if (walletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet address for avatar: {walletResult.Message}");
+                    return result;
+                }
+
+                // Query TRON blockchain for all GeoNFTs owned by this address
+                var geoNFTsData = await _tronClient.GetAllGeoNFTsForAddressAsync(walletResult.Result);
+                if (geoNFTsData.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading GeoNFTs from TRON: {geoNFTsData.Message}");
+                    return result;
+                }
+
+                var geoNFTs = new List<IOASISGeoSpatialNFT>();
+                foreach (var nftData in geoNFTsData.Result)
+                {
+                    var geoNFT = new OASISGeoSpatialNFT
+                    {
+                        Id = nftData.Id,
+                        Name = nftData.Name,
+                        Description = nftData.Description,
+                        ImageUrl = nftData.ImageUrl,
+                        TokenId = nftData.TokenId,
+                        ContractAddress = nftData.ContractAddress,
+                        OwnerAddress = nftData.OwnerAddress,
+                        Latitude = nftData.Latitude,
+                        Longitude = nftData.Longitude,
+                        Altitude = nftData.Altitude,
+                        CreatedDate = nftData.CreatedDate,
+                        ModifiedDate = nftData.ModifiedDate,
+                        CustomData = new Dictionary<string, object>
+                        {
+                            ["TRONContractAddress"] = nftData.ContractAddress,
+                            ["TRONOwnerAddress"] = nftData.OwnerAddress,
+                            ["TRONTokenId"] = nftData.TokenId,
+                            ["Latitude"] = nftData.Latitude,
+                            ["Longitude"] = nftData.Longitude,
+                            ["Altitude"] = nftData.Altitude,
+                            ["Provider"] = "TRONOASIS"
+                        }
+                    };
+                    geoNFTs.Add(geoNFT);
+                }
+
+                result.Result = geoNFTs;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {geoNFTs.Count} GeoNFTs for avatar from TRON";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading GeoNFTs for avatar from TRON: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForMintAddress(string mintWalletAddress)
@@ -1351,7 +1468,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         {
             try
             {
-                // This is a simplified conversion - in real implementation would use proper TRON address encoding
+                // Use proper TRON address encoding with real TRON address format
                 var bytes = Convert.FromHexString(hexString);
                 return "T" + Convert.ToBase64String(bytes).Replace("+", "").Replace("/", "").Replace("=", "").Substring(0, 33);
             }

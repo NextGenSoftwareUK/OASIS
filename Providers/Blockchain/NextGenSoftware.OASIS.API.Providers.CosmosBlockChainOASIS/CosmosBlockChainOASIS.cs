@@ -1359,62 +1359,295 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
         }
 
-        public Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars using WalletHelper
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, fromAvatarId);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, toAvatarId);
+                
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to get wallet addresses for avatars");
+                    return result;
+                }
+                
+                var fromAddress = fromWalletResult.Result;
+                var toAddress = toWalletResult.Result;
+
+                // Create Cosmos transaction
+                var transactionData = new
+                {
+                    from = fromAddress,
+                    to = toAddress,
+                    amount = amount,
+                    token = token,
+                    memo = $"OASIS transaction from {fromAvatarId} to {toAvatarId}"
+                };
+
+                // Submit transaction to Cosmos network
+                var cosmosClient = new CosmosClient();
+                var transactionResult = await cosmosClient.SendTransactionAsync(transactionData);
+
+                if (transactionResult != null)
+                {
+                    result.Result = new TransactionRespone
+                    {
+                        TransactionHash = transactionResult.TransactionId,
+                        FromAddress = fromAddress,
+                        ToAddress = toAddress,
+                        Amount = amount,
+                        Status = "Success"
+                    };
+                    result.IsError = false;
+                    result.Message = "Cosmos transaction sent successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to send Cosmos transaction");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByIdAsync(token): {ex.Message}", ex);
+            }
+            return result;
         }
 
         public Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, "ATOM");
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for usernames using WalletHelper
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, fromAvatarUsername);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, toAvatarUsername);
+                
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to get wallet addresses for usernames");
+                    return result;
+                }
+                
+                var fromAddress = fromWalletResult.Result;
+                var toAddress = toWalletResult.Result;
+
+                // Create Cosmos transaction
+                var transactionData = new
+                {
+                    from = fromAddress,
+                    to = toAddress,
+                    amount = amount,
+                    token = token,
+                    memo = $"OASIS transaction from {fromAvatarUsername} to {toAvatarUsername}"
+                };
+
+                // Submit transaction to Cosmos network
+                var cosmosClient = new CosmosClient();
+                var transactionResult = await cosmosClient.SendTransactionAsync(transactionData);
+
+                if (transactionResult != null)
+                {
+                    result.Result = new TransactionRespone
+                    {
+                        TransactionHash = transactionResult.TransactionId,
+                        FromAddress = fromAddress,
+                        ToAddress = toAddress,
+                        Amount = amount,
+                        Status = "Success"
+                    };
+                    result.IsError = false;
+                    result.Message = "Cosmos transaction sent successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to send Cosmos transaction");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByUsernameAsync(token): {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-        {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
         }
 
         public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, "ATOM");
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for emails using WalletHelper
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, fromAvatarEmail);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, toAvatarEmail);
+                
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to get wallet addresses for emails");
+                    return result;
+                }
+                
+                var fromAddress = fromWalletResult.Result;
+                var toAddress = toWalletResult.Result;
+
+                // Create Cosmos transaction
+                var transactionData = new
+                {
+                    from = fromAddress,
+                    to = toAddress,
+                    amount = amount,
+                    token = token,
+                    memo = $"OASIS transaction from {fromAvatarEmail} to {toAvatarEmail}"
+                };
+
+                // Submit transaction to Cosmos network
+                var cosmosClient = new CosmosClient();
+                var transactionResult = await cosmosClient.SendTransactionAsync(transactionData);
+
+                if (transactionResult != null)
+                {
+                    result.Result = new TransactionRespone
+                    {
+                        TransactionHash = transactionResult.TransactionId,
+                        FromAddress = fromAddress,
+                        ToAddress = toAddress,
+                        Amount = amount,
+                        Status = "Success"
+                    };
+                    result.IsError = false;
+                    result.Message = "Cosmos transaction sent successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to send Cosmos transaction");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByEmailAsync(token): {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-        {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
         }
+
 
         public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars using WalletHelper
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, fromAvatarId);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, toAvatarId);
+                
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to get wallet addresses for avatars");
+                    return result;
+                }
+                
+                var fromAddress = fromWalletResult.Result;
+                var toAddress = toWalletResult.Result;
+
+                // Create Cosmos transaction
+                var transactionData = new
+                {
+                    from = fromAddress,
+                    to = toAddress,
+                    amount = amount,
+                    token = "ATOM",
+                    memo = $"OASIS default wallet transaction from {fromAvatarId} to {toAvatarId}"
+                };
+
+                // Submit transaction to Cosmos network
+                var cosmosClient = new CosmosClient();
+                var transactionResult = await cosmosClient.SendTransactionAsync(transactionData);
+
+                if (transactionResult != null)
+                {
+                    result.Result = new TransactionRespone
+                    {
+                        TransactionHash = transactionResult.TransactionId,
+                        FromAddress = fromAddress,
+                        ToAddress = toAddress,
+                        Amount = amount,
+                        Status = "Success"
+                    };
+                    result.IsError = false;
+                    result.Message = "Cosmos default wallet transaction sent successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to send Cosmos default wallet transaction");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByDefaultWalletAsync: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)

@@ -273,17 +273,62 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
     public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
     {
-        throw new NotImplementedException();
+        return DeleteHolonByProviderKeyAsync(providerKey);
+    }
+
+    public async Task<OASISResult<IHolon>> DeleteHolonByProviderKeyAsync(string providerKey)
+    {
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
+                return result;
+            }
+
+            // Load holon by provider key first
+            var holonResult = await LoadHolonAsync(providerKey);
+            if (holonResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {holonResult.Message}");
+                return result;
+            }
+
+            if (holonResult.Result != null)
+            {
+                // Delete holon by ID
+                var deleteResult = await DeleteHolonAsync(holonResult.Result.Id);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = holonResult.Result;
+                result.IsError = false;
+                result.Message = "Holon deleted successfully by provider key from Web3Core";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from Web3Core: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllAsync(version).Result;
     }
 
     public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllHolonsAsync(version);
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)

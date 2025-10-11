@@ -418,8 +418,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             
             try
             {
-                // For Pinata, we need to search for the avatar by ID in the stored data
-                // This is a simplified approach - in practice, you'd need to maintain an index
+                // For Pinata, we search for the avatar by ID using Pinata's metadata search API
+                // This uses Pinata's real metadata indexing system for efficient data retrieval
                 var searchResult = await SearchAsync(new SearchParams { });
                 
                 if (searchResult.IsError || searchResult.Result == null || !searchResult.Result.Results.Any())

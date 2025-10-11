@@ -177,7 +177,52 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarAsync(providerKey, softDelete).Result;
+    }
+
+    public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+    {
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Load avatar by provider key first
+            var avatarResult = await LoadAvatarAsync(providerKey);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by provider key from Avalanche";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
@@ -310,37 +355,162 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
     {
-        throw new NotImplementedException();
+        return DeleteHolonByProviderKeyAsync(providerKey);
+    }
+
+    public async Task<OASISResult<IHolon>> DeleteHolonByProviderKeyAsync(string providerKey)
+    {
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Load holon by provider key first
+            var holonResult = await LoadHolonAsync(providerKey);
+            if (holonResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {holonResult.Message}");
+                return result;
+            }
+
+            if (holonResult.Result != null)
+            {
+                // Delete holon by ID
+                var deleteResult = await DeleteHolonAsync(holonResult.Result.Id);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = holonResult.Result;
+                result.IsError = false;
+                result.Message = "Holon deleted successfully by provider key from Avalanche";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllAsync(version).Result;
     }
 
     public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllHolonsAsync(version);
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Load avatar by email first
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Export all holons for this avatar
+                var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
+                    return result;
+                }
+
+                result.Result = holonsResult.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by email from Avalanche";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by email from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Load avatar by ID first
+            var avatarResult = await LoadAvatarAsync(avatarId);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by ID: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Export all holons for this avatar
+                var holonsResult = await LoadHolonsForParentAsync(avatarId);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
+                    return result;
+                }
+
+                result.Result = holonsResult.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by ID from Avalanche";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by ID");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by ID from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
