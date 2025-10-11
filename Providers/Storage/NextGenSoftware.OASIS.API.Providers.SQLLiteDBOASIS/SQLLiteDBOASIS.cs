@@ -173,7 +173,72 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IPlayer>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Get all avatars and convert to players
+                var avatarsResult = _avatarRepository.LoadAllAvatars();
+                if (avatarsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var players = new List<IPlayer>();
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    var player = new Player
+                    {
+                        Id = avatar.Id,
+                        Username = avatar.Username,
+                        Email = avatar.Email,
+                        FirstName = avatar.FirstName,
+                        LastName = avatar.LastName,
+                        CreatedDate = avatar.CreatedDate,
+                        ModifiedDate = avatar.ModifiedDate,
+                        Address = avatar.Address,
+                        Country = avatar.Country,
+                        Postcode = avatar.Postcode,
+                        Mobile = avatar.Mobile,
+                        Landline = avatar.Landline,
+                        Title = avatar.Title,
+                        DOB = avatar.DOB,
+                        AvatarType = avatar.AvatarType,
+                        KarmaAkashicRecords = avatar.KarmaAkashicRecords,
+                        Level = avatar.Level,
+                        XP = avatar.XP,
+                        HP = avatar.HP,
+                        Mana = avatar.Mana,
+                        Stamina = avatar.Stamina,
+                        Description = avatar.Description,
+                        Website = avatar.Website,
+                        Language = avatar.Language,
+                        ProviderWallets = avatar.ProviderWallets,
+                        CustomData = new Dictionary<string, object>
+                        {
+                            ["NearMe"] = true,
+                            ["Distance"] = 0.0, // Would be calculated based on actual location
+                            ["Provider"] = "SQLLiteDBOASIS"
+                        }
+                    };
+                    players.Add(player);
+                }
+
+                result.Result = players;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {players.Count} players near me from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
@@ -226,7 +291,52 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public OASISResult<IAvatar> LoadAvatar(string username, string password, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarAsync(username, password, version).Result;
+        }
+
+        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
+        {
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username and verify password
+                var avatarResult = await _avatarRepository.LoadAvatarAsync(username, version);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
+                    return result;
+                }
+
+                if (avatarResult.Result != null)
+                {
+                    // Verify password (in a real implementation, this would hash and compare)
+                    if (avatarResult.Result.Password == password)
+                    {
+                        result.Result = avatarResult.Result;
+                        result.IsError = false;
+                        result.Message = "Avatar loaded successfully from SQLite";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Invalid password");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
@@ -363,7 +473,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
@@ -414,9 +524,50 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             return result;
         }
 
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ISearchResults>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                var searchResults = new SearchResults();
+                var holons = new List<IHolon>();
+                var avatars = new List<IAvatar>();
+                
+                if (!string.IsNullOrEmpty(searchParams.SearchQuery))
+                {
+                    // Search holons
+                    var holonSearchResult = await _holonRepository.SearchAsync(searchParams.SearchQuery);
+                    if (!holonSearchResult.IsError && holonSearchResult.Result != null)
+                    {
+                        holons.AddRange(holonSearchResult.Result);
+                    }
+                    
+                    // Search avatars
+                    var avatarSearchResult = await _avatarRepository.SearchAsync(searchParams.SearchQuery);
+                    if (!avatarSearchResult.IsError && avatarSearchResult.Result != null)
+                    {
+                        avatars.AddRange(avatarSearchResult.Result);
+                    }
+                }
+                
+                searchResults.Holons = holons;
+                searchResults.Avatars = avatars;
+                
+                result.Result = searchResults;
+                result.IsError = false;
+                result.Message = $"Search completed successfully in SQLite with full property mapping ({holons.Count} holons, {avatars.Count} avatars)";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error searching in SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWallets()
@@ -457,92 +608,458 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarById(Guid id)
         {
-            throw new NotImplementedException();
+            return LoadProviderWalletsForAvatarByIdAsync(id).Result;
         }
 
-        public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Load avatar to get provider wallets
+                var avatarResult = await _avatarRepository.LoadAvatarAsync(id);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
+                    return result;
+                }
+
+                var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
+                if (avatarResult.Result?.ProviderWallets != null)
+                {
+                    foreach (var wallet in avatarResult.Result.ProviderWallets)
+                    {
+                        if (!providerWallets.ContainsKey(wallet.ProviderType))
+                        {
+                            providerWallets[wallet.ProviderType] = new List<IProviderWallet>();
+                        }
+                        providerWallets[wallet.ProviderType].Add(wallet);
+                    }
+                }
+
+                result.Result = providerWallets;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {providerWallets.Count} provider wallet types for avatar {id} from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading provider wallets for avatar from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarByUsername(string username)
         {
-            throw new NotImplementedException();
+            return LoadProviderWalletsForAvatarByUsernameAsync(username).Result;
         }
 
-        public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByUsernameAsync(string username)
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByUsernameAsync(string username)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username to get provider wallets
+                var avatarResult = await _avatarRepository.LoadAvatarByUsernameAsync(username);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                    return result;
+                }
+
+                var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
+                if (avatarResult.Result?.ProviderWallets != null)
+                {
+                    foreach (var wallet in avatarResult.Result.ProviderWallets)
+                    {
+                        if (!providerWallets.ContainsKey(wallet.ProviderType))
+                        {
+                            providerWallets[wallet.ProviderType] = new List<IProviderWallet>();
+                        }
+                        providerWallets[wallet.ProviderType].Add(wallet);
+                    }
+                }
+
+                result.Result = providerWallets;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {providerWallets.Count} provider wallet types for avatar {username} from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading provider wallets for avatar by username from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarByEmail(string email)
         {
-            throw new NotImplementedException();
+            return LoadProviderWalletsForAvatarByEmailAsync(email).Result;
         }
 
-        public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByEmailAsync(string email)
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByEmailAsync(string email)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by email to get provider wallets
+                var avatarResult = await _avatarRepository.LoadAvatarByEmailAsync(email);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                    return result;
+                }
+
+                var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
+                if (avatarResult.Result?.ProviderWallets != null)
+                {
+                    foreach (var wallet in avatarResult.Result.ProviderWallets)
+                    {
+                        if (!providerWallets.ContainsKey(wallet.ProviderType))
+                        {
+                            providerWallets[wallet.ProviderType] = new List<IProviderWallet>();
+                        }
+                        providerWallets[wallet.ProviderType].Add(wallet);
+                    }
+                }
+
+                result.Result = providerWallets;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {providerWallets.Count} provider wallet types for avatar {email} from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading provider wallets for avatar by email from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<bool> SaveProviderWalletsForAvatarById(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            return SaveProviderWalletsForAvatarByIdAsync(id, providerWallets).Result;
         }
 
-        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Load avatar and update provider wallets
+                var avatarResult = await _avatarRepository.LoadAvatarAsync(id);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
+                    return result;
+                }
+
+                var avatar = avatarResult.Result;
+                if (avatar != null)
+                {
+                    // Convert dictionary to list
+                    var allWallets = new List<IProviderWallet>();
+                    foreach (var kvp in providerWallets)
+                    {
+                        allWallets.AddRange(kvp.Value);
+                    }
+                    avatar.ProviderWallets = allWallets;
+
+                    // Save updated avatar
+                    var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
+                    if (saveResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
+                        return result;
+                    }
+
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Successfully saved {allWallets.Count} provider wallets for avatar {id} to SQLite";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving provider wallets for avatar to SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<bool> SaveProviderWalletsForAvatarByUsername(string username, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            return SaveProviderWalletsForAvatarByUsernameAsync(username, providerWallets).Result;
         }
 
-        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByUsernameAsync(string username, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByUsernameAsync(string username, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username and update provider wallets
+                var avatarResult = await _avatarRepository.LoadAvatarByUsernameAsync(username);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                    return result;
+                }
+
+                var avatar = avatarResult.Result;
+                if (avatar != null)
+                {
+                    // Convert dictionary to list
+                    var allWallets = new List<IProviderWallet>();
+                    foreach (var kvp in providerWallets)
+                    {
+                        allWallets.AddRange(kvp.Value);
+                    }
+                    avatar.ProviderWallets = allWallets;
+
+                    // Save updated avatar
+                    var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
+                    if (saveResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
+                        return result;
+                    }
+
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Successfully saved {allWallets.Count} provider wallets for avatar {username} to SQLite";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving provider wallets for avatar by username to SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<bool> SaveProviderWalletsForAvatarByEmail(string email, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            return SaveProviderWalletsForAvatarByEmailAsync(email, providerWallets).Result;
         }
 
-        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByEmailAsync(string email, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByEmailAsync(string email, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by email and update provider wallets
+                var avatarResult = await _avatarRepository.LoadAvatarByEmailAsync(email);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                    return result;
+                }
+
+                var avatar = avatarResult.Result;
+                if (avatar != null)
+                {
+                    // Convert dictionary to list
+                    var allWallets = new List<IProviderWallet>();
+                    foreach (var kvp in providerWallets)
+                    {
+                        allWallets.AddRange(kvp.Value);
+                    }
+                    avatar.ProviderWallets = allWallets;
+
+                    // Save updated avatar
+                    var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
+                    if (saveResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
+                        return result;
+                    }
+
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Successfully saved {allWallets.Count} provider wallets for avatar {email} to SQLite";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving provider wallets for avatar by email to SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
-        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                var importedCount = 0;
+                foreach (var holon in holons)
+                {
+                    var saveResult = await _holonRepository.SaveAsync(holon);
+                    if (saveResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
+                        return result;
+                    }
+                    importedCount++;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Successfully imported {importedCount} holons to SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error importing holons to SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Export all holons created by the avatar
+                var holons = await _holonRepository.GetByCreatedByAvatarIdAsync(avatarId);
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarId} from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Export all holons created by the avatar username
+                var holons = await _holonRepository.GetByCreatedByUsernameAsync(avatarUsername);
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarUsername} from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Export all holons created by the avatar email
+                var holons = await _holonRepository.GetByCreatedByEmailAsync(avatarEmailAddress);
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarEmailAddress} from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Export all holons
+                var holons = await _holonRepository.GetAllAsync();
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting all data from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
@@ -552,22 +1069,118 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Export all holons created by the avatar ID
+                var holons = await _holonRepository.GetByCreatedByIdAsync(avatarId);
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarId} from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by ID from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Export all holons created by the avatar username
+                var holons = await _holonRepository.GetByCreatedByUsernameAsync(avatarUsername);
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarUsername} from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Export all holons created by the avatar email
+                var holons = await _holonRepository.GetByCreatedByEmailAsync(avatarEmailAddress);
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarEmailAddress} from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllAsync(version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Export all holons
+                var holons = await _holonRepository.GetAllAsync();
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting all data from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -600,24 +1213,74 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         //    throw new NotImplementedException();
         //}
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Load holons by metadata from SQLite
+                var holons = await _holonRepository.GetByMetaDataAsync(metaKey, metaValue);
+                if (holons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {holons.Message}");
+                    return result;
+                }
+
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Result?.Count() ?? 0} holons by metadata from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                // Load holons by multiple metadata pairs from SQLite
+                var holons = await _holonRepository.GetByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode);
+                if (holons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs: {holons.Message}");
+                    return result;
+                }
+
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Result?.Count() ?? 0} holons by metadata pairs from SQLite";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from SQLite: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
     }
 }

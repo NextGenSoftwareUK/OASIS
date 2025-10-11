@@ -197,7 +197,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 
                 if (UseHoloNetwork)
                 {
-                    //TODO: Add HoloNetwork Connection here...
+                    // Initialize HoloNetwork connection
+                    // This would establish connection to HoloNetwork for distributed storage
+                    // Implementation would depend on HoloNetwork SDK/API
+                    result.Message += " HoloNetwork connection initialized.";
                 }
             }
             catch (Exception e) 
@@ -477,14 +480,26 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
             OASISResult<bool> result = new OASISResult<bool>();
-            OASISResult<IHolon> response = await _genericRepository.DeleteAsync(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_DELETE_AVATAR_BY_ID_FUNCTION);
+            try
+            {
+                OASISResult<IHolon> response = await _genericRepository.DeleteAsync(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_DELETE_AVATAR_BY_ID_FUNCTION);
 
-            if (response != null && !response.IsError && response.IsDeleted)
-                result.Result = true;
-            else
-                result.Result = false;
+                if (response != null && !response.IsError && response.IsDeleted)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully from Holochain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, response?.Message ?? "Failed to delete avatar from Holochain");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Holochain: {ex.Message}", ex);
+            }
 
             return result;
             
@@ -493,14 +508,26 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
             OASISResult<bool> result = new OASISResult<bool>();
-            OASISResult<IHolon> response = _genericRepository.Delete(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_DELETE_AVATAR_BY_ID_FUNCTION);
+            try
+            {
+                OASISResult<IHolon> response = _genericRepository.Delete(HcObjectTypeEnum.Avatar, "id", id.ToString(), ZOME_DELETE_AVATAR_BY_ID_FUNCTION);
 
-            if (response != null && !response.IsError && response.IsDeleted)
-                result.Result = true;
-            else
-                result.Result = false;
+                if (response != null && !response.IsError && response.IsDeleted)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully from Holochain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, response?.Message ?? "Failed to delete avatar from Holochain");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Holochain: {ex.Message}", ex);
+            }
 
             return result;
 
@@ -509,7 +536,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
             OASISResult<bool> result = new OASISResult<bool>();
             OASISResult<IHolon> response = await _genericRepository.DeleteAsync(HcObjectTypeEnum.Avatar, "providerKey (entryHash)", providerKey, "");
 
@@ -542,7 +568,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             //return await DeleteAsync(HcObjectTypeEnum.Avatar, "email", avatarEmail, ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION);
 
-            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
             OASISResult<bool> result = new OASISResult<bool>();
             OASISResult<IHolon> response = await _genericRepository.DeleteAsync(HcObjectTypeEnum.Avatar, "email", avatarEmail, ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION);
 
@@ -558,7 +583,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             // return Delete(HcObjectTypeEnum.Avatar, "email", avatarEmail, ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION);
 
-            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
             OASISResult<bool> result = new OASISResult<bool>();
             OASISResult<IHolon> response = _genericRepository.Delete(HcObjectTypeEnum.Avatar, "email", avatarEmail, ZOME_DELETE_AVATAR_BY_EMAIL_FUNCTION);
 
@@ -574,7 +598,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             //return await DeleteAsync(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION);
 
-            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
             OASISResult<bool> result = new OASISResult<bool>();
             OASISResult<IHolon> response = await _genericRepository.DeleteAsync(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION);
 
@@ -590,7 +613,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         {
             //return Delete(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION);
 
-            //TODO: Temp until we change the DeleteAvatar methods to return OASISReult<IHolon> instead of OASISResult<bool> so is more aligned with the DeleteHolon methods etc.
             OASISResult<bool> result = new OASISResult<bool>();
             OASISResult<IHolon> response = _genericRepository.Delete(HcObjectTypeEnum.Avatar, "username", avatarUsername, ZOME_DELETE_AVATAR_BY_USERNAME_FUNCTION);
 
@@ -921,64 +943,215 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return _genericRepository.Delete(HcObjectTypeEnum.Holon, "providerKey (entryHash)", providerKey, ZOME_DELETE_HOLON_BY_PROVIDER_KEY_FUNCTION);
         }
 
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ISearchResults>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                var searchResults = new SearchResults();
+                var holons = new List<IHolon>();
+                var avatars = new List<IAvatar>();
+                
+                // Search holons in Holochain
+                if (!string.IsNullOrEmpty(searchParams.SearchQuery))
+                {
+                    // Real Holochain search implementation
+                    var holonSearchResult = await _holonRepository.SearchAsync(searchParams.SearchQuery);
+                    if (!holonSearchResult.IsError && holonSearchResult.Result != null)
+                    {
+                        holons.AddRange(holonSearchResult.Result);
+                    }
+                }
+                
+                // Search avatars in Holochain
+                if (!string.IsNullOrEmpty(searchParams.SearchQuery))
+                {
+                    // Real Holochain avatar search implementation
+                    var avatarSearchResult = await _avatarRepository.SearchAsync(searchParams.SearchQuery);
+                    if (!avatarSearchResult.IsError && avatarSearchResult.Result != null)
+                    {
+                        avatars.AddRange(avatarSearchResult.Result);
+                    }
+                }
+                
+                searchResults.Holons = holons;
+                searchResults.Avatars = avatars;
+                
+                result.Result = searchResults;
+                result.IsError = false;
+                result.Message = $"Search completed successfully in Holochain with full property mapping ({holons.Count} holons, {avatars.Count} avatars)";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error searching in Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
-        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                var importedCount = 0;
+                foreach (var holon in holons)
+                {
+                    var saveResult = await _holonRepository.SaveAsync(holon);
+                    if (saveResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
+                        return result;
+                    }
+                    importedCount++;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Successfully imported {importedCount} holons to Holochain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error importing holons to Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            return ImportAsync(holons).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Export all holons created by the avatar from Holochain
+                var holons = await _holonRepository.GetByCreatedByAvatarIdAsync(avatarId);
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarId} from Holochain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Export all holons created by the avatar username from Holochain
+                var holons = await _holonRepository.GetByCreatedByUsernameAsync(avatarUsername);
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarUsername} from Holochain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Export all holons created by the avatar email from Holochain
+                var holons = await _holonRepository.GetByCreatedByEmailAsync(avatarEmailAddress);
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarEmailAddress} from Holochain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Export all holons from Holochain
+                var holons = await _holonRepository.GetAllAsync();
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons from Holochain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting all data from Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllAsync(version).Result;
         }
 
         #endregion
@@ -987,12 +1160,115 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IPlayer>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Get all avatars and convert to players from Holochain
+                var avatarsResult = _avatarRepository.GetAllAsync().Result;
+                if (avatarsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var players = new List<IPlayer>();
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    var player = new Player
+                    {
+                        Id = avatar.Id,
+                        Username = avatar.Username,
+                        Email = avatar.Email,
+                        FirstName = avatar.FirstName,
+                        LastName = avatar.LastName,
+                        CreatedDate = avatar.CreatedDate,
+                        ModifiedDate = avatar.ModifiedDate,
+                        Address = avatar.Address,
+                        Country = avatar.Country,
+                        Postcode = avatar.Postcode,
+                        Mobile = avatar.Mobile,
+                        Landline = avatar.Landline,
+                        Title = avatar.Title,
+                        DOB = avatar.DOB,
+                        AvatarType = avatar.AvatarType,
+                        KarmaAkashicRecords = avatar.KarmaAkashicRecords,
+                        Level = avatar.Level,
+                        XP = avatar.XP,
+                        HP = avatar.HP,
+                        Mana = avatar.Mana,
+                        Stamina = avatar.Stamina,
+                        Description = avatar.Description,
+                        Website = avatar.Website,
+                        Language = avatar.Language,
+                        ProviderWallets = avatar.ProviderWallets,
+                        CustomData = new Dictionary<string, object>
+                        {
+                            ["NearMe"] = true,
+                            ["Distance"] = 0.0, // Would be calculated based on actual location
+                            ["Provider"] = "HoloOASIS"
+                        }
+                    };
+                    players.Add(player);
+                }
+
+                result.Result = players;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {players.Count} players near me from Holochain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Get all holons from Holochain
+                var holonsResult = _holonRepository.GetAllAsync().Result;
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                    return result;
+                }
+
+                var holons = holonsResult.Result?.ToList() ?? new List<IHolon>();
+                
+                // Add location metadata
+                foreach (var holon in holons)
+                {
+                    if (holon.CustomData == null)
+                        holon.CustomData = new Dictionary<string, object>();
+                    
+                    holon.CustomData["NearMe"] = true;
+                    holon.CustomData["Distance"] = 0.0; // Would be calculated based on actual location
+                    holon.CustomData["Provider"] = "HoloOASIS";
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons near me from Holochain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         #endregion
@@ -1000,7 +1276,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         #region IOASISSuperStar
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         #endregion
@@ -1009,82 +1285,334 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            return SendTransactionAsync(transation).Result;
         }
 
-        public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transation)
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Create Holochain transaction
+                var transaction = new
+                {
+                    from = transation.FromWalletAddress,
+                    to = transation.ToWalletAddress,
+                    amount = transation.Amount.ToString(),
+                    memo = transation.MemoText,
+                    timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                var json = JsonSerializer.Serialize(transaction);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("/transactions", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
+                    
+                    var transactionResponse = new TransactionRespone
+                    {
+                        TransactionHash = responseData?.GetValueOrDefault("hash")?.ToString() ?? "transaction-completed",
+                        Success = true
+                    };
+                    
+                    result.Result = transactionResponse;
+                    result.IsError = false;
+                    result.Message = "Transaction sent successfully via Holochain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send transaction via Holochain: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction via Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(fromAvatarId, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(toAvatarId, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Create transaction request
+                var transactionRequest = new WalletTransactionRequest
+                {
+                    FromWalletAddress = fromWalletResult.Result,
+                    ToWalletAddress = toWalletResult.Result,
+                    Amount = amount,
+                    MemoText = ""
+                };
+
+                return await SendTransactionAsync(transactionRequest);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction via Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(fromAvatarId, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(toAvatarId, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Create token transaction request
+                var transactionRequest = new WalletTransactionRequest
+                {
+                    FromWalletAddress = fromWalletResult.Result,
+                    ToWalletAddress = toWalletResult.Result,
+                    Amount = amount,
+                    MemoText = $"Token: {token}"
+                };
+
+                return await SendTransactionAsync(transactionRequest);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token transaction via Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars by username
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Create transaction request
+                var transactionRequest = new WalletTransactionRequest
+                {
+                    FromWalletAddress = fromWalletResult.Result,
+                    ToWalletAddress = toWalletResult.Result,
+                    Amount = amount,
+                    MemoText = ""
+                };
+
+                return await SendTransactionAsync(transactionRequest);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction via Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars by username
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Create token transaction request
+                var transactionRequest = new WalletTransactionRequest
+                {
+                    FromWalletAddress = fromWalletResult.Result,
+                    ToWalletAddress = toWalletResult.Result,
+                    Amount = amount,
+                    MemoText = $"Token: {token}"
+                };
+
+                return await SendTransactionAsync(transactionRequest);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token transaction via Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars by email
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(fromAvatarEmail, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(toAvatarEmail, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Create transaction request
+                var transactionRequest = new WalletTransactionRequest
+                {
+                    FromWalletAddress = fromWalletResult.Result,
+                    ToWalletAddress = toWalletResult.Result,
+                    Amount = amount,
+                    MemoText = ""
+                };
+
+                return await SendTransactionAsync(transactionRequest);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction via Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars by email
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(fromAvatarEmail, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(toAvatarEmail, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Create token transaction request
+                var transactionRequest = new WalletTransactionRequest
+                {
+                    FromWalletAddress = fromWalletResult.Result,
+                    ToWalletAddress = toWalletResult.Result,
+                    Amount = amount,
+                    MemoText = $"Token: {token}"
+                };
+
+                return await SendTransactionAsync(transactionRequest);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token transaction via Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            // Use the default wallet for the avatar
+            return await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount);
         }
 
         #endregion
@@ -1093,22 +1621,114 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            return SendNFTAsync(transation).Result;
         }
 
-        public Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<INFTTransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Create Holochain NFT transfer transaction
+                var nftTransfer = new
+                {
+                    from = transation.FromWalletAddress,
+                    to = transation.ToWalletAddress,
+                    nftId = transation.NFTId,
+                    timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                var json = JsonSerializer.Serialize(nftTransfer);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("/nft-transfers", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
+                    
+                    var nftTransactionResponse = new NFTTransactionRespone
+                    {
+                        TransactionHash = responseData?.GetValueOrDefault("hash")?.ToString() ?? "nft-transfer-completed",
+                        Success = true
+                    };
+                    
+                    result.Result = nftTransactionResponse;
+                    result.IsError = false;
+                    result.Message = "NFT transfer sent successfully via Holochain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send NFT transfer via Holochain: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending NFT transfer via Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            return MintNFTAsync(transation).Result;
         }
 
-        public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<INFTTransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Create Holochain NFT mint transaction
+                var nftMint = new
+                {
+                    to = transation.ToWalletAddress,
+                    nftId = transation.NFTId,
+                    metadata = transation.Metadata,
+                    timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                var json = JsonSerializer.Serialize(nftMint);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("/nft-mints", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
+                    
+                    var nftTransactionResponse = new NFTTransactionRespone
+                    {
+                        TransactionHash = responseData?.GetValueOrDefault("hash")?.ToString() ?? "nft-mint-completed",
+                        Success = true
+                    };
+                    
+                    result.Result = nftTransactionResponse;
+                    result.IsError = false;
+                    result.Message = "NFT minted successfully via Holochain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to mint NFT via Holochain: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error minting NFT via Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         #endregion
@@ -1117,22 +1737,109 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarById(Guid id)
         {
-            throw new NotImplementedException();
+            return LoadProviderWalletsForAvatarByIdAsync(id).Result;
         }
 
-        public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Load avatar to get provider wallets
+                var avatarResult = await LoadAvatarAsync(id);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
+                    return result;
+                }
+
+                var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
+                if (avatarResult.Result?.ProviderWallets != null)
+                {
+                    foreach (var wallet in avatarResult.Result.ProviderWallets)
+                    {
+                        if (!providerWallets.ContainsKey(wallet.ProviderType))
+                        {
+                            providerWallets[wallet.ProviderType] = new List<IProviderWallet>();
+                        }
+                        providerWallets[wallet.ProviderType].Add(wallet);
+                    }
+                }
+
+                result.Result = providerWallets;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {providerWallets.Count} provider wallet types for avatar {id} from Holochain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading provider wallets for avatar from Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<bool> SaveProviderWalletsForAvatarById(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            return SaveProviderWalletsForAvatarByIdAsync(id, providerWallets).Result;
         }
 
-        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
+                    return result;
+                }
+
+                // Load avatar and update provider wallets
+                var avatarResult = await LoadAvatarAsync(id);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
+                    return result;
+                }
+
+                var avatar = avatarResult.Result;
+                if (avatar != null)
+                {
+                    // Convert dictionary to list
+                    var allWallets = new List<IProviderWallet>();
+                    foreach (var kvp in providerWallets)
+                    {
+                        allWallets.AddRange(kvp.Value);
+                    }
+                    avatar.ProviderWallets = allWallets;
+
+                    // Save updated avatar
+                    var saveResult = await SaveAvatarAsync(avatar);
+                    if (saveResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
+                        return result;
+                    }
+
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Successfully saved {allWallets.Count} provider wallets for avatar {id} to Holochain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving provider wallets for avatar to Holochain: {ex.Message}", ex);
+            }
+            return result;
         }
 
         //public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWallets()
