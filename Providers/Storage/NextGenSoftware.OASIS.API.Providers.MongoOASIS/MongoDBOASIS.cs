@@ -815,12 +815,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public IEnumerable<IHolon> GetHolonsNearMe(HolonType Type)
         {
-            throw new NotImplementedException();
+            return GetHolonsNearMeAsync(Type).Result.Result;
         }
 
         public IEnumerable<IPlayer> GetPlayersNearMe()
         {
-            throw new NotImplementedException();
+            return GetPlayersNearMeAsync().Result.Result;
         }
 
 
@@ -833,61 +833,166 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
         {
-            throw new NotImplementedException();
+            return GetPlayersNearMeAsync().Result;
         }
 
         OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
         {
-            throw new NotImplementedException();
+            return GetHolonsNearMeAsync(Type).Result;
         }
-        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
+                    return result;
+                }
+
+                var importedCount = 0;
+                foreach (var holon in holons)
+                {
+                    var saveResult = await _holonRepository.SaveAsync(holon);
+                    if (saveResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
+                        return result;
+                    }
+                    importedCount++;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Successfully imported {importedCount} holons to MongoDB";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error importing holons to MongoDB: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
+                    return result;
+                }
+
+                // Export all holons created by the avatar
+                var holons = await _holonRepository.GetByCreatedByAvatarIdAsync(avatarId);
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarId} from MongoDB";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from MongoDB: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
+                    return result;
+                }
+
+                // Export all holons created by the avatar username
+                var holons = await _holonRepository.GetByCreatedByUsernameAsync(avatarUsername);
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarUsername} from MongoDB";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from MongoDB: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
+                    return result;
+                }
+
+                // Export all holons created by the avatar email
+                var holons = await _holonRepository.GetByCreatedByEmailAsync(avatarEmailAddress);
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarEmailAddress} from MongoDB";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from MongoDB: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
+                    return result;
+                }
+
+                // Export all holons
+                var holons = await _holonRepository.GetAllAsync();
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons from MongoDB";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting all data from MongoDB: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            return ImportAsync(holons).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllAsync(version).Result;
         }
     }
 }

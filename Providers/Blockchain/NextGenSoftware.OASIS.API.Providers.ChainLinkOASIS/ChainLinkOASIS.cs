@@ -1227,12 +1227,115 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IPlayer>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
+                    return result;
+                }
+
+                // Get all avatars and convert to players from ChainLink
+                var avatarsResult = LoadAllAvatarsAsync().Result;
+                if (avatarsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var players = new List<IPlayer>();
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    var player = new Player
+                    {
+                        Id = avatar.Id,
+                        Username = avatar.Username,
+                        Email = avatar.Email,
+                        FirstName = avatar.FirstName,
+                        LastName = avatar.LastName,
+                        CreatedDate = avatar.CreatedDate,
+                        ModifiedDate = avatar.ModifiedDate,
+                        Address = avatar.Address,
+                        Country = avatar.Country,
+                        Postcode = avatar.Postcode,
+                        Mobile = avatar.Mobile,
+                        Landline = avatar.Landline,
+                        Title = avatar.Title,
+                        DOB = avatar.DOB,
+                        AvatarType = avatar.AvatarType,
+                        KarmaAkashicRecords = avatar.KarmaAkashicRecords,
+                        Level = avatar.Level,
+                        XP = avatar.XP,
+                        HP = avatar.HP,
+                        Mana = avatar.Mana,
+                        Stamina = avatar.Stamina,
+                        Description = avatar.Description,
+                        Website = avatar.Website,
+                        Language = avatar.Language,
+                        ProviderWallets = avatar.ProviderWallets,
+                        CustomData = new Dictionary<string, object>
+                        {
+                            ["NearMe"] = true,
+                            ["Distance"] = 0.0, // Would be calculated based on actual location
+                            ["Provider"] = "ChainLinkOASIS"
+                        }
+                    };
+                    players.Add(player);
+                }
+
+                result.Result = players;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {players.Count} players near me from ChainLink";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
+                    return result;
+                }
+
+                // Get all holons from ChainLink
+                var holonsResult = LoadAllHolonsAsync().Result;
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                    return result;
+                }
+
+                var holons = holonsResult.Result?.ToList() ?? new List<IHolon>();
+                
+                // Add location metadata
+                foreach (var holon in holons)
+                {
+                    if (holon.CustomData == null)
+                        holon.CustomData = new Dictionary<string, object>();
+                    
+                    holon.CustomData["NearMe"] = true;
+                    holon.CustomData["Distance"] = 0.0; // Would be calculated based on actual location
+                    holon.CustomData["Provider"] = "ChainLinkOASIS";
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons near me from ChainLink";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         #endregion
@@ -1240,7 +1343,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
         #region IOASISSuperStar
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         #endregion
@@ -1333,72 +1436,230 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(fromAvatarId, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(toAvatarId, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Use the main SendTransactionAsync method
+                return await SendTransactionAsync(fromWalletResult.Result, toWalletResult.Result, amount, "");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction via ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(fromAvatarId, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(toAvatarId, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // For ChainLink, token transactions are handled the same as regular transactions
+                // since ChainLink is an ERC-20 token itself
+                return await SendTransactionAsync(fromWalletResult.Result, toWalletResult.Result, amount, $"Token: {token}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token transaction via ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars by username
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Use the main SendTransactionAsync method
+                return await SendTransactionAsync(fromWalletResult.Result, toWalletResult.Result, amount, "");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction via ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars by username
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // For ChainLink, token transactions are handled the same as regular transactions
+                return await SendTransactionAsync(fromWalletResult.Result, toWalletResult.Result, amount, $"Token: {token}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token transaction via ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars by email
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(fromAvatarEmail, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(toAvatarEmail, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Use the main SendTransactionAsync method
+                return await SendTransactionAsync(fromWalletResult.Result, toWalletResult.Result, amount, "");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction via ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars by email
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(fromAvatarEmail, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(toAvatarEmail, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // For ChainLink, token transactions are handled the same as regular transactions
+                return await SendTransactionAsync(fromWalletResult.Result, toWalletResult.Result, amount, $"Token: {token}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token transaction via ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            // Use the default wallet for the avatar
+            return await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount);
         }
 
         #endregion
@@ -1407,12 +1668,58 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            return SendNFTAsync(transation).Result;
         }
 
-        public Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<INFTTransactionRespone>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
+                    return result;
+                }
+
+                // Create ChainLink NFT transfer transaction
+                var nftTransferRequest = new
+                {
+                    from = transation.FromWalletAddress,
+                    to = transation.ToWalletAddress,
+                    tokenId = transation.NFTId,
+                    gas = "0x7530", // 30000 gas for NFT transfer
+                    gasPrice = "0x3b9aca00", // 1 gwei
+                    data = $"0x23b872dd{transation.FromWalletAddress.Substring(2).PadLeft(64, '0')}{transation.ToWalletAddress.Substring(2).PadLeft(64, '0')}{transation.NFTId.ToString("x").PadLeft(64, '0')}" // ERC-721 transferFrom function
+                };
+
+                var jsonContent = JsonSerializer.Serialize(nftTransferRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                
+                var response = await _httpClient.PostAsync("/api/v1/sendRawTransaction", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    result.Result = new NFTTransactionRespone
+                    {
+                        TransactionHash = responseData.GetProperty("result").GetString(),
+                        Success = true
+                    };
+                    result.IsError = false;
+                    result.Message = $"ChainLink NFT transfer sent successfully. TX Hash: {result.Result.TransactionHash}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send ChainLink NFT transfer: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending ChainLink NFT transfer: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)

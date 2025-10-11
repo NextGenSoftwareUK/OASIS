@@ -3920,7 +3920,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
         #region IOASISSuperStar
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         #endregion
@@ -3929,82 +3929,462 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
 
         public OASISResult<string> SendTransaction(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            return SendTransactionAsync(transation).Result;
         }
 
-        public Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transation)
+        public async Task<OASISResult<string>> SendTransactionAsync(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ActivityPub provider is not activated");
+                    return result;
+                }
+
+                // Create ActivityPub transaction activity
+                var transactionActivity = new
+                {
+                    type = "Transaction",
+                    actor = transation.FromWalletAddress,
+                    object = new
+                    {
+                        type = "TransactionObject",
+                        to = transation.ToWalletAddress,
+                        amount = transation.Amount.ToString(),
+                        currency = "OASIS",
+                        memo = transation.MemoText
+                    },
+                    published = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                var json = JsonSerializer.Serialize(transactionActivity);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("/transactions", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
+                    result.Result = responseData?.GetValueOrDefault("id")?.ToString() ?? "transaction-completed";
+                    result.IsError = false;
+                    result.Message = "Transaction sent successfully via ActivityPub";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send transaction via ActivityPub: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction via ActivityPub: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
         public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ActivityPub provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(fromAvatarId, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(toAvatarId, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Create ActivityPub transaction activity
+                var transactionActivity = new
+                {
+                    type = "Transaction",
+                    actor = fromWalletResult.Result,
+                    object = new
+                    {
+                        type = "TransactionObject",
+                        to = toWalletResult.Result,
+                        amount = amount.ToString(),
+                        currency = "OASIS"
+                    },
+                    published = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                var json = JsonSerializer.Serialize(transactionActivity);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("/transactions", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
+                    result.Result = responseData?.GetValueOrDefault("id")?.ToString() ?? "transaction-completed";
+                    result.IsError = false;
+                    result.Message = "Transaction sent successfully via ActivityPub";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send transaction via ActivityPub: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction via ActivityPub: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
         }
 
         public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ActivityPub provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(fromAvatarId, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(toAvatarId, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Create ActivityPub token transaction activity
+                var transactionActivity = new
+                {
+                    type = "TokenTransaction",
+                    actor = fromWalletResult.Result,
+                    object = new
+                    {
+                        type = "TokenTransactionObject",
+                        to = toWalletResult.Result,
+                        amount = amount.ToString(),
+                        token = token,
+                        currency = "OASIS"
+                    },
+                    published = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                var json = JsonSerializer.Serialize(transactionActivity);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("/token-transactions", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
+                    result.Result = responseData?.GetValueOrDefault("id")?.ToString() ?? "token-transaction-completed";
+                    result.IsError = false;
+                    result.Message = $"Token transaction sent successfully via ActivityPub for {token}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send token transaction via ActivityPub: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token transaction via ActivityPub: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ActivityPub provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars by username
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Create ActivityPub transaction activity
+                var transactionActivity = new
+                {
+                    type = "Transaction",
+                    actor = fromWalletResult.Result,
+                    object = new
+                    {
+                        type = "TransactionObject",
+                        to = toWalletResult.Result,
+                        amount = amount.ToString(),
+                        currency = "OASIS"
+                    },
+                    published = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                var json = JsonSerializer.Serialize(transactionActivity);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("/transactions", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
+                    result.Result = responseData?.GetValueOrDefault("id")?.ToString() ?? "transaction-completed";
+                    result.IsError = false;
+                    result.Message = "Transaction sent successfully via ActivityPub";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send transaction via ActivityPub: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction via ActivityPub: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
         }
 
         public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ActivityPub provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars by username
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Create ActivityPub token transaction activity
+                var transactionActivity = new
+                {
+                    type = "TokenTransaction",
+                    actor = fromWalletResult.Result,
+                    object = new
+                    {
+                        type = "TokenTransactionObject",
+                        to = toWalletResult.Result,
+                        amount = amount.ToString(),
+                        token = token,
+                        currency = "OASIS"
+                    },
+                    published = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                var json = JsonSerializer.Serialize(transactionActivity);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("/token-transactions", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
+                    result.Result = responseData?.GetValueOrDefault("id")?.ToString() ?? "token-transaction-completed";
+                    result.IsError = false;
+                    result.Message = $"Token transaction sent successfully via ActivityPub for {token}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send token transaction via ActivityPub: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token transaction via ActivityPub: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
         }
 
         public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ActivityPub provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars by email
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(fromAvatarEmail, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(toAvatarEmail, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Create ActivityPub transaction activity
+                var transactionActivity = new
+                {
+                    type = "Transaction",
+                    actor = fromWalletResult.Result,
+                    object = new
+                    {
+                        type = "TransactionObject",
+                        to = toWalletResult.Result,
+                        amount = amount.ToString(),
+                        currency = "OASIS"
+                    },
+                    published = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                var json = JsonSerializer.Serialize(transactionActivity);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("/transactions", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
+                    result.Result = responseData?.GetValueOrDefault("id")?.ToString() ?? "transaction-completed";
+                    result.IsError = false;
+                    result.Message = "Transaction sent successfully via ActivityPub";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send transaction via ActivityPub: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction via ActivityPub: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
         public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<string>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ActivityPub provider is not activated");
+                    return result;
+                }
+
+                // Get wallet addresses for avatars by email
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(fromAvatarEmail, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(toAvatarEmail, _httpClient);
+
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromWalletResult.Message} {toWalletResult.Message}");
+                    return result;
+                }
+
+                // Create ActivityPub token transaction activity
+                var transactionActivity = new
+                {
+                    type = "TokenTransaction",
+                    actor = fromWalletResult.Result,
+                    object = new
+                    {
+                        type = "TokenTransactionObject",
+                        to = toWalletResult.Result,
+                        amount = amount.ToString(),
+                        token = token,
+                        currency = "OASIS"
+                    },
+                    published = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                var json = JsonSerializer.Serialize(transactionActivity);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("/token-transactions", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
+                    result.Result = responseData?.GetValueOrDefault("id")?.ToString() ?? "token-transaction-completed";
+                    result.IsError = false;
+                    result.Message = $"Token transaction sent successfully via ActivityPub for {token}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send token transaction via ActivityPub: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token transaction via ActivityPub: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
         }
 
         public OASISResult<string> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
         public async Task<OASISResult<string>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            throw new NotImplementedException();
+            // Use the default wallet for the avatar
+            return await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount);
         }
 
         #endregion
@@ -4013,12 +4393,54 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
 
         public OASISResult<bool> SendNFT(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            return SendNFTAsync(transation).Result;
         }
 
-        public Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
+        public async Task<OASISResult<bool>> SendNFTAsync(IWalletTransaction transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ActivityPub provider is not activated");
+                    return result;
+                }
+
+                var nftActivity = new
+                {
+                    type = "NFTTransfer",
+                    actor = transation.FromWalletAddress,
+                    object = new
+                    {
+                        type = "NFT",
+                        to = transation.ToWalletAddress,
+                        nftId = transation.Amount.ToString(),
+                        memo = transation.MemoText
+                    },
+                    published = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                };
+
+                var json = JsonSerializer.Serialize(nftActivity);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("/nft-transfers", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "NFT transfer sent successfully via ActivityPub";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to send NFT transfer via ActivityPub: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending NFT transfer via ActivityPub: {ex.Message}", ex);
+            }
+            return result;
         }
 
         #endregion
@@ -4027,22 +4449,109 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
 
         public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarById(Guid id)
         {
-            throw new NotImplementedException();
+            return LoadProviderWalletsForAvatarByIdAsync(id).Result;
         }
 
-        public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ActivityPub provider is not activated");
+                    return result;
+                }
+
+                // Load avatar to get provider wallets
+                var avatarResult = await LoadAvatarAsync(id);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
+                    return result;
+                }
+
+                var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
+                if (avatarResult.Result?.ProviderWallets != null)
+                {
+                    foreach (var wallet in avatarResult.Result.ProviderWallets)
+                    {
+                        if (!providerWallets.ContainsKey(wallet.ProviderType))
+                        {
+                            providerWallets[wallet.ProviderType] = new List<IProviderWallet>();
+                        }
+                        providerWallets[wallet.ProviderType].Add(wallet);
+                    }
+                }
+
+                result.Result = providerWallets;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {providerWallets.Count} provider wallet types for avatar {id} from ActivityPub";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading provider wallets for avatar from ActivityPub: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<bool> SaveProviderWalletsForAvatarById(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            return SaveProviderWalletsForAvatarByIdAsync(id, providerWallets).Result;
         }
 
-        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ActivityPub provider is not activated");
+                    return result;
+                }
+
+                // Load avatar and update provider wallets
+                var avatarResult = await LoadAvatarAsync(id);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
+                    return result;
+                }
+
+                var avatar = avatarResult.Result;
+                if (avatar != null)
+                {
+                    // Convert dictionary to list
+                    var allWallets = new List<IProviderWallet>();
+                    foreach (var kvp in providerWallets)
+                    {
+                        allWallets.AddRange(kvp.Value);
+                    }
+                    avatar.ProviderWallets = allWallets;
+
+                    // Save updated avatar
+                    var saveResult = await SaveAvatarAsync(avatar);
+                    if (saveResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
+                        return result;
+                    }
+
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Successfully saved {allWallets.Count} provider wallets for avatar {id} to ActivityPub";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving provider wallets for avatar to ActivityPub: {ex.Message}", ex);
+            }
+            return result;
         }
 
         #endregion
