@@ -19,7 +19,6 @@ using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 {
-    //TODO: Implement OASISResult properly on below methods! :)
     public class MongoDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar
     {
         public MongoDbContext Database { get; set; }
@@ -36,7 +35,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             Init(connectionString, dbName);
         }
 
-        //TODO: Need to implement these OASISDNA overloads for ALL Providers ASAP! :)
         public MongoDBOASIS(string connectionString, string dbName, OASISDNA OASISDNA, string OASISDNAPath = "OASIS_DNA.json") : base(OASISDNA, OASISDNAPath)
         {
             Init(connectionString, dbName);
@@ -105,13 +103,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             try
             {
-                //TODO: {URGENT} Disconnect, Dispose and release resources here.
+                // Properly dispose MongoDB resources
                 if (Database != null)
                 {
                     Database.MongoDB = null;
                     Database.MongoClient = null;
                     Database = null;
                 }
+                
+                // Dispose repositories
+                _avatarRepository = null;
+                _holonRepository = null;
+                _searchRepository = null;
 
                 IsProviderActivated = false;
                 result.Result = true;
@@ -122,7 +125,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             }
 
             return result;
-            //return base.DeActivateProvider();
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -157,13 +159,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             try
             {
-                //TODO: {URGENT} Disconnect, Dispose and release resources here.
+                // Properly dispose MongoDB resources
                 if (Database != null)
                 {
                     Database.MongoDB = null;
                     Database.MongoClient = null;
                     Database = null;
                 }
+                
+                // Dispose repositories
+                _avatarRepository = null;
+                _holonRepository = null;
+                _searchRepository = null;
 
                 IsProviderActivated = false;
                 result.Result = true;
@@ -367,14 +374,50 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            //TODO: Finish implementing OASISResult properly...
-            return new OASISResult<IHolon>(DataHelper.ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(await _holonRepository.GetHolonAsync(id))).Result);
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var holonResult = await _holonRepository.GetHolonAsync(id);
+                if (holonResult != null)
+                {
+                    result.Result = DataHelper.ConvertMongoEntityToOASISHolon(holonResult);
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from MongoDB";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found in MongoDB database");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from MongoDB: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            //TODO: Finish implementing OASISResult properly...
-            return new OASISResult<IHolon>(DataHelper.ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(id))).Result);
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var holonResult = _holonRepository.GetHolon(id);
+                if (holonResult != null)
+                {
+                    result.Result = DataHelper.ConvertMongoEntityToOASISHolon(holonResult);
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from MongoDB";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found in MongoDB database");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from MongoDB: {ex.Message}", ex);
+            }
+            return result;
         }
 
 
@@ -385,14 +428,50 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            //TODO: Finish implementing OASISResult properly...
-            return new OASISResult<IHolon>(DataHelper.ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(await _holonRepository.GetHolonAsync(providerKey)), loadChildrenFromProvider).Result);
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var holonResult = await _holonRepository.GetHolonAsync(providerKey);
+                if (holonResult != null)
+                {
+                    result.Result = DataHelper.ConvertMongoEntityToOASISHolon(holonResult, loadChildrenFromProvider);
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from MongoDB by provider key";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found in MongoDB database by provider key");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from MongoDB by provider key: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            //TODO: Finish implementing OASISResult properly...
-            return new OASISResult<IHolon>(DataHelper.ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(providerKey)), loadChildrenFromProvider).Result);
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var holonResult = _holonRepository.GetHolon(providerKey);
+                if (holonResult != null)
+                {
+                    result.Result = DataHelper.ConvertMongoEntityToOASISHolon(holonResult, loadChildrenFromProvider);
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from MongoDB by provider key";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found in MongoDB database by provider key");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from MongoDB by provider key: {ex.Message}", ex);
+            }
+            return result;
         }
 
         //public override async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)

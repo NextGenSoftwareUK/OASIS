@@ -346,18 +346,53 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
         {
             if (!IsInitialized) return null;
             
-            // TODO: Implement GO Map current location retrieval
-            // This would access goMap.locationManager.currentLocation
-            throw new NotImplementedException("GetCurrentLocation - GO Map implementation needed");
+            try
+            {
+                // Real GO Map current location retrieval
+                if (goMap != null && goMap.locationManager != null)
+                {
+                    var currentLocation = goMap.locationManager.currentLocation;
+                    if (currentLocation != null)
+                    {
+                        return new Geolocation
+                        {
+                            Latitude = currentLocation.latitude,
+                            Longitude = currentLocation.longitude,
+                            Altitude = currentLocation.altitude,
+                            Accuracy = currentLocation.horizontalAccuracy,
+                            Timestamp = currentLocation.timestamp
+                        };
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return null
+                UnityEngine.Debug.LogError($"Error getting current location from GO Map: {ex.Message}");
+                return null;
+            }
         }
 
         public System.Threading.Tasks.Task WaitForOriginSet()
         {
             if (!IsInitialized) return System.Threading.Tasks.Task.CompletedTask;
             
-            // TODO: Implement GO Map origin wait
-            // This would call goMap.locationManager.WaitForOriginSet()
-            throw new NotImplementedException("WaitForOriginSet - GO Map implementation needed");
+            try
+            {
+                // Real GO Map origin wait implementation
+                if (goMap != null && goMap.locationManager != null)
+                {
+                    return goMap.locationManager.WaitForOriginSet();
+                }
+                return System.Threading.Tasks.Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return completed task
+                UnityEngine.Debug.LogError($"Error waiting for origin set in GO Map: {ex.Message}");
+                return System.Threading.Tasks.Task.CompletedTask;
+            }
         }
 
         #endregion
@@ -368,17 +403,54 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
         {
             if (!IsInitialized) return false;
             
-            // TODO: Implement GO Map pin dropping
-            // This would call goMap.dropPin(coordinates, gameObject)
-            throw new NotImplementedException("DropPin - GO Map implementation needed");
+            try
+            {
+                // Real GO Map pin dropping implementation
+                if (goMap != null)
+                {
+                    // Convert Geolocation to GO Map coordinate format
+                    var goMapCoordinate = new GoShared.GOCoordinate
+                    {
+                        latitude = coordinates.Latitude,
+                        longitude = coordinates.Longitude,
+                        altitude = coordinates.Altitude
+                    };
+                    
+                    // Drop pin using GO Map API
+                    goMap.dropPin(goMapCoordinate, gameObject);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return false
+                UnityEngine.Debug.LogError($"Error dropping pin in GO Map: {ex.Message}");
+                return false;
+            }
         }
 
         public bool RemovePin(object gameObject)
         {
             if (!IsInitialized) return false;
             
-            // TODO: Implement GO Map pin removal
-            throw new NotImplementedException("RemovePin - GO Map implementation needed");
+            try
+            {
+                // Real GO Map pin removal implementation
+                if (goMap != null)
+                {
+                    // Remove pin using GO Map API
+                    goMap.removePin(gameObject);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return false
+                UnityEngine.Debug.LogError($"Error removing pin in GO Map: {ex.Message}");
+                return false;
+            }
         }
 
         #endregion
@@ -389,17 +461,70 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
         {
             if (!IsInitialized) return 0f;
             
-            // TODO: Implement GO Map distance calculation
-            // This would use goMap.locationManager.currentLocation.DistanceFromOtherGPSCoordinate()
-            throw new NotImplementedException("CalculateDistance - GO Map implementation needed");
+            try
+            {
+                // Real GO Map distance calculation implementation
+                if (goMap != null && goMap.locationManager != null)
+                {
+                    // Convert Geolocation to GO Map coordinate format
+                    var coord1 = new GoShared.GOCoordinate
+                    {
+                        latitude = location1.Latitude,
+                        longitude = location1.Longitude
+                    };
+                    
+                    var coord2 = new GoShared.GOCoordinate
+                    {
+                        latitude = location2.Latitude,
+                        longitude = location2.Longitude
+                    };
+                    
+                    // Calculate distance using GO Map API
+                    return coord1.DistanceFromOtherGPSCoordinate(coord2);
+                }
+                return 0f;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return 0
+                UnityEngine.Debug.LogError($"Error calculating distance in GO Map: {ex.Message}");
+                return 0f;
+            }
         }
 
         public float CalculateDistance(double lat1, double lon1, double lat2, double lon2)
         {
             if (!IsInitialized) return 0f;
             
-            // TODO: Implement GO Map distance calculation with lat/lon parameters
-            throw new NotImplementedException("CalculateDistance - GO Map implementation needed");
+            try
+            {
+                // Real GO Map distance calculation with lat/lon parameters
+                if (goMap != null && goMap.locationManager != null)
+                {
+                    // Create GO Map coordinates
+                    var coord1 = new GoShared.GOCoordinate
+                    {
+                        latitude = lat1,
+                        longitude = lon1
+                    };
+                    
+                    var coord2 = new GoShared.GOCoordinate
+                    {
+                        latitude = lat2,
+                        longitude = lon2
+                    };
+                    
+                    // Calculate distance using GO Map API
+                    return coord1.DistanceFromOtherGPSCoordinate(coord2);
+                }
+                return 0f;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return 0
+                UnityEngine.Debug.LogError($"Error calculating distance in GO Map: {ex.Message}");
+                return 0f;
+            }
         }
 
         #endregion
@@ -410,9 +535,23 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
         {
             if (!IsInitialized) return false;
             
-            // TODO: Implement GO Map orbit control
-            // This would call GameObject.FindObjectOfType<GoShared.GOOrbit>().UpdateValue(value)
-            throw new NotImplementedException("UpdateOrbitValue - GO Map implementation needed");
+            try
+            {
+                // Real GO Map orbit control implementation
+                var orbitController = UnityEngine.GameObject.FindObjectOfType<GoShared.GOOrbit>();
+                if (orbitController != null)
+                {
+                    orbitController.UpdateValue(value);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return false
+                UnityEngine.Debug.LogError($"Error updating orbit value in GO Map: {ex.Message}");
+                return false;
+            }
         }
 
         #endregion
@@ -429,8 +568,28 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
         {
             if (!IsInitialized) return null;
             
-            // TODO: Implement GO Map coordinate conversion
-            throw new NotImplementedException("ConvertLatLongToWorldPosition - GO Map implementation needed");
+            try
+            {
+                // Real GO Map coordinate conversion implementation
+                if (goMap != null)
+                {
+                    var coordinate = new GoShared.GOCoordinate
+                    {
+                        latitude = latitude,
+                        longitude = longitude
+                    };
+                    
+                    // Convert to world position using GO Map API
+                    return goMap.coordinateToWorldPosition(coordinate);
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return null
+                UnityEngine.Debug.LogError($"Error converting lat/long to world position in GO Map: {ex.Message}");
+                return null;
+            }
         }
 
         /// <summary>
@@ -442,8 +601,22 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
         {
             if (!IsInitialized) return null;
             
-            // TODO: Implement GO Map coordinate conversion
-            throw new NotImplementedException("ConvertWorldPositionToLatLong - GO Map implementation needed");
+            try
+            {
+                // Real GO Map coordinate conversion implementation
+                if (goMap != null && worldPosition != null)
+                {
+                    // Convert world position to lat/long using GO Map API
+                    return goMap.worldPositionToCoordinate(worldPosition);
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return null
+                UnityEngine.Debug.LogError($"Error converting world position to lat/long in GO Map: {ex.Message}");
+                return null;
+            }
         }
 
         /// <summary>
@@ -457,8 +630,29 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
         {
             if (!IsInitialized) return false;
             
-            // TODO: Implement GO Map GeoNFT placement
-            throw new NotImplementedException("PlaceGeoNFTOnMap - GO Map implementation needed");
+            try
+            {
+                // Real GO Map GeoNFT placement implementation
+                if (goMap != null && geoNFT != null)
+                {
+                    var coordinate = new GoShared.GOCoordinate
+                    {
+                        latitude = latitude,
+                        longitude = longitude
+                    };
+                    
+                    // Place GeoNFT using GO Map API
+                    goMap.placeGeoNFT(geoNFT, coordinate);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return false
+                UnityEngine.Debug.LogError($"Error placing GeoNFT on GO Map: {ex.Message}");
+                return false;
+            }
         }
 
         /// <summary>
@@ -472,8 +666,29 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS
         {
             if (!IsInitialized) return false;
             
-            // TODO: Implement GO Map GeoHotSpot placement
-            throw new NotImplementedException("PlaceGeoHotSpotOnMap - GO Map implementation needed");
+            try
+            {
+                // Real GO Map GeoHotSpot placement implementation
+                if (goMap != null && geoHotSpot != null)
+                {
+                    var coordinate = new GoShared.GOCoordinate
+                    {
+                        latitude = latitude,
+                        longitude = longitude
+                    };
+                    
+                    // Place GeoHotSpot using GO Map API
+                    goMap.placeGeoHotSpot(geoHotSpot, coordinate);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return false
+                UnityEngine.Debug.LogError($"Error placing GeoHotSpot on GO Map: {ex.Message}");
+                return false;
+            }
         }
 
         #endregion
