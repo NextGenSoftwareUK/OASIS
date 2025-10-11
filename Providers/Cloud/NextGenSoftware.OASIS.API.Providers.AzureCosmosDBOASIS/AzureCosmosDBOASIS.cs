@@ -157,8 +157,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             string errorMessage = $"An error occured {softDeleting} deleting the avatar with id {id}";
             try
             {
-                //TODO HB: Re-write as same way as DeleteHolon methods do... thanks
-
                 if (softDelete)
                 {
                     OASISResult<IAvatar> avatarResult = LoadAvatar(id);
@@ -950,8 +948,31 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            //TODO HB: implement...
-            return LoadAllAvatarDetails(version);
+            OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
+            string errorMessage = "Error occured in LoadAllAvatarDetailsAsync method in AzureCosmosDBOASIS Provider. Reason: ";
+
+            try
+            {
+                var avatarDetailsList = await avatarDetailRepository.GetListAsync();
+
+                if (avatarDetailsList == null)
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");
+                else
+                {
+                    if (version > 0)
+                        avatarDetailsList = avatarDetailsList.Where(a => a.Version == version).ToList();
+
+                    result.Result = avatarDetailsList;
+                    result.IsLoaded = true;
+                    result.Message = "Avatar details fetched asynchronously";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
