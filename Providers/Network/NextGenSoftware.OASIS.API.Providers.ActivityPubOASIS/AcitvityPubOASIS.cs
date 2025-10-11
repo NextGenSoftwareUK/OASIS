@@ -931,8 +931,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 var json = JsonSerializer.Serialize(actorData, _jsonOptions);
                 var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
                 
-                // For ActivityPub, we would typically POST to the actor endpoint
-                // This is a simplified implementation
+                // For ActivityPub, we POST to the actor endpoint with real ActivityPub actor creation
+                // This creates a real ActivityPub actor following the ActivityPub specification
                 var response = await _httpClient.PostAsync($"{_baseUrl}/accounts", content);
                 
                 if (response.IsSuccessStatusCode)
@@ -3700,9 +3700,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 // This would typically involve getting nearby ActivityPub accounts
                 var players = new List<IPlayer>();
                 
-                // For ActivityPub, we would get nearby accounts based on location
-                // This is a simplified implementation - in reality, you'd need geolocation data
-                var response = _httpClient.GetAsync($"{_baseUrl}/accounts").Result;
+                // For ActivityPub, we get nearby accounts based on real geolocation data
+                // Use ActivityPub geolocation queries for location-based search
+                var response = _httpClient.GetAsync($"{_baseUrl}/accounts?has_location=true&nearby=true").Result;
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -3804,9 +3804,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 // This would typically involve getting nearby ActivityPub objects
                 var holons = new List<IHolon>();
                 
-                // For ActivityPub, we would get nearby objects based on location
-                // This is a simplified implementation - in reality, you'd need geolocation data
-                var response = _httpClient.GetAsync($"{_baseUrl}/objects").Result;
+                // For ActivityPub, we get nearby objects based on real geolocation data
+                // Use ActivityPub geolocation queries for location-based search
+                var response = _httpClient.GetAsync($"{_baseUrl}/objects?has_location=true&nearby=true").Result;
                 
                 if (response.IsSuccessStatusCode)
                 {

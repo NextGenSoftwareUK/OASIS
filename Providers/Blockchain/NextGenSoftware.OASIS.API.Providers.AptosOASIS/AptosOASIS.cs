@@ -755,9 +755,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             try
             {
                 // REAL Aptos implementation for sending transaction by usernames
-                // Convert usernames to addresses (simplified - in real implementation would look up addresses)
-                var fromAddress = $"0x{fromUsername.GetHashCode():X}";
-                var toAddress = $"0x{toUsername.GetHashCode():X}";
+                // Get wallet addresses for usernames using WalletHelper
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, ProviderType.AptosOASIS, fromUsername);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, ProviderType.AptosOASIS, toUsername);
+                
+                if (fromWalletResult.IsError || toWalletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Failed to get wallet addresses for usernames");
+                    return response;
+                }
+                
+                var fromAddress = fromWalletResult.Result;
+                var toAddress = toWalletResult.Result;
                 
                 var transactionPayload = new
                 {

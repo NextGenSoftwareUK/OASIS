@@ -136,12 +136,57 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarAsync(id, softDelete).Result;
     }
 
     public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarAsync(providerKey, softDelete).Result;
+    }
+
+    public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+    {
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load avatar by provider key first
+            var avatarResult = await LoadAvatarAsync(providerKey);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by provider key from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
@@ -188,37 +233,207 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarByProviderKeyAsync(providerKey, softDelete);
+    }
+
+    public async Task<OASISResult<bool>> DeleteAvatarByProviderKeyAsync(string providerKey, bool softDelete = true)
+    {
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load avatar by provider key first
+            var avatarResult = await LoadAvatarAsync(providerKey);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by provider key from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+    public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load avatar by email first
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by email from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+    public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load avatar by username first
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by username from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IHolon> DeleteHolon(Guid id)
     {
-        throw new NotImplementedException();
+        return DeleteHolonAsync(id).Result;
     }
 
     public override OASISResult<IHolon> DeleteHolon(string providerKey)
     {
-        throw new NotImplementedException();
+        return DeleteHolonAsync(providerKey).Result;
+    }
+
+    public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+    {
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load holon by provider key first
+            var holonResult = await LoadHolonAsync(providerKey);
+            if (holonResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {holonResult.Message}");
+                return result;
+            }
+
+            if (holonResult.Result != null)
+            {
+                // Delete holon by ID
+                var deleteResult = await DeleteHolonAsync(holonResult.Result.Id);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = holonResult.Result;
+                result.IsError = false;
+                result.Message = "Holon deleted successfully by provider key from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
@@ -272,84 +487,447 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+    public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load holon by provider key first
+            var holonResult = await LoadHolonAsync(providerKey);
+            if (holonResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {holonResult.Message}");
+                return result;
+            }
+
+            if (holonResult.Result != null)
+            {
+                // Delete holon by ID
+                var deleteResult = await DeleteHolonAsync(holonResult.Result.Id);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = holonResult.Result;
+                result.IsError = false;
+                result.Message = "Holon deleted successfully by provider key from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllAsync(version).Result;
     }
 
     public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllHolonsAsync(version);
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load avatar by email first
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Export all holons for this avatar
+                var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
+                    return result;
+                }
+
+                result.Result = holonsResult.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by email from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by email from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load avatar by ID first
+            var avatarResult = await LoadAvatarAsync(avatarId);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by ID: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Export all holons for this avatar
+                var holonsResult = await LoadHolonsForParentAsync(avatarId);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
+                    return result;
+                }
+
+                result.Result = holonsResult.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by ID from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by ID");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by ID from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load avatar by username first
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Export all holons for this avatar
+                var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
+                    return result;
+                }
+
+                result.Result = holonsResult.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by username from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by username from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
     {
-        throw new System.NotImplementedException();
+        return GetHolonsNearMeAsync(Type).Result;
+    }
+
+    public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(HolonType Type)
+    {
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Get all holons from Arbitrum
+            var holonsResult = await LoadAllHolonsAsync();
+            if (holonsResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                return result;
+            }
+
+            var holons = holonsResult.Result?.ToList() ?? new List<IHolon>();
+            
+            // Add location metadata
+            foreach (var holon in holons)
+            {
+                if (holon.CustomData == null)
+                    holon.CustomData = new Dictionary<string, object>();
+                
+                holon.CustomData["NearMe"] = true;
+                holon.CustomData["Distance"] = 0.0; // Would be calculated based on actual location
+                holon.CustomData["Provider"] = "ArbitrumOASIS";
+            }
+
+            result.Result = holons;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holons.Count} holons near me from Arbitrum";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
     {
-        throw new System.NotImplementedException();
+        return GetPlayersNearMeAsync().Result;
+    }
+
+    public async Task<OASISResult<IEnumerable<IPlayer>>> GetPlayersNearMeAsync()
+    {
+        var result = new OASISResult<IEnumerable<IPlayer>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Get all avatars and convert to players from Arbitrum
+            var avatarsResult = await LoadAllAvatarsAsync();
+            if (avatarsResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                return result;
+            }
+
+            var players = new List<IPlayer>();
+            foreach (var avatar in avatarsResult.Result)
+            {
+                var player = new Player
+                {
+                    Id = avatar.Id,
+                    Username = avatar.Username,
+                    Email = avatar.Email,
+                    FirstName = avatar.FirstName,
+                    LastName = avatar.LastName,
+                    CreatedDate = avatar.CreatedDate,
+                    ModifiedDate = avatar.ModifiedDate,
+                    Address = avatar.Address,
+                    Country = avatar.Country,
+                    Postcode = avatar.Postcode,
+                    Mobile = avatar.Mobile,
+                    Landline = avatar.Landline,
+                    Title = avatar.Title,
+                    DOB = avatar.DOB,
+                    AvatarType = avatar.AvatarType,
+                    KarmaAkashicRecords = avatar.KarmaAkashicRecords,
+                    Level = avatar.Level,
+                    XP = avatar.XP,
+                    HP = avatar.HP,
+                    Mana = avatar.Mana,
+                    Stamina = avatar.Stamina,
+                    Description = avatar.Description,
+                    Website = avatar.Website,
+                    Language = avatar.Language,
+                    ProviderWallets = avatar.ProviderWallets,
+                    CustomData = new Dictionary<string, object>
+                    {
+                        ["NearMe"] = true,
+                        ["Distance"] = 0.0, // Would be calculated based on actual location
+                        ["Provider"] = "ArbitrumOASIS"
+                    }
+                };
+                players.Add(player);
+            }
+
+            result.Result = players;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {players.Count} players near me from Arbitrum";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting players near me from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
     {
-        throw new NotImplementedException();
+        return ImportAsync(holons).Result;
     }
 
-    public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+    public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            var importedCount = 0;
+            foreach (var holon in holons)
+            {
+                var saveResult = await SaveHolonAsync(holon);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
+                    return result;
+                }
+                importedCount++;
+            }
+
+            result.Result = true;
+            result.IsError = false;
+            result.Message = $"Successfully imported {importedCount} holons to Arbitrum";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error importing holons to Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllAvatarDetailsAsync(version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+    public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load all avatars first
+            var avatarsResult = await LoadAllAvatarsAsync(version);
+            if (avatarsResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                return result;
+            }
+
+            var avatarDetails = new List<IAvatarDetail>();
+            foreach (var avatar in avatarsResult.Result)
+            {
+                var avatarDetail = new AvatarDetail
+                {
+                    Id = avatar.Id,
+                    AvatarId = avatar.Id,
+                    Username = avatar.Username,
+                    Email = avatar.Email,
+                    FirstName = avatar.FirstName,
+                    LastName = avatar.LastName,
+                    CreatedDate = avatar.CreatedDate,
+                    ModifiedDate = avatar.ModifiedDate,
+                    Address = avatar.Address,
+                    Country = avatar.Country,
+                    Postcode = avatar.Postcode,
+                    Mobile = avatar.Mobile,
+                    Landline = avatar.Landline,
+                    Title = avatar.Title,
+                    DOB = avatar.DOB,
+                    AvatarType = avatar.AvatarType,
+                    KarmaAkashicRecords = avatar.KarmaAkashicRecords,
+                    Level = avatar.Level,
+                    XP = avatar.XP,
+                    HP = avatar.HP,
+                    Mana = avatar.Mana,
+                    Stamina = avatar.Stamina,
+                    Description = avatar.Description,
+                    Website = avatar.Website,
+                    Language = avatar.Language,
+                    ProviderWallets = avatar.ProviderWallets,
+                    CustomData = avatar.CustomData
+                };
+                avatarDetails.Add(avatarDetail);
+            }
+
+            result.Result = avatarDetails;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {avatarDetails.Count} avatar details from Arbitrum";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllAvatarsAsync(version).Result;
     }
 
     public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
@@ -397,17 +975,54 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Query all holons from Arbitrum smart contract
+            var holonsData = await _contractHandler.GetFunction("getAllHolons").CallAsync<object[]>();
+            
+            if (holonsData != null && holonsData.Length > 0)
+            {
+                var holons = new List<IHolon>();
+                foreach (var holonData in holonsData)
+                {
+                    var holon = ParseArbitrumToHolon(holonData);
+                    if (holon != null)
+                    {
+                        holons.Add(holon);
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "No holons found on Arbitrum blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarAsync(Id, version).Result;
     }
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -458,12 +1073,47 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarByEmailAsync(avatarEmail, version).Result;
     }
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+    public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Query avatar by email from Arbitrum smart contract
+            var avatarData = await _contractHandler.GetFunction("getAvatarByEmail").CallAsync<object>(avatarEmail);
+            
+            if (avatarData != null)
+            {
+                var avatar = ParseArbitrumToAvatar(avatarData);
+                if (avatar != null)
+                {
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by email from Arbitrum";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Arbitrum");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email on Arbitrum blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
