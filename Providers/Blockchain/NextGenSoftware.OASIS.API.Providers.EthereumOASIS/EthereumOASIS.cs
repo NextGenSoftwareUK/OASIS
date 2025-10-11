@@ -707,7 +707,52 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            throw new NotImplementedException();
+            return DeleteHolonAsync(providerKey).Result;
+        }
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    return result;
+                }
+
+                // Load holon by provider key first
+                var holonResult = await LoadHolonAsync(providerKey);
+                if (holonResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {holonResult.Message}");
+                    return result;
+                }
+
+                if (holonResult.Result != null)
+                {
+                    // Delete holon by ID
+                    var deleteResult = await DeleteHolonAsync(holonResult.Result.Id);
+                    if (deleteResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {deleteResult.Message}");
+                        return result;
+                    }
+
+                    result.Result = holonResult.Result;
+                    result.IsError = false;
+                    result.Message = "Holon deleted successfully by provider key from Ethereum";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from Ethereum: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1013,12 +1058,150 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by email first
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                    return result;
+                }
+
+                if (avatarResult.Result != null)
+                {
+                    // Create avatar detail from avatar
+                    var avatarDetail = new AvatarDetail
+                    {
+                        Id = avatarResult.Result.Id,
+                        AvatarId = avatarResult.Result.Id,
+                        Username = avatarResult.Result.Username,
+                        Email = avatarResult.Result.Email,
+                        FirstName = avatarResult.Result.FirstName,
+                        LastName = avatarResult.Result.LastName,
+                        CreatedDate = avatarResult.Result.CreatedDate,
+                        ModifiedDate = avatarResult.Result.ModifiedDate,
+                        Address = avatarResult.Result.Address,
+                        Country = avatarResult.Result.Country,
+                        Postcode = avatarResult.Result.Postcode,
+                        Mobile = avatarResult.Result.Mobile,
+                        Landline = avatarResult.Result.Landline,
+                        Title = avatarResult.Result.Title,
+                        DOB = avatarResult.Result.DOB,
+                        AvatarType = avatarResult.Result.AvatarType,
+                        KarmaAkashicRecords = avatarResult.Result.KarmaAkashicRecords,
+                        Level = avatarResult.Result.Level,
+                        XP = avatarResult.Result.XP,
+                        HP = avatarResult.Result.HP,
+                        Mana = avatarResult.Result.Mana,
+                        Stamina = avatarResult.Result.Stamina,
+                        Description = avatarResult.Result.Description,
+                        Website = avatarResult.Result.Website,
+                        Language = avatarResult.Result.Language,
+                        ProviderWallets = avatarResult.Result.ProviderWallets,
+                        CustomData = avatarResult.Result.CustomData
+                    };
+
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully by email from Ethereum";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Ethereum: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username first
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                    return result;
+                }
+
+                if (avatarResult.Result != null)
+                {
+                    // Create avatar detail from avatar
+                    var avatarDetail = new AvatarDetail
+                    {
+                        Id = avatarResult.Result.Id,
+                        AvatarId = avatarResult.Result.Id,
+                        Username = avatarResult.Result.Username,
+                        Email = avatarResult.Result.Email,
+                        FirstName = avatarResult.Result.FirstName,
+                        LastName = avatarResult.Result.LastName,
+                        CreatedDate = avatarResult.Result.CreatedDate,
+                        ModifiedDate = avatarResult.Result.ModifiedDate,
+                        Address = avatarResult.Result.Address,
+                        Country = avatarResult.Result.Country,
+                        Postcode = avatarResult.Result.Postcode,
+                        Mobile = avatarResult.Result.Mobile,
+                        Landline = avatarResult.Result.Landline,
+                        Title = avatarResult.Result.Title,
+                        DOB = avatarResult.Result.DOB,
+                        AvatarType = avatarResult.Result.AvatarType,
+                        KarmaAkashicRecords = avatarResult.Result.KarmaAkashicRecords,
+                        Level = avatarResult.Result.Level,
+                        XP = avatarResult.Result.XP,
+                        HP = avatarResult.Result.HP,
+                        Mana = avatarResult.Result.Mana,
+                        Stamina = avatarResult.Result.Stamina,
+                        Description = avatarResult.Result.Description,
+                        Website = avatarResult.Result.Website,
+                        Language = avatarResult.Result.Language,
+                        ProviderWallets = avatarResult.Result.ProviderWallets,
+                        CustomData = avatarResult.Result.CustomData
+                    };
+
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully by username from Ethereum";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Ethereum: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)

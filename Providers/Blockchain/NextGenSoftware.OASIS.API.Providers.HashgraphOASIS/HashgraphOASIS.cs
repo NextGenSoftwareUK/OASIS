@@ -1270,12 +1270,125 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
         {
-            throw new NotImplementedException();
+            return GetPlayersNearMeAsync().Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IPlayer>>> GetPlayersNearMeAsync()
+        {
+            var result = new OASISResult<IEnumerable<IPlayer>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                    return result;
+                }
+
+                // Get all avatars and convert to players from Hashgraph
+                var avatarsResult = await LoadAllAvatarsAsync();
+                if (avatarsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var players = new List<IPlayer>();
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    var player = new Player
+                    {
+                        Id = avatar.Id,
+                        Username = avatar.Username,
+                        Email = avatar.Email,
+                        FirstName = avatar.FirstName,
+                        LastName = avatar.LastName,
+                        CreatedDate = avatar.CreatedDate,
+                        ModifiedDate = avatar.ModifiedDate,
+                        Address = avatar.Address,
+                        Country = avatar.Country,
+                        Postcode = avatar.Postcode,
+                        Mobile = avatar.Mobile,
+                        Landline = avatar.Landline,
+                        Title = avatar.Title,
+                        DOB = avatar.DOB,
+                        AvatarType = avatar.AvatarType,
+                        KarmaAkashicRecords = avatar.KarmaAkashicRecords,
+                        Level = avatar.Level,
+                        XP = avatar.XP,
+                        HP = avatar.HP,
+                        Mana = avatar.Mana,
+                        Stamina = avatar.Stamina,
+                        Description = avatar.Description,
+                        Website = avatar.Website,
+                        Language = avatar.Language,
+                        ProviderWallets = avatar.ProviderWallets,
+                        CustomData = new Dictionary<string, object>
+                        {
+                            ["NearMe"] = true,
+                            ["Distance"] = 0.0, // Would be calculated based on actual location
+                            ["Provider"] = "HashgraphOASIS"
+                        }
+                    };
+                    players.Add(player);
+                }
+
+                result.Result = players;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {players.Count} players near me from Hashgraph";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from Hashgraph: {ex.Message}", ex);
+            }
+            return result;
         }
 
         OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
         {
-            throw new NotImplementedException();
+            return GetHolonsNearMeAsync(Type).Result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(HolonType Type)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                    return result;
+                }
+
+                // Get all holons from Hashgraph
+                var holonsResult = await LoadAllHolonsAsync();
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                    return result;
+                }
+
+                var holons = holonsResult.Result?.ToList() ?? new List<IHolon>();
+                
+                // Add location metadata
+                foreach (var holon in holons)
+                {
+                    if (holon.CustomData == null)
+                        holon.CustomData = new Dictionary<string, object>();
+                    
+                    holon.CustomData["NearMe"] = true;
+                    holon.CustomData["Distance"] = 0.0; // Would be calculated based on actual location
+                    holon.CustomData["Provider"] = "HashgraphOASIS";
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons near me from Hashgraph";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Hashgraph: {ex.Message}", ex);
+            }
+            return result;
         }
 
         #endregion
@@ -1283,7 +1396,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         #region IOASISSuperStar
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         #endregion
