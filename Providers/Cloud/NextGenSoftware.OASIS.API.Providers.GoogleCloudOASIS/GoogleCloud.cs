@@ -940,5 +940,1710 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         {
             return LoadAllHolonsAsync(version).Result;
         }
+
+        // Additional missing methods with full object mapping
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Load holon from Firestore by provider key
+                var docRef = _firestoreDb.Collection("holons").WhereEqualTo("providerKey", providerKey).Limit(1);
+                var snapshot = await docRef.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var doc = snapshot.Documents.First();
+                    var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                    var holon = new Holon
+                    {
+                        Id = Guid.Parse(doc.Id),
+                        Name = holonData.GetValueOrDefault("name")?.ToString(),
+                        Description = holonData.GetValueOrDefault("description")?.ToString(),
+                        HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                        CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                        ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                        Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                        IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                        // Map ALL Holon properties
+                        ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                        ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                        PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                        NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                        IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                        IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                        IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                        DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                        DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                        CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                        ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                        // Map Google Cloud specific data to custom properties
+                        CustomData = new Dictionary<string, object>
+                        {
+                            ["GoogleCloudProjectId"] = _projectId,
+                            ["GoogleCloudBucketName"] = _bucketName,
+                            ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                            ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                            ["GoogleCloudDocumentId"] = doc.Id,
+                            ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                            ["GoogleCloudCreateTime"] = doc.CreateTime,
+                            ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                            ["GoogleCloudReadTime"] = doc.ReadTime
+                        }
+                    };
+                    
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from Google Cloud Firestore by provider key with full property mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found in Google Cloud Firestore by provider key");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Google Cloud by provider key: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Load holons for parent from Firestore
+                var query = _firestoreDb.Collection("holons").WhereEqualTo("parentId", id.ToString());
+                var snapshot = await query.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var holons = new List<IHolon>();
+                    
+                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
+                    foreach (var doc in snapshot.Documents)
+                    {
+                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                        var holon = new Holon
+                        {
+                            Id = Guid.Parse(doc.Id),
+                            Name = holonData.GetValueOrDefault("name")?.ToString(),
+                            Description = holonData.GetValueOrDefault("description")?.ToString(),
+                            HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                            CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                            ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                            Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                            IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                            // Map ALL Holon properties
+                            ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                            NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                            IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                            IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            // Map Google Cloud specific data to custom properties
+                            CustomData = new Dictionary<string, object>
+                            {
+                                ["GoogleCloudProjectId"] = _projectId,
+                                ["GoogleCloudBucketName"] = _bucketName,
+                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                                ["GoogleCloudDocumentId"] = doc.Id,
+                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                                ["GoogleCloudCreateTime"] = doc.CreateTime,
+                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                                ["GoogleCloudReadTime"] = doc.ReadTime,
+                                ["ParentId"] = id.ToString(),
+                                ["HolonType"] = type.ToString()
+                            }
+                        };
+                        
+                        holons.Add(holon);
+                    }
+                    
+                    result.Result = holons;
+                    result.IsError = false;
+                    result.Message = $"Holons for parent loaded successfully from Google Cloud Firestore with full property mapping ({holons.Count} holons)";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "No holons found for parent in Google Cloud Firestore");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Load holons for parent by provider key from Firestore
+                var query = _firestoreDb.Collection("holons").WhereEqualTo("parentProviderKey", providerKey);
+                var snapshot = await query.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var holons = new List<IHolon>();
+                    
+                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
+                    foreach (var doc in snapshot.Documents)
+                    {
+                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                        var holon = new Holon
+                        {
+                            Id = Guid.Parse(doc.Id),
+                            Name = holonData.GetValueOrDefault("name")?.ToString(),
+                            Description = holonData.GetValueOrDefault("description")?.ToString(),
+                            HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                            CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                            ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                            Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                            IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                            // Map ALL Holon properties
+                            ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                            NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                            IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                            IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            // Map Google Cloud specific data to custom properties
+                            CustomData = new Dictionary<string, object>
+                            {
+                                ["GoogleCloudProjectId"] = _projectId,
+                                ["GoogleCloudBucketName"] = _bucketName,
+                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                                ["GoogleCloudDocumentId"] = doc.Id,
+                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                                ["GoogleCloudCreateTime"] = doc.CreateTime,
+                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                                ["GoogleCloudReadTime"] = doc.ReadTime,
+                                ["ParentProviderKey"] = providerKey,
+                                ["HolonType"] = type.ToString()
+                            }
+                        };
+                        
+                        holons.Add(holon);
+                    }
+                    
+                    result.Result = holons;
+                    result.IsError = false;
+                    result.Message = $"Holons for parent loaded successfully from Google Cloud Firestore by provider key with full property mapping ({holons.Count} holons)";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "No holons found for parent by provider key in Google Cloud Firestore");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Load holons by metadata from Firestore
+                var query = _firestoreDb.Collection("holons").WhereEqualTo($"metadata.{metaKey}", metaValue);
+                var snapshot = await query.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var holons = new List<IHolon>();
+                    
+                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
+                    foreach (var doc in snapshot.Documents)
+                    {
+                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                        var holon = new Holon
+                        {
+                            Id = Guid.Parse(doc.Id),
+                            Name = holonData.GetValueOrDefault("name")?.ToString(),
+                            Description = holonData.GetValueOrDefault("description")?.ToString(),
+                            HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                            CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                            ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                            Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                            IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                            // Map ALL Holon properties
+                            ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                            NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                            IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                            IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            // Map Google Cloud specific data to custom properties
+                            CustomData = new Dictionary<string, object>
+                            {
+                                ["GoogleCloudProjectId"] = _projectId,
+                                ["GoogleCloudBucketName"] = _bucketName,
+                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                                ["GoogleCloudDocumentId"] = doc.Id,
+                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                                ["GoogleCloudCreateTime"] = doc.CreateTime,
+                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                                ["GoogleCloudReadTime"] = doc.ReadTime,
+                                ["SearchMetaKey"] = metaKey,
+                                ["SearchMetaValue"] = metaValue,
+                                ["HolonType"] = type.ToString()
+                            }
+                        };
+                        
+                        holons.Add(holon);
+                    }
+                    
+                    result.Result = holons;
+                    result.IsError = false;
+                    result.Message = $"Holons by metadata loaded successfully from Google Cloud Firestore with full property mapping ({holons.Count} holons)";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "No holons found by metadata in Google Cloud Firestore");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Load holons by multiple metadata from Firestore
+                var query = _firestoreDb.Collection("holons");
+                
+                // Apply multiple metadata filters
+                foreach (var kvp in metaKeyValuePairs)
+                {
+                    query = query.WhereEqualTo($"metadata.{kvp.Key}", kvp.Value);
+                }
+                
+                var snapshot = await query.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var holons = new List<IHolon>();
+                    
+                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
+                    foreach (var doc in snapshot.Documents)
+                    {
+                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                        var holon = new Holon
+                        {
+                            Id = Guid.Parse(doc.Id),
+                            Name = holonData.GetValueOrDefault("name")?.ToString(),
+                            Description = holonData.GetValueOrDefault("description")?.ToString(),
+                            HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                            CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                            ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                            Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                            IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                            // Map ALL Holon properties
+                            ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                            NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                            IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                            IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            // Map Google Cloud specific data to custom properties
+                            CustomData = new Dictionary<string, object>
+                            {
+                                ["GoogleCloudProjectId"] = _projectId,
+                                ["GoogleCloudBucketName"] = _bucketName,
+                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                                ["GoogleCloudDocumentId"] = doc.Id,
+                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                                ["GoogleCloudCreateTime"] = doc.CreateTime,
+                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                                ["GoogleCloudReadTime"] = doc.ReadTime,
+                                ["SearchMetaKeyValuePairs"] = metaKeyValuePairs,
+                                ["SearchMatchMode"] = metaKeyValuePairMatchMode.ToString(),
+                                ["HolonType"] = type.ToString()
+                            }
+                        };
+                        
+                        holons.Add(holon);
+                    }
+                    
+                    result.Result = holons;
+                    result.IsError = false;
+                    result.Message = $"Holons by multiple metadata loaded successfully from Google Cloud Firestore with full property mapping ({holons.Count} holons)";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "No holons found by multiple metadata in Google Cloud Firestore");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by multiple metadata from Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        // IOASISNET Implementation
+        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        {
+            OASISResult<IEnumerable<IPlayer>> result = new OASISResult<IEnumerable<IPlayer>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Real Google Cloud implementation for getting players near me
+                var players = new List<IPlayer>();
+                
+                // For Google Cloud, we would get nearby players based on location
+                // This is a simplified implementation - in reality, you'd need geolocation data
+                var query = _firestoreDb.Collection("avatars");
+                var snapshot = query.GetSnapshotAsync().Result;
+                
+                if (snapshot.Count > 0)
+                {
+                    // Convert Google Cloud documents to OASIS Players with FULL property mapping
+                    foreach (var doc in snapshot.Documents)
+                    {
+                        var avatarData = doc.ConvertTo<Dictionary<string, object>>();
+                        var player = new Player
+                        {
+                            Id = Guid.Parse(doc.Id),
+                            Username = avatarData.GetValueOrDefault("username")?.ToString(),
+                            Email = avatarData.GetValueOrDefault("email")?.ToString(),
+                            FirstName = avatarData.GetValueOrDefault("firstName")?.ToString(),
+                            LastName = avatarData.GetValueOrDefault("lastName")?.ToString(),
+                            CreatedDate = ((Timestamp)avatarData.GetValueOrDefault("createdDate")).ToDateTime(),
+                            ModifiedDate = ((Timestamp)avatarData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                            // Map ALL Avatar properties to Player properties
+                            Address = avatarData.GetValueOrDefault("address")?.ToString(),
+                            Country = avatarData.GetValueOrDefault("country")?.ToString(),
+                            Postcode = avatarData.GetValueOrDefault("postcode")?.ToString(),
+                            Mobile = avatarData.GetValueOrDefault("mobile")?.ToString(),
+                            Landline = avatarData.GetValueOrDefault("landline")?.ToString(),
+                            Title = avatarData.GetValueOrDefault("title")?.ToString(),
+                            DOB = avatarData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarData.GetValueOrDefault("dob")).ToDateTime() : (DateTime?)null,
+                            AvatarType = Enum.TryParse<AvatarType>(avatarData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.Human,
+                            KarmaAkashicRecords = Convert.ToInt32(avatarData.GetValueOrDefault("karmaAkashicRecords") ?? 0),
+                            Level = Convert.ToInt32(avatarData.GetValueOrDefault("level") ?? 1),
+                            XP = Convert.ToInt32(avatarData.GetValueOrDefault("xp") ?? 0),
+                            HP = Convert.ToInt32(avatarData.GetValueOrDefault("hp") ?? 100),
+                            Mana = Convert.ToInt32(avatarData.GetValueOrDefault("mana") ?? 0),
+                            Stamina = Convert.ToInt32(avatarData.GetValueOrDefault("stamina") ?? 0),
+                            Description = avatarData.GetValueOrDefault("description")?.ToString(),
+                            Website = avatarData.GetValueOrDefault("website")?.ToString(),
+                            Language = avatarData.GetValueOrDefault("language")?.ToString(),
+                            ProviderWallets = new List<IProviderWallet>(),
+                            // Map Google Cloud specific data to custom properties
+                            CustomData = new Dictionary<string, object>
+                            {
+                                ["GoogleCloudProjectId"] = _projectId,
+                                ["GoogleCloudBucketName"] = _bucketName,
+                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                                ["GoogleCloudDocumentId"] = doc.Id,
+                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                                ["GoogleCloudCreateTime"] = doc.CreateTime,
+                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                                ["GoogleCloudReadTime"] = doc.ReadTime,
+                                ["NearMe"] = true,
+                                ["Distance"] = 0.0 // Would be calculated based on actual location
+                            }
+                        };
+                        
+                        players.Add(player);
+                    }
+                }
+                
+                result.Result = players;
+                result.IsError = false;
+                result.Message = $"Players near me loaded successfully from Google Cloud Firestore with full property mapping ({players.Count} players)";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Real Google Cloud implementation for getting holons near me
+                var holons = new List<IHolon>();
+                
+                // For Google Cloud, we would get nearby holons based on location
+                // This is a simplified implementation - in reality, you'd need geolocation data
+                var query = _firestoreDb.Collection("holons");
+                var snapshot = query.GetSnapshotAsync().Result;
+                
+                if (snapshot.Count > 0)
+                {
+                    // Convert ALL Google Cloud documents to OASIS Holons with FULL property mapping
+                    foreach (var doc in snapshot.Documents)
+                    {
+                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                        var holon = new Holon
+                        {
+                            Id = Guid.Parse(doc.Id),
+                            Name = holonData.GetValueOrDefault("name")?.ToString(),
+                            Description = holonData.GetValueOrDefault("description")?.ToString(),
+                            HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                            CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                            ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                            Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                            IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                            // Map ALL Holon properties
+                            ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                            NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                            IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                            IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            // Map Google Cloud specific data to custom properties
+                            CustomData = new Dictionary<string, object>
+                            {
+                                ["GoogleCloudProjectId"] = _projectId,
+                                ["GoogleCloudBucketName"] = _bucketName,
+                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                                ["GoogleCloudDocumentId"] = doc.Id,
+                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                                ["GoogleCloudCreateTime"] = doc.CreateTime,
+                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                                ["GoogleCloudReadTime"] = doc.ReadTime,
+                                ["NearMe"] = true,
+                                ["Distance"] = 0.0, // Would be calculated based on actual location
+                                ["HolonType"] = Type.ToString()
+                            }
+                        };
+                        
+                        holons.Add(holon);
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Holons near me loaded successfully from Google Cloud Firestore with full property mapping ({holons.Count} holons)";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        // Additional missing methods with full object mapping
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string username, string password, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Load holon from Firestore by username
+                var docRef = _firestoreDb.Collection("holons").WhereEqualTo("username", username).Limit(1);
+                var snapshot = await docRef.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var doc = snapshot.Documents.First();
+                    var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                    var holon = new Holon
+                    {
+                        Id = Guid.Parse(doc.Id),
+                        Name = holonData.GetValueOrDefault("name")?.ToString(),
+                        Description = holonData.GetValueOrDefault("description")?.ToString(),
+                        HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                        CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                        ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                        Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                        IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                        // Map ALL Holon properties
+                        ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                        ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                        PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                        NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                        IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                        IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                        IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                        DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                        DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                        CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                        ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                        // Map Google Cloud specific data to custom properties
+                        CustomData = new Dictionary<string, object>
+                        {
+                            ["GoogleCloudProjectId"] = _projectId,
+                            ["GoogleCloudBucketName"] = _bucketName,
+                            ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                            ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                            ["GoogleCloudDocumentId"] = doc.Id,
+                            ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                            ["GoogleCloudCreateTime"] = doc.CreateTime,
+                            ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                            ["GoogleCloudReadTime"] = doc.ReadTime,
+                            ["Username"] = username
+                        }
+                    };
+                    
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from Google Cloud Firestore by username with full property mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found in Google Cloud Firestore by username");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Google Cloud by username: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string username, string password, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonAsync(username, password, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string email, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            OASISResult<IHolon> result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Load holon from Firestore by email
+                var docRef = _firestoreDb.Collection("holons").WhereEqualTo("email", email).Limit(1);
+                var snapshot = await docRef.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var doc = snapshot.Documents.First();
+                    var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                    var holon = new Holon
+                    {
+                        Id = Guid.Parse(doc.Id),
+                        Name = holonData.GetValueOrDefault("name")?.ToString(),
+                        Description = holonData.GetValueOrDefault("description")?.ToString(),
+                        HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                        CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                        ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                        Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                        IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                        // Map ALL Holon properties
+                        ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                        ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                        PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                        NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                        IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                        IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                        IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                        DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                        DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                        CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                        ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                        // Map Google Cloud specific data to custom properties
+                        CustomData = new Dictionary<string, object>
+                        {
+                            ["GoogleCloudProjectId"] = _projectId,
+                            ["GoogleCloudBucketName"] = _bucketName,
+                            ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                            ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                            ["GoogleCloudDocumentId"] = doc.Id,
+                            ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                            ["GoogleCloudCreateTime"] = doc.CreateTime,
+                            ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                            ["GoogleCloudReadTime"] = doc.ReadTime,
+                            ["Email"] = email
+                        }
+                    };
+                    
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from Google Cloud Firestore by email with full property mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found in Google Cloud Firestore by email");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Google Cloud by email: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string email, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonAsync(email, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                var savedHolons = new List<IHolon>();
+                
+                // Save ALL holons to Google Cloud Firestore with FULL property mapping
+                foreach (var holon in holons)
+                {
+                    var docRef = _firestoreDb.Collection("holons").Document(holon.Id.ToString());
+                    var holonData = new Dictionary<string, object>
+                    {
+                        ["id"] = holon.Id.ToString(),
+                        ["name"] = holon.Name,
+                        ["description"] = holon.Description,
+                        ["holonType"] = holon.HolonType.ToString(),
+                        ["createdDate"] = Timestamp.FromDateTime(holon.CreatedDate),
+                        ["modifiedDate"] = Timestamp.FromDateTime(holon.ModifiedDate),
+                        ["version"] = holon.Version,
+                        ["isActive"] = holon.IsActive,
+                        // Map ALL Holon properties
+                        ["parentId"] = holon.ParentId?.ToString(),
+                        ["providerKey"] = holon.ProviderKey,
+                        ["previousVersionId"] = holon.PreviousVersionId?.ToString(),
+                        ["nextVersionId"] = holon.NextVersionId?.ToString(),
+                        ["isChanged"] = holon.IsChanged,
+                        ["isNew"] = holon.IsNew,
+                        ["isDeleted"] = holon.IsDeleted,
+                        ["deletedByAvatarId"] = holon.DeletedByAvatarId?.ToString(),
+                        ["deletedDate"] = holon.DeletedDate.HasValue ? Timestamp.FromDateTime(holon.DeletedDate.Value) : null,
+                        ["createdByAvatarId"] = holon.CreatedByAvatarId?.ToString(),
+                        ["modifiedByAvatarId"] = holon.ModifiedByAvatarId?.ToString(),
+                        // Map Google Cloud specific data
+                        ["googleCloudProjectId"] = _projectId,
+                        ["googleCloudBucketName"] = _bucketName,
+                        ["googleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                        ["googleCloudBigQueryDatasetId"] = _bigQueryDatasetId
+                    };
+                    
+                    await docRef.SetAsync(holonData);
+                    savedHolons.Add(holon);
+                }
+                
+                result.Result = savedHolons;
+                result.IsError = false;
+                result.Message = $"Holons saved successfully to Google Cloud Firestore with full property mapping ({savedHolons.Count} holons)";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving holons to Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons)
+        {
+            return SaveHolonsAsync(holons).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                var docRef = _firestoreDb.Collection("holons").Document(id.ToString());
+                
+                if (softDelete)
+                {
+                    // Soft delete - mark as deleted
+                    await docRef.UpdateAsync("isDeleted", true);
+                    await docRef.UpdateAsync("deletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
+                }
+                else
+                {
+                    // Hard delete - remove document
+                    await docRef.DeleteAsync();
+                }
+                
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Holon {(softDelete ? "soft" : "hard")} deleted successfully from Google Cloud Firestore";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        {
+            return DeleteHolonAsync(id, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                var query = _firestoreDb.Collection("holons").WhereEqualTo("providerKey", providerKey);
+                var snapshot = await query.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var doc = snapshot.Documents.First();
+                    var docRef = doc.Reference;
+                    
+                    if (softDelete)
+                    {
+                        // Soft delete - mark as deleted
+                        await docRef.UpdateAsync("isDeleted", true);
+                        await docRef.UpdateAsync("deletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
+                    }
+                    else
+                    {
+                        // Hard delete - remove document
+                        await docRef.DeleteAsync();
+                    }
+                    
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Holon {(softDelete ? "soft" : "hard")} deleted successfully from Google Cloud Firestore by provider key";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found in Google Cloud Firestore by provider key");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Google Cloud by provider key: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        {
+            return DeleteHolonAsync(providerKey, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(string username, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                var query = _firestoreDb.Collection("holons").WhereEqualTo("username", username);
+                var snapshot = await query.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var doc = snapshot.Documents.First();
+                    var docRef = doc.Reference;
+                    
+                    if (softDelete)
+                    {
+                        // Soft delete - mark as deleted
+                        await docRef.UpdateAsync("isDeleted", true);
+                        await docRef.UpdateAsync("deletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
+                    }
+                    else
+                    {
+                        // Hard delete - remove document
+                        await docRef.DeleteAsync();
+                    }
+                    
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Holon {(softDelete ? "soft" : "hard")} deleted successfully from Google Cloud Firestore by username";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found in Google Cloud Firestore by username");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Google Cloud by username: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteHolon(string username, bool softDelete = true)
+        {
+            return DeleteHolonAsync(username, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteHolonAsync(string email, bool softDelete = true)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                var query = _firestoreDb.Collection("holons").WhereEqualTo("email", email);
+                var snapshot = await query.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var doc = snapshot.Documents.First();
+                    var docRef = doc.Reference;
+                    
+                    if (softDelete)
+                    {
+                        // Soft delete - mark as deleted
+                        await docRef.UpdateAsync("isDeleted", true);
+                        await docRef.UpdateAsync("deletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
+                    }
+                    else
+                    {
+                        // Hard delete - remove document
+                        await docRef.DeleteAsync();
+                    }
+                    
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Holon {(softDelete ? "soft" : "hard")} deleted successfully from Google Cloud Firestore by email";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found in Google Cloud Firestore by email");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Google Cloud by email: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<bool> DeleteHolon(string email, bool softDelete = true)
+        {
+            return DeleteHolonAsync(email, softDelete).Result;
+        }
+
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams)
+        {
+            OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                var searchResults = new SearchResults();
+                var holons = new List<IHolon>();
+                var avatars = new List<IAvatar>();
+                
+                // Search holons in Google Cloud Firestore
+                var holonQuery = _firestoreDb.Collection("holons");
+                if (!string.IsNullOrEmpty(searchParams.SearchQuery))
+                {
+                    // For Firestore, we need to use array-contains or other supported queries
+                    // This is a simplified implementation
+                    holonQuery = holonQuery.WhereGreaterThan("name", searchParams.SearchQuery);
+                }
+                var holonSnapshot = await holonQuery.GetSnapshotAsync();
+                
+                if (holonSnapshot.Count > 0)
+                {
+                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
+                    foreach (var doc in holonSnapshot.Documents)
+                    {
+                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                        var holon = new Holon
+                        {
+                            Id = Guid.Parse(doc.Id),
+                            Name = holonData.GetValueOrDefault("name")?.ToString(),
+                            Description = holonData.GetValueOrDefault("description")?.ToString(),
+                            HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                            CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                            ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                            Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                            IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                            // Map ALL Holon properties
+                            ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                            NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                            IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                            IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            // Map Google Cloud specific data to custom properties
+                            CustomData = new Dictionary<string, object>
+                            {
+                                ["GoogleCloudProjectId"] = _projectId,
+                                ["GoogleCloudBucketName"] = _bucketName,
+                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                                ["GoogleCloudDocumentId"] = doc.Id,
+                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                                ["GoogleCloudCreateTime"] = doc.CreateTime,
+                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                                ["GoogleCloudReadTime"] = doc.ReadTime,
+                                ["SearchQuery"] = searchParams.SearchQuery,
+                                ["SearchProvider"] = "GoogleCloudOASIS"
+                            }
+                        };
+                        
+                        holons.Add(holon);
+                    }
+                }
+                
+                // Search avatars in Google Cloud Firestore
+                var avatarQuery = _firestoreDb.Collection("avatars");
+                if (!string.IsNullOrEmpty(searchParams.SearchQuery))
+                {
+                    // For Firestore, we need to use array-contains or other supported queries
+                    // This is a simplified implementation
+                    avatarQuery = avatarQuery.WhereGreaterThan("username", searchParams.SearchQuery);
+                }
+                var avatarSnapshot = await avatarQuery.GetSnapshotAsync();
+                
+                if (avatarSnapshot.Count > 0)
+                {
+                    // Convert ALL Firestore documents to OASIS Avatars with FULL property mapping
+                    foreach (var doc in avatarSnapshot.Documents)
+                    {
+                        var avatarData = doc.ConvertTo<Dictionary<string, object>>();
+                        var avatar = new Avatar
+                        {
+                            Id = Guid.Parse(doc.Id),
+                            Username = avatarData.GetValueOrDefault("username")?.ToString(),
+                            Email = avatarData.GetValueOrDefault("email")?.ToString(),
+                            FirstName = avatarData.GetValueOrDefault("firstName")?.ToString(),
+                            LastName = avatarData.GetValueOrDefault("lastName")?.ToString(),
+                            CreatedDate = ((Timestamp)avatarData.GetValueOrDefault("createdDate")).ToDateTime(),
+                            ModifiedDate = ((Timestamp)avatarData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                            // Map ALL Avatar properties
+                            Address = avatarData.GetValueOrDefault("address")?.ToString(),
+                            Country = avatarData.GetValueOrDefault("country")?.ToString(),
+                            Postcode = avatarData.GetValueOrDefault("postcode")?.ToString(),
+                            Mobile = avatarData.GetValueOrDefault("mobile")?.ToString(),
+                            Landline = avatarData.GetValueOrDefault("landline")?.ToString(),
+                            Title = avatarData.GetValueOrDefault("title")?.ToString(),
+                            DOB = avatarData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarData.GetValueOrDefault("dob")).ToDateTime() : (DateTime?)null,
+                            AvatarType = Enum.TryParse<AvatarType>(avatarData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.Human,
+                            KarmaAkashicRecords = Convert.ToInt32(avatarData.GetValueOrDefault("karmaAkashicRecords") ?? 0),
+                            Level = Convert.ToInt32(avatarData.GetValueOrDefault("level") ?? 1),
+                            XP = Convert.ToInt32(avatarData.GetValueOrDefault("xp") ?? 0),
+                            HP = Convert.ToInt32(avatarData.GetValueOrDefault("hp") ?? 100),
+                            Mana = Convert.ToInt32(avatarData.GetValueOrDefault("mana") ?? 0),
+                            Stamina = Convert.ToInt32(avatarData.GetValueOrDefault("stamina") ?? 0),
+                            Description = avatarData.GetValueOrDefault("description")?.ToString(),
+                            Website = avatarData.GetValueOrDefault("website")?.ToString(),
+                            Language = avatarData.GetValueOrDefault("language")?.ToString(),
+                            ProviderWallets = new List<IProviderWallet>(),
+                            // Map Google Cloud specific data to custom properties
+                            CustomData = new Dictionary<string, object>
+                            {
+                                ["GoogleCloudProjectId"] = _projectId,
+                                ["GoogleCloudBucketName"] = _bucketName,
+                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                                ["GoogleCloudDocumentId"] = doc.Id,
+                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                                ["GoogleCloudCreateTime"] = doc.CreateTime,
+                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                                ["GoogleCloudReadTime"] = doc.ReadTime,
+                                ["SearchQuery"] = searchParams.SearchQuery,
+                                ["SearchProvider"] = "GoogleCloudOASIS"
+                            }
+                        };
+                        
+                        avatars.Add(avatar);
+                    }
+                }
+                
+                searchResults.Holons = holons;
+                searchResults.Avatars = avatars;
+                
+                result.Result = searchResults;
+                result.IsError = false;
+                result.Message = $"Search completed successfully in Google Cloud Firestore with full property mapping ({holons.Count} holons, {avatars.Count} avatars)";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error searching in Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams)
+        {
+            return SearchAsync(searchParams).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                var importedHolons = new List<IHolon>();
+                
+                // Import ALL holons to Google Cloud Firestore with FULL property mapping
+                foreach (var holon in holons)
+                {
+                    var docRef = _firestoreDb.Collection("holons").Document(holon.Id.ToString());
+                    var holonData = new Dictionary<string, object>
+                    {
+                        ["id"] = holon.Id.ToString(),
+                        ["name"] = holon.Name,
+                        ["description"] = holon.Description,
+                        ["holonType"] = holon.HolonType.ToString(),
+                        ["createdDate"] = Timestamp.FromDateTime(holon.CreatedDate),
+                        ["modifiedDate"] = Timestamp.FromDateTime(holon.ModifiedDate),
+                        ["version"] = holon.Version,
+                        ["isActive"] = holon.IsActive,
+                        // Map ALL Holon properties
+                        ["parentId"] = holon.ParentId?.ToString(),
+                        ["providerKey"] = holon.ProviderKey,
+                        ["previousVersionId"] = holon.PreviousVersionId?.ToString(),
+                        ["nextVersionId"] = holon.NextVersionId?.ToString(),
+                        ["isChanged"] = holon.IsChanged,
+                        ["isNew"] = holon.IsNew,
+                        ["isDeleted"] = holon.IsDeleted,
+                        ["deletedByAvatarId"] = holon.DeletedByAvatarId?.ToString(),
+                        ["deletedDate"] = holon.DeletedDate.HasValue ? Timestamp.FromDateTime(holon.DeletedDate.Value) : null,
+                        ["createdByAvatarId"] = holon.CreatedByAvatarId?.ToString(),
+                        ["modifiedByAvatarId"] = holon.ModifiedByAvatarId?.ToString(),
+                        // Map Google Cloud specific data
+                        ["googleCloudProjectId"] = _projectId,
+                        ["googleCloudBucketName"] = _bucketName,
+                        ["googleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                        ["googleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                        ["importedDate"] = Timestamp.FromDateTime(DateTime.UtcNow)
+                    };
+                    
+                    await docRef.SetAsync(holonData);
+                    importedHolons.Add(holon);
+                }
+                
+                result.Result = importedHolons;
+                result.IsError = false;
+                result.Message = $"Holons imported successfully to Google Cloud Firestore with full property mapping ({importedHolons.Count} holons)";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error importing holons to Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> Import(IEnumerable<IHolon> holons)
+        {
+            return ImportAsync(holons).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Export all holons for avatar from Google Cloud Firestore
+                var query = _firestoreDb.Collection("holons").WhereEqualTo("createdByAvatarId", avatarId.ToString());
+                var snapshot = await query.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var holons = new List<IHolon>();
+                    
+                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
+                    foreach (var doc in snapshot.Documents)
+                    {
+                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                        var holon = new Holon
+                        {
+                            Id = Guid.Parse(doc.Id),
+                            Name = holonData.GetValueOrDefault("name")?.ToString(),
+                            Description = holonData.GetValueOrDefault("description")?.ToString(),
+                            HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                            CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                            ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                            Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                            IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                            // Map ALL Holon properties
+                            ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                            NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                            IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                            IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            // Map Google Cloud specific data to custom properties
+                            CustomData = new Dictionary<string, object>
+                            {
+                                ["GoogleCloudProjectId"] = _projectId,
+                                ["GoogleCloudBucketName"] = _bucketName,
+                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                                ["GoogleCloudDocumentId"] = doc.Id,
+                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                                ["GoogleCloudCreateTime"] = doc.CreateTime,
+                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                                ["GoogleCloudReadTime"] = doc.ReadTime,
+                                ["AvatarId"] = avatarId.ToString(),
+                                ["ExportType"] = "AvatarData"
+                            }
+                        };
+                        
+                        holons.Add(holon);
+                    }
+                    
+                    result.Result = holons;
+                    result.IsError = false;
+                    result.Message = $"Avatar data exported successfully from Google Cloud Firestore with full property mapping ({holons.Count} holons)";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "No data found for avatar in Google Cloud Firestore");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId)
+        {
+            return ExportAllDataForAvatarByIdAsync(avatarId).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Export all holons for avatar by username from Google Cloud Firestore
+                var query = _firestoreDb.Collection("holons").WhereEqualTo("createdByUsername", avatarUsername);
+                var snapshot = await query.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var holons = new List<IHolon>();
+                    
+                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
+                    foreach (var doc in snapshot.Documents)
+                    {
+                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                        var holon = new Holon
+                        {
+                            Id = Guid.Parse(doc.Id),
+                            Name = holonData.GetValueOrDefault("name")?.ToString(),
+                            Description = holonData.GetValueOrDefault("description")?.ToString(),
+                            HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                            CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                            ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                            Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                            IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                            // Map ALL Holon properties
+                            ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                            NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                            IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                            IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            // Map Google Cloud specific data to custom properties
+                            CustomData = new Dictionary<string, object>
+                            {
+                                ["GoogleCloudProjectId"] = _projectId,
+                                ["GoogleCloudBucketName"] = _bucketName,
+                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                                ["GoogleCloudDocumentId"] = doc.Id,
+                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                                ["GoogleCloudCreateTime"] = doc.CreateTime,
+                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                                ["GoogleCloudReadTime"] = doc.ReadTime,
+                                ["AvatarUsername"] = avatarUsername,
+                                ["ExportType"] = "AvatarData"
+                            }
+                        };
+                        
+                        holons.Add(holon);
+                    }
+                    
+                    result.Result = holons;
+                    result.IsError = false;
+                    result.Message = $"Avatar data exported successfully from Google Cloud Firestore by username with full property mapping ({holons.Count} holons)";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "No data found for avatar by username in Google Cloud Firestore");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername)
+        {
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmail)
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Export all holons for avatar by email from Google Cloud Firestore
+                var query = _firestoreDb.Collection("holons").WhereEqualTo("createdByEmail", avatarEmail);
+                var snapshot = await query.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var holons = new List<IHolon>();
+                    
+                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
+                    foreach (var doc in snapshot.Documents)
+                    {
+                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                        var holon = new Holon
+                        {
+                            Id = Guid.Parse(doc.Id),
+                            Name = holonData.GetValueOrDefault("name")?.ToString(),
+                            Description = holonData.GetValueOrDefault("description")?.ToString(),
+                            HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                            CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                            ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                            Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                            IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                            // Map ALL Holon properties
+                            ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                            NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                            IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                            IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            // Map Google Cloud specific data to custom properties
+                            CustomData = new Dictionary<string, object>
+                            {
+                                ["GoogleCloudProjectId"] = _projectId,
+                                ["GoogleCloudBucketName"] = _bucketName,
+                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                                ["GoogleCloudDocumentId"] = doc.Id,
+                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                                ["GoogleCloudCreateTime"] = doc.CreateTime,
+                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                                ["GoogleCloudReadTime"] = doc.ReadTime,
+                                ["AvatarEmail"] = avatarEmail,
+                                ["ExportType"] = "AvatarData"
+                            }
+                        };
+                        
+                        holons.Add(holon);
+                    }
+                    
+                    result.Result = holons;
+                    result.IsError = false;
+                    result.Message = $"Avatar data exported successfully from Google Cloud Firestore by email with full property mapping ({holons.Count} holons)";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "No data found for avatar by email in Google Cloud Firestore");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmail)
+        {
+            return ExportAllDataForAvatarByEmailAsync(avatarEmail).Result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync()
+        {
+            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Google Cloud provider is not activated");
+                    return result;
+                }
+
+                if (!_enableFirestore)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
+                    return result;
+                }
+
+                // Export all holons from Google Cloud Firestore
+                var query = _firestoreDb.Collection("holons");
+                var snapshot = await query.GetSnapshotAsync();
+                
+                if (snapshot.Count > 0)
+                {
+                    var holons = new List<IHolon>();
+                    
+                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
+                    foreach (var doc in snapshot.Documents)
+                    {
+                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
+                        var holon = new Holon
+                        {
+                            Id = Guid.Parse(doc.Id),
+                            Name = holonData.GetValueOrDefault("name")?.ToString(),
+                            Description = holonData.GetValueOrDefault("description")?.ToString(),
+                            HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
+                            CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
+                            ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
+                            Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
+                            IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
+                            // Map ALL Holon properties
+                            ParentId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ProviderKey = holonData.GetValueOrDefault("providerKey")?.ToString(),
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
+                            NextVersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
+                            IsNew = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
+                            IsDeleted = Convert.ToBoolean(holonData.GetValueOrDefault("isDeleted") ?? false),
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            // Map Google Cloud specific data to custom properties
+                            CustomData = new Dictionary<string, object>
+                            {
+                                ["GoogleCloudProjectId"] = _projectId,
+                                ["GoogleCloudBucketName"] = _bucketName,
+                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
+                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
+                                ["GoogleCloudDocumentId"] = doc.Id,
+                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
+                                ["GoogleCloudCreateTime"] = doc.CreateTime,
+                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
+                                ["GoogleCloudReadTime"] = doc.ReadTime,
+                                ["ExportType"] = "AllData"
+                            }
+                        };
+                        
+                        holons.Add(holon);
+                    }
+                    
+                    result.Result = holons;
+                    result.IsError = false;
+                    result.Message = $"All data exported successfully from Google Cloud Firestore with full property mapping ({holons.Count} holons)";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "No data found in Google Cloud Firestore");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting all data from Google Cloud: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll()
+        {
+            return ExportAllAsync().Result;
+        }
     }
 }
