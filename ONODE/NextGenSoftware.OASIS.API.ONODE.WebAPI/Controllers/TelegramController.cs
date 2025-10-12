@@ -22,18 +22,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         private readonly TelegramOASIS _telegramProvider;
         private readonly TelegramBotService _botService;
-        private readonly AvatarManager _avatarManager;
         private readonly ILogger<TelegramController> _logger;
 
         public TelegramController(
             TelegramOASIS telegramProvider,
             TelegramBotService botService,
-            AvatarManager avatarManager,
             ILogger<TelegramController> logger)
         {
             _telegramProvider = telegramProvider;
             _botService = botService;
-            _avatarManager = avatarManager;
             _logger = logger;
         }
 
