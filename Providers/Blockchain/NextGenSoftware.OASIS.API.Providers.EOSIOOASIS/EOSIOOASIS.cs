@@ -469,18 +469,51 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByEmailAsync(avatarEmail, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey,
             int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by provider key from EOSIO blockchain
+                var avatarData = await _eosClient.GetAccountInfoAsync(providerKey);
+                if (avatarData.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarData.Message}");
+                    return result;
+                }
+
+                if (avatarData.Result != null)
+                {
+                    var avatar = JsonConvert.DeserializeObject<Avatar>(avatarData.Result.ToString());
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by provider key from EOSIO";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key on EOSIO blockchain");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)

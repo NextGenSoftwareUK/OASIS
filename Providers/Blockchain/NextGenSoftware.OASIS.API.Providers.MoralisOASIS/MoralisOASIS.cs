@@ -478,12 +478,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
 
         public IEnumerable<IHolon> GetHolonsNearMe(HolonType Type)
         {
-            throw new NotImplementedException();
+            return GetHolonsNearMeAsync(Type).Result.Result ?? new List<IHolon>();
         }
 
         public IEnumerable<IPlayer> GetPlayersNearMe()
         {
-            throw new NotImplementedException();
+            return GetPlayersNearMeAsync().Result.Result ?? new List<IPlayer>();
         }
 
 

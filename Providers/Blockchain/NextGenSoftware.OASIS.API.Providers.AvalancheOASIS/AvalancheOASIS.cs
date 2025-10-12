@@ -267,9 +267,49 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         return result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+    public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Load avatar by provider key first
+            var avatarResult = await LoadAvatarAsync(providerKey);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by provider key from Avalanche";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)

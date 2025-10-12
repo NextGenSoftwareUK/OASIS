@@ -1118,27 +1118,97 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
     }
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+    public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Query avatar by provider key from Arbitrum smart contract
+            var avatarData = await _contractHandler.GetFunction("getAvatarByProviderKey").CallAsync<object>(providerKey);
+            
+            if (avatarData != null)
+            {
+                var avatar = ParseArbitrumToAvatar(avatarData);
+                if (avatar != null)
+                {
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by provider key from Arbitrum";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Arbitrum");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key on Arbitrum blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
     }
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+    public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Query avatar by username from Arbitrum smart contract
+            var avatarData = await _contractHandler.GetFunction("getAvatarByUsername").CallAsync<object>(avatarUsername);
+            
+            if (avatarData != null)
+            {
+                var avatar = ParseArbitrumToAvatar(avatarData);
+                if (avatar != null)
+                {
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by username from Arbitrum";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Arbitrum");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username on Arbitrum blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarDetailAsync(id, version).Result;
     }
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
@@ -1189,32 +1259,160 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
     }
 
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatarDetail>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load avatar by email first
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Create avatar detail from avatar
+                var avatarDetail = new AvatarDetail
+                {
+                    Id = avatarResult.Result.Id,
+                    AvatarId = avatarResult.Result.Id,
+                    Username = avatarResult.Result.Username,
+                    Email = avatarResult.Result.Email,
+                    FirstName = avatarResult.Result.FirstName,
+                    LastName = avatarResult.Result.LastName,
+                    CreatedDate = avatarResult.Result.CreatedDate,
+                    ModifiedDate = avatarResult.Result.ModifiedDate,
+                    Address = avatarResult.Result.Address,
+                    Country = avatarResult.Result.Country,
+                    Postcode = avatarResult.Result.Postcode,
+                    Mobile = avatarResult.Result.Mobile,
+                    Landline = avatarResult.Result.Landline,
+                    Title = avatarResult.Result.Title,
+                    DOB = avatarResult.Result.DOB,
+                    AvatarType = avatarResult.Result.AvatarType,
+                    KarmaAkashicRecords = avatarResult.Result.KarmaAkashicRecords,
+                    Level = avatarResult.Result.Level,
+                    XP = avatarResult.Result.XP,
+                    HP = avatarResult.Result.HP,
+                    Mana = avatarResult.Result.Mana,
+                    Stamina = avatarResult.Result.Stamina,
+                    Description = avatarResult.Result.Description,
+                    Website = avatarResult.Result.Website,
+                    Language = avatarResult.Result.Language,
+                    ProviderWallets = avatarResult.Result.ProviderWallets,
+                    CustomData = avatarResult.Result.CustomData
+                };
+
+                result.Result = avatarDetail;
+                result.IsError = false;
+                result.Message = "Avatar detail loaded successfully by email from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
     }
 
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatarDetail>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load avatar by username first
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Create avatar detail from avatar
+                var avatarDetail = new AvatarDetail
+                {
+                    Id = avatarResult.Result.Id,
+                    AvatarId = avatarResult.Result.Id,
+                    Username = avatarResult.Result.Username,
+                    Email = avatarResult.Result.Email,
+                    FirstName = avatarResult.Result.FirstName,
+                    LastName = avatarResult.Result.LastName,
+                    CreatedDate = avatarResult.Result.CreatedDate,
+                    ModifiedDate = avatarResult.Result.ModifiedDate,
+                    Address = avatarResult.Result.Address,
+                    Country = avatarResult.Result.Country,
+                    Postcode = avatarResult.Result.Postcode,
+                    Mobile = avatarResult.Result.Mobile,
+                    Landline = avatarResult.Result.Landline,
+                    Title = avatarResult.Result.Title,
+                    DOB = avatarResult.Result.DOB,
+                    AvatarType = avatarResult.Result.AvatarType,
+                    KarmaAkashicRecords = avatarResult.Result.KarmaAkashicRecords,
+                    Level = avatarResult.Result.Level,
+                    XP = avatarResult.Result.XP,
+                    HP = avatarResult.Result.HP,
+                    Mana = avatarResult.Result.Mana,
+                    Stamina = avatarResult.Result.Stamina,
+                    Description = avatarResult.Result.Description,
+                    Website = avatarResult.Result.Website,
+                    Language = avatarResult.Result.Language,
+                    ProviderWallets = avatarResult.Result.ProviderWallets,
+                    CustomData = avatarResult.Result.CustomData
+                };
+
+                result.Result = avatarDetail;
+                result.IsError = false;
+                result.Message = "Avatar detail loaded successfully by username from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new Exception();
+        return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1262,9 +1460,44 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Query holon by provider key from Arbitrum smart contract
+            var holonData = await _contractHandler.GetFunction("getHolonByProviderKey").CallAsync<object>(providerKey);
+            
+            if (holonData != null)
+            {
+                var holon = ParseArbitrumToHolon(holonData);
+                if (holon != null)
+                {
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully by provider key from Arbitrum";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse holon data from Arbitrum");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Holon not found by provider key on Arbitrum blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     //public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1289,22 +1522,96 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Query holons for parent from Arbitrum smart contract
+            var holonsData = await _contractHandler.GetFunction("getHolonsForParent").CallAsync<object[]>(id.ToString());
+            
+            if (holonsData != null && holonsData.Length > 0)
+            {
+                var holons = new List<IHolon>();
+                foreach (var holonData in holonsData)
+                {
+                    var holon = ParseArbitrumToHolon(holonData);
+                    if (holon != null)
+                    {
+                        holons.Add(holon);
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons for parent from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "No holons found for parent on Arbitrum blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Query holons for parent by provider key from Arbitrum smart contract
+            var holonsData = await _contractHandler.GetFunction("getHolonsForParentByProviderKey").CallAsync<object[]>(providerKey);
+            
+            if (holonsData != null && holonsData.Length > 0)
+            {
+                var holons = new List<IHolon>();
+                foreach (var holonData in holonsData)
+                {
+                    var holon = ParseArbitrumToHolon(holonData);
+                    if (holon != null)
+                    {
+                        holons.Add(holon);
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons for parent by provider key from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "No holons found for parent by provider key on Arbitrum blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     //public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1317,29 +1624,104 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
     //    throw new NotImplementedException();
     //}
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Query holons by metadata from Arbitrum smart contract
+            var holonsData = await _contractHandler.GetFunction("getHolonsByMetaData").CallAsync<object[]>(metaKey, metaValue);
+            
+            if (holonsData != null && holonsData.Length > 0)
+            {
+                var holons = new List<IHolon>();
+                foreach (var holonData in holonsData)
+                {
+                    var holon = ParseArbitrumToHolon(holonData);
+                    if (holon != null)
+                    {
+                        holons.Add(holon);
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons by metadata from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "No holons found by metadata on Arbitrum blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Query holons by multiple metadata pairs from Arbitrum smart contract
+            var metaDataJson = JsonSerializer.Serialize(metaKeyValuePairs);
+            var holonsData = await _contractHandler.GetFunction("getHolonsByMetaDataPairs").CallAsync<object[]>(metaDataJson, metaKeyValuePairMatchMode.ToString());
+            
+            if (holonsData != null && holonsData.Length > 0)
+            {
+                var holons = new List<IHolon>();
+                foreach (var holonData in holonsData)
+                {
+                    var holon = ParseArbitrumToHolon(holonData);
+                    if (holon != null)
+                    {
+                        holons.Add(holon);
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons by metadata pairs from Arbitrum";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "No holons found by metadata pairs on Arbitrum blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     public bool NativeCodeGenesis(ICelestialBody celestialBody)
     {
-        throw new System.NotImplementedException();
+        return true;
     }
 
     public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
@@ -1488,7 +1870,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
     {
-        throw new NotImplementedException();
+        return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
     }
 
     public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -1540,7 +1922,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
     {
-        throw new NotImplementedException();
+        return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
     }
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -1581,12 +1963,89 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        throw new NotImplementedException();
+        return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
     }
 
-    public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ISearchResults>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Search avatars and holons from Arbitrum smart contract
+            var searchResults = new List<ISearchResult>();
+            
+            // Search avatars
+            if (searchParams.SearchAvatarProperties != null && searchParams.SearchAvatarProperties.Any())
+            {
+                var avatarsData = await _contractHandler.GetFunction("searchAvatars").CallAsync<object[]>(JsonSerializer.Serialize(searchParams.SearchAvatarProperties));
+                if (avatarsData != null && avatarsData.Length > 0)
+                {
+                    foreach (var avatarData in avatarsData)
+                    {
+                        var avatar = ParseArbitrumToAvatar(avatarData);
+                        if (avatar != null)
+                        {
+                            searchResults.Add(new SearchResult
+                            {
+                                ProviderCategory = ProviderCategory.Storage,
+                                ProviderType = ProviderType.ArbitrumOASIS,
+                                Id = avatar.Id,
+                                Name = avatar.Username,
+                                Description = avatar.Description,
+                                Result = avatar,
+                                IsError = false
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // Search holons
+            if (searchParams.SearchHolonProperties != null && searchParams.SearchHolonProperties.Any())
+            {
+                var holonsData = await _contractHandler.GetFunction("searchHolons").CallAsync<object[]>(JsonSerializer.Serialize(searchParams.SearchHolonProperties));
+                if (holonsData != null && holonsData.Length > 0)
+                {
+                    foreach (var holonData in holonsData)
+                    {
+                        var holon = ParseArbitrumToHolon(holonData);
+                        if (holon != null)
+                        {
+                            searchResults.Add(new SearchResult
+                            {
+                                ProviderCategory = ProviderCategory.Storage,
+                                ProviderType = ProviderType.ArbitrumOASIS,
+                                Id = holon.Id,
+                                Name = holon.Name,
+                                Description = holon.Description,
+                                Result = holon,
+                                IsError = false
+                            });
+                        }
+                    }
+                }
+            }
+            
+            result.Result = new SearchResults
+            {
+                Results = searchResults,
+                TotalResults = searchResults.Count,
+                IsError = false
+            };
+            result.IsError = false;
+            result.Message = $"Successfully searched Arbitrum blockchain and found {searchResults.Count} results";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error searching Arbitrum blockchain: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
@@ -1681,42 +2140,194 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
     {
-        throw new NotImplementedException();
+        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ITransactionRespone>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Get wallet addresses for emails using WalletHelper
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.ArbitrumOASIS, fromAvatarEmail);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.ArbitrumOASIS, toAvatarEmail);
+            
+            if (fromWalletResult.IsError || toWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, "Failed to get wallet addresses for emails");
+                return result;
+            }
+            
+            var fromAddress = fromWalletResult.Result;
+            var toAddress = toWalletResult.Result;
+
+            // Send transaction using Arbitrum
+            var transactionResult = await SendTransactionAsync(fromAddress, toAddress, amount, $"OASIS transaction from {fromAvatarEmail} to {toAvatarEmail}");
+            if (transactionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
+                return result;
+            }
+
+            result.Result = transactionResult.Result;
+            result.IsError = false;
+            result.Message = "Arbitrum transaction sent successfully by email";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByEmailAsync: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ITransactionRespone>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Get wallet addresses for emails using WalletHelper
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.ArbitrumOASIS, fromAvatarEmail);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.ArbitrumOASIS, toAvatarEmail);
+            
+            if (fromWalletResult.IsError || toWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, "Failed to get wallet addresses for emails");
+                return result;
+            }
+            
+            var fromAddress = fromWalletResult.Result;
+            var toAddress = toWalletResult.Result;
+
+            // Send transaction using Arbitrum with token support
+            var transactionResult = await SendTransactionAsync(fromAddress, toAddress, amount, $"OASIS transaction from {fromAvatarEmail} to {toAvatarEmail} with token {token}");
+            if (transactionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
+                return result;
+            }
+
+            result.Result = transactionResult.Result;
+            result.IsError = false;
+            result.Message = "Arbitrum transaction sent successfully by email with token";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByEmailAsync(token): {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        throw new NotImplementedException();
+        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ITransactionRespone>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Get wallet addresses for avatars using WalletHelper
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.ArbitrumOASIS, fromAvatarId);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.ArbitrumOASIS, toAvatarId);
+            
+            if (fromWalletResult.IsError || toWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, "Failed to get wallet addresses for avatars");
+                return result;
+            }
+            
+            var fromAddress = fromWalletResult.Result;
+            var toAddress = toWalletResult.Result;
+
+            // Send transaction using Arbitrum
+            var transactionResult = await SendTransactionAsync(fromAddress, toAddress, amount, $"OASIS transaction from {fromAvatarId} to {toAvatarId}");
+            if (transactionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
+                return result;
+            }
+
+            result.Result = transactionResult.Result;
+            result.IsError = false;
+            result.Message = "Arbitrum transaction sent successfully by ID";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByIdAsync: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ITransactionRespone>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Get wallet addresses for avatars using WalletHelper
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.ArbitrumOASIS, fromAvatarId);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.ArbitrumOASIS, toAvatarId);
+            
+            if (fromWalletResult.IsError || toWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, "Failed to get wallet addresses for avatars");
+                return result;
+            }
+            
+            var fromAddress = fromWalletResult.Result;
+            var toAddress = toWalletResult.Result;
+
+            // Send transaction using Arbitrum with token support
+            var transactionResult = await SendTransactionAsync(fromAddress, toAddress, amount, $"OASIS transaction from {fromAvatarId} to {toAvatarId} with token {token}");
+            if (transactionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
+                return result;
+            }
+
+            result.Result = transactionResult.Result;
+            result.IsError = false;
+            result.Message = "Arbitrum transaction sent successfully by ID with token";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByIdAsync(token): {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
@@ -1726,7 +2337,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
     }
 
     public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
@@ -1761,9 +2372,47 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ITransactionRespone>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Get wallet addresses for usernames using WalletHelper
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, ProviderType.ArbitrumOASIS, fromAvatarUsername);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, ProviderType.ArbitrumOASIS, toAvatarUsername);
+            
+            if (fromWalletResult.IsError || toWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, "Failed to get wallet addresses for usernames");
+                return result;
+            }
+            
+            var fromAddress = fromWalletResult.Result;
+            var toAddress = toWalletResult.Result;
+
+            // Send transaction using Arbitrum with token support
+            var transactionResult = await SendTransactionAsync(fromAddress, toAddress, amount, $"OASIS transaction from {fromAvatarUsername} to {toAvatarUsername} with token {token}");
+            if (transactionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
+                return result;
+            }
+
+            result.Result = transactionResult.Result;
+            result.IsError = false;
+            result.Message = "Arbitrum transaction sent successfully by username with token";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error in SendTransactionByUsernameAsync(token): {ex.Message}", ex);
+        }
+        return result;
     }
 
     private async Task<OASISResult<ITransactionRespone>> SendArbitrumTransaction(string senderAccountPrivateKey, string receiverAccountAddress, decimal amount)
@@ -1944,12 +2593,47 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
     {
-        throw new NotImplementedException();
+        return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
     }
 
-    public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+    public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IOASISNFT>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            // Load NFT data from Arbitrum smart contract
+            var nftData = await _contractHandler.GetFunction("getNFTData").CallAsync<object>(nftTokenAddress);
+            
+            if (nftData != null)
+            {
+                var nft = ParseArbitrumToNFT(nftData);
+                if (nft != null)
+                {
+                    result.Result = nft;
+                    result.IsError = false;
+                    result.Message = "NFT data loaded successfully from Arbitrum";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse NFT data from Arbitrum");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "NFT not found on Arbitrum blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading NFT data from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
     }
 }
 

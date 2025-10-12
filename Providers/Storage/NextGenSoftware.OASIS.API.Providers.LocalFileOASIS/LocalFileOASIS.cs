@@ -484,37 +484,156 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         }
 
-        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by email first
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                    return result;
+                }
+
+                if (avatarResult.Result != null)
+                {
+                    // Delete avatar by ID
+                    var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                    if (deleteResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                        return result;
+                    }
+
+                    result.Result = deleteResult.Result;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully by email from LocalFile";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from LocalFile: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
         }
 
-        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username first
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                    return result;
+                }
+
+                if (avatarResult.Result != null)
+                {
+                    // Delete avatar by ID
+                    var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                    if (deleteResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                        return result;
+                    }
+
+                    result.Result = deleteResult.Result;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully by username from LocalFile";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from LocalFile: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            throw new NotImplementedException();
+            return DeleteHolonAsync(id).Result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            throw new NotImplementedException();
+            return DeleteHolonAsync(providerKey).Result;
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                // Load holon first to get the data
+                var holonResult = await LoadHolonAsync(id);
+                if (holonResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holon: {holonResult.Message}");
+                    return result;
+                }
+
+                if (holonResult.Result != null)
+                {
+                    // Delete holon file from local file system
+                    var filePath = Path.Combine(_holonDirectory, $"{id}.json");
+                    if (File.Exists(filePath))
+                    {
+                        File.Delete(filePath);
+                    }
+
+                    result.Result = holonResult.Result;
+                    result.IsError = false;
+                    result.Message = "Holon deleted successfully from LocalFile";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from LocalFile: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
