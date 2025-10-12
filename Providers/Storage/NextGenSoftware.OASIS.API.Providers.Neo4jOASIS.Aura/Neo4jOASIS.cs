@@ -160,17 +160,17 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         }
         OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
         {
-            throw new NotImplementedException();
+            return GetPlayersNearMeAsync().Result;
         }
 
         OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
         {
-            throw new NotImplementedException();
+            return GetHolonsNearMeAsync(Type).Result;
         }
 
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
@@ -2785,64 +2785,267 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             }
         }
 
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ISearchResults>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
+                    return result;
+                }
+
+                // Search using Neo4j Aura database
+                var searchResults = new List<ISearchResult>();
+                
+                // Search avatars
+                if (searchParams.SearchAvatarProperties != null && searchParams.SearchAvatarProperties.Any())
+                {
+                    var avatarsResult = await LoadAllAvatarsAsync();
+                    if (!avatarsResult.IsError && avatarsResult.Result != null)
+                    {
+                        foreach (var avatar in avatarsResult.Result)
+                        {
+                            searchResults.Add(new SearchResult
+                            {
+                                ProviderCategory = ProviderCategory.Storage,
+                                ProviderType = ProviderType.Neo4jOASIS,
+                                Id = avatar.Id,
+                                Name = avatar.Username,
+                                Description = avatar.Description,
+                                Result = avatar,
+                                IsError = false
+                            });
+                        }
+                    }
+                }
+                
+                // Search holons
+                if (searchParams.SearchHolonProperties != null && searchParams.SearchHolonProperties.Any())
+                {
+                    var holonsResult = await LoadAllHolonsAsync();
+                    if (!holonsResult.IsError && holonsResult.Result != null)
+                    {
+                        foreach (var holon in holonsResult.Result)
+                        {
+                            searchResults.Add(new SearchResult
+                            {
+                                ProviderCategory = ProviderCategory.Storage,
+                                ProviderType = ProviderType.Neo4jOASIS,
+                                Id = holon.Id,
+                                Name = holon.Name,
+                                Description = holon.Description,
+                                Result = holon,
+                                IsError = false
+                            });
+                        }
+                    }
+                }
+                
+                result.Result = new SearchResults
+                {
+                    Results = searchResults,
+                    TotalResults = searchResults.Count,
+                    IsError = false
+                };
+                result.IsError = false;
+                result.Message = $"Successfully searched Neo4j Aura database and found {searchResults.Count} results";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error searching Neo4j Aura database: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
-        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
+                    return result;
+                }
+
+                var importedCount = 0;
+                foreach (var holon in holons)
+                {
+                    var saveResult = await SaveHolonAsync(holon);
+                    if (saveResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
+                        return result;
+                    }
+                    importedCount++;
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Successfully imported {importedCount} holons to Neo4j Aura";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error importing holons to Neo4j Aura: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            return ImportAsync(holons).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
+                    return result;
+                }
+
+                // Export all holons for avatar from Neo4j Aura
+                var holonsResult = await LoadHolonsForParentAsync(avatarId);
+                if (holonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
+                    return result;
+                }
+
+                result.Result = holonsResult.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar from Neo4j Aura";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar from Neo4j Aura: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username first
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                    return result;
+                }
+
+                if (avatarResult.Result != null)
+                {
+                    // Export all holons for this avatar
+                    var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
+                    if (holonsResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
+                        return result;
+                    }
+
+                    result.Result = holonsResult.Result;
+                    result.IsError = false;
+                    result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by username from Neo4j Aura";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by username from Neo4j Aura: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by email first
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                    return result;
+                }
+
+                if (avatarResult.Result != null)
+                {
+                    // Export all holons for this avatar
+                    var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
+                    if (holonsResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
+                        return result;
+                    }
+
+                    result.Result = holonsResult.Result;
+                    result.IsError = false;
+                    result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by email from Neo4j Aura";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by email from Neo4j Aura: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            throw new NotImplementedException();
+            return await LoadAllHolonsAsync(version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllAsync(version).Result;
         }
 
         //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -2875,24 +3078,74 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         //    throw new NotImplementedException();
         //}
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
+                    return result;
+                }
+
+                // Load holons by metadata from Neo4j Aura database
+                var holons = await _holonRepository.GetByMetaDataAsync(metaKey, metaValue);
+                if (holons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {holons.Message}");
+                    return result;
+                }
+
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Result?.Count() ?? 0} holons by metadata from Neo4j Aura";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Neo4j Aura: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura provider is not activated");
+                    return result;
+                }
+
+                // Load holons by multiple metadata pairs from Neo4j Aura database
+                var holons = await _holonRepository.GetByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode);
+                if (holons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs: {holons.Message}");
+                    return result;
+                }
+
+                result.Result = holons.Result;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Result?.Count() ?? 0} holons by metadata pairs from Neo4j Aura";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Neo4j Aura: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
     }
 }

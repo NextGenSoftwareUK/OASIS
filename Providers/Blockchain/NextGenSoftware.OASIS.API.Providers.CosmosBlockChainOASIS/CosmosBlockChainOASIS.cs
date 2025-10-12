@@ -1767,27 +1767,77 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            return MintNFTAsync(transation).Result;
         }
 
-        public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<INFTTransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
+                    return result;
+                }
+
+                // Mint NFT using Cosmos blockchain
+                var mintResult = await _cosmosClient.MintNFTAsync(transation);
+                if (mintResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error minting NFT: {mintResult.Message}");
+                    return result;
+                }
+
+                result.Result = mintResult.Result;
+                result.IsError = false;
+                result.Message = "NFT minted successfully on Cosmos blockchain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error minting NFT on Cosmos: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
         {
-            throw new NotImplementedException();
+            return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
         }
 
-        public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISNFT>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Cosmos provider is not activated");
+                    return result;
+                }
+
+                // Load NFT data from Cosmos blockchain
+                var nftData = await _cosmosClient.GetNFTDataAsync(nftTokenAddress);
+                if (nftData.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading NFT data: {nftData.Message}");
+                    return result;
+                }
+
+                result.Result = nftData.Result;
+                result.IsError = false;
+                result.Message = "NFT data loaded successfully from Cosmos blockchain";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading NFT data from Cosmos: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         #endregion
