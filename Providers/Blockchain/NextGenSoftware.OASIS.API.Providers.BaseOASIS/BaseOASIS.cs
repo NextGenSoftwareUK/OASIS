@@ -231,29 +231,149 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+    public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load avatar by provider key first
+            var avatarResult = await LoadAvatarAsync(providerKey);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by provider key from Base";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+    public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load avatar by email first
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by email from Base";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+    public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
     {
-        return DeleteAvatarByUsernameAsync(avatarUsername, softDelete);
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load avatar by username first
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by username from Base";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
@@ -1072,7 +1192,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarAsync(Id, version).Result;
     }
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -1123,17 +1243,50 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarByEmailAsync(avatarEmail, version).Result;
     }
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+    public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load avatar by email from Base blockchain
+            var avatarData = await _baseClient.GetAccountByEmailAsync(avatarEmail);
+            if (avatarData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarData.Message}");
+                return result;
+            }
+
+            if (avatarData.Result != null)
+            {
+                var avatar = JsonConvert.DeserializeObject<Avatar>(avatarData.Result.ToString());
+                result.Result = avatar;
+                result.IsError = false;
+                result.Message = "Avatar loaded successfully by email from Base";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email on Base blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
     }
 
     public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
