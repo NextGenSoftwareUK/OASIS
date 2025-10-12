@@ -827,7 +827,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Solana: {ex.Message}", ex);
         }
         return result;
-    }//fff
+    }
 
     public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
     {
@@ -954,7 +954,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true,
         bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
         bool loadChildrenFromProvider = false, int version = 0)
-    {
+    {//
         var result = new OASISResult<IHolon>();
         try
         {
@@ -975,14 +975,54 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true,
         int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
-    }
+        return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+    } 
 
-    public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true,
+    public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true,
         bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
         bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load holon by ID from Solana blockchain
+            var holonData = await _solanaService.GetHolonByIdAsync(id);
+            if (holonData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon by ID from Solana: {holonData.Message}");
+                return result;
+            }
+
+            if (holonData.Result != null)
+            {
+                var holon = ParseSolanaToHolon(holonData.Result);
+                if (holon != null)
+                {
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully by ID from Solana with full object mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse holon data from Solana");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Holon not found by ID in Solana");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holon by ID from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All,
@@ -1287,9 +1327,50 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return DeleteHolonAsync(id).Result;
     }
 
-    public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+    public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load holon first to get the provider key
+            var holonResult = await LoadHolonAsync(id);
+            if (holonResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon for deletion: {holonResult.Message}");
+                return result;
+            }
+
+            if (holonResult.Result != null)
+            {
+                // Delete holon from Solana blockchain
+                var deleteResult = await _solanaService.DeleteHolonAsync(id);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Solana: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = holonResult.Result;
+                result.IsDeleted = true;
+                result.IsError = false;
+                result.Message = "Holon deleted successfully from Solana";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Holon not found for deletion");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
@@ -1319,9 +1400,69 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return GetPlayersNearMeAsync().Result;
     }
 
+    public async Task<OASISResult<IEnumerable<IPlayer>>> GetPlayersNearMeAsync()
+    {
+        var result = new OASISResult<IEnumerable<IPlayer>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Get players near current location from Solana blockchain
+            var playersData = await _solanaService.GetPlayersNearMeAsync();
+            if (playersData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from Solana: {playersData.Message}");
+                return result;
+            }
+
+            result.Result = playersData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully retrieved {playersData.Result?.Count() ?? 0} players near me from Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting players near me from Solana: {ex.Message}", ex);
+        }
+        return result;
+    }
+
     public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
     {
         return GetHolonsNearMeAsync(Type).Result;
+    }
+
+    public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(HolonType Type)
+    {
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Get holons near current location from Solana blockchain
+            var holonsData = await _solanaService.GetHolonsNearMeAsync(Type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Solana: {holonsData.Message}");
+                return result;
+            }
+
+            result.Result = holonsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully retrieved {holonsData.Result?.Count() ?? 0} holons near me from Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
@@ -1637,70 +1778,353 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true,
         bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        throw new NotImplementedException();
+        return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
     }
 
-    public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+    public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            if (holons == null || !holons.Any())
+            {
+                OASISErrorHandling.HandleError(ref result, "No holons provided for import");
+                return result;
+            }
+
+            int successCount = 0;
+            int errorCount = 0;
+
+            foreach (var holon in holons)
+            {
+                try
+                {
+                    var saveResult = await SaveHolonAsync(holon);
+                    if (saveResult.IsError)
+                    {
+                        errorCount++;
+                        OASISErrorHandling.HandleWarning(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
+                    }
+                    else
+                    {
+                        successCount++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errorCount++;
+                    OASISErrorHandling.HandleWarning(ref result, $"Error importing holon {holon.Id}: {ex.Message}");
+                }
+            }
+
+            result.Result = successCount > 0;
+            result.IsError = successCount == 0;
+            result.Message = $"Import completed: {successCount} holons imported successfully, {errorCount} errors";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error importing holons to Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId,
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId,
         int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load all holons for avatar from Solana blockchain
+            var holonsData = await _solanaService.GetAllHolonsForAvatarAsync(avatarId);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar from Solana: {holonsData.Message}");
+                return result;
+            }
+
+            result.Result = holonsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully exported {holonsData.Result?.Count() ?? 0} holons for avatar from Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting holons for avatar from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(
         string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load avatar by username first
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Export all data for the avatar
+                var exportResult = await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+                if (exportResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar: {exportResult.Message}");
+                    return result;
+                }
+
+                result.Result = exportResult.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {exportResult.Result?.Count() ?? 0} holons for avatar by username from Solana";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting holons for avatar by username from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(
         string avatarEmailAddress, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load avatar by email first
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Export all data for the avatar
+                var exportResult = await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+                if (exportResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar: {exportResult.Message}");
+                    return result;
+                }
+
+                result.Result = exportResult.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {exportResult.Result?.Count() ?? 0} holons for avatar by email from Solana";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting holons for avatar by email from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load all holons from Solana blockchain
+            var holonsData = await _solanaService.GetAllHolonsAsync();
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading all holons from Solana: {holonsData.Message}");
+                return result;
+            }
+
+            result.Result = holonsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully exported {holonsData.Result?.Count() ?? 0} holons from Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting all holons from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<string> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
     }
 
-    public Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount,
+    public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount,
         string token)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<string>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Get wallet addresses for both avatars
+            var fromWalletResult = await WalletHelper.GetWalletAddressAsync(fromAvatarId, ProviderType.SolanaOASIS);
+            var toWalletResult = await WalletHelper.GetWalletAddressAsync(toAvatarId, ProviderType.SolanaOASIS);
+
+            if (fromWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting from wallet address: {fromWalletResult.Message}");
+                return result;
+            }
+
+            if (toWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting to wallet address: {toWalletResult.Message}");
+                return result;
+            }
+
+            // Send transaction
+            var transactionResult = await _solanaService.SendTransactionAsync(fromWalletResult.Result, toWalletResult.Result, amount, token);
+            if (transactionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
+                return result;
+            }
+
+            result.Result = transactionResult.Result;
+            result.IsError = false;
+            result.Message = "Transaction sent successfully";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error sending transaction by ID from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername,
+    public async Task<OASISResult<string>> SendTransactionByUsernameAsync(string fromAvatarUsername,
         string toAvatarUsername, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<string>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load avatars by username
+            var fromAvatarResult = await LoadAvatarByUsernameAsync(fromAvatarUsername);
+            var toAvatarResult = await LoadAvatarByUsernameAsync(toAvatarUsername);
+
+            if (fromAvatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading from avatar: {fromAvatarResult.Message}");
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading to avatar: {toAvatarResult.Message}");
+                return result;
+            }
+
+            // Send transaction by ID
+            return await SendTransactionByIdAsync(fromAvatarResult.Result.Id, toAvatarResult.Result.Id, amount, token);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error sending transaction by username from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<string> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername,
         decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
     }
 
-    public Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail,
+    public async Task<OASISResult<string>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail,
         decimal amount, string token)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<string>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load avatars by email
+            var fromAvatarResult = await LoadAvatarByEmailAsync(fromAvatarEmail);
+            var toAvatarResult = await LoadAvatarByEmailAsync(toAvatarEmail);
+
+            if (fromAvatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading from avatar: {fromAvatarResult.Message}");
+                return result;
+            }
+
+            if (toAvatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading to avatar: {toAvatarResult.Message}");
+                return result;
+            }
+
+            // Send transaction by ID
+            return await SendTransactionByIdAsync(fromAvatarResult.Result.Id, toAvatarResult.Result.Id, amount, token);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error sending transaction by email from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount,
         string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
     }
 
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
