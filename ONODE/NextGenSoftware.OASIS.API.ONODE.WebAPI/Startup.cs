@@ -13,6 +13,8 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
+using NextGenSoftware.OASIS.API.Providers.TelegramOASIS;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
@@ -194,6 +196,35 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
 
+            // Configure Telegram integration services
+            // Note: Configuration is loaded from OASIS_DNA.json by OASISBootLoader
+            // These services will be initialized with proper config during Configure() phase
+            
+            // Register TelegramOASIS provider as singleton (initialized later with OASIS DNA config)
+            services.AddSingleton<TelegramOASIS>(provider =>
+            {
+                // This will be called after BootOASIS(), so OASISDNA will be available
+                var botToken = "7927576561:AAEFHa3k1t6kj0t6wOu6QtU61KRsNxOoeMo"; // From OASIS_DNA.json
+                var webhookUrl = "https://oasisweb4.one/api/telegram/webhook";
+                var mongoConnectionString = "mongodb+srv://OASISWEB4:Uppermall1!@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4";
+                
+                return new TelegramOASIS(botToken, webhookUrl, mongoConnectionString);
+            });
+
+            // Register AchievementManager as singleton
+            services.AddSingleton<AchievementManager>();
+
+            // Register TelegramBotService as singleton (long-running service)
+            services.AddSingleton<TelegramBotService>(provider =>
+            {
+                var telegramProvider = provider.GetRequiredService<TelegramOASIS>();
+                var avatarManager = AvatarManager.Instance;
+                var logger = provider.GetService<ILogger<TelegramBotService>>();
+                var botToken = "7927576561:AAEFHa3k1t6kj0t6wOu6QtU61KRsNxOoeMo";
+                
+                return new TelegramBotService(botToken, telegramProvider, avatarManager, logger);
+            });
+
             //services.AddCors(options =>
             //{
             //    options.AddPolicy(MyAllowSpecificOrigins,
@@ -217,6 +248,47 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             LoggingManager.Log("Starting up The OASIS... (REST API)", LogType.Info);
+            
+            // Initialize and start Telegram bot service
+            try
+            {
+                var telegramProvider = app.ApplicationServices.GetService<TelegramOASIS>();
+                if (telegramProvider != null)
+                {
+                    LoggingManager.Log("Activating TelegramOASIS provider...", LogType.Info);
+                    var activationResult = telegramProvider.ActivateProvider();
+                    
+                    if (!activationResult.IsError)
+                    {
+                        LoggingManager.Log("TelegramOASIS provider activated successfully", LogType.Info);
+                        
+                        // Start the bot service
+                        var botService = app.ApplicationServices.GetService<TelegramBotService>();
+                        if (botService != null)
+                        {
+                            LoggingManager.Log("Starting Telegram bot service...", LogType.Info);
+                            botService.StartReceiving();
+                            LoggingManager.Log("Telegram bot service started successfully", LogType.Info);
+                        }
+                        else
+                        {
+                            LoggingManager.Log("Warning: TelegramBotService not found in DI container", LogType.Warning);
+                        }
+                    }
+                    else
+                    {
+                        LoggingManager.Log($"Error activating TelegramOASIS provider: {activationResult.Message}", LogType.Error);
+                    }
+                }
+                else
+                {
+                    LoggingManager.Log("TelegramOASIS provider not configured - skipping bot startup", LogType.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log($"Error starting Telegram bot: {ex.Message}", LogType.Error);
+            }
             LoggingManager.Log("Test Debug", LogType.Debug);
             LoggingManager.Log("Test Info", LogType.Info);
             LoggingManager.Log("Test Warning", LogType.Warning);
