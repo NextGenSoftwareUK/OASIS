@@ -954,7 +954,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true,
         bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
         bool loadChildrenFromProvider = false, int version = 0)
-    {//
+    {
         var result = new OASISResult<IHolon>();
         try
         {
@@ -976,7 +976,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-    } 
+    }//
 
     public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true,
         bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
@@ -2300,7 +2300,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
     public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForAvatar(Guid avatarId)
     {
-        throw new NotImplementedException();
+        return LoadAllGeoNFTsForAvatarAsync(avatarId).Result;
     }
 
     public async Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
