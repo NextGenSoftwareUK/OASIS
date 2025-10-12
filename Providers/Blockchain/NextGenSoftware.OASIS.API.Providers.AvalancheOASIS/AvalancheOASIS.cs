@@ -314,32 +314,112 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+    public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Load avatar by email first
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by email from Avalanche";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+    public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Load avatar by username first
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by username from Avalanche";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IHolon> DeleteHolon(Guid id)
     {
-        throw new NotImplementedException();
+        return DeleteHolonAsync(id).Result;
     }
 
     public override OASISResult<IHolon> DeleteHolon(string providerKey)
     {
-        throw new NotImplementedException();
+        return DeleteHolonAsync(providerKey).Result;
     }
 
     public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
@@ -555,17 +635,57 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Load avatar by username first
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Export all data for the avatar
+                var exportResult = await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+                if (exportResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar: {exportResult.Message}");
+                    return result;
+                }
+
+                result.Result = exportResult.Result;
+                result.IsError = false;
+                result.Message = $"Successfully exported {exportResult.Result?.Count() ?? 0} holons for avatar by username from Avalanche";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error exporting holons for avatar by username from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
     {
-        throw new System.NotImplementedException();
+        return GetHolonsNearMeAsync(Type).Result;
     }
 
     public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
@@ -575,47 +695,183 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
     {
-        throw new NotImplementedException();
+        return ImportAsync(holons).Result;
     }
 
-    public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+    public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            if (holons == null || !holons.Any())
+            {
+                OASISErrorHandling.HandleError(ref result, "No holons provided for import");
+                return result;
+            }
+
+            // Import each holon to Avalanche blockchain
+            foreach (var holon in holons)
+            {
+                var saveResult = await SaveHolonAsync(holon);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
+                    return result;
+                }
+            }
+
+            result.Result = true;
+            result.IsError = false;
+            result.Message = $"Successfully imported {holons.Count()} holons to Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error importing holons to Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllAvatarDetailsAsync(version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+    public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Load all avatars first, then convert to avatar details
+            var avatarsResult = await LoadAllAvatarsAsync(version);
+            if (avatarsResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                return result;
+            }
+
+            var avatarDetails = new List<IAvatarDetail>();
+            foreach (var avatar in avatarsResult.Result)
+            {
+                var avatarDetail = new AvatarDetail(avatar);
+                avatarDetails.Add(avatarDetail);
+            }
+
+            result.Result = avatarDetails;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {avatarDetails.Count} avatar details from Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar details from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllAvatarsAsync(version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+    public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IAvatar>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Query Avalanche smart contract for all avatars
+            var avatarsData = await _avalancheClient.GetAllAvatarsAsync();
+            if (avatarsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatars from Avalanche: {avatarsData.Message}");
+                return result;
+            }
+
+            var avatars = new List<IAvatar>();
+            foreach (var avatarData in avatarsData.Result)
+            {
+                var avatar = ParseAvalancheToAvatar(avatarData);
+                if (avatar != null)
+                {
+                    avatars.Add(avatar);
+                }
+            }
+
+            result.Result = avatars;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {avatars.Count} avatars from Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatars from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Query Avalanche smart contract for all holons
+            var holonsData = await _avalancheClient.GetAllHolonsAsync(type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons from Avalanche: {holonsData.Message}");
+                return result;
+            }
+
+            var holons = new List<IHolon>();
+            foreach (var holonData in holonsData.Result)
+            {
+                var holon = ParseAvalancheToHolon(holonData);
+                if (holon != null)
+                {
+                    holons.Add(holon);
+                }
+            }
+
+            result.Result = holons;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holons.Count} holons from Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarAsync(Id, version).Result;
     }
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -666,37 +922,157 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarByEmailAsync(avatarEmail, version).Result;
     }
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+    public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Query Avalanche smart contract for avatar by email
+            var avatarData = await _avalancheClient.GetAvatarByEmailAsync(avatarEmail);
+            if (avatarData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Avalanche: {avatarData.Message}");
+                return result;
+            }
+
+            if (avatarData.Result != null)
+            {
+                var avatar = ParseAvalancheToAvatar(avatarData.Result);
+                if (avatar != null)
+                {
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by email from Avalanche";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Avalanche");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email in Avalanche");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
     }
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+    public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Query Avalanche smart contract for avatar by provider key
+            var avatarData = await _avalancheClient.GetAvatarByProviderKeyAsync(providerKey);
+            if (avatarData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from Avalanche: {avatarData.Message}");
+                return result;
+            }
+
+            if (avatarData.Result != null)
+            {
+                var avatar = ParseAvalancheToAvatar(avatarData.Result);
+                if (avatar != null)
+                {
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by provider key from Avalanche";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Avalanche");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key in Avalanche");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
     }
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+    public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Query Avalanche smart contract for avatar by username
+            var avatarData = await _avalancheClient.GetAvatarByUsernameAsync(avatarUsername);
+            if (avatarData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Avalanche: {avatarData.Message}");
+                return result;
+            }
+
+            if (avatarData.Result != null)
+            {
+                var avatar = ParseAvalancheToAvatar(avatarData.Result);
+                if (avatar != null)
+                {
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by username from Avalanche";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Avalanche");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username in Avalanche");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarDetailAsync(id, version).Result;
     }
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
