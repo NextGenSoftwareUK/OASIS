@@ -54,6 +54,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.24.0" />
 	  <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
+	  <PackageReference Include="Telegram.Bot" Version="19.0.0" />
+	  <PackageReference Include="MongoDB.Driver" Version="2.28.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -61,6 +63,7 @@
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.TelegramOASIS\NextGenSoftware.OASIS.API.Providers.TelegramOASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
