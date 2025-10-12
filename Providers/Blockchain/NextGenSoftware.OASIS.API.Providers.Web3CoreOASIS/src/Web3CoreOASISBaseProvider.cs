@@ -478,32 +478,145 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
     {
-        throw new NotImplementedException();
+        return ImportAsync(holons).Result;
     }
 
-    public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+    public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
+                return result;
+            }
+
+            var importedCount = 0;
+            foreach (var holon in holons)
+            {
+                var saveResult = await SaveHolonAsync(holon);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
+                    return result;
+                }
+                importedCount++;
+            }
+
+            result.Result = true;
+            result.IsError = false;
+            result.Message = $"Successfully imported {importedCount} holons to Web3Core";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error importing holons to Web3Core: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllAvatarDetailsAsync(version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+    public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
+                return result;
+            }
+
+            // Load all avatar details from Web3Core blockchain
+            var avatarDetailsData = await _web3Client.GetAllAvatarDetailsAsync();
+            if (avatarDetailsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar details: {avatarDetailsData.Message}");
+                return result;
+            }
+
+            if (avatarDetailsData.Result != null)
+            {
+                var avatarDetails = new List<IAvatarDetail>();
+                foreach (var avatarDetailData in avatarDetailsData.Result)
+                {
+                    var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailData.ToString());
+                    if (avatarDetail != null)
+                    {
+                        avatarDetails.Add(avatarDetail);
+                    }
+                }
+                
+                result.Result = avatarDetails;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {avatarDetails.Count} avatar details from Web3Core";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "No avatar details found on Web3Core blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar details from Web3Core: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllAvatarsAsync(version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+    public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IAvatar>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
+                return result;
+            }
+
+            // Load all avatars from Web3Core blockchain
+            var avatarsData = await _web3Client.GetAllAvatarsAsync();
+            if (avatarsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsData.Message}");
+                return result;
+            }
+
+            if (avatarsData.Result != null)
+            {
+                var avatars = new List<IAvatar>();
+                foreach (var avatarData in avatarsData.Result)
+                {
+                    var avatar = JsonConvert.DeserializeObject<Avatar>(avatarData.ToString());
+                    if (avatar != null)
+                    {
+                        avatars.Add(avatar);
+                    }
+                }
+                
+                result.Result = avatars;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {avatars.Count} avatars from Web3Core";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "No avatars found on Web3Core blockchain");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatars from Web3Core: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)

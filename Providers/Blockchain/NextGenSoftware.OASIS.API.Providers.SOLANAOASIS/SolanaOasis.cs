@@ -170,12 +170,97 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
     public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllAvatarsAsync(version).Result;
+    }
+
+    public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+    {
+        var result = new OASISResult<IEnumerable<IAvatar>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Query all avatars from Solana program
+            var avatarsData = await _solanaService.GetAllAvatarsAsync();
+            if (avatarsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatars from Solana: {avatarsData.Message}");
+                return result;
+            }
+
+            var avatars = new List<IAvatar>();
+            foreach (var avatarData in avatarsData.Result)
+            {
+                var avatar = ParseSolanaToAvatar(avatarData);
+                if (avatar != null)
+                {
+                    avatars.Add(avatar);
+                }
+            }
+
+            result.Result = avatars;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {avatars.Count} avatars from Solana with full object mapping";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
+    }
+
+    public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+    {
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Query avatar from Solana program by username
+            var avatarData = await _solanaService.GetAvatarByUsernameAsync(avatarUsername);
+            if (avatarData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Solana: {avatarData.Message}");
+                return result;
+            }
+
+            if (avatarData.Result != null)
+            {
+                var avatar = ParseSolanaToAvatar(avatarData.Result);
+                if (avatar != null)
+                {
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by username from Solana with full object mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Solana");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username in Solana");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
@@ -219,66 +304,301 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return response;
     }
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+    public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Query avatar from Solana program by email
+            var avatarData = await _solanaService.GetAvatarByEmailAsync(avatarEmail);
+            if (avatarData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Solana: {avatarData.Message}");
+                return result;
+            }
+
+            if (avatarData.Result != null)
+            {
+                var avatar = ParseSolanaToAvatar(avatarData.Result);
+                if (avatar != null)
+                {
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by email from Solana with full object mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Solana");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email in Solana");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+    public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Query avatar from Solana program by username
+            var avatarData = await _solanaService.GetAvatarByUsernameAsync(avatarUsername);
+            if (avatarData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Solana: {avatarData.Message}");
+                return result;
+            }
+
+            if (avatarData.Result != null)
+            {
+                var avatar = ParseSolanaToAvatar(avatarData.Result);
+                if (avatar != null)
+                {
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by username from Solana with full object mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Solana");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username in Solana");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarAsync(Id, version).Result;
     }
 
     public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarByEmailAsync(avatarEmail, version).Result;
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarDetailAsync(id, version).Result;
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
     }
 
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatarDetail>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Query avatar detail by ID from Solana program
+            var avatarDetailData = await _solanaService.GetAvatarDetailByIdAsync(id);
+            if (avatarDetailData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by ID from Solana: {avatarDetailData.Message}");
+                return result;
+            }
+
+            if (avatarDetailData.Result != null)
+            {
+                var avatarDetail = ParseSolanaToAvatarDetail(avatarDetailData.Result);
+                if (avatarDetail != null)
+                {
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully by ID from Solana with full object mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar detail data from Solana");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by ID in Solana");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by ID from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername,
+    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername,
         int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatarDetail>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Query avatar detail by username from Solana program
+            var avatarDetailData = await _solanaService.GetAvatarDetailByUsernameAsync(avatarUsername);
+            if (avatarDetailData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Solana: {avatarDetailData.Message}");
+                return result;
+            }
+
+            if (avatarDetailData.Result != null)
+            {
+                var avatarDetail = ParseSolanaToAvatarDetail(avatarDetailData.Result);
+                if (avatarDetail != null)
+                {
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully by username from Solana with full object mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar detail data from Solana");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by username in Solana");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail,
+    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail,
         int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatarDetail>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Query avatar detail by email from Solana program
+            var avatarDetailData = await _solanaService.GetAvatarDetailByEmailAsync(avatarEmail);
+            if (avatarDetailData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Solana: {avatarDetailData.Message}");
+                return result;
+            }
+
+            if (avatarDetailData.Result != null)
+            {
+                var avatarDetail = ParseSolanaToAvatarDetail(avatarDetailData.Result);
+                if (avatarDetail != null)
+                {
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully by email from Solana with full object mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar detail data from Solana");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by email in Solana");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllAvatarDetailsAsync(version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+    public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Query all avatar details from Solana program
+            var avatarDetailsData = await _solanaService.GetAllAvatarDetailsAsync();
+            if (avatarDetailsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from Solana: {avatarDetailsData.Message}");
+                return result;
+            }
+
+            var avatarDetails = new List<IAvatarDetail>();
+            foreach (var avatarDetailData in avatarDetailsData.Result)
+            {
+                var avatarDetail = ParseSolanaToAvatarDetail(avatarDetailData);
+                if (avatarDetail != null)
+                {
+                    avatarDetails.Add(avatarDetail);
+                }
+            }
+
+            result.Result = avatarDetails;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {avatarDetails.Count} avatar details from Solana with full object mapping";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
@@ -376,33 +696,228 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
     public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarAsync(id, softDelete).Result;
+    }
+
+    public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+    {
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Delete avatar from Solana program
+            var deleteResult = await _solanaService.DeleteAvatarAsync(id, softDelete);
+            if (deleteResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Solana: {deleteResult.Message}");
+                return result;
+            }
+
+            result.Result = deleteResult.Result;
+            result.IsError = false;
+            result.Message = "Avatar deleted successfully from Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
+    }
+
+    public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+    {
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load avatar by email first
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by email from Solana";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+    public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
     {
-        throw new NotImplementedException();
-    }
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
 
-    public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+            // Load avatar by username first
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by username from Solana";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Solana: {ex.Message}", ex);
+        }
+        return result;
+    }//fff
+
+    public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load avatar by email
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by email from Solana";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername,
+    public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername,
         bool softDelete = true)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<bool>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load avatar by username
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                // Delete avatar by ID
+                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Avatar deleted successfully by username from Solana";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
@@ -474,15 +989,40 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
         bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
         HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
         int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
         int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load holons for parent from Solana blockchain
+            var holonsData = await _solanaService.GetHolonsForParentAsync(id, type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent: {holonsData.Message}");
+                return result;
+            }
+
+            result.Result = holonsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons for parent from Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey,
@@ -490,29 +1030,79 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
         int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey,
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey,
         HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
         int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
         int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load holons for parent by provider key from Solana blockchain
+            var holonsData = await _solanaService.GetHolonsForParentByProviderKeyAsync(providerKey, type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key: {holonsData.Message}");
+                return result;
+            }
+
+            result.Result = holonsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons for parent by provider key from Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All,
         bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
         bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All,
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All,
         bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
         bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load all holons from Solana blockchain
+            var holonsData = await _solanaService.GetAllHolonsAsync(type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading all holons: {holonsData.Message}");
+                return result;
+            }
+
+            result.Result = holonsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons from Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading all holons from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true,
@@ -660,16 +1250,41 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return DeleteHolonAsync(providerKey).Result;
     }
 
-    public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams,
+    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams,
         bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
         int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ISearchResults>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Search avatars and holons using Solana program
+            var searchData = await _solanaService.SearchAsync(searchParams);
+            if (searchData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error searching in Solana: {searchData.Message}");
+                return result;
+            }
+
+            result.Result = searchData.Result;
+            result.IsError = false;
+            result.Message = "Search completed successfully in Solana with full object mapping";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error searching in Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IHolon> DeleteHolon(Guid id)
     {
-        throw new NotImplementedException();
+        return DeleteHolonAsync(id).Result;
     }
 
     public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
@@ -701,39 +1316,37 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
     public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
     {
-        throw new NotImplementedException();
+        return GetPlayersNearMeAsync().Result;
     }
 
     public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
     {
-        throw new NotImplementedException();
+        return GetHolonsNearMeAsync(Type).Result;
     }
 
-    public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transaction)
+    public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
-        return SendTransactionAsync(transaction).Result;
+        return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
     }
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
         OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
         string errorMessage = "Error occured in SendTransactionAsync method in SolanaOASIS Provider. Reason: ";
-
-        if (transaction == null)
-            throw new ArgumentNullException(nameof(transaction));
 
         try
         {
             var solanaTransactionResult = await _solanaService.SendTransaction(new SendTransactionRequest()
             {
-                Amount = (ulong)transaction.Amount,
+                Amount = (ulong)amount,
+                MemoText = memoText,
                 FromAccount = new BaseAccountRequest()
                 {
-                    PublicKey = transaction.FromWalletAddress
+                    PublicKey = fromWalletAddress
                 },
                 ToAccount = new BaseAccountRequest()
                 {
-                    PublicKey = transaction.ToWalletAddress
+                    PublicKey = toWalletAddress
                 }
             });
 
@@ -1092,29 +1705,29 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
     {
-        throw new NotImplementedException();
+        return ImportAsync(holons).Result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername,
         int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress,
         int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
     {
-        throw new NotImplementedException();
+        return ExportAllAsync(version).Result;
     }
 
     //OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionById(Guid fromAvatarId,
@@ -1266,59 +1879,209 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         throw new NotImplementedException();
     }
 
-    public Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
+    public async Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<List<IOASISGeoSpatialNFT>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load all GeoNFTs for avatar from Solana blockchain
+            var geoNFTsData = await _solanaService.GetAllGeoNFTsForAvatarAsync(avatarId);
+            if (geoNFTsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading GeoNFTs for avatar: {geoNFTsData.Message}");
+                return result;
+            }
+
+            result.Result = geoNFTsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {geoNFTsData.Result?.Count ?? 0} GeoNFTs for avatar from Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading GeoNFTs for avatar from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForMintAddress(string mintWalletAddress)
     {
-        throw new NotImplementedException();
+        return LoadAllGeoNFTsForMintAddressAsync(mintWalletAddress).Result;
     }
 
-    public Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
+    public async Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<List<IOASISGeoSpatialNFT>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load all GeoNFTs for mint address from Solana blockchain
+            var geoNFTsData = await _solanaService.GetAllGeoNFTsForMintAddressAsync(mintWalletAddress);
+            if (geoNFTsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading GeoNFTs for mint address: {geoNFTsData.Message}");
+                return result;
+            }
+
+            result.Result = geoNFTsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {geoNFTsData.Result?.Count ?? 0} GeoNFTs for mint address from Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading GeoNFTs for mint address from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<List<IOASISNFT>> LoadAllNFTsForAvatar(Guid avatarId)
     {
-        throw new NotImplementedException();
+        return LoadAllNFTsForAvatarAsync(avatarId).Result;
     }
 
-    public Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
+    public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<List<IOASISNFT>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load all NFTs for avatar from Solana blockchain
+            var nftsData = await _solanaService.GetAllNFTsForAvatarAsync(avatarId);
+            if (nftsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading NFTs for avatar: {nftsData.Message}");
+                return result;
+            }
+
+            result.Result = nftsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {nftsData.Result?.Count ?? 0} NFTs for avatar from Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading NFTs for avatar from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<List<IOASISNFT>> LoadAllNFTsForMintAddress(string mintWalletAddress)
     {
-        throw new NotImplementedException();
+        return LoadAllNFTsForMintAddressAsync(mintWalletAddress).Result;
     }
 
-    public Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
+    public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<List<IOASISNFT>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Load all NFTs for mint address from Solana blockchain
+            var nftsData = await _solanaService.GetAllNFTsForMintAddressAsync(mintWalletAddress);
+            if (nftsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading NFTs for mint address: {nftsData.Message}");
+                return result;
+            }
+
+            result.Result = nftsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {nftsData.Result?.Count ?? 0} NFTs for mint address from Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading NFTs for mint address from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<IOASISGeoSpatialNFT> PlaceGeoNFT(IPlaceGeoSpatialNFTRequest request)
     {
-        throw new NotImplementedException();
+        return PlaceGeoNFTAsync(request).Result;
     }
 
-    public Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceGeoSpatialNFTRequest request)
+    public async Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceGeoSpatialNFTRequest request)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IOASISGeoSpatialNFT>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Place GeoNFT on Solana blockchain
+            var geoNFTData = await _solanaService.PlaceGeoNFTAsync(request);
+            if (geoNFTData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error placing GeoNFT: {geoNFTData.Message}");
+                return result;
+            }
+
+            result.Result = geoNFTData.Result;
+            result.IsError = false;
+            result.Message = "Successfully placed GeoNFT on Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error placing GeoNFT on Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<IOASISGeoSpatialNFT> MintAndPlaceGeoNFT(IMintAndPlaceGeoSpatialNFTRequest request)
     {
-        throw new NotImplementedException();
+        return MintAndPlaceGeoNFTAsync(request).Result;
     }
 
-    public Task<OASISResult<IOASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceGeoSpatialNFTRequest request)
+    public async Task<OASISResult<IOASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceGeoSpatialNFTRequest request)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IOASISGeoSpatialNFT>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Mint and place GeoNFT on Solana blockchain
+            var geoNFTData = await _solanaService.MintAndPlaceGeoNFTAsync(request);
+            if (geoNFTData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error minting and placing GeoNFT: {geoNFTData.Message}");
+                return result;
+            }
+
+            result.Result = geoNFTData.Result;
+            result.IsError = false;
+            result.Message = "Successfully minted and placed GeoNFT on Solana";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error minting and placing GeoNFT on Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1351,12 +2114,47 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     //    throw new NotImplementedException();
     //}
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey,
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey,
         string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true,
         int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
         bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Query holons by metadata from Solana program
+            var holonsData = await _solanaService.GetHolonsByMetaDataAsync(metaKey, metaValue, type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Solana: {holonsData.Message}");
+                return result;
+            }
+
+            var holons = new List<IHolon>();
+            foreach (var holonData in holonsData.Result)
+            {
+                var holon = ParseSolanaToHolon(holonData);
+                if (holon != null)
+                {
+                    holons.Add(holon);
+                }
+            }
+
+            result.Result = holons;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holons.Count} holons by metadata from Solana with full object mapping";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue,
@@ -1364,16 +2162,51 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
         int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(
         Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode,
         HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
         int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
         int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Query holons by multiple metadata pairs from Solana program
+            var holonsData = await _solanaService.GetHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Solana: {holonsData.Message}");
+                return result;
+            }
+
+            var holons = new List<IHolon>();
+            foreach (var holonData in holonsData.Result)
+            {
+                var holon = ParseSolanaToHolon(holonData);
+                if (holon != null)
+                {
+                    holons.Add(holon);
+                }
+            }
+
+            result.Result = holons;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holons.Count} holons by metadata pairs from Solana with full object mapping";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Solana: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(
@@ -1382,7 +2215,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
         int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     #region Helper Methods
@@ -1469,12 +2302,53 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
     public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
-        throw new NotImplementedException();
+        return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddres, decimal amount, string memoText)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
-        throw new NotImplementedException();
+        OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
+        string errorMessage = "Error occured in SendTransactionAsync method in SolanaOASIS Provider. Reason: ";
+
+        try
+        {
+            if (!_isActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
+                return result;
+            }
+
+            // Create Solana transaction using the service
+            var solanaTransactionResult = await _solanaService.SendTransaction(new SendTransactionRequest()
+            {
+                Amount = (ulong)amount,
+                MemoText = memoText,
+                FromAccount = new BaseAccountRequest()
+                {
+                    PublicKey = fromWalletAddress
+                },
+                ToAccount = new BaseAccountRequest()
+                {
+                    PublicKey = toWalletAddress
+                }
+            });
+
+            if (solanaTransactionResult.IsError ||
+                string.IsNullOrEmpty(solanaTransactionResult.Result.TransactionHash))
+            {
+                OASISErrorHandling.HandleError(ref result, solanaTransactionResult.Message);
+                return result;
+            }
+
+            result.Result.TransactionResult = solanaTransactionResult.Result.TransactionHash;
+            TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
+        }
+        catch (Exception e)
+        {
+            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, {e.Message}", e);
+        }
+
+        return result;
     }
 
     #endregion
