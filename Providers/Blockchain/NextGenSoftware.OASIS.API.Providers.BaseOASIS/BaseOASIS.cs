@@ -1289,24 +1289,104 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
     }
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+    public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load avatar by provider key from Base blockchain
+            var avatarData = await _baseClient.GetAccountByProviderKeyAsync(providerKey);
+            if (avatarData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from Base: {avatarData.Message}");
+                return result;
+            }
+
+            if (avatarData.Result != null)
+            {
+                var avatar = ParseBaseToAvatar(avatarData.Result);
+                if (avatar != null)
+                {
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by provider key from Base with full object mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Base");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key in Base");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
     }
 
-    public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+    public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatar>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load avatar by username from Base blockchain
+            var avatarData = await _baseClient.GetAccountByUsernameAsync(avatarUsername);
+            if (avatarData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Base: {avatarData.Message}");
+                return result;
+            }
+
+            if (avatarData.Result != null)
+            {
+                var avatar = ParseBaseToAvatar(avatarData.Result);
+                if (avatar != null)
+                {
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by username from Base with full object mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Base");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username in Base");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarDetailAsync(id, version).Result;
     }
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
@@ -1357,22 +1437,102 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
     }
 
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatarDetail>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load avatar detail by email from Base blockchain
+            var avatarDetailData = await _baseClient.GetAvatarDetailByEmailAsync(avatarEmail);
+            if (avatarDetailData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Base: {avatarDetailData.Message}");
+                return result;
+            }
+
+            if (avatarDetailData.Result != null)
+            {
+                var avatarDetail = ParseBaseToAvatarDetail(avatarDetailData.Result);
+                if (avatarDetail != null)
+                {
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully by email from Base with full object mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar detail data from Base");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by email in Base");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
     }
 
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatarDetail>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load avatar detail by username from Base blockchain
+            var avatarDetailData = await _baseClient.GetAvatarDetailByUsernameAsync(avatarUsername);
+            if (avatarDetailData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Base: {avatarDetailData.Message}");
+                return result;
+            }
+
+            if (avatarDetailData.Result != null)
+            {
+                var avatarDetail = ParseBaseToAvatarDetail(avatarDetailData.Result);
+                if (avatarDetail != null)
+                {
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully by username from Base with full object mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar detail data from Base");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by username in Base");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1382,7 +1542,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1430,9 +1590,49 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
-    public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load holon by provider key from Base blockchain
+            var holonData = await _baseClient.GetHolonByProviderKeyAsync(providerKey);
+            if (holonData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from Base: {holonData.Message}");
+                return result;
+            }
+
+            if (holonData.Result != null)
+            {
+                var holon = ParseBaseToHolon(holonData.Result);
+                if (holon != null)
+                {
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully by provider key from Base with full object mapping";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse holon data from Base");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Holon not found by provider key in Base");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     //public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1457,22 +1657,72 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load holons for parent from Base blockchain
+            var holonsData = await _baseClient.GetHolonsForParentAsync(id, type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Base: {holonsData.Message}");
+                return result;
+            }
+
+            result.Result = holonsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons for parent from Base";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load holons for parent by provider key from Base blockchain
+            var holonsData = await _baseClient.GetHolonsForParentByProviderKeyAsync(providerKey, type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from Base: {holonsData.Message}");
+                return result;
+            }
+
+            result.Result = holonsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons for parent by provider key from Base";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     //public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1485,29 +1735,79 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
     //    throw new NotImplementedException();
     //}
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load holons by metadata from Base blockchain
+            var holonsData = await _baseClient.GetHolonsByMetaDataAsync(metaKey, metaValue, type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Base: {holonsData.Message}");
+                return result;
+            }
+
+            result.Result = holonsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons by metadata from Base";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load holons by multiple metadata pairs from Base blockchain
+            var holonsData = await _baseClient.GetHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Base: {holonsData.Message}");
+                return result;
+            }
+
+            result.Result = holonsData.Result;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons by metadata pairs from Base";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     public bool NativeCodeGenesis(ICelestialBody celestialBody)
     {
-        throw new System.NotImplementedException();
+        return true;
     }
 
     public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
@@ -1656,7 +1956,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
     {
-        throw new NotImplementedException();
+        return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
     }
 
     public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -1708,7 +2008,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
     {
-        throw new NotImplementedException();
+        return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
     }
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -1749,12 +2049,37 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        throw new NotImplementedException();
+        return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
     }
 
-    public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ISearchResults>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Search avatars and holons using Base blockchain
+            var searchData = await _baseClient.SearchAsync(searchParams);
+            if (searchData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error searching from Base: {searchData.Message}");
+                return result;
+            }
+
+            result.Result = searchData.Result;
+            result.IsError = false;
+            result.Message = "Search completed successfully from Base";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error searching from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
@@ -1839,42 +2164,112 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
     {
-        throw new NotImplementedException();
+        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, "ETH").Result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
     {
-        throw new NotImplementedException();
+        return await SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, "ETH");
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ITransactionRespone>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Get wallet addresses for both avatars
+            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarEmail, ProviderType.Base);
+            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarEmail, ProviderType.Base);
+
+            if (fromAddress.IsError || toAddress.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromAddress.Message} {toAddress.Message}");
+                return result;
+            }
+
+            // Send transaction using Base client
+            var transactionResult = await _baseClient.SendTransactionAsync(fromAddress.Result, toAddress.Result, amount, token);
+            if (transactionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
+                return result;
+            }
+
+            result.Result = transactionResult.Result;
+            result.IsError = false;
+            result.Message = "Transaction sent successfully via Base";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error sending transaction via Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        throw new NotImplementedException();
+        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, "ETH").Result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        throw new NotImplementedException();
+        return await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, "ETH");
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ITransactionRespone>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Get wallet addresses for both avatars
+            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarId, ProviderType.Base);
+            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarId, ProviderType.Base);
+
+            if (fromAddress.IsError || toAddress.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromAddress.Message} {toAddress.Message}");
+                return result;
+            }
+
+            // Send transaction using Base client
+            var transactionResult = await _baseClient.SendTransactionAsync(fromAddress.Result, toAddress.Result, amount, token);
+            if (transactionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
+                return result;
+            }
+
+            result.Result = transactionResult.Result;
+            result.IsError = false;
+            result.Message = "Transaction sent successfully via Base";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error sending transaction via Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
@@ -1884,7 +2279,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
     }
 
     public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
@@ -1919,9 +2314,44 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ITransactionRespone>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Get wallet addresses for both avatars
+            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarUsername, ProviderType.Base);
+            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarUsername, ProviderType.Base);
+
+            if (fromAddress.IsError || toAddress.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromAddress.Message} {toAddress.Message}");
+                return result;
+            }
+
+            // Send transaction using Base client
+            var transactionResult = await _baseClient.SendTransactionAsync(fromAddress.Result, toAddress.Result, amount, token);
+            if (transactionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
+                return result;
+            }
+
+            result.Result = transactionResult.Result;
+            result.IsError = false;
+            result.Message = "Transaction sent successfully via Base";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error sending transaction via Base: {ex.Message}", ex);
+        }
+        return result;
     }
 
     private async Task<OASISResult<ITransactionRespone>> SendBaseTransaction(string senderAccountPrivateKey, string receiverAccountAddress, decimal amount)
@@ -2102,12 +2532,37 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
     public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
     {
-        throw new NotImplementedException();
+        return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
     }
 
-    public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+    public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IOASISNFT>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            // Load NFT data from Base blockchain
+            var nftData = await _baseClient.GetNFTDataAsync(nftTokenAddress);
+            if (nftData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading NFT data from Base: {nftData.Message}");
+                return result;
+            }
+
+            result.Result = nftData.Result;
+            result.IsError = false;
+            result.Message = "NFT data loaded successfully from Base";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading NFT data from Base: {ex.Message}", ex);
+        }
+        return result;
     }
 }
 
