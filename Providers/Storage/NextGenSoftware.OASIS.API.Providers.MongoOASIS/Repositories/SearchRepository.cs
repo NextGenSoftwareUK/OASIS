@@ -74,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     {
                         if (searchTextGroup.SearchAvatars)
                         {
-                            if (searchTextGroup.AvatarSerachParams.FirstName || searchTextGroup.AvatarSerachParams.SearchAllFields)
+                            if (searchTextGroup.AvatarSearchParams.FirstName || searchTextGroup.AvatarSearchParams.SearchAllFields)
                             {
                                 avatarFilter = Builders<Avatar>.Filter.Regex("FirstName", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
                                 //IEnumerable<IAvatar> avatars = await _dbContext.Avatar.Find(avatarFilter).ToEnumerable<IAvatar>();
@@ -82,13 +82,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
                             }
 
-                            if (searchTextGroup.AvatarSerachParams.LastName || searchTextGroup.AvatarSerachParams.SearchAllFields)
+                            if (searchTextGroup.AvatarSearchParams.LastName || searchTextGroup.AvatarSearchParams.SearchAllFields)
                             {
                                 avatarFilter = Builders<Avatar>.Filter.Regex("LastName", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
                                 avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
                             }
 
-                            if (searchTextGroup.AvatarSerachParams.Username || searchTextGroup.AvatarSerachParams.SearchAllFields)
+                            if (searchTextGroup.AvatarSearchParams.Username || searchTextGroup.AvatarSearchParams.SearchAllFields)
                             {
                                 //avatarFilter = Builders<Avatar>.Filter.Regex("Username", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
                                 //avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
@@ -118,7 +118,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 //avatars.AddRange(query.ToList());
                             }
 
-                            if (searchTextGroup.AvatarSerachParams.Email || searchTextGroup.AvatarSerachParams.SearchAllFields)
+                            if (searchTextGroup.AvatarSearchParams.Email || searchTextGroup.AvatarSearchParams.SearchAllFields)
                             {
                                 avatarFilter = Builders<Avatar>.Filter.Regex("Email", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
                                 avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
@@ -181,7 +181,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         {
                             if (searchDateGroup.SearchAvatars)
                             {
-                                if (searchDateGroup.AvatarSerachParams.CreatedDate)
+                                if (searchDateGroup.AvatarSearchParams.CreatedDate)
                                 {
                                     if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                     {
@@ -277,7 +277,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         {
                             if (searchNumberGroup.SearchAvatars)
                             {
-                                if (searchNumberGroup.AvatarSerachParams.Version)
+                                if (searchNumberGroup.AvatarSearchParams.Version)
                                 {
                                     if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.EqualTo)
                                     {

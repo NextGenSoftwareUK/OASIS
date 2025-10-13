@@ -1801,7 +1801,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 if (avatarResult.Result?.ProviderWallets != null)
                 {
-                    foreach (var group in avatarResult.Result.ProviderWallets.GroupBy(w => w.ProviderType.Value))
+                    foreach (var group in avatarResult.Result.ProviderWallets.GroupBy(w => w.ProviderType))
                     {
                         providerWallets[group.Key] = group.ToList();
                     }
@@ -1854,6 +1854,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     {
                         OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
                         return result;
+                    }
+
+                    // Count total wallets
+                    var allWallets = new List<IProviderWallet>();
+                    foreach (var kvp in providerWallets)
+                    {
+                        allWallets.AddRange(kvp.Value);
                     }
 
                     result.Result = true;
