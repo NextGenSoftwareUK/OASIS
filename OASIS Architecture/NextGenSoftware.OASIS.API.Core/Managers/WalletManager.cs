@@ -844,7 +844,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (result.WarningCount > 0)
                         OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                     else
-                        LoggingManager.Log("Avatar Wallets Successfully Saved/Replicated", NextGenSoftware.OASIS.API.Core.Enums.LogType.Info, ref result, true, false);
+                        LoggingManager.Log("Avatar Wallets Successfully Saved/Replicated", LogType.Info, ref result, true, false);
                 }
             }
 
@@ -904,7 +904,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (result.WarningCount > 0)
                         OASISErrorHandling.HandleWarning(ref result, string.Concat("The avatar wallets ", id, " successfully saved for the provider ", previousProviderType, " but failed to auto-replicate for some of the other providers in the Auto-Replicate List. Providers in the list are: ", ProviderManager.Instance.GetProvidersThatAreAutoReplicatingAsString()), string.Concat("Error Message: ", OASISResultHelper.BuildInnerMessageError(result.InnerMessages)), true);
                     else
-                        LoggingManager.Log("Avatar Wallets Successfully Saved/Replicated", NextGenSoftware.OASIS.API.Core.Enums.LogType.Info, ref result, true, false);
+                        LoggingManager.Log("Avatar Wallets Successfully Saved/Replicated", LogType.Info, ref result, true, false);
                 }
             }
 

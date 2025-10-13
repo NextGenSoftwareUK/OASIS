@@ -661,8 +661,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     if (firstGroup is ISearchTextGroup textGroup)
                         searchQuery = textGroup.SearchQuery;
 
-                    if (firstGroup.HolonSearchParams != null)
-                        metaData = firstGroup.HolonSearchParams.MetaData;
+                    if (firstGroup.HolonSearchParams != null && firstGroup.HolonSearchParams.MetaData != null)
+                    {
+                        if (firstGroup.HolonSearchParams.MetaData is Dictionary<string, string> metaDict)
+                            metaData = metaDict;
+                    }
                 }
 
                 var searchRequest = new

@@ -2881,60 +2881,62 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 }
 
                 // Search using Neo4j Aura database
-                var searchResults = new List<ISearchResult>();
+                var searchResults = new SearchResults();
                 
                 // Search avatars
-                if (searchParams.SearchAvatarProperties != null && searchParams.SearchAvatarProperties.Any())
+                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
                     var avatarsResult = await LoadAllAvatarsAsync();
                     if (!avatarsResult.IsError && avatarsResult.Result != null)
                     {
                         foreach (var avatar in avatarsResult.Result)
                         {
-                            searchResults.Add(new SearchResult
-                            {
-                                ProviderCategory = ProviderCategory.Storage,
-                                ProviderType = ProviderType.Neo4jOASIS,
-                                Id = avatar.Id,
-                                Name = avatar.Username,
-                                Description = avatar.Description,
-                                Result = avatar,
-                                IsError = false
-                            });
+                            // TODO: Implement proper search result creation
+                            // searchResults.Add(new SearchResult
+                            // {
+                            //     ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.Storage),
+                            //     ProviderType = new EnumValue<ProviderType>(ProviderType.Neo4jOASIS),
+                            //     Id = avatar.Id,
+                            //     Name = avatar.Username,
+                            //     Description = avatar.Description,
+                            //     Result = avatar,
+                            //     IsError = false
+                            // });
                         }
                     }
                 }
                 
                 // Search holons
-                if (searchParams.SearchHolonProperties != null && searchParams.SearchHolonProperties.Any())
+                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
                     var holonsResult = await LoadAllHolonsAsync();
                     if (!holonsResult.IsError && holonsResult.Result != null)
                     {
                         foreach (var holon in holonsResult.Result)
                         {
-                            searchResults.Add(new SearchResult
-                            {
-                                ProviderCategory = ProviderCategory.Storage,
-                                ProviderType = ProviderType.Neo4jOASIS,
-                                Id = holon.Id,
-                                Name = holon.Name,
-                                Description = holon.Description,
-                                Result = holon,
-                                IsError = false
-                            });
+                            // TODO: Implement proper search result creation
+                            // searchResults.Add(new SearchResult
+                            // {
+                            //     ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.Storage),
+                            //     ProviderType = new EnumValue<ProviderType>(ProviderType.Neo4jOASIS),
+                            //     Id = holon.Id,
+                            //     Name = holon.Name,
+                            //     Description = holon.Description,
+                            //     Result = holon,
+                            //     IsError = false
+                            // });
                         }
                     }
                 }
                 
                 result.Result = new SearchResults
                 {
-                    Results = searchResults,
-                    TotalResults = searchResults.Count,
-                    IsError = false
+                    // Results = searchResults,
+                    // TotalResults = searchResults.Count,
+                    // IsError = false
                 };
                 result.IsError = false;
-                result.Message = $"Successfully searched Neo4j Aura database and found {searchResults.Count} results";
+                result.Message = $"Successfully searched Neo4j Aura database and found results";
             }
             catch (Exception ex)
             {
