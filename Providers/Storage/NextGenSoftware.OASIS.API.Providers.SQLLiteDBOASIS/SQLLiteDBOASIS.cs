@@ -165,15 +165,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             return result;
         }
 
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
+        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var result = _holonRepository.GetHolonsNearMe(Type);
-            return result;
-        }
-
-        public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
-        {
-            var result = new OASISResult<IEnumerable<IPlayer>>();
+            var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
                 if (!IsProviderActivated)
@@ -182,61 +176,85 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
 
-                // Get all avatars and convert to players
                 var avatarsResult = _avatarRepository.LoadAllAvatars();
-                if (avatarsResult.IsError)
+                if (avatarsResult.IsError || avatarsResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
                     return result;
                 }
 
-                var players = new List<IPlayer>();
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+
+                var nearby = new List<IAvatar>();
                 foreach (var avatar in avatarsResult.Result)
                 {
-                    var player = new Player
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
                     {
-                        Id = avatar.Id,
-                        Username = avatar.Username,
-                        Email = avatar.Email,
-                        FirstName = avatar.FirstName,
-                        LastName = avatar.LastName,
-                        CreatedDate = avatar.CreatedDate,
-                        ModifiedDate = avatar.ModifiedDate,
-                        Address = avatar.Address,
-                        Country = avatar.Country,
-                        Postcode = avatar.Postcode,
-                        Mobile = avatar.Mobile,
-                        Landline = avatar.Landline,
-                        Title = avatar.Title,
-                        DOB = avatar.DOB,
-                        AvatarType = avatar.AvatarType,
-                        KarmaAkashicRecords = avatar.KarmaAkashicRecords,
-                        Level = avatar.Level,
-                        XP = avatar.XP,
-                        HP = avatar.HP,
-                        Mana = avatar.Mana,
-                        Stamina = avatar.Stamina,
-                        Description = avatar.Description,
-                        Website = avatar.Website,
-                        Language = avatar.Language,
-                        ProviderWallets = avatar.ProviderWallets,
-                        CustomData = new Dictionary<string, object>
-                        {
-                            ["NearMe"] = true,
-                            ["Distance"] = 0.0, // Would be calculated based on actual location
-                            ["Provider"] = "SQLLiteDBOASIS"
-                        }
-                    };
-                    players.Add(player);
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
+                    }
                 }
 
-                result.Result = players;
+                result.Result = nearby;
                 result.IsError = false;
-                result.Message = $"Successfully loaded {players.Count} players near me from SQLite";
+                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from SQLite: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from SQLite: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
+                    return result;
+                }
+
+                var holonsResult = _holonRepository.LoadAllHolons(Type, true, true, 0, 0, true, 0);
+                if (holonsResult.IsError || holonsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+
+                var nearby = new List<IHolon>();
+                foreach (var holon in holonsResult.Result)
+                {
+                    if (holon.MetaData != null &&
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from SQLite: {ex.Message}", ex);
             }
             return result;
         }
@@ -932,135 +950,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
-                }
-
-                var importedCount = 0;
-                foreach (var holon in holons)
-                {
-                    var saveResult = await _holonRepository.SaveAsync(holon);
-                    if (saveResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
-                        return result;
-                    }
-                    importedCount++;
-                }
-
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"Successfully imported {importedCount} holons to SQLite";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error importing holons to SQLite: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
-                }
-
-                // Export all holons created by the avatar
-                var holons = await _holonRepository.GetByCreatedByAvatarIdAsync(avatarId);
-                result.Result = holons.Result;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarId} from SQLite";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from SQLite: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
-                }
-
-                // Export all holons created by the avatar username
-                var holons = await _holonRepository.GetByCreatedByUsernameAsync(avatarUsername);
-                result.Result = holons.Result;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarUsername} from SQLite";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from SQLite: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
-                }
-
-                // Export all holons created by the avatar email
-                var holons = await _holonRepository.GetByCreatedByEmailAsync(avatarEmailAddress);
-                result.Result = holons.Result;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarEmailAddress} from SQLite";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from SQLite: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "SQLite provider is not activated");
-                    return result;
-                }
-
-                // Export all holons
-                var holons = await _holonRepository.GetAllAsync();
-                result.Result = holons.Result;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons from SQLite";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting all data from SQLite: {ex.Message}", ex);
-            }
-            return result;
-        }
+        // removed duplicate earlier Import/Export methods to resolve CS0111
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {

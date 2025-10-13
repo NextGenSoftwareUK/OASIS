@@ -22,6 +22,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 {
@@ -56,6 +57,18 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         private readonly string _chainId;
         private readonly string _privateKey;
         private bool _isActivated;
+        private WalletManager _walletManager;
+
+        public WalletManager WalletManager
+        {
+            get
+            {
+                if (_walletManager == null)
+                    _walletManager = new WalletManager(this, OASISDNA);
+                return _walletManager;
+            }
+            set => _walletManager = value;
+        }
 
         /// <summary>
         /// Initializes a new instance of the CosmosBlockChainOASIS provider

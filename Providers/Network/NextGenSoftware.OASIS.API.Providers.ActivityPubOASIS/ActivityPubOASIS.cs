@@ -1131,9 +1131,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
 
         #region IOASISNET Implementation
 
-        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var response = new OASISResult<IEnumerable<IPlayer>>();
+            var response = new OASISResult<IEnumerable<IAvatar>>();
 
             try
             {
@@ -1143,42 +1143,45 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     return response;
                 }
 
-                // Get players near me from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts/followers";
-                
-                var httpResponse = _httpClient.GetAsync(apiUrl).Result;
-                if (httpResponse.IsSuccessStatusCode)
+                // Load all avatars and filter by geo-location
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
                 {
-                    var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse ActivityPub JSON and create Player collection
-                    // Parse ActivityPub JSON and create Avatar object
-                    var avatar = ParseActivityPubToAvatar(content);
-                    if (avatar != null)
+                    OASISErrorHandling.HandleError(ref response, $"Error loading avatars: {avatarsResult.Message}");
+                    return response;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
                     {
-                        response.Result = avatar;
-                        response.IsError = false;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
                     }
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to get players near me from ActivityPub instance: {httpResponse.StatusCode}");
-                }
+
+                response.Result = nearby;
+                response.IsError = false;
+                response.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
             }
             catch (Exception ex)
             {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting players near me from ActivityPub: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error getting avatars near me from ActivityPub: {ex.Message}", ex);
             }
 
             return response;
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
 
@@ -1190,36 +1193,39 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     return response;
                 }
 
-                // Get holons near me from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/statuses?type={Type}";
-                
-                var httpResponse = _httpClient.GetAsync(apiUrl).Result;
-                if (httpResponse.IsSuccessStatusCode)
+                // Load all holons and filter by geo-location and type
+                var holonsResult = LoadAllHolons(Type);
+                if (holonsResult.IsError || holonsResult.Result == null)
                 {
-                    var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse ActivityPub JSON and create Holon collection
-                    // Parse ActivityPub JSON and create Avatar object
-                    var avatar = ParseActivityPubToAvatar(content);
-                    if (avatar != null)
+                    OASISErrorHandling.HandleError(ref response, $"Error loading holons: {holonsResult.Message}");
+                    return response;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IHolon>();
+
+                foreach (var holon in holonsResult.Result)
+                {
+                    if (holon.MetaData != null &&
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
                     {
-                        response.Result = avatar;
-                        response.IsError = false;
-                        response.Message = "Avatar loaded from ActivityPub successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
                     }
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from ActivityPub instance: {httpResponse.StatusCode}");
-                }
+
+                response.Result = nearby;
+                response.IsError = false;
+                response.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
             }
             catch (Exception ex)
             {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from ActivityPub: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from ActivityPub: {ex.Message}", ex);
             }
 
             return response;
@@ -1610,3 +1616,4 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         #endregion
     }
 }
+

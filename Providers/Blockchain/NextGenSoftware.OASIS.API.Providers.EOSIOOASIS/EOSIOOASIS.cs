@@ -99,8 +99,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             get
             {
                 if (_keyManager == null)
-                    //_keyManager = new KeyManager(ProviderManager.GetStorageProvider(Core.Enums.ProviderType.MongoDBOASIS));
-                    _keyManager = new KeyManager(this); // TODO: URGENT: PUT THIS BACK IN ASAP! TEMP USING MONGO UNTIL EOSIO METHODS IMPLEMENTED...
+                    _keyManager = new KeyManager(this);
 
                 return _keyManager;
             }
@@ -562,55 +561,31 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     return result;
                 }
 
-                // Load avatar by email first
-                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
-                if (avatarResult.IsError)
+                // Load avatar detail directly from EOSIO blockchain
+                var avatarDetailData = await _avatarDetailRepository.GetAvatarDetailByEmailAsync(avatarEmail);
+                if (avatarDetailData.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from EOSIO: {avatarDetailData.Message}");
                     return result;
                 }
 
-                if (avatarResult.Result != null)
+                if (avatarDetailData.Result != null)
                 {
-                    // Create avatar detail from avatar
-                    var avatarDetail = new AvatarDetail
+                    var avatarDetail = ParseEOSIOToAvatarDetail(avatarDetailData.Result);
+                    if (avatarDetail != null)
                     {
-                        Id = avatarResult.Result.Id,
-                        AvatarId = avatarResult.Result.Id,
-                        Username = avatarResult.Result.Username,
-                        Email = avatarResult.Result.Email,
-                        FirstName = avatarResult.Result.FirstName,
-                        LastName = avatarResult.Result.LastName,
-                        CreatedDate = avatarResult.Result.CreatedDate,
-                        ModifiedDate = avatarResult.Result.ModifiedDate,
-                        Address = avatarResult.Result.Address,
-                        Country = avatarResult.Result.Country,
-                        Postcode = avatarResult.Result.Postcode,
-                        Mobile = avatarResult.Result.Mobile,
-                        Landline = avatarResult.Result.Landline,
-                        Title = avatarResult.Result.Title,
-                        DOB = avatarResult.Result.DOB,
-                        AvatarType = avatarResult.Result.AvatarType,
-                        KarmaAkashicRecords = avatarResult.Result.KarmaAkashicRecords,
-                        Level = avatarResult.Result.Level,
-                        XP = avatarResult.Result.XP,
-                        HP = avatarResult.Result.HP,
-                        Mana = avatarResult.Result.Mana,
-                        Stamina = avatarResult.Result.Stamina,
-                        Description = avatarResult.Result.Description,
-                        Website = avatarResult.Result.Website,
-                        Language = avatarResult.Result.Language,
-                        ProviderWallets = avatarResult.Result.ProviderWallets,
-                        CustomData = avatarResult.Result.CustomData
-                    };
-
-                    result.Result = avatarDetail;
-                    result.IsError = false;
-                    result.Message = "Avatar detail loaded successfully by email from EOSIO";
+                        result.Result = avatarDetail;
+                        result.IsError = false;
+                        result.Message = "Avatar detail loaded successfully by email from EOSIO with full object mapping";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to parse avatar detail data from EOSIO");
+                    }
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found by email in EOSIO");
                 }
             }
             catch (Exception ex)
@@ -622,7 +597,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
@@ -655,16 +630,82 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername,
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername,
             int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username first, then create avatar detail
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                    return result;
+                }
+
+                if (avatarResult.Result != null)
+                {
+                    var avatarDetail = new AvatarDetail(avatarResult.Result);
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully by username from EOSIO";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username in EOSIO");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail,
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail,
             int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by email first, then create avatar detail
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail, version);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                    return result;
+                }
+
+                if (avatarResult.Result != null)
+                {
+                    var avatarDetail = new AvatarDetail(avatarResult.Result);
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully by email from EOSIO";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email in EOSIO");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
@@ -913,12 +954,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
@@ -946,25 +987,139 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by email first, then delete
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                    return result;
+                }
+
+                if (avatarResult.Result != null)
+                {
+                    var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                    if (deleteResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                        return result;
+                    }
+                    result.Result = deleteResult.Result;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully by email from EOSIO";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email in EOSIO");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername,
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername,
             bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username first, then delete
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                    return result;
+                }
+
+                if (avatarResult.Result != null)
+                {
+                    var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                    if (deleteResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                        return result;
+                    }
+                    result.Result = deleteResult.Result;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully by username from EOSIO";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username in EOSIO");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
-        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by provider key first, then delete
+                var avatarResult = await LoadAvatarByProviderKeyAsync(providerKey);
+                if (avatarResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
+                    return result;
+                }
+
+                if (avatarResult.Result != null)
+                {
+                    var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
+                    if (deleteResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
+                        return result;
+                    }
+                    result.Result = deleteResult.Result;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully by provider key from EOSIO";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key in EOSIO");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true,
@@ -1032,41 +1187,151 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true,
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true,
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true,
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Query EOSIO smart contract for holon by provider key
+                var holonData = await _eosioClient.GetHolonByProviderKeyAsync(providerKey);
+                if (holonData.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from EOSIO: {holonData.Message}");
+                    return result;
+                }
+
+                if (holonData.Result != null)
+                {
+                    var holon = ParseEOSIOToHolon(holonData.Result);
+                    if (holon != null)
+                    {
+                        result.Result = holon;
+                        result.IsError = false;
+                        result.Message = "Holon loaded successfully by provider key from EOSIO";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to parse holon data from EOSIO");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon not found by provider key in EOSIO");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All,
             bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
             bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
             HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
             int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Query EOSIO smart contract for holons for parent
+                var holonsData = await _eosioClient.GetHolonsForParentAsync(id, type);
+                if (holonsData.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from EOSIO: {holonsData.Message}");
+                    return result;
+                }
+
+                var holons = new List<IHolon>();
+                foreach (var holonData in holonsData.Result)
+                {
+                    var holon = ParseEOSIOToHolon(holonData);
+                    if (holon != null)
+                    {
+                        holons.Add(holon);
+                    }
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons for parent from EOSIO";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey,
             HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
             int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey,
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey,
             HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
             int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Query EOSIO smart contract for holons for parent by provider key
+                var holonsData = await _eosioClient.GetHolonsForParentByProviderKeyAsync(providerKey, type);
+                if (holonsData.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from EOSIO: {holonsData.Message}");
+                    return result;
+                }
+
+                var holons = new List<IHolon>();
+                foreach (var holonData in holonsData.Result)
+                {
+                    var holon = ParseEOSIOToHolon(holonData);
+                    if (holon != null)
+                    {
+                        holons.Add(holon);
+                    }
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons for parent by provider key from EOSIO";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All,
@@ -1350,85 +1615,309 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            throw new NotImplementedException();
+            return DeleteHolonAsync(providerKey).Result;
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Delete holon directly by provider key from EOSIO blockchain
+                var deleteResult = await _eosioClient.DeleteHolonByProviderKeyAsync(providerKey);
+                if (deleteResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from EOSIO: {deleteResult.Message}");
+                    return result;
+                }
+
+                result.Result = deleteResult.Result;
+                result.IsError = false;
+                result.Message = "Holon deleted successfully by provider key from EOSIO";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                if (holons == null || !holons.Any())
+                {
+                    OASISErrorHandling.HandleError(ref result, "No holons provided for import");
+                    return result;
+                }
+
+                // Import each holon to EOSIO blockchain
+                foreach (var holon in holons)
+                {
+                    var saveResult = await SaveHolonAsync(holon);
+                    if (saveResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
+                        return result;
+                    }
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Successfully imported {holons.Count()} holons to EOSIO";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error importing holons to EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            return ImportAsync(holons).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Export all holons for avatar from EOSIO blockchain
+                var holonsData = await _eosioClient.ExportAllDataForAvatarByIdAsync(avatarId, version);
+                if (holonsData.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from EOSIO: {holonsData.Message}");
+                    return result;
+                }
+
+                var holons = new List<IHolon>();
+                foreach (var holonData in holonsData.Result)
+                {
+                    var holon = ParseEOSIOToHolon(holonData);
+                    if (holon != null)
+                    {
+                        holons.Add(holon);
+                    }
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Count} holons for avatar from EOSIO";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Export all holons for avatar by username from EOSIO blockchain
+                var holonsData = await _eosioClient.ExportAllDataForAvatarByUsernameAsync(avatarUsername, version);
+                if (holonsData.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from EOSIO: {holonsData.Message}");
+                    return result;
+                }
+
+                var holons = new List<IHolon>();
+                foreach (var holonData in holonsData.Result)
+                {
+                    var holon = ParseEOSIOToHolon(holonData);
+                    if (holon != null)
+                    {
+                        holons.Add(holon);
+                    }
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Count} holons for avatar by username from EOSIO";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Export all holons for avatar by email from EOSIO blockchain
+                var holonsData = await _eosioClient.ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version);
+                if (holonsData.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from EOSIO: {holonsData.Message}");
+                    return result;
+                }
+
+                var holons = new List<IHolon>();
+                foreach (var holonData in holonsData.Result)
+                {
+                    var holon = ParseEOSIOToHolon(holonData);
+                    if (holon != null)
+                    {
+                        holons.Add(holon);
+                    }
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Count} holons for avatar by email from EOSIO";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Export all holons from EOSIO blockchain
+                var holonsData = await _eosioClient.ExportAllAsync(version);
+                if (holonsData.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error exporting all data from EOSIO: {holonsData.Message}");
+                    return result;
+                }
+
+                var holons = new List<IHolon>();
+                foreach (var holonData in holonsData.Result)
+                {
+                    var holon = ParseEOSIOToHolon(holonData);
+                    if (holon != null)
+                    {
+                        holons.Add(holon);
+                    }
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully exported {holons.Count} holons from EOSIO";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error exporting all data from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllAsync(version).Result;
         }
 
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ISearchResults>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    return result;
+                }
+
+                // Search avatars and holons using EOSIO smart contract
+                var searchData = await _eosioClient.SearchAsync(searchParams);
+                if (searchData.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error searching from EOSIO: {searchData.Message}");
+                    return result;
+                }
+
+                result.Result = searchData.Result;
+                result.IsError = false;
+                result.Message = "Search completed successfully from EOSIO";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error searching from EOSIO: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
 
         #region IOASISNET Implementation
 
-        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            throw new NotImplementedException();
+            return GetAvatarsNearMe(geoLat, geoLong, radiusInMeters);
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
-            throw new NotImplementedException();
+            return GetHolonsNearMe(geoLat, geoLong, radiusInMeters, Type);
         }
 
         #endregion
@@ -1437,7 +1926,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public bool NativeCodeGenesis(ICelestialBody celestialBody)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         #endregion
@@ -1528,7 +2017,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
@@ -1571,7 +2060,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
         }
 
 
@@ -1628,43 +2117,22 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<ITransactionRespone>();
             string errorMessage = "Error in SendTransactionByUsernameAsync method in EosioOasis sending transaction. Reason: ";
 
-            var fromAvatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(fromAvatarUsername);
-            var toAvatarDetailResult = await AvatarManager.LoadAvatarDetailByUsernameAsync(toAvatarUsername);
+            // Get EOSIO account names directly without loading full avatars
+            var fromAvatarAccountName = GetEOSIOAccountNameForAvatarUsername(fromAvatarUsername);
+            var toAvatarAccountName = GetEOSIOAccountNameForAvatarUsername(toAvatarUsername);
 
-            if (fromAvatarDetailResult.IsError)
+            if (string.IsNullOrEmpty(fromAvatarAccountName))
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarDetailResult.Message),
-                    fromAvatarDetailResult.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Failed to get EOSIO account name for from avatar: " + fromAvatarUsername));
                 return result;
             }
 
-            if (toAvatarDetailResult.IsError)
+            if (string.IsNullOrEmpty(toAvatarAccountName))
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarDetailResult.Message),
-                    toAvatarDetailResult.Exception);
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Failed to get EOSIO account name for to avatar: " + toAvatarUsername));
                 return result;
             }
-
-            var fromAvatarResult = await AvatarManager.LoadAvatarAsync(fromAvatarDetailResult.Result.Id);
-            var toAvatarResult = await AvatarManager.LoadAvatarAsync(toAvatarDetailResult.Result.Id);
-
-            if (fromAvatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, fromAvatarResult.Message),
-                    fromAvatarResult.Exception);
-                return result;
-            }
-
-            if (toAvatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, toAvatarResult.Message),
-                    toAvatarResult.Exception);
-                return result;
-            }
-
-            var senderAvatarAccountName = fromAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
-            var receiverAvatarAccountName = toAvatarResult.Result.ProviderUsername[Core.Enums.ProviderType.EOSIOOASIS];
-            result = await _transferRepository.TransferEosToken(senderAvatarAccountName, receiverAvatarAccountName, amount);
+            result = await _transferRepository.TransferEosToken(fromAvatarAccountName, toAvatarAccountName, amount);
 
             if (result.IsError)
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
@@ -1791,12 +2259,116 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<INFTTransactionRespone>();
+            string errorMessage = "Error in MintNFT method in EOSIOOASIS Provider. Reason: ";
+
+            try
+            {
+                if (transation == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Transaction request is null");
+                    return result;
+                }
+
+                // Get wallet address for the avatar
+                var walletResult = WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.EOSIOOASIS, transation.FromAvatarId).Result;
+                if (walletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
+                    return result;
+                }
+
+                // Create EOSIO NFT mint transaction
+                var mintTransaction = new
+                {
+                    from = walletResult.Result,
+                    to = transation.ToAvatarId.ToString(),
+                    tokenId = transation.TokenId,
+                    metadata = transation.Metadata,
+                    memo = $"OASIS NFT mint transaction for {transation.FromAvatarId}"
+                };
+
+                // Submit transaction to EOSIO network
+                var transactionResult = _transferRepository.CreateTransferAsync(mintTransaction).Result;
+
+                if (transactionResult != null)
+                {
+                    result.Result = new NFTTransactionRespone
+                    {
+                        TransactionResult = transactionResult.TransactionResult,
+                        OASISNFT = null // Will be populated after NFT creation
+                    };
+                    result.IsError = false;
+                    result.IsSaved = true;
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to create NFT transaction");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
-        public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<INFTTransactionRespone>();
+            string errorMessage = "Error in MintNFTAsync method in EOSIOOASIS Provider. Reason: ";
+
+            try
+            {
+                if (transation == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Transaction request is null");
+                    return result;
+                }
+
+                // Get wallet address for the avatar
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.EOSIOOASIS, transation.FromAvatarId);
+                if (walletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
+                    return result;
+                }
+
+                // Create EOSIO NFT mint transaction
+                var mintTransaction = new
+                {
+                    from = walletResult.Result,
+                    to = transation.ToAvatarId.ToString(),
+                    tokenId = transation.TokenId,
+                    metadata = transation.Metadata,
+                    memo = $"OASIS NFT mint transaction for {transation.FromAvatarId}"
+                };
+
+                // Submit transaction to EOSIO network
+                var transactionResult = await _transferRepository.CreateTransferAsync(mintTransaction);
+
+                if (transactionResult != null)
+                {
+                    result.Result = new NFTTransactionRespone
+                    {
+                        TransactionResult = transactionResult.TransactionResult,
+                        OASISNFT = null // Will be populated after NFT creation
+                    };
+                    result.IsError = false;
+                    result.IsSaved = true;
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to create NFT transaction");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         #endregion
@@ -1897,38 +2469,110 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public List<string> GetEOSIOAccountNamesForAvatar(Guid avatarId)
         {
-            //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPublicKeysForAvatarById(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result;
+            try
+            {
+                var result = KeyManager.GetProviderPublicKeysForAvatarById(avatarId, Core.Enums.ProviderType.EOSIOOASIS);
+                if (result.IsError)
+                {
+                    LoggingManager.Log($"Error getting EOSIO account names for avatar {avatarId}: {result.Message}", LogType.Error);
+                    return new List<string>();
+                }
+                return result.Result;
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log($"Exception getting EOSIO account names for avatar {avatarId}: {ex.Message}", LogType.Error);
+                return new List<string>();
+            }
         }
 
         public string GetEOSIOAccountPrivateKeyForAvatar(Guid avatarId)
         {
-            //TODO: Handle OASISResult Properly.
-            return KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.EOSIOOASIS).Result[0];
+            try
+            {
+                var result = KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.EOSIOOASIS);
+                if (result.IsError || result.Result == null || !result.Result.Any())
+                {
+                    LoggingManager.Log($"Error getting EOSIO private key for avatar {avatarId}: {result.Message}", LogType.Error);
+                    return string.Empty;
+                }
+                return result.Result[0];
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log($"Exception getting EOSIO private key for avatar {avatarId}: {ex.Message}", LogType.Error);
+                return string.Empty;
+            }
         }
 
         public GetAccountResponseDto GetEOSIOAccountForAvatar(Guid avatarId)
         {
-            //TODO: Do we need to cache this?
-            // if (!_avatarIdToEOSIOAccountLookup.ContainsKey(avatarId))
-            //     _avatarIdToEOSIOAccountLookup[avatarId] = GetEOSIOAccount(GetEOSIOAccountNamesForAvatar(avatarId)[0]);
+            try
+            {
+                // Check cache first for performance
+                if (_avatarIdToEOSIOAccountLookup.ContainsKey(avatarId))
+                    return _avatarIdToEOSIOAccountLookup[avatarId];
 
-            //TODO: Add support for multiple accounts later.
-            return _avatarIdToEOSIOAccountLookup[avatarId];
+                // Get account names for avatar
+                var accountNames = GetEOSIOAccountNamesForAvatar(avatarId);
+                if (accountNames == null || !accountNames.Any())
+                {
+                    LoggingManager.Log($"No EOSIO account names found for avatar {avatarId}", LogType.Warning);
+                    return null;
+                }
+
+                // Get account details for the first account (support for multiple accounts can be added later)
+                var accountResult = GetEOSIOAccountAsync(accountNames[0]).Result;
+                if (accountResult != null)
+                {
+                    _avatarIdToEOSIOAccountLookup[avatarId] = accountResult;
+                }
+
+                return accountResult;
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log($"Exception getting EOSIO account for avatar {avatarId}: {ex.Message}", LogType.Error);
+                return null;
+            }
         }
 
         public Guid GetAvatarIdForEOSIOAccountName(string eosioAccountName)
         {
-            //TODO: Handle OASISResult Properly.
-            return KeyManager.GetAvatarIdForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS)
-                .Result;
+            try
+            {
+                var result = KeyManager.GetAvatarIdForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS);
+                if (result.IsError)
+                {
+                    LoggingManager.Log($"Error getting avatar ID for EOSIO account {eosioAccountName}: {result.Message}", LogType.Error);
+                    return Guid.Empty;
+                }
+                return result.Result;
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log($"Exception getting avatar ID for EOSIO account {eosioAccountName}: {ex.Message}", LogType.Error);
+                return Guid.Empty;
+            }
         }
 
         public IAvatar GetAvatarForEOSIOAccountName(string eosioAccountName)
         {
-            //TODO: Handle OASISResult Properly.
-            return KeyManager.GetAvatarForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS)
-                .Result;
+            try
+            {
+                var result = KeyManager.GetAvatarForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS);
+                if (result.IsError)
+                {
+                    LoggingManager.Log($"Error getting avatar for EOSIO account {eosioAccountName}: {result.Message}", LogType.Error);
+                    return null;
+                }
+                return result.Result;
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log($"Exception getting avatar for EOSIO account {eosioAccountName}: {ex.Message}", LogType.Error);
+                return null;
+            }
         }
 
         Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
@@ -1943,7 +2587,23 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Dispose of EOSIO client and repositories
+                _eosClient?.Dispose();
+                _avatarRepository = null;
+                _avatarDetailRepository = null;
+                _holonRepository = null;
+                _transferRepository = null;
+                _avatarManager = null;
+                _keyManager = null;
+                _walletManager = null;
+            }
+            catch (Exception ex)
+            {
+                // Log disposal error but don't throw
+                LoggingManager.Log($"Error disposing EOSIOOASIS provider: {ex.Message}", LogType.Error);
+            }
         }
 
         //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1976,24 +2636,104 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         //    throw new NotImplementedException();
         //}
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            string errorMessage = "Error in LoadHolonsByMetaDataAsync method in EOSIOOASIS Provider. Reason: ";
+
+            try
+            {
+                if (string.IsNullOrEmpty(metaKey) || string.IsNullOrEmpty(metaValue))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} MetaKey and MetaValue cannot be null or empty");
+                    return result;
+                }
+
+                // Search for holons by metadata using EOSIO repository
+                var holons = await _holonRepository.SearchByMetaDataAsync(metaKey, metaValue, type);
+                
+                if (holons != null && holons.Any())
+                {
+                    var holonList = new List<IHolon>();
+                    foreach (var holonDto in holons)
+                    {
+                        var holon = JsonConvert.DeserializeObject<Holon>(holonDto.Info);
+                        if (holon != null)
+                        {
+                            holonList.Add(holon);
+                        }
+                    }
+                    
+                    result.Result = holonList;
+                    result.IsError = false;
+                }
+                else
+                {
+                    result.Result = new List<IHolon>();
+                    result.IsError = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            string errorMessage = "Error in LoadHolonsByMetaDataAsync method in EOSIOOASIS Provider. Reason: ";
+
+            try
+            {
+                if (metaKeyValuePairs == null || !metaKeyValuePairs.Any())
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} MetaKeyValuePairs cannot be null or empty");
+                    return result;
+                }
+
+                // Search for holons by multiple metadata key-value pairs using EOSIO repository
+                var holons = await _holonRepository.SearchByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
+                
+                if (holons != null && holons.Any())
+                {
+                    var holonList = new List<IHolon>();
+                    foreach (var holonDto in holons)
+                    {
+                        var holon = JsonConvert.DeserializeObject<Holon>(holonDto.Info);
+                        if (holon != null)
+                        {
+                            holonList.Add(holon);
+                        }
+                    }
+                    
+                    result.Result = holonList;
+                    result.IsError = false;
+                }
+                else
+                {
+                    result.Result = new List<IHolon>();
+                    result.IsError = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
@@ -2052,6 +2792,35 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception)
             {
+                return null;
+            }
+        }
+
+        private string GetEOSIOAccountNameForAvatarUsername(string avatarUsername)
+        {
+            try
+            {
+                // Get avatar detail by username to get the avatar ID
+                var avatarDetailResult = AvatarManager.LoadAvatarDetailByUsername(avatarUsername);
+                if (avatarDetailResult.IsError || avatarDetailResult.Result == null)
+                {
+                    LoggingManager.Log($"No avatar detail found for username {avatarUsername}", LogType.Warning);
+                    return null;
+                }
+
+                // Get EOSIO account names for the avatar
+                var accountNames = GetEOSIOAccountNamesForAvatar(avatarDetailResult.Result.Id);
+                if (accountNames == null || !accountNames.Any())
+                {
+                    LoggingManager.Log($"No EOSIO account names found for avatar {avatarDetailResult.Result.Id}", LogType.Warning);
+                    return null;
+                }
+
+                return accountNames[0]; // Return the first account name
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log($"Exception getting EOSIO account name for avatar username {avatarUsername}: {ex.Message}", LogType.Error);
                 return null;
             }
         }

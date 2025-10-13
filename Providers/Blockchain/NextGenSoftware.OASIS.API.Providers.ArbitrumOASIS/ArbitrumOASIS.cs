@@ -231,10 +231,6 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-    {
-        return DeleteAvatarByProviderKeyAsync(providerKey, softDelete);
-    }
 
     public async Task<OASISResult<bool>> DeleteAvatarByProviderKeyAsync(string providerKey, bool softDelete = true)
     {
@@ -740,14 +736,9 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return result;
     }
 
-    public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
+    public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
     {
-        return GetPlayersNearMeAsync().Result;
-    }
-
-    public async Task<OASISResult<IEnumerable<IPlayer>>> GetPlayersNearMeAsync()
-    {
-        var result = new OASISResult<IEnumerable<IPlayer>>();
+        var result = new OASISResult<IEnumerable<IAvatar>>();
         try
         {
             if (!IsProviderActivated)
@@ -756,61 +747,81 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
 
-            // Get all avatars and convert to players from Arbitrum
-            var avatarsResult = await LoadAllAvatarsAsync();
+            var avatarsResult = LoadAllAvatars();
             if (avatarsResult.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
                 return result;
             }
 
-            var players = new List<IPlayer>();
+            var nearby = new List<IAvatar>();
             foreach (var avatar in avatarsResult.Result)
             {
-                var player = new Player
+                var meta = avatar.MetaData;
+                if (meta != null && meta.ContainsKey("Latitude") && meta.ContainsKey("Longitude"))
                 {
-                    Id = avatar.Id,
-                    Username = avatar.Username,
-                    Email = avatar.Email,
-                    FirstName = avatar.FirstName,
-                    LastName = avatar.LastName,
-                    CreatedDate = avatar.CreatedDate,
-                    ModifiedDate = avatar.ModifiedDate,
-                    Address = avatar.Address,
-                    Country = avatar.Country,
-                    Postcode = avatar.Postcode,
-                    Mobile = avatar.Mobile,
-                    Landline = avatar.Landline,
-                    Title = avatar.Title,
-                    DOB = avatar.DOB,
-                    AvatarType = avatar.AvatarType,
-                    KarmaAkashicRecords = avatar.KarmaAkashicRecords,
-                    Level = avatar.Level,
-                    XP = avatar.XP,
-                    HP = avatar.HP,
-                    Mana = avatar.Mana,
-                    Stamina = avatar.Stamina,
-                    Description = avatar.Description,
-                    Website = avatar.Website,
-                    Language = avatar.Language,
-                    ProviderWallets = avatar.ProviderWallets,
-                    CustomData = new Dictionary<string, object>
+                    if (double.TryParse(meta["Latitude"]?.ToString(), out double aLat) &&
+                        double.TryParse(meta["Longitude"]?.ToString(), out double aLong))
                     {
-                        ["NearMe"] = true,
-                        ["Distance"] = 0.0, // Would be calculated based on actual location
-                        ["Provider"] = "ArbitrumOASIS"
+                        double distance = NextGenSoftware.OASIS.API.Core.Helpers.GeoHelper.CalculateDistance(geoLat, geoLong, aLat, aLong);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
                     }
-                };
-                players.Add(player);
+                }
             }
 
-            result.Result = players;
+            result.Result = nearby;
             result.IsError = false;
-            result.Message = $"Successfully loaded {players.Count} players near me from Arbitrum";
+            result.Message = $"Successfully loaded {nearby.Count} avatars near me from Arbitrum";
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError(ref result, $"Error getting players near me from Arbitrum: {ex.Message}", ex);
+            OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Arbitrum: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+    {
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            var holonsResult = LoadAllHolons(Type);
+            if (holonsResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                return result;
+            }
+
+            var nearby = new List<IHolon>();
+            foreach (var holon in holonsResult.Result)
+            {
+                var meta = holon.MetaData;
+                if (meta != null && meta.ContainsKey("Latitude") && meta.ContainsKey("Longitude"))
+                {
+                    if (double.TryParse(meta["Latitude"]?.ToString(), out double hLat) &&
+                        double.TryParse(meta["Longitude"]?.ToString(), out double hLong))
+                    {
+                        double distance = NextGenSoftware.OASIS.API.Core.Helpers.GeoHelper.CalculateDistance(geoLat, geoLong, hLat, hLong);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
+                    }
+                }
+            }
+
+            result.Result = nearby;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {nearby.Count} holons near me from Arbitrum";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Arbitrum: {ex.Message}", ex);
         }
         return result;
     }
@@ -870,53 +881,29 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
 
-            // Load all avatars first
-            var avatarsResult = await LoadAllAvatarsAsync(version);
-            if (avatarsResult.IsError)
+            // Load avatar details directly from Arbitrum smart contract
+            var avatarDetailsData = await _contractHandler.GetFunction("getAllAvatarDetails").CallAsync<object[]>();
+            
+            if (avatarDetailsData != null && avatarDetailsData.Length > 0)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
-                return result;
-            }
-
-            var avatarDetails = new List<IAvatarDetail>();
-            foreach (var avatar in avatarsResult.Result)
-            {
-                var avatarDetail = new AvatarDetail
+                var avatarDetails = new List<IAvatarDetail>();
+                foreach (var avatarDetailData in avatarDetailsData)
                 {
-                    Id = avatar.Id,
-                    AvatarId = avatar.Id,
-                    Username = avatar.Username,
-                    Email = avatar.Email,
-                    FirstName = avatar.FirstName,
-                    LastName = avatar.LastName,
-                    CreatedDate = avatar.CreatedDate,
-                    ModifiedDate = avatar.ModifiedDate,
-                    Address = avatar.Address,
-                    Country = avatar.Country,
-                    Postcode = avatar.Postcode,
-                    Mobile = avatar.Mobile,
-                    Landline = avatar.Landline,
-                    Title = avatar.Title,
-                    DOB = avatar.DOB,
-                    AvatarType = avatar.AvatarType,
-                    KarmaAkashicRecords = avatar.KarmaAkashicRecords,
-                    Level = avatar.Level,
-                    XP = avatar.XP,
-                    HP = avatar.HP,
-                    Mana = avatar.Mana,
-                    Stamina = avatar.Stamina,
-                    Description = avatar.Description,
-                    Website = avatar.Website,
-                    Language = avatar.Language,
-                    ProviderWallets = avatar.ProviderWallets,
-                    CustomData = avatar.CustomData
-                };
-                avatarDetails.Add(avatarDetail);
+                    var avatarDetail = ParseArbitrumToAvatarDetail(avatarDetailData);
+                    if (avatarDetail != null)
+                    {
+                        avatarDetails.Add(avatarDetail);
+                    }
+                }
+                
+                result.Result = avatarDetails;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {avatarDetails.Count} avatar details from Arbitrum";
             }
-
-            result.Result = avatarDetails;
-            result.IsError = false;
-            result.Message = $"Successfully loaded {avatarDetails.Count} avatar details from Arbitrum";
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "No avatar details found on Arbitrum blockchain");
+            }
         }
         catch (Exception ex)
         {

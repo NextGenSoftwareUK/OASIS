@@ -56,9 +56,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 if (httpClient != null)
                 {
                     var httpResult = await GetWalletFromHttpClientAsync(httpClient, providerType, avatarId);
-                    if (!httpResult.IsError && !string.IsNullOrEmpty(httpResult.Result))
+                    if (!string.IsNullOrEmpty(httpResult))
                     {
-                        result.Result = httpResult.Result;
+                        result.Result = httpResult;
                         result.IsError = false;
                         result.Message = "Wallet address retrieved from HTTP client successfully";
                         return result;
@@ -70,9 +70,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                     using (var internalHttpClient = new HttpClient())
                     {
                         var httpResult = await GetWalletFromHttpClientAsync(internalHttpClient, providerType, avatarId);
-                        if (!httpResult.IsError && !string.IsNullOrEmpty(httpResult.Result))
+                        if (!string.IsNullOrEmpty(httpResult))
                         {
-                            result.Result = httpResult.Result;
+                            result.Result = httpResult;
                             result.IsError = false;
                             result.Message = "Wallet address retrieved from HTTP client successfully";
                             return result;
@@ -107,9 +107,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 if (walletManager != null)
                 {
                     var walletResult = await GetWalletFromWalletManagerByUsernameAsync(walletManager, providerType, username);
-                    if (!walletResult.IsError && !string.IsNullOrEmpty(walletResult.Result))
+                    if (!string.IsNullOrEmpty(walletResult))
                     {
-                        result.Result = walletResult.Result;
+                        result.Result = walletResult;
                         result.IsError = false;
                         result.Message = "Wallet address retrieved from WalletManager successfully";
                         return result;
@@ -181,9 +181,9 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 if (walletManager != null)
                 {
                     var walletResult = await GetWalletFromWalletManagerByEmailAsync(walletManager, providerType, email);
-                    if (!walletResult.IsError && !string.IsNullOrEmpty(walletResult.Result))
+                    if (!string.IsNullOrEmpty(walletResult))
                     {
-                        result.Result = walletResult.Result;
+                        result.Result = walletResult;
                         result.IsError = false;
                         result.Message = "Wallet address retrieved from WalletManager successfully";
                         return result;
@@ -287,7 +287,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
                     var avatar = avatarResult.Result;
-                    var wallets = avatar.ProviderWallets?.Where(w => w.ProviderType == providerType).ToList();
+                    var wallets = avatar.ProviderWallets?.ContainsKey(providerType) == true ? avatar.ProviderWallets[providerType] : null;
                     if (wallets != null && wallets.Any())
                     {
                         result.Result = wallets.First().WalletAddress;
@@ -358,11 +358,11 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         {
             try
             {
-                var avatarResult = await walletManager.LoadAvatarByUsernameAsync(username);
+                var avatarResult = await AvatarManager.Instance.LoadAvatarAsync(username);
                 if (avatarResult != null && avatarResult.IsError == false && avatarResult.Result != null)
                 {
                     var avatar = avatarResult.Result;
-                    var wallets = avatar.ProviderWallets?.Where(w => w.ProviderType == providerType).ToList();
+                    var wallets = avatar.ProviderWallets?.ContainsKey(providerType) == true ? avatar.ProviderWallets[providerType] : null;
                     if (wallets != null && wallets.Any())
                     {
                         return wallets.First().WalletAddress;
@@ -385,11 +385,11 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             try
             {
                 // Use AvatarManager.Instance to load avatar information
-                var avatarResult = await AvatarManager.Instance.LoadAvatarByUsernameAsync(username);
+                var avatarResult = await AvatarManager.Instance.LoadAvatarAsync(username);
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
                     var avatar = avatarResult.Result;
-                    var wallets = avatar.ProviderWallets?.Where(w => w.ProviderType == providerType).ToList();
+                    var wallets = avatar.ProviderWallets?.ContainsKey(providerType) == true ? avatar.ProviderWallets[providerType] : null;
                     if (wallets != null && wallets.Any())
                     {
                         result.Result = wallets.First().WalletAddress;
@@ -459,11 +459,11 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
         {
             try
             {
-                var avatarResult = await walletManager.LoadAvatarByEmailAsync(email);
+                var avatarResult = await AvatarManager.Instance.LoadAvatarByEmailAsync(email);
                 if (avatarResult != null && avatarResult.IsError == false && avatarResult.Result != null)
                 {
                     var avatar = avatarResult.Result;
-                    var wallets = avatar.ProviderWallets?.Where(w => w.ProviderType == providerType).ToList();
+                    var wallets = avatar.ProviderWallets?.ContainsKey(providerType) == true ? avatar.ProviderWallets[providerType] : null;
                     if (wallets != null && wallets.Any())
                     {
                         return wallets.First().WalletAddress;
@@ -490,7 +490,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
                     var avatar = avatarResult.Result;
-                    var wallets = avatar.ProviderWallets?.Where(w => w.ProviderType == providerType).ToList();
+                    var wallets = avatar.ProviderWallets?.ContainsKey(providerType) == true ? avatar.ProviderWallets[providerType] : null;
                     if (wallets != null && wallets.Any())
                     {
                         result.Result = wallets.First().WalletAddress;

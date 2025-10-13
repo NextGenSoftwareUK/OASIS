@@ -690,7 +690,43 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
     {
-        throw new System.NotImplementedException();
+        var result = new OASISResult<IEnumerable<IPlayer>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            var response = _httpClient.GetAsync($"{_apiBaseUrl}/network/players/nearby").Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = response.Content.ReadAsStringAsync().Result;
+                var players = JsonSerializer.Deserialize<List<Player>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                
+                if (players != null)
+                {
+                    result.Result = players.Cast<IPlayer>();
+                    result.IsError = false;
+                    result.Message = $"Successfully loaded {players.Count} players near you from Avalanche";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize players from Avalanche API");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, $"Avalanche API error: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting players near you from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
@@ -753,19 +789,22 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                 return result;
             }
 
-            // Load all avatars first, then convert to avatar details
-            var avatarsResult = await LoadAllAvatarsAsync(version);
-            if (avatarsResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
-                return result;
-            }
-
+            // Load avatar details directly from Avalanche blockchain
             var avatarDetails = new List<IAvatarDetail>();
-            foreach (var avatar in avatarsResult.Result)
+            
+            // Query avatar details directly from Avalanche smart contract
+            var avatarDetailsData = await _nextGenSoftwareOasisService.GetAllAvatarDetailsQueryAsync();
+            
+            if (avatarDetailsData != null && avatarDetailsData.Count > 0)
             {
-                var avatarDetail = new AvatarDetail(avatar);
-                avatarDetails.Add(avatarDetail);
+                foreach (var avatarDetailData in avatarDetailsData)
+                {
+                    var avatarDetail = ParseAvalancheToAvatarDetail(avatarDetailData);
+                    if (avatarDetail != null)
+                    {
+                        avatarDetails.Add(avatarDetail);
+                    }
+                }
             }
 
             result.Result = avatarDetails;
@@ -1123,32 +1162,98 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
     }
 
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatarDetail>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Load avatar by email first, then create avatar detail
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail, version);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                var avatarDetail = new AvatarDetail(avatarResult.Result);
+                result.Result = avatarDetail;
+                result.IsError = false;
+                result.Message = "Avatar detail loaded successfully by email from Avalanche";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by email in Avalanche");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
     }
 
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+    public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IAvatarDetail>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Load avatar by username first, then create avatar detail
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
+            if (avatarResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                return result;
+            }
+
+            if (avatarResult.Result != null)
+            {
+                var avatarDetail = new AvatarDetail(avatarResult.Result);
+                result.Result = avatarDetail;
+                result.IsError = false;
+                result.Message = "Avatar detail loaded successfully by username from Avalanche";
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Avatar not found by username in Avalanche");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new Exception();
+        return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1196,9 +1301,49 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         return result;
     }
 
-    public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Query Avalanche smart contract for holon by provider key
+            var holonData = await _avalancheClient.GetHolonByProviderKeyAsync(providerKey);
+            if (holonData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from Avalanche: {holonData.Message}");
+                return result;
+            }
+
+            if (holonData.Result != null)
+            {
+                var holon = ParseAvalancheToHolon(holonData.Result);
+                if (holon != null)
+                {
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully by provider key from Avalanche";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse holon data from Avalanche");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "Holon not found by provider key in Avalanche");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     //public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1223,22 +1368,92 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Query Avalanche smart contract for holons for parent
+            var holonsData = await _avalancheClient.GetHolonsForParentAsync(id, type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Avalanche: {holonsData.Message}");
+                return result;
+            }
+
+            var holons = new List<IHolon>();
+            foreach (var holonData in holonsData.Result)
+            {
+                var holon = ParseAvalancheToHolon(holonData);
+                if (holon != null)
+                {
+                    holons.Add(holon);
+                }
+            }
+
+            result.Result = holons;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holons.Count} holons for parent from Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Query Avalanche smart contract for holons for parent by provider key
+            var holonsData = await _avalancheClient.GetHolonsForParentByProviderKeyAsync(providerKey, type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from Avalanche: {holonsData.Message}");
+                return result;
+            }
+
+            var holons = new List<IHolon>();
+            foreach (var holonData in holonsData.Result)
+            {
+                var holon = ParseAvalancheToHolon(holonData);
+                if (holon != null)
+                {
+                    holons.Add(holon);
+                }
+            }
+
+            result.Result = holons;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holons.Count} holons for parent by provider key from Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     //public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -1251,29 +1466,99 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
     //    throw new NotImplementedException();
     //}
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Query Avalanche smart contract for holons by metadata
+            var holonsData = await _avalancheClient.GetHolonsByMetaDataAsync(metaKey, metaValue, type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Avalanche: {holonsData.Message}");
+                return result;
+            }
+
+            var holons = new List<IHolon>();
+            foreach (var holonData in holonsData.Result)
+            {
+                var holon = ParseAvalancheToHolon(holonData);
+                if (holon != null)
+                {
+                    holons.Add(holon);
+                }
+            }
+
+            result.Result = holons;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holons.Count} holons by metadata from Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Query Avalanche smart contract for holons by multiple metadata pairs
+            var holonsData = await _avalancheClient.GetHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
+            if (holonsData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Avalanche: {holonsData.Message}");
+                return result;
+            }
+
+            var holons = new List<IHolon>();
+            foreach (var holonData in holonsData.Result)
+            {
+                var holon = ParseAvalancheToHolon(holonData);
+                if (holon != null)
+                {
+                    holons.Add(holon);
+                }
+            }
+
+            result.Result = holons;
+            result.IsError = false;
+            result.Message = $"Successfully loaded {holons.Count} holons by metadata pairs from Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new NotImplementedException();
+        return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
     public bool NativeCodeGenesis(ICelestialBody celestialBody)
     {
-        throw new System.NotImplementedException();
+        return true;
     }
 
     public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
@@ -1422,7 +1707,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
     {
-        throw new NotImplementedException();
+        return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
     }
 
     public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -1474,7 +1759,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
     {
-        throw new NotImplementedException();
+        return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
     }
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -1515,12 +1800,37 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        throw new NotImplementedException();
+        return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
     }
 
-    public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ISearchResults>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Search avatars and holons using Avalanche smart contract
+            var searchData = await _avalancheClient.SearchAsync(searchParams);
+            if (searchData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error searching from Avalanche: {searchData.Message}");
+                return result;
+            }
+
+            result.Result = searchData.Result;
+            result.IsError = false;
+            result.Message = "Search completed successfully from Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error searching from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
@@ -1601,42 +1911,112 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
     {
-        throw new NotImplementedException();
+        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, "AVAX").Result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
     {
-        throw new NotImplementedException();
+        return await SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, "AVAX");
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ITransactionRespone>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Get wallet addresses for both avatars
+            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarEmail, ProviderType.Avalanche);
+            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarEmail, ProviderType.Avalanche);
+
+            if (fromAddress.IsError || toAddress.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting wallet addresses: {fromAddress.Message} {toAddress.Message}");
+                return result;
+            }
+
+            // Send transaction using Avalanche client
+            var transactionResult = await _avalancheClient.SendTransactionAsync(fromAddress.Result, toAddress.Result, amount, token);
+            if (transactionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
+                return result;
+            }
+
+            result.Result = transactionResult.Result;
+            result.IsError = false;
+            result.Message = "Transaction sent successfully via Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error sending transaction via Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        throw new NotImplementedException();
+        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, "AVAX").Result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
     {
-        throw new NotImplementedException();
+        return await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, "AVAX");
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ITransactionRespone>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Get avatar wallets by ID
+            var fromWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(fromAvatarId, this.ProviderType.Value);
+            var toWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(toAvatarId, this.ProviderType.Value);
+
+            if (fromWalletResult.IsError || toWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatar wallets: {fromWalletResult.Message} {toWalletResult.Message}");
+                return result;
+            }
+
+            // Send transaction using Avalanche client
+            var transactionResult = await _avalancheClient.SendTransactionAsync(fromWalletResult.Result.PrivateKey, toWalletResult.Result.Address, amount, token);
+            if (transactionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
+                return result;
+            }
+
+            result.Result = transactionResult.Result;
+            result.IsError = false;
+            result.Message = "Transaction sent successfully by avatar ID from Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error sending transaction by avatar ID from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
@@ -1646,7 +2026,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
     }
 
     public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
@@ -1681,9 +2061,44 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         return result;
     }
 
-    public Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+    public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<ITransactionRespone>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Get avatar wallets by username
+            var fromWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByUsernameAsync(fromAvatarUsername, this.ProviderType.Value);
+            var toWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByUsernameAsync(toAvatarUsername, this.ProviderType.Value);
+
+            if (fromWalletResult.IsError || toWalletResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatar wallets: {fromWalletResult.Message} {toWalletResult.Message}");
+                return result;
+            }
+
+            // Send transaction using Avalanche client
+            var transactionResult = await _avalancheClient.SendTransactionAsync(fromWalletResult.Result.PrivateKey, toWalletResult.Result.Address, amount, token);
+            if (transactionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
+                return result;
+            }
+
+            result.Result = transactionResult.Result;
+            result.IsError = false;
+            result.Message = "Transaction sent successfully by username from Avalanche";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error sending transaction by username from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 
     private async Task<OASISResult<ITransactionRespone>> SendAvalancheTransaction(string senderAccountPrivateKey, string receiverAccountAddress, decimal amount)
@@ -1864,12 +2279,52 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
 
     public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
     {
-        throw new NotImplementedException();
+        return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
     }
 
-    public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+    public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
     {
-        throw new NotImplementedException();
+        var result = new OASISResult<IOASISNFT>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                return result;
+            }
+
+            // Load NFT data from Avalanche blockchain
+            var nftData = await _avalancheClient.GetNFTDataAsync(nftTokenAddress);
+            if (nftData.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading NFT data from Avalanche: {nftData.Message}");
+                return result;
+            }
+
+            if (nftData.Result != null)
+            {
+                var nft = ParseAvalancheToNFT(nftData.Result);
+                if (nft != null)
+                {
+                    result.Result = nft;
+                    result.IsError = false;
+                    result.Message = "NFT data loaded successfully from Avalanche";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to parse NFT data from Avalanche");
+                }
+            }
+            else
+            {
+                OASISErrorHandling.HandleError(ref result, "NFT not found in Avalanche");
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading NFT data from Avalanche: {ex.Message}", ex);
+        }
+        return result;
     }
 }
 

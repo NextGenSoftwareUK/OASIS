@@ -155,31 +155,26 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            // Load avatar by provider key first
-            var avatarResult = await LoadAvatarAsync(providerKey);
-            if (avatarResult.IsError)
+            // Delete avatar directly by provider key without loading first
+            var deleteRequest = new
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
-                return result;
-            }
+                providerKey = providerKey,
+                softDelete = softDelete
+            };
 
-            if (avatarResult.Result != null)
+            var jsonContent = JsonSerializer.Serialize(deleteRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var deleteResponse = await _httpClient.PostAsync("/api/v1/avatars/delete/by-provider-key", content);
+            if (deleteResponse.IsSuccessStatusCode)
             {
-                // Delete avatar by ID
-                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                if (deleteResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                    return result;
-                }
-
-                result.Result = deleteResult.Result;
+                result.Result = true;
                 result.IsError = false;
                 result.Message = "Avatar deleted successfully by provider key from Base";
             }
             else
             {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key");
+                OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar by provider key from Base: {deleteResponse.StatusCode}");
             }
         }
         catch (Exception ex)
@@ -242,31 +237,26 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            // Load avatar by provider key first
-            var avatarResult = await LoadAvatarAsync(providerKey);
-            if (avatarResult.IsError)
+            // Delete avatar directly by provider key without loading first
+            var deleteRequest = new
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
-                return result;
-            }
+                providerKey = providerKey,
+                softDelete = softDelete
+            };
 
-            if (avatarResult.Result != null)
+            var jsonContent = JsonSerializer.Serialize(deleteRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var deleteResponse = await _httpClient.PostAsync("/api/v1/avatars/delete/by-provider-key", content);
+            if (deleteResponse.IsSuccessStatusCode)
             {
-                // Delete avatar by ID
-                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                if (deleteResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                    return result;
-                }
-
-                result.Result = deleteResult.Result;
+                result.Result = true;
                 result.IsError = false;
                 result.Message = "Avatar deleted successfully by provider key from Base";
             }
             else
             {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by provider key");
+                OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar by provider key from Base: {deleteResponse.StatusCode}");
             }
         }
         catch (Exception ex)
@@ -342,31 +332,26 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            // Load avatar by username first
-            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
-            if (avatarResult.IsError)
+            // Delete avatar directly by username without loading first
+            var deleteRequest = new
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
-                return result;
-            }
+                username = avatarUsername,
+                softDelete = softDelete
+            };
 
-            if (avatarResult.Result != null)
+            var jsonContent = JsonSerializer.Serialize(deleteRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var deleteResponse = await _httpClient.PostAsync("/api/v1/avatars/delete/by-username", content);
+            if (deleteResponse.IsSuccessStatusCode)
             {
-                // Delete avatar by ID
-                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                if (deleteResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                    return result;
-                }
-
-                result.Result = deleteResult.Result;
+                result.Result = true;
                 result.IsError = false;
                 result.Message = "Avatar deleted successfully by username from Base";
             }
             else
             {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar by username from Base: {deleteResponse.StatusCode}");
             }
         }
         catch (Exception ex)
@@ -387,31 +372,26 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            // Load avatar by username first
-            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
-            if (avatarResult.IsError)
+            // Delete avatar directly by username without loading first
+            var deleteRequest = new
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
-                return result;
-            }
+                username = avatarUsername,
+                softDelete = softDelete
+            };
 
-            if (avatarResult.Result != null)
+            var jsonContent = JsonSerializer.Serialize(deleteRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            
+            var deleteResponse = await _httpClient.PostAsync("/api/v1/avatars/delete/by-username", content);
+            if (deleteResponse.IsSuccessStatusCode)
             {
-                // Delete avatar by ID
-                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                if (deleteResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                    return result;
-                }
-
-                result.Result = deleteResult.Result;
+                result.Result = true;
                 result.IsError = false;
                 result.Message = "Avatar deleted successfully by username from Base";
             }
             else
             {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
+                OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar by username from Base: {deleteResponse.StatusCode}");
             }
         }
         catch (Exception ex)

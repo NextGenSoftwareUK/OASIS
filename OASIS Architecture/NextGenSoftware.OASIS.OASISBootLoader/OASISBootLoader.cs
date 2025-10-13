@@ -1089,8 +1089,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             {
                                 AvalancheOASIS avalancheOASIS = new AvalancheOASIS(
                                     OASISDNA.OASIS.StorageProviders.AvalancheOASIS.RpcEndpoint,
-                                    OASISDNA.OASIS.StorageProviders.AvalancheOASIS.NetworkId,
-                                    OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainId);
+                                    OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainPrivateKey,
+                                    OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainId,
+                                    OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ContractAddress);
                                 result.Result = avalancheOASIS;
                             }
                             break;

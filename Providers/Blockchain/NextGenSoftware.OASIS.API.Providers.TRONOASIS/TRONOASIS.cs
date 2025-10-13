@@ -23,6 +23,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 {
@@ -672,6 +673,106 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return result;
         }
 
+        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
+        {
+            return GetAvatarsNearMe(geoLat, geoLong, radiusInMeters);
+        }
+
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+        {
+            return GetHolonsNearMe(geoLat, geoLong, radiusInMeters, Type);
+        }
+
+        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
+        {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
+                    return result;
+                }
+
+                var allAvatarsResult = LoadAllAvatars();
+                if (allAvatarsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {allAvatarsResult.Message}");
+                    return result;
+                }
+
+                var nearby = new List<IAvatar>();
+                foreach (var avatar in allAvatarsResult.Result)
+                {
+                    var meta = avatar.MetaData;
+                    if (meta != null && meta.ContainsKey("Latitude") && meta.ContainsKey("Longitude"))
+                    {
+                        if (double.TryParse(meta["Latitude"]?.ToString(), out double aLat) &&
+                            double.TryParse(meta["Longitude"]?.ToString(), out double aLong))
+                        {
+                            double distance = CalculateDistance(geoLat, geoLong, aLat, aLong);
+                            if (distance <= radiusInMeters)
+                                nearby.Add(avatar);
+                        }
+                    }
+                }
+
+                result.Result = nearby;
+                result.Message = $"Retrieved {nearby.Count} avatars within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from TRON: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "TRON provider is not activated");
+                    return result;
+                }
+
+                var allHolonsResult = LoadAllHolons(Type);
+                if (allHolonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {allHolonsResult.Message}");
+                    return result;
+                }
+
+                var nearby = new List<IHolon>();
+                foreach (var holon in allHolonsResult.Result)
+                {
+                    var meta = holon.MetaData;
+                    if (meta != null && meta.ContainsKey("Latitude") && meta.ContainsKey("Longitude"))
+                    {
+                        if (double.TryParse(meta["Latitude"]?.ToString(), out double hLat) &&
+                            double.TryParse(meta["Longitude"]?.ToString(), out double hLong))
+                        {
+                            double distance = CalculateDistance(geoLat, geoLong, hLat, hLong);
+                            if (distance <= radiusInMeters)
+                                nearby.Add(holon);
+                        }
+                    }
+                }
+
+                result.Result = nearby;
+                result.Message = $"Retrieved {nearby.Count} holons within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from TRON: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+    // distance helpers moved to GeoHelper for reuse
+
         #endregion
 
         #region IOASISSuperStar
@@ -1176,52 +1277,399 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForMintAddress(string mintWalletAddress)
         {
-            throw new NotImplementedException();
+            return LoadAllGeoNFTsForMintAddressAsync(mintWalletAddress).Result;
         }
 
-        public Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
+        public async Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<List<IOASISGeoSpatialNFT>>();
+            string errorMessage = "Error in LoadAllGeoNFTsForMintAddressAsync method in TRONOASIS Provider. Reason: ";
+
+            try
+            {
+                if (string.IsNullOrEmpty(mintWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Mint wallet address cannot be null or empty");
+                    return result;
+                }
+
+                var geoNFTs = new List<IOASISGeoSpatialNFT>();
+                
+                // Query TRON network for NFTs owned by the mint address
+                var nftQuery = new
+                {
+                    owner_address = mintWalletAddress,
+                    limit = 200,
+                    offset = 0
+                };
+
+                var response = await _httpClient.PostAsync("/wallet/triggerconstantcontract", 
+                    new StringContent(JsonSerializer.Serialize(nftQuery), Encoding.UTF8, "application/json"));
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var nftData = JsonSerializer.Deserialize<TRONNFTResponse>(content);
+                    
+                    if (nftData?.Data != null)
+                    {
+                        foreach (var nft in nftData.Data)
+                        {
+                            if (nft.IsGeoSpatial)
+                            {
+                                var geoNFT = new OASISGeoSpatialNFT
+                                {
+                                    Id = nft.Id,
+                                    Name = nft.Name,
+                                    Description = nft.Description,
+                                    Image = nft.Image,
+                                    Latitude = nft.Latitude,
+                                    Longitude = nft.Longitude,
+                                    Altitude = nft.Altitude,
+                                    MintWalletAddress = mintWalletAddress,
+                                    ProviderType = ProviderType.TRONOASIS
+                                };
+                                geoNFTs.Add(geoNFT);
+                            }
+                        }
+                    }
+                }
+
+                result.Result = geoNFTs;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public OASISResult<List<IOASISNFT>> LoadAllNFTsForAvatar(Guid avatarId)
         {
-            throw new NotImplementedException();
+            return LoadAllNFTsForAvatarAsync(avatarId).Result;
         }
 
-        public Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
+        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<List<IOASISNFT>>();
+            string errorMessage = "Error in LoadAllNFTsForAvatarAsync method in TRONOASIS Provider. Reason: ";
+
+            try
+            {
+                if (avatarId == Guid.Empty)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar ID cannot be empty");
+                    return result;
+                }
+
+                // Get wallet address for the avatar
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.TRONOASIS, avatarId);
+                if (walletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
+                    return result;
+                }
+
+                var nfts = new List<IOASISNFT>();
+                
+                // Query TRON network for NFTs owned by the avatar's wallet
+                var nftQuery = new
+                {
+                    owner_address = walletResult.Result,
+                    limit = 200,
+                    offset = 0
+                };
+
+                var response = await _httpClient.PostAsync("/wallet/triggerconstantcontract", 
+                    new StringContent(JsonSerializer.Serialize(nftQuery), Encoding.UTF8, "application/json"));
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var nftData = JsonSerializer.Deserialize<TRONNFTResponse>(content);
+                    
+                    if (nftData?.Data != null)
+                    {
+                        foreach (var nft in nftData.Data)
+                        {
+                            var oasisNFT = new OASISNFT
+                            {
+                                Id = nft.Id,
+                                Name = nft.Name,
+                                Description = nft.Description,
+                                Image = nft.Image,
+                                TokenId = nft.TokenId,
+                                MintWalletAddress = walletResult.Result,
+                                ProviderType = ProviderType.TRONOASIS
+                            };
+                            nfts.Add(oasisNFT);
+                        }
+                    }
+                }
+
+                result.Result = nfts;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public OASISResult<List<IOASISNFT>> LoadAllNFTsForMintAddress(string mintWalletAddress)
         {
-            throw new NotImplementedException();
+            return LoadAllNFTsForMintAddressAsync(mintWalletAddress).Result;
         }
 
-        public Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
+        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<List<IOASISNFT>>();
+            string errorMessage = "Error in LoadAllNFTsForMintAddressAsync method in TRONOASIS Provider. Reason: ";
+
+            try
+            {
+                if (string.IsNullOrEmpty(mintWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Mint wallet address cannot be null or empty");
+                    return result;
+                }
+
+                var nfts = new List<IOASISNFT>();
+                
+                // Query TRON network for NFTs owned by the mint address
+                var nftQuery = new
+                {
+                    owner_address = mintWalletAddress,
+                    limit = 200,
+                    offset = 0
+                };
+
+                var response = await _httpClient.PostAsync("/wallet/triggerconstantcontract", 
+                    new StringContent(JsonSerializer.Serialize(nftQuery), Encoding.UTF8, "application/json"));
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var nftData = JsonSerializer.Deserialize<TRONNFTResponse>(content);
+                    
+                    if (nftData?.Data != null)
+                    {
+                        foreach (var nft in nftData.Data)
+                        {
+                            var oasisNFT = new OASISNFT
+                            {
+                                Id = nft.Id,
+                                Name = nft.Name,
+                                Description = nft.Description,
+                                Image = nft.Image,
+                                TokenId = nft.TokenId,
+                                MintWalletAddress = mintWalletAddress,
+                                ProviderType = ProviderType.TRONOASIS
+                            };
+                            nfts.Add(oasisNFT);
+                        }
+                    }
+                }
+
+                result.Result = nfts;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public OASISResult<IOASISGeoSpatialNFT> PlaceGeoNFT(IPlaceGeoSpatialNFTRequest request)
         {
-            throw new NotImplementedException();
+            return PlaceGeoNFTAsync(request).Result;
         }
 
-        public Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceGeoSpatialNFTRequest request)
+        public async Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceGeoSpatialNFTRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISGeoSpatialNFT>();
+            string errorMessage = "Error in PlaceGeoNFTAsync method in TRONOASIS Provider. Reason: ";
+
+            try
+            {
+                if (request == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Request cannot be null");
+                    return result;
+                }
+
+                if (request.AvatarId == Guid.Empty)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar ID cannot be empty");
+                    return result;
+                }
+
+                // Get wallet address for the avatar
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.TRONOASIS, request.AvatarId);
+                if (walletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
+                    return result;
+                }
+
+                // Create TRON transaction for placing GeoNFT
+                var placeTransaction = new
+                {
+                    owner_address = walletResult.Result,
+                    contract_address = request.ContractAddress,
+                    function_selector = "placeGeoNFT",
+                    parameter = new
+                    {
+                        tokenId = request.TokenId,
+                        latitude = request.Latitude,
+                        longitude = request.Longitude,
+                        altitude = request.Altitude
+                    }
+                };
+
+                var response = await _httpClient.PostAsync("/wallet/triggersmartcontract", 
+                    new StringContent(JsonSerializer.Serialize(placeTransaction), Encoding.UTF8, "application/json"));
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var transactionResult = JsonSerializer.Deserialize<TRONTransactionResponse>(content);
+                    
+                    if (transactionResult != null)
+                    {
+                        var geoNFT = new OASISGeoSpatialNFT
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = request.Name,
+                            Description = request.Description,
+                            Image = request.Image,
+                            Latitude = request.Latitude,
+                            Longitude = request.Longitude,
+                            Altitude = request.Altitude,
+                            MintWalletAddress = walletResult.Result,
+                            ProviderType = ProviderType.TRONOASIS,
+                            TransactionHash = transactionResult.TxID
+                        };
+                        
+                        result.Result = geoNFT;
+                        result.IsError = false;
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to place GeoNFT on TRON network");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} TRON API request failed: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public OASISResult<IOASISGeoSpatialNFT> MintAndPlaceGeoNFT(IMintAndPlaceGeoSpatialNFTRequest request)
         {
-            throw new NotImplementedException();
+            return MintAndPlaceGeoNFTAsync(request).Result;
         }
 
-        public Task<OASISResult<IOASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceGeoSpatialNFTRequest request)
+        public async Task<OASISResult<IOASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceGeoSpatialNFTRequest request)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IOASISGeoSpatialNFT>();
+            string errorMessage = "Error in MintAndPlaceGeoNFTAsync method in TRONOASIS Provider. Reason: ";
+
+            try
+            {
+                if (request == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Request cannot be null");
+                    return result;
+                }
+
+                if (request.AvatarId == Guid.Empty)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar ID cannot be empty");
+                    return result;
+                }
+
+                // Get wallet address for the avatar
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.TRONOASIS, request.AvatarId);
+                if (walletResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
+                    return result;
+                }
+
+                // Create TRON transaction for minting and placing GeoNFT
+                var mintAndPlaceTransaction = new
+                {
+                    owner_address = walletResult.Result,
+                    contract_address = request.ContractAddress,
+                    function_selector = "mintAndPlaceGeoNFT",
+                    parameter = new
+                    {
+                        to = walletResult.Result,
+                        tokenId = request.TokenId,
+                        latitude = request.Latitude,
+                        longitude = request.Longitude,
+                        altitude = request.Altitude,
+                        metadata = request.Metadata
+                    }
+                };
+
+                var response = await _httpClient.PostAsync("/wallet/triggersmartcontract", 
+                    new StringContent(JsonSerializer.Serialize(mintAndPlaceTransaction), Encoding.UTF8, "application/json"));
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var transactionResult = JsonSerializer.Deserialize<TRONTransactionResponse>(content);
+                    
+                    if (transactionResult != null)
+                    {
+                        var geoNFT = new OASISGeoSpatialNFT
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = request.Name,
+                            Description = request.Description,
+                            Image = request.Image,
+                            Latitude = request.Latitude,
+                            Longitude = request.Longitude,
+                            Altitude = request.Altitude,
+                            MintWalletAddress = walletResult.Result,
+                            ProviderType = ProviderType.TRONOASIS,
+                            TransactionHash = transactionResult.TxID
+                        };
+                        
+                        result.Result = geoNFT;
+                        result.IsError = false;
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to mint and place GeoNFT on TRON network");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} TRON API request failed: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
@@ -1427,22 +1875,84 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarById(Guid id)
         {
-            throw new NotImplementedException();
+            return LoadProviderWalletsForAvatarByIdAsync(id).Result;
         }
 
-        public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>();
+            string errorMessage = "Error in LoadProviderWalletsForAvatarByIdAsync method in TRONOASIS Provider. Reason: ";
+
+            try
+            {
+                if (id == Guid.Empty)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar ID cannot be empty");
+                    return result;
+                }
+
+                // Use WalletManager to load provider wallets for the avatar
+                var walletsResult = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(id);
+                
+                if (walletsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {walletsResult.Message}");
+                    return result;
+                }
+
+                result.Result = walletsResult.Result;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public OASISResult<bool> SaveProviderWalletsForAvatarById(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            return SaveProviderWalletsForAvatarByIdAsync(id, providerWallets).Result;
         }
 
-        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            string errorMessage = "Error in SaveProviderWalletsForAvatarByIdAsync method in TRONOASIS Provider. Reason: ";
+
+            try
+            {
+                if (id == Guid.Empty)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar ID cannot be empty");
+                    return result;
+                }
+
+                if (providerWallets == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Provider wallets cannot be null");
+                    return result;
+                }
+
+                // Use WalletManager to save provider wallets for the avatar
+                var saveResult = await WalletManager.SaveProviderWalletsForAvatarByIdAsync(id, providerWallets);
+                
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {saveResult.Message}");
+                    return result;
+                }
+
+                result.Result = saveResult.Result;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         #endregion*/
