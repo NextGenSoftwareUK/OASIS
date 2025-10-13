@@ -648,11 +648,28 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     return result;
                 }
 
+                string searchQuery = null;
+                string holonType = null;
+                Dictionary<string, string> metaData = null;
+
+                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
+                {
+                    var firstGroup = searchParams.SearchGroups.First();
+
+                    holonType = firstGroup.HolonType.ToString();
+
+                    if (firstGroup is ISearchTextGroup textGroup)
+                        searchQuery = textGroup.SearchQuery;
+
+                    if (firstGroup.HolonSearchParams != null)
+                        metaData = firstGroup.HolonSearchParams.MetaData;
+                }
+
                 var searchRequest = new
                 {
-                    searchText = searchParams.SearchText,
-                    holonType = searchParams.HolonType?.ToString(),
-                    metaData = searchParams.MetaData,
+                    searchText = searchQuery,
+                    holonType = holonType,
+                    metaData = metaData,
                     version = version
                 };
 

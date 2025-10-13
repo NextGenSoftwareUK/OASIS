@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
 {
     public class OASISNFT : IOASISNFT
     {
-
+        //public List<Web3NFT> Web3NFTs { get; set; } = new List<Web3NFT>();
         public string SendToAddressAfterMinting { get; set; }
         public Guid SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
