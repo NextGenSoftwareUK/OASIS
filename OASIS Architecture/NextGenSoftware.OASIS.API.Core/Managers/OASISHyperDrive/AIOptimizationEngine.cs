@@ -72,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                     // Calculate AI score based on multiple factors
                     var score = await CalculateProviderScoreAsync(provider, request, context);
                     
-                    recommendations.Add(new EnumValue<ProviderType>(provider, score));
+                    recommendations.Add(new EnumValue<ProviderType>(provider));
                 }
 
                 // Sort by score (highest first) and return top recommendations
@@ -338,7 +338,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                         _ => 0.5
                     };
                     
-                    recommendations.Add(new EnumValue<ProviderType>(provider, score));
+                    recommendations.Add(new EnumValue<ProviderType>(provider));
                 }
             }
             
