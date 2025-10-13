@@ -37,7 +37,6 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public string Username { get; set; }
         public string Email { get; set; }
 
-        /*
         public new string Name
         {
             get
@@ -60,7 +59,6 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             }
         }
         //END DUPLICATION
-        */
 
         public ConsoleColor FavouriteColour { get; set; }
         public ConsoleColor STARCLIColour { get; set; }

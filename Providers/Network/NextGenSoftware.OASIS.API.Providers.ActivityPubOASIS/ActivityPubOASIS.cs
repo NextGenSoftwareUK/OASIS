@@ -149,7 +149,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
+                        response.Result = (IAvatar)avatar;
                         response.IsError = false;
                         response.Message = "Avatar loaded from ActivityPub successfully";
                     }
@@ -202,7 +202,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
+                        response.Result = (IAvatar)avatar;
                         response.IsError = false;
                         response.Message = "Avatar loaded from ActivityPub successfully";
                     }
@@ -254,7 +254,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
+                        response.Result = (IAvatar)avatar;
                         response.IsError = false;
                         response.Message = "Avatar loaded from ActivityPub successfully";
                     }
@@ -307,7 +307,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
+                        response.Result = (IAvatar)avatar;
                         response.IsError = false;
                         response.Message = "Avatar loaded from ActivityPub successfully";
                     }
@@ -359,7 +359,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
+                        response.Result = (IAvatar)avatar;
                         response.IsError = false;
                         response.Message = "Avatar loaded from ActivityPub successfully";
                     }
@@ -411,7 +411,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
+                        response.Result = (IAvatar)avatar;
                         response.IsError = false;
                         response.Message = "Avatar loaded from ActivityPub successfully";
                     }
@@ -463,7 +463,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
+                        response.Result = (IAvatar)avatar;
                         response.IsError = false;
                         response.Message = "Avatar loaded from ActivityPub successfully";
                     }
@@ -567,7 +567,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = avatar;
+                        response.Result = new List<IAvatarDetail> { (IAvatarDetail)avatar };
                         response.IsError = false;
                         response.Message = "Avatar loaded from ActivityPub successfully";
                     }

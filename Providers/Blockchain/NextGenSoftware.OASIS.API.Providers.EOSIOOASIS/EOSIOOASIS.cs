@@ -669,44 +669,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail,
-            int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
-                }
-
-                // Load avatar by email first, then create avatar detail
-                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail, version);
-                if (avatarResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
-                    return result;
-                }
-
-                if (avatarResult.Result != null)
-                {
-                    var avatarDetail = new AvatarDetail(avatarResult.Result);
-                    result.Result = avatarDetail;
-                    result.IsError = false;
-                    result.Message = "Avatar detail loaded successfully by email from EOSIO";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email in EOSIO");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from EOSIO: {ex.Message}", ex);
-            }
-            return result;
-        }
+        // Removed duplicate LoadAvatarDetailByEmailAsync method
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
@@ -2659,15 +2622,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
         }
 
-        Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-        {
-            return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token);
-        }
-
-        Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-        {
-            return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token);
-        }
+        // Removed explicit interface implementations that don't exist in the interface
 
         public void Dispose()
         {
