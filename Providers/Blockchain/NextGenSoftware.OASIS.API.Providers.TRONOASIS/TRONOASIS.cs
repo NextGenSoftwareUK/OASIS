@@ -1191,8 +1191,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         Title = nftData?.Name ?? "TRON NFT",
                         Description = nftData?.Description ?? "NFT from TRON blockchain",
                         ImageUrl = nftData?.ImageUrl ?? "",
-                        TokenId = nftData?.TokenId ?? id.ToString(),
-                        ContractAddress = nftData?.ContractAddress ?? "TRC721_CONTRACT"
+                        NFTTokenAddress = nftData?.TokenId ?? id.ToString(),
+                        OASISMintWalletAddress = nftData?.ContractAddress ?? "TRC721_CONTRACT"
                     };
                     response.IsError = false;
                     response.Message = "TRON NFT loaded successfully";
@@ -1239,14 +1239,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var nft = new OASISNFT
                     {
                         Id = nftData.Result.Id,
-                        Name = nftData.Result.Name,
+                        Title = nftData.Result.Name,
                         Description = nftData.Result.Description,
                         ImageUrl = nftData.Result.ImageUrl,
-                        TokenId = nftData.Result.TokenId,
-                        ContractAddress = nftData.Result.ContractAddress,
-                        OwnerAddress = nftData.Result.OwnerAddress,
-                        CreatedDate = nftData.Result.CreatedDate,
-                        ModifiedDate = nftData.Result.ModifiedDate,
+                        NFTTokenAddress = nftData.Result.TokenId,
+                        OASISMintWalletAddress = nftData.Result.ContractAddress,
+                        NFTMintedUsingWalletAddress = nftData.Result.OwnerAddress,
+                        MintedOn = nftData.Result.CreatedDate,
+                        ImportedOn = nftData.Result.ModifiedDate,
                         CustomData = new Dictionary<string, object>
                         {
                             ["TRONHash"] = hash,
@@ -1311,17 +1311,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var geoNFT = new OASISGeoSpatialNFT
                     {
                         Id = nftData.Id,
-                        Name = nftData.Name,
+                        Title = nftData.Name,
                         Description = nftData.Description,
                         ImageUrl = nftData.ImageUrl,
-                        TokenId = nftData.TokenId,
-                        ContractAddress = nftData.ContractAddress,
-                        OwnerAddress = nftData.OwnerAddress,
-                        Latitude = nftData.Latitude,
-                        Longitude = nftData.Longitude,
-                        Altitude = nftData.Altitude,
-                        CreatedDate = nftData.CreatedDate,
-                        ModifiedDate = nftData.ModifiedDate,
+                        NFTTokenAddress = nftData.TokenId,
+                        OASISMintWalletAddress = nftData.ContractAddress,
+                        NFTMintedUsingWalletAddress = nftData.OwnerAddress,
+                        Lat = (long)(nftData.Latitude * 1000000), // Convert to microdegrees
+                        Long = (long)(nftData.Longitude * 1000000), // Convert to microdegrees
+                        MintedOn = nftData.CreatedDate,
+                        ImportedOn = nftData.ModifiedDate,
                         CustomData = new Dictionary<string, object>
                         {
                             ["TRONContractAddress"] = nftData.ContractAddress,
@@ -1469,12 +1468,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                             var oasisNFT = new OASISNFT
                             {
                                 Id = nft.Id,
-                                Name = nft.Name,
+                                Title = nft.Name,
                                 Description = nft.Description,
                                 Image = nft.Image,
-                                TokenId = nft.TokenId,
-                                MintWalletAddress = walletResult.Result,
-                                ProviderType = ProviderType.TRONOASIS
+                                NFTTokenAddress = nft.TokenId,
+                                OASISMintWalletAddress = walletResult.Result,
+                                OnChainProvider = new EnumValue<ProviderType>(ProviderType.TRONOASIS)
                             };
                             nfts.Add(oasisNFT);
                         }
@@ -1535,12 +1534,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                             var oasisNFT = new OASISNFT
                             {
                                 Id = nft.Id,
-                                Name = nft.Name,
+                                Title = nft.Name,
                                 Description = nft.Description,
                                 Image = nft.Image,
-                                TokenId = nft.TokenId,
-                                MintWalletAddress = mintWalletAddress,
-                                ProviderType = ProviderType.TRONOASIS
+                                NFTTokenAddress = nft.TokenId,
+                                OASISMintWalletAddress = mintWalletAddress,
+                                OnChainProvider = new EnumValue<ProviderType>(ProviderType.TRONOASIS)
                             };
                             nfts.Add(oasisNFT);
                         }
@@ -1618,15 +1617,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         var geoNFT = new OASISGeoSpatialNFT
                         {
                             Id = Guid.NewGuid(),
-                            Name = request.Name,
+                            Title = request.Name,
                             Description = request.Description,
                             Image = request.Image,
-                            Latitude = request.Latitude,
-                            Longitude = request.Longitude,
-                            Altitude = request.Altitude,
-                            MintWalletAddress = walletResult.Result,
-                            ProviderType = ProviderType.TRONOASIS,
-                            TransactionHash = transactionResult.TxID
+                            Lat = (long)(request.Latitude * 1000000), // Convert to microdegrees
+                            Long = (long)(request.Longitude * 1000000), // Convert to microdegrees
+                            OASISMintWalletAddress = walletResult.Result,
+                            OnChainProvider = new EnumValue<ProviderType>(ProviderType.TRONOASIS),
+                            MintTransactionHash = transactionResult.TxID
                         };
                         
                         result.Result = geoNFT;
@@ -1712,15 +1710,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         var geoNFT = new OASISGeoSpatialNFT
                         {
                             Id = Guid.NewGuid(),
-                            Name = request.Name,
+                            Title = request.Name,
                             Description = request.Description,
                             Image = request.Image,
-                            Latitude = request.Latitude,
-                            Longitude = request.Longitude,
-                            Altitude = request.Altitude,
-                            MintWalletAddress = walletResult.Result,
-                            ProviderType = ProviderType.TRONOASIS,
-                            TransactionHash = transactionResult.TxID
+                            Lat = (long)(request.Latitude * 1000000), // Convert to microdegrees
+                            Long = (long)(request.Longitude * 1000000), // Convert to microdegrees
+                            OASISMintWalletAddress = walletResult.Result,
+                            OnChainProvider = new EnumValue<ProviderType>(ProviderType.TRONOASIS),
+                            MintTransactionHash = transactionResult.TxID
                         };
                         
                         result.Result = geoNFT;

@@ -1734,9 +1734,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 // Create Holochain NFT mint transaction
                 var nftMint = new
                 {
-                    to = transation.ToWalletAddress,
-                    nftId = transation.NFTId,
-                    metadata = transation.Metadata,
+                    to = transation.SendToAddressAfterMinting,
+                    nftId = transation.Title, // Using Title as identifier
+                    metadata = transation.MetaData,
                     timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
                 };
 
@@ -1801,9 +1801,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 if (avatarResult.Result?.ProviderWallets != null)
                 {
-                    foreach (var kv in avatarResult.Result.ProviderWallets.GroupBy(w => w.ProviderType))
+                    foreach (var group in avatarResult.Result.ProviderWallets.GroupBy(w => w.ProviderType))
                     {
-                        providerWallets[kv.Key] = kv.ToList();
+                        providerWallets[group.Key] = group.ToList();
                     }
                 }
 
