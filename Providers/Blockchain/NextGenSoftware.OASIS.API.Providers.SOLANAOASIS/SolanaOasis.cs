@@ -751,6 +751,11 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return DeleteAvatarAsync(providerKey, softDelete).Result;
     }
 
+    public OASISResult<ITransactionRespone> SendTransaction(string fromAddress, string toAddress, decimal amount, string memo)
+    {
+        return SendTransactionAsync(fromAddress, toAddress, amount, memo).Result;
+    }
+
     public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
     {
         var result = new OASISResult<bool>();

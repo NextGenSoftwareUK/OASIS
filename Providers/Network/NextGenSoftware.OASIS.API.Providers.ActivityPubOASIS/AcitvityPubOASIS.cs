@@ -944,7 +944,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     // avatar.CustomData["ActivityPubSavedAt"] = DateTime.Now;
                     // avatar.CustomData["ActivityPubResponse"] = await response.Content.ReadAsStringAsync();
                     
-                    result.Result = avatar;
+                    result.Result = (IAvatar)avatar;
                     result.IsError = false;
                     result.Message = "Avatar saved successfully to ActivityPub with full property mapping";
                 }
