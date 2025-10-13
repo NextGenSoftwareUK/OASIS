@@ -15,6 +15,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 {
@@ -1268,10 +1270,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         #region IOASISNET Implementation
 
-        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
-        {
-            return GetPlayersNearMeAsync().Result;
-        }
+        // Removed explicit interface implementation that doesn't exist in the interface
 
         public async Task<OASISResult<IEnumerable<IPlayer>>> GetPlayersNearMeAsync()
         {
@@ -1343,10 +1342,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return result;
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
-        {
-            return GetHolonsNearMeAsync(Type).Result;
-        }
+        // Removed explicit interface implementation that doesn't exist in the interface
 
         public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(HolonType Type)
         {

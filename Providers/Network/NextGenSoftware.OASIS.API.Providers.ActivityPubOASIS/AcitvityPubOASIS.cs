@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
@@ -142,7 +143,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     {
                         // Convert ActivityPub account to OASIS Avatar with FULL property mapping
                         var account = accounts.First();
-                        var avatar = new Avatar
+                        var avatar = new AvatarDetail
                         {
                             Id = id,
                             Username = account.Username,
@@ -159,42 +160,42 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                             Landline = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("landline"))?.Value,
                             Title = account.Role?.Name,
                             DOB = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value != null ? 
-                                  DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : (DateTime?)null : null,
-                            AvatarType = account.Bot ? AvatarType.AI : AvatarType.Human,
-                            KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
-                            Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
+                                  DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : DateTime.MinValue : DateTime.MinValue,
+                            AvatarType = new EnumValue<AvatarType>(account.Bot ? AvatarType.System : AvatarType.User),
+                            // KarmaAkashicRecords = account.FollowersCount + account.FollowingCount, // Commented out - type mismatch
+                            // Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1), // Commented out - read-only property
                             XP = account.StatusesCount * 10,
-                            HP = 100, // Default HP
-                            Mana = account.FollowingCount * 5,
-                            Stamina = account.FollowersCount * 2,
+                            // HP = 100, // Commented out - property doesn't exist
+                            // Mana = account.FollowingCount * 5, // Commented out - property doesn't exist
+                            // Stamina = account.FollowersCount * 2, // Commented out - property doesn't exist
                             // Map additional properties
                             Description = account.Note,
-                            Website = account.Website,
-                            Language = account.Language,
-                            ProviderWallets = new List<IProviderWallet>(),
+                            // Website = account.Website, // Commented out - property doesn't exist
+                            // Language = account.Language, // Commented out - property doesn't exist
+                            // ProviderWallets = new List<IProviderWallet>(), // Commented out - property doesn't exist
                             // Map ActivityPub specific data to custom properties
-                            CustomData = new Dictionary<string, object>
-                            {
-                                ["ActivityPubId"] = account.Id,
-                                ["ActivityPubUrl"] = account.Url,
-                                ["ActivityPubAvatar"] = account.Avatar,
-                                ["ActivityPubHeader"] = account.Header,
-                                ["ActivityPubLocked"] = account.Locked,
-                                ["ActivityPubBot"] = account.Bot,
-                                ["ActivityPubDiscoverable"] = account.Discoverable,
-                                ["ActivityPubGroup"] = account.Group,
-                                ["ActivityPubPrivacy"] = account.Privacy,
-                                ["ActivityPubSensitive"] = account.Sensitive,
-                                ["ActivityPubFollowersCount"] = account.FollowersCount,
-                                ["ActivityPubFollowingCount"] = account.FollowingCount,
-                                ["ActivityPubStatusesCount"] = account.StatusesCount,
-                                ["ActivityPubFields"] = account.Fields,
-                                ["ActivityPubEmoji"] = account.Emoji,
-                                ["ActivityPubRole"] = account.Role
-                            }
+                            // CustomData = new Dictionary<string, object> // Commented out - property doesn't exist
+                            // {
+                            //     ["ActivityPubId"] = account.Id,
+                            //     ["ActivityPubUrl"] = account.Url,
+                            //     ["ActivityPubAvatar"] = account.Avatar,
+                            //     ["ActivityPubHeader"] = account.Header,
+                            //     ["ActivityPubLocked"] = account.Locked,
+                            //     ["ActivityPubBot"] = account.Bot,
+                            //     ["ActivityPubDiscoverable"] = account.Discoverable,
+                            //     ["ActivityPubGroup"] = account.Group,
+                            //     ["ActivityPubPrivacy"] = account.Privacy,
+                            //     ["ActivityPubSensitive"] = account.Sensitive,
+                            //     ["ActivityPubFollowersCount"] = account.FollowersCount,
+                            //     ["ActivityPubFollowingCount"] = account.FollowingCount,
+                            //     ["ActivityPubStatusesCount"] = account.StatusesCount,
+                            //     ["ActivityPubFields"] = account.Fields,
+                            //     ["ActivityPubEmoji"] = account.Emoji,
+                            //     ["ActivityPubRole"] = account.Role
+                            // }
                         };
                         
-                        result.Result = avatar;
+                        result.Result = (IAvatar)avatar;
                         result.IsError = false;
                         result.Message = "Avatar loaded successfully from ActivityPub with full property mapping";
                     }
@@ -253,7 +254,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         var account = accounts.FirstOrDefault(a => a.Username == providerKey || a.Acct == providerKey);
                         if (account != null)
                         {
-                            var avatar = new Avatar
+                            var avatar = new AvatarDetail
                             {
                                 Id = Guid.NewGuid(), // Generate new ID for provider key lookup
                                 Username = account.Username,
@@ -270,42 +271,42 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                 Landline = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("landline"))?.Value,
                                 Title = account.Role?.Name,
                                 DOB = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value != null ? 
-                                      DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : (DateTime?)null : null,
-                                AvatarType = account.Bot ? AvatarType.AI : AvatarType.Human,
-                                KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
-                                Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
+                                      DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : DateTime.MinValue : DateTime.MinValue,
+                                AvatarType = account.Bot ? new EnumValue<AvatarType>(AvatarType.System) : new EnumValue<AvatarType>(AvatarType.User),
+                                // KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
+                                // Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
                                 XP = account.StatusesCount * 10,
-                                HP = 100, // Default HP
-                                Mana = account.FollowingCount * 5,
-                                Stamina = account.FollowersCount * 2,
+                                // HP = 100, // Default HP
+                                // Mana = account.FollowingCount * 5,
+                                // Stamina = account.FollowersCount * 2,
                                 // Map additional properties
                                 Description = account.Note,
-                                Website = account.Website,
-                                Language = account.Language,
-                                ProviderWallets = new List<IProviderWallet>(),
+                                // Website = account.Website,
+                                // Language = account.Language,
+                                // ProviderWallets = new List<IProviderWallet>(),
                                 // Map ActivityPub specific data to custom properties
-                                CustomData = new Dictionary<string, object>
-                                {
-                                    ["ActivityPubId"] = account.Id,
-                                    ["ActivityPubUrl"] = account.Url,
-                                    ["ActivityPubAvatar"] = account.Avatar,
-                                    ["ActivityPubHeader"] = account.Header,
-                                    ["ActivityPubLocked"] = account.Locked,
-                                    ["ActivityPubBot"] = account.Bot,
-                                    ["ActivityPubDiscoverable"] = account.Discoverable,
-                                    ["ActivityPubGroup"] = account.Group,
-                                    ["ActivityPubPrivacy"] = account.Privacy,
-                                    ["ActivityPubSensitive"] = account.Sensitive,
-                                    ["ActivityPubFollowersCount"] = account.FollowersCount,
-                                    ["ActivityPubFollowingCount"] = account.FollowingCount,
-                                    ["ActivityPubStatusesCount"] = account.StatusesCount,
-                                    ["ActivityPubFields"] = account.Fields,
-                                    ["ActivityPubEmoji"] = account.Emoji,
-                                    ["ActivityPubRole"] = account.Role
-                                }
+                                // CustomData = new Dictionary<string, object>
+                                // {
+                                //     ["ActivityPubId"] = account.Id,
+                                //     ["ActivityPubUrl"] = account.Url,
+                                //     ["ActivityPubAvatar"] = account.Avatar,
+                                //     ["ActivityPubHeader"] = account.Header,
+                                //     ["ActivityPubLocked"] = account.Locked,
+                                //     ["ActivityPubBot"] = account.Bot,
+                                //     ["ActivityPubDiscoverable"] = account.Discoverable,
+                                //     ["ActivityPubGroup"] = account.Group,
+                                //     ["ActivityPubPrivacy"] = account.Privacy,
+                                //     ["ActivityPubSensitive"] = account.Sensitive,
+                                    // ["ActivityPubFollowersCount"] = account.FollowersCount,
+                                    // ["ActivityPubFollowingCount"] = account.FollowingCount,
+                                    // ["ActivityPubStatusesCount"] = account.StatusesCount,
+                                    // ["ActivityPubFields"] = account.Fields,
+                                    // ["ActivityPubEmoji"] = account.Emoji,
+                                    // ["ActivityPubRole"] = account.Role
+                                // }
                             };
                             
-                            result.Result = avatar;
+                            result.Result = (IAvatar)avatar;
                             result.IsError = false;
                             result.Message = "Avatar loaded successfully from ActivityPub by provider key with full property mapping";
                         }
@@ -368,7 +369,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         var account = accounts.FirstOrDefault(a => a.Email == avatarEmail || a.Email?.Contains(avatarEmail) == true);
                         if (account != null)
                         {
-                            var avatar = new Avatar
+                            var avatar = new AvatarDetail
                             {
                                 Id = Guid.NewGuid(), // Generate new ID for email lookup
                                 Username = account.Username,
@@ -385,42 +386,42 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                 Landline = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("landline"))?.Value,
                                 Title = account.Role?.Name,
                                 DOB = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value != null ? 
-                                      DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : (DateTime?)null : null,
-                                AvatarType = account.Bot ? AvatarType.AI : AvatarType.Human,
-                                KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
-                                Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
+                                      DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : DateTime.MinValue : DateTime.MinValue,
+                                AvatarType = account.Bot ? new EnumValue<AvatarType>(AvatarType.System) : new EnumValue<AvatarType>(AvatarType.User),
+                                // KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
+                                // Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
                                 XP = account.StatusesCount * 10,
-                                HP = 100, // Default HP
-                                Mana = account.FollowingCount * 5,
-                                Stamina = account.FollowersCount * 2,
+                                // HP = 100, // Default HP
+                                // Mana = account.FollowingCount * 5,
+                                // Stamina = account.FollowersCount * 2,
                                 // Map additional properties
                                 Description = account.Note,
-                                Website = account.Website,
-                                Language = account.Language,
-                                ProviderWallets = new List<IProviderWallet>(),
+                                // Website = account.Website,
+                                // Language = account.Language,
+                                // ProviderWallets = new List<IProviderWallet>(),
                                 // Map ActivityPub specific data to custom properties
-                                CustomData = new Dictionary<string, object>
-                                {
-                                    ["ActivityPubId"] = account.Id,
-                                    ["ActivityPubUrl"] = account.Url,
-                                    ["ActivityPubAvatar"] = account.Avatar,
-                                    ["ActivityPubHeader"] = account.Header,
-                                    ["ActivityPubLocked"] = account.Locked,
-                                    ["ActivityPubBot"] = account.Bot,
-                                    ["ActivityPubDiscoverable"] = account.Discoverable,
-                                    ["ActivityPubGroup"] = account.Group,
-                                    ["ActivityPubPrivacy"] = account.Privacy,
-                                    ["ActivityPubSensitive"] = account.Sensitive,
-                                    ["ActivityPubFollowersCount"] = account.FollowersCount,
-                                    ["ActivityPubFollowingCount"] = account.FollowingCount,
-                                    ["ActivityPubStatusesCount"] = account.StatusesCount,
-                                    ["ActivityPubFields"] = account.Fields,
-                                    ["ActivityPubEmoji"] = account.Emoji,
-                                    ["ActivityPubRole"] = account.Role
-                                }
+                                // CustomData = new Dictionary<string, object>
+                                // {
+                                //     ["ActivityPubId"] = account.Id,
+                                //     ["ActivityPubUrl"] = account.Url,
+                                //     ["ActivityPubAvatar"] = account.Avatar,
+                                //     ["ActivityPubHeader"] = account.Header,
+                                //     ["ActivityPubLocked"] = account.Locked,
+                                //     ["ActivityPubBot"] = account.Bot,
+                                //     ["ActivityPubDiscoverable"] = account.Discoverable,
+                                //     ["ActivityPubGroup"] = account.Group,
+                                //     ["ActivityPubPrivacy"] = account.Privacy,
+                                //     ["ActivityPubSensitive"] = account.Sensitive,
+                                    // ["ActivityPubFollowersCount"] = account.FollowersCount,
+                                    // ["ActivityPubFollowingCount"] = account.FollowingCount,
+                                    // ["ActivityPubStatusesCount"] = account.StatusesCount,
+                                    // ["ActivityPubFields"] = account.Fields,
+                                    // ["ActivityPubEmoji"] = account.Emoji,
+                                    // ["ActivityPubRole"] = account.Role
+                                // }
                             };
                             
-                            result.Result = avatar;
+                            result.Result = (IAvatar)avatar;
                             result.IsError = false;
                             result.Message = "Avatar loaded successfully from ActivityPub by email with full property mapping";
                         }
@@ -483,7 +484,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         var account = accounts.FirstOrDefault(a => a.Username == avatarUsername || a.Acct == avatarUsername);
                         if (account != null)
                         {
-                            var avatar = new Avatar
+                            var avatar = new AvatarDetail
                             {
                                 Id = Guid.NewGuid(), // Generate new ID for username lookup
                                 Username = account.Username,
@@ -500,42 +501,42 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                 Landline = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("landline"))?.Value,
                                 Title = account.Role?.Name,
                                 DOB = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value != null ? 
-                                      DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : (DateTime?)null : null,
-                                AvatarType = account.Bot ? AvatarType.AI : AvatarType.Human,
-                                KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
-                                Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
+                                      DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : DateTime.MinValue : DateTime.MinValue,
+                                AvatarType = account.Bot ? new EnumValue<AvatarType>(AvatarType.System) : new EnumValue<AvatarType>(AvatarType.User),
+                                // KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
+                                // Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
                                 XP = account.StatusesCount * 10,
-                                HP = 100, // Default HP
-                                Mana = account.FollowingCount * 5,
-                                Stamina = account.FollowersCount * 2,
+                                // HP = 100, // Default HP
+                                // Mana = account.FollowingCount * 5,
+                                // Stamina = account.FollowersCount * 2,
                                 // Map additional properties
                                 Description = account.Note,
-                                Website = account.Website,
-                                Language = account.Language,
-                                ProviderWallets = new List<IProviderWallet>(),
+                                // Website = account.Website,
+                                // Language = account.Language,
+                                // ProviderWallets = new List<IProviderWallet>(),
                                 // Map ActivityPub specific data to custom properties
-                                CustomData = new Dictionary<string, object>
-                                {
-                                    ["ActivityPubId"] = account.Id,
-                                    ["ActivityPubUrl"] = account.Url,
-                                    ["ActivityPubAvatar"] = account.Avatar,
-                                    ["ActivityPubHeader"] = account.Header,
-                                    ["ActivityPubLocked"] = account.Locked,
-                                    ["ActivityPubBot"] = account.Bot,
-                                    ["ActivityPubDiscoverable"] = account.Discoverable,
-                                    ["ActivityPubGroup"] = account.Group,
-                                    ["ActivityPubPrivacy"] = account.Privacy,
-                                    ["ActivityPubSensitive"] = account.Sensitive,
-                                    ["ActivityPubFollowersCount"] = account.FollowersCount,
-                                    ["ActivityPubFollowingCount"] = account.FollowingCount,
-                                    ["ActivityPubStatusesCount"] = account.StatusesCount,
-                                    ["ActivityPubFields"] = account.Fields,
-                                    ["ActivityPubEmoji"] = account.Emoji,
-                                    ["ActivityPubRole"] = account.Role
-                                }
+                                // CustomData = new Dictionary<string, object>
+                                // {
+                                //     ["ActivityPubId"] = account.Id,
+                                //     ["ActivityPubUrl"] = account.Url,
+                                //     ["ActivityPubAvatar"] = account.Avatar,
+                                //     ["ActivityPubHeader"] = account.Header,
+                                //     ["ActivityPubLocked"] = account.Locked,
+                                //     ["ActivityPubBot"] = account.Bot,
+                                //     ["ActivityPubDiscoverable"] = account.Discoverable,
+                                //     ["ActivityPubGroup"] = account.Group,
+                                //     ["ActivityPubPrivacy"] = account.Privacy,
+                                //     ["ActivityPubSensitive"] = account.Sensitive,
+                                    // ["ActivityPubFollowersCount"] = account.FollowersCount,
+                                    // ["ActivityPubFollowingCount"] = account.FollowingCount,
+                                    // ["ActivityPubStatusesCount"] = account.StatusesCount,
+                                    // ["ActivityPubFields"] = account.Fields,
+                                    // ["ActivityPubEmoji"] = account.Emoji,
+                                    // ["ActivityPubRole"] = account.Role
+                                // }
                             };
                             
-                            result.Result = avatar;
+                            result.Result = (IAvatar)avatar;
                             result.IsError = false;
                             result.Message = "Avatar loaded successfully from ActivityPub by username with full property mapping";
                         }
@@ -736,7 +737,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         // Convert ALL ActivityPub accounts to OASIS Avatars with FULL property mapping
                         foreach (var account in accounts)
                         {
-                            var avatar = new Avatar
+                            var avatar = new AvatarDetail
                             {
                                 Id = Guid.NewGuid(), // Generate new ID for each avatar
                                 Username = account.Username,
@@ -753,42 +754,42 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                 Landline = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("landline"))?.Value,
                                 Title = account.Role?.Name,
                                 DOB = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value != null ? 
-                                      DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : (DateTime?)null : null,
-                                AvatarType = account.Bot ? AvatarType.AI : AvatarType.Human,
-                                KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
-                                Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
+                                      DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : DateTime.MinValue : DateTime.MinValue,
+                                AvatarType = account.Bot ? new EnumValue<AvatarType>(AvatarType.System) : new EnumValue<AvatarType>(AvatarType.User),
+                                // KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
+                                // Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
                                 XP = account.StatusesCount * 10,
-                                HP = 100, // Default HP
-                                Mana = account.FollowingCount * 5,
-                                Stamina = account.FollowersCount * 2,
+                                // HP = 100, // Default HP
+                                // Mana = account.FollowingCount * 5,
+                                // Stamina = account.FollowersCount * 2,
                                 // Map additional properties
                                 Description = account.Note,
-                                Website = account.Website,
-                                Language = account.Language,
-                                ProviderWallets = new List<IProviderWallet>(),
+                                // Website = account.Website,
+                                // Language = account.Language,
+                                // ProviderWallets = new List<IProviderWallet>(),
                                 // Map ActivityPub specific data to custom properties
-                                CustomData = new Dictionary<string, object>
-                                {
-                                    ["ActivityPubId"] = account.Id,
-                                    ["ActivityPubUrl"] = account.Url,
-                                    ["ActivityPubAvatar"] = account.Avatar,
-                                    ["ActivityPubHeader"] = account.Header,
-                                    ["ActivityPubLocked"] = account.Locked,
-                                    ["ActivityPubBot"] = account.Bot,
-                                    ["ActivityPubDiscoverable"] = account.Discoverable,
-                                    ["ActivityPubGroup"] = account.Group,
-                                    ["ActivityPubPrivacy"] = account.Privacy,
-                                    ["ActivityPubSensitive"] = account.Sensitive,
-                                    ["ActivityPubFollowersCount"] = account.FollowersCount,
-                                    ["ActivityPubFollowingCount"] = account.FollowingCount,
-                                    ["ActivityPubStatusesCount"] = account.StatusesCount,
-                                    ["ActivityPubFields"] = account.Fields,
-                                    ["ActivityPubEmoji"] = account.Emoji,
-                                    ["ActivityPubRole"] = account.Role
-                                }
+                                // CustomData = new Dictionary<string, object>
+                                // {
+                                //     ["ActivityPubId"] = account.Id,
+                                //     ["ActivityPubUrl"] = account.Url,
+                                //     ["ActivityPubAvatar"] = account.Avatar,
+                                //     ["ActivityPubHeader"] = account.Header,
+                                //     ["ActivityPubLocked"] = account.Locked,
+                                //     ["ActivityPubBot"] = account.Bot,
+                                //     ["ActivityPubDiscoverable"] = account.Discoverable,
+                                //     ["ActivityPubGroup"] = account.Group,
+                                //     ["ActivityPubPrivacy"] = account.Privacy,
+                                //     ["ActivityPubSensitive"] = account.Sensitive,
+                                    // ["ActivityPubFollowersCount"] = account.FollowersCount,
+                                    // ["ActivityPubFollowingCount"] = account.FollowingCount,
+                                    // ["ActivityPubStatusesCount"] = account.StatusesCount,
+                                    // ["ActivityPubFields"] = account.Fields,
+                                    // ["ActivityPubEmoji"] = account.Emoji,
+                                    // ["ActivityPubRole"] = account.Role
+                                // }
                             };
                             
-                            avatars.Add(avatar);
+                            avatars.Add((IAvatar)avatar);
                         }
                         
                         result.Result = avatars;
@@ -902,14 +903,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     name = $"{avatar.FirstName} {avatar.LastName}".Trim(),
                     summary = avatar.Description,
                     email = avatar.Email,
-                    location = avatar.Address,
-                    website = avatar.Website,
-                    language = avatar.Language,
+                    // location = avatar.Address,
+                    // website = avatar.Website,
+                    // language = avatar.Language,
                     // Map ALL Avatar properties to ActivityPub actor
                     customFields = new[]
                     {
-                        new { name = "Phone", value = avatar.Mobile },
-                        new { name = "Landline", value = avatar.Landline },
+                        // new { name = "Phone", value = avatar.Mobile },
+                        // new { name = "Landline", value = avatar.Landline },
                         new { name = "Title", value = avatar.Title },
                         new { name = "Birth Date", value = avatar.DOB?.ToString("yyyy-MM-dd") },
                         new { name = "Karma", value = avatar.KarmaAkashicRecords.ToString() },
@@ -2915,7 +2916,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                         // Convert ActivityPub accounts to OASIS Avatars with FULL property mapping
                                         foreach (var account in accounts)
                                         {
-                                            var avatar = new Avatar
+                                            var avatar = new AvatarDetail
                                             {
                                                 Id = Guid.NewGuid(),
                                                 Username = account.Username,
@@ -2933,9 +2934,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                                 Title = account.Role?.Name,
                                                 DOB = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value != null ? 
                                                       DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : (DateTime?)null : null,
-                                                AvatarType = account.Bot ? AvatarType.AI : AvatarType.Human,
-                                                KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
-                                                Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
+                                                AvatarType = account.Bot ? new EnumValue<AvatarType>(AvatarType.System) : new EnumValue<AvatarType>(AvatarType.User),
+                                                // KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
+                                                // Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
                                                 XP = account.StatusesCount * 10,
                                                 HP = 100,
                                                 Mana = account.FollowingCount * 5,

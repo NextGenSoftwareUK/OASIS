@@ -18,6 +18,7 @@ using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
+// using Microsoft.Azure.Cosmos;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
@@ -34,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         public string TransactionHash { get; set; }
         public bool Success { get; set; }
         public string Message { get; set; }
-        public object TransactionResult { get; set; }
+        public string TransactionResult { get; set; }
     }
 
     /// <summary>
@@ -45,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         public string TransactionHash { get; set; }
         public bool Success { get; set; }
         public string Message { get; set; }
-        public object TransactionResult { get; set; }
+        public string TransactionResult { get; set; }
         public IOASISNFT OASISNFT { get; set; }
     }
 
@@ -1396,8 +1397,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 }
 
                 // Get wallet addresses for avatars using WalletHelper
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, fromAvatarId);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, toAvatarId);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, new EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS), fromAvatarId);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, new EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS), toAvatarId);
                 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1419,7 +1420,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 };
 
                 // Submit transaction to Cosmos network
-                var cosmosClient = new CosmosClient();
+                // var cosmosClient = new CosmosClient();
                 var transactionResult = await cosmosClient.SendTransactionAsync(transactionData);
 
                 if (transactionResult != null)
@@ -1427,10 +1428,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     result.Result = new TransactionRespone
                     {
                         TransactionHash = transactionResult.TransactionId,
-                        FromAddress = fromAddress,
-                        ToAddress = toAddress,
-                        Amount = amount,
-                        Status = "Success"
+                        Success = true,
+                        Message = "Transaction successful",
+                        TransactionResult = transactionResult.TransactionId
                     };
                     result.IsError = false;
                     result.Message = "Cosmos transaction sent successfully";
@@ -1464,8 +1464,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 }
 
                 // Get wallet addresses for usernames using WalletHelper
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, fromAvatarUsername);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, toAvatarUsername);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, new EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS), fromAvatarUsername);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, new EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS), toAvatarUsername);
                 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1487,7 +1487,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 };
 
                 // Submit transaction to Cosmos network
-                var cosmosClient = new CosmosClient();
+                // var cosmosClient = new CosmosClient();
                 var transactionResult = await cosmosClient.SendTransactionAsync(transactionData);
 
                 if (transactionResult != null)
@@ -1495,10 +1495,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     result.Result = new TransactionRespone
                     {
                         TransactionHash = transactionResult.TransactionId,
-                        FromAddress = fromAddress,
-                        ToAddress = toAddress,
-                        Amount = amount,
-                        Status = "Success"
+                        Success = true,
+                        Message = "Transaction successful",
+                        TransactionResult = transactionResult.TransactionId
                     };
                     result.IsError = false;
                     result.Message = "Cosmos transaction sent successfully";
@@ -1542,8 +1541,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 }
 
                 // Get wallet addresses for emails using WalletHelper
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, fromAvatarEmail);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, toAvatarEmail);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, new EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS), fromAvatarEmail);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, new EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS), toAvatarEmail);
                 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1565,7 +1564,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 };
 
                 // Submit transaction to Cosmos network
-                var cosmosClient = new CosmosClient();
+                // var cosmosClient = new CosmosClient();
                 var transactionResult = await cosmosClient.SendTransactionAsync(transactionData);
 
                 if (transactionResult != null)
@@ -1573,10 +1572,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     result.Result = new TransactionRespone
                     {
                         TransactionHash = transactionResult.TransactionId,
-                        FromAddress = fromAddress,
-                        ToAddress = toAddress,
-                        Amount = amount,
-                        Status = "Success"
+                        Success = true,
+                        Message = "Transaction successful",
+                        TransactionResult = transactionResult.TransactionId
                     };
                     result.IsError = false;
                     result.Message = "Cosmos transaction sent successfully";
@@ -1621,8 +1619,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 }
 
                 // Get wallet addresses for avatars using WalletHelper
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, fromAvatarId);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.CosmosBlockChainOASIS, toAvatarId);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, new EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS), fromAvatarId);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, new EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS), toAvatarId);
                 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1644,7 +1642,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 };
 
                 // Submit transaction to Cosmos network
-                var cosmosClient = new CosmosClient();
+                // var cosmosClient = new CosmosClient();
                 var transactionResult = await cosmosClient.SendTransactionAsync(transactionData);
 
                 if (transactionResult != null)
@@ -1652,10 +1650,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     result.Result = new TransactionRespone
                     {
                         TransactionHash = transactionResult.TransactionId,
-                        FromAddress = fromAddress,
-                        ToAddress = toAddress,
-                        Amount = amount,
-                        Status = "Success"
+                        Success = true,
+                        Message = "Transaction successful",
+                        TransactionResult = transactionResult.TransactionId
                     };
                     result.IsError = false;
                     result.Message = "Cosmos default wallet transaction sent successfully";

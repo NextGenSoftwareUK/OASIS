@@ -457,7 +457,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 }
 
                 // Load avatar by provider key first
-                var avatarResult = await LoadAvatarAsync(providerKey);
+                var avatarResult = await LoadAvatarByProviderKeyAsync(providerKey);
                 if (avatarResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
@@ -1135,9 +1135,9 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 CreatedDate = holon.CreatedDate,
                                 ModifiedDate = holon.ModifiedDate,
                                 MetaData = holon.MetaData,
-                                ProviderKey = holon.ProviderKey,
-                                PreviousVersionId = holon.PreviousVersionId,
-                                NextVersionId = holon.NextVersionId
+                                // ProviderKey = holon.ProviderKey, // Commented out - property doesn't exist
+                                // PreviousVersionId = holon.PreviousVersionId, // Commented out - property doesn't exist
+                                // NextVersionId = holon.NextVersionId // Commented out - property doesn't exist
                             };
                             result.Result = avatarDetail;
                             result.IsError = false;

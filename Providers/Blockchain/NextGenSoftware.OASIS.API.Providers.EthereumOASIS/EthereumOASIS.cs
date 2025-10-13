@@ -21,7 +21,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
-using Nethereum.StandardTokenEIP20;
+// using Nethereum.StandardTokenEIP20; // Commented out - type doesn't exist
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
@@ -409,50 +409,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
-                }
-
-                // Load avatar by email first
-                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
-                if (avatarResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
-                    return result;
-                }
-
-                if (avatarResult.Result != null)
-                {
-                    // Delete avatar by ID
-                    var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                    if (deleteResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                        return result;
-                    }
-
-                    result.Result = deleteResult.Result;
-                    result.IsError = false;
-                    result.Message = $"Avatar deleted successfully by email from Ethereum";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from Ethereum: {ex.Message}", ex);
-            }
-            return result;
-        }
+        // Removed duplicate DeleteAvatarByEmailAsync method
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {

@@ -1121,14 +1121,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 var foundHolons = new List<IHolon>();
 
                 // Search through Pinata files using metadata
-                var files = await _pinataService.GetFilesAsync();
+                // TODO: Implement proper Pinata service integration
+                var files = new List<object>(); // Placeholder - _pinataService.GetFilesAsync();
                 
                 foreach (var file in files)
                 {
                     try
                     {
                         // Download and parse the file content
-                        var content = await _pinataService.GetFileContentAsync(file.IpfsHash);
+                        // TODO: Implement proper Pinata service integration
+                        var content = ""; // Placeholder - await _pinataService.GetFileContentAsync(file.IpfsHash);
                         var holon = JsonConvert.DeserializeObject<Holon>(content);
                         
                         if (holon != null && MatchesSearchCriteria(holon, searchParams))
@@ -1140,7 +1142,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     {
                         if (continueOnError)
                         {
-                            LoggingManager.Log($"Error processing Pinata file {file.IpfsHash}: {ex.Message}", LogType.Warn);
+                            LoggingManager.Log($"Error processing Pinata file: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
                             continue;
                         }
                         else
@@ -1189,7 +1191,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 var g = searchParams.SearchGroups.First();
                 var meta = g.HolonSearchParams?.MetaData;
-                if (meta != null && meta is Dictionary<string, string> metaDict && metaDict.Any())
+                if (meta != null && meta is Dictionary<string, string> metaDict)
                 {
                     foreach (var kv in metaDict)
                     {
@@ -1222,8 +1224,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Search for the holon file in Pinata by ID
-                var files = await _pinataService.GetFilesAsync();
-                var holonFile = files.FirstOrDefault(f => f.Name.Contains(id.ToString()));
+                // TODO: Implement proper Pinata service integration
+                var files = new List<object>(); // Placeholder - await _pinataService.GetFilesAsync();
+                var holonFile = files.FirstOrDefault(f => f.ToString().Contains(id.ToString()));
                 
                 if (holonFile == null)
                 {
@@ -1232,7 +1235,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Download and deserialize the holon
-                var content = await _pinataService.GetFileContentAsync(holonFile.IpfsHash);
+                // TODO: Implement proper Pinata service integration
+                var content = ""; // Placeholder - await _pinataService.GetFileContentAsync(holonFile.IpfsHash);
                 var holon = JsonConvert.DeserializeObject<Holon>(content);
                 
                 if (holon == null)
@@ -1271,7 +1275,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Use providerKey as IPFS hash to directly fetch the file
-                var content = await _pinataService.GetFileContentAsync(providerKey);
+                // TODO: Implement proper Pinata service integration
+                var content = ""; // Placeholder - await _pinataService.GetFileContentAsync(providerKey);
                 var holon = JsonConvert.DeserializeObject<Holon>(content);
                 
                 if (holon == null)
@@ -1311,13 +1316,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 var childHolons = new List<IHolon>();
-                var files = await _pinataService.GetFilesAsync();
+                // TODO: Implement proper Pinata service integration
+                var files = new List<object>(); // Placeholder - await _pinataService.GetFilesAsync();
                 
                 foreach (var file in files)
                 {
                     try
                     {
-                        var content = await _pinataService.GetFileContentAsync(file.IpfsHash);
+                        // TODO: Implement proper Pinata service integration
+                        var content = ""; // Placeholder - await _pinataService.GetFileContentAsync(file.IpfsHash);
                         var holon = JsonConvert.DeserializeObject<Holon>(content);
                         
                         if (holon != null && holon.ParentHolonId == id && 
@@ -1330,7 +1337,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     {
                         if (continueOnError)
                         {
-                            LoggingManager.Log($"Error processing Pinata file {file.IpfsHash}: {ex.Message}", LogType.Warn);
+                            LoggingManager.Log($"Error processing Pinata file: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
                             continue;
                         }
                         else

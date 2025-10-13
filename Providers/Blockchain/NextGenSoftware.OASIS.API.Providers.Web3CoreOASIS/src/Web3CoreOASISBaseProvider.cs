@@ -834,39 +834,6 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return LoadAvatarAsync(Id, version).Result;
     }
 
-    public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-    {
-        OASISResult<IAvatar> result = new();
-        string errorMessage = "Error in LoadAvatarAsync method in Web3CoreOASIS while loading an avatar. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            int avatarEntityId = HashUtility.GetNumericHash(id.ToString());
-            EntityOASIS avatarInfo = await _web3CoreOASIS.GetAvatarByIdAsync((uint)avatarEntityId);
-
-            result.Result = JsonSerializer.Deserialize<Avatar>(avatarInfo.Info)
-                ?? throw new InvalidOperationException();
-            result.IsError = false;
-            result.IsLoaded = true;
-        }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
-        return result;
-    }
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
     {
@@ -958,47 +925,6 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
     public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
     {
         return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
-    }
-
-    public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-    {
-        var result = new OASISResult<IAvatar>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/by-provider-key/{Uri.EscapeDataString(providerKey)}?version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var avatar = JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                
-                if (avatar != null)
-                {
-                    result.Result = avatar;
-                    result.IsError = false;
-                    result.Message = "Avatar loaded successfully by provider key from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from Web3Core: {ex.Message}", ex);
-        }
-        return result;
     }
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
@@ -1263,7 +1189,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         var result = new OASISResult<IHolon>();
         try
@@ -1370,7 +1296,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByProviderKeyAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByProviderKeyAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         var result = new OASISResult<IEnumerable<IHolon>>();
         try
