@@ -452,15 +452,115 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
                     if (searchTextGroup != null)
                     {
+                        // Fallback simple search for current model
+                        if (!string.IsNullOrWhiteSpace(searchTextGroup.SearchQuery))
+                        {
+                            var q = searchTextGroup.SearchQuery.ToLower();
+                            result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                                (a.Name ?? string.Empty).ToLower().Contains(q) || (a.Description ?? string.Empty).ToLower().Contains(q)));
+                            result.Result.SearchResultHolons.AddRange(holons.Where(h =>
+                                (h.Name ?? string.Empty).ToLower().Contains(q) || (h.Description ?? string.Empty).ToLower().Contains(q)));
+                        }
+
                         if (searchTextGroup.SearchAvatars)
                         {
-                            if (searchTextGroup.AvatarSerachParams.FirstName)
+                            // Simplified: only name/username/email/description for current model
+                            var qLower = (searchTextGroup.SearchQuery ?? string.Empty).ToLower();
+                            result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                                (a.Name ?? string.Empty).ToLower().Contains(qLower)
+                                || (a.Username ?? string.Empty).ToLower().Contains(qLower)
+                                || (a.Email ?? string.Empty).ToLower().Contains(qLower)
+                                || (a.Description ?? string.Empty).ToLower().Contains(qLower)));
+                        }
+
+                        if (searchTextGroup.SearchHolons)
+                        {
+                            if (searchTextGroup.HolonSearchParams.Name)
+                            {
+                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                                   a.Name.Contains(searchTextGroup.SearchQuery)).ToList());
+                            }
+
+                            if (searchTextGroup.HolonSearchParams.Description)
+                            {
+                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                                   a.Description.Contains(searchTextGroup.SearchQuery)).ToList());
+                            }
+
+                            // Search ALL holon properties comprehensively
+                            if (searchTextGroup.HolonSearchParams.HolonType)
+                            {
+                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                                   a.HolonType.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            }
+                            if (searchTextGroup.HolonSearchParams.CreatedDate)
+                            {
+                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                                   a.CreatedDate.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            }
+                            if (searchTextGroup.HolonSearchParams.ModifiedDate)
+                            {
+                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                                   a.ModifiedDate.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            }
+                            if (searchTextGroup.HolonSearchParams.Version)
+                            {
+                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                                   a.Version.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            }
+                            // Simplified: only name/description/holontype/date for current model
+                            var qLower = (searchTextGroup.SearchQuery ?? string.Empty).ToLower();
+                            result.Result.SearchResultHolons.AddRange(holons.Where(h =>
+                                (h.Name ?? string.Empty).ToLower().Contains(qLower)
+                                || (h.Description ?? string.Empty).ToLower().Contains(qLower)
+                                || h.HolonType.ToString().ToLower().Contains(qLower)
+                                || h.CreatedDate.ToString().ToLower().Contains(qLower)
+                                || h.ModifiedDate.ToString().ToLower().Contains(qLower)));
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        //TODO: Need to compare the 2 versions of the search function later and keep the best or merge the the best from both! ;-)
+        /*
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
+            OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync();
+            OASISResult<IEnumerable<IHolon>> holonsResult = await LoadAllHolonsAsync();
+            List<IAvatar> avatars = new List<IAvatar>();
+            List<IHolon> holons = new List<IHolon>();
+
+            if (avatarsResult.Result != null && !avatarsResult.IsError)
+                avatars = avatarsResult.Result.ToList();
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in IPFSOASIS in SearchAsync loading the avatars. Reason: {avatarsResult.Message}");
+
+            if (holonsResult.Result != null && !holonsResult.IsError)
+                holons = holonsResult.Result.ToList();
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured in IPFSOASIS in SearchAsync loading the holons. Reason: {holonsResult.Message}");
+
+            if (!result.IsError)
+            {
+                foreach (ISearchGroupBase searchGroup in searchParams.SearchGroups)
+                {
+                    ISearchTextGroup searchTextGroup = searchGroup as ISearchTextGroup;
+
+                    if (searchTextGroup != null)
+                    {
+                        if (searchTextGroup.SearchAvatars)
+                        {
+                            if (searchTextGroup.AvatarSearchParams.FirstName)
                             {
                                 result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
                                    a.FirstName.Contains(searchTextGroup.SearchQuery)).ToList());
                             }
 
-                            if (searchTextGroup.AvatarSerachParams.LastName)
+                            if (searchTextGroup.AvatarSearchParams.LastName)
                             {
                                 result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
                                    a.LastName.Contains(searchTextGroup.SearchQuery)).ToList());
@@ -477,78 +577,78 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                                 result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
                                    a.Email.Contains(searchTextGroup.SearchQuery)).ToList());
                             }
-                            
+
                             // Search ALL avatar properties comprehensively
-                            if (searchTextGroup.AvatarSearchParams.Address)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   !string.IsNullOrEmpty(a.Address) && a.Address.Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.AvatarSearchParams.Country)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   !string.IsNullOrEmpty(a.Country) && a.Country.Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.AvatarSearchParams.Postcode)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   !string.IsNullOrEmpty(a.Postcode) && a.Postcode.Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.AvatarSearchParams.Mobile)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   !string.IsNullOrEmpty(a.Mobile) && a.Mobile.Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.AvatarSearchParams.Landline)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   !string.IsNullOrEmpty(a.Landline) && a.Landline.Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.AvatarSearchParams.Title)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   !string.IsNullOrEmpty(a.Title) && a.Title.Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.AvatarSearchParams.DOB)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   a.DOB.HasValue && a.DOB.Value.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
+                            //if (searchTextGroup.AvatarSearchParams.Address)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       !string.IsNullOrEmpty(a.Address) && a.Address.Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.AvatarSearchParams.Country)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       !string.IsNullOrEmpty(a.Country) && a.Country.Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.AvatarSearchParams.Postcode)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       !string.IsNullOrEmpty(a.Postcode) && a.Postcode.Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.AvatarSearchParams.Mobile)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       !string.IsNullOrEmpty(a.Mobile) && a.Mobile.Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.AvatarSearchParams.Landline)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       !string.IsNullOrEmpty(a.Landline) && a.Landline.Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.AvatarSearchParams.Title)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       !string.IsNullOrEmpty(a.Title) && a.Title.Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.AvatarSearchParams.DOB)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       a.DOB.HasValue && a.DOB.Value.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
                             if (searchTextGroup.AvatarSearchParams.AvatarType)
                             {
                                 result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
                                    a.AvatarType.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
                             }
-                            if (searchTextGroup.AvatarSearchParams.KarmaAkashicRecords)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   a.KarmaAkashicRecords.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.AvatarSearchParams.Level)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   a.Level.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.AvatarSearchParams.XP)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   a.XP.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.AvatarSearchParams.HP)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   a.HP.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.AvatarSearchParams.Mana)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   a.Mana.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.AvatarSearchParams.Stamina)
-                            {
-                                result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                   a.Stamina.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
+                            //if (searchTextGroup.AvatarSearchParams.KarmaAkashicRecords)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       a.KarmaAkashicRecords.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.AvatarSearchParams.Level)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       a.Level.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.AvatarSearchParams.XP)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       a.XP.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.AvatarSearchParams.HP)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       a.HP.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.AvatarSearchParams.Mana)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       a.Mana.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.AvatarSearchParams.Stamina)
+                            //{
+                            //    result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
+                            //       a.Stamina.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
                             if (searchTextGroup.AvatarSearchParams.CreatedDate)
                             {
                                 result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
@@ -596,65 +696,61 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                                 result.Result.SearchResultHolons.AddRange(holons.Where(a =>
                                    a.Version.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
                             }
-                            if (searchTextGroup.HolonSearchParams.ParentId)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.ParentId.HasValue && a.ParentId.Value.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.HolonSearchParams.ProviderKey)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   !string.IsNullOrEmpty(a.ProviderKey) && a.ProviderKey.Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.HolonSearchParams.PreviousVersionId)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.PreviousVersionId.HasValue && a.PreviousVersionId.Value.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.HolonSearchParams.NextVersionId)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.NextVersionId.HasValue && a.NextVersionId.Value.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
+                            //if (searchTextGroup.HolonSearchParams.ParentId)
+                            //{
+                            //    result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                            //       a.ParentId.HasValue && a.ParentId.Value.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.HolonSearchParams.ProviderKey)
+                            //{
+                            //    result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                            //       !string.IsNullOrEmpty(a.ProviderKey) && a.ProviderKey.Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.HolonSearchParams.PreviousVersionId)
+                            //{
+                            //    result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                            //       a.PreviousVersionId.HasValue && a.PreviousVersionId.Value.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.HolonSearchParams.NextVersionId)
+                            //{
+                            //    result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                            //       a.NextVersionId.HasValue && a.NextVersionId.Value.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
                             if (searchTextGroup.HolonSearchParams.IsActive)
                             {
                                 result.Result.SearchResultHolons.AddRange(holons.Where(a =>
                                    a.IsActive.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
                             }
-                            if (searchTextGroup.HolonSearchParams.IsChanged)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.IsChanged.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.HolonSearchParams.IsNew)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.IsNew.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.HolonSearchParams.IsDeleted)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.IsDeleted.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
+                            //if (searchTextGroup.HolonSearchParams.IsChanged)
+                            //{
+                            //    result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                            //       a.IsChanged.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.HolonSearchParams.IsNew)
+                            //{
+                            //    result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                            //       a.IsNew.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
+                            //if (searchTextGroup.HolonSearchParams.IsDeleted)
+                            //{
+                            //    result.Result.SearchResultHolons.AddRange(holons.Where(a =>
+                            //       a.IsDeleted.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                            //}
                             if (searchTextGroup.HolonSearchParams.DeletedByAvatarId)
                             {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.DeletedByAvatarId.HasValue && a.DeletedByAvatarId.Value.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                                result.Result.SearchResultHolons.AddRange(holons.Where(a => a.DeletedByAvatarId.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
                             }
                             if (searchTextGroup.HolonSearchParams.DeletedDate)
                             {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.DeletedDate.HasValue && a.DeletedDate.Value.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                                result.Result.SearchResultHolons.AddRange(holons.Where(a => a.DeletedDate.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
                             }
                             if (searchTextGroup.HolonSearchParams.CreatedByAvatarId)
                             {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.CreatedByAvatarId.HasValue && a.CreatedByAvatarId.Value.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                                result.Result.SearchResultHolons.AddRange(holons.Where(a => a.CreatedByAvatarId.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
                             }
                             if (searchTextGroup.HolonSearchParams.ModifiedByAvatarId)
                             {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.ModifiedByAvatarId.HasValue && a.ModifiedByAvatarId.Value.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
+                                result.Result.SearchResultHolons.AddRange(holons.Where(a => a.ModifiedByAvatarId.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
                             }
                         }
                     }
@@ -662,7 +758,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             }
 
             return result;
-        }
+        }*/
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {

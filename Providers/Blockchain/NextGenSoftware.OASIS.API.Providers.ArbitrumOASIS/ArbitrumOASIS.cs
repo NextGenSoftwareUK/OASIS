@@ -18,6 +18,7 @@ using Nethereum.JsonRpc.Client;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using Nethereum.Contracts;
+using System.Linq;
 using Nethereum.RPC.Eth.DTOs;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using Nethereum.Contracts.ContractHandlers;
@@ -156,7 +157,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Load avatar by provider key first
-            var avatarResult = await LoadAvatarAsync(providerKey);
+            var avatarResult = await LoadAvatarByProviderKeyAsync(providerKey);
             if (avatarResult.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
@@ -244,7 +245,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Load avatar by provider key first
-            var avatarResult = await LoadAvatarAsync(providerKey);
+            var avatarResult = await LoadAvatarByProviderKeyAsync(providerKey);
             if (avatarResult.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
@@ -490,7 +491,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
     public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
     {
-        return LoadAllHolonsAsync(version);
+        return LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, false, version);
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
