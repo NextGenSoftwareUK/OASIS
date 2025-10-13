@@ -9,7 +9,6 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetAccount;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
@@ -18,10 +17,10 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
 
 namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 {
@@ -41,7 +40,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             this.ProviderDescription = "Telos Provider";
             this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.TelosOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-            _httpClient = new HttpClient();
 
             EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(host, eosAccountName, eosChainId, eosAccountPk);
         }
@@ -539,13 +537,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return Task.FromResult(result);
         }
 
-        public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
+        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
             var result = new OASISResult<IEnumerable<IPlayer>> { Result = new List<IPlayer>(), Message = "GetPlayersNearMe is not supported by Telos provider." };
             return result;
         }
 
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
             var result = new OASISResult<IEnumerable<IHolon>> { Result = new List<IHolon>(), Message = "GetHolonsNearMe is not supported by Telos provider." };
             return result;
@@ -562,7 +560,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
                     return result;
@@ -638,8 +636,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
                     
                     result.Result = new TransactionRespone
                     {
-                        TransactionResult = responseData.GetProperty("transaction_id").GetString(),
-                        MemoText = memoText
+                        TransactionResult = responseData.GetProperty("transaction_id").GetString()
                     };
                     result.IsError = false;
                     result.Message = $"Telos transaction sent successfully. TX ID: {result.Result.TransactionResult}";
@@ -831,48 +828,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
         public OASISResult<string> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
-        }
-
-        OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
-        {
-            var result = new OASISResult<ITransactionRespone>();
-            result.Message = "IOASISBlockchainStorageProvider.SendTransactionById with token is not supported yet by Telos provider.";
-            return result;
-        }
-
-        Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
-        {
-            var result = new OASISResult<ITransactionRespone>();
-            result.Message = "IOASISBlockchainStorageProvider.SendTransactionByIdAsync with token is not supported yet by Telos provider.";
-            return Task.FromResult(result);
-        }
-
-        Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-        {
-            var result = new OASISResult<ITransactionRespone>();
-            result.Message = "IOASISBlockchainStorageProvider.SendTransactionByUsernameAsync with token is not supported yet by Telos provider.";
-            return Task.FromResult(result);
-        }
-
-        OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
-        {
-            var result = new OASISResult<ITransactionRespone>();
-            result.Message = "IOASISBlockchainStorageProvider.SendTransactionByUsername with token is not supported yet by Telos provider.";
-            return result;
-        }
-
-        Task<OASISResult<ITransactionRespone>> IOASISBlockchainStorageProvider.SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-        {
-            var result = new OASISResult<ITransactionRespone>();
-            result.Message = "IOASISBlockchainStorageProvider.SendTransactionByEmailAsync with token is not supported yet by Telos provider.";
-            return Task.FromResult(result);
-        }
-
-        OASISResult<ITransactionRespone> IOASISBlockchainStorageProvider.SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-        {
-            var result = new OASISResult<ITransactionRespone>();
-            result.Message = "IOASISBlockchainStorageProvider.SendTransactionByEmail with token is not supported yet by Telos provider.";
-            return result;
         }
 
         Task<OASISResult<INFTTransactionRespone>> IOASISNFTProvider.SendNFTAsync(INFTWalletTransactionRequest transation)
