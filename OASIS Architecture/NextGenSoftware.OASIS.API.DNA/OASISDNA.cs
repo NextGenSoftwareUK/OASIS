@@ -273,7 +273,6 @@ namespace NextGenSoftware.OASIS.API.DNA
         public BaseOASISProviderSettings BaseOASIS { get; set; }
         public SuiOASISProviderSettings SuiOASIS { get; set; }
         public MoralisOASISProviderSettings MoralisOASIS { get; set; }
-        public TelosOASISProviderSettings TelosOASIS { get; set; }
         
         // Network Providers
         public ActivityPubOASISProviderSettings ActivityPubOASIS { get; set; }
@@ -340,9 +339,6 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ChainId { get; set; }
     }
 
-    public class TelosOASISProviderSettings : ProviderSettingsBase
-    {
-    }
 
     public class SEEDSOASISProviderSettings : ProviderSettingsBase
     {

@@ -636,119 +636,708 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             return result;
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                if (string.IsNullOrEmpty(providerKey))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Provider key cannot be null or empty");
+                    return result;
+                }
+
+                var filePath = Path.Combine(_basePath, $"{providerKey}.json");
+                
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                    result.Result = null; // Holon deleted
+                    result.IsError = false;
+                    result.Message = "Holon deleted successfully from local file system";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Holon file not found: {filePath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from local file system: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                var avatarDetails = new List<IAvatarDetail>();
+                var files = Directory.GetFiles(_basePath, "*.json");
+                
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var content = await File.ReadAllTextAsync(file);
+                        var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        
+                        if (holon != null && holon.HolonType == HolonType.AvatarDetail)
+                        {
+                            var avatarDetail = new AvatarDetail
+                            {
+                                Id = holon.Id,
+                                Name = holon.Name,
+                                Description = holon.Description,
+                                Version = holon.Version,
+                                CreatedDate = holon.CreatedDate,
+                                ModifiedDate = holon.ModifiedDate,
+                                MetaData = holon.MetaData,
+                                ProviderKey = holon.ProviderKey,
+                                PreviousVersionId = holon.PreviousVersionId,
+                                NextVersionId = holon.NextVersionId
+                            };
+                            avatarDetails.Add(avatarDetail);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log error but continue with other files
+                        Console.WriteLine($"Error processing file {file}: {ex.Message}");
+                    }
+                }
+                
+                result.Result = avatarDetails;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {avatarDetails.Count} avatar details from local file system";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from local file system: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAllAvatarDetailsAsync(version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                var avatars = new List<IAvatar>();
+                var files = Directory.GetFiles(_basePath, "*.json");
+                
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var content = await File.ReadAllTextAsync(file);
+                        var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        
+                        if (holon != null && holon.HolonType == HolonType.Avatar)
+                        {
+                            var avatar = new Avatar
+                            {
+                                Id = holon.Id,
+                                Name = holon.Name,
+                                Description = holon.Description,
+                                Version = holon.Version,
+                                CreatedDate = holon.CreatedDate,
+                                ModifiedDate = holon.ModifiedDate,
+                                MetaData = holon.MetaData,
+                                ProviderKey = holon.ProviderKey,
+                                PreviousVersionId = holon.PreviousVersionId,
+                                NextVersionId = holon.NextVersionId
+                            };
+                            avatars.Add(avatar);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log error but continue with other files
+                        Console.WriteLine($"Error processing file {file}: {ex.Message}");
+                    }
+                }
+                
+                result.Result = avatars;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {avatars.Count} avatars from local file system";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from local file system: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAllAvatarsAsync(version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                var filePath = Path.Combine(_basePath, $"{Id}.json");
+                
+                if (File.Exists(filePath))
+                {
+                    var content = await File.ReadAllTextAsync(filePath);
+                    var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (holon != null && holon.HolonType == HolonType.Avatar)
+                    {
+                        var avatar = new Avatar
+                        {
+                            Id = holon.Id,
+                            Name = holon.Name,
+                            Description = holon.Description,
+                            Version = holon.Version,
+                            CreatedDate = holon.CreatedDate,
+                            ModifiedDate = holon.ModifiedDate,
+                            MetaData = holon.MetaData,
+                            ProviderKey = holon.ProviderKey,
+                            PreviousVersionId = holon.PreviousVersionId,
+                            NextVersionId = holon.NextVersionId
+                        };
+                        result.Result = avatar;
+                        result.IsError = false;
+                        result.Message = "Avatar loaded successfully from local file system";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar from local file");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar file not found: {filePath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar from local file system: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarAsync(Id, version).Result;
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                var files = Directory.GetFiles(_basePath, "*.json");
+                
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var content = await File.ReadAllTextAsync(file);
+                        var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        
+                        if (holon != null && holon.HolonType == HolonType.Avatar && 
+                            holon.MetaData != null && holon.MetaData.ContainsKey("Email") && 
+                            holon.MetaData["Email"] == avatarEmail)
+                        {
+                            var avatar = new Avatar
+                            {
+                                Id = holon.Id,
+                                Name = holon.Name,
+                                Description = holon.Description,
+                                Version = holon.Version,
+                                CreatedDate = holon.CreatedDate,
+                                ModifiedDate = holon.ModifiedDate,
+                                MetaData = holon.MetaData,
+                                ProviderKey = holon.ProviderKey,
+                                PreviousVersionId = holon.PreviousVersionId,
+                                NextVersionId = holon.NextVersionId
+                            };
+                            result.Result = avatar;
+                            result.IsError = false;
+                            result.Message = "Avatar loaded successfully by email from local file system";
+                            return result;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log error but continue with other files
+                        Console.WriteLine($"Error processing file {file}: {ex.Message}");
+                    }
+                }
+                
+                OASISErrorHandling.HandleError(ref result, $"Avatar with email {avatarEmail} not found in local file system");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from local file system: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByEmailAsync(avatarEmail, version).Result;
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                var files = Directory.GetFiles(_basePath, "*.json");
+                
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var content = await File.ReadAllTextAsync(file);
+                        var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        
+                        if (holon != null && holon.HolonType == HolonType.Avatar && 
+                            holon.MetaData != null && holon.MetaData.ContainsKey("Username") && 
+                            holon.MetaData["Username"] == avatarUsername)
+                        {
+                            var avatar = new Avatar
+                            {
+                                Id = holon.Id,
+                                Name = holon.Name,
+                                Description = holon.Description,
+                                Version = holon.Version,
+                                CreatedDate = holon.CreatedDate,
+                                ModifiedDate = holon.ModifiedDate,
+                                MetaData = holon.MetaData,
+                                ProviderKey = holon.ProviderKey,
+                                PreviousVersionId = holon.PreviousVersionId,
+                                NextVersionId = holon.NextVersionId
+                            };
+                            result.Result = avatar;
+                            result.IsError = false;
+                            result.Message = "Avatar loaded successfully by username from local file system";
+                            return result;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log error but continue with other files
+                        Console.WriteLine($"Error processing file {file}: {ex.Message}");
+                    }
+                }
+                
+                OASISErrorHandling.HandleError(ref result, $"Avatar with username {avatarUsername} not found in local file system");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from local file system: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                var filePath = Path.Combine(_basePath, $"{id}.json");
+                
+                if (File.Exists(filePath))
+                {
+                    var content = await File.ReadAllTextAsync(filePath);
+                    var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (holon != null && holon.HolonType == HolonType.AvatarDetail)
+                    {
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = holon.Id,
+                            Name = holon.Name,
+                            Description = holon.Description,
+                            Version = holon.Version,
+                            CreatedDate = holon.CreatedDate,
+                            ModifiedDate = holon.ModifiedDate,
+                            MetaData = holon.MetaData,
+                            ProviderKey = holon.ProviderKey,
+                            PreviousVersionId = holon.PreviousVersionId,
+                            NextVersionId = holon.NextVersionId
+                        };
+                        result.Result = avatarDetail;
+                        result.IsError = false;
+                        result.Message = "Avatar detail loaded successfully from local file system";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar detail from local file");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Avatar detail file not found: {filePath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from local file system: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailAsync(id, version).Result;
         }
 
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                var files = Directory.GetFiles(_basePath, "*.json");
+                
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var content = await File.ReadAllTextAsync(file);
+                        var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        
+                        if (holon != null && holon.HolonType == HolonType.AvatarDetail && 
+                            holon.MetaData != null && holon.MetaData.ContainsKey("Email") && 
+                            holon.MetaData["Email"] == avatarEmail)
+                        {
+                            var avatarDetail = new AvatarDetail
+                            {
+                                Id = holon.Id,
+                                Name = holon.Name,
+                                Description = holon.Description,
+                                Version = holon.Version,
+                                CreatedDate = holon.CreatedDate,
+                                ModifiedDate = holon.ModifiedDate,
+                                MetaData = holon.MetaData,
+                                ProviderKey = holon.ProviderKey,
+                                PreviousVersionId = holon.PreviousVersionId,
+                                NextVersionId = holon.NextVersionId
+                            };
+                            result.Result = avatarDetail;
+                            result.IsError = false;
+                            result.Message = "Avatar detail loaded successfully by email from local file system";
+                            return result;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log error but continue with other files
+                        Console.WriteLine($"Error processing file {file}: {ex.Message}");
+                    }
+                }
+                
+                OASISErrorHandling.HandleError(ref result, $"Avatar detail with email {avatarEmail} not found in local file system");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from local file system: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
         }
 
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                var files = Directory.GetFiles(_basePath, "*.json");
+                
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var content = await File.ReadAllTextAsync(file);
+                        var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        
+                        if (holon != null && holon.HolonType == HolonType.AvatarDetail && 
+                            holon.MetaData != null && holon.MetaData.ContainsKey("Username") && 
+                            holon.MetaData["Username"] == avatarUsername)
+                        {
+                            var avatarDetail = new AvatarDetail
+                            {
+                                Id = holon.Id,
+                                Name = holon.Name,
+                                Description = holon.Description,
+                                Version = holon.Version,
+                                CreatedDate = holon.CreatedDate,
+                                ModifiedDate = holon.ModifiedDate,
+                                MetaData = holon.MetaData,
+                                ProviderKey = holon.ProviderKey,
+                                PreviousVersionId = holon.PreviousVersionId,
+                                NextVersionId = holon.NextVersionId
+                            };
+                            result.Result = avatarDetail;
+                            result.IsError = false;
+                            result.Message = "Avatar detail loaded successfully by username from local file system";
+                            return result;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log error but continue with other files
+                        Console.WriteLine($"Error processing file {file}: {ex.Message}");
+                    }
+                }
+                
+                OASISErrorHandling.HandleError(ref result, $"Avatar detail with username {avatarUsername} not found in local file system");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from local file system: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                var files = Directory.GetFiles(_basePath, "*.json");
+                
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var content = await File.ReadAllTextAsync(file);
+                        var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        
+                        if (holon != null && holon.HolonType == HolonType.Avatar && holon.ProviderKey == providerKey)
+                        {
+                            var avatar = new Avatar
+                            {
+                                Id = holon.Id,
+                                Name = holon.Name,
+                                Description = holon.Description,
+                                Version = holon.Version,
+                                CreatedDate = holon.CreatedDate,
+                                ModifiedDate = holon.ModifiedDate,
+                                MetaData = holon.MetaData,
+                                ProviderKey = holon.ProviderKey,
+                                PreviousVersionId = holon.PreviousVersionId,
+                                NextVersionId = holon.NextVersionId
+                            };
+                            result.Result = avatar;
+                            result.IsError = false;
+                            result.Message = "Avatar loaded successfully by provider key from local file system";
+                            return result;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log error but continue with other files
+                        Console.WriteLine($"Error processing file {file}: {ex.Message}");
+                    }
+                }
+                
+                OASISErrorHandling.HandleError(ref result, $"Avatar with provider key {providerKey} not found in local file system");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from local file system: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                if (Avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar cannot be null");
+                    return result;
+                }
+
+                var holon = new Holon
+                {
+                    Id = Avatar.Id,
+                    Name = Avatar.Name,
+                    Description = Avatar.Description,
+                    Version = Avatar.Version,
+                    CreatedDate = Avatar.CreatedDate,
+                    ModifiedDate = DateTime.Now,
+                    MetaData = Avatar.MetaData,
+                    ProviderKey = Avatar.ProviderKey,
+                    PreviousVersionId = Avatar.PreviousVersionId,
+                    NextVersionId = Avatar.NextVersionId,
+                    HolonType = HolonType.Avatar
+                };
+
+                var jsonContent = JsonSerializer.Serialize(holon, new JsonSerializerOptions { WriteIndented = true });
+                var filePath = Path.Combine(_basePath, $"{Avatar.Id}.json");
+                
+                await File.WriteAllTextAsync(filePath, jsonContent);
+                
+                result.Result = Avatar;
+                result.IsError = false;
+                result.Message = "Avatar saved successfully to local file system";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar to local file system: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
         {
-            throw new NotImplementedException();
+            return SaveAvatarAsync(Avatar).Result;
         }
 
-        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
+                    return result;
+                }
+
+                if (Avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail cannot be null");
+                    return result;
+                }
+
+                var holon = new Holon
+                {
+                    Id = Avatar.Id,
+                    Name = Avatar.Name,
+                    Description = Avatar.Description,
+                    Version = Avatar.Version,
+                    CreatedDate = Avatar.CreatedDate,
+                    ModifiedDate = DateTime.Now,
+                    MetaData = Avatar.MetaData,
+                    ProviderKey = Avatar.ProviderKey,
+                    PreviousVersionId = Avatar.PreviousVersionId,
+                    NextVersionId = Avatar.NextVersionId,
+                    HolonType = HolonType.AvatarDetail
+                };
+
+                var jsonContent = JsonSerializer.Serialize(holon, new JsonSerializerOptions { WriteIndented = true });
+                var filePath = Path.Combine(_basePath, $"{Avatar.Id}.json");
+                
+                await File.WriteAllTextAsync(filePath, jsonContent);
+                
+                result.Result = Avatar;
+                result.IsError = false;
+                result.Message = "Avatar detail saved successfully to local file system";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail to local file system: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
         {
-            throw new NotImplementedException();
-        }
-
-        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
-        {
-            throw new NotImplementedException();
+            return SaveAvatarDetailAsync(Avatar).Result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -871,9 +1460,61 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             throw new NotImplementedException();
         }
 
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<ISearchResults>();
+            string errorMessage = "Error in SearchAsync method in LocalFileOASIS Provider. Reason: ";
+
+            try
+            {
+                if (searchParams == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} SearchParams cannot be null");
+                    return result;
+                }
+
+                var searchResults = new SearchResults();
+                var foundHolons = new List<IHolon>();
+
+                // Search through all JSON files in the directory
+                var jsonFiles = Directory.GetFiles(_filePath, "*.json", SearchOption.AllDirectories);
+                
+                foreach (var file in jsonFiles)
+                {
+                    try
+                    {
+                        var jsonContent = await File.ReadAllTextAsync(file);
+                        var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
+                        
+                        if (holon != null && MatchesSearchCriteria(holon, searchParams))
+                        {
+                            foundHolons.Add(holon);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (continueOnError)
+                        {
+                            LoggingManager.Log($"Error processing file {file}: {ex.Message}", LogType.Warning);
+                            continue;
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
+                }
+
+                searchResults.Holons = foundHolons;
+                result.Result = searchResults;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         private string GetWalletFilePath(Guid id)
@@ -883,57 +1524,250 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            throw new NotImplementedException();
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
-        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        private bool MatchesSearchCriteria(IHolon holon, ISearchParams searchParams)
         {
-            throw new NotImplementedException();
+            if (holon == null || searchParams == null)
+                return false;
+
+            // Check if holon name matches search criteria
+            if (!string.IsNullOrEmpty(searchParams.SearchText))
+            {
+                if (!holon.Name.ToLower().Contains(searchParams.SearchText.ToLower()) &&
+                    !holon.Description.ToLower().Contains(searchParams.SearchText.ToLower()))
+                {
+                    return false;
+                }
+            }
+
+            // Check holon type if specified
+            if (searchParams.HolonType != HolonType.All && holon.HolonType != searchParams.HolonType)
+            {
+                return false;
+            }
+
+            // Check metadata if specified
+            if (searchParams.MetaData != null && searchParams.MetaData.Any())
+            {
+                foreach (var metaData in searchParams.MetaData)
+                {
+                    if (!holon.MetaData.ContainsKey(metaData.Key) || 
+                        holon.MetaData[metaData.Key] != metaData.Value)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<bool>();
+            string errorMessage = "Error in ImportAsync method in LocalFileOASIS Provider. Reason: ";
+
+            try
+            {
+                if (holons == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Holons collection cannot be null");
+                    return result;
+                }
+
+                var importedCount = 0;
+                var errorCount = 0;
+
+                foreach (var holon in holons)
+                {
+                    try
+                    {
+                        var filePath = Path.Combine(_filePath, $"{holon.Id}.json");
+                        var jsonContent = JsonConvert.SerializeObject(holon, Formatting.Indented);
+                        await File.WriteAllTextAsync(filePath, jsonContent);
+                        importedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        errorCount++;
+                        LoggingManager.Log($"Error importing holon {holon.Id}: {ex.Message}", LogType.Warning);
+                    }
+                }
+
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Successfully imported {importedCount} holons. {errorCount} errors occurred.";
+                
+                if (errorCount > 0)
+                {
+                    result.IsWarning = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            string errorMessage = "Error in ExportAllDataForAvatarByIdAsync method in LocalFileOASIS Provider. Reason: ";
+
+            try
+            {
+                var exportedHolons = new List<IHolon>();
+                var jsonFiles = Directory.GetFiles(_filePath, "*.json", SearchOption.AllDirectories);
+                
+                foreach (var file in jsonFiles)
+                {
+                    try
+                    {
+                        var jsonContent = await File.ReadAllTextAsync(file);
+                        var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
+                        
+                        if (holon != null && holon.CreatedByAvatarId == avatarId)
+                        {
+                            exportedHolons.Add(holon);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggingManager.Log($"Error processing file {file} for export: {ex.Message}", LogType.Warning);
+                    }
+                }
+
+                result.Result = exportedHolons;
+                result.IsError = false;
+                result.Message = $"Exported {exportedHolons.Count} holons for avatar {avatarId}";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            string errorMessage = "Error in ExportAllDataForAvatarByUsernameAsync method in LocalFileOASIS Provider. Reason: ";
+
+            try
+            {
+                // First get the avatar by username to get the avatar ID
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar not found for username {avatarUsername}");
+                    return result;
+                }
+
+                // Export all data for the avatar ID
+                return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            string errorMessage = "Error in ExportAllDataForAvatarByEmailAsync method in LocalFileOASIS Provider. Reason: ";
+
+            try
+            {
+                // First get the avatar by email to get the avatar ID
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar not found for email {avatarEmailAddress}");
+                    return result;
+                }
+
+                // Export all data for the avatar ID
+                return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            string errorMessage = "Error in ExportAllAsync method in LocalFileOASIS Provider. Reason: ";
+
+            try
+            {
+                var exportedHolons = new List<IHolon>();
+                var jsonFiles = Directory.GetFiles(_filePath, "*.json", SearchOption.AllDirectories);
+                
+                foreach (var file in jsonFiles)
+                {
+                    try
+                    {
+                        var jsonContent = await File.ReadAllTextAsync(file);
+                        var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
+                        
+                        if (holon != null)
+                        {
+                            exportedHolons.Add(holon);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggingManager.Log($"Error processing file {file} for export: {ex.Message}", LogType.Warning);
+                    }
+                }
+
+                result.Result = exportedHolons;
+                result.IsError = false;
+                result.Message = $"Exported {exportedHolons.Count} holons";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
+            return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
-            throw new NotImplementedException();
+            return ImportAsync(holons).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
-            throw new NotImplementedException();
+            return ExportAllAsync(version).Result;
         } 
     }
 }

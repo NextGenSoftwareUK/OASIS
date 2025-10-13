@@ -1075,7 +1075,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 var deleteData = new
                 {
                     type = "Delete",
-                    object = new
+                    @object = new
                     {
                         type = "Person",
                         id = id.ToString()
@@ -1145,7 +1145,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 var deleteData = new
                 {
                     type = "Delete",
-                    object = new
+                    @object = new
                     {
                         type = "Person",
                         preferredUsername = providerKey
@@ -1212,7 +1212,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 var deleteData = new
                 {
                     type = "Delete",
-                    object = new
+                    @object = new
                     {
                         type = "Person",
                         email = avatarEmail
@@ -1279,7 +1279,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 var deleteData = new
                 {
                     type = "Delete",
-                    object = new
+                    @object = new
                     {
                         type = "Person",
                         preferredUsername = avatarUsername
@@ -2406,7 +2406,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     movedTo = "",
                     movedFrom = "",
                     actor = "",
-                    object = "",
+                    @object = "",
                     target = "",
                     result = "",
                     origin = "",
@@ -2543,7 +2543,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                             movedTo = "",
                             movedFrom = "",
                             actor = "",
-                            object = "",
+                            @object = "",
                             target = "",
                             result = "",
                             origin = "",
@@ -2638,7 +2638,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 var deleteData = new
                 {
                     type = "Delete",
-                    object = new
+                    @object = new
                     {
                         type = "Note",
                         id = id.ToString()
@@ -2717,7 +2717,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 var deleteData = new
                 {
                     type = "Delete",
-                    object = new
+                    @object = new
                     {
                         type = "Note",
                         url = providerKey
@@ -3068,7 +3068,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                             movedTo = "",
                             movedFrom = "",
                             actor = "",
-                            object = "",
+                            @object = "",
                             target = "",
                             result = "",
                             origin = "",
@@ -3679,9 +3679,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
 
         #region IOASISNET Implementation
 
-        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            OASISResult<IEnumerable<IPlayer>> result = new OASISResult<IEnumerable<IPlayer>>();
+            OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
                 if (!IsProviderActivated)
@@ -3690,100 +3690,44 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     return result;
                 }
 
-                if (_httpClient == null)
+                // Load all avatars and filter by geo-location
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, "HTTP client not initialized");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
                     return result;
                 }
 
-                // Real ActivityPub implementation for getting players near me
-                // This would typically involve getting nearby ActivityPub accounts
-                var players = new List<IPlayer>();
-                
-                // For ActivityPub, we get nearby accounts based on real geolocation data
-                // Use ActivityPub geolocation queries for location-based search
-                var response = _httpClient.GetAsync($"{_baseUrl}/accounts?has_location=true&nearby=true").Result;
-                
-                if (response.IsSuccessStatusCode)
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
                 {
-                    var content = response.Content.ReadAsStringAsync().Result;
-                    var accounts = JsonSerializer.Deserialize<List<ActivityPubAccount>>(content, _jsonOptions);
-                    
-                    if (accounts != null && accounts.Any())
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
                     {
-                        // Convert ActivityPub accounts to OASIS Players with FULL property mapping
-                        foreach (var account in accounts)
-                        {
-                            var player = new Player
-                            {
-                                Id = Guid.NewGuid(),
-                                Username = account.Username,
-                                Email = account.Email ?? $"{account.Username}@activitypub.example",
-                                FirstName = account.DisplayName?.Split(' ').FirstOrDefault() ?? account.Username,
-                                LastName = account.DisplayName?.Split(' ').Skip(1).FirstOrDefault() ?? "",
-                                CreatedDate = account.CreatedAt,
-                                ModifiedDate = DateTime.Now,
-                                // Map ALL ActivityPub properties to Player properties
-                                Address = account.Location,
-                                Country = account.Location?.Split(',').LastOrDefault()?.Trim(),
-                                Postcode = account.Location?.Split(',').FirstOrDefault()?.Trim(),
-                                Mobile = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("phone"))?.Value,
-                                Landline = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("landline"))?.Value,
-                                Title = account.Role?.Name,
-                                DOB = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value != null ? 
-                                      DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : (DateTime?)null : null,
-                                AvatarType = account.Bot ? AvatarType.AI : AvatarType.Human,
-                                KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
-                                Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
-                                XP = account.StatusesCount * 10,
-                                HP = 100,
-                                Mana = account.FollowingCount * 5,
-                                Stamina = account.FollowersCount * 2,
-                                Description = account.Note,
-                                Website = account.Website,
-                                Language = account.Language,
-                                ProviderWallets = new List<IProviderWallet>(),
-                                // Map ActivityPub specific data to custom properties
-                                CustomData = new Dictionary<string, object>
-                                {
-                                    ["ActivityPubId"] = account.Id,
-                                    ["ActivityPubUrl"] = account.Url,
-                                    ["ActivityPubAvatar"] = account.Avatar,
-                                    ["ActivityPubHeader"] = account.Header,
-                                    ["ActivityPubLocked"] = account.Locked,
-                                    ["ActivityPubBot"] = account.Bot,
-                                    ["ActivityPubDiscoverable"] = account.Discoverable,
-                                    ["ActivityPubGroup"] = account.Group,
-                                    ["ActivityPubPrivacy"] = account.Privacy,
-                                    ["ActivityPubSensitive"] = account.Sensitive,
-                                    ["ActivityPubFollowersCount"] = account.FollowersCount,
-                                    ["ActivityPubFollowingCount"] = account.FollowingCount,
-                                    ["ActivityPubStatusesCount"] = account.StatusesCount,
-                                    ["ActivityPubFields"] = account.Fields,
-                                    ["ActivityPubEmoji"] = account.Emoji,
-                                    ["ActivityPubRole"] = account.Role,
-                                    ["NearMe"] = true,
-                                    ["Distance"] = 0.0 // Would be calculated based on actual location
-                                }
-                            };
-                            
-                            players.Add(player);
-                        }
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
                     }
                 }
-                
-                result.Result = players;
+
+                result.Result = nearby;
                 result.IsError = false;
-                result.Message = $"Players near me loaded successfully from ActivityPub with full property mapping ({players.Count} players)";
+                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from ActivityPub: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from ActivityPub: {ex.Message}", ex);
             }
             return result;
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -3794,19 +3738,46 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     return result;
                 }
 
-                if (_httpClient == null)
+                // Load all holons and filter by geo-location and type
+                var holonsResult = LoadAllHolons(Type);
+                if (holonsResult.IsError || holonsResult.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, "HTTP client not initialized");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
                     return result;
                 }
 
-                // Real ActivityPub implementation for getting holons near me
-                // This would typically involve getting nearby ActivityPub objects
-                var holons = new List<IHolon>();
-                
-                // For ActivityPub, we get nearby objects based on real geolocation data
-                // Use ActivityPub geolocation queries for location-based search
-                var response = _httpClient.GetAsync($"{_baseUrl}/objects?has_location=true&nearby=true").Result;
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IHolon>();
+
+                foreach (var holon in holonsResult.Result)
+                {
+                    if (holon.MetaData != null &&
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from ActivityPub: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        #endregion
+
+        /*
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -3948,7 +3919,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 {
                     type = "Transaction",
                     actor = transation.FromWalletAddress,
-                    object = new
+                    @object = new
                     {
                         type = "TransactionObject",
                         to = transation.ToWalletAddress,
@@ -4014,7 +3985,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 {
                     type = "Transaction",
                     actor = fromWalletResult.Result,
-                    object = new
+                    @object = new
                     {
                         type = "TransactionObject",
                         to = toWalletResult.Result,
@@ -4079,7 +4050,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 {
                     type = "TokenTransaction",
                     actor = fromWalletResult.Result,
-                    object = new
+                    @object = new
                     {
                         type = "TokenTransactionObject",
                         to = toWalletResult.Result,
@@ -4140,7 +4111,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 {
                     type = "Transaction",
                     actor = fromWalletResult.Result,
-                    object = new
+                    @object = new
                     {
                         type = "TransactionObject",
                         to = toWalletResult.Result,
@@ -4205,7 +4176,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 {
                     type = "TokenTransaction",
                     actor = fromWalletResult.Result,
-                    object = new
+                    @object = new
                     {
                         type = "TokenTransactionObject",
                         to = toWalletResult.Result,
@@ -4271,7 +4242,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 {
                     type = "Transaction",
                     actor = fromWalletResult.Result,
-                    object = new
+                    @object = new
                     {
                         type = "TransactionObject",
                         to = toWalletResult.Result,
@@ -4336,7 +4307,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 {
                     type = "TokenTransaction",
                     actor = fromWalletResult.Result,
-                    object = new
+                    @object = new
                     {
                         type = "TokenTransactionObject",
                         to = toWalletResult.Result,
@@ -4411,7 +4382,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 {
                     type = "NFTTransfer",
                     actor = transation.FromWalletAddress,
-                    object = new
+                    @object = new
                     {
                         type = "NFT",
                         to = transation.ToWalletAddress,
