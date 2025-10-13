@@ -560,7 +560,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 
                 if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
-                    var q = (searchParams.SearchGroups.First().SearchQuery ?? string.Empty).ToLower();
+                    var firstGroup = searchParams.SearchGroups.First() as ISearchTextGroup;
+                    var q = (firstGroup?.SearchQuery?.ToString() ?? string.Empty).ToLower();
                     // Basic in-memory search using available repo APIs
                     var holonLoad = await _holonRepository.LoadAllHolonsAsync();
                     if (!holonLoad.IsError && holonLoad.Result != null)
@@ -786,7 +787,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     {
                         allWallets.AddRange(kvp.Value);
                     }
-                    avatar.ProviderWallets = allWallets;
+                    avatar.ProviderWallets = providerWallets;
 
                     // Save updated avatar
                     var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
@@ -845,7 +846,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     {
                         allWallets.AddRange(kvp.Value);
                     }
-                    avatar.ProviderWallets = allWallets;
+                    avatar.ProviderWallets = providerWallets;
 
                     // Save updated avatar
                     var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
@@ -904,7 +905,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     {
                         allWallets.AddRange(kvp.Value);
                     }
-                    avatar.ProviderWallets = allWallets;
+                    avatar.ProviderWallets = providerWallets;
 
                     // Save updated avatar
                     var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
@@ -1197,7 +1198,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     {
                         if (h.MetaData == null) return false;
                         
-                        if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.And)
+                        if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
                         {
                             return metaKeyValuePairs.All(kvp => h.MetaData.ContainsKey(kvp.Key) && h.MetaData[kvp.Key]?.ToString() == kvp.Value);
                         }

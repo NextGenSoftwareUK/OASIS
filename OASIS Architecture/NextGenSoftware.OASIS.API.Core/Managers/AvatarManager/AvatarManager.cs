@@ -1048,7 +1048,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                     HolonType = HolonType.Avatar,
                                     SearchQuery = searchTerm,
                                     SearchAvatars = true,
-                                    AvatarSerachParams = new SearchAvatarParams()
+                                    AvatarSearchParams = new SearchAvatarParams()
                                     {
                                         SearchAllFields = true
                                     }
@@ -1078,7 +1078,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                     HolonType = HolonType.Avatar,
                                     SearchQuery = searchTerm,
                                     SearchAvatars = true,
-                                    AvatarSerachParams = new SearchAvatarParams()
+                                    AvatarSearchParams = new SearchAvatarParams()
                                     {
                                         SearchAllFields = true
                                     }
