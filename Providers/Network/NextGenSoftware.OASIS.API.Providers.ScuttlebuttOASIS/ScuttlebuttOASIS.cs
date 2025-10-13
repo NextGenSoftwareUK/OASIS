@@ -663,8 +663,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                     if (firstGroup.HolonSearchParams != null && firstGroup.HolonSearchParams.MetaData != null)
                     {
-                        if (firstGroup.HolonSearchParams.MetaData is Dictionary<string, string> metaDict)
-                            metaData = metaDict;
+                        if (firstGroup.HolonSearchParams.MetaData is Dictionary<string, string>)
+                            metaData = (Dictionary<string, string>)firstGroup.HolonSearchParams.MetaData;
                     }
                 }
 
