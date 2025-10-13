@@ -912,20 +912,20 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         // new { name = "Phone", value = avatar.Mobile },
                         // new { name = "Landline", value = avatar.Landline },
                         new { name = "Title", value = avatar.Title },
-                        new { name = "Birth Date", value = avatar.DOB?.ToString("yyyy-MM-dd") },
-                        new { name = "Karma", value = avatar.KarmaAkashicRecords.ToString() },
-                        new { name = "Level", value = avatar.Level.ToString() },
-                        new { name = "XP", value = avatar.XP.ToString() },
-                        new { name = "HP", value = avatar.HP.ToString() },
-                        new { name = "Mana", value = avatar.Mana.ToString() },
-                        new { name = "Stamina", value = avatar.Stamina.ToString() }
+                        // new { name = "Birth Date", value = avatar.DOB?.ToString("yyyy-MM-dd") },
+                        // new { name = "Karma", value = avatar.KarmaAkashicRecords.ToString() },
+                        // new { name = "Level", value = avatar.Level.ToString() },
+                        // new { name = "XP", value = avatar.XP.ToString() },
+                        // new { name = "HP", value = avatar.HP.ToString() },
+                        // new { name = "Mana", value = avatar.Mana.ToString() },
+                        // new { name = "Stamina", value = avatar.Stamina.ToString() }
                     },
                     // Map OASIS-specific data
                     oasisdData = new
                     {
                         avatarType = avatar.AvatarType.ToString(),
                         providerWallets = avatar.ProviderWallets,
-                        customData = avatar.CustomData
+                        // customData = avatar.CustomData
                     }
                 };
 
@@ -940,9 +940,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 {
                     // Update avatar with ActivityPub-specific data
                     avatar.ModifiedDate = DateTime.Now;
-                    avatar.CustomData = avatar.CustomData ?? new Dictionary<string, object>();
-                    avatar.CustomData["ActivityPubSavedAt"] = DateTime.Now;
-                    avatar.CustomData["ActivityPubResponse"] = await response.Content.ReadAsStringAsync();
+                    // avatar.CustomData = avatar.CustomData ?? new Dictionary<string, object>();
+                    // avatar.CustomData["ActivityPubSavedAt"] = DateTime.Now;
+                    // avatar.CustomData["ActivityPubResponse"] = await response.Content.ReadAsStringAsync();
                     
                     result.Result = avatar;
                     result.IsError = false;

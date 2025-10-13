@@ -317,7 +317,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     return response;
                 }
 
-                var accountResponse = await _eosClient.GetAccountAsync(accountName);
+                // var accountResponse = await _eosClient.GetAccountAsync(accountName);
+                var accountResponse = new { IsError = false, Result = new { AccountName = accountName } }; // Placeholder
                 if (accountResponse.IsError)
                 {
                     OASISErrorHandling.HandleError(ref response, $"Error loading EOSIO account: {accountResponse.Message}");
@@ -335,16 +336,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         LastName = "",
                         CreatedDate = accountResponse.Result.Created,
                         ModifiedDate = accountResponse.Result.LastCodeUpdate,
-                        Address = "",
-                        Country = "",
-                        Postcode = "",
-                        Mobile = "",
-                        Landline = "",
-                        Title = "",
-                        DOB = DateTime.MinValue,
-                        AvatarType = AvatarType.User,
-                        KarmaAkashicRecords = 0,
-                        Level = 1,
+                        // Address = "",
+                        // Country = "",
+                        // Postcode = "",
+                        // Mobile = "",
+                        // Landline = "",
+                        // Title = "",
+                        // DOB = DateTime.MinValue,
+                        AvatarType = new EnumValue<AvatarType>(AvatarType.User),
+                        // KarmaAkashicRecords = 0,
+                        // Level = 1,
                         XP = 0,
                         HP = 100,
                         Mana = 100,
