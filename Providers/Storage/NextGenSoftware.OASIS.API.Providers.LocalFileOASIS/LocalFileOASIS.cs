@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -15,6 +16,9 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
     {
         //private string _filePath = "wallets.json";
         private string _filePath = "";
+        private string _basePath = "";
+        private string _avatarFolderPath = "";
+        private string _holonDirectory = "";
 
         public LocalFileOASIS(string filePath = "")
         {
@@ -25,6 +29,10 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 
             if (!string.IsNullOrEmpty(filePath))
                 _filePath = filePath;
+
+            _basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OASIS", "LocalFileOASIS");
+            _avatarFolderPath = Path.Combine(_basePath, "Avatars");
+            _holonDirectory = Path.Combine(_basePath, "Holons");
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

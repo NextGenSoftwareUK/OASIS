@@ -1,4 +1,6 @@
-﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
+﻿using NextGenSoftware.OASIS.API.Core.Helpers;
+
+namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
 public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISBlockchainStorageProvider,
     IOASISSmartContractProvider, IOASISNFTProvider, IOASISNETProvider
@@ -125,48 +127,6 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
     }
 
-    public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-    {
-        var response = new OASISResult<IEnumerable<IAvatar>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref response, "Solana provider is not activated");
-                return response;
-            }
-
-            // Query all avatars from Solana blockchain using program accounts
-            var avatarsData = await _solanaService.GetAllAvatarsAsync();
-            
-            if (avatarsData != null && avatarsData.Count > 0)
-            {
-                var avatars = new List<IAvatar>();
-                foreach (var avatarData in avatarsData)
-                {
-                    var avatar = ParseSolanaToAvatar(avatarData);
-                    if (avatar != null)
-                    {
-                        avatars.Add(avatar);
-                    }
-                }
-                
-                response.Result = avatars;
-                response.IsError = false;
-                response.Message = "Avatars loaded from Solana successfully";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref response, "No avatars found on Solana blockchain");
-            }
-        }
-        catch (Exception ex)
-        {
-            response.Exception = ex;
-            OASISErrorHandling.HandleError(ref response, $"Error loading avatars from Solana: {ex.Message}");
-        }
-        return response;
-    }
 
     public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
     {
@@ -345,51 +305,6 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         catch (Exception ex)
         {
             OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-    {
-        var result = new OASISResult<IAvatar>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
-
-            // Query avatar from Solana program by username
-            var avatarData = await _solanaService.GetAvatarByUsernameAsync(avatarUsername);
-            if (avatarData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Solana: {avatarData.Message}");
-                return result;
-            }
-
-            if (avatarData.Result != null)
-            {
-                var avatar = ParseSolanaToAvatar(avatarData.Result);
-                if (avatar != null)
-                {
-                    result.Result = avatar;
-                    result.IsError = false;
-                    result.Message = "Avatar loaded successfully by username from Solana with full object mapping";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Solana");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by username in Solana");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Solana: {ex.Message}", ex);
         }
         return result;
     }
@@ -829,96 +744,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-    {
-        var result = new OASISResult<bool>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
 
-            // Load avatar by email
-            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
-            if (avatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
-                return result;
-            }
-
-            if (avatarResult.Result != null)
-            {
-                // Delete avatar by ID
-                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                if (deleteResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                    return result;
-                }
-
-                result.Result = deleteResult.Result;
-                result.IsError = false;
-                result.Message = "Avatar deleted successfully by email from Solana";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername,
-        bool softDelete = true)
-    {
-        var result = new OASISResult<bool>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
-
-            // Load avatar by username
-            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
-            if (avatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
-                return result;
-            }
-
-            if (avatarResult.Result != null)
-            {
-                // Delete avatar by ID
-                var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                if (deleteResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                    return result;
-                }
-
-                result.Result = deleteResult.Result;
-                result.IsError = false;
-                result.Message = "Avatar deleted successfully by username from Solana";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
 
     public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
     {
@@ -1395,14 +1221,9 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
+    OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
     {
-        return GetPlayersNearMeAsync().Result;
-    }
-
-    public async Task<OASISResult<IEnumerable<IPlayer>>> GetPlayersNearMeAsync()
-    {
-        var result = new OASISResult<IEnumerable<IPlayer>>();
+        var result = new OASISResult<IEnumerable<IAvatar>>();
         try
         {
             if (!IsProviderActivated)
@@ -1411,31 +1232,43 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return result;
             }
 
-            // Get players near current location from Solana blockchain
-            var playersData = await _solanaService.GetPlayersNearMeAsync();
-            if (playersData.IsError)
+            var avatarsResult = LoadAllAvatars();
+            if (avatarsResult.IsError || avatarsResult.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from Solana: {playersData.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
                 return result;
             }
 
-            result.Result = playersData.Result;
+            var centerLat = geoLat / 1e6d;
+            var centerLng = geoLong / 1e6d;
+            var nearby = new List<IAvatar>();
+
+            foreach (var avatar in avatarsResult.Result)
+            {
+                if (avatar.MetaData != null &&
+                    avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                    avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                    double.TryParse(latObj?.ToString(), out var lat) &&
+                    double.TryParse(lngObj?.ToString(), out var lng))
+                {
+                    var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                    if (distance <= radiusInMeters)
+                        nearby.Add(avatar);
+                }
+            }
+
+            result.Result = nearby;
             result.IsError = false;
-            result.Message = $"Successfully retrieved {playersData.Result?.Count() ?? 0} players near me from Solana";
+            result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError(ref result, $"Error getting players near me from Solana: {ex.Message}", ex);
+            OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Solana: {ex.Message}", ex);
         }
         return result;
     }
 
-    public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
-    {
-        return GetHolonsNearMeAsync(Type).Result;
-    }
-
-    public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(HolonType Type)
+    OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
     {
         var result = new OASISResult<IEnumerable<IHolon>>();
         try
@@ -1446,17 +1279,34 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return result;
             }
 
-            // Get holons near current location from Solana blockchain
-            var holonsData = await _solanaService.GetHolonsNearMeAsync(Type);
-            if (holonsData.IsError)
+            var holonsResult = LoadAllHolons(Type);
+            if (holonsResult.IsError || holonsResult.Result == null)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Solana: {holonsData.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
                 return result;
             }
 
-            result.Result = holonsData.Result;
+            var centerLat = geoLat / 1e6d;
+            var centerLng = geoLong / 1e6d;
+            var nearby = new List<IHolon>();
+
+            foreach (var holon in holonsResult.Result)
+            {
+                if (holon.MetaData != null &&
+                    holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                    holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                    double.TryParse(latObj?.ToString(), out var lat) &&
+                    double.TryParse(lngObj?.ToString(), out var lng))
+                {
+                    var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                    if (distance <= radiusInMeters)
+                        nearby.Add(holon);
+                }
+            }
+
+            result.Result = nearby;
             result.IsError = false;
-            result.Message = $"Successfully retrieved {holonsData.Result?.Count() ?? 0} holons near me from Solana";
+            result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
         }
         catch (Exception ex)
         {
@@ -1465,10 +1315,6 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
-    {
-        return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
-    }
 
     public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {
@@ -2724,10 +2570,6 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         }
     }
 
-    public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
-    {
-        return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
-    }
 
     public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
     {

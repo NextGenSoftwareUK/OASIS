@@ -503,9 +503,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
         #region IOASISNET Implementation
 
-        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var response = new OASISResult<IEnumerable<IPlayer>>();
+            var response = new OASISResult<IEnumerable<IAvatar>>();
 
             try
             {
@@ -515,41 +515,44 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     return response;
                 }
 
-                // Get players near me from Cosmos blockchain
-                var queryUrl = "/cosmos/staking/v1beta1/validators/nearby";
-                
-                var httpResponse = _httpClient.GetAsync(queryUrl).Result;
-                if (httpResponse.IsSuccessStatusCode)
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
                 {
-                    var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse Cosmos JSON and create Player collection
-                    // Parse Cosmos JSON and create Avatar object
-                    var avatar = ParseCosmosToAvatar(content);
-                    if (avatar != null)
+                    OASISErrorHandling.HandleError(ref response, $"Error loading avatars: {avatarsResult.Message}");
+                    return response;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
                     {
-                        response.Result = new List<IPlayer>(); // Return empty list since Avatar doesn't implement IPlayer
-                        response.Message = "Players loaded from Cosmos successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse Cosmos JSON response");
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
                     }
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to get players near me from Cosmos blockchain: {httpResponse.StatusCode}");
-                }
+
+                response.Result = nearby;
+                response.IsError = false;
+                response.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
             }
             catch (Exception ex)
             {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting players near me from Cosmos: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error getting avatars near me from Cosmos: {ex.Message}", ex);
             }
 
             return response;
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
 
@@ -561,35 +564,38 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     return response;
                 }
 
-                // Get holons near me from Cosmos blockchain
-                var queryUrl = $"/cosmos/staking/v1beta1/validators/holons?type={Type}";
-                
-                var httpResponse = _httpClient.GetAsync(queryUrl).Result;
-                if (httpResponse.IsSuccessStatusCode)
+                var holonsResult = LoadAllHolons(Type);
+                if (holonsResult.IsError || holonsResult.Result == null)
                 {
-                    var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse Cosmos JSON and create Holon collection
-                    // Parse Cosmos JSON and create Avatar object
-                    var avatar = ParseCosmosToAvatar(content);
-                    if (avatar != null)
+                    OASISErrorHandling.HandleError(ref response, $"Error loading holons: {holonsResult.Message}");
+                    return response;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IHolon>();
+
+                foreach (var holon in holonsResult.Result)
+                {
+                    if (holon.MetaData != null &&
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
                     {
-                        response.Result = new List<IHolon>(); // Return empty list since Avatar doesn't implement IHolon
-                        response.Message = "Holons loaded from Cosmos successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse Cosmos JSON response");
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
                     }
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to get holons near me from Cosmos blockchain: {httpResponse.StatusCode}");
-                }
+
+                response.Result = nearby;
+                response.IsError = false;
+                response.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
             }
             catch (Exception ex)
             {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from Cosmos: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from Cosmos: {ex.Message}", ex);
             }
 
             return response;
@@ -1889,3 +1895,4 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         #endregion
     }
 }
+
