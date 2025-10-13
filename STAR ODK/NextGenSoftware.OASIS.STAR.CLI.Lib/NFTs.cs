@@ -255,18 +255,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             CLIEngine.ShowSuccessMessage(importResult.Message);
                             result.Result = importResult.Result;
+                            result.Message = importResult.Message;
                         }
                         else
                         {
                             string msg = importResult != null ? importResult.Message : "";
                             CLIEngine.ShowErrorMessage($"Failed to import Web3 NFT: {msg}");
                         }
-
-                        result.Result = importResult.Result;
-                        result.IsError = false;
-                        result.Message = "Web3 NFT imported successfully!";
-                        
-                        CLIEngine.ShowSuccessMessage($"Successfully imported Web3 NFT: {importResult.Result.Title}");
                     }
                     catch (Exception ex)
                     {
@@ -281,48 +276,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 // WEB4 OASIS NFT Import
                 try
                 {
-                    // Get OASIS NFT ID from user
-                    string oasisNFTId = CLIEngine.GetValidInput("Please enter the OASIS NFT ID you wish to import: ");
-                    
-                    if (string.IsNullOrEmpty(oasisNFTId))
+                    string filePath = CLIEngine.GetValidFile("Please enter the full path to the OASIS NFT file you wish to import: ");
+
+                    OASISResult<IOASISNFT> importResult = await NFTCommon.NFTManager.ImportOASISNFTAsync(STAR.BeamedInAvatar.Id, filePath);
+
+                    if (importResult != null && importResult.Result != null && !importResult.IsError)
                     {
-                        result.IsError = true;
-                        result.Message = "OASIS NFT ID cannot be empty.";
-                        return result;
+                        CLIEngine.ShowSuccessMessage(importResult.Message);
+                        result.Result = importResult.Result;
+                        result.Message = importResult.Message;
                     }
-
-                    // Get additional metadata from user
-                    string title = CLIEngine.GetValidInput("What is the NFT's title? (optional, press Enter to skip): ");
-                    string description = CLIEngine.GetValidInput("What is the NFT's description? (optional, press Enter to skip): ");
-                    string imageUrl = CLIEngine.GetValidInput("What is the NFT's image URL? (optional, press Enter to skip): ");
-
-                    CLIEngine.ShowWorkingMessage("Importing OASIS NFT...");
-
-                    // Create import request for OASIS NFT (using Web3 import as workaround)
-                    var importRequest = new ImportWeb3NFTRequest
+                    else
                     {
-                        NFTTokenAddress = oasisNFTId,
-                        Title = string.IsNullOrEmpty(title) ? "Imported OASIS NFT" : title,
-                        Description = string.IsNullOrEmpty(description) ? "Imported from OASIS ecosystem" : description,
-                        ImageUrl = imageUrl,
-                        ImportedByByAvatarId = STAR.BeamedInAvatar.Id
-                    };
-
-                    // Import the NFT using NFTManager (using Web3 import as workaround)
-                    var oasisImportResult = await NFTCommon.NFTManager.ImportWeb3NFTAsync(importRequest);
-                    
-                    if (oasisImportResult.IsError)
-                    {
-                        result.IsError = true;
-                        result.Message = $"Failed to import OASIS NFT: {oasisImportResult.Message}";
-                        return result;
+                        string msg = importResult != null ? importResult.Message : "";
+                        CLIEngine.ShowErrorMessage($"Failed to import OASIS NFT: {msg}");
                     }
-
-                    result.Result = oasisImportResult.Result;
-                    result.IsError = false;
-                    result.Message = "OASIS NFT imported successfully!";
-                    
-                    CLIEngine.ShowSuccessMessage($"Successfully imported OASIS NFT: {oasisImportResult.Result.Title}");
                 }
                 catch (Exception ex)
                 {

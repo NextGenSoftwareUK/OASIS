@@ -714,9 +714,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 CreatedDate = holon.CreatedDate,
                                 ModifiedDate = holon.ModifiedDate,
                                 MetaData = holon.MetaData,
-                                ProviderKey = holon.ProviderKey,
-                                PreviousVersionId = holon.PreviousVersionId,
-                                NextVersionId = holon.NextVersionId
+                                PreviousVersionId = holon.PreviousVersionId
                             };
                             avatarDetails.Add(avatarDetail);
                         }
@@ -776,9 +774,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 CreatedDate = holon.CreatedDate,
                                 ModifiedDate = holon.ModifiedDate,
                                 MetaData = holon.MetaData,
-                                ProviderKey = holon.ProviderKey,
-                                PreviousVersionId = holon.PreviousVersionId,
-                                NextVersionId = holon.NextVersionId
+                                PreviousVersionId = holon.PreviousVersionId
                             };
                             avatars.Add(avatar);
                         }
@@ -835,9 +831,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             CreatedDate = holon.CreatedDate,
                             ModifiedDate = holon.ModifiedDate,
                             MetaData = holon.MetaData,
-                            ProviderKey = holon.ProviderKey,
-                            PreviousVersionId = holon.PreviousVersionId,
-                            NextVersionId = holon.NextVersionId
+                            PreviousVersionId = holon.PreviousVersionId
                         };
                         result.Result = avatar;
                         result.IsError = false;
@@ -898,9 +892,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 CreatedDate = holon.CreatedDate,
                                 ModifiedDate = holon.ModifiedDate,
                                 MetaData = holon.MetaData,
-                                ProviderKey = holon.ProviderKey,
-                                PreviousVersionId = holon.PreviousVersionId,
-                                NextVersionId = holon.NextVersionId
+                                PreviousVersionId = holon.PreviousVersionId
                             };
                             result.Result = avatar;
                             result.IsError = false;
@@ -962,9 +954,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 CreatedDate = holon.CreatedDate,
                                 ModifiedDate = holon.ModifiedDate,
                                 MetaData = holon.MetaData,
-                                ProviderKey = holon.ProviderKey,
-                                PreviousVersionId = holon.PreviousVersionId,
-                                NextVersionId = holon.NextVersionId
+                                PreviousVersionId = holon.PreviousVersionId
                             };
                             result.Result = avatar;
                             result.IsError = false;
@@ -1085,9 +1075,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 CreatedDate = holon.CreatedDate,
                                 ModifiedDate = holon.ModifiedDate,
                                 MetaData = holon.MetaData,
-                                ProviderKey = holon.ProviderKey,
-                                PreviousVersionId = holon.PreviousVersionId,
-                                NextVersionId = holon.NextVersionId
+                                PreviousVersionId = holon.PreviousVersionId
                             };
                             result.Result = avatarDetail;
                             result.IsError = false;
@@ -1268,9 +1256,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     CreatedDate = Avatar.CreatedDate,
                     ModifiedDate = DateTime.Now,
                     MetaData = Avatar.MetaData,
-                    ProviderKey = Avatar.ProviderKey,
                     PreviousVersionId = Avatar.PreviousVersionId,
-                    NextVersionId = Avatar.NextVersionId,
                     HolonType = HolonType.Avatar
                 };
 
@@ -1321,9 +1307,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     CreatedDate = Avatar.CreatedDate,
                     ModifiedDate = DateTime.Now,
                     MetaData = Avatar.MetaData,
-                    ProviderKey = Avatar.ProviderKey,
                     PreviousVersionId = Avatar.PreviousVersionId,
-                    NextVersionId = Avatar.NextVersionId,
                     HolonType = HolonType.AvatarDetail
                 };
 
@@ -1492,7 +1476,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     try
                     {
                         var jsonContent = await File.ReadAllTextAsync(file);
-                        var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
+                        var holon = System.Text.Json.JsonSerializer.Deserialize<Holon>(jsonContent);
                         
                         if (holon != null && MatchesSearchCriteria(holon, searchParams))
                         {
@@ -1503,7 +1487,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     {
                         if (continueOnError)
                         {
-                            LoggingManager.Log($"Error processing file {file}: {ex.Message}", LogType.Warning);
+                            LoggingManager.Log($"Error processing file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
                             continue;
                         }
                         else
@@ -1513,7 +1497,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     }
                 }
 
-                searchResults.Holons = foundHolons;
+                searchResults.SearchResultHolons = foundHolons;
                 result.Result = searchResults;
                 result.IsError = false;
             }
@@ -1541,31 +1525,61 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 return false;
 
             // Check if holon name matches search criteria
-            if (!string.IsNullOrEmpty(searchParams.SearchText))
+            // Adapt to current ISearchParams model: aggregate text from groups if present (basic contains logic)
+            var searchText = string.Empty;
+            if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
             {
-                if (!holon.Name.ToLower().Contains(searchParams.SearchText.ToLower()) &&
-                    !holon.Description.ToLower().Contains(searchParams.SearchText.ToLower()))
+                // try avatar/holon params with simple meta key
+                var avatarParams = searchParams.SearchGroups
+                    .Select(g => g.AvatarSerachParams)
+                    .Where(p => p != null)
+                    .FirstOrDefault();
+                var holonParams = searchParams.SearchGroups
+                    .Select(g => g.HolonSearchParams)
+                    .Where(p => p != null)
+                    .FirstOrDefault();
+
+                // Current interfaces do not expose MetaDataKey; fall back to group query text if present
+                var firstGroup = searchParams.SearchGroups.FirstOrDefault();
+                if (firstGroup != null && !string.IsNullOrWhiteSpace(firstGroup.SearchQuery))
+                    searchText = firstGroup.SearchQuery;
+            }
+
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                if (!holon.Name?.ToLower().Contains(searchText.ToLower()) == true &&
+                    !holon.Description?.ToLower().Contains(searchText.ToLower()) == true)
                 {
                     return false;
                 }
             }
 
             // Check holon type if specified
-            if (searchParams.HolonType != HolonType.All && holon.HolonType != searchParams.HolonType)
+            var desiredType = HolonType.All;
+            if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
+            {
+                var firstGroup = searchParams.SearchGroups.First();
+                desiredType = firstGroup.HolonType;
+            }
+
+            if (desiredType != HolonType.All && holon.HolonType != desiredType)
             {
                 return false;
             }
 
             // Check metadata if specified
-            if (searchParams.MetaData != null && searchParams.MetaData.Any())
+            // Basic metadata exact-match filter using first group's MetaDataKey if specified
+            if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
             {
-                foreach (var metaData in searchParams.MetaData)
+                var firstHolonParams = searchParams.SearchGroups
+                    .Select(g => g.HolonSearchParams)
+                    .Where(p => p != null)
+                    .FirstOrDefault();
+
+                if (firstHolonParams != null && !string.IsNullOrWhiteSpace(firstHolonParams.MetaDataKey))
                 {
-                    if (!holon.MetaData.ContainsKey(metaData.Key) || 
-                        holon.MetaData[metaData.Key] != metaData.Value)
-                    {
+                    if (!holon.MetaData.ContainsKey(firstHolonParams.MetaDataKey))
                         return false;
-                    }
                 }
             }
 
@@ -1593,14 +1607,14 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     try
                     {
                         var filePath = Path.Combine(_filePath, $"{holon.Id}.json");
-                        var jsonContent = JsonConvert.SerializeObject(holon, Formatting.Indented);
+                        var jsonContent = System.Text.Json.JsonSerializer.Serialize(holon, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
                         await File.WriteAllTextAsync(filePath, jsonContent);
                         importedCount++;
                     }
                     catch (Exception ex)
                     {
                         errorCount++;
-                        LoggingManager.Log($"Error importing holon {holon.Id}: {ex.Message}", LogType.Warning);
+                        LoggingManager.Log($"Error importing holon {holon.Id}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
                     }
                 }
 
@@ -1636,7 +1650,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     try
                     {
                         var jsonContent = await File.ReadAllTextAsync(file);
-                        var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
+                        var holon = System.Text.Json.JsonSerializer.Deserialize<Holon>(jsonContent);
                         
                         if (holon != null && holon.CreatedByAvatarId == avatarId)
                         {
@@ -1645,7 +1659,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     }
                     catch (Exception ex)
                     {
-                        LoggingManager.Log($"Error processing file {file} for export: {ex.Message}", LogType.Warning);
+                        LoggingManager.Log($"Error processing file {file} for export: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
                     }
                 }
 
@@ -1728,7 +1742,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     try
                     {
                         var jsonContent = await File.ReadAllTextAsync(file);
-                        var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
+                        var holon = System.Text.Json.JsonSerializer.Deserialize<Holon>(jsonContent);
                         
                         if (holon != null)
                         {
@@ -1737,7 +1751,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     }
                     catch (Exception ex)
                     {
-                        LoggingManager.Log($"Error processing file {file} for export: {ex.Message}", LogType.Warning);
+                        LoggingManager.Log($"Error processing file {file} for export: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
                     }
                 }
 

@@ -387,51 +387,6 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
         return DeleteHolonAsync(providerKey).Result;
     }
 
-    public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-    {
-        var result = new OASISResult<IHolon>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
-                return result;
-            }
-
-            // Load holon by provider key first
-            var holonResult = await LoadHolonAsync(providerKey);
-            if (holonResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {holonResult.Message}");
-                return result;
-            }
-
-            if (holonResult.Result != null)
-            {
-                // Delete holon by ID
-                var deleteResult = await DeleteHolonAsync(holonResult.Result.Id);
-                if (deleteResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {deleteResult.Message}");
-                    return result;
-                }
-
-                result.Result = holonResult.Result;
-                result.IsError = false;
-                result.Message = "Holon deleted successfully by provider key from Arbitrum";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from Arbitrum: {ex.Message}", ex);
-        }
-        return result;
-    }
-
     public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
     {
         OASISResult<IHolon> result = new();
