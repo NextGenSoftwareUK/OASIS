@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
     {
         Default,
         All,
-        //Player,
+        Player,
         Avatar,
         AvatarDetail,
         Mission,

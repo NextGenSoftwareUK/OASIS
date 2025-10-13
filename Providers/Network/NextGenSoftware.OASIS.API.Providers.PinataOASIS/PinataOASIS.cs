@@ -1019,58 +1019,250 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
-            OASISErrorHandling.HandleError(ref result, "Search not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
-            OASISErrorHandling.HandleError(ref result, "SearchAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<ISearchResults>();
+            string errorMessage = "Error in SearchAsync method in PinataOASIS Provider. Reason: ";
+
+            try
+            {
+                if (searchParams == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} SearchParams cannot be null");
+                    return result;
+                }
+
+                var searchResults = new SearchResults();
+                var foundHolons = new List<IHolon>();
+
+                // Search through Pinata files using metadata
+                var files = await _pinataService.GetFilesAsync();
+                
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        // Download and parse the file content
+                        var content = await _pinataService.GetFileContentAsync(file.IpfsHash);
+                        var holon = JsonConvert.DeserializeObject<Holon>(content);
+                        
+                        if (holon != null && MatchesSearchCriteria(holon, searchParams))
+                        {
+                            foundHolons.Add(holon);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (continueOnError)
+                        {
+                            LoggingManager.Log($"Error processing Pinata file {file.IpfsHash}: {ex.Message}", LogType.Warning);
+                            continue;
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
+                }
+
+                searchResults.Holons = foundHolons;
+                result.Result = searchResults;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
             return result;
+        }
+
+        private bool MatchesSearchCriteria(IHolon holon, ISearchParams searchParams)
+        {
+            if (holon == null || searchParams == null)
+                return false;
+
+            // Check if holon name matches search criteria
+            if (!string.IsNullOrEmpty(searchParams.SearchText))
+            {
+                if (!holon.Name.ToLower().Contains(searchParams.SearchText.ToLower()) &&
+                    !holon.Description.ToLower().Contains(searchParams.SearchText.ToLower()))
+                {
+                    return false;
+                }
+            }
+
+            // Check holon type if specified
+            if (searchParams.HolonType != HolonType.All && holon.HolonType != searchParams.HolonType)
+            {
+                return false;
+            }
+
+            // Check metadata if specified
+            if (searchParams.MetaData != null && searchParams.MetaData.Any())
+            {
+                foreach (var metaData in searchParams.MetaData)
+                {
+                    if (!holon.MetaData.ContainsKey(metaData.Key) || 
+                        holon.MetaData[metaData.Key] != metaData.Value)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         // Missing abstract method implementations
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolon not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IHolon>();
+            string errorMessage = "Error in LoadHolonAsync method in PinataOASIS Provider. Reason: ";
+
+            try
+            {
+                if (id == Guid.Empty)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Holon ID cannot be empty");
+                    return result;
+                }
+
+                // Search for the holon file in Pinata by ID
+                var files = await _pinataService.GetFilesAsync();
+                var holonFile = files.FirstOrDefault(f => f.Name.Contains(id.ToString()));
+                
+                if (holonFile == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Holon with ID {id} not found in Pinata");
+                    return result;
+                }
+
+                // Download and deserialize the holon
+                var content = await _pinataService.GetFileContentAsync(holonFile.IpfsHash);
+                var holon = JsonConvert.DeserializeObject<Holon>(content);
+                
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to deserialize holon {id}");
+                    return result;
+                }
+
+                result.Result = holon;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
             return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolon not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IHolon>();
+            string errorMessage = "Error in LoadHolonAsync method in PinataOASIS Provider. Reason: ";
+
+            try
+            {
+                if (string.IsNullOrEmpty(providerKey))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Provider key cannot be null or empty");
+                    return result;
+                }
+
+                // Use providerKey as IPFS hash to directly fetch the file
+                var content = await _pinataService.GetFileContentAsync(providerKey);
+                var holon = JsonConvert.DeserializeObject<Holon>(content);
+                
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to deserialize holon with provider key {providerKey}");
+                    return result;
+                }
+
+                result.Result = holon;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
             return result;
         }
 
+
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent not implemented for PinataOASIS - Pinata is primarily for file storage");
-            return result;
+            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParentAsync not implemented for PinataOASIS - Pinata is primarily for file storage");
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            string errorMessage = "Error in LoadHolonsForParentAsync method in PinataOASIS Provider. Reason: ";
+
+            try
+            {
+                if (id == Guid.Empty)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Parent ID cannot be empty");
+                    return result;
+                }
+
+                var childHolons = new List<IHolon>();
+                var files = await _pinataService.GetFilesAsync();
+                
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var content = await _pinataService.GetFileContentAsync(file.IpfsHash);
+                        var holon = JsonConvert.DeserializeObject<Holon>(content);
+                        
+                        if (holon != null && holon.ParentHolonId == id && 
+                            (type == HolonType.All || holon.HolonType == type))
+                        {
+                            childHolons.Add(holon);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (continueOnError)
+                        {
+                            LoggingManager.Log($"Error processing Pinata file {file.IpfsHash}: {ex.Message}", LogType.Warning);
+                            continue;
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
+                }
+
+                result.Result = childHolons;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+            }
+
             return result;
         }
 

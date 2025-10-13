@@ -906,12 +906,54 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             return result;
         }
 
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
+        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            return GetHolonsNearMeAsync(Type).Result;
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Azure Cosmos DB provider is not activated");
+                    return result;
+                }
+
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Azure Cosmos DB: {ex.Message}", ex);
+            }
+            return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(HolonType Type)
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -922,109 +964,38 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                     return result;
                 }
 
-                // Get all holons from Azure Cosmos DB
-                var holonsResult = await LoadAllHolonsAsync();
-                if (holonsResult.IsError)
+                var holonsResult = LoadAllHolons(Type);
+                if (holonsResult.IsError || holonsResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
                     return result;
                 }
 
-                var holons = holonsResult.Result?.ToList() ?? new List<IHolon>();
-                
-                // Add location metadata
-                foreach (var holon in holons)
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IHolon>();
+
+                foreach (var holon in holonsResult.Result)
                 {
-                    if (holon.CustomData == null)
-                        holon.CustomData = new Dictionary<string, object>();
-                    
-                    holon.CustomData["NearMe"] = true;
-                    holon.CustomData["Distance"] = 0.0; // Would be calculated based on actual location
-                    holon.CustomData["Provider"] = "AzureCosmosDBOASIS";
+                    if (holon.MetaData != null &&
+                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(holon);
+                    }
                 }
 
-                result.Result = holons;
+                result.Result = nearby;
                 result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons near me from Azure Cosmos DB";
+                result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Azure Cosmos DB: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
-        {
-            return GetPlayersNearMeAsync().Result;
-        }
-
-        public async Task<OASISResult<IEnumerable<IPlayer>>> GetPlayersNearMeAsync()
-        {
-            var result = new OASISResult<IEnumerable<IPlayer>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Azure Cosmos DB provider is not activated");
-                    return result;
-                }
-
-                // Get all avatars and convert to players from Azure Cosmos DB
-                var avatarsResult = await LoadAllAvatarsAsync();
-                if (avatarsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
-                    return result;
-                }
-
-                var players = new List<IPlayer>();
-                foreach (var avatar in avatarsResult.Result)
-                {
-                    var player = new Player
-                    {
-                        Id = avatar.Id,
-                        Username = avatar.Username,
-                        Email = avatar.Email,
-                        FirstName = avatar.FirstName,
-                        LastName = avatar.LastName,
-                        CreatedDate = avatar.CreatedDate,
-                        ModifiedDate = avatar.ModifiedDate,
-                        Address = avatar.Address,
-                        Country = avatar.Country,
-                        Postcode = avatar.Postcode,
-                        Mobile = avatar.Mobile,
-                        Landline = avatar.Landline,
-                        Title = avatar.Title,
-                        DOB = avatar.DOB,
-                        AvatarType = avatar.AvatarType,
-                        KarmaAkashicRecords = avatar.KarmaAkashicRecords,
-                        Level = avatar.Level,
-                        XP = avatar.XP,
-                        HP = avatar.HP,
-                        Mana = avatar.Mana,
-                        Stamina = avatar.Stamina,
-                        Description = avatar.Description,
-                        Website = avatar.Website,
-                        Language = avatar.Language,
-                        ProviderWallets = avatar.ProviderWallets,
-                        CustomData = new Dictionary<string, object>
-                        {
-                            ["NearMe"] = true,
-                            ["Distance"] = 0.0, // Would be calculated based on actual location
-                            ["Provider"] = "AzureCosmosDBOASIS"
-                        }
-                    };
-                    players.Add(player);
-                }
-
-                result.Result = players;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {players.Count} players near me from Azure Cosmos DB";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from Azure Cosmos DB: {ex.Message}", ex);
             }
             return result;
         }

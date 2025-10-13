@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -28,6 +29,18 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         private readonly string _chainId;
         private readonly string _privateKey;
         private bool _isActivated;
+        private WalletManager _walletManager;
+
+        public WalletManager WalletManager
+        {
+            get
+            {
+                if (_walletManager == null)
+                    _walletManager = new WalletManager(this, OASISDNA);
+                return _walletManager;
+            }
+            set => _walletManager = value;
+        }
 
         /// <summary>
         /// Initializes a new instance of the FantomOASIS provider

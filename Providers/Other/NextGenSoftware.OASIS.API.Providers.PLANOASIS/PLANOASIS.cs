@@ -11,17 +11,34 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 {
     public class PLANOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
-        public PLANOASIS()
+        private readonly HttpClient _httpClient;
+        private readonly string _apiBaseUrl;
+        private readonly string _apiKey;
+
+        public PLANOASIS(string apiBaseUrl = "https://api.plan-systems.org/v1", string apiKey = "")
         {
             this.ProviderName = "PLANOASIS";
             this.ProviderDescription = "PLAN Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PLANOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            
+            _apiBaseUrl = apiBaseUrl;
+            _apiKey = apiKey;
+            _httpClient = new HttpClient();
+            
+            if (!string.IsNullOrEmpty(_apiKey))
+            {
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+            }
         }
 
         #region IOASISStorageProvider Implementation
@@ -369,24 +386,115 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
         //    throw new NotImplementedException();
         //}
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
+                    return result;
+                }
+
+                var searchParams = new Dictionary<string, string>
+                {
+                    { "metaKey", metaKey },
+                    { "metaValue", metaValue },
+                    { "type", type.ToString() },
+                    { "version", version.ToString() }
+                };
+
+                var queryString = string.Join("&", searchParams.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
+                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/search?{queryString}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (holons != null)
+                    {
+                        result.Result = holons.Cast<IHolon>();
+                        result.IsError = false;
+                        result.Message = $"Successfully loaded {holons.Count} holons by metadata from PLAN";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from PLAN API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"PLAN API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from PLAN: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
+                    return result;
+                }
+
+                var searchRequest = new
+                {
+                    metaKeyValuePairs = metaKeyValuePairs,
+                    matchMode = metaKeyValuePairMatchMode.ToString(),
+                    type = type.ToString(),
+                    version = version
+                };
+
+                var jsonContent = JsonSerializer.Serialize(searchRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/holons/search-multiple", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var holons = JsonSerializer.Deserialize<List<Holon>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (holons != null)
+                    {
+                        result.Result = holons.Cast<IHolon>();
+                        result.IsError = false;
+                        result.Message = $"Successfully loaded {holons.Count} holons by multiple metadata from PLAN";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from PLAN API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"PLAN API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by multiple metadata from PLAN: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            throw new NotImplementedException();
+            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -399,44 +507,184 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             return null;
         }
 
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
+                    return result;
+                }
+
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon cannot be null");
+                    return result;
+                }
+
+                var jsonContent = JsonSerializer.Serialize(holon);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/holons", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var savedHolon = JsonSerializer.Deserialize<Holon>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (savedHolon != null)
+                    {
+                        result.Result = savedHolon;
+                        result.IsError = false;
+                        result.Message = "Holon saved successfully to PLAN";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize saved holon from PLAN API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"PLAN API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving holon to PLAN: {ex.Message}", ex);
+            }
+            return result;
+        }
+
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+            return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
-        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
-        }
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
+                    return result;
+                }
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            throw new NotImplementedException();
+                if (holons == null || !holons.Any())
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holons collection cannot be null or empty");
+                    return result;
+                }
+
+                var jsonContent = JsonSerializer.Serialize(holons);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/holons/batch", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var savedHolons = JsonSerializer.Deserialize<List<Holon>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (savedHolons != null)
+                    {
+                        result.Result = savedHolons.Cast<IHolon>();
+                        result.IsError = false;
+                        result.Message = $"Successfully saved {savedHolons.Count} holons to PLAN";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize saved holons from PLAN API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"PLAN API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving holons to PLAN: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            throw new NotImplementedException();
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
+                    return result;
+                }
+
+                var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/holons/{id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = null; // Holon deleted
+                    result.IsError = false;
+                    result.Message = "Holon deleted successfully from PLAN";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"PLAN API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from PLAN: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            throw new NotImplementedException();
+            return DeleteHolonAsync(id).Result;
         }
 
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            throw new NotImplementedException();
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
+                    return result;
+                }
+
+                var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/holons/by-provider-key/{Uri.EscapeDataString(providerKey)}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = null; // Holon deleted
+                    result.IsError = false;
+                    result.Message = "Holon deleted successfully from PLAN by provider key";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"PLAN API error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from PLAN by provider key: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            throw new NotImplementedException();
+            return DeleteHolonAsync(providerKey).Result;
         }
 
         public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
