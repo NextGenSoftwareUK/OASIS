@@ -40,6 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         private string _gatewayUrl;
         private OASISDNA _OASISDNA;
         private string _OASISDNAPath;
+        private object _pinataService; // Placeholder for Pinata service
 
         public PinataOASIS()
         {
@@ -423,14 +424,14 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 // This uses Pinata's real metadata indexing system for efficient data retrieval
                 var searchResult = await SearchAsync(new SearchParams { });
                 
-                if (searchResult.IsError || searchResult.Result == null || !searchResult.Result.Results.Any())
+                if (searchResult.IsError || searchResult.Result == null || !searchResult.Result.SearchResultAvatars.Any())
                 {
                     OASISErrorHandling.HandleError(ref result, $"Avatar with ID {id} not found in Pinata storage");
                     return result;
                 }
 
                 // Get the first result and deserialize as Avatar
-                var holon = searchResult.Result.Results.First();
+                var holon = searchResult.Result.SearchResultAvatars.First();
                 var avatarJson = JsonConvert.SerializeObject(holon);
                 var avatar = JsonConvert.DeserializeObject<Avatar>(avatarJson);
                 
@@ -1139,7 +1140,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     {
                         if (continueOnError)
                         {
-                            LoggingManager.Log($"Error processing Pinata file {file.IpfsHash}: {ex.Message}", LogType.Warning);
+                            LoggingManager.Log($"Error processing Pinata file {file.IpfsHash}: {ex.Message}", LogType.Warn);
                             continue;
                         }
                         else
@@ -1188,9 +1189,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 var g = searchParams.SearchGroups.First();
                 var meta = g.HolonSearchParams?.MetaData;
-                if (meta != null && meta.Any())
+                if (meta != null && meta is Dictionary<string, string> metaDict && metaDict.Any())
                 {
-                    foreach (var kv in meta)
+                    foreach (var kv in metaDict)
                     {
                         if (holon.MetaData == null || !holon.MetaData.ContainsKey(kv.Key) || holon.MetaData[kv.Key]?.ToString() != kv.Value)
                             return false;
@@ -1329,7 +1330,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     {
                         if (continueOnError)
                         {
-                            LoggingManager.Log($"Error processing Pinata file {file.IpfsHash}: {ex.Message}", LogType.Warning);
+                            LoggingManager.Log($"Error processing Pinata file {file.IpfsHash}: {ex.Message}", LogType.Warn);
                             continue;
                         }
                         else

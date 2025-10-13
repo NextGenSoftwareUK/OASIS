@@ -34,6 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         public string TransactionHash { get; set; }
         public bool Success { get; set; }
         public string Message { get; set; }
+        public object TransactionResult { get; set; }
     }
 
     /// <summary>
@@ -44,6 +45,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         public string TransactionHash { get; set; }
         public bool Success { get; set; }
         public string Message { get; set; }
+        public object TransactionResult { get; set; }
+        public IOASISNFT OASISNFT { get; set; }
     }
 
     /// <summary>
