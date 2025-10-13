@@ -2577,51 +2577,6 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     }
 
 
-    public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
-    {
-        OASISResult<ITransactionRespone> result = new OASISResult<ITransactionRespone>();
-        string errorMessage = "Error occured in SendTransactionAsync method in SolanaOASIS Provider. Reason: ";
-
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
-
-            // Create Solana transaction using the service
-            var solanaTransactionResult = await _solanaService.SendTransaction(new SendTransactionRequest()
-            {
-                Amount = (ulong)amount,
-                MemoText = memoText,
-                FromAccount = new BaseAccountRequest()
-                {
-                    PublicKey = fromWalletAddress
-                },
-                ToAccount = new BaseAccountRequest()
-                {
-                    PublicKey = toWalletAddress
-                }
-            });
-
-            if (solanaTransactionResult.IsError ||
-                string.IsNullOrEmpty(solanaTransactionResult.Result.TransactionHash))
-            {
-                OASISErrorHandling.HandleError(ref result, solanaTransactionResult.Message);
-                return result;
-            }
-
-            result.Result.TransactionResult = solanaTransactionResult.Result.TransactionHash;
-            TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
-        }
-        catch (Exception e)
-        {
-            OASISErrorHandling.HandleError(ref result, $"{errorMessage}, {e.Message}", e);
-        }
-
-        return result;
-    }
 
     #endregion
 }
