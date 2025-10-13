@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -1037,7 +1038,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
             try
             {
-                var avatarDetailsList = await avatarDetailRepository.GetListAsync();
+                var avatarDetailsList = avatarDetailRepository.GetList();
 
                 if (avatarDetailsList == null)
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");
@@ -1619,19 +1620,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 
                 if (!string.IsNullOrEmpty(searchParams.SearchQuery))
                 {
-                    // Search holons
-                    var holonSearchResult = await holonRepository.SearchAsync(searchParams.SearchQuery);
-                    if (!holonSearchResult.IsError && holonSearchResult.Result != null)
-                    {
-                        holons.AddRange(holonSearchResult.Result);
-                    }
-                    
-                    // Search avatars
-                    var avatarSearchResult = await avatarRepository.SearchAsync(searchParams.SearchQuery);
-                    if (!avatarSearchResult.IsError && avatarSearchResult.Result != null)
-                    {
-                        avatars.AddRange(avatarSearchResult.Result);
-                    }
+                    // Search holons - using synchronous method or basic filtering
+                    var holonSearchResult = holonRepository.GetList().Where(h => h.Name.Contains(searchParams.SearchQuery) || h.Description.Contains(searchParams.SearchQuery));
+                    holons.AddRange(holonSearchResult);
+
+                    // Search avatars - using synchronous method or basic filtering
+                    var avatarSearchResult = avatarRepository.GetList().Where(a => a.Username.Contains(searchParams.SearchQuery) || a.Email.Contains(searchParams.SearchQuery));
+                    avatars.AddRange(avatarSearchResult);
                 }
                 
                 searchResults.Holons = holons;
@@ -1704,8 +1699,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 }
 
                 // Export all holons created by the avatar ID
-                var holons = await holonRepository.GetByCreatedByIdAsync(avatarId);
-                result.Result = holons.Result;
+                var holons = holonRepository.GetList().Where(h => h.CreatedByAvatarId == avatarId);
+                result.Result = holons;
                 result.IsError = false;
                 result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarId} from Azure Cosmos DB";
             }
@@ -1733,8 +1728,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 }
 
                 // Export all holons created by the avatar username
-                var holons = await holonRepository.GetByCreatedByUsernameAsync(avatarUsername);
-                result.Result = holons.Result;
+                var holons = holonRepository.GetList().Where(h => h.CreatedByAvatarUsername == avatarUsername);
+                result.Result = holons;
                 result.IsError = false;
                 result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarUsername} from Azure Cosmos DB";
             }
@@ -1762,8 +1757,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 }
 
                 // Export all holons created by the avatar email
-                var holons = await holonRepository.GetByCreatedByEmailAsync(avatarEmailAddress);
-                result.Result = holons.Result;
+                var holons = holonRepository.GetList().Where(h => h.CreatedByAvatarEmail == avatarEmailAddress);
+                result.Result = holons;
                 result.IsError = false;
                 result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarEmailAddress} from Azure Cosmos DB";
             }
@@ -1791,8 +1786,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 }
 
                 // Export all holons
-                var holons = await holonRepository.GetAllAsync();
-                result.Result = holons.Result;
+                var holons = holonRepository.GetList();
+                result.Result = holons;
                 result.IsError = false;
                 result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons from Azure Cosmos DB";
             }
@@ -1850,14 +1845,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 }
 
                 // Load holons by metadata from Azure Cosmos DB
-                var holons = await holonRepository.GetByMetaDataAsync(metaKey, metaValue);
-                if (holons.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {holons.Message}");
-                    return result;
-                }
+                var holons = holonRepository.GetList().Where(h => h.MetaData != null && h.MetaData.ContainsKey(metaKey) && h.MetaData[metaKey].ToString() == metaValue);
 
-                result.Result = holons.Result;
+                result.Result = holons;
                 result.IsError = false;
                 result.Message = $"Successfully loaded {holons.Result?.Count() ?? 0} holons by metadata from Azure Cosmos DB";
             }
@@ -1885,14 +1875,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 }
 
                 // Load holons by multiple metadata pairs from Azure Cosmos DB
-                var holons = await holonRepository.GetByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode);
-                if (holons.IsError)
+                var holons = holonRepository.GetList().Where(h =>
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs: {holons.Message}");
-                    return result;
-                }
+                    if (h.MetaData == null) return false;
+                    foreach (var kvp in metaKeyValuePairs)
+                    {
+                        if (!h.MetaData.ContainsKey(kvp.Key) || h.MetaData[kvp.Key].ToString() != kvp.Value)
+                            return false;
+                    }
+                    return true;
+                });
 
-                result.Result = holons.Result;
+                result.Result = holons;
                 result.IsError = false;
                 result.Message = $"Successfully loaded {holons.Result?.Count() ?? 0} holons by metadata pairs from Azure Cosmos DB";
             }
