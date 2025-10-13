@@ -474,11 +474,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Log the switch for monitoring
-                LoggingManager.Logger.Log($"Provider switched from {fromProvider.Name} to {toProvider.Name} at {switchRecord.Timestamp}", LogType.Info);
+                LoggingManager.Logger.Log($"Provider switched from {fromProvider.Name} to {toProvider.Name} at {switchRecord.Timestamp}", NextGenSoftware.OASIS.API.Core.Enums.LogType.Info);
             }
             catch (Exception ex)
             {
-                LoggingManager.Logger.Log($"Error recording provider switch: {ex.Message}", LogType.Error);
+                LoggingManager.Logger.Log($"Error recording provider switch: {ex.Message}", NextGenSoftware.OASIS.API.Core.Enums.LogType.Error);
             }
         }
 
@@ -497,7 +497,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                LoggingManager.Logger.Log($"Error updating metrics for {providerType.Name}: {ex.Message}", LogType.Error);
+                LoggingManager.Logger.Log($"Error updating metrics for {providerType.Name}: {ex.Message}", NextGenSoftware.OASIS.API.Core.Enums.LogType.Error);
             }
         }
     }
