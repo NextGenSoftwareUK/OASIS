@@ -22,6 +22,8 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Linq;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 {
@@ -1072,77 +1074,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-                var response = _httpClient.GetAsync($"{_apiBaseUrl}/network/players/nearby").Result;
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = response.Content.ReadAsStringAsync().Result;
-                    var players = JsonSerializer.Deserialize<List<Player>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
-                    if (players != null)
-                    {
-                        result.Result = players.Cast<IPlayer>();
-                        result.IsError = false;
-                        result.Message = $"Successfully loaded {players.Count} players near you from ThreeFold Grid";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize players from ThreeFold Grid API");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting players near you from ThreeFold Grid: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
-                }
-
-                var response = _httpClient.GetAsync($"{_apiBaseUrl}/network/holons/nearby?type={Type}").Result;
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = response.Content.ReadAsStringAsync().Result;
-                    var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
-                    if (holons != null)
-                    {
-                        result.Result = holons.Cast<IHolon>();
-                        result.IsError = false;
-                        result.Message = $"Successfully loaded {holons.Count} holons near you from ThreeFold Grid";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from ThreeFold Grid API");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting holons near you from ThreeFold Grid: {ex.Message}", ex);
-            }
-            return result;
-        }
-
         #endregion
 
         #region IOASISSuperStar
@@ -1739,67 +1670,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return MintNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<IOASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceGeoSpatialNFTRequest request)
-        {
-            var result = new OASISResult<IOASISGeoSpatialNFT>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
-                }
-
-                if (request == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Mint and place GeoNFT request cannot be null");
-                    return result;
-                }
-
-                var geoNftRequest = new
-                {
-                    toAddress = request.ToAddress,
-                    tokenId = request.TokenId,
-                    contractAddress = request.ContractAddress,
-                    latitude = request.Latitude,
-                    longitude = request.Longitude,
-                    metadata = request.Metadata,
-                    name = request.Name,
-                    description = request.Description,
-                    imageUrl = request.ImageUrl
-                };
-
-                var jsonContent = JsonSerializer.Serialize(geoNftRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/nft/mint-and-place-geo", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var geoNft = JsonSerializer.Deserialize<OASISGeoSpatialNFT>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
-                    if (geoNft != null)
-                    {
-                        result.Result = geoNft;
-                        result.IsError = false;
-                        result.Message = "GeoNFT minted and placed successfully on ThreeFold Grid";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize GeoNFT response from ThreeFold Grid API");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"ThreeFold Grid API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error minting and placing GeoNFT on ThreeFold Grid: {ex.Message}", ex);
-            }
-            return result;
-        }
 
         public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {

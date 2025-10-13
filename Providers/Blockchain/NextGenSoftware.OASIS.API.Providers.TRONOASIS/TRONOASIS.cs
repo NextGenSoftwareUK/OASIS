@@ -754,7 +754,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             }
             return result;
         }
-        }
 
         public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {

@@ -1019,76 +1019,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-                var response = _httpClient.GetAsync($"{_apiBaseUrl}/network/players/nearby").Result;
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = response.Content.ReadAsStringAsync().Result;
-                    var players = JsonSerializer.Deserialize<List<Player>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
-                    if (players != null)
-                    {
-                        result.Result = players.Cast<IPlayer>();
-                        result.IsError = false;
-                        result.Message = $"Successfully loaded {players.Count} players near you from Scuttlebutt";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize players from Scuttlebutt API");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Scuttlebutt API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting players near you from Scuttlebutt: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Scuttlebutt provider is not activated");
-                    return result;
-                }
-
-                var response = _httpClient.GetAsync($"{_apiBaseUrl}/network/holons/nearby?type={Type}").Result;
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = response.Content.ReadAsStringAsync().Result;
-                    var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
-                    if (holons != null)
-                    {
-                        result.Result = holons.Cast<IHolon>();
-                        result.IsError = false;
-                        result.Message = $"Successfully loaded {holons.Count} holons near you from Scuttlebutt";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from Scuttlebutt API");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Scuttlebutt API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting holons near you from Scuttlebutt: {ex.Message}", ex);
-            }
-            return result;
-        }
+        
         #endregion
 
         /*
