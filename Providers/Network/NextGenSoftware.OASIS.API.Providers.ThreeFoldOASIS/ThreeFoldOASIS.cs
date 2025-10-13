@@ -24,6 +24,7 @@ using System.Text.Json;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 
 namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 {
@@ -1121,12 +1122,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 
                 var transactionRequest = new
                 {
-                    fromAddress = transation.FromAddress,
-                    toAddress = transation.ToAddress,
+                    fromAddress = transation.FromWalletAddress,
+                    toAddress = transation.ToWalletAddress,
                     amount = transation.Amount,
-                    token = transation.Token,
-                    gasLimit = transation.GasLimit,
-                    gasPrice = transation.GasPrice
+                    memo = transation.MemoText
                 };
 
                 var jsonContent = JsonSerializer.Serialize(transactionRequest);
@@ -1627,11 +1626,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 
                 var nftRequest = new
                 {
-                    fromAddress = transation.FromAddress,
-                    toAddress = transation.ToAddress,
-                    nftId = transation.NFTId,
+                    fromAddress = transation.FromWalletAddress,
+                    toAddress = transation.ToWalletAddress,
+                    nftId = transation.TokenId,
                     tokenId = transation.TokenId,
-                    contractAddress = transation.ContractAddress
+                    contractAddress = transation.TokenAddress
                 };
 
                 var jsonContent = JsonSerializer.Serialize(nftRequest);
@@ -1690,11 +1689,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 
                 var mintRequest = new
                 {
-                    toAddress = transation.ToAddress,
-                    tokenId = transation.TokenId,
-                    contractAddress = transation.ContractAddress,
-                    metadata = transation.Metadata,
-                    name = transation.Name,
+                    toAddress = transation.SendToAddressAfterMinting,
+                    tokenId = transation.Title,
+                    contractAddress = transation.OnChainProvider?.Value.ToString(),
+                    metadata = transation.MetaData,
+                    name = transation.Title,
                     description = transation.Description,
                     imageUrl = transation.ImageUrl
                 };
