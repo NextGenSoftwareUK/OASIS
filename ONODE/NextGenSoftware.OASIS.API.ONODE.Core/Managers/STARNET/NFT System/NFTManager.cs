@@ -26,6 +26,8 @@ using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using System.IO;
 using Ipfs;
 using NextGenSoftware.CLI.Engine;
+using SharpCompress.Common;
+using Newtonsoft.Json;
 
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
@@ -589,6 +591,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             return result;
         }
+
+        public async Task<OASISResult<IOASISNFT>> ImportOASISNFTAsync(Guid importedByAvatarId, string fullPathToOASISNFTJsonFile, ProviderType providerType = ProviderType.Default, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
+        {
+            return await ImportOASISNFTAsync(importedByAvatarId, JsonConvert.DeserializeObject<IOASISNFT>(await File.ReadAllTextAsync(fullPathToOASISNFTJsonFile)));
+        }
+
 
         public async Task<OASISResult<IOASISNFT>> ImportOASISNFTAsync(Guid importedByAvatarId, IOASISNFT OASISNFT, ProviderType providerType = ProviderType.Default, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {

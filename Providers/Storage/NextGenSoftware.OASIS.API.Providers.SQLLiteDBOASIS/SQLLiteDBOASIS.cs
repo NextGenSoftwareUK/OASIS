@@ -557,25 +557,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var holons = new List<IHolon>();
                 var avatars = new List<IAvatar>();
                 
-                if (!string.IsNullOrEmpty(searchParams.SearchQuery))
+                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
+                    var query = searchParams.SearchGroups.First().PreviousSearchGroupOperator.ToString();
                     // Search holons
-                    var holonSearchResult = await _holonRepository.SearchAsync(searchParams.SearchQuery);
+                    var holonSearchResult = await _holonRepository.SearchAsync(query);
                     if (!holonSearchResult.IsError && holonSearchResult.Result != null)
                     {
                         holons.AddRange(holonSearchResult.Result);
                     }
                     
                     // Search avatars
-                    var avatarSearchResult = await _avatarRepository.SearchAsync(searchParams.SearchQuery);
+                    var avatarSearchResult = await _avatarRepository.SearchAsync(query);
                     if (!avatarSearchResult.IsError && avatarSearchResult.Result != null)
                     {
                         avatars.AddRange(avatarSearchResult.Result);
                     }
                 }
                 
-                searchResults.Holons = holons;
-                searchResults.Avatars = avatars;
+                searchResults.SearchResultHolons = holons;
+                searchResults.SearchResultAvatars = avatars;
                 
                 result.Result = searchResults;
                 result.IsError = false;

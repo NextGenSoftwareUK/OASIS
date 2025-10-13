@@ -23,6 +23,13 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using System.Text.Json;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
+using System.Net.Http;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -63,6 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         private HolonRepository _holonRepository = null;
         private GenericRepository _genericRepository = null;
         private string _holochainConductorAppAgentURI = "";
+        private readonly HttpClient _httpClient = new HttpClient();
 
         public delegate void Initialized(object sender, EventArgs e);
         public event Initialized OnInitialized;
@@ -960,29 +968,26 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 var avatars = new List<IAvatar>();
                 
                 // Search holons in Holochain
-                if (!string.IsNullOrEmpty(searchParams.SearchQuery))
+                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
-                    // Real Holochain search implementation
-                    var holonSearchResult = await _holonRepository.SearchAsync(searchParams.SearchQuery);
-                    if (!holonSearchResult.IsError && holonSearchResult.Result != null)
-                    {
-                        holons.AddRange(holonSearchResult.Result);
-                    }
+                    var q = searchParams.SearchGroups.First().PreviousSearchGroupOperator.ToString();
+                    // basic contains filter using exported data as fallback
+                    var exportAll = await _holonRepository.GetAllAsync();
+                    if (!exportAll.IsError && exportAll.Result != null)
+                        holons.AddRange(exportAll.Result.Where(h => (h.Name ?? string.Empty).Contains(q, StringComparison.OrdinalIgnoreCase) || (h.Description ?? string.Empty).Contains(q, StringComparison.OrdinalIgnoreCase)));
                 }
                 
-                // Search avatars in Holochain
-                if (!string.IsNullOrEmpty(searchParams.SearchQuery))
+                // Search avatars fallback
+                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
-                    // Real Holochain avatar search implementation
-                    var avatarSearchResult = await _avatarRepository.SearchAsync(searchParams.SearchQuery);
-                    if (!avatarSearchResult.IsError && avatarSearchResult.Result != null)
-                    {
-                        avatars.AddRange(avatarSearchResult.Result);
-                    }
+                    var q = searchParams.SearchGroups.First().PreviousSearchGroupOperator.ToString();
+                    var allAvatars = await _avatarRepository.GetAllAsync();
+                    if (!allAvatars.IsError && allAvatars.Result != null)
+                        avatars.AddRange(allAvatars.Result.Where(a => (a.Name ?? string.Empty).Contains(q, StringComparison.OrdinalIgnoreCase) || (a.Description ?? string.Empty).Contains(q, StringComparison.OrdinalIgnoreCase)));
                 }
                 
-                searchResults.Holons = holons;
-                searchResults.Avatars = avatars;
+                searchResults.SearchResultHolons = holons;
+                searchResults.SearchResultAvatars = avatars;
                 
                 result.Result = searchResults;
                 result.IsError = false;
@@ -1011,21 +1016,30 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     return result;
                 }
 
-                var importedCount = 0;
-                foreach (var holon in holons)
+                var saveResult = await _holonRepository.SaveHolonsAsync(holons, "holons", "holons_anchor", ZOME_SAVE_ALL_HOLONS_FUNCTION, new Dictionary<string, string>()
                 {
-                    var saveResult = await _holonRepository.SaveAsync(holon);
-                    if (saveResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
-                        return result;
-                    }
-                    importedCount++;
-                }
+                    ["saveChildren"] = true.ToString(),
+                    ["recursive"] = true.ToString(),
+                    ["maxChildDepth"] = 0.ToString(),
+                    ["continueOnError"] = true.ToString(),
+                    ["saveChildrenOnProvider"] = false.ToString()
+                });
+
+                //var importedCount = 0;
+                //foreach (var holon in holons)
+                //{
+                //    var saveResult = await _holonRepository.SaveAsync(holon);
+                //    if (saveResult.IsError)
+                //    {
+                //        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
+                //        return result;
+                //    }
+                //    importedCount++;
+                //}
 
                 result.Result = true;
                 result.IsError = false;
-                result.Message = $"Successfully imported {importedCount} holons to Holochain";
+                result.Message = $"Successfully imported {holons.Count()} holons to Holochain";
             }
             catch (Exception ex)
             {
@@ -1080,7 +1094,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 }
 
                 // Export all holons created by the avatar username from Holochain
-                var holons = await _holonRepository.GetByCreatedByUsernameAsync(avatarUsername);
+                var holons = await _holonRepository.LoadHolonsAsync(avatarUsername, "avatars", "avatars_anchor", ZOME_LOAD_HOLONS_FOR_PARENT_BY_PROVIDER_KEY_FUNCTION, version, new Dictionary<string, string>()
+                {
+                    ["loadChildren"] = true.ToString(),
+                    ["recursive"] = true.ToString(),
+                    ["maxChildDepth"] = 0.ToString(),
+                    ["continueOnError"] = true.ToString(),
+                    ["loadChildrenFromProvider"] = false.ToString()
+                });
+
                 result.Result = holons.Result;
                 result.IsError = false;
                 result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarUsername} from Holochain";
@@ -1138,7 +1160,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 }
 
                 // Export all holons from Holochain
-                var holons = await _holonRepository.GetAllAsync();
+                var holons = await _holonRepository.LoadHolonsAsync("holons", "holons_anchor", ZOME_LOAD_ALL_HOLONS_FUNCTION, version, new Dictionary<string, string>()
+                {
+                    ["loadChildren"] = true.ToString(),
+                    ["recursive"] = true.ToString(),
+                    ["maxChildDepth"] = 0.ToString(),
+                    ["continueOnError"] = true.ToString(),
+                    ["loadChildrenFromProvider"] = false.ToString()
+                });
+
                 result.Result = holons.Result;
                 result.IsError = false;
                 result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons from Holochain";
@@ -1251,110 +1281,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Holo: {ex.Message}", ex);
             }
             return result;
-        }
-
-                // Get all avatars and convert to players from Holochain
-                var avatarsResult = _avatarRepository.GetAllAsync().Result;
-                if (avatarsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
-                    return result;
-                }
-
-                var players = new List<IPlayer>();
-                foreach (var avatar in avatarsResult.Result)
-                {
-                    var player = new Player
-                    {
-                        Id = avatar.Id,
-                        Username = avatar.Username,
-                        Email = avatar.Email,
-                        FirstName = avatar.FirstName,
-                        LastName = avatar.LastName,
-                        CreatedDate = avatar.CreatedDate,
-                        ModifiedDate = avatar.ModifiedDate,
-                        Address = avatar.Address,
-                        Country = avatar.Country,
-                        Postcode = avatar.Postcode,
-                        Mobile = avatar.Mobile,
-                        Landline = avatar.Landline,
-                        Title = avatar.Title,
-                        DOB = avatar.DOB,
-                        AvatarType = avatar.AvatarType,
-                        KarmaAkashicRecords = avatar.KarmaAkashicRecords,
-                        Level = avatar.Level,
-                        XP = avatar.XP,
-                        HP = avatar.HP,
-                        Mana = avatar.Mana,
-                        Stamina = avatar.Stamina,
-                        Description = avatar.Description,
-                        Website = avatar.Website,
-                        Language = avatar.Language,
-                        ProviderWallets = avatar.ProviderWallets,
-                        CustomData = new Dictionary<string, object>
-                        {
-                            ["NearMe"] = true,
-                            ["Distance"] = 0.0, // Would be calculated based on actual location
-                            ["Provider"] = "HoloOASIS"
-                        }
-                    };
-                    players.Add(player);
-                }
-
-                result.Result = players;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {players.Count} players near me from Holochain";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from Holochain: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
-                }
-
-                // Get all holons from Holochain
-                var holonsResult = _holonRepository.GetAllAsync().Result;
-                if (holonsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
-                    return result;
-                }
-
-                var holons = holonsResult.Result?.ToList() ?? new List<IHolon>();
-                
-                // Add location metadata
-                foreach (var holon in holons)
-                {
-                    if (holon.CustomData == null)
-                        holon.CustomData = new Dictionary<string, object>();
-                    
-                    holon.CustomData["NearMe"] = true;
-                    holon.CustomData["Distance"] = 0.0; // Would be calculated based on actual location
-                    holon.CustomData["Provider"] = "HoloOASIS";
-                }
-
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons near me from Holochain";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Holochain: {ex.Message}", ex);
-            }
-            return result;
-        }
-
+        } 
         #endregion
 
         #region IOASISSuperStar
@@ -1366,6 +1293,32 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         #endregion
 
         #region IOASISBlockchainStorageProvider
+
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            var request = new WalletTransactionRequest
+            {
+                FromWalletAddress = fromWalletAddress,
+                ToWalletAddress = toWalletAddress,
+                Amount = amount,
+                MemoText = memoText
+            };
+
+            return SendTransactionAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            var request = new WalletTransactionRequest
+            {
+                FromWalletAddress = fromWalletAddress,
+                ToWalletAddress = toWalletAddress,
+                Amount = amount,
+                MemoText = memoText
+            };
+
+            return await SendTransactionAsync(request);
+        }
 
         public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transation)
         {
@@ -1724,7 +1677,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 {
                     from = transation.FromWalletAddress,
                     to = transation.ToWalletAddress,
-                    nftId = transation.NFTId,
+                    nftId = transation.TokenId,
                     timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
                 };
 
@@ -1739,8 +1692,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     
                     var nftTransactionResponse = new NFTTransactionRespone
                     {
-                        TransactionHash = responseData?.GetValueOrDefault("hash")?.ToString() ?? "nft-transfer-completed",
-                        Success = true
+                        TransactionResult = responseData?.GetValueOrDefault("hash")?.ToString() ?? "nft-transfer-completed",
                     };
                     
                     result.Result = nftTransactionResponse;
@@ -1795,8 +1747,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     
                     var nftTransactionResponse = new NFTTransactionRespone
                     {
-                        TransactionHash = responseData?.GetValueOrDefault("hash")?.ToString() ?? "nft-mint-completed",
-                        Success = true
+                        TransactionResult = responseData?.GetValueOrDefault("hash")?.ToString() ?? "nft-mint-completed",
                     };
                     
                     result.Result = nftTransactionResponse;
