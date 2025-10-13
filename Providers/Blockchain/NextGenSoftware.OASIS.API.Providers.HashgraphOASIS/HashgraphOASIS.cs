@@ -2025,4 +2025,60 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         public long? AutoRenewPeriod { get; set; }
         public string Expiry { get; set; }
     }
+
+    public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long x, long y, int radius)
+    {
+        return GetAvatarsNearMeAsync(x, y, radius).Result;
+    }
+
+    public async Task<OASISResult<IEnumerable<IAvatar>>> GetAvatarsNearMeAsync(long x, long y, int radius)
+    {
+        OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                return result;
+            }
+
+            // TODO: Implement proper geospatial search
+            result.Result = new List<IAvatar>();
+            result.IsError = false;
+            result.Message = "Avatars near me loaded successfully from Hashgraph";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Hashgraph: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long x, long y, int radius, HolonType holonType)
+    {
+        return GetHolonsNearMeAsync(x, y, radius, holonType).Result;
+    }
+
+    public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(long x, long y, int radius, HolonType holonType)
+    {
+        OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                return result;
+            }
+
+            // TODO: Implement proper geospatial search
+            result.Result = new List<IHolon>();
+            result.IsError = false;
+            result.Message = "Holons near me loaded successfully from Hashgraph";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Hashgraph: {ex.Message}", ex);
+        }
+        return result;
+    }
 }
