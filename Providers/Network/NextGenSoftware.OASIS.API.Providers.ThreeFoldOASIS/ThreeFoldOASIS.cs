@@ -703,11 +703,27 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                     return result;
                 }
 
+                string searchText = null;
+                HolonType holonType = HolonType.All;
+                Dictionary<string, string> metaData = null;
+
+                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
+                {
+                    var firstGroup = searchParams.SearchGroups.First();
+                    holonType = firstGroup.HolonType;
+
+                    if (firstGroup is ISearchTextGroup textGroup)
+                        searchText = textGroup.SearchQuery;
+
+                    if (firstGroup.HolonSearchParams != null)
+                        metaData = firstGroup.HolonSearchParams.MetaData;
+                }
+
                 var searchRequest = new
                 {
-                    searchText = searchParams.SearchText,
-                    holonType = searchParams.HolonType?.ToString(),
-                    metaData = searchParams.MetaData,
+                    searchText = searchText,
+                    holonType = holonType.ToString(),
+                    metaData = metaData,
                     version = version
                 };
 
@@ -1481,6 +1497,56 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
         public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
+        }
+
+        // IOASISBlockchainStorageProvider interface methods
+        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
+        }
+
+        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            var result = new OASISResult<ITransactionRespone>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
+                    return result;
+                }
+
+                // ThreeFold transaction implementation
+                var transactionRequest = new
+                {
+                    from = fromWalletAddress,
+                    to = toWalletAddress,
+                    amount = amount,
+                    memo = memoText
+                };
+
+                var jsonContent = JsonSerializer.Serialize(transactionRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/transactions", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var transactionResponse = JsonSerializer.Deserialize<TransactionRespone>(responseContent);
+                    result.Result = transactionResponse;
+                    result.IsError = false;
+                    result.Message = "Transaction sent successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Transaction failed: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
