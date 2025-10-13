@@ -30,6 +30,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests;
 using System.Net.Http;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
@@ -972,7 +973,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 {
                     var q = searchParams.SearchGroups.First().PreviousSearchGroupOperator.ToString();
                     // basic contains filter using exported data as fallback
-                    var exportAll = await _holonRepository.GetAllAsync();
+                    var exportAll = await _holonRepository.LoadHolonsAsync("holons", "holons_anchor", ZOME_LOAD_ALL_HOLONS_FUNCTION, version);
                     if (!exportAll.IsError && exportAll.Result != null)
                         holons.AddRange(exportAll.Result.Where(h => (h.Name ?? string.Empty).Contains(q, StringComparison.OrdinalIgnoreCase) || (h.Description ?? string.Empty).Contains(q, StringComparison.OrdinalIgnoreCase)));
                 }
@@ -981,7 +982,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
                     var q = searchParams.SearchGroups.First().PreviousSearchGroupOperator.ToString();
-                    var allAvatars = await _avatarRepository.GetAllAsync();
+                    var allAvatars = await _avatarRepository.LoadAvatarsAsync("avatars", "", ZOME_LOAD_ALL_AVATARS_FUNCTION, version);
                     if (!allAvatars.IsError && allAvatars.Result != null)
                         avatars.AddRange(allAvatars.Result.Where(a => (a.Name ?? string.Empty).Contains(q, StringComparison.OrdinalIgnoreCase) || (a.Description ?? string.Empty).Contains(q, StringComparison.OrdinalIgnoreCase)));
                 }
@@ -1065,7 +1066,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 }
 
                 // Export all holons created by the avatar from Holochain
-                var holons = await _holonRepository.GetByCreatedByAvatarIdAsync(avatarId);
+                // Fallback: load all and filter by CreatedByAvatarId
+                var allHolonsResult = await _holonRepository.LoadHolonsAsync("holons", "holons_anchor", ZOME_LOAD_ALL_HOLONS_FUNCTION, version);
+                var holons = new OASISResult<IEnumerable<IHolon>> { Result = allHolonsResult.Result?.Where(h => h.CreatedByAvatarId == avatarId) };
                 result.Result = holons.Result;
                 result.IsError = false;
                 result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarId} from Holochain";
@@ -1094,7 +1097,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 }
 
                 // Export all holons created by the avatar username from Holochain
-                var holons = await _holonRepository.LoadHolonsAsync(avatarUsername, "avatars", "avatars_anchor", ZOME_LOAD_HOLONS_FOR_PARENT_BY_PROVIDER_KEY_FUNCTION, version, new Dictionary<string, string>()
+                var holons = await _holonRepository.LoadHolonsAsync("avatars", "avatars_anchor", ZOME_LOAD_HOLONS_FOR_PARENT_BY_PROVIDER_KEY_FUNCTION, version, new Dictionary<string, string>()
                 {
                     ["loadChildren"] = true.ToString(),
                     ["recursive"] = true.ToString(),
@@ -1131,7 +1134,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 }
 
                 // Export all holons created by the avatar email from Holochain
-                var holons = await _holonRepository.GetByCreatedByEmailAsync(avatarEmailAddress);
+                // Fallback: load all and filter by CreatedByEmail
+                var allHolonsEmailResult = await _holonRepository.LoadHolonsAsync("holons", "holons_anchor", ZOME_LOAD_ALL_HOLONS_FUNCTION, version);
+                var holons = new OASISResult<IEnumerable<IHolon>> { Result = allHolonsEmailResult.Result?.Where(h => string.Equals(h.MetaData != null && h.MetaData.ContainsKey("CreatedByEmail") ? h.MetaData["CreatedByEmail"]?.ToString() : null, avatarEmailAddress, StringComparison.OrdinalIgnoreCase)) };
                 result.Result = holons.Result;
                 result.IsError = false;
                 result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarEmailAddress} from Holochain";
@@ -1357,8 +1362,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     
                     var transactionResponse = new TransactionRespone
                     {
-                        TransactionHash = responseData?.GetValueOrDefault("hash")?.ToString() ?? "transaction-completed",
-                        Success = true
+                        TransactionResult = responseData?.GetValueOrDefault("hash")?.ToString() ?? "transaction-completed"
                     };
                     
                     result.Result = transactionResponse;
@@ -1394,8 +1398,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 }
 
                 // Get wallet addresses for avatars
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(fromAvatarId, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(toAvatarId, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.HoloOASIS, fromAvatarId, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.HoloOASIS, toAvatarId, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1438,8 +1442,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 }
 
                 // Get wallet addresses for avatars
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(fromAvatarId, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(toAvatarId, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.HoloOASIS, fromAvatarId, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.HoloOASIS, toAvatarId, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1477,8 +1481,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 }
 
                 // Get wallet addresses for avatars by username
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.HoloOASIS, fromAvatarUsername, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.HoloOASIS, toAvatarUsername, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1521,8 +1525,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 }
 
                 // Get wallet addresses for avatars by username
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.HoloOASIS, fromAvatarUsername, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.HoloOASIS, toAvatarUsername, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1565,8 +1569,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 }
 
                 // Get wallet addresses for avatars by email
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(fromAvatarEmail, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(toAvatarEmail, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.HoloOASIS, fromAvatarEmail, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.HoloOASIS, toAvatarEmail, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1609,8 +1613,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 }
 
                 // Get wallet addresses for avatars by email
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(fromAvatarEmail, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(toAvatarEmail, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.HoloOASIS, fromAvatarEmail, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.HoloOASIS, toAvatarEmail, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1797,13 +1801,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 if (avatarResult.Result?.ProviderWallets != null)
                 {
-                    foreach (var wallet in avatarResult.Result.ProviderWallets)
+                    foreach (var kv in avatarResult.Result.ProviderWallets.GroupBy(w => w.ProviderType))
                     {
-                        if (!providerWallets.ContainsKey(wallet.ProviderType))
-                        {
-                            providerWallets[wallet.ProviderType] = new List<IProviderWallet>();
-                        }
-                        providerWallets[wallet.ProviderType].Add(wallet);
+                        providerWallets[kv.Key] = kv.ToList();
                     }
                 }
 

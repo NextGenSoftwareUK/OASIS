@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
@@ -20,6 +22,18 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText);
         public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddres, decimal amount, string memoText);
 
+        //TODO: Implement ASAP!
+        //public OASISResult<INFTTransactionRespone> MintToken(IMintNFTTransactionRequest transation);
+        //public Task<OASISResult<INFTTransactionRespone>> MintTokenAsync(IMintNFTTransactionRequest transation);
+
+        //public OASISResult<ITransactionRespone> BurnToken(string tokenAddress);
+        //public Task<OASISResult<ITransactionRespone>> BurnTokenAsync(string tokenAddress);
+
+        //public OASISResult<ITransactionRespone> GetBalance(string walletAddress);
+        //public Task<OASISResult<ITransactionRespone>> GetBalanceAsync(string walletAddress);
+
+
+        //OBSOLETE
         /*
         public OASISResult<ITransactionRespone> SendTransaction(IWalletTransactionRequest transaction);
         public Task<OASISResult<ITransactionRespone>> SendTransactionAsync(IWalletTransactionRequest transaction);

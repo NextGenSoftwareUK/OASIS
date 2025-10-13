@@ -708,7 +708,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             var avatarDetail = new AvatarDetail
                             {
                                 Id = holon.Id,
-                                Name = holon.Name,
+                                // Name is read-only in current model; skip assignment
                                 Description = holon.Description,
                                 Version = holon.Version,
                                 CreatedDate = holon.CreatedDate,
@@ -768,7 +768,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             var avatar = new Avatar
                             {
                                 Id = holon.Id,
-                                Name = holon.Name,
+                                // Name read-only; skip
                                 Description = holon.Description,
                                 Version = holon.Version,
                                 CreatedDate = holon.CreatedDate,
@@ -825,7 +825,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         var avatar = new Avatar
                         {
                             Id = holon.Id,
-                            Name = holon.Name,
+                            // Name read-only; skip
                             Description = holon.Description,
                             Version = holon.Version,
                             CreatedDate = holon.CreatedDate,
@@ -886,7 +886,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             var avatar = new Avatar
                             {
                                 Id = holon.Id,
-                                Name = holon.Name,
+                                // Name read-only; skip
                                 Description = holon.Description,
                                 Version = holon.Version,
                                 CreatedDate = holon.CreatedDate,
@@ -948,7 +948,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             var avatar = new Avatar
                             {
                                 Id = holon.Id,
-                                Name = holon.Name,
+                                // Name read-only; skip
                                 Description = holon.Description,
                                 Version = holon.Version,
                                 CreatedDate = holon.CreatedDate,
@@ -1006,15 +1006,13 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         var avatarDetail = new AvatarDetail
                         {
                             Id = holon.Id,
-                            Name = holon.Name,
+                            // Name read-only; skip
                             Description = holon.Description,
                             Version = holon.Version,
                             CreatedDate = holon.CreatedDate,
                             ModifiedDate = holon.ModifiedDate,
                             MetaData = holon.MetaData,
-                            ProviderKey = holon.ProviderKey,
-                            PreviousVersionId = holon.PreviousVersionId,
-                            NextVersionId = holon.NextVersionId
+                            PreviousVersionId = holon.PreviousVersionId
                         };
                         result.Result = avatarDetail;
                         result.IsError = false;
@@ -1069,7 +1067,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             var avatarDetail = new AvatarDetail
                             {
                                 Id = holon.Id,
-                                Name = holon.Name,
+                                // Name read-only; skip
                                 Description = holon.Description,
                                 Version = holon.Version,
                                 CreatedDate = holon.CreatedDate,
@@ -1131,7 +1129,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             var avatarDetail = new AvatarDetail
                             {
                                 Id = holon.Id,
-                                Name = holon.Name,
+                                // Name read-only; skip
                                 Description = holon.Description,
                                 Version = holon.Version,
                                 CreatedDate = holon.CreatedDate,
@@ -1188,20 +1186,18 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         var content = await File.ReadAllTextAsync(file);
                         var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                         
-                        if (holon != null && holon.HolonType == HolonType.Avatar && holon.ProviderKey == providerKey)
+                        if (holon != null && holon.HolonType == HolonType.Avatar && holon.ProviderUniqueStorageKey != null && holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.LocalFileOASIS) && holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.LocalFileOASIS] == providerKey)
                         {
                             var avatar = new Avatar
                             {
                                 Id = holon.Id,
-                                Name = holon.Name,
+                                // Name read-only; skip
                                 Description = holon.Description,
                                 Version = holon.Version,
                                 CreatedDate = holon.CreatedDate,
                                 ModifiedDate = holon.ModifiedDate,
                                 MetaData = holon.MetaData,
-                                ProviderKey = holon.ProviderKey,
-                                PreviousVersionId = holon.PreviousVersionId,
-                                NextVersionId = holon.NextVersionId
+                                PreviousVersionId = holon.PreviousVersionId
                             };
                             result.Result = avatar;
                             result.IsError = false;
@@ -1541,8 +1537,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 
                 // Current interfaces do not expose MetaDataKey; fall back to group query text if present
                 var firstGroup = searchParams.SearchGroups.FirstOrDefault();
-                if (firstGroup != null && !string.IsNullOrWhiteSpace(firstGroup.SearchQuery))
-                    searchText = firstGroup.SearchQuery;
+                if (firstGroup is ISearchTextGroup textGroup && !string.IsNullOrWhiteSpace(textGroup.SearchQuery))
+                    searchText = textGroup.SearchQuery;
             }
 
             if (!string.IsNullOrEmpty(searchText))
