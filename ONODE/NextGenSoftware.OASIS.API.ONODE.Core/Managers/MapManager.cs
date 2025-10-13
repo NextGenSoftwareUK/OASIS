@@ -41,17 +41,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public bool Draw3DObjectOnMap(object obj, float x, float y)
         {
-            return true;
+            CurrentMapProvider.Draw3DObjectOnMap(obj, x, y);
         }
 
         public bool Draw2DSpriteOnMap(object sprite, float x, float y)
         {
-            return true;
+            CurrentMapProvider.Draw2DSpriteOnMap(sprite, x, y);
         }
 
         public bool Draw2DSpriteOnHUD(object sprite, float x, float y)
         {
-            return true;
+            CurrentMapProvider.Draw2DSpriteOnHUD(sprite, x, y);
         }
 
         //public bool HighlightBuildingOnMap(Building building)
@@ -61,132 +61,132 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public bool PlaceHolonOnMap(IHolon holon, float x, float y)
         {
-            return true;
+            CurrentMapProvider.PlaceHolonOnMap(holon, x, y);
         }
 
         public bool PlaceBuildingOnMap(IBuilding building, float x, float y)
         {
-            return true;
+            CurrentMapProvider.PlaceBuildingOnMap(building, x, y);
         }
 
         public bool PlaceQuestOnMap(IQuest quest, float x, float y)
         {
-            return true;
+            CurrentMapProvider.PlaceQuestOnMap(quest, x, y);
         }
 
         public bool PlaceGeoNFTOnMap(IOASISGeoSpatialNFT geoNFT, float x, float y)
         {
-            return true;
+            CurrentMapProvider.PlaceGeoNFTOnMap(geoNFT, x, y);
         }
 
         public bool PlaceGeoHotSpotOnMap(IGeoHotSpot geoHotSpot, float x, float y)
         {
-            return true;
+            CurrentMapProvider.PlaceGeoHotSpotOnMap(geoHotSpot, x, y);
         }
 
         public bool PlaceOAPPOnMap(IOAPP OAPP, float x, float y)
         {
-            return true;
+            CurrentMapProvider.PlaceOAPPOnMap(OAPP, x, y);
         }
 
         public bool DrawRouteOnMap(float startX, float startY, float endX, float endY, Color colour)
         {
-            return true;
+            CurrentMapProvider.DrawRouteOnMap(startX, startY, endX, endY, colour);
         }
 
         public bool CreateAndDrawRouteOnMapBeweenPoints(MapPoints points)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBeweenPoints(points);
         }
 
         public bool CreateAndDrawRouteOnMapBetweenHolons(IHolon fromHolon, IHolon toHolon)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBetweenHolons(fromHolon, toHolon);
         }
 
         public bool CreateAndDrawRouteOnMapBetweenHolons(Guid fromHolonId, Guid toHolonId)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBetweenHolons(fromHolonId, toHolonId);
         }
 
         public bool CreateAndDrawRouteOnMapBetweenQuests(IQuest fromQuest, IQuest toQuest)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBetweenQuests(fromQuest, toQuest);
         }
 
         public bool CreateAndDrawRouteOnMapBetweenQuests(Guid fromQuestId, Guid toQuestId)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBetweenQuests(fromQuestId, toQuestId);
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(IOASISGeoSpatialNFT fromGeoNFT, IOASISGeoSpatialNFT toGeoNFT)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBetweenGeoNFTs(fromGeoNFT, toGeoNFT);
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(Guid fromGeoNFTId, Guid toGeoNFTId)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBetweenGeoNFTs(fromGeoNFTId, toGeoNFTId);
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(IGeoHotSpot fromGeoHotSpot, IGeoHotSpot toGeoHotSpot)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBetweenGeoHotSpots(fromGeoHotSpot, toGeoHotSpot);
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(Guid fromGeoHotSpotId, Guid toGeoHotSpotId)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBetweenGeoHotSpots(fromGeoHotSpotId, toGeoHotSpotId);
         }
 
         public bool CreateAndDrawRouteOnMapBetweenOAPPs(IOAPP fromOAPP, IOAPP toOAPP)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBetweenOAPPs(fromOAPP, toOAPP);
         }
 
         public bool CreateAndDrawRouteOnMapBetweenOAPPs(Guid fromOAPPId, Guid toOAPPId)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBetweenOAPPs(fromOAPPId, toOAPPId);
         }
 
         public bool CreateAndDrawRouteOnMapBetweenBuildings(IBuilding fromBuilding, IBuilding toBuilding)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBetweenBuildings(fromBuilding, toBuilding);
         }
 
         public bool CreateAndDrawRouteOnMapBetweenBuildings(Guid fromBuildingId, Guid toBuildingId)
         {
-            return true;
+            CurrentMapProvider.CreateAndDrawRouteOnMapBetweenBuildings(fromBuildingId, toBuildingId);
         }
 
         public bool ZoomMapOut(float value)
         {
-            return true;
+            CurrentMapProvider.ZoomMapOut(value);
         }
 
         public bool ZoomMapIn(float value)
         {
-            return true;
+            CurrentMapProvider.ZoomMapIn(value);
         }
 
         public bool PanMapLeft(float value)
         {
-            return true;
+            CurrentMapProvider.PanMapLeft(value);
         }
 
         public bool PanMapRight(float value)
         {
-            return true;
+            CurrentMapProvider.PanMapRight(value);
         }
 
         public bool PanMapUp(float value)
         {
-            return true;
+            CurrentMapProvider.PanMapUp(value);
         }
 
         public bool PanMapDown(float value)
         {
-            return true;
+            CurrentMapProvider.PanMapDown(value);
         }
 
         //Select is same as Zoom so these functions are now redundant because zoom will zoom to and select the item on the map...
@@ -247,67 +247,67 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public bool ZoomToHolonOnMap(IHolon holon)
         {
-            return true;
+            CurrentMapProvider.ZoomToHolonOnMap(holon);
         }
 
         public bool ZoomToHolonOnMap(Guid holonId)
         {
-            return true;
+            CurrentMapProvider.ZoomToHolonOnMap(holonId);
         }
 
         public bool ZoomToQuestOnMap(IQuest quest)
         {
-            return true;
+            CurrentMapProvider.ZoomToQuestOnMap(quest);
         }
 
         public bool ZoomToQuestOnMap(Guid questId)
         {
-            return true;
+            CurrentMapProvider.ZoomToQuestOnMap(questId);
         }
 
         public bool ZoomToGeoNFTOnMap(IOASISGeoSpatialNFT geoNFT)
         {
-            return true;
+            CurrentMapProvider.ZoomToGeoNFTOnMap(geoNFT);
         }
 
         public bool ZoomToGeoNFTOnMap(Guid geoNFTId)
         {
-            return true;
+            CurrentMapProvider.ZoomToGeoNFTOnMap(geoNFTId);
         }
 
         public bool ZoomToGeoHotSpotOnMap(IGeoHotSpot geoHotSpot)
         {
-            return true;
+            CurrentMapProvider.ZoomToGeoHotSpotOnMap(geoHotSpot);
         }
 
         public bool ZoomToGeoHotSpotOnMap(Guid geoHotSpotId)
         {
-            return true;
+            CurrentMapProvider.ZoomToGeoHotSpotOnMap(geoHotSpotId);
         }
 
         public bool ZoomToOAPPOnMap(IOAPP oapp)
         {
-            return true;
+            CurrentMapProvider.ZoomToOAPPOnMap(oapp);
         }
 
         public bool ZoomToOAPPOnMap(Guid oappId)
         {
-            return true;
+            CurrentMapProvider.ZoomToOAPPOnMap(oappId);
         }
 
         public bool ZoomToBuildingOnMap(IBuilding building)
         {
-            return true;
+            CurrentMapProvider.ZoomToBuildingOnMap(building);
         }
 
         public bool ZoomToBuildingOnMap(Guid buildingId)
         {
-            return true;
+            CurrentMapProvider.ZoomToBuildingOnMap(buildingId);
         }
 
         public bool ZoomToCoOrdsOnMap(float x, float y)
         {
-            return true;
+            CurrentMapProvider.ZoomToCoOrdsOnMap(x, y);
         }
     }
 }
