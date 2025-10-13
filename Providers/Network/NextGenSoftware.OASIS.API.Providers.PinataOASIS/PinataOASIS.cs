@@ -1149,7 +1149,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     }
                 }
 
-                searchResults.Holons = foundHolons;
+                searchResults.SearchResultHolons = foundHolons.ToList();
                 result.Result = searchResults;
                 result.IsError = false;
             }
@@ -1166,31 +1166,34 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             if (holon == null || searchParams == null)
                 return false;
 
-            // Check if holon name matches search criteria
-            if (!string.IsNullOrEmpty(searchParams.SearchText))
+            if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
             {
-                if (!holon.Name.ToLower().Contains(searchParams.SearchText.ToLower()) &&
-                    !holon.Description.ToLower().Contains(searchParams.SearchText.ToLower()))
+                var firstGroup = searchParams.SearchGroups.First();
+                if (firstGroup is ISearchTextGroup textGroup && !string.IsNullOrWhiteSpace(textGroup.SearchQuery))
                 {
-                    return false;
+                    var q = textGroup.SearchQuery.ToLower();
+                    if (!((holon.Name ?? string.Empty).ToLower().Contains(q) || (holon.Description ?? string.Empty).ToLower().Contains(q)))
+                        return false;
                 }
             }
 
-            // Check holon type if specified
-            if (searchParams.HolonType != HolonType.All && holon.HolonType != searchParams.HolonType)
+            if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
             {
-                return false;
+                var g = searchParams.SearchGroups.First();
+                if (g.HolonType != HolonType.All && holon.HolonType != g.HolonType)
+                    return false;
             }
 
-            // Check metadata if specified
-            if (searchParams.MetaData != null && searchParams.MetaData.Any())
+            if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
             {
-                foreach (var metaData in searchParams.MetaData)
+                var g = searchParams.SearchGroups.First();
+                var meta = g.HolonSearchParams?.MetaData;
+                if (meta != null && meta.Any())
                 {
-                    if (!holon.MetaData.ContainsKey(metaData.Key) || 
-                        holon.MetaData[metaData.Key] != metaData.Value)
+                    foreach (var kv in meta)
                     {
-                        return false;
+                        if (holon.MetaData == null || !holon.MetaData.ContainsKey(kv.Key) || holon.MetaData[kv.Key]?.ToString() != kv.Value)
+                            return false;
                     }
                 }
             }

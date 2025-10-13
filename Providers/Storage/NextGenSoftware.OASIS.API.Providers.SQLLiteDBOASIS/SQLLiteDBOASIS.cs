@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 {
@@ -559,19 +560,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 
                 if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
-                    var query = searchParams.SearchGroups.First().PreviousSearchGroupOperator.ToString();
-                    // Search holons
-                    var holonSearchResult = await _holonRepository.SearchAsync(query);
-                    if (!holonSearchResult.IsError && holonSearchResult.Result != null)
+                    var q = (searchParams.SearchGroups.First().SearchQuery ?? string.Empty).ToLower();
+                    // Basic in-memory search using available repo APIs
+                    var holonLoad = await _holonRepository.LoadAllHolonsAsync();
+                    if (!holonLoad.IsError && holonLoad.Result != null)
                     {
-                        holons.AddRange(holonSearchResult.Result);
+                        holons.AddRange(holonLoad.Result.Where(h =>
+                            (h.Name ?? string.Empty).ToLower().Contains(q) || (h.Description ?? string.Empty).ToLower().Contains(q)));
                     }
-                    
-                    // Search avatars
-                    var avatarSearchResult = await _avatarRepository.SearchAsync(query);
-                    if (!avatarSearchResult.IsError && avatarSearchResult.Result != null)
+
+                    var avatarLoad = await _avatarRepository.LoadAllAvatarsAsync();
+                    if (!avatarLoad.IsError && avatarLoad.Result != null)
                     {
-                        avatars.AddRange(avatarSearchResult.Result);
+                        avatars.AddRange(avatarLoad.Result.Where(a =>
+                            (a.Name ?? string.Empty).ToLower().Contains(q) || (a.Username ?? string.Empty).ToLower().Contains(q) || (a.Email ?? string.Empty).ToLower().Contains(q)));
                     }
                 }
                 
@@ -652,14 +654,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 if (avatarResult.Result?.ProviderWallets != null)
                 {
-                    foreach (var wallet in avatarResult.Result.ProviderWallets)
-                    {
-                        if (!providerWallets.ContainsKey(wallet.ProviderType))
-                        {
-                            providerWallets[wallet.ProviderType] = new List<IProviderWallet>();
-                        }
-                        providerWallets[wallet.ProviderType].Add(wallet);
-                    }
+                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.ProviderType))
+                        providerWallets[grp.Key] = grp.ToList();
                 }
 
                 result.Result = providerWallets;
@@ -700,14 +696,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 if (avatarResult.Result?.ProviderWallets != null)
                 {
-                    foreach (var wallet in avatarResult.Result.ProviderWallets)
-                    {
-                        if (!providerWallets.ContainsKey(wallet.ProviderType))
-                        {
-                            providerWallets[wallet.ProviderType] = new List<IProviderWallet>();
-                        }
-                        providerWallets[wallet.ProviderType].Add(wallet);
-                    }
+                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.ProviderType))
+                        providerWallets[grp.Key] = grp.ToList();
                 }
 
                 result.Result = providerWallets;
@@ -748,14 +738,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 if (avatarResult.Result?.ProviderWallets != null)
                 {
-                    foreach (var wallet in avatarResult.Result.ProviderWallets)
-                    {
-                        if (!providerWallets.ContainsKey(wallet.ProviderType))
-                        {
-                            providerWallets[wallet.ProviderType] = new List<IProviderWallet>();
-                        }
-                        providerWallets[wallet.ProviderType].Add(wallet);
-                    }
+                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.ProviderType))
+                        providerWallets[grp.Key] = grp.ToList();
                 }
 
                 result.Result = providerWallets;
@@ -1008,11 +992,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
 
-                // Export all holons created by the avatar ID
-                var holons = await _holonRepository.GetByCreatedByIdAsync(avatarId);
-                result.Result = holons.Result;
+                // Fallback: load all and filter by CreatedByAvatarId
+                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var filtered = allHolons.Result?.Where(h => h.CreatedByAvatarId == avatarId) ?? Enumerable.Empty<IHolon>();
+                result.Result = filtered;
                 result.IsError = false;
-                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarId} from SQLite";
+                result.Message = $"Successfully exported {result.Result.Count()} holons for avatar {avatarId} from SQLite";
             }
             catch (Exception ex)
             {
@@ -1037,11 +1022,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
 
-                // Export all holons created by the avatar username
-                var holons = await _holonRepository.GetByCreatedByUsernameAsync(avatarUsername);
-                result.Result = holons.Result;
+                // Fallback: load all and filter by CreatedByAvatarId (using CreatedByAvatar property)
+                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var filtered = allHolons.Result?.Where(h => h.CreatedByAvatar != null && string.Equals(h.CreatedByAvatar.Username, avatarUsername, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<IHolon>();
+                result.Result = filtered;
                 result.IsError = false;
-                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarUsername} from SQLite";
+                result.Message = $"Successfully exported {result.Result.Count()} holons for avatar {avatarUsername} from SQLite";
             }
             catch (Exception ex)
             {
@@ -1066,11 +1052,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
 
-                // Export all holons created by the avatar email
-                var holons = await _holonRepository.GetByCreatedByEmailAsync(avatarEmailAddress);
-                result.Result = holons.Result;
+                // Fallback: load all and filter by CreatedByAvatarId (using CreatedByAvatar property)
+                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var filtered = allHolons.Result?.Where(h => h.CreatedByAvatar != null && string.Equals(h.CreatedByAvatar.Email, avatarEmailAddress, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<IHolon>();
+                result.Result = filtered;
                 result.IsError = false;
-                result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons for avatar {avatarEmailAddress} from SQLite";
+                result.Message = $"Successfully exported {result.Result.Count()} holons for avatar {avatarEmailAddress} from SQLite";
             }
             catch (Exception ex)
             {
@@ -1095,8 +1082,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
 
-                // Export all holons
-                var holons = await _holonRepository.GetAllAsync();
+                // Export all holons via current repository API
+                var holons = await _holonRepository.LoadAllHolonsAsync();
                 result.Result = holons.Result;
                 result.IsError = false;
                 result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons from SQLite";
@@ -1149,8 +1136,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
 
-                // Load holons by metadata from SQLite
-                var holons = await _holonRepository.GetByMetaDataAsync(metaKey, metaValue);
+                // Load holons by metadata from SQLite - using LoadAllHolons and filter
+                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var holons = new OASISResult<IEnumerable<IHolon>>();
+                if (allHolons.IsError)
+                {
+                    holons.IsError = true;
+                    holons.Message = allHolons.Message;
+                }
+                else
+                {
+                    var filtered = allHolons.Result?.Where(h => h.MetaData != null && h.MetaData.ContainsKey(metaKey) && h.MetaData[metaKey]?.ToString() == metaValue) ?? Enumerable.Empty<IHolon>();
+                    holons.Result = filtered;
+                    holons.IsError = false;
+                }
                 if (holons.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {holons.Message}");
@@ -1184,8 +1183,32 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
 
-                // Load holons by multiple metadata pairs from SQLite
-                var holons = await _holonRepository.GetByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode);
+                // Load holons by multiple metadata pairs from SQLite - using LoadAllHolons and filter
+                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var holons = new OASISResult<IEnumerable<IHolon>>();
+                if (allHolons.IsError)
+                {
+                    holons.IsError = true;
+                    holons.Message = allHolons.Message;
+                }
+                else
+                {
+                    var filtered = allHolons.Result?.Where(h => 
+                    {
+                        if (h.MetaData == null) return false;
+                        
+                        if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.And)
+                        {
+                            return metaKeyValuePairs.All(kvp => h.MetaData.ContainsKey(kvp.Key) && h.MetaData[kvp.Key]?.ToString() == kvp.Value);
+                        }
+                        else // Or
+                        {
+                            return metaKeyValuePairs.Any(kvp => h.MetaData.ContainsKey(kvp.Key) && h.MetaData[kvp.Key]?.ToString() == kvp.Value);
+                        }
+                    }) ?? Enumerable.Empty<IHolon>();
+                    holons.Result = filtered;
+                    holons.IsError = false;
+                }
                 if (holons.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs: {holons.Message}");
