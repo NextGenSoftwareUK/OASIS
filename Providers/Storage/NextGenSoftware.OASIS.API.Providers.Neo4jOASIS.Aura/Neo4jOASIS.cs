@@ -3126,7 +3126,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            return await LoadAllHolonsAsync(version);
+            return await LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, false, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)

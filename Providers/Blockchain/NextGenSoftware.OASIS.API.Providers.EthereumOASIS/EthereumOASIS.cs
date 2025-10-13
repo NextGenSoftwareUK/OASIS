@@ -411,51 +411,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         // Removed duplicate DeleteAvatarByEmailAsync method
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum provider is not activated");
-                    return result;
-                }
-
-                // Load avatar by username first
-                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
-                if (avatarResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
-                    return result;
-                }
-
-                if (avatarResult.Result != null)
-                {
-                    // Delete avatar by ID
-                    var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                    if (deleteResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                        return result;
-                    }
-
-                    result.Result = deleteResult.Result;
-                    result.IsError = false;
-                    result.Message = $"Avatar deleted successfully by username from Ethereum";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Ethereum: {ex.Message}", ex);
-            }
-            return result;
-        }
-
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
             return DeleteAvatarAsync(providerKey, softDelete).Result;
