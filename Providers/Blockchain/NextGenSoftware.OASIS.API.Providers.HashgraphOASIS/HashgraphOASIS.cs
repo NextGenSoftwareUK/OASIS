@@ -1383,10 +1383,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
+            return SendTransaction(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public async Task<OASISResult<ITransactionRespone>> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             var result = new OASISResult<ITransactionRespone>();
             try
@@ -1406,13 +1406,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 };
 
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
+                var transactionResult = await hashgraphClient.SendTransaction(transactionData);
 
                 if (transactionResult != null)
                 {
                     result.Result = new TransactionResponse
                     {
-                        TransactionHash = transactionResult.TransactionId,
+                        TransactionId = transactionResult.TransactionId,
                         FromAddress = fromWalletAddress,
                         ToAddress = toWalletAddress,
                         Amount = amount,
@@ -1459,8 +1459,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var fromAddress = fromWalletResult.Result;
-                var toAddress = toWalletResult.Result;
+                var fromAddress = fromWalletResult.Result?.WalletAddress;
+                var toAddress = toWalletResult.Result?.WalletAddress;
 
                 if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
                 {
@@ -1479,13 +1479,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 // Submit transaction to Hashgraph network
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
+                var transactionResult = await hashgraphClient.SendTransaction(transactionData);
 
                 if (transactionResult != null)
                 {
                     result.Result = new TransactionResponse
                     {
-                        TransactionHash = transactionResult.TransactionId,
+                        TransactionId = transactionResult.TransactionId,
                         FromAddress = fromAddress,
                         ToAddress = toAddress,
                         Amount = amount,
@@ -1537,8 +1537,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var fromAddress = fromWalletResult.Result;
-                var toAddress = toWalletResult.Result;
+                var fromAddress = fromWalletResult.Result?.WalletAddress;
+                var toAddress = toWalletResult.Result?.WalletAddress;
 
                 if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
                 {
@@ -1557,13 +1557,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 // Submit transaction to Hashgraph network
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
+                var transactionResult = await hashgraphClient.SendTransaction(transactionData);
 
                 if (transactionResult != null)
                 {
                     result.Result = new TransactionResponse
                     {
-                        TransactionHash = transactionResult.TransactionId,
+                        TransactionId = transactionResult.TransactionId,
                         FromAddress = fromAddress,
                         ToAddress = toAddress,
                         Amount = amount,
@@ -1620,8 +1620,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var fromAddress = fromWalletResult.Result;
-                var toAddress = toWalletResult.Result;
+                var fromAddress = fromWalletResult.Result?.WalletAddress;
+                var toAddress = toWalletResult.Result?.WalletAddress;
 
                 if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
                 {
@@ -1638,13 +1638,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 };
 
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
+                var transactionResult = await hashgraphClient.SendTransaction(transactionData);
 
                 if (transactionResult != null)
                 {
                     result.Result = new TransactionResponse
                     {
-                        TransactionHash = transactionResult.TransactionId,
+                        TransactionId = transactionResult.TransactionId,
                         FromAddress = fromAddress,
                         ToAddress = toAddress,
                         Amount = amount,
@@ -1690,8 +1690,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var fromAddress = fromWalletResult.Result;
-                var toAddress = toWalletResult.Result;
+                var fromAddress = fromWalletResult.Result?.WalletAddress;
+                var toAddress = toWalletResult.Result?.WalletAddress;
 
                 if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
                 {
@@ -1715,7 +1715,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 {
                     result.Result = new TransactionRespone
                     {
-                        TransactionHash = transactionResult.TransactionId,
+                        TransactionId = transactionResult.TransactionId,
                         FromAddress = fromAddress,
                         ToAddress = toAddress,
                         Amount = amount,
@@ -1766,8 +1766,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var fromAddress = fromWalletResult.Result;
-                var toAddress = toWalletResult.Result;
+                var fromAddress = fromWalletResult.Result?.WalletAddress;
+                var toAddress = toWalletResult.Result?.WalletAddress;
 
                 if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
                 {
@@ -1784,13 +1784,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 };
 
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
+                var transactionResult = await hashgraphClient.SendTransaction(transactionData);
 
                 if (transactionResult != null)
                 {
                     result.Result = new TransactionResponse
                     {
-                        TransactionHash = transactionResult.TransactionId,
+                        TransactionId = transactionResult.TransactionId,
                         FromAddress = fromAddress,
                         ToAddress = toAddress,
                         Amount = amount,
