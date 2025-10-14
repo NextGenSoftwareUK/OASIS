@@ -873,16 +873,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                             IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                             // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                             ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                             IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                             IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
                             {
@@ -959,16 +959,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                         IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                         // Map ALL Holon properties
-                        ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                         ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                        PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                        VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                         IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                         IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                        DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                        DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                        CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                        ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                         // Map Google Cloud specific data to custom properties
                         MetaData = new Dictionary<string, object>
                         {
@@ -1045,16 +1045,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                             IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                             // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                             ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                             IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                             IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
                             {
@@ -1136,16 +1136,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                             IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                             // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                             ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                             IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                             IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
                             {
@@ -1227,16 +1227,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                             IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                             // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                             ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                             IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                             IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
                             {
@@ -1326,16 +1326,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                             IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                             // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                             ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                             IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                             IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
                             {
@@ -1520,16 +1520,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                             IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                             // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                             ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                             IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                             IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
                             {
@@ -1600,16 +1600,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                         IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                         // Map ALL Holon properties
-                        ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                         ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                        PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                        VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                         IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                         IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                        DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                        DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                        CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                        ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                         // Map Google Cloud specific data to custom properties
                         MetaData = new Dictionary<string, object>
                         {
@@ -1683,16 +1683,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                         IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                         // Map ALL Holon properties
-                        ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                         ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                        PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                        VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                         IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                         IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                        DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                        DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                        CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                        ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                         // Map Google Cloud specific data to custom properties
                         MetaData = new Dictionary<string, object>
                         {
@@ -1767,14 +1767,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         ["parentId"] = holon.ParentHolonId?.ToString(),
                         ["providerKey"] = holon.ProviderKey,
                         ["previousVersionId"] = holon.PreviousVersionId?.ToString(),
-                        ["nextVersionId"] = holon.NextVersionId?.ToString(),
+                        ["nextVersionId"] = holon.VersionId?.ToString(),
                         ["isChanged"] = holon.IsChanged,
-                        ["isNew"] = holon.IsNew,
-                        ["isDeleted"] = holon.IsDeleted,
-                        ["deletedByAvatarId"] = holon.DeletedByAvatarId?.ToString(),
-                        ["deletedDate"] = holon.DeletedDate.HasValue ? Timestamp.FromDateTime(holon.DeletedDate.Value) : null,
-                        ["createdByAvatarId"] = holon.CreatedByAvatarId?.ToString(),
-                        ["modifiedByAvatarId"] = holon.ModifiedByAvatarId?.ToString(),
+                        ["isNew"] = holon.IsNewHolon,
+                        ["isDeleted"] = !holon.IsActive,
+                        ["deletedByAvatarId"] = holon.DeletedByAvatarId.ToString(),
+                        ["deletedDate"] = holon.DeletedDate != DateTime.MinValue ? Timestamp.FromDateTime(holon.DeletedDate) : null,
+                        ["createdByAvatarId"] = holon.CreatedByAvatarId.ToString(),
+                        ["modifiedByAvatarId"] = holon.ModifiedByAvatarId.ToString(),
                         // Map Google Cloud specific data
                         ["googleCloudProjectId"] = _projectId,
                         ["googleCloudBucketName"] = _bucketName,
@@ -2072,16 +2072,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                             IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                             // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                             ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                             IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                             IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
                             {
@@ -2224,14 +2224,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         ["parentId"] = holon.ParentHolonId?.ToString(),
                         ["providerKey"] = holon.ProviderKey,
                         ["previousVersionId"] = holon.PreviousVersionId?.ToString(),
-                        ["nextVersionId"] = holon.NextVersionId?.ToString(),
+                        ["nextVersionId"] = holon.VersionId?.ToString(),
                         ["isChanged"] = holon.IsChanged,
-                        ["isNew"] = holon.IsNew,
-                        ["isDeleted"] = holon.IsDeleted,
-                        ["deletedByAvatarId"] = holon.DeletedByAvatarId?.ToString(),
-                        ["deletedDate"] = holon.DeletedDate.HasValue ? Timestamp.FromDateTime(holon.DeletedDate.Value) : null,
-                        ["createdByAvatarId"] = holon.CreatedByAvatarId?.ToString(),
-                        ["modifiedByAvatarId"] = holon.ModifiedByAvatarId?.ToString(),
+                        ["isNew"] = holon.IsNewHolon,
+                        ["isDeleted"] = !holon.IsActive,
+                        ["deletedByAvatarId"] = holon.DeletedByAvatarId.ToString(),
+                        ["deletedDate"] = holon.DeletedDate != DateTime.MinValue ? Timestamp.FromDateTime(holon.DeletedDate) : null,
+                        ["createdByAvatarId"] = holon.CreatedByAvatarId.ToString(),
+                        ["modifiedByAvatarId"] = holon.ModifiedByAvatarId.ToString(),
                         // Map Google Cloud specific data
                         ["googleCloudProjectId"] = _projectId,
                         ["googleCloudBucketName"] = _bucketName,
@@ -2244,7 +2244,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     importedHolons.Add(holon);
                 }
                 
-                result.Result = importedHolons;
+                result.Result = true;
                 result.IsError = false;
                 result.Message = $"Holons imported successfully to Google Cloud Firestore with full property mapping ({importedHolons.Count} holons)";
             }
@@ -2300,16 +2300,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                             IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                             // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                             ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                             IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                             IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
                             {
@@ -2391,16 +2391,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                             IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                             // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                             ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                             IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                             IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
                             {
@@ -2482,16 +2482,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                             IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                             // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                             ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                             IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                             IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
                             {
@@ -2573,16 +2573,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
                             IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
                             // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : (Guid?)null,
+                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
                             ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : (Guid?)null,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : (Guid?)null,
+                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
+                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
                             IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
                             IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : (Guid?)null,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : (DateTime?)null,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : (Guid?)null,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : (Guid?)null,
+                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
+                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
+                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
+                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
                             {
@@ -2667,18 +2667,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         Mobile = avatarDetailData.GetValueOrDefault("mobile")?.ToString(),
                         Landline = avatarDetailData.GetValueOrDefault("landline")?.ToString(),
                         Title = avatarDetailData.GetValueOrDefault("title")?.ToString(),
-                        DOB = avatarDetailData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarDetailData.GetValueOrDefault("dob")).ToDateTime() : (DateTime?)null,
-                        AvatarType = Enum.TryParse<AvatarType>(avatarDetailData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User,
-                        KarmaAkashicRecords = Convert.ToInt32(avatarDetailData.GetValueOrDefault("karmaAkashicRecords") ?? 0),
-                        Level = Convert.ToInt32(avatarDetailData.GetValueOrDefault("level") ?? 1),
+                        DOB = avatarDetailData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarDetailData.GetValueOrDefault("dob")).ToDateTime() : DateTime.MinValue,
+                        AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(avatarDetailData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
+                        KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
+                        // Level is read-only and calculated from Karma
                         XP = Convert.ToInt32(avatarDetailData.GetValueOrDefault("xp") ?? 0),
-                        HP = Convert.ToInt32(avatarDetailData.GetValueOrDefault("hp") ?? 100),
-                        Mana = Convert.ToInt32(avatarDetailData.GetValueOrDefault("mana") ?? 100),
-                        Stamina = Convert.ToInt32(avatarDetailData.GetValueOrDefault("stamina") ?? 100),
+                        // HP, Mana, Stamina properties don't exist on AvatarDetail
                         Description = avatarDetailData.GetValueOrDefault("description")?.ToString(),
-                        Website = avatarDetailData.GetValueOrDefault("website")?.ToString(),
-                        Language = avatarDetailData.GetValueOrDefault("language")?.ToString(),
-                        ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>(),
+                        // Website, Language, ProviderWallets properties don't exist on AvatarDetail
                         // Map Google Cloud specific data to custom properties
                         MetaData = new Dictionary<string, object>
                         {
@@ -2842,18 +2838,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         Mobile = avatarDetailData.GetValueOrDefault("mobile")?.ToString(),
                         Landline = avatarDetailData.GetValueOrDefault("landline")?.ToString(),
                         Title = avatarDetailData.GetValueOrDefault("title")?.ToString(),
-                        DOB = avatarDetailData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarDetailData.GetValueOrDefault("dob")).ToDateTime() : (DateTime?)null,
-                        AvatarType = Enum.TryParse<AvatarType>(avatarDetailData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User,
-                        KarmaAkashicRecords = Convert.ToInt32(avatarDetailData.GetValueOrDefault("karmaAkashicRecords") ?? 0),
-                        Level = Convert.ToInt32(avatarDetailData.GetValueOrDefault("level") ?? 1),
+                        DOB = avatarDetailData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarDetailData.GetValueOrDefault("dob")).ToDateTime() : DateTime.MinValue,
+                        AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(avatarDetailData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
+                        KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
+                        // Level is read-only and calculated from Karma
                         XP = Convert.ToInt32(avatarDetailData.GetValueOrDefault("xp") ?? 0),
-                        HP = Convert.ToInt32(avatarDetailData.GetValueOrDefault("hp") ?? 100),
-                        Mana = Convert.ToInt32(avatarDetailData.GetValueOrDefault("mana") ?? 100),
-                        Stamina = Convert.ToInt32(avatarDetailData.GetValueOrDefault("stamina") ?? 100),
+                        // HP, Mana, Stamina properties don't exist on AvatarDetail
                         Description = avatarDetailData.GetValueOrDefault("description")?.ToString(),
-                        Website = avatarDetailData.GetValueOrDefault("website")?.ToString(),
-                        Language = avatarDetailData.GetValueOrDefault("language")?.ToString(),
-                        ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>(),
+                        // Website, Language, ProviderWallets properties don't exist on AvatarDetail
                         // Map Google Cloud specific data to custom properties
                         MetaData = new Dictionary<string, object>
                         {
@@ -2927,18 +2919,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         Mobile = avatarDetailData.GetValueOrDefault("mobile")?.ToString(),
                         Landline = avatarDetailData.GetValueOrDefault("landline")?.ToString(),
                         Title = avatarDetailData.GetValueOrDefault("title")?.ToString(),
-                        DOB = avatarDetailData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarDetailData.GetValueOrDefault("dob")).ToDateTime() : (DateTime?)null,
-                        AvatarType = Enum.TryParse<AvatarType>(avatarDetailData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User,
-                        KarmaAkashicRecords = Convert.ToInt32(avatarDetailData.GetValueOrDefault("karmaAkashicRecords") ?? 0),
-                        Level = Convert.ToInt32(avatarDetailData.GetValueOrDefault("level") ?? 1),
+                        DOB = avatarDetailData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarDetailData.GetValueOrDefault("dob")).ToDateTime() : DateTime.MinValue,
+                        AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(avatarDetailData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
+                        KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
+                        // Level is read-only and calculated from Karma
                         XP = Convert.ToInt32(avatarDetailData.GetValueOrDefault("xp") ?? 0),
-                        HP = Convert.ToInt32(avatarDetailData.GetValueOrDefault("hp") ?? 100),
-                        Mana = Convert.ToInt32(avatarDetailData.GetValueOrDefault("mana") ?? 100),
-                        Stamina = Convert.ToInt32(avatarDetailData.GetValueOrDefault("stamina") ?? 100),
+                        // HP, Mana, Stamina properties don't exist on AvatarDetail
                         Description = avatarDetailData.GetValueOrDefault("description")?.ToString(),
-                        Website = avatarDetailData.GetValueOrDefault("website")?.ToString(),
-                        Language = avatarDetailData.GetValueOrDefault("language")?.ToString(),
-                        ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>(),
+                        // Website, Language, ProviderWallets properties don't exist on AvatarDetail
                         // Map Google Cloud specific data to custom properties
                         MetaData = new Dictionary<string, object>
                         {
@@ -3017,10 +3005,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             Mobile = avatarDetailData.GetValueOrDefault("mobile")?.ToString(),
                             Landline = avatarDetailData.GetValueOrDefault("landline")?.ToString(),
                             Title = avatarDetailData.GetValueOrDefault("title")?.ToString(),
-                            DOB = avatarDetailData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarDetailData.GetValueOrDefault("dob")).ToDateTime() : (DateTime?)null,
-                            AvatarType = Enum.TryParse<AvatarType>(avatarDetailData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User,
-                            KarmaAkashicRecords = Convert.ToInt32(avatarDetailData.GetValueOrDefault("karmaAkashicRecords") ?? 0),
-                            Level = Convert.ToInt32(avatarDetailData.GetValueOrDefault("level") ?? 1),
+                            DOB = avatarDetailData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarDetailData.GetValueOrDefault("dob")).ToDateTime() : DateTime.MinValue,
+                            AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(avatarDetailData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
+                            KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
+                            // Level is read-only and calculated from Karma
                             XP = Convert.ToInt32(avatarDetailData.GetValueOrDefault("xp") ?? 0),
                             HP = Convert.ToInt32(avatarDetailData.GetValueOrDefault("hp") ?? 100),
                             Mana = Convert.ToInt32(avatarDetailData.GetValueOrDefault("mana") ?? 100),
