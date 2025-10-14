@@ -2892,17 +2892,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     {
                         foreach (var avatar in avatarsResult.Result)
                         {
-                            // TODO: Implement proper search result creation
-                            // searchResults.Add(new SearchResult
-                            // {
-                            //     ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.Storage),
-                            //     ProviderType = new EnumValue<ProviderType>(ProviderType.Neo4jOASIS),
-                            //     Id = avatar.Id,
-                            //     Name = avatar.Username,
-                            //     Description = avatar.Description,
-                            //     Result = avatar,
-                            //     IsError = false
-                            // });
+                            // Real Neo4j implementation: Add search result
+                            searchResults.SearchResultAvatars.Add(avatar);
                         }
                     }
                 }
