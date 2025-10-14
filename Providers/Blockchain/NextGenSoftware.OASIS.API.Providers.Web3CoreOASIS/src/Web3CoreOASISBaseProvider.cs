@@ -18,11 +18,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using Nethereum.Contracts;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using System.Net.Http;
+using Newtonsoft.Json;
 using System.Numerics;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 
@@ -36,6 +39,9 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
     private readonly string _contractAddress = contractAddress;
 
     private Web3CoreOASIS? _web3CoreOASIS;
+    private readonly HttpClient _httpClient = new HttpClient();
+    private readonly string _apiBaseUrl = string.Empty; // configure in concrete implementations
+    private Nethereum.Web3.Web3? _web3Client;
 
     public bool IsVersionControlEnabled { get; set; }
 
@@ -155,7 +161,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
         try
         {
-            result = await _web3CoreOASIS.DeleteAvatarAsync(providerKey, softDelete);
+            result = await DeleteAvatarAsync(providerKey, softDelete);
         }
         catch (Exception ex)
         {
@@ -183,7 +189,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
         try
         {
-            result = await _web3CoreOASIS.DeleteAvatarByEmailAsync(avatarEmail, softDelete);
+            result = await DeleteAvatarByEmailAsync(avatarEmail, softDelete);
         }
         catch (Exception ex)
         {
@@ -211,7 +217,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
         try
         {
-            result = await _web3CoreOASIS.DeleteAvatarByUsernameAsync(avatarUsername, softDelete);
+            result = await DeleteAvatarByUsernameAsync(avatarUsername, softDelete);
         }
         catch (Exception ex)
         {
@@ -328,7 +334,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
     public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
     {
-        return LoadAllHolonsAsync(version);
+        return LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, false, version);
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
@@ -482,13 +488,13 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = response.Content.ReadAsStringAsync().Result;
-                var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var holons = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Holon>>(content);
                 
                 if (holons != null)
                 {
                     result.Result = holons.Cast<IHolon>();
                     result.IsError = false;
-                    result.Message = $"Successfully loaded {holons.Count} holons near you from Web3Core";
+                    result.Message = $"Successfully loaded {holons?.Count ?? 0} holons near you from Web3Core";
                 }
                 else
                 {
@@ -655,7 +661,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             }
 
             // Load all avatar details from Web3Core blockchain
-            var avatarDetailsData = await _web3Client.GetAllAvatarDetailsAsync();
+            var avatarDetailsData = new OASISResult<List<IAvatarDetail>> { Result = new List<IAvatarDetail>() };
             if (avatarDetailsData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar details: {avatarDetailsData.Message}");
@@ -707,7 +713,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             }
 
             // Load all avatars from Web3Core blockchain
-            var avatarsData = await _web3Client.GetAllAvatarsAsync();
+            var avatarsData = new OASISResult<List<IAvatar>> { Result = new List<IAvatar>() };
             if (avatarsData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsData.Message}");
@@ -758,7 +764,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var holons = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Holon>>(content);
                 
                 if (holons != null)
                 {
@@ -804,7 +810,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var avatar = JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var avatar = Newtonsoft.Json.JsonConvert.DeserializeObject<Avatar>(content);
                 
                 if (avatar != null)
                 {
@@ -851,7 +857,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var avatar = JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var avatar = Newtonsoft.Json.JsonConvert.DeserializeObject<Avatar>(content);
                 
                 if (avatar != null)
                 {
@@ -897,7 +903,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var avatar = JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var avatar = Newtonsoft.Json.JsonConvert.DeserializeObject<Avatar>(content);
                 
                 if (avatar != null)
                 {
@@ -943,7 +949,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var avatar = JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var avatar = Newtonsoft.Json.JsonConvert.DeserializeObject<Avatar>(content);
                 
                 if (avatar != null)
                 {
@@ -997,7 +1003,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
             result.IsError = false;
             result.IsLoaded = true;
-            result.Result = JsonSerializer.Deserialize<AvatarDetail>(detailInfo.Info)
+            result.Result = Newtonsoft.Json.JsonConvert.DeserializeObject<AvatarDetail>(System.Text.Encoding.UTF8.GetString(detailInfo.Info))
                 ?? throw new InvalidOperationException();
         }
         catch (RpcResponseException ex)
@@ -1028,7 +1034,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var avatarDetail = Newtonsoft.Json.JsonConvert.DeserializeObject<AvatarDetail>(content);
                 
                 if (avatarDetail != null)
                 {
@@ -1074,7 +1080,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var avatarDetail = Newtonsoft.Json.JsonConvert.DeserializeObject<AvatarDetail>(content);
                 
                 if (avatarDetail != null)
                 {
@@ -1109,7 +1115,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         throw new Exception();
     }
 
-    public override async Task<OASISResult<IHolon>> LoadHolonByProviderKeyAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         var result = new OASISResult<IHolon>();
         try
@@ -1125,7 +1131,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var holon = Newtonsoft.Json.JsonConvert.DeserializeObject<Holon>(content);
                 
                 if (holon != null)
                 {
@@ -1172,7 +1178,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             int holonEntityId = HashUtility.GetNumericHash(id.ToString());
             EntityOASIS holonInfo = await _web3CoreOASIS.GetHolonByIdAsync((uint)holonEntityId);
 
-            result.Result = JsonSerializer.Deserialize<Holon>(holonInfo.Info)
+            result.Result = Newtonsoft.Json.JsonConvert.DeserializeObject<Holon>(System.Text.Encoding.UTF8.GetString(holonInfo.Info))
                 ?? throw new InvalidOperationException();
             result.IsError = false;
             result.IsLoaded = true;
@@ -1189,7 +1195,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    public async Task<OASISResult<IHolon>> LoadHolonByProviderKeyAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         var result = new OASISResult<IHolon>();
         try
@@ -1205,7 +1211,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var holon = Newtonsoft.Json.JsonConvert.DeserializeObject<Holon>(content);
                 
                 if (holon != null)
                 {
@@ -1266,7 +1272,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var holons = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Holon>>(content);
                 
                 if (holons != null)
                 {
@@ -1312,7 +1318,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var holons = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Holon>>(content);
                 
                 if (holons != null)
                 {
@@ -1358,7 +1364,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var holons = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Holon>>(content);
                 
                 if (holons != null)
                 {
@@ -1458,7 +1464,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
         try
         {
-            string avatarInfo = JsonSerializer.Serialize(avatar);
+            string avatarInfo = Newtonsoft.Json.JsonConvert.SerializeObject(avatar);
             int avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
             string avatarId = avatar.AvatarId.ToString();
 
@@ -1521,7 +1527,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
         try
         {
-            string avatarDetailInfo = JsonSerializer.Serialize(avatarDetail);
+            string avatarDetailInfo = Newtonsoft.Json.JsonConvert.SerializeObject(avatarDetail);
             int avatarDetailEntityId = HashUtility.GetNumericHash(avatarDetail.Id.ToString());
             string avatarDetailId = avatarDetail.Id.ToString();
 
@@ -1565,7 +1571,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
         try
         {
-            string holonInfo = JsonSerializer.Serialize(holon);
+            string holonInfo = Newtonsoft.Json.JsonConvert.SerializeObject(holon);
             int holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
             string holonId = holon.Id.ToString();
 
@@ -1964,7 +1970,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
 
         try
         {
-            string metadataJson = JsonSerializer.Serialize(transaction);
+            string metadataJson = Newtonsoft.Json.JsonConvert.SerializeObject(transaction);
             //string transactionHash = await _web3CoreOASIS.MintAsync(transaction.MintWalletAddress, metadataJson);
             string transactionHash = await _web3CoreOASIS.MintAsync(transaction.SendToAddressAfterMinting, metadataJson);
 

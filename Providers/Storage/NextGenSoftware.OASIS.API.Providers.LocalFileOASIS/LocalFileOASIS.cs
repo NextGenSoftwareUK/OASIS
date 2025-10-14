@@ -1527,7 +1527,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 // try avatar/holon params with simple meta key
                 var avatarParams = searchParams.SearchGroups
-                    .Select(g => g.AvatarSerachParams)
+                    .Select(g => g.AvatarSearchParams)
                     .Where(p => p != null)
                     .FirstOrDefault();
                 var holonParams = searchParams.SearchGroups

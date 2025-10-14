@@ -563,9 +563,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
 
         #region IOASISNET Implementation
 
-        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var response = new OASISResult<IEnumerable<IPlayer>>();
+            var response = new OASISResult<IEnumerable<IAvatar>>();
 
             try
             {
@@ -582,11 +582,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse AWS JSON and create Player collection
-                    var players = ParseAWSToPlayers(content);
-                    if (players != null)
+                    // Parse AWS JSON and create Avatar collection
+                    var avatars = ParseAWSToAvatars(content);
+                    if (avatars != null)
                     {
-                        response.Result = players;
+                        response.Result = avatars;
                         response.Message = "Players loaded from AWS successfully";
                     }
                     else
@@ -608,7 +608,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             return response;
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
 
@@ -793,6 +793,29 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS
             catch (Exception)
             {
                 return new List<IPlayer>();
+            }
+        }
+
+        /// <summary>
+        /// Parse AWS JSON content and convert to OASIS Avatar collection
+        /// </summary>
+        private IEnumerable<IAvatar> ParseAWSToAvatars(string awsJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar collection to preserve all properties
+                var avatars = JsonSerializer.Deserialize<IEnumerable<Avatar>>(awsJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+                
+                return avatars;
+            }
+            catch (Exception)
+            {
+                // Return empty collection if parsing fails
+                return new List<IAvatar>();
             }
         }
 

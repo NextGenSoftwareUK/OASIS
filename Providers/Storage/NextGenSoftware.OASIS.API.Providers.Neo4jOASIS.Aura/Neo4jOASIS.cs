@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using Neo4jNode = Neo4j.Driver.INode;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 {
@@ -3176,16 +3177,37 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 }
 
                 // Load holons by metadata from Neo4j Aura database
-                var holons = await _holonRepository.GetByMetaDataAsync(metaKey, metaValue);
-                if (holons.IsError)
+                var holons = new List<IHolon>();
+                
+                using (var session = Driver.AsyncSession())
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {holons.Message}");
-                    return result;
+                    var query = "MATCH (h:Holon) WHERE h.MetaData[$metaKey] = $metaValue RETURN h";
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "metaKey", metaKey },
+                        { "metaValue", metaValue }
+                    };
+                    
+                    var cursor = await session.RunAsync(query, parameters);
+                    var records = await cursor.ToListAsync();
+                    
+                    foreach (var record in records)
+                    {
+                        var holonNode = record["h"].As<Neo4jNode>();
+                        var holon = new Holon
+                        {
+                            Id = Guid.Parse(holonNode["Id"].As<string>()),
+                            Name = holonNode["Name"].As<string>(),
+                            Description = holonNode["Description"].As<string>(),
+                            MetaData = holonNode["MetaData"].As<Dictionary<string, object>>()
+                        };
+                        holons.Add(holon);
+                    }
                 }
-
-                result.Result = holons.Result;
+                
+                result.Result = holons;
                 result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Result?.Count() ?? 0} holons by metadata from Neo4j Aura";
+                result.Message = $"Successfully loaded {holons?.Count ?? 0} holons by metadata from Neo4j Aura";
             }
             catch (Exception ex)
             {
@@ -3211,16 +3233,52 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 }
 
                 // Load holons by multiple metadata pairs from Neo4j Aura database
-                var holons = await _holonRepository.GetByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode);
-                if (holons.IsError)
+                var holons = new List<IHolon>();
+                
+                using (var session = Driver.AsyncSession())
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs: {holons.Message}");
-                    return result;
+                    var whereConditions = new List<string>();
+                    var parameters = new Dictionary<string, object>();
+                    
+                    int index = 0;
+                    foreach (var pair in metaKeyValuePairs)
+                    {
+                        var keyParam = $"metaKey{index}";
+                        var valueParam = $"metaValue{index}";
+                        
+                        whereConditions.Add($"h.MetaData[${keyParam}] = ${valueParam}");
+                        
+                        parameters[keyParam] = pair.Key;
+                        parameters[valueParam] = pair.Value;
+                        index++;
+                    }
+                    
+                    var whereClause = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All 
+                        ? string.Join(" AND ", whereConditions)
+                        : string.Join(" OR ", whereConditions);
+                    
+                    var query = $"MATCH (h:Holon) WHERE {whereClause} RETURN h";
+                    
+                    var cursor = await session.RunAsync(query, parameters);
+                    var records = await cursor.ToListAsync();
+                    
+                    foreach (var record in records)
+                    {
+                        var holonNode = record["h"].As<Neo4jNode>();
+                        var holon = new Holon
+                        {
+                            Id = Guid.Parse(holonNode["Id"].As<string>()),
+                            Name = holonNode["Name"].As<string>(),
+                            Description = holonNode["Description"].As<string>(),
+                            MetaData = holonNode["MetaData"].As<Dictionary<string, object>>()
+                        };
+                        holons.Add(holon);
+                    }
                 }
-
-                result.Result = holons.Result;
+                
+                result.Result = holons;
                 result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Result?.Count() ?? 0} holons by metadata pairs from Neo4j Aura";
+                result.Message = $"Successfully loaded {holons?.Count ?? 0} holons by metadata pairs from Neo4j Aura";
             }
             catch (Exception ex)
             {
@@ -3233,5 +3291,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         {
             return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
+    }
+
+    /// <summary>
+    /// Metadata match mode for search operations
+    /// </summary>
+    public enum MetaDataMatchMode
+    {
+        And,
+        Or
     }
 }

@@ -1594,15 +1594,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 // Add metadata from ActivityPub status
                 if (status.TryGetProperty("id", out var id))
                 {
-                    holon.ProviderMetaData.Add("activitypub_id", id.GetString());
+                        holon.ProviderMetaData[Core.Enums.ProviderType.ActivityPubOASIS] = new Dictionary<string, string> { ["activitypub_id"] = id.GetString() };
                 }
                 if (status.TryGetProperty("url", out var url))
                 {
-                    holon.ProviderMetaData.Add("activitypub_url", url.GetString());
+                        holon.ProviderMetaData[Core.Enums.ProviderType.ActivityPubOASIS] = new Dictionary<string, string> { ["activitypub_url"] = url.GetString() };
                 }
                 if (status.TryGetProperty("visibility", out var visibility))
                 {
-                    holon.ProviderMetaData.Add("activitypub_visibility", visibility.GetString());
+                        holon.ProviderMetaData[Core.Enums.ProviderType.ActivityPubOASIS] = new Dictionary<string, string> { ["activitypub_visibility"] = visibility.GetString() };
                 }
 
                 return holon;

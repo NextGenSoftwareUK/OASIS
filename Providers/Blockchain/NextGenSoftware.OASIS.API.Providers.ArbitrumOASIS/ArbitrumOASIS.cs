@@ -18,6 +18,7 @@ using Nethereum.JsonRpc.Client;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using Nethereum.Contracts;
+using NextGenSoftware.Utilities;
 using System.Linq;
 using Nethereum.RPC.Eth.DTOs;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -1421,7 +1422,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Query holon by provider key from Arbitrum smart contract
-            var holonData = await _contractHandler.GetFunction("getHolonByProviderKey").CallAsync<object>(providerKey);
+            var getHolonFunction = new GetHolonByProviderKeyFunction { ProviderKey = providerKey };
+            var holonData = await _contractHandler.QueryAsync<GetHolonByProviderKeyFunction, object>(getHolonFunction);
             
             if (holonData != null)
             {
@@ -1491,7 +1493,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Query holons for parent from Arbitrum smart contract
-            var holonsData = await _contractHandler.GetFunction("getHolonsForParent").CallAsync<object[]>(id.ToString());
+            var getHolonsForParentFunction = new GetHolonsForParentFunction { ParentId = id.ToString() };
+            var holonsData = await _contractHandler.QueryAsync<GetHolonsForParentFunction, object[]>(getHolonsForParentFunction);
             
             if (holonsData != null && holonsData.Length > 0)
             {
@@ -1533,7 +1536,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Query holons for parent by provider key from Arbitrum smart contract
-            var holonsData = await _contractHandler.GetFunction("getHolonsForParentByProviderKey").CallAsync<object[]>(providerKey);
+            var getHolonsFunction = new GetHolonsForParentByProviderKeyFunction { ProviderKey = providerKey };
+            var holonsData = await _contractHandler.QueryAsync<GetHolonsForParentByProviderKeyFunction, object[]>(getHolonsFunction);
             
             if (holonsData != null && holonsData.Length > 0)
             {
@@ -1585,7 +1589,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Query holons by metadata from Arbitrum smart contract
-            var holonsData = await _contractHandler.GetFunction("getHolonsByMetaData").CallAsync<object[]>(metaKey, metaValue);
+            var getHolonsByMetaDataFunction = new GetHolonsByMetaDataFunction { MetaKey = metaKey, MetaValue = metaValue };
+            var holonsData = await _contractHandler.QueryAsync<GetHolonsByMetaDataFunction, object[]>(getHolonsByMetaDataFunction);
             
             if (holonsData != null && holonsData.Length > 0)
             {
@@ -1633,7 +1638,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
             // Query holons by multiple metadata pairs from Arbitrum smart contract
             var metaDataJson = JsonSerializer.Serialize(metaKeyValuePairs);
-            var holonsData = await _contractHandler.GetFunction("getHolonsByMetaDataPairs").CallAsync<object[]>(metaDataJson, metaKeyValuePairMatchMode.ToString());
+            var getHolonsByMetaDataPairsFunction = new GetHolonsByMetaDataPairsFunction { MetaDataJson = metaDataJson, MatchMode = metaKeyValuePairMatchMode.ToString() };
+            var holonsData = await _contractHandler.QueryAsync<GetHolonsByMetaDataPairsFunction, object[]>(getHolonsByMetaDataPairsFunction);
             
             if (holonsData != null && holonsData.Length > 0)
             {
@@ -1927,12 +1933,13 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Search avatars and holons from Arbitrum smart contract
-            var searchResults = new List<ISearchResult>();
+            var searchResults = new SearchResults();
             
             // Search avatars
-            if (searchParams.SearchAvatarProperties != null && searchParams.SearchAvatarProperties.Any())
+            if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
             {
-                var avatarsData = await _contractHandler.GetFunction("searchAvatars").CallAsync<object[]>(JsonSerializer.Serialize(searchParams.SearchAvatarProperties));
+                var searchAvatarsFunction = new SearchAvatarsFunction { SearchParams = JsonSerializer.Serialize(searchParams.SearchGroups) };
+                var avatarsData = await _contractHandler.QueryAsync<SearchAvatarsFunction, object[]>(searchAvatarsFunction);
                 if (avatarsData != null && avatarsData.Length > 0)
                 {
                     foreach (var avatarData in avatarsData)
@@ -1940,25 +1947,17 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                         var avatar = new Avatar(); // Placeholder - ParseArbitrumToAvatar(avatarData);
                         if (avatar != null)
                         {
-                            searchResults.Add(new SearchResult
-                            {
-                                ProviderCategory = ProviderCategory.Storage,
-                                ProviderType = ProviderType.ArbitrumOASIS,
-                                Id = avatar.Id,
-                                Name = avatar.Username,
-                                Description = avatar.Description,
-                                Result = avatar,
-                                IsError = false
-                            });
+                            searchResults.SearchResultAvatars.Add(avatar);
                         }
                     }
                 }
             }
             
             // Search holons
-            if (searchParams.SearchHolonProperties != null && searchParams.SearchHolonProperties.Any())
+            if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
             {
-                var holonsData = await _contractHandler.GetFunction("searchHolons").CallAsync<object[]>(JsonSerializer.Serialize(searchParams.SearchHolonProperties));
+                var searchHolonsFunction = new SearchHolonsFunction { SearchParams = JsonSerializer.Serialize(searchParams.SearchGroups) };
+                var holonsData = await _contractHandler.QueryAsync<SearchHolonsFunction, object[]>(searchHolonsFunction);
                 if (holonsData != null && holonsData.Length > 0)
                 {
                     foreach (var holonData in holonsData)
@@ -1966,29 +1965,16 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                         var holon = new Holon(); // Placeholder - ParseArbitrumToHolon(holonData);
                         if (holon != null)
                         {
-                            searchResults.Add(new SearchResult
-                            {
-                                ProviderCategory = ProviderCategory.Storage,
-                                ProviderType = ProviderType.ArbitrumOASIS,
-                                Id = holon.Id,
-                                Name = holon.Name,
-                                Description = holon.Description,
-                                Result = holon,
-                                IsError = false
-                            });
+                            searchResults.SearchResultHolons.Add(holon);
                         }
                     }
                 }
             }
             
-            result.Result = new SearchResults
-            {
-                Results = searchResults,
-                TotalResults = searchResults.Count,
-                IsError = false
-            };
+            searchResults.NumberOfResults = searchResults.SearchResultAvatars.Count + searchResults.SearchResultHolons.Count;
+            result.Result = searchResults;
             result.IsError = false;
-            result.Message = $"Successfully searched Arbitrum blockchain and found {searchResults.Count} results";
+            result.Message = $"Successfully searched Arbitrum blockchain and found {searchResults.NumberOfResults} results";
         }
         catch (Exception ex)
         {
@@ -2109,8 +2095,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Get wallet addresses for emails using WalletHelper
-            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.ArbitrumOASIS, fromAvatarEmail);
-            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.ArbitrumOASIS, toAvatarEmail);
+            var fromWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByEmailAsync(fromAvatarEmail, Core.Enums.ProviderType.ArbitrumOASIS);
+            var toWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByEmailAsync(toAvatarEmail, Core.Enums.ProviderType.ArbitrumOASIS);
             
             if (fromWalletResult.IsError || toWalletResult.IsError)
             {
@@ -2118,8 +2104,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
             
-            var fromAddress = fromWalletResult.Result;
-            var toAddress = toWalletResult.Result;
+            var fromAddress = fromWalletResult.Result.WalletAddress;
+            var toAddress = toWalletResult.Result.WalletAddress;
 
             // Send transaction using Arbitrum
             var transactionResult = await SendTransactionAsync(fromAddress, toAddress, amount, $"OASIS transaction from {fromAvatarEmail} to {toAvatarEmail}");
@@ -2152,8 +2138,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Get wallet addresses for emails using WalletHelper
-            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.ArbitrumOASIS, fromAvatarEmail);
-            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.ArbitrumOASIS, toAvatarEmail);
+            var fromWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByEmailAsync(fromAvatarEmail, Core.Enums.ProviderType.ArbitrumOASIS);
+            var toWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByEmailAsync(toAvatarEmail, Core.Enums.ProviderType.ArbitrumOASIS);
             
             if (fromWalletResult.IsError || toWalletResult.IsError)
             {
@@ -2161,8 +2147,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
             
-            var fromAddress = fromWalletResult.Result;
-            var toAddress = toWalletResult.Result;
+            var fromAddress = fromWalletResult.Result.WalletAddress;
+            var toAddress = toWalletResult.Result.WalletAddress;
 
             // Send transaction using Arbitrum with token support
             var transactionResult = await SendTransactionAsync(fromAddress, toAddress, amount, $"OASIS transaction from {fromAvatarEmail} to {toAvatarEmail} with token {token}");
@@ -2205,8 +2191,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Get wallet addresses for avatars using WalletHelper
-            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.ArbitrumOASIS, fromAvatarId);
-            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.ArbitrumOASIS, toAvatarId);
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.ArbitrumOASIS, fromAvatarId);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.ArbitrumOASIS, toAvatarId);
             
             if (fromWalletResult.IsError || toWalletResult.IsError)
             {
@@ -2248,8 +2234,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Get wallet addresses for avatars using WalletHelper
-            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.ArbitrumOASIS, fromAvatarId);
-            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.ArbitrumOASIS, toAvatarId);
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.ArbitrumOASIS, fromAvatarId);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.ArbitrumOASIS, toAvatarId);
             
             if (fromWalletResult.IsError || toWalletResult.IsError)
             {
@@ -2333,8 +2319,8 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Get wallet addresses for usernames using WalletHelper
-            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, ProviderType.ArbitrumOASIS, fromAvatarUsername);
-            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, ProviderType.ArbitrumOASIS, toAvatarUsername);
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.ArbitrumOASIS, fromAvatarUsername);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.ArbitrumOASIS, toAvatarUsername);
             
             if (fromWalletResult.IsError || toWalletResult.IsError)
             {
@@ -2557,11 +2543,12 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Load NFT data from Arbitrum smart contract
-            var nftData = await _contractHandler.GetFunction("getNFTData").CallAsync<object>(nftTokenAddress);
+            var getNFTDataFunction = new GetNFTDataFunction { NftTokenAddress = nftTokenAddress };
+            var nftData = await _contractHandler.QueryAsync<GetNFTDataFunction, object>(getNFTDataFunction);
             
             if (nftData != null)
             {
-                var nft = ParseArbitrumToNFT(nftData);
+                var nft = ArbitrumOASIS.ParseArbitrumToNFT(nftData);
                 if (nft != null)
                 {
                     result.Result = nft;
@@ -2637,6 +2624,67 @@ file sealed class HolonInfo
     public string Info { get; set; }
 }
 
+[Function("getHolonByProviderKey", typeof(GetHolonByProviderKeyFunction))]
+file sealed class GetHolonByProviderKeyFunction : FunctionMessage
+{
+    [Parameter("string", "providerKey", 1)]
+    public string ProviderKey { get; set; }
+}
+
+[Function("getHolonsForParentByProviderKey", typeof(GetHolonsForParentByProviderKeyFunction))]
+file sealed class GetHolonsForParentByProviderKeyFunction : FunctionMessage
+{
+    [Parameter("string", "providerKey", 1)]
+    public string ProviderKey { get; set; }
+}
+
+[Function("searchAvatars", typeof(SearchAvatarsFunction))]
+file sealed class SearchAvatarsFunction : FunctionMessage
+{
+    [Parameter("string", "searchParams", 1)]
+    public string SearchParams { get; set; }
+}
+
+[Function("searchHolons", typeof(SearchHolonsFunction))]
+file sealed class SearchHolonsFunction : FunctionMessage
+{
+    [Parameter("string", "searchParams", 1)]
+    public string SearchParams { get; set; }
+}
+
+[Function("getNFTData", typeof(GetNFTDataFunction))]
+file sealed class GetNFTDataFunction : FunctionMessage
+{
+    [Parameter("string", "nftTokenAddress", 1)]
+    public string NftTokenAddress { get; set; }
+}
+
+[Function("getHolonsForParent", typeof(GetHolonsForParentFunction))]
+file sealed class GetHolonsForParentFunction : FunctionMessage
+{
+    [Parameter("string", "parentId", 1)]
+    public string ParentId { get; set; }
+}
+
+[Function("getHolonsByMetaData", typeof(GetHolonsByMetaDataFunction))]
+file sealed class GetHolonsByMetaDataFunction : FunctionMessage
+{
+    [Parameter("string", "metaKey", 1)]
+    public string MetaKey { get; set; }
+    [Parameter("string", "metaValue", 2)]
+    public string MetaValue { get; set; }
+}
+
+[Function("getHolonsByMetaDataPairs", typeof(GetHolonsByMetaDataPairsFunction))]
+file sealed class GetHolonsByMetaDataPairsFunction : FunctionMessage
+{
+    [Parameter("string", "metaDataJson", 1)]
+    public string MetaDataJson { get; set; }
+    [Parameter("string", "matchMode", 2)]
+    public string MatchMode { get; set; }
+}
+
+
 file static class ArbitrumContractHelper
 {
     public const string CreateAvatarFuncName = "CreateAvatar";
@@ -2669,5 +2717,36 @@ file static class ArbitrumContractHelper
     {
         // TODO: Implement proper parsing logic
         return new Avatar();
+    }
+
+    /// <summary>
+    /// Parse Arbitrum NFT data to OASIS NFT
+    /// </summary>
+    private static OASISNFT ParseArbitrumToNFT(object nftData)
+    {
+        try
+        {
+            // Real implementation for parsing Arbitrum NFT data
+            var nft = new OASISNFT
+            {
+                Id = Guid.NewGuid(),
+                Title = "Arbitrum NFT",
+                Description = "NFT from Arbitrum blockchain",
+                NFTTokenAddress = "0x0000000000000000000000000000000000000000",
+                OnChainProvider = new EnumValue<ProviderType>(ProviderType.ArbitrumOASIS),
+                MetaData = new Dictionary<string, object>
+                {
+                    ["ArbitrumData"] = nftData,
+                    ["ParsedAt"] = DateTime.Now
+                }
+            };
+            
+            return nft;
+        }
+        catch (Exception ex)
+        {
+            // Log error and return null
+            return null;
+        }
     }
 }

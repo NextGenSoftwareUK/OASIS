@@ -277,11 +277,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                 
                 // Apply subscription constraints
                 var filteredRecommendations = recommendations
-                    .Where(r => IsProviderAllowedForSubscriptionAsync(r, subscriptionConfig).Result)
+                    .Where(r => IsProviderAllowedForSubscriptionAsync(new EnumValue<ProviderType>(r.ProviderType), subscriptionConfig).Result)
                     .OrderByDescending(r => r.Score)
                     .ToList();
                 
-                return filteredRecommendations.FirstOrDefault() ?? new EnumValue<ProviderType>(providers.First().Value);
+                return new EnumValue<ProviderType>(filteredRecommendations.FirstOrDefault()?.ProviderType ?? providers.First().Value);
             }
             catch (Exception)
             {

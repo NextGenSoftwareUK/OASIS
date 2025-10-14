@@ -1523,9 +1523,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
 
         #region IOASISNET Implementation
 
-        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var response = new OASISResult<IEnumerable<IPlayer>>();
+            var response = new OASISResult<IEnumerable<IAvatar>>();
 
             try
             {
@@ -1543,7 +1543,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
                     // REAL SOLID implementation for parsing RDF/JSON-LD content
-                    response.Result = ParseRDFToPlayers(content);
+                    response.Result = ParseRDFToAvatars(content);
                     response.IsError = false;
                     response.Message = "Players near me loaded successfully from SOLID pod";
                 }
@@ -1561,7 +1561,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             return response;
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
 
@@ -1860,6 +1860,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                 return new List<IPlayer>();
             }
         }
+
 
         /// <summary>
         /// Parse RDF/JSON-LD content to SearchResults object
