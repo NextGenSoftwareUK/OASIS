@@ -1545,22 +1545,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         public bool IsDuplicate { get; set; }
     }
 
-    public class PinataPinListResponse
-    {
-        public List<PinataPin> Rows { get; set; }
-        public int Count { get; set; }
-    }
-
-    public class PinataPin
-    {
-        public string IpfsHash { get; set; }
-        public int PinSize { get; set; }
-        public DateTime DatePinned { get; set; }
-        public DateTime DateUnpinned { get; set; }
-        public string Metadata { get; set; }
-        public string Name { get; set; }
-    }
-
     public interface IPinataService
     {
         Task<List<PinataPin>> GetFilesAsync();
