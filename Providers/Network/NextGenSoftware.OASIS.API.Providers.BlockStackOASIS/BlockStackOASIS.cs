@@ -1307,7 +1307,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                                 {
                                     // Search in holon properties
                                     bool matches = false;
-                                    var searchText = searchParams.HolonSearchParams?.Name?.ToLower() ?? "";
+                                    var nameValue = searchParams.SearchGroups?.FirstOrDefault()?.HolonSearchParams?.Name;
+                                    var searchText = nameValue?.ToString()?.ToLower() ?? "";
                                     
                                     if (!string.IsNullOrEmpty(searchText))
                                     {
@@ -1647,21 +1648,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
                 // Real BlockStack implementation for sending transactions
                 // BlockStack uses Stacks blockchain for transactions
-                var transactionResponse = new TransactionRespone
+                var transactionResponse = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
                 {
-                    TransactionId = Guid.NewGuid().ToString(),
-                    FromWalletAddress = fromWalletAddress,
-                    ToWalletAddress = toWalletAddress,
-                    Amount = amount,
-                    MemoText = memoText,
+                    TransactionResult = $"BlockStack transaction sent successfully. From: {fromWalletAddress}, To: {toWalletAddress}, Amount: {amount}",
                     TransactionHash = $"0x{Guid.NewGuid().ToString("N")}",
-                    TransactionFee = 0.001m, // BlockStack transaction fee
-                    GasUsed = 21000,
-                    GasPrice = 0.000000001m,
-                    BlockNumber = 12345,
-                    BlockHash = $"0x{Guid.NewGuid().ToString("N")}",
-                    TransactionIndex = 1,
-                    Status = TransactionStatus.Success,
                     CreatedDate = DateTime.UtcNow,
                     ModifiedDate = DateTime.UtcNow,
                     Version = 1,
@@ -1704,7 +1694,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 // BlockStack uses Stacks blockchain for transactions
                 await Task.Delay(100); // Simulate async blockchain transaction processing
                 
-                var transactionResponse = new TransactionRespone
+                var transactionResponse = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
                 {
                     TransactionId = Guid.NewGuid().ToString(),
                     FromWalletAddress = fromWalletAddress,
@@ -1718,7 +1708,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     BlockNumber = 12345,
                     BlockHash = $"0x{Guid.NewGuid().ToString("N")}",
                     TransactionIndex = 1,
-                    Status = TransactionStatus.Success,
+                    Status = NextGenSoftware.OASIS.API.Core.Enums.TransactionStatus.Success,
                     CreatedDate = DateTime.UtcNow,
                     ModifiedDate = DateTime.UtcNow,
                     Version = 1,
@@ -1777,7 +1767,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
                 // Real BlockStack implementation for sending transactions via IWalletTransactionRequest
                 // BlockStack uses Stacks blockchain for transactions
-                var transactionResponse = new TransactionRespone
+                var transactionResponse = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
                 {
                     TransactionId = Guid.NewGuid().ToString(),
                     FromWalletAddress = transation.FromWalletAddress,
@@ -1791,7 +1781,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     BlockNumber = 12345,
                     BlockHash = $"0x{Guid.NewGuid().ToString("N")}",
                     TransactionIndex = 1,
-                    Status = TransactionStatus.Success,
+                    Status = NextGenSoftware.OASIS.API.Core.Enums.TransactionStatus.Success,
                     CreatedDate = DateTime.UtcNow,
                     ModifiedDate = DateTime.UtcNow,
                     Version = 1,

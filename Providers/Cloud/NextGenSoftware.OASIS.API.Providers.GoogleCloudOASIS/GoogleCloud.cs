@@ -23,6 +23,8 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
 {
@@ -2063,13 +2065,18 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 var avatars = new List<IAvatar>();
                 
                 // Search holons in Google Cloud Firestore
-                var holonQuery = _firestoreDb.Collection("holons");
-                if (!string.IsNullOrEmpty(searchParams.SearchGroups?.FirstOrDefault()?.HolonSearchParams?.Name))
+                var holonCollection = _firestoreDb.Collection("holons");
+                Query holonQuery = holonCollection;
+                if (!string.IsNullOrEmpty(searchParams.SearchGroups?.FirstOrDefault()?.HolonSearchParams?.Name.ToString()))
                 {
                     // For Firestore, we need to use array-contains or other supported queries
                     // Real Google Cloud Firestore search implementation
-                    holonQuery = holonQuery.WhereGreaterThanOrEqualTo("name", searchParams.SearchGroups?.FirstOrDefault()?.HolonSearchParams?.Name)
-                        .WhereLessThan("name", searchParams.SearchGroups?.FirstOrDefault()?.HolonSearchParams?.Name + "\uf8ff"); // Unicode range for prefix search
+                    var searchName = searchParams.SearchGroups?.FirstOrDefault()?.HolonSearchParams?.Name.ToString();
+                    if (!string.IsNullOrEmpty(searchName))
+                    {
+                        holonQuery = holonCollection.WhereGreaterThanOrEqualTo("name", searchName)
+                            .WhereLessThan("name", searchName + "\uf8ff"); // Unicode range for prefix search
+                    }
                 }
                 var holonSnapshot = await holonQuery.GetSnapshotAsync();
                 
@@ -2122,13 +2129,18 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 }
                 
                 // Search avatars in Google Cloud Firestore
-                var avatarQuery = _firestoreDb.Collection("avatars");
-                if (!string.IsNullOrEmpty(searchParams.SearchGroups?.FirstOrDefault()?.AvatarSearchParams?.Username))
+                var avatarCollection = _firestoreDb.Collection("avatars");
+                Query avatarQuery = avatarCollection;
+                if (!string.IsNullOrEmpty(searchParams.SearchGroups?.FirstOrDefault()?.AvatarSearchParams?.Username.ToString()))
                 {
                     // For Firestore, we need to use array-contains or other supported queries
                     // Real Google Cloud Firestore search implementation
-                    avatarQuery = (Query)avatarQuery.WhereGreaterThanOrEqualTo("username", searchParams.SearchGroups?.FirstOrDefault()?.AvatarSearchParams?.Username)
-                        .WhereLessThan("username", searchParams.SearchGroups?.FirstOrDefault()?.AvatarSearchParams?.Username + "\uf8ff"); // Unicode range for prefix search
+                    var searchUsername = searchParams.SearchGroups?.FirstOrDefault()?.AvatarSearchParams?.Username.ToString();
+                    if (!string.IsNullOrEmpty(searchUsername))
+                    {
+                        avatarQuery = avatarCollection.WhereGreaterThanOrEqualTo("username", searchUsername)
+                            .WhereLessThan("username", searchUsername + "\uf8ff"); // Unicode range for prefix search
+                    }
                 }
                 var avatarSnapshot = await avatarQuery.GetSnapshotAsync();
                 
@@ -3031,7 +3043,6 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             // HP, Mana, Stamina are not available on AvatarDetail interface
                             Description = avatarDetailData.GetValueOrDefault("description")?.ToString(),
                             // Website and Language are not available on AvatarDetail interface
-                            ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>(),
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
                             {
