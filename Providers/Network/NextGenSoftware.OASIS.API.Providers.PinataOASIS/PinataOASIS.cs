@@ -40,13 +40,14 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         private string _gatewayUrl;
         private OASISDNA _OASISDNA;
         private string _OASISDNAPath;
-        private object _pinataService; // Placeholder for Pinata service
+        private IPinataService _pinataService;
 
         public PinataOASIS()
         {
             OASISDNAManager.LoadDNA();
             _OASISDNA = OASISDNAManager.OASISDNA;
             _OASISDNAPath = OASISDNAManager.OASISDNAPath;
+            _pinataService = new PinataService(_apiKey, _secretKey, _jwt);
             Init();
         }
 

@@ -906,7 +906,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
                     { 
                         TransactionResult = tronResponse.TxID ?? "Transaction created successfully",
-                        TransactionHash = tronResponse.TxID
+                        TransactionId = tronResponse.TxID
                     };
                     response.IsError = false;
                     response.Message = "TRON transaction sent successfully";
@@ -977,7 +977,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
                         { 
                             TransactionResult = transactionResponse.TxID ?? "Transaction created successfully",
-                            TransactionId = transactionResponse.TxID
+                            TransactionHash = transactionResponse.TxID
                         };
                         response.IsError = false;
                         response.Message = "Transaction sent to TRON blockchain successfully";
@@ -1102,7 +1102,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
                     { 
                         TransactionResult = tronResponse.TxID ?? "NFT transfer created successfully",
-                        TransactionHash = tronResponse.TxID
+                        TransactionId = tronResponse.TxID
                     };
                     response.IsError = false;
                     response.Message = "TRON NFT transfer sent successfully";
@@ -1158,7 +1158,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
                     { 
                         TransactionResult = tronResponse.TxID ?? "NFT minted successfully",
-                        TransactionHash = tronResponse.TxID
+                        TransactionId = tronResponse.TxID
                     };
                     response.IsError = false;
                     response.Message = "TRON NFT minted successfully";
@@ -1243,38 +1243,46 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
                 // Query TRON blockchain for NFT by hash
                 var nftData = await _httpClient.GetStringAsync($"{TRON_API_BASE_URL}/nft/{hash}");
-                if (nftData.IsError)
+                if (string.IsNullOrEmpty(nftData))
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading NFT from TRON: {nftData.Message}");
+                    OASISErrorHandling.HandleError(ref result, "Error loading NFT from TRON: No data returned");
                     return result;
                 }
 
-                if (nftData.Result != null)
+                if (!string.IsNullOrEmpty(nftData))
                 {
-                    var nft = new OASISNFT
+                    // Parse JSON response from TRON API
+                    var nftResponse = JsonSerializer.Deserialize<TRONNFTResponse>(nftData);
+                    if (nftResponse != null)
                     {
-                        Id = nftData.Result.Id,
-                        Title = nftData.Result.Name,
-                        Description = nftData.Result.Description,
-                        ImageUrl = nftData.Result.ImageUrl,
-                        NFTTokenAddress = nftData.Result.TokenId,
-                        OASISMintWalletAddress = nftData.Result.ContractAddress,
-                        NFTMintedUsingWalletAddress = nftData.Result.OwnerAddress,
-                        MintedOn = nftData.Result.CreatedDate,
-                        ImportedOn = nftData.Result.ModifiedDate,
-                        MetaData = new Dictionary<string, object>
+                        var nft = new OASISNFT
                         {
-                            ["TRONHash"] = hash,
-                            ["TRONContractAddress"] = nftData.Result.ContractAddress,
-                            ["TRONOwnerAddress"] = nftData.Result.OwnerAddress,
-                            ["TRONTokenId"] = nftData.Result.TokenId,
-                            ["Provider"] = "TRONOASIS"
-                        }
-                    };
-
-                    result.Result = nft;
-                    result.IsError = false;
-                    result.Message = "NFT loaded successfully from TRON";
+                            Id = Guid.NewGuid(),
+                            Title = nftResponse.Name ?? "TRON NFT",
+                            Description = nftResponse.Description ?? "TRON NFT Description",
+                            ImageUrl = nftResponse.ImageUrl ?? "",
+                            NFTTokenAddress = nftResponse.TokenId ?? "",
+                            OASISMintWalletAddress = nftResponse.ContractAddress ?? "",
+                            NFTMintedUsingWalletAddress = nftResponse.OwnerAddress ?? "",
+                            MintedOn = nftResponse.CreatedDate ?? DateTime.UtcNow,
+                            ImportedOn = nftResponse.ModifiedDate ?? DateTime.UtcNow,
+                            MetaData = new Dictionary<string, object>
+                            {
+                                ["TRONHash"] = hash,
+                                ["TRONContractAddress"] = nftResponse.ContractAddress ?? "",
+                                ["TRONOwnerAddress"] = nftResponse.OwnerAddress ?? "",
+                                ["TRONTokenId"] = nftResponse.TokenId ?? "",
+                                ["Provider"] = "TRONOASIS"
+                            }
+                        };
+                        result.Result = nft;
+                        result.IsError = false;
+                        result.Message = "NFT loaded successfully from TRON";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Error parsing NFT data from TRON");
+                    }
                 }
                 else
                 {
