@@ -2575,8 +2575,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                 isDeleted = !holon.IsActive,
                                 deletedByAvatarId = holon.DeletedByAvatarId?.ToString(),
                                 deletedDate = holon.DeletedDate?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                                createdByAvatarId = holon.CreatedByAvatarId?.ToString(),
-                                modifiedByAvatarId = holon.ModifiedByAvatarId?.ToString(),
+                                createdByAvatarId = holon.CreatedByAvatarId.ToString(),
+                                modifiedByAvatarId = holon.ModifiedByAvatarId.ToString(),
                                 customData = holon.CustomData
                             }
                         };
@@ -3100,8 +3100,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                 isDeleted = !holon.IsActive,
                                 deletedByAvatarId = holon.DeletedByAvatarId?.ToString(),
                                 deletedDate = holon.DeletedDate?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                                createdByAvatarId = holon.CreatedByAvatarId?.ToString(),
-                                modifiedByAvatarId = holon.ModifiedByAvatarId?.ToString(),
+                                createdByAvatarId = holon.CreatedByAvatarId.ToString(),
+                                modifiedByAvatarId = holon.ModifiedByAvatarId.ToString(),
                                 customData = holon.CustomData,
                                 importedAt = DateTime.Now,
                                 importedBy = AvatarManager.LoggedInAvatar?.Id.ToString()
