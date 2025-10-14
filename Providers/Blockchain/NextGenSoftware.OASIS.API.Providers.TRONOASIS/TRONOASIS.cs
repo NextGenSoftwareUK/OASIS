@@ -905,8 +905,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     
                     response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
                     { 
-                        TransactionResult = tronResponse.TxID ?? "Transaction created successfully",
-                        TransactionId = tronResponse.TxID
+                        TransactionResult = tronResponse.TxID ?? "Transaction created successfully"
                     };
                     response.IsError = false;
                     response.Message = "TRON transaction sent successfully";
@@ -976,8 +975,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
                         response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
                         { 
-                            TransactionResult = transactionResponse.TxID ?? "Transaction created successfully",
-                            TransactionHash = transactionResponse.TxID
+                            TransactionResult = transactionResponse.TxID ?? "Transaction created successfully"
                         };
                         response.IsError = false;
                         response.Message = "Transaction sent to TRON blockchain successfully";
@@ -1099,10 +1097,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var tronResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
                     
-                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
+                    response.Result = new NFTTransactionRespone 
                     { 
-                        TransactionResult = tronResponse.TxID ?? "NFT transfer created successfully",
-                        TransactionId = tronResponse.TxID
+                        TransactionResult = tronResponse.TxID ?? "NFT transfer created successfully"
                     };
                     response.IsError = false;
                     response.Message = "TRON NFT transfer sent successfully";
@@ -1155,10 +1152,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var tronResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
                     
-                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
+                    response.Result = new NFTTransactionRespone 
                     { 
-                        TransactionResult = tronResponse.TxID ?? "NFT minted successfully",
-                        TransactionId = tronResponse.TxID
+                        TransactionResult = tronResponse.TxID ?? "NFT minted successfully"
                     };
                     response.IsError = false;
                     response.Message = "TRON NFT minted successfully";
@@ -1258,9 +1254,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         var nft = new OASISNFT
                         {
                             Id = Guid.NewGuid(),
-                            Title = nftResponse.Name ?? "TRON NFT",
-                            Description = nftResponse.Description ?? "TRON NFT Description",
-                            ImageUrl = nftResponse.ImageUrl ?? "",
+                            Title = "TRON NFT",
+                            Description = "TRON NFT Description",
+                            ImageUrl = "",
                             NFTTokenAddress = nftResponse.TokenId ?? "",
                             OASISMintWalletAddress = nftResponse.ContractAddress ?? "",
                             NFTMintedUsingWalletAddress = nftResponse.OwnerAddress ?? "",

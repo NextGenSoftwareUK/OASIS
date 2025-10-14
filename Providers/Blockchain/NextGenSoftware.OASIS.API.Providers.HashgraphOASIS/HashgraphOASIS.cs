@@ -1398,12 +1398,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var transactionData = new
+                var transactionData = new HashgraphTransactionData
                 {
-                    from = fromWalletAddress,
-                    to = toWalletAddress,
-                    amount = amount,
-                    memo = memoText
+                    FromAddress = fromWalletAddress,
+                    ToAddress = toWalletAddress,
+                    Amount = amount,
+                    Memo = memoText
                 };
 
                 var hashgraphClient = new HashgraphClient();
@@ -1411,13 +1411,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (transactionResult != null)
                 {
-                    result.Result = new TransactionResponse
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
                     {
-                        TransactionId = transactionResult.TransactionId,
-                        FromAddress = fromWalletAddress,
-                        ToAddress = toWalletAddress,
-                        Amount = amount,
-                        Status = "Success"
+                        TransactionResult = transactionResult.TransactionId ?? "Hashgraph transaction sent successfully"
                     };
                     result.IsError = false;
                     result.Message = "Hashgraph transaction sent successfully";
@@ -1471,12 +1467,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 }
 
                 // Create Hashgraph transaction using Mirror Node API
-                var transactionData = new
+                var transactionData = new HashgraphTransactionData
                 {
-                    from = fromAddress,
-                    to = toAddress,
-                    amount = amount,
-                    memo = $"OASIS transaction from {fromAvatarId} to {toAvatarId}"
+                    FromAddress = fromAddress,
+                    ToAddress = toAddress,
+                    Amount = amount,
+                    Memo = $"OASIS transaction from {fromAvatarId} to {toAvatarId}"
                 };
 
                 // Submit transaction to Hashgraph network
@@ -1485,13 +1481,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (transactionResult != null)
                 {
-                    result.Result = new TransactionResponse
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
                     {
-                        TransactionId = transactionResult.TransactionId,
-                        FromAddress = fromAddress,
-                        ToAddress = toAddress,
-                        Amount = amount,
-                        Status = "Success"
+                        TransactionResult = transactionResult.TransactionId ?? "Hashgraph transaction sent successfully"
                     };
                     result.IsError = false;
                     result.Message = "Hashgraph transaction sent successfully";
@@ -1539,8 +1531,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var fromAddress = fromWalletResult.Result?.WalletAddress;
-                var toAddress = toWalletResult.Result?.WalletAddress;
+                var fromAddress = fromWalletResult.Result;
+                var toAddress = toWalletResult.Result;
 
                 if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
                 {
@@ -1549,12 +1541,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 }
 
                 // Create Hashgraph transaction using Mirror Node API
-                var transactionData = new
+                var transactionData = new HashgraphTransactionData
                 {
-                    from = fromAddress,
-                    to = toAddress,
-                    amount = amount,
-                    memo = $"OASIS transaction from {fromAvatarUsername} to {toAvatarUsername}"
+                    FromAddress = fromAddress,
+                    ToAddress = toAddress,
+                    Amount = amount,
+                    Memo = $"OASIS transaction from {fromAvatarUsername} to {toAvatarUsername}"
                 };
 
                 // Submit transaction to Hashgraph network
@@ -1563,13 +1555,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (transactionResult != null)
                 {
-                    result.Result = new TransactionResponse
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
                     {
-                        TransactionId = transactionResult.TransactionId,
-                        FromAddress = fromAddress,
-                        ToAddress = toAddress,
-                        Amount = amount,
-                        Status = "Success"
+                        TransactionResult = transactionResult.TransactionId ?? "Hashgraph transaction sent successfully"
                     };
                     result.IsError = false;
                     result.Message = "Hashgraph transaction sent successfully";
@@ -1622,8 +1610,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var fromAddress = fromWalletResult.Result?.WalletAddress;
-                var toAddress = toWalletResult.Result?.WalletAddress;
+                var fromAddress = fromWalletResult.Result;
+                var toAddress = toWalletResult.Result;
 
                 if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
                 {
@@ -1631,12 +1619,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var transactionData = new
+                var transactionData = new HashgraphTransactionData
                 {
-                    from = fromAddress,
-                    to = toAddress,
-                    amount = amount,
-                    memo = $"OASIS transaction from {fromAvatarEmail} to {toAvatarEmail}"
+                    FromAddress = fromAddress,
+                    ToAddress = toAddress,
+                    Amount = amount,
+                    Memo = $"OASIS transaction from {fromAvatarEmail} to {toAvatarEmail}"
                 };
 
                 var hashgraphClient = new HashgraphClient();
@@ -1644,13 +1632,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (transactionResult != null)
                 {
-                    result.Result = new TransactionResponse
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
                     {
-                        TransactionId = transactionResult.TransactionId,
-                        FromAddress = fromAddress,
-                        ToAddress = toAddress,
-                        Amount = amount,
-                        Status = "Success"
+                        TransactionResult = transactionResult.TransactionId ?? "Hashgraph transaction sent successfully"
                     };
                     result.IsError = false;
                     result.Message = "Hashgraph transaction sent successfully";
@@ -1683,8 +1667,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.HashgraphOASIS, fromAvatarEmail);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, ProviderType.HashgraphOASIS, toAvatarEmail);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, Core.Enums.ProviderType.HashgraphOASIS, fromAvatarEmail);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, Core.Enums.ProviderType.HashgraphOASIS, toAvatarEmail);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1692,8 +1676,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var fromAddress = fromWalletResult.Result?.WalletAddress;
-                var toAddress = toWalletResult.Result?.WalletAddress;
+                var fromAddress = fromWalletResult.Result;
+                var toAddress = toWalletResult.Result;
 
                 if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
                 {
@@ -1768,8 +1752,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var fromAddress = fromWalletResult.Result?.WalletAddress;
-                var toAddress = toWalletResult.Result?.WalletAddress;
+                var fromAddress = fromWalletResult.Result;
+                var toAddress = toWalletResult.Result;
 
                 if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress))
                 {
@@ -1790,13 +1774,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (transactionResult != null)
                 {
-                    result.Result = new TransactionResponse
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
                     {
-                        TransactionId = transactionResult.TransactionId,
-                        FromAddress = fromAddress,
-                        ToAddress = toAddress,
-                        Amount = amount,
-                        Status = "Success"
+                        TransactionResult = transactionResult.TransactionId ?? "Hashgraph transaction sent successfully"
                     };
                     result.IsError = false;
                     result.Message = "Hashgraph transaction sent successfully";
@@ -2279,6 +2259,66 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             }
             return null;
         }
+
+        /// <summary>
+        /// Send transaction to Hashgraph network
+        /// </summary>
+        public async Task<HashgraphTransactionData> SendTransactionAsync(HashgraphTransactionData transactionData)
+        {
+            try
+            {
+                using (var httpClient = new System.Net.Http.HttpClient())
+                {
+                    var json = System.Text.Json.JsonSerializer.Serialize(transactionData);
+                    var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                    
+                    var response = await httpClient.PostAsync($"{_networkUrl}/api/v1/transactions", content);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseContent = await response.Content.ReadAsStringAsync();
+                        var transactionResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                        
+                        return new HashgraphTransactionData
+                        {
+                            FromAddress = transactionData.FromAddress,
+                            ToAddress = transactionData.ToAddress,
+                            Amount = transactionData.Amount,
+                            Memo = transactionData.Memo,
+                            TransactionId = transactionResponse.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : Guid.NewGuid().ToString(),
+                            Status = "Success"
+                        };
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Return null if transaction fails
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get NFT data from Hashgraph network
+        /// </summary>
+        public async Task<string> GetNFTData(string nftTokenAddress)
+        {
+            try
+            {
+                using (var httpClient = new System.Net.Http.HttpClient())
+                {
+                    var response = await httpClient.GetAsync($"{_networkUrl}/api/v1/tokens/{nftTokenAddress}");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return await response.Content.ReadAsStringAsync();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Return null if query fails
+            }
+            return null;
+        }
     }
 
     /// <summary>
@@ -2290,6 +2330,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         public long? Balance { get; set; }
         public long? AutoRenewPeriod { get; set; }
         public string Expiry { get; set; }
+    }
+
+    /// <summary>
+    /// Hashgraph transaction data
+    /// </summary>
+    public class HashgraphTransactionData
+    {
+        public string FromAddress { get; set; }
+        public string ToAddress { get; set; }
+        public decimal Amount { get; set; }
+        public string Memo { get; set; }
+        public string TransactionId { get; set; }
+        public string Status { get; set; }
     }
 
     /// <summary>

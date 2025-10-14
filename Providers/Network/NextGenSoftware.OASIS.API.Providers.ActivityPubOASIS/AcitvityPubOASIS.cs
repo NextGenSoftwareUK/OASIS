@@ -1085,7 +1085,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     },
                     // Map ALL deletion metadata
                     deletedAt = DateTime.Now,
-                    deletedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                    deletedBy = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                     softDelete = softDelete,
                     reason = softDelete ? "Soft delete requested" : "Hard delete requested",
                     // Map OASIS-specific deletion data
@@ -1093,7 +1093,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     {
                         avatarId = id.ToString(),
                         softDelete = softDelete,
-                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                         deletedDate = DateTime.Now
                     }
                 };
@@ -1154,14 +1154,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         preferredUsername = providerKey
                     },
                     deletedAt = DateTime.Now,
-                    deletedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                    deletedBy = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                     softDelete = softDelete,
                     reason = softDelete ? "Soft delete requested" : "Hard delete requested",
                     oasisdData = new
                     {
                         providerKey = providerKey,
                         softDelete = softDelete,
-                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                         deletedDate = DateTime.Now
                     }
                 };
@@ -1221,14 +1221,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         email = avatarEmail
                     },
                     deletedAt = DateTime.Now,
-                    deletedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                    deletedBy = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                     softDelete = softDelete,
                     reason = softDelete ? "Soft delete requested" : "Hard delete requested",
                     oasisdData = new
                     {
                         email = avatarEmail,
                         softDelete = softDelete,
-                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                         deletedDate = DateTime.Now
                     }
                 };
@@ -1288,14 +1288,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         preferredUsername = avatarUsername
                     },
                     deletedAt = DateTime.Now,
-                    deletedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                    deletedBy = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                     softDelete = softDelete,
                     reason = softDelete ? "Soft delete requested" : "Hard delete requested",
                     oasisdData = new
                     {
                         username = avatarUsername,
                         softDelete = softDelete,
-                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                         deletedDate = DateTime.Now
                     }
                 };
@@ -2650,12 +2650,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         id = id.ToString()
                     },
                     deletedAt = DateTime.Now,
-                    deletedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                    deletedBy = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                     reason = "Holon deletion requested",
                     oasisdData = new
                     {
                         holonId = id.ToString(),
-                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                         deletedDate = DateTime.Now
                     }
                 };
@@ -2673,10 +2673,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         IsActive = false,
                         DeletedDate = DateTime.Now,
                         DeletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty,
-                        CustomData = new Dictionary<string, object>
+                        MetaData = new Dictionary<string, object>
                         {
                             ["ActivityPubDeletedAt"] = DateTime.Now,
-                            ["ActivityPubDeletedBy"] = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                            ["ActivityPubDeletedBy"] = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                             ["ActivityPubResponse"] = await response.Content.ReadAsStringAsync()
                         }
                     };
@@ -2729,12 +2729,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         url = providerKey
                     },
                     deletedAt = DateTime.Now,
-                    deletedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                    deletedBy = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                     reason = "Holon deletion requested by provider key",
                     oasisdData = new
                     {
                         providerKey = providerKey,
-                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                         deletedDate = DateTime.Now
                     }
                 };
@@ -2748,14 +2748,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 {
                     var deletedHolon = new Holon
                     {
-                        ProviderKey = providerKey,
+                        ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.ActivityPubOASIS] = providerKey },
                         IsActive = false,
                         DeletedDate = DateTime.Now,
                         DeletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty,
-                        CustomData = new Dictionary<string, object>
+                        MetaData = new Dictionary<string, object>
                         {
                             ["ActivityPubDeletedAt"] = DateTime.Now,
-                            ["ActivityPubDeletedBy"] = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
+                            ["ActivityPubDeletedBy"] = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString(),
                             ["ActivityPubResponse"] = await response.Content.ReadAsStringAsync()
                         }
                     };
@@ -2801,14 +2801,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 // Real ActivityPub implementation for search
                 var searchResults = new SearchResults();
                 
-                if (searchParams != null && searchParams.SearchText != null && searchParams.SearchText.Count > 0)
+                if (searchParams != null && searchParams.SearchGroups != null && searchParams.SearchGroups.Count > 0)
                 {
-                    foreach (var searchTextGroup in searchParams.SearchText)
+                    foreach (var searchGroup in searchParams.SearchGroups)
                     {
-                        if (!string.IsNullOrEmpty(searchTextGroup.SearchQuery))
+                        var nameValue = searchGroup.HolonSearchParams?.Name;
+                        if (nameValue != null && !string.IsNullOrEmpty(nameValue.ToString()))
                         {
                             // Search ActivityPub objects
-                            var searchUrl = $"{_baseUrl}/objects/search?q={Uri.EscapeDataString(searchTextGroup.SearchQuery)}";
+                            var searchUrl = $"{_baseUrl}/objects/search?q={Uri.EscapeDataString(nameValue.ToString())}";
                             var response = await _httpClient.GetAsync(searchUrl);
                             
                             if (response.IsSuccessStatusCode)
@@ -2895,7 +2896,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                                 ["ActivityPubHreflang"] = activityPubObject.GetValueOrDefault("hreflang"),
                                                 ["ActivityPubHeight"] = activityPubObject.GetValueOrDefault("height"),
                                                 ["ActivityPubWidth"] = activityPubObject.GetValueOrDefault("width"),
-                                                ["SearchQuery"] = searchTextGroup.SearchQuery,
+                                                ["SearchQuery"] = nameValue?.ToString(),
                                                 ["SearchType"] = "ActivityPub"
                                             }
                                         };
@@ -2906,9 +2907,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                             }
                             
                             // Search ActivityPub accounts
-                            if (searchTextGroup.SearchAvatars)
+                            if (searchGroup.AvatarSearchParams != null)
                             {
-                                var accountSearchUrl = $"{_baseUrl}/accounts/search?q={Uri.EscapeDataString(searchTextGroup.SearchQuery)}";
+                                var accountSearchUrl = $"{_baseUrl}/accounts/search?q={Uri.EscapeDataString(searchGroup.AvatarSearchParams.Username?.ToString() ?? "")}";
                                 var accountResponse = await _httpClient.GetAsync(accountSearchUrl);
                                 
                                 if (accountResponse.IsSuccessStatusCode)
@@ -2938,7 +2939,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                                 Landline = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("landline"))?.Value,
                                                 Title = account.Role?.Name,
                                                 DOB = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value != null ? 
-                                                      DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : (DateTime?)null : null,
+                                                      DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : DateTime.MinValue : DateTime.MinValue,
                                                 AvatarType = account.Bot ? new EnumValue<AvatarType>(AvatarType.System) : new EnumValue<AvatarType>(AvatarType.User),
                                                 // KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
                                                 // Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
@@ -2969,7 +2970,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                                     ["ActivityPubFields"] = account.Fields,
                                                     ["ActivityPubEmoji"] = account.Emoji,
                                                     ["ActivityPubRole"] = account.Role,
-                                                    ["SearchQuery"] = searchTextGroup.SearchQuery,
+                                                    ["SearchQuery"] = nameValue?.ToString(),
                                                     ["SearchType"] = "ActivityPub"
                                                 }
                                             };
@@ -3104,7 +3105,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                 modifiedByAvatarId = holon.ModifiedByAvatarId.ToString(),
                                 customData = holon.MetaData,
                                 importedAt = DateTime.Now,
-                                importedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString()
+                                importedBy = AvatarManager.LoggedInAvatar?.Id.ToString() ?? Guid.Empty.ToString()
                             }
                         };
 
