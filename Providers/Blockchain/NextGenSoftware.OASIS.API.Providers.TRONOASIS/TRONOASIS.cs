@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -905,7 +906,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
                     { 
                         TransactionResult = tronResponse.TxID ?? "Transaction created successfully",
-                        TransactionId = tronResponse.TxID
+                        TransactionHash = tronResponse.TxID
                     };
                     response.IsError = false;
                     response.Message = "TRON transaction sent successfully";
@@ -1101,7 +1102,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
                     { 
                         TransactionResult = tronResponse.TxID ?? "NFT transfer created successfully",
-                        TransactionId = tronResponse.TxID
+                        TransactionHash = tronResponse.TxID
                     };
                     response.IsError = false;
                     response.Message = "TRON NFT transfer sent successfully";
@@ -1157,7 +1158,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
                     { 
                         TransactionResult = tronResponse.TxID ?? "NFT minted successfully",
-                        TransactionId = tronResponse.TxID
+                        TransactionHash = tronResponse.TxID
                     };
                     response.IsError = false;
                     response.Message = "TRON NFT minted successfully";

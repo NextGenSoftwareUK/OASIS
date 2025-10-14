@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core;
@@ -392,7 +393,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                                     CreatedDate = DateTime.TryParse(avatarData.GetValueOrDefault("createdDate")?.ToString(), out var createdDate) ? createdDate : DateTime.UtcNow,
                                     ModifiedDate = DateTime.TryParse(avatarData.GetValueOrDefault("modifiedDate")?.ToString(), out var modifiedDate) ? modifiedDate : DateTime.UtcNow,
                                     Title = avatarData.GetValueOrDefault("title")?.ToString(),
-                                    AvatarType = Enum.TryParse<AvatarType>(avatarData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User,
+                                    AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(avatarData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
                                     Description = avatarData.GetValueOrDefault("description")?.ToString(),
                                     ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>(),
                                     // Map BlockStack specific data to custom properties
@@ -1306,7 +1307,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                                 {
                                     // Search in holon properties
                                     bool matches = false;
-                                    var searchText = searchParams.SearchText?.ToLower() ?? "";
+                                    var searchText = searchParams.HolonSearchParams?.Name?.ToLower() ?? "";
                                     
                                     if (!string.IsNullOrEmpty(searchText))
                                     {
@@ -1495,7 +1496,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                                                 CreatedDate = DateTime.TryParse(avatarData.GetValueOrDefault("createdDate")?.ToString(), out var createdDate) ? createdDate : DateTime.UtcNow,
                                                 ModifiedDate = DateTime.TryParse(avatarData.GetValueOrDefault("modifiedDate")?.ToString(), out var modifiedDate) ? modifiedDate : DateTime.UtcNow,
                                                 Title = avatarData.GetValueOrDefault("title")?.ToString(),
-                                                AvatarType = Enum.TryParse<AvatarType>(avatarData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User,
+                                                AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(avatarData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
                                                 Description = avatarData.GetValueOrDefault("description")?.ToString(),
                                                 ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>(),
                                                 MetaData = new Dictionary<string, object>
