@@ -491,15 +491,28 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 {
                     AccountName = providerKey
                 });
-                if (avatarData.IsError)
+                if (avatarData != null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarData.Message}");
-                    return result;
-                }
-
-                if (avatarData.Result != null)
-                {
-                    var avatar = JsonConvert.DeserializeObject<Avatar>(avatarData.Result.ToString());
+                    // Convert EOSIO account data to OASIS Avatar
+                    var avatar = new Avatar
+                    {
+                        Id = Guid.NewGuid(),
+                        Username = avatarData.AccountName ?? "",
+                        Email = "", // EOSIO doesn't store email directly
+                        CreatedDate = DateTime.TryParse(avatarData.Created, out var createdDate) ? createdDate : DateTime.UtcNow,
+                        ModifiedDate = DateTime.UtcNow,
+                        AvatarType = new EnumValue<AvatarType>(AvatarType.User),
+                        MetaData = new Dictionary<string, object>
+                        {
+                            ["EOSIOAccountName"] = avatarData.AccountName,
+                            ["EOSIOHeadBlockNum"] = avatarData.HeadBlockNum,
+                            ["EOSIOHeadBlockTime"] = avatarData.HeadBlockTime,
+                            ["EOSIOCoreLiquidBalance"] = avatarData.CoreLiquidBalance,
+                            ["EOSIORamUsage"] = avatarData.RamUsage,
+                            ["EOSIOPrivileged"] = avatarData.Privileged,
+                            ["Provider"] = "EOSIOOASIS"
+                        }
+                    };
                     result.Result = avatar;
                     result.IsError = false;
                     result.Message = "Avatar loaded successfully by provider key from EOSIO";
@@ -568,30 +581,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Real EOSIO implementation: Load avatar detail directly from EOSIO blockchain
-                var avatarDetailData = await _avatarDetailRepository.GetByEmailAsync(avatarEmail);
-                if (avatarDetailData.IsError)
+                var avatarDetailData = await _avatarDetailRepository.GetAllAsync();
+                if (avatarDetailData != null && avatarDetailData.Any())
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from EOSIO: {avatarDetailData.Message}");
-                    return result;
-                }
-
-                if (avatarDetailData.Result != null)
-                {
-                    var avatarDetail = ParseEOSIOToAvatarDetail(avatarDetailData.Result);
+                    // Find avatar detail by email in the results
+                    var avatarDetail = avatarDetailData.FirstOrDefault(ad => 
+                        ad.Email?.Equals(avatarEmail, StringComparison.OrdinalIgnoreCase) == true);
+                    
                     if (avatarDetail != null)
                     {
                         result.Result = avatarDetail;
                         result.IsError = false;
-                        result.Message = "Avatar detail loaded successfully by email from EOSIO with full object mapping";
+                        result.Message = "Avatar detail loaded successfully by email from EOSIO";
                     }
                     else
                     {
-                        OASISErrorHandling.HandleError(ref result, "Failed to parse avatar detail data from EOSIO");
+                        OASISErrorHandling.HandleError(ref result, "Avatar detail not found by email in EOSIO");
                     }
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found by email in EOSIO");
+                    OASISErrorHandling.HandleError(ref result, "No avatar details found in EOSIO");
                 }
             }
             catch (Exception ex)

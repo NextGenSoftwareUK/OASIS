@@ -1536,4 +1536,131 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         [JsonProperty("Timestamp")]
         public string Timestamp { get; set; }
     }
+
+    public class PinataPinResponse
+    {
+        public string IpfsHash { get; set; }
+        public int PinSize { get; set; }
+        public DateTime Timestamp { get; set; }
+        public bool IsDuplicate { get; set; }
+    }
+
+    public class PinataPinListResponse
+    {
+        public List<PinataPin> Rows { get; set; }
+        public int Count { get; set; }
+    }
+
+    public class PinataPin
+    {
+        public string IpfsHash { get; set; }
+        public int PinSize { get; set; }
+        public DateTime DatePinned { get; set; }
+        public DateTime DateUnpinned { get; set; }
+        public string Metadata { get; set; }
+        public string Name { get; set; }
+    }
+
+    public interface IPinataService
+    {
+        Task<List<PinataPin>> GetFilesAsync();
+        Task<string> GetFileContentAsync(string hash);
+        Task<PinataPinResponse> PinFileAsync(string filePath);
+        Task<PinataPinResponse> PinJsonAsync(object jsonObject);
+        Task<bool> UnpinFileAsync(string hash);
+    }
+
+    public class PinataService : IPinataService
+    {
+        private readonly HttpClient _httpClient;
+        private readonly string _apiKey;
+        private readonly string _secretKey;
+        private readonly string _jwt;
+
+        public PinataService(string apiKey, string secretKey, string jwt = null)
+        {
+            _apiKey = apiKey;
+            _secretKey = secretKey;
+            _jwt = jwt;
+            _httpClient = new HttpClient();
+            _httpClient.DefaultRequestHeaders.Add("pinata_api_key", _apiKey);
+            _httpClient.DefaultRequestHeaders.Add("pinata_secret_api_key", _secretKey);
+        }
+
+        public async Task<List<PinataPin>> GetFilesAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("https://api.pinata.cloud/data/pinList");
+                var content = await response.Content.ReadAsStringAsync();
+                var pinList = JsonConvert.DeserializeObject<PinataPinListResponse>(content);
+                return pinList?.Rows ?? new List<PinataPin>();
+            }
+            catch
+            {
+                return new List<PinataPin>();
+            }
+        }
+
+        public async Task<string> GetFileContentAsync(string hash)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"https://gateway.pinata.cloud/ipfs/{hash}");
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        public async Task<PinataPinResponse> PinFileAsync(string filePath)
+        {
+            try
+            {
+                var formData = new MultipartFormDataContent();
+                var fileContent = new ByteArrayContent(System.IO.File.ReadAllBytes(filePath));
+                fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
+                formData.Add(fileContent, "file", System.IO.Path.GetFileName(filePath));
+
+                var response = await _httpClient.PostAsync("https://api.pinata.cloud/pinning/pinFileToIPFS", formData);
+                var content = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<PinataPinResponse>(content);
+            }
+            catch
+            {
+                return new PinataPinResponse();
+            }
+        }
+
+        public async Task<PinataPinResponse> PinJsonAsync(object jsonObject)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(jsonObject);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("https://api.pinata.cloud/pinning/pinJSONToIPFS", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<PinataPinResponse>(responseContent);
+            }
+            catch
+            {
+                return new PinataPinResponse();
+            }
+        }
+
+        public async Task<bool> UnpinFileAsync(string hash)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"https://api.pinata.cloud/pinning/unpin/{hash}");
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
 }

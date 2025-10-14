@@ -28,9 +28,12 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using Nethereum.Hex.HexTypes;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 
 
 namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
@@ -1008,7 +1011,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             AvatarInfo avatarInfo =
                 await _contractHandler.QueryAsync<GetAvatarByIdFunction, AvatarInfo>(new()
                 {
-                    Id = avatarEntityId
+                    Id = (uint)avatarEntityId
                 });
 
             if (avatarInfo is null)
@@ -1018,7 +1021,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
 
-            result.Result = JsonSerializer.Deserialize<Avatar>(avatarInfo.Info);
+            result.Result = JsonConvert.DeserializeObject<Avatar>(avatarInfo.Info);
             result.IsError = false;
             result.IsLoaded = true;
         }
@@ -1197,7 +1200,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             AvatarDetailInfo detailInfo =
                 await _contractHandler.QueryAsync<GetAvatarDetailByIdFunction, AvatarDetailInfo>(new()
                 {
-                    Id = avatarDetailEntityId
+                    Id = (uint)avatarDetailEntityId
                 });
 
             if (detailInfo is null)
@@ -1206,7 +1209,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
 
-            IAvatarDetail avatarDetailEntityResult = JsonSerializer.Deserialize<AvatarDetail>(detailInfo.Info);
+            IAvatarDetail avatarDetailEntityResult = JsonConvert.DeserializeObject<AvatarDetail>(detailInfo.Info);
             result.IsError = false;
             result.IsLoaded = true;
             result.Result = avatarDetailEntityResult;
@@ -1401,7 +1404,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             HolonInfo holonInfo =
                 await _contractHandler.QueryAsync<GetHolonByIdyIdFunction, HolonInfo>(new()
                 {
-                    EntityId = holonEntityId
+                    Id = (uint)holonEntityId
                 });
 
             if (holonInfo is null)
@@ -1410,7 +1413,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
 
-            result.Result = JsonSerializer.Deserialize<Holon>(holonInfo.Info);
+            result.Result = JsonConvert.DeserializeObject<Holon>(holonInfo.Info);
             result.IsError = false;
             result.IsLoaded = true;
         }
@@ -1653,7 +1656,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             }
 
             // Query holons by multiple metadata pairs from Arbitrum smart contract
-            var metaDataJson = JsonSerializer.Serialize(metaKeyValuePairs);
+            var metaDataJson = JsonConvert.SerializeObject(metaKeyValuePairs);
             var getHolonsByMetaDataPairsFunction = new GetHolonsByMetaDataPairsFunction { MetaDataJson = metaDataJson, MatchMode = metaKeyValuePairMatchMode.ToString() };
             var holonsData = await _contractHandler.QueryAsync<GetHolonsByMetaDataPairsFunction, object[]>(getHolonsByMetaDataPairsFunction);
             
@@ -1728,7 +1731,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
         try
         {
-            string avatarInfo = JsonSerializer.Serialize(avatar);
+            string avatarInfo = JsonConvert.SerializeObject(avatar);
             int avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
             string avatarId = avatar.AvatarId.ToString();
 
@@ -1800,7 +1803,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
         try
         {
-            string avatarDetailInfo = JsonSerializer.Serialize(avatarDetail);
+            string avatarDetailInfo = JsonConvert.SerializeObject(avatarDetail);
             int avatarDetailEntityId = HashUtility.GetNumericHash(avatarDetail.Id.ToString());
             string avatarDetailId = avatarDetail.Id.ToString();
 
@@ -1853,7 +1856,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
         try
         {
-            string holonInfo = JsonSerializer.Serialize(holon);
+            string holonInfo = JsonConvert.SerializeObject(holon);
             int holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
             string holonId = holon.Id.ToString();
 
@@ -1954,7 +1957,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             // Search avatars
             if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
             {
-                var searchAvatarsFunction = new SearchAvatarsFunction { SearchParams = JsonSerializer.Serialize(searchParams.SearchGroups) };
+                var searchAvatarsFunction = new SearchAvatarsFunction { SearchParams = JsonConvert.SerializeObject(searchParams.SearchGroups) };
                 var avatarsData = await _contractHandler.QueryAsync<SearchAvatarsFunction, object[]>(searchAvatarsFunction);
                 if (avatarsData != null && avatarsData.Length > 0)
                 {
@@ -1972,7 +1975,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             // Search holons
             if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
             {
-                var searchHolonsFunction = new SearchHolonsFunction { SearchParams = JsonSerializer.Serialize(searchParams.SearchGroups) };
+                var searchHolonsFunction = new SearchHolonsFunction { SearchParams = JsonConvert.SerializeObject(searchParams.SearchGroups) };
                 var holonsData = await _contractHandler.QueryAsync<SearchHolonsFunction, object[]>(searchHolonsFunction);
                 if (holonsData != null && holonsData.Length > 0)
                 {
@@ -2564,7 +2567,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             
             if (nftData != null)
             {
-                var nft = ArbitrumOASIS.ParseArbitrumToNFT(nftData);
+                var nft = ParseArbitrumToNFT(nftData);
                 if (nft != null)
                 {
                     result.Result = nft;
@@ -2586,6 +2589,125 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             OASISErrorHandling.HandleError(ref result, $"Error loading NFT data from Arbitrum: {ex.Message}", ex);
         }
         return result;
+    }
+
+    // Real Arbitrum implementation: Parse Arbitrum data to OASIS objects
+    private static IAvatarDetail ParseArbitrumToAvatarDetail(object avatarDetailData)
+    {
+        try
+        {
+            // Real implementation: Parse actual smart contract data from Arbitrum
+            if (avatarDetailData == null) return null;
+            
+            // Parse the actual data from Arbitrum smart contract response
+            var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(avatarDetailData.ToString());
+            if (dataDict == null) return null;
+            
+            var avatarDetail = new AvatarDetail
+            {
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
+                Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
+                FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "",
+                LastName = dataDict.GetValueOrDefault("lastName")?.ToString() ?? "",
+                CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
+                ModifiedDate = dataDict.ContainsKey("modifiedDate") ? DateTime.Parse(dataDict["modifiedDate"].ToString()) : DateTime.UtcNow,
+                AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(dataDict.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
+                KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
+                // Level = dataDict.ContainsKey("level") ? Convert.ToInt32(dataDict["level"]) : 1, // Level is read-only
+                XP = dataDict.ContainsKey("xp") ? Convert.ToInt32(dataDict["xp"]) : 0,
+                Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "",
+                MetaData = new Dictionary<string, object>
+                {
+                    ["ArbitrumData"] = avatarDetailData,
+                    ["ParsedAt"] = DateTime.UtcNow,
+                    ["Provider"] = "ArbitrumOASIS"
+                }
+            };
+            
+            return avatarDetail;
+        }
+        catch (Exception ex)
+        {
+            // Log error and return null
+            return null;
+        }
+    }
+
+    private static IAvatar ParseArbitrumToAvatar(object avatarData)
+    {
+        try
+        {
+            // Real implementation: Parse actual smart contract data from Arbitrum
+            if (avatarData == null) return null;
+            
+            // Parse the actual data from Arbitrum smart contract response
+            var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(avatarData.ToString());
+            if (dataDict == null) return null;
+            
+            var avatar = new Avatar
+            {
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
+                Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
+                CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
+                ModifiedDate = dataDict.ContainsKey("modifiedDate") ? DateTime.Parse(dataDict["modifiedDate"].ToString()) : DateTime.UtcNow,
+                AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(dataDict.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
+                MetaData = new Dictionary<string, object>
+                {
+                    ["ArbitrumData"] = avatarData,
+                    ["ParsedAt"] = DateTime.UtcNow,
+                    ["Provider"] = "ArbitrumOASIS"
+                }
+            };
+            
+            return avatar;
+        }
+        catch (Exception ex)
+        {
+            // Log error and return null
+            return null;
+        }
+    }
+
+    private static IOASISNFT ParseArbitrumToNFT(object nftData)
+    {
+        try
+        {
+            // Real implementation: Parse actual NFT data from Arbitrum smart contract
+            if (nftData == null) return null;
+            
+            // Parse the actual NFT data from Arbitrum smart contract response
+            var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(nftData.ToString());
+            if (dataDict == null) return null;
+            
+            var nft = new OASISNFT
+            {
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Title = dataDict.GetValueOrDefault("title")?.ToString() ?? "Arbitrum NFT",
+                Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "NFT from Arbitrum blockchain",
+                ImageUrl = dataDict.GetValueOrDefault("imageUrl")?.ToString() ?? "",
+                NFTTokenAddress = dataDict.GetValueOrDefault("tokenAddress")?.ToString() ?? "",
+                OASISMintWalletAddress = dataDict.GetValueOrDefault("mintWalletAddress")?.ToString() ?? "",
+                NFTMintedUsingWalletAddress = dataDict.GetValueOrDefault("mintedWalletAddress")?.ToString() ?? "",
+                MintedOn = dataDict.ContainsKey("mintedOn") ? DateTime.Parse(dataDict["mintedOn"].ToString()) : DateTime.UtcNow,
+                ImportedOn = DateTime.UtcNow,
+                OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.ArbitrumOASIS),
+                MetaData = new Dictionary<string, object>
+                {
+                    ["ArbitrumData"] = nftData,
+                    ["ParsedAt"] = DateTime.UtcNow,
+                    ["Provider"] = "ArbitrumOASIS"
+                }
+            };
+            
+            return nft;
+        }
+        catch (Exception ex)
+        {
+            // Log error and return null
+            return null;
+        }
     }
 }
 
@@ -2707,21 +2829,31 @@ file static class ArbitrumContractHelper
     {
         try
         {
-            // Real implementation for parsing Arbitrum avatar detail data
+            // Real implementation: Parse actual smart contract data from Arbitrum
+            if (avatarDetailData == null) return null;
+            
+            // Parse the actual data from Arbitrum smart contract response
+            var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(avatarDetailData.ToString());
+            if (dataDict == null) return null;
+            
             var avatarDetail = new AvatarDetail
             {
-                Id = Guid.NewGuid(),
-                Username = "ArbitrumUser",
-                Email = "user@arbitrum.example",
-                FirstName = "Arbitrum",
-                LastName = "User",
-                CreatedDate = DateTime.UtcNow,
-                ModifiedDate = DateTime.UtcNow,
-                AvatarType = new EnumValue<AvatarType>(AvatarType.User),
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
+                Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
+                FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "",
+                LastName = dataDict.GetValueOrDefault("lastName")?.ToString() ?? "",
+                CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
+                ModifiedDate = dataDict.ContainsKey("modifiedDate") ? DateTime.Parse(dataDict["modifiedDate"].ToString()) : DateTime.UtcNow,
+                AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(dataDict.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
+                KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
+                // Level = dataDict.ContainsKey("level") ? Convert.ToInt32(dataDict["level"]) : 1, // Level is read-only
+                XP = dataDict.ContainsKey("xp") ? Convert.ToInt32(dataDict["xp"]) : 0,
+                Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "",
                 MetaData = new Dictionary<string, object>
                 {
                     ["ArbitrumData"] = avatarDetailData,
-                    ["ParsedAt"] = DateTime.Now,
+                    ["ParsedAt"] = DateTime.UtcNow,
                     ["Provider"] = "ArbitrumOASIS"
                 }
             };
@@ -2739,18 +2871,25 @@ file static class ArbitrumContractHelper
     {
         try
         {
-            // Real implementation for parsing Arbitrum avatar data
+            // Real implementation: Parse actual smart contract data from Arbitrum
+            if (avatarData == null) return null;
+            
+            // Parse the actual data from Arbitrum smart contract response
+            var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(avatarData.ToString());
+            if (dataDict == null) return null;
+            
             var avatar = new Avatar
             {
-                Id = Guid.NewGuid(),
-                Username = "ArbitrumUser",
-                Email = "user@arbitrum.example",
-                CreatedDate = DateTime.UtcNow,
-                ModifiedDate = DateTime.UtcNow,
+                Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
+                Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
+                CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
+                ModifiedDate = dataDict.ContainsKey("modifiedDate") ? DateTime.Parse(dataDict["modifiedDate"].ToString()) : DateTime.UtcNow,
+                AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(dataDict.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
                 MetaData = new Dictionary<string, object>
                 {
                     ["ArbitrumData"] = avatarData,
-                    ["ParsedAt"] = DateTime.Now,
+                    ["ParsedAt"] = DateTime.UtcNow,
                     ["Provider"] = "ArbitrumOASIS"
                 }
             };
@@ -2764,82 +2903,7 @@ file static class ArbitrumContractHelper
         }
     }
 
-    /// <summary>
-    /// Parse Arbitrum NFT data to OASIS NFT
-    /// </summary>
-        private static IAvatarDetail ParseArbitrumToAvatarDetail(object avatarDetailData)
-        {
-            try
-            {
-                // Real Arbitrum implementation: Parse actual smart contract data
-                if (avatarDetailData == null) return null;
-                
-                // Parse the actual data from Arbitrum smart contract response
-                var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(avatarDetailData.ToString());
-                if (dataDict == null) return null;
-                
-                var avatarDetail = new AvatarDetail
-                {
-                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
-                    Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
-                    Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
-                    FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "",
-                    LastName = dataDict.GetValueOrDefault("lastName")?.ToString() ?? "",
-                    CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
-                    ModifiedDate = dataDict.ContainsKey("modifiedDate") ? DateTime.Parse(dataDict["modifiedDate"].ToString()) : DateTime.UtcNow,
-                    AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(dataDict.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
-                    KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
-                    Level = dataDict.ContainsKey("level") ? Convert.ToInt32(dataDict["level"]) : 1,
-                    XP = dataDict.ContainsKey("xp") ? Convert.ToInt32(dataDict["xp"]) : 0,
-                    Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "",
-                    MetaData = new Dictionary<string, object>
-                    {
-                        ["ArbitrumData"] = avatarDetailData,
-                        ["ParsedAt"] = DateTime.UtcNow,
-                        ["Provider"] = "ArbitrumOASIS"
-                    }
-                };
-                return avatarDetail;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
 
-        private static IAvatar ParseArbitrumToAvatar(object avatarData)
-        {
-            try
-            {
-                // Real Arbitrum implementation: Parse actual smart contract data
-                if (avatarData == null) return null;
-                
-                // Parse the actual data from Arbitrum smart contract response
-                var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(avatarData.ToString());
-                if (dataDict == null) return null;
-                
-                var avatar = new Avatar
-                {
-                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
-                    Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
-                    Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
-                    CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
-                    ModifiedDate = dataDict.ContainsKey("modifiedDate") ? DateTime.Parse(dataDict["modifiedDate"].ToString()) : DateTime.UtcNow,
-                    AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(dataDict.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
-                    MetaData = new Dictionary<string, object>
-                    {
-                        ["ArbitrumData"] = avatarData,
-                        ["ParsedAt"] = DateTime.UtcNow,
-                        ["Provider"] = "ArbitrumOASIS"
-                    }
-                };
-                return avatar;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
 
         private static OASISNFT ParseArbitrumToNFT(object nftData)
     {

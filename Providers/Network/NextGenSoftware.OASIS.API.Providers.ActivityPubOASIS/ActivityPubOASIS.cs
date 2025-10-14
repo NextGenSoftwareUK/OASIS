@@ -359,7 +359,22 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = (IAvatar)avatar;
+                        // Convert Avatar to AvatarDetail
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = avatar.Id,
+                            Username = avatar.Username,
+                            Email = avatar.Email,
+                            FirstName = avatar.Username, // Use username as first name for ActivityPub
+                            LastName = "", // ActivityPub doesn't have separate last name
+                            CreatedDate = avatar.CreatedDate,
+                            ModifiedDate = avatar.ModifiedDate,
+                            AvatarType = avatar.AvatarType,
+                            Description = avatar.Username, // Use username as description
+                            MetaData = avatar.MetaData
+                        };
+                        
+                        response.Result = avatarDetail;
                         response.IsError = false;
                         response.Message = "Avatar loaded from ActivityPub successfully";
                     }
@@ -411,7 +426,22 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = (IAvatar)avatar;
+                        // Convert Avatar to AvatarDetail
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = avatar.Id,
+                            Username = avatar.Username,
+                            Email = avatar.Email,
+                            FirstName = avatar.Username, // Use username as first name for ActivityPub
+                            LastName = "", // ActivityPub doesn't have separate last name
+                            CreatedDate = avatar.CreatedDate,
+                            ModifiedDate = avatar.ModifiedDate,
+                            AvatarType = avatar.AvatarType,
+                            Description = avatar.Username, // Use username as description
+                            MetaData = avatar.MetaData
+                        };
+                        
+                        response.Result = avatarDetail;
                         response.IsError = false;
                         response.Message = "Avatar loaded from ActivityPub successfully";
                     }
@@ -463,7 +493,22 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                     var avatar = ParseActivityPubToAvatar(content);
                     if (avatar != null)
                     {
-                        response.Result = (IAvatar)avatar;
+                        // Convert Avatar to AvatarDetail
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = avatar.Id,
+                            Username = avatar.Username,
+                            Email = avatar.Email,
+                            FirstName = avatar.Username, // Use username as first name for ActivityPub
+                            LastName = "", // ActivityPub doesn't have separate last name
+                            CreatedDate = avatar.CreatedDate,
+                            ModifiedDate = avatar.ModifiedDate,
+                            AvatarType = avatar.AvatarType,
+                            Description = avatar.Username, // Use username as description
+                            MetaData = avatar.MetaData
+                        };
+                        
+                        response.Result = avatarDetail;
                         response.IsError = false;
                         response.Message = "Avatar loaded from ActivityPub successfully";
                     }
