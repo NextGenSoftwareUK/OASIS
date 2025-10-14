@@ -1085,7 +1085,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     },
                     // Map ALL deletion metadata
                     deletedAt = DateTime.Now,
-                    deletedBy = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                    deletedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                     softDelete = softDelete,
                     reason = softDelete ? "Soft delete requested" : "Hard delete requested",
                     // Map OASIS-specific deletion data
@@ -1093,7 +1093,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     {
                         avatarId = id.ToString(),
                         softDelete = softDelete,
-                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                         deletedDate = DateTime.Now
                     }
                 };
@@ -1154,14 +1154,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         preferredUsername = providerKey
                     },
                     deletedAt = DateTime.Now,
-                    deletedBy = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                    deletedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                     softDelete = softDelete,
                     reason = softDelete ? "Soft delete requested" : "Hard delete requested",
                     oasisdData = new
                     {
                         providerKey = providerKey,
                         softDelete = softDelete,
-                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                         deletedDate = DateTime.Now
                     }
                 };
@@ -1221,14 +1221,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         email = avatarEmail
                     },
                     deletedAt = DateTime.Now,
-                    deletedBy = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                    deletedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                     softDelete = softDelete,
                     reason = softDelete ? "Soft delete requested" : "Hard delete requested",
                     oasisdData = new
                     {
                         email = avatarEmail,
                         softDelete = softDelete,
-                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                         deletedDate = DateTime.Now
                     }
                 };
@@ -1288,14 +1288,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         preferredUsername = avatarUsername
                     },
                     deletedAt = DateTime.Now,
-                    deletedBy = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                    deletedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                     softDelete = softDelete,
                     reason = softDelete ? "Soft delete requested" : "Hard delete requested",
                     oasisdData = new
                     {
                         username = avatarUsername,
                         softDelete = softDelete,
-                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                         deletedDate = DateTime.Now
                     }
                 };
@@ -2577,7 +2577,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                 deletedDate = holon.DeletedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                                 createdByAvatarId = holon.CreatedByAvatarId.ToString(),
                                 modifiedByAvatarId = holon.ModifiedByAvatarId.ToString(),
-                                customData = holon.CustomData
+                                customData = holon.MetaData
                             }
                         };
 
@@ -2589,9 +2589,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         if (response.IsSuccessStatusCode)
                         {
                             holon.ModifiedDate = DateTime.Now;
-                            holon.CustomData = holon.CustomData ?? new Dictionary<string, object>();
-                            holon.CustomData["ActivityPubSavedAt"] = DateTime.Now;
-                            holon.CustomData["ActivityPubResponse"] = await response.Content.ReadAsStringAsync();
+                            holon.MetaData = holon.MetaData ?? new Dictionary<string, object>();
+                            holon.MetaData["ActivityPubSavedAt"] = DateTime.Now;
+                            holon.MetaData["ActivityPubResponse"] = await response.Content.ReadAsStringAsync();
                             savedHolons.Add(holon);
                         }
                         else
@@ -2650,12 +2650,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         id = id.ToString()
                     },
                     deletedAt = DateTime.Now,
-                    deletedBy = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                    deletedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                     reason = "Holon deletion requested",
                     oasisdData = new
                     {
                         holonId = id.ToString(),
-                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                         deletedDate = DateTime.Now
                     }
                 };
@@ -2670,13 +2670,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     var deletedHolon = new Holon
                     {
                         Id = id,
-                        IsDeleted = true,
+                        IsActive = false,
                         DeletedDate = DateTime.Now,
-                        DeletedByAvatarId = AvatarManager.LoggedInAvatar?.Id,
+                        DeletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty,
                         CustomData = new Dictionary<string, object>
                         {
                             ["ActivityPubDeletedAt"] = DateTime.Now,
-                            ["ActivityPubDeletedBy"] = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                            ["ActivityPubDeletedBy"] = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                             ["ActivityPubResponse"] = await response.Content.ReadAsStringAsync()
                         }
                     };
@@ -2729,12 +2729,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         url = providerKey
                     },
                     deletedAt = DateTime.Now,
-                    deletedBy = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                    deletedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                     reason = "Holon deletion requested by provider key",
                     oasisdData = new
                     {
                         providerKey = providerKey,
-                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                        deletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                         deletedDate = DateTime.Now
                     }
                 };
@@ -2749,13 +2749,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     var deletedHolon = new Holon
                     {
                         ProviderKey = providerKey,
-                        IsDeleted = true,
+                        IsActive = false,
                         DeletedDate = DateTime.Now,
-                        DeletedByAvatarId = AvatarManager.LoggedInAvatar?.Id,
+                        DeletedByAvatarId = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty,
                         CustomData = new Dictionary<string, object>
                         {
                             ["ActivityPubDeletedAt"] = DateTime.Now,
-                            ["ActivityPubDeletedBy"] = AvatarManager.LoggedInAvatar?.Id.ToString(),
+                            ["ActivityPubDeletedBy"] = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString(),
                             ["ActivityPubResponse"] = await response.Content.ReadAsStringAsync()
                         }
                     };
@@ -3102,9 +3102,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                 deletedDate = holon.DeletedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                                 createdByAvatarId = holon.CreatedByAvatarId.ToString(),
                                 modifiedByAvatarId = holon.ModifiedByAvatarId.ToString(),
-                                customData = holon.CustomData,
+                                customData = holon.MetaData,
                                 importedAt = DateTime.Now,
-                                importedBy = AvatarManager.LoggedInAvatar?.Id.ToString()
+                                importedBy = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty.ToString()
                             }
                         };
 

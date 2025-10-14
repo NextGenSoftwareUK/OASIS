@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -1406,7 +1407,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 };
 
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransaction(transactionData);
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
 
                 if (transactionResult != null)
                 {
@@ -1480,7 +1481,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 // Submit transaction to Hashgraph network
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransaction(transactionData);
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
 
                 if (transactionResult != null)
                 {
@@ -1558,7 +1559,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 // Submit transaction to Hashgraph network
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransaction(transactionData);
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
 
                 if (transactionResult != null)
                 {
@@ -1639,7 +1640,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 };
 
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransaction(transactionData);
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
 
                 if (transactionResult != null)
                 {
@@ -1710,7 +1711,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 };
 
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransaction(transactionData);
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
 
                 if (transactionResult != null)
                 {
@@ -1785,7 +1786,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 };
 
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransaction(transactionData);
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
 
                 if (transactionResult != null)
                 {
@@ -1993,7 +1994,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         Title = "Hashgraph NFT",
                         Description = "NFT from Hashgraph network",
                         NFTTokenAddress = nftTokenAddress,
-                        OnChainProvider = new EnumValue<ProviderType>(ProviderType.HashgraphOASIS),
+                        OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS),
                         MetaData = new Dictionary<string, object>
                         {
                             ["HashgraphData"] = nftData,
@@ -2025,7 +2026,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 // Real Hashgraph implementation: Load NFT data from Hashgraph network asynchronously
                 var hashgraphClient = new HashgraphClient();
-                var nftData = await hashgraphClient.GetNFTDataAsync(nftTokenAddress);
+                var nftData = await hashgraphClient.GetNFTData(nftTokenAddress);
 
                 if (nftData != null)
                 {
@@ -2035,7 +2036,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         Title = "Hashgraph NFT",
                         Description = "NFT from Hashgraph network",
                         NFTTokenAddress = nftTokenAddress,
-                        OnChainProvider = new EnumValue<ProviderType>(ProviderType.HashgraphOASIS),
+                        OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS),
                         MetaData = new Dictionary<string, object>
                         {
                             ["HashgraphData"] = nftData,

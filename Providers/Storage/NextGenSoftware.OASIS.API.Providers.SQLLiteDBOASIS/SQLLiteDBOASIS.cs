@@ -603,7 +603,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 // Load wallets for each provider type
                 foreach (ProviderType providerType in Enum.GetValues<ProviderType>())
                 {
-                    if (providerType != ProviderType.Default)
+                    if (providerType != Core.Enums.ProviderType.Default)
                     {
                         var providerWallets = new List<IProviderWallet>();
                         // In a real implementation, this would query the SQLite database
@@ -634,7 +634,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 // Load wallets for each provider type
                 foreach (ProviderType providerType in Enum.GetValues<ProviderType>())
                 {
-                    if (providerType != ProviderType.Default)
+                    if (providerType != Core.Enums.ProviderType.Default)
                     {
                         var providerWallets = new List<IProviderWallet>();
                         // In a real implementation, this would query the SQLite database
