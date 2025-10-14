@@ -2909,7 +2909,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                             // Search ActivityPub accounts
                             if (searchGroup.AvatarSearchParams != null)
                             {
-                                var accountSearchUrl = $"{_baseUrl}/accounts/search?q={Uri.EscapeDataString(searchGroup.AvatarSearchParams.Username?.ToString() ?? "")}";
+                                var usernameValue = searchGroup.AvatarSearchParams.Username;
+                                var usernameString = usernameValue != null ? usernameValue.ToString() : "";
+                                var accountSearchUrl = $"{_baseUrl}/accounts/search?q={Uri.EscapeDataString(usernameString)}";
                                 var accountResponse = await _httpClient.GetAsync(accountSearchUrl);
                                 
                                 if (accountResponse.IsSuccessStatusCode)
@@ -2922,7 +2924,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                         // Convert ActivityPub accounts to OASIS Avatars with FULL property mapping
                                         foreach (var account in accounts)
                                         {
-                                            var avatar = new AvatarDetail
+                                            var avatar = new Avatar
                                             {
                                                 Id = Guid.NewGuid(),
                                                 Username = account.Username,
@@ -2931,26 +2933,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                                 LastName = account.DisplayName?.Split(' ').Skip(1).FirstOrDefault() ?? "",
                                                 CreatedDate = account.CreatedAt,
                                                 ModifiedDate = DateTime.Now,
-                                                // Map ALL ActivityPub properties to Avatar properties
-                                                Address = account.Location,
-                                                Country = account.Location?.Split(',').LastOrDefault()?.Trim(),
-                                                Postcode = account.Location?.Split(',').FirstOrDefault()?.Trim(),
-                                                Mobile = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("phone"))?.Value,
-                                                Landline = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("landline"))?.Value,
-                                                Title = account.Role?.Name,
-                                                DOB = account.Fields?.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value != null ? 
-                                                      DateTime.TryParse(account.Fields.FirstOrDefault(f => f.Name.ToLower().Contains("birth"))?.Value, out var dob) ? dob : DateTime.MinValue : DateTime.MinValue,
                                                 AvatarType = account.Bot ? new EnumValue<AvatarType>(AvatarType.System) : new EnumValue<AvatarType>(AvatarType.User),
-                                                // KarmaAkashicRecords = account.FollowersCount + account.FollowingCount,
-                                                // Level = (int)Math.Floor(Math.Log10(account.FollowersCount + 1) + 1),
-                                                XP = account.StatusesCount * 10,
-                                                HP = 100,
-                                                Mana = account.FollowingCount * 5,
-                                                Stamina = account.FollowersCount * 2,
                                                 Description = account.Note,
-                                                Website = account.Website,
-                                                Language = account.Language,
-                                                ProviderWallets = new List<IProviderWallet>(),
                                                 // Map ActivityPub specific data to custom properties
                                                 MetaData = new Dictionary<string, object>
                                                 {
