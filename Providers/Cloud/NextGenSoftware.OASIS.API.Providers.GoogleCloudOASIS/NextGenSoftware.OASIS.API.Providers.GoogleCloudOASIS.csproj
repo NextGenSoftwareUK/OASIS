@@ -29,6 +29,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+    <PackageReference Include="Google.Cloud.Storage.V1" Version="3.7.0" />
+    <PackageReference Include="Google.Cloud.Firestore" Version="3.7.0" />
+    <PackageReference Include="Google.Cloud.BigQuery.V2" Version="3.7.0" />
+    <PackageReference Include="Google.Api.Gax.Rest" Version="4.6.0" />
   </ItemGroup>
 
   <ItemGroup>

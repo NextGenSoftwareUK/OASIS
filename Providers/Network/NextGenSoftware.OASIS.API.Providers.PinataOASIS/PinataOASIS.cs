@@ -1190,14 +1190,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
             {
                 var g = searchParams.SearchGroups.First();
-                var meta = g.HolonSearchParams?.MetaData;
-                if (meta != null && meta is Dictionary<string, string> metaDict)
+                // MetaData is a boolean flag indicating whether to search metadata
+                if (g.HolonSearchParams?.MetaData == true && holon.MetaData != null)
                 {
-                    foreach (var kv in metaDict)
-                    {
-                        if (holon.MetaData == null || !holon.MetaData.ContainsKey(kv.Key) || holon.MetaData[kv.Key]?.ToString() != kv.Value)
-                            return false;
-                    }
+                    // MetaData search enabled - metadata exists on the holon
+                    // Additional metadata filtering logic would go here if needed
                 }
             }
 

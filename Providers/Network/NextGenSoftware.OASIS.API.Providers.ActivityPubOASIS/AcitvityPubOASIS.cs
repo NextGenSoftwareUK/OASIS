@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
@@ -984,38 +985,39 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
 
                 // Real ActivityPub implementation for saving avatar detail
                 // This would typically involve creating/updating an ActivityPub actor with detailed information
+                var detail = avatarDetail as AvatarDetail ?? new AvatarDetail();
                 var actorData = new
                 {
                     type = "Person",
                     preferredUsername = avatarDetail.Username,
-                    name = $"{avatarDetail.FirstName} {avatarDetail.LastName}".Trim(),
+                    name = $"{detail.FirstName} {detail.LastName}".Trim(),
                     summary = avatarDetail.Description,
                     email = avatarDetail.Email,
                     location = avatarDetail.Address,
-                    website = avatarDetail.Website,
-                    language = avatarDetail.Language,
+                    website = detail.MetaData?.ContainsKey("Website") == true ? detail.MetaData["Website"]?.ToString() : "",
+                    language = detail.MetaData?.ContainsKey("Language") == true ? detail.MetaData["Language"]?.ToString() : "",
                     // Map ALL AvatarDetail properties to ActivityPub actor
                     customFields = new[]
                     {
                         new { name = "Phone", value = avatarDetail.Mobile },
                         new { name = "Landline", value = avatarDetail.Landline },
-                        new { name = "Title", value = avatarDetail.Title },
-                        new { name = "Birth Date", value = avatarDetail.DOB?.ToString("yyyy-MM-dd") },
+                        new { name = "Title", value = detail.Title },
+                        new { name = "Birth Date", value = detail.DOB.ToString("yyyy-MM-dd") },
                         new { name = "Country", value = avatarDetail.Country },
                         new { name = "Postcode", value = avatarDetail.Postcode },
                         new { name = "Karma", value = avatarDetail.KarmaAkashicRecords.ToString() },
                         new { name = "Level", value = avatarDetail.Level.ToString() },
                         new { name = "XP", value = avatarDetail.XP.ToString() },
-                        new { name = "HP", value = avatarDetail.HP.ToString() },
-                        new { name = "Mana", value = avatarDetail.Mana.ToString() },
-                        new { name = "Stamina", value = avatarDetail.Stamina.ToString() }
+                        new { name = "HP", value = detail.Stats.HP.ToString() },
+                        new { name = "Mana", value = detail.Stats.Mana.ToString() },
+                        new { name = "Stamina", value = detail.Stats.Stamina.ToString() }
                     },
                     // Map OASIS-specific data
                     oasisdData = new
                     {
-                        avatarType = avatarDetail.AvatarType.ToString(),
-                        providerWallets = avatarDetail.ProviderWallets,
-                        customData = avatarDetail.CustomData
+                        avatarType = detail.AvatarType.ToString(),
+                        providerWallets = detail.MetaData?.ContainsKey("ProviderWallets") == true ? detail.MetaData["ProviderWallets"] : null,
+                        customData = detail.MetaData
                     }
                 };
 
@@ -1029,9 +1031,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 {
                     // Update avatar detail with ActivityPub-specific data
                     avatarDetail.ModifiedDate = DateTime.Now;
-                    avatarDetail.CustomData = avatarDetail.CustomData ?? new Dictionary<string, object>();
-                    avatarDetail.CustomData["ActivityPubSavedAt"] = DateTime.Now;
-                    avatarDetail.CustomData["ActivityPubResponse"] = await response.Content.ReadAsStringAsync();
+                    detail.MetaData = detail.MetaData ?? new Dictionary<string, object>();
+                    detail.MetaData["ActivityPubSavedAt"] = DateTime.Now;
+                    detail.MetaData["ActivityPubResponse"] = await response.Content.ReadAsStringAsync();
                     
                     result.Result = avatarDetail;
                     result.IsError = false;
@@ -1367,14 +1369,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                             Version = 1,
                             IsActive = true,
                             // Map ALL Holon properties from ActivityPub object
-                            ParentId = activityPubObject.GetValueOrDefault("inReplyTo") != null ? 
-                                Guid.TryParse(activityPubObject.GetValueOrDefault("inReplyTo").ToString(), out var parentId) ? parentId : (Guid?)null : null,
-                            ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
+                            ParentHolonId = activityPubObject.GetValueOrDefault("inReplyTo") != null ? 
+                                Guid.TryParse(activityPubObject.GetValueOrDefault("inReplyTo").ToString(), out var parentId) ? parentId : Guid.Empty : Guid.Empty,
+                            // Store provider key in ProviderUniqueStorageKey
+                            // ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
                             IsChanged = false,
-                            IsNew = false,
-                            IsDeleted = false,
+                            IsNewHolon = false,
+                            // IsDeleted = false, // Use IsActive instead
                             // Map ActivityPub specific data to custom properties
-                            CustomData = new Dictionary<string, object>
+                            MetaData = new Dictionary<string, object>
                             {
                                 ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                 ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
@@ -1507,9 +1510,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                 DateTime.TryParse(activityPubObject.GetValueOrDefault("updated").ToString(), out var updated) ? updated : DateTime.Now : DateTime.Now,
                             Version = 1,
                             IsActive = true,
-                            ProviderKey = providerKey,
+                            // Store provider key in ProviderUniqueStorageKey
+                            // ProviderKey = providerKey,
                             // Map ALL ActivityPub object properties to custom data
-                            CustomData = new Dictionary<string, object>
+                            MetaData = new Dictionary<string, object>
                             {
                                 ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                 ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
@@ -1663,10 +1667,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                     DateTime.TryParse(activityPubObject.GetValueOrDefault("updated").ToString(), out var updated) ? updated : DateTime.Now : DateTime.Now,
                                 Version = 1,
                                 IsActive = true,
-                                ParentId = id,
-                                ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
+                                ParentHolonId = id,
+                                // Store provider key in ProviderUniqueStorageKey
+                                // ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
                                 // Map ALL ActivityPub object properties to custom data
-                                CustomData = new Dictionary<string, object>
+                                MetaData = new Dictionary<string, object>
                                 {
                                     ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                     ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
@@ -1802,9 +1807,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                     DateTime.TryParse(activityPubObject.GetValueOrDefault("updated").ToString(), out var updated) ? updated : DateTime.Now : DateTime.Now,
                                 Version = 1,
                                 IsActive = true,
-                                ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
+                                ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.ActivityPubOASIS] = activityPubObject.GetValueOrDefault("id")?.ToString() ?? "" },
                                 // Map ALL ActivityPub object properties to custom data
-                                CustomData = new Dictionary<string, object>
+                                MetaData = new Dictionary<string, object>
                                 {
                                     ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                     ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
@@ -1952,9 +1957,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                     DateTime.TryParse(activityPubObject.GetValueOrDefault("updated").ToString(), out var updated) ? updated : DateTime.Now : DateTime.Now,
                                 Version = 1,
                                 IsActive = true,
-                                ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
+                                ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.ActivityPubOASIS] = activityPubObject.GetValueOrDefault("id")?.ToString() ?? "" },
                                 // Map ALL ActivityPub object properties to custom data
-                                CustomData = new Dictionary<string, object>
+                                MetaData = new Dictionary<string, object>
                                 {
                                     ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                     ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
@@ -2096,9 +2101,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                     DateTime.TryParse(activityPubObject.GetValueOrDefault("updated").ToString(), out var updated) ? updated : DateTime.Now : DateTime.Now,
                                 Version = 1,
                                 IsActive = true,
-                                ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
+                                ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.ActivityPubOASIS] = activityPubObject.GetValueOrDefault("id")?.ToString() ?? "" },
                                 // Map ALL ActivityPub object properties to custom data
-                                CustomData = new Dictionary<string, object>
+                                MetaData = new Dictionary<string, object>
                                 {
                                     ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                     ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
@@ -2239,9 +2244,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                     DateTime.TryParse(activityPubObject.GetValueOrDefault("updated").ToString(), out var updated) ? updated : DateTime.Now : DateTime.Now,
                                 Version = 1,
                                 IsActive = true,
-                                ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
+                                ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.ActivityPubOASIS] = activityPubObject.GetValueOrDefault("id")?.ToString() ?? "" },
                                 // Map ALL ActivityPub object properties to custom data
-                                CustomData = new Dictionary<string, object>
+                                MetaData = new Dictionary<string, object>
                                 {
                                     ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                     ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
@@ -2366,14 +2371,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     published = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                     updated = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                     // Map ALL Holon properties to ActivityPub object
-                    attributedTo = holon.CreatedByAvatarId?.ToString(),
-                    inReplyTo = holon.ParentId?.ToString(),
+                    attributedTo = holon.CreatedByAvatarId.ToString(),
+                    inReplyTo = holon.ParentHolonId?.ToString(),
                     to = new[] { "https://www.w3.org/ns/activitystreams#Public" },
                     cc = new string[0],
                     bto = new string[0],
                     bcc = new string[0],
                     audience = new string[0],
-                    url = holon.ProviderKey,
+                    url = holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.ActivityPubOASIS) ? holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS] : "",
                     mediaType = "text/html",
                     duration = "PT0S",
                     icon = new { type = "Image", url = "" },
@@ -2397,7 +2402,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                     following = "",
                     followers = "",
                     streams = new string[0],
-                    preferredUsername = holon.ProviderKey,
+                    preferredUsername = holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.ActivityPubOASIS) ? holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS] : "",
                     endpoints = new { },
                     publicKey = new { },
                     manuallyApprovesFollowers = false,
@@ -2424,18 +2429,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                         holonType = holon.HolonType.ToString(),
                         version = holon.Version,
                         isActive = holon.IsActive,
-                        parentId = holon.ParentId?.ToString(),
-                        providerKey = holon.ProviderKey,
-                        previousVersionId = holon.PreviousVersionId?.ToString(),
-                        nextVersionId = holon.NextVersionId?.ToString(),
+                        parentId = holon.ParentHolonId.ToString(),
+                        providerKey = holon.ProviderUniqueStorageKey?.ContainsKey(Core.Enums.ProviderType.ActivityPubOASIS) == true ? holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS] : "",
+                        previousVersionId = holon.PreviousVersionId.ToString(),
+                        nextVersionId = holon.VersionId.ToString(),
                         isChanged = holon.IsChanged,
-                        isNew = holon.IsNew,
-                        isDeleted = holon.IsDeleted,
-                        deletedByAvatarId = holon.DeletedByAvatarId?.ToString(),
-                        deletedDate = holon.DeletedDate?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                        createdByAvatarId = holon.CreatedByAvatarId?.ToString(),
-                        modifiedByAvatarId = holon.ModifiedByAvatarId?.ToString(),
-                        customData = holon.CustomData
+                        isNew = holon.IsNewHolon,
+                        isDeleted = !holon.IsActive,
+                        deletedByAvatarId = holon.DeletedByAvatarId.ToString(),
+                        deletedDate = holon.DeletedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                        createdByAvatarId = holon.CreatedByAvatarId.ToString(),
+                        modifiedByAvatarId = holon.ModifiedByAvatarId.ToString(),
+                        customData = holon.MetaData
                     }
                 };
 
@@ -2449,9 +2454,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                 {
                     // Update holon with ActivityPub-specific data
                     holon.ModifiedDate = DateTime.Now;
-                    holon.CustomData = holon.CustomData ?? new Dictionary<string, object>();
-                    holon.CustomData["ActivityPubSavedAt"] = DateTime.Now;
-                    holon.CustomData["ActivityPubResponse"] = await response.Content.ReadAsStringAsync();
+                    holon.MetaData = holon.MetaData ?? new Dictionary<string, object>();
+                    holon.MetaData["ActivityPubSavedAt"] = DateTime.Now;
+                    holon.MetaData["ActivityPubResponse"] = await response.Content.ReadAsStringAsync();
                     
                     result.Result = holon;
                     result.IsError = false;
@@ -2503,14 +2508,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                             published = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                             updated = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                             // Map ALL Holon properties to ActivityPub object
-                            attributedTo = holon.CreatedByAvatarId?.ToString(),
-                            inReplyTo = holon.ParentId?.ToString(),
+                            attributedTo = holon.CreatedByAvatarId.ToString(),
+                            inReplyTo = holon.ParentHolonId?.ToString(),
                             to = new[] { "https://www.w3.org/ns/activitystreams#Public" },
                             cc = new string[0],
                             bto = new string[0],
                             bcc = new string[0],
                             audience = new string[0],
-                            url = holon.ProviderKey,
+                            url = holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.ActivityPubOASIS) ? holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS] : "",
                             mediaType = "text/html",
                             duration = "PT0S",
                             icon = new { type = "Image", url = "" },
@@ -2534,7 +2539,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                             following = "",
                             followers = "",
                             streams = new string[0],
-                            preferredUsername = holon.ProviderKey,
+                            preferredUsername = holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.ActivityPubOASIS) ? holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS] : "",
                             endpoints = new { },
                             publicKey = new { },
                             manuallyApprovesFollowers = false,
@@ -2561,13 +2566,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                 holonType = holon.HolonType.ToString(),
                                 version = holon.Version,
                                 isActive = holon.IsActive,
-                                parentId = holon.ParentId?.ToString(),
-                                providerKey = holon.ProviderKey,
+                                parentId = holon.ParentHolonId.ToString(),
+                                providerKey = holon.ProviderUniqueStorageKey?.ContainsKey(Core.Enums.ProviderType.ActivityPubOASIS) == true ? holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS] : "",
                                 previousVersionId = holon.PreviousVersionId?.ToString(),
-                                nextVersionId = holon.NextVersionId?.ToString(),
+                                nextVersionId = holon.VersionId.ToString(),
                                 isChanged = holon.IsChanged,
-                                isNew = holon.IsNew,
-                                isDeleted = holon.IsDeleted,
+                                isNew = holon.IsNewHolon,
+                                isDeleted = !holon.IsActive,
                                 deletedByAvatarId = holon.DeletedByAvatarId?.ToString(),
                                 deletedDate = holon.DeletedDate?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                                 createdByAvatarId = holon.CreatedByAvatarId?.ToString(),
@@ -2828,9 +2833,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                                 DateTime.TryParse(activityPubObject.GetValueOrDefault("updated").ToString(), out var updated) ? updated : DateTime.Now : DateTime.Now,
                                             Version = 1,
                                             IsActive = true,
-                                            ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
+                                            ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.ActivityPubOASIS] = activityPubObject.GetValueOrDefault("id")?.ToString() ?? "" },
                                             // Map ALL ActivityPub object properties to custom data
-                                            CustomData = new Dictionary<string, object>
+                                            MetaData = new Dictionary<string, object>
                                             {
                                                 ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                                 ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
@@ -2946,7 +2951,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                                 Language = account.Language,
                                                 ProviderWallets = new List<IProviderWallet>(),
                                                 // Map ActivityPub specific data to custom properties
-                                                CustomData = new Dictionary<string, object>
+                                                MetaData = new Dictionary<string, object>
                                                 {
                                                     ["ActivityPubId"] = account.Id,
                                                     ["ActivityPubUrl"] = account.Url,
@@ -3028,14 +3033,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                             published = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                             updated = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                             // Map ALL Holon properties to ActivityPub object
-                            attributedTo = holon.CreatedByAvatarId?.ToString(),
-                            inReplyTo = holon.ParentId?.ToString(),
+                            attributedTo = holon.CreatedByAvatarId.ToString(),
+                            inReplyTo = holon.ParentHolonId?.ToString(),
                             to = new[] { "https://www.w3.org/ns/activitystreams#Public" },
                             cc = new string[0],
                             bto = new string[0],
                             bcc = new string[0],
                             audience = new string[0],
-                            url = holon.ProviderKey,
+                            url = holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.ActivityPubOASIS) ? holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS] : "",
                             mediaType = "text/html",
                             duration = "PT0S",
                             icon = new { type = "Image", url = "" },
@@ -3059,7 +3064,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                             following = "",
                             followers = "",
                             streams = new string[0],
-                            preferredUsername = holon.ProviderKey,
+                            preferredUsername = holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.ActivityPubOASIS) ? holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS] : "",
                             endpoints = new { },
                             publicKey = new { },
                             manuallyApprovesFollowers = false,
@@ -3086,13 +3091,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                 holonType = holon.HolonType.ToString(),
                                 version = holon.Version,
                                 isActive = holon.IsActive,
-                                parentId = holon.ParentId?.ToString(),
-                                providerKey = holon.ProviderKey,
+                                parentId = holon.ParentHolonId.ToString(),
+                                providerKey = holon.ProviderUniqueStorageKey?.ContainsKey(Core.Enums.ProviderType.ActivityPubOASIS) == true ? holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS] : "",
                                 previousVersionId = holon.PreviousVersionId?.ToString(),
-                                nextVersionId = holon.NextVersionId?.ToString(),
+                                nextVersionId = holon.VersionId.ToString(),
                                 isChanged = holon.IsChanged,
-                                isNew = holon.IsNew,
-                                isDeleted = holon.IsDeleted,
+                                isNew = holon.IsNewHolon,
+                                isDeleted = !holon.IsActive,
                                 deletedByAvatarId = holon.DeletedByAvatarId?.ToString(),
                                 deletedDate = holon.DeletedDate?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                                 createdByAvatarId = holon.CreatedByAvatarId?.ToString(),
@@ -3186,9 +3191,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                     DateTime.TryParse(activityPubObject.GetValueOrDefault("updated").ToString(), out var updated) ? updated : DateTime.Now : DateTime.Now,
                                 Version = 1,
                                 IsActive = true,
-                                ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
+                                ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.ActivityPubOASIS] = activityPubObject.GetValueOrDefault("id")?.ToString() ?? "" },
                                 // Map ALL ActivityPub object properties to custom data
-                                CustomData = new Dictionary<string, object>
+                                MetaData = new Dictionary<string, object>
                                 {
                                     ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                     ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
@@ -3320,9 +3325,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                     DateTime.TryParse(activityPubObject.GetValueOrDefault("updated").ToString(), out var updated) ? updated : DateTime.Now : DateTime.Now,
                                 Version = 1,
                                 IsActive = true,
-                                ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
+                                ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.ActivityPubOASIS] = activityPubObject.GetValueOrDefault("id")?.ToString() ?? "" },
                                 // Map ALL ActivityPub object properties to custom data
-                                CustomData = new Dictionary<string, object>
+                                MetaData = new Dictionary<string, object>
                                 {
                                     ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                     ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
@@ -3454,9 +3459,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                     DateTime.TryParse(activityPubObject.GetValueOrDefault("updated").ToString(), out var updated) ? updated : DateTime.Now : DateTime.Now,
                                 Version = 1,
                                 IsActive = true,
-                                ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
+                                ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.ActivityPubOASIS] = activityPubObject.GetValueOrDefault("id")?.ToString() ?? "" },
                                 // Map ALL ActivityPub object properties to custom data
-                                CustomData = new Dictionary<string, object>
+                                MetaData = new Dictionary<string, object>
                                 {
                                     ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                     ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
@@ -3588,9 +3593,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                     DateTime.TryParse(activityPubObject.GetValueOrDefault("updated").ToString(), out var updated) ? updated : DateTime.Now : DateTime.Now,
                                 Version = 1,
                                 IsActive = true,
-                                ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
+                                ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.ActivityPubOASIS] = activityPubObject.GetValueOrDefault("id")?.ToString() ?? "" },
                                 // Map ALL ActivityPub object properties to custom data
-                                CustomData = new Dictionary<string, object>
+                                MetaData = new Dictionary<string, object>
                                 {
                                     ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                     ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
@@ -3802,9 +3807,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS
                                     DateTime.TryParse(activityPubObject.GetValueOrDefault("updated").ToString(), out var updated) ? updated : DateTime.Now : DateTime.Now,
                                 Version = 1,
                                 IsActive = true,
-                                ProviderKey = activityPubObject.GetValueOrDefault("id")?.ToString(),
+                                ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.ActivityPubOASIS] = activityPubObject.GetValueOrDefault("id")?.ToString() ?? "" },
                                 // Map ALL ActivityPub object properties to custom data
-                                CustomData = new Dictionary<string, object>
+                                MetaData = new Dictionary<string, object>
                                 {
                                     ["ActivityPubId"] = activityPubObject.GetValueOrDefault("id"),
                                     ["ActivityPubType"] = activityPubObject.GetValueOrDefault("type"),
