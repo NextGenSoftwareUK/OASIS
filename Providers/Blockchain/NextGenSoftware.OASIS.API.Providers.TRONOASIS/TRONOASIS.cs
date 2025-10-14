@@ -34,6 +34,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         public string Signature { get; set; }
     }
 
+    public class TRONNFTResponse
+    {
+        public string TokenId { get; set; }
+        public string ContractAddress { get; set; }
+        public string OwnerAddress { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime ModifiedDate { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public double Altitude { get; set; }
+    }
+
     public class TRONOASIS : OASISStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private readonly HttpClient _httpClient;
@@ -782,7 +794,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         if (double.TryParse(meta["Latitude"]?.ToString(), out double aLat) &&
                             double.TryParse(meta["Longitude"]?.ToString(), out double aLong))
                         {
-                            double distance = CalculateDistance(geoLat, geoLong, aLat, aLong);
+                            double distance = GeoHelper.CalculateDistance(geoLat, geoLong, aLat, aLong);
                             if (distance <= radiusInMeters)
                                 nearby.Add(avatar);
                         }
@@ -826,7 +838,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         if (double.TryParse(meta["Latitude"]?.ToString(), out double hLat) &&
                             double.TryParse(meta["Longitude"]?.ToString(), out double hLong))
                         {
-                            double distance = CalculateDistance(geoLat, geoLong, hLat, hLong);
+                            double distance = GeoHelper.CalculateDistance(geoLat, geoLong, hLat, hLong);
                             if (distance <= radiusInMeters)
                                 nearby.Add(holon);
                         }
@@ -893,7 +905,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
                     { 
                         TransactionResult = tronResponse.TxID ?? "Transaction created successfully",
-                        TransactionHash = tronResponse.TxID
+                        TransactionId = tronResponse.TxID
                     };
                     response.IsError = false;
                     response.Message = "TRON transaction sent successfully";
@@ -961,7 +973,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                             TxID = txId.GetString()
                         };
 
-                        response.Result = transactionResponse;
+                        response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
+                        { 
+                            TransactionResult = transactionResponse.TxID ?? "Transaction created successfully",
+                            TransactionId = transactionResponse.TxID
+                        };
                         response.IsError = false;
                         response.Message = "Transaction sent to TRON blockchain successfully";
                     }
@@ -1082,10 +1098,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var tronResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
                     
-                    response.Result = new NFTTransactionRespone 
+                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
                     { 
                         TransactionResult = tronResponse.TxID ?? "NFT transfer created successfully",
-                        TransactionHash = tronResponse.TxID
+                        TransactionId = tronResponse.TxID
                     };
                     response.IsError = false;
                     response.Message = "TRON NFT transfer sent successfully";
@@ -1138,10 +1154,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var tronResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
                     
-                    response.Result = new NFTTransactionRespone 
+                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone 
                     { 
                         TransactionResult = tronResponse.TxID ?? "NFT minted successfully",
-                        TransactionHash = tronResponse.TxID
+                        TransactionId = tronResponse.TxID
                     };
                     response.IsError = false;
                     response.Message = "TRON NFT minted successfully";
@@ -1181,16 +1197,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
-                    var nftData = JsonSerializer.Deserialize<TRONNFTData>(content);
+                    var nftData = JsonSerializer.Deserialize<JsonElement>(content);
                     
                     response.Result = new OASISNFT
                     {
                         Id = id,
-                        Title = nftData?.Name ?? "TRON NFT",
-                        Description = nftData?.Description ?? "NFT from TRON blockchain",
-                        ImageUrl = nftData?.ImageUrl ?? "",
-                        NFTTokenAddress = nftData?.TokenId ?? id.ToString(),
-                        OASISMintWalletAddress = nftData?.ContractAddress ?? "TRC721_CONTRACT"
+                        Title = nftData.TryGetProperty("name", out var name) ? name.GetString() : "TRON NFT",
+                        Description = nftData.TryGetProperty("description", out var desc) ? desc.GetString() : "NFT from TRON blockchain",
+                        ImageUrl = nftData.TryGetProperty("imageUrl", out var img) ? img.GetString() : "",
+                        NFTTokenAddress = nftData.TryGetProperty("tokenId", out var tokenId) ? tokenId.GetString() : id.ToString(),
+                        OASISMintWalletAddress = nftData.TryGetProperty("contractAddress", out var contract) ? contract.GetString() : "TRC721_CONTRACT"
                     };
                     response.IsError = false;
                     response.Message = "TRON NFT loaded successfully";
@@ -1225,7 +1241,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Query TRON blockchain for NFT by hash
-                var nftData = await _tronClient.GetNFTByHashAsync(hash);
+                var nftData = await _httpClient.GetStringAsync($"{TRON_API_BASE_URL}/nft/{hash}");
                 if (nftData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading NFT from TRON: {nftData.Message}");
@@ -1245,7 +1261,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         NFTMintedUsingWalletAddress = nftData.Result.OwnerAddress,
                         MintedOn = nftData.Result.CreatedDate,
                         ImportedOn = nftData.Result.ModifiedDate,
-                        CustomData = new Dictionary<string, object>
+                        MetaData = new Dictionary<string, object>
                         {
                             ["TRONHash"] = hash,
                             ["TRONContractAddress"] = nftData.Result.ContractAddress,
@@ -1296,7 +1312,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Query TRON blockchain for all GeoNFTs owned by this address
-                var geoNFTsData = await _tronClient.GetAllGeoNFTsForAddressAsync(walletResult.Result);
+                var geoNFTsData = await _httpClient.GetStringAsync($"{TRON_API_BASE_URL}/geo-nfts/{walletResult.Result}");
                 if (geoNFTsData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading GeoNFTs from TRON: {geoNFTsData.Message}");
@@ -1319,7 +1335,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                         Long = (long)(nftData.Longitude * 1000000), // Convert to microdegrees
                         MintedOn = nftData.CreatedDate,
                         ImportedOn = nftData.ModifiedDate,
-                        CustomData = new Dictionary<string, object>
+                        MetaData = new Dictionary<string, object>
                         {
                             ["TRONContractAddress"] = nftData.ContractAddress,
                             ["TRONOwnerAddress"] = nftData.OwnerAddress,
@@ -1621,8 +1637,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                             Lat = (long)(request.Latitude * 1000000), // Convert to microdegrees
                             Long = (long)(request.Longitude * 1000000), // Convert to microdegrees
                             OASISMintWalletAddress = walletResult.Result,
-                            OnChainProvider = new EnumValue<ProviderType>(ProviderType.TRONOASIS),
-                            MintTransactionHash = transactionResult.TxID
+                            OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS),
+                            MintTransactionId = transactionResult.TxID
                         };
                         
                         result.Result = geoNFT;
@@ -1714,8 +1730,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                             Lat = (long)(request.Latitude * 1000000), // Convert to microdegrees
                             Long = (long)(request.Longitude * 1000000), // Convert to microdegrees
                             OASISMintWalletAddress = walletResult.Result,
-                            OnChainProvider = new EnumValue<ProviderType>(ProviderType.TRONOASIS),
-                            MintTransactionHash = transactionResult.TxID
+                            OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS),
+                            MintTransactionId = transactionResult.TxID
                         };
                         
                         result.Result = geoNFT;
@@ -2111,6 +2127,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         }
 
         #endregion
+
+        // Removed custom CalculateDistance and ToRadians methods - now using GeoHelper.CalculateDistance
     }
 
     /// <summary>
@@ -2190,32 +2208,15 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return null;
         }
     }
+}
 
-    /// <summary>
-    /// TRON account information
-    /// </summary>
-    public class TRONAccountInfo
-    {
-        public string Address { get; set; }
-        public long? Balance { get; set; }
-        public long? Energy { get; set; }
-        public long? Bandwidth { get; set; }
-    }
-
-    private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
-    {
-        const double R = 6371000; // Earth's radius in meters
-        var dLat = ToRadians(lat2 - lat1);
-        var dLon = ToRadians(lon2 - lon1);
-        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
-                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-        return R * c;
-    }
-
-    private double ToRadians(double degrees)
-    {
-        return degrees * (Math.PI / 180);
-    }
+/// <summary>
+/// TRON account information
+/// </summary>
+public class TRONAccountInfo
+{
+    public string Address { get; set; }
+    public long? Balance { get; set; }
+    public long? Energy { get; set; }
+    public long? Bandwidth { get; set; }
 }
