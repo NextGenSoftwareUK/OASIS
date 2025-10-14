@@ -2553,6 +2553,80 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     }
 
     /// <summary>
+    /// Parse Solana blockchain response to AvatarDetail object with complete serialization
+    /// </summary>
+    private AvatarDetail ParseSolanaToAvatarDetail(object solanaData)
+    {
+        try
+        {
+            // Serialize the complete Solana data to JSON first
+            var solanaJson = System.Text.Json.JsonSerializer.Serialize(solanaData, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            });
+
+            // Deserialize the complete AvatarDetail object from Solana JSON
+            var avatarDetail = System.Text.Json.JsonSerializer.Deserialize<AvatarDetail>(solanaJson, new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            });
+
+            // If deserialization fails, create from extracted properties
+            if (avatarDetail == null)
+            {
+                avatarDetail = new AvatarDetail
+                {
+                    Id = Guid.NewGuid(),
+                    Username = GetSolanaProperty(solanaData, "username") ?? "solana_user",
+                    Email = GetSolanaProperty(solanaData, "email") ?? "user@solana.example",
+                    FirstName = GetSolanaProperty(solanaData, "firstName") ?? "Solana",
+                    LastName = GetSolanaProperty(solanaData, "lastName") ?? "User",
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow,
+                    Version = 1,
+                    IsActive = true,
+                    // AvatarDetail specific properties
+                    Address = GetSolanaProperty(solanaData, "address") ?? "",
+                    Country = GetSolanaProperty(solanaData, "country") ?? "",
+                    Postcode = GetSolanaProperty(solanaData, "postcode") ?? "",
+                    Mobile = GetSolanaProperty(solanaData, "mobile") ?? "",
+                    Landline = GetSolanaProperty(solanaData, "landline") ?? "",
+                    Title = GetSolanaProperty(solanaData, "title") ?? "",
+                    DOB = DateTime.TryParse(GetSolanaProperty(solanaData, "dob"), out var dob) ? dob : (DateTime?)null,
+                    AvatarType = Enum.TryParse<AvatarType>(GetSolanaProperty(solanaData, "avatarType"), out var avatarType) ? avatarType : AvatarType.User,
+                    KarmaAkashicRecords = int.TryParse(GetSolanaProperty(solanaData, "karmaAkashicRecords"), out var karma) ? karma : 0,
+                    Level = int.TryParse(GetSolanaProperty(solanaData, "level"), out var level) ? level : 1,
+                    XP = int.TryParse(GetSolanaProperty(solanaData, "xp"), out var xp) ? xp : 0,
+                    HP = int.TryParse(GetSolanaProperty(solanaData, "hp"), out var hp) ? hp : 100,
+                    Mana = int.TryParse(GetSolanaProperty(solanaData, "mana"), out var mana) ? mana : 100,
+                    Stamina = int.TryParse(GetSolanaProperty(solanaData, "stamina"), out var stamina) ? stamina : 100,
+                    Description = GetSolanaProperty(solanaData, "description") ?? "Solana user",
+                    Website = GetSolanaProperty(solanaData, "website") ?? "",
+                    Language = GetSolanaProperty(solanaData, "language") ?? "en"
+                };
+            }
+
+            // Add Solana-specific metadata
+            if (solanaData != null)
+            {
+                avatarDetail.ProviderMetaData[Core.Enums.ProviderType.SolanaOASIS].Add("solana_account", GetSolanaProperty(solanaData, "account") ?? "");
+                avatarDetail.ProviderMetaData[Core.Enums.ProviderType.SolanaOASIS].Add("solana_lamports", GetSolanaProperty(solanaData, "lamports") ?? "0");
+                avatarDetail.ProviderMetaData[Core.Enums.ProviderType.SolanaOASIS].Add("solana_owner", GetSolanaProperty(solanaData, "owner") ?? "");
+                avatarDetail.ProviderMetaData[Core.Enums.ProviderType.SolanaOASIS].Add("solana_network", "mainnet-beta");
+                avatarDetail.ProviderMetaData[Core.Enums.ProviderType.SolanaOASIS].Add("solana_program_id", GetSolanaProperty(solanaData, "programId") ?? "");
+            }
+
+            return avatarDetail;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Extract property value from Solana account data
     /// </summary>
     private string GetSolanaProperty(object data, string propertyName)

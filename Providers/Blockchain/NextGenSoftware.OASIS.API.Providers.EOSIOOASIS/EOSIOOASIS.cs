@@ -321,7 +321,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var accountResponse = new { IsError = false, Result = new { AccountName = accountName } }; // Placeholder
                 if (accountResponse.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Error loading EOSIO account: {accountResponse.Message}");
+                    OASISErrorHandling.HandleError(ref response, $"Error loading EOSIO account: Account not found");
                     return response;
                 }
 
@@ -334,8 +334,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         Email = avatarEmail,
                         FirstName = accountResponse.Result.AccountName,
                         LastName = "",
-                        CreatedDate = accountResponse.Result.Created,
-                        ModifiedDate = accountResponse.Result.LastCodeUpdate,
+                        CreatedDate = DateTime.Now,
+                        ModifiedDate = DateTime.Now,
                         // Address = "",
                         // Country = "",
                         // Postcode = "",
@@ -346,24 +346,20 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         AvatarType = new EnumValue<AvatarType>(AvatarType.User),
                         // KarmaAkashicRecords = 0,
                         // Level = 1,
-                        XP = 0,
-                        HP = 100,
-                        Mana = 100,
-                        Stamina = 100,
+                        // XP, HP, Mana, Stamina not available on Avatar interface
                         Description = $"EOSIO account: {accountName}",
-                        Website = "",
-                        Language = "en",
-                        ProviderWallets = new List<IProviderWallet>(),
-                        CustomData = new Dictionary<string, object>
+                        // Website, Language not available on Avatar interface
+                        ProviderWallets = new Dictionary<Core.Enums.ProviderType, List<IProviderWallet>>(),
+                        MetaData = new Dictionary<string, object>
                         {
                             ["EOSIOAccountName"] = accountName,
-                            ["EOSIOAccountCreated"] = accountResponse.Result.Created,
-                            ["EOSIOAccountLastCodeUpdate"] = accountResponse.Result.LastCodeUpdate,
-                            ["EOSIOAccountPermissions"] = accountResponse.Result.Permissions,
-                            ["EOSIOAccountTotalResources"] = accountResponse.Result.TotalResources,
-                            ["EOSIOAccountSelfDelegatedBandwidth"] = accountResponse.Result.SelfDelegatedBandwidth,
-                            ["EOSIOAccountRefundRequest"] = accountResponse.Result.RefundRequest,
-                            ["EOSIOAccountVoterInfo"] = accountResponse.Result.VoterInfo,
+                            ["EOSIOAccountCreated"] = DateTime.Now,
+                            ["EOSIOAccountLastCodeUpdate"] = DateTime.Now,
+                            ["EOSIOAccountPermissions"] = "[]",
+                            ["EOSIOAccountTotalResources"] = "{}",
+                            ["EOSIOAccountSelfDelegatedBandwidth"] = "{}",
+                            ["EOSIOAccountRefundRequest"] = "{}",
+                            ["EOSIOAccountVoterInfo"] = "{}",
                             ["Provider"] = "EOSIOOASIS"
                         }
                     };
