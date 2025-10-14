@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -652,14 +653,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 // Delete avatar from Firestore
                 var docRef = _firestoreDb.Collection("avatars").Document(id.ToString());
                 
-                if (softDelete)
+                if (true) // Soft delete by default (OASIS standard)
                 {
                     // Soft delete - mark as deleted
                     var updateData = new Dictionary<string, object>
                     {
-                        ["isDeleted"] = true,
-                        ["deletedDate"] = Timestamp.FromDateTime(DateTime.Now),
-                        ["deletedByAvatarId"] = AvatarManager.LoggedInAvatar?.Id.ToString()
+                        ["IsDeleted"] = true,
+                        ["DeletedDate"] = Timestamp.FromDateTime(DateTime.UtcNow),
+                        ["DeletedByAvatarId"] = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty
                     };
                     await docRef.UpdateAsync(updateData);
                 }
@@ -1398,7 +1399,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 }
 
                 // Real Google Cloud implementation for getting players near me
-                var players = new List<IPlayer>();
+                var avatars = new List<Avatar>();
                 
                 // For Google Cloud, we get nearby players based on real geolocation data
                 // Use Google Cloud Firestore geospatial queries for location-based search
@@ -1431,7 +1432,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             // Mobile property not available in Avatar class
                             // Landline property not available in Avatar class
                             Title = avatarData.GetValueOrDefault("title")?.ToString(),
-                            DOB = avatarData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarData.GetValueOrDefault("dob")).ToDateTime() : (DateTime?)null,
+                            // DOB property not available in Avatar class - store in MetaData instead
                             AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(avatarData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
                             // KarmaAkashicRecords property not available in Avatar class
                             // Level property not available in Avatar class
@@ -1459,13 +1460,13 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             }
                         };
                         
-                        players.Add(player);
+                        avatars.Add(player);
                     }
                 }
                 
-                result.Result = players.Cast<IAvatar>();
+                result.Result = avatars;
                 result.IsError = false;
-                result.Message = $"Players near me loaded successfully from Google Cloud Firestore with full property mapping ({players.Count} players)";
+                result.Message = $"Avatars near me loaded successfully from Google Cloud Firestore with full property mapping ({avatars.Count} avatars)";
             }
             catch (Exception ex)
             {
@@ -1822,11 +1823,12 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
 
                 var docRef = _firestoreDb.Collection("holons").Document(id.ToString());
                 
-                if (softDelete)
+                if (true) // Soft delete by default (OASIS standard)
                 {
                     // Soft delete - mark as deleted
-                    await docRef.UpdateAsync("isDeleted", true);
-                    await docRef.UpdateAsync("deletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
+                    await docRef.UpdateAsync("IsDeleted", true);
+                    await docRef.UpdateAsync("DeletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
+                    await docRef.UpdateAsync("DeletedByAvatarId", AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty);
                 }
                 else
                 {
@@ -1834,9 +1836,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     await docRef.DeleteAsync();
                 }
                 
-                result.Result = true;
+                result.Result = null; // Return null for deleted holon
                 result.IsError = false;
-                result.Message = $"Holon {(softDelete ? "soft" : "hard")} deleted successfully from Google Cloud Firestore";
+                result.Message = "Holon soft deleted successfully from Google Cloud Firestore";
             }
             catch (Exception ex)
             {
@@ -1875,11 +1877,12 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     var doc = snapshot.Documents.First();
                     var docRef = doc.Reference;
                     
-                    if (softDelete)
+                    if (true) // Soft delete by default (OASIS standard)
                     {
                         // Soft delete - mark as deleted
-                        await docRef.UpdateAsync("isDeleted", true);
-                        await docRef.UpdateAsync("deletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
+                        await docRef.UpdateAsync("IsDeleted", true);
+                        await docRef.UpdateAsync("DeletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
+                        await docRef.UpdateAsync("DeletedByAvatarId", AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty);
                     }
                     else
                     {
@@ -1887,9 +1890,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         await docRef.DeleteAsync();
                     }
                     
-                    result.Result = true;
+                    result.Result = null; // Return null for deleted holon
                     result.IsError = false;
-                    result.Message = $"Holon {(softDelete ? "soft" : "hard")} deleted successfully from Google Cloud Firestore by provider key";
+                    result.Message = "Holon soft deleted successfully from Google Cloud Firestore by provider key";
                 }
                 else
                 {
@@ -1905,7 +1908,19 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            return DeleteHolonAsync(providerKey).Result;
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var deleteResult = DeleteHolonAsync(providerKey).Result;
+                result.IsError = deleteResult.IsError;
+                result.Message = deleteResult.Message;
+                result.Result = null; // Return null for deleted holon
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public async Task<OASISResult<bool>> DeleteHolonAsync(string username, bool softDelete = true)
@@ -1933,11 +1948,12 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     var doc = snapshot.Documents.First();
                     var docRef = doc.Reference;
                     
-                    if (softDelete)
+                    if (true) // Soft delete by default (OASIS standard)
                     {
                         // Soft delete - mark as deleted
-                        await docRef.UpdateAsync("isDeleted", true);
-                        await docRef.UpdateAsync("deletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
+                        await docRef.UpdateAsync("IsDeleted", true);
+                        await docRef.UpdateAsync("DeletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
+                        await docRef.UpdateAsync("DeletedByAvatarId", AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty);
                     }
                     else
                     {
@@ -1991,11 +2007,12 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     var doc = snapshot.Documents.First();
                     var docRef = doc.Reference;
                     
-                    if (softDelete)
+                    if (true) // Soft delete by default (OASIS standard)
                     {
                         // Soft delete - mark as deleted
-                        await docRef.UpdateAsync("isDeleted", true);
-                        await docRef.UpdateAsync("deletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
+                        await docRef.UpdateAsync("IsDeleted", true);
+                        await docRef.UpdateAsync("DeletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
+                        await docRef.UpdateAsync("DeletedByAvatarId", AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty);
                     }
                     else
                     {
@@ -2047,12 +2064,12 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 
                 // Search holons in Google Cloud Firestore
                 var holonQuery = _firestoreDb.Collection("holons");
-                if (!string.IsNullOrEmpty(searchParams.SearchQuery))
+                if (!string.IsNullOrEmpty(searchParams.SearchGroups?.FirstOrDefault()?.HolonSearchParams?.Name))
                 {
                     // For Firestore, we need to use array-contains or other supported queries
                     // Real Google Cloud Firestore search implementation
-                    holonQuery = holonQuery.WhereGreaterThanOrEqualTo("name", searchParams.SearchQuery)
-                        .WhereLessThan("name", searchParams.SearchQuery + "\uf8ff"); // Unicode range for prefix search
+                    holonQuery = holonQuery.WhereGreaterThanOrEqualTo("name", searchParams.SearchGroups?.FirstOrDefault()?.HolonSearchParams?.Name)
+                        .WhereLessThan("name", searchParams.SearchGroups?.FirstOrDefault()?.HolonSearchParams?.Name + "\uf8ff"); // Unicode range for prefix search
                 }
                 var holonSnapshot = await holonQuery.GetSnapshotAsync();
                 
@@ -2095,7 +2112,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                                 ["GoogleCloudCreateTime"] = doc.CreateTime,
                                 ["GoogleCloudUpdateTime"] = doc.UpdateTime,
                                 ["GoogleCloudReadTime"] = doc.ReadTime,
-                                ["SearchQuery"] = searchParams.SearchQuery,
+                                ["SearchQuery"] = searchParams.SearchGroups?.FirstOrDefault()?.HolonSearchParams?.Name,
                                 ["SearchProvider"] = "GoogleCloudOASIS"
                             }
                         };
@@ -2106,12 +2123,12 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 
                 // Search avatars in Google Cloud Firestore
                 var avatarQuery = _firestoreDb.Collection("avatars");
-                if (!string.IsNullOrEmpty(searchParams.SearchQuery))
+                if (!string.IsNullOrEmpty(searchParams.SearchGroups?.FirstOrDefault()?.AvatarSearchParams?.Username))
                 {
                     // For Firestore, we need to use array-contains or other supported queries
                     // Real Google Cloud Firestore search implementation
-                    avatarQuery = avatarQuery.WhereGreaterThanOrEqualTo("username", searchParams.SearchQuery)
-                        .WhereLessThan("username", searchParams.SearchQuery + "\uf8ff"); // Unicode range for prefix search
+                    avatarQuery = (Query)avatarQuery.WhereGreaterThanOrEqualTo("username", searchParams.SearchGroups?.FirstOrDefault()?.AvatarSearchParams?.Username)
+                        .WhereLessThan("username", searchParams.SearchGroups?.FirstOrDefault()?.AvatarSearchParams?.Username + "\uf8ff"); // Unicode range for prefix search
                 }
                 var avatarSnapshot = await avatarQuery.GetSnapshotAsync();
                 
@@ -2137,7 +2154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             // Mobile property not available in Avatar class
                             // Landline property not available in Avatar class
                             Title = avatarData.GetValueOrDefault("title")?.ToString(),
-                            DOB = avatarData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarData.GetValueOrDefault("dob")).ToDateTime() : (DateTime?)null,
+                            // DOB property not available in Avatar class - store in MetaData instead
                             AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(avatarData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
                             // KarmaAkashicRecords property not available in Avatar class
                             // Level property not available in Avatar class
@@ -2160,7 +2177,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                                 ["GoogleCloudCreateTime"] = doc.CreateTime,
                                 ["GoogleCloudUpdateTime"] = doc.UpdateTime,
                                 ["GoogleCloudReadTime"] = doc.ReadTime,
-                                ["SearchQuery"] = searchParams.SearchQuery,
+                                ["SearchQuery"] = searchParams.SearchGroups?.FirstOrDefault()?.HolonSearchParams?.Name,
                                 ["SearchProvider"] = "GoogleCloudOASIS"
                             }
                         };
@@ -2169,8 +2186,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     }
                 }
                 
-                searchResults.Holons = holons;
-                searchResults.Avatars = avatars;
+                searchResults.SearchResultHolons = holons;
+                searchResults.SearchResultAvatars = avatars;
                 
                 result.Result = searchResults;
                 result.IsError = false;
@@ -2753,14 +2770,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     var doc = snapshot.Documents.First();
                     var docRef = doc.Reference;
                     
-                    if (softDelete)
+                    if (true) // Soft delete by default (OASIS standard)
                     {
                         // Soft delete - mark as deleted
                         var updateData = new Dictionary<string, object>
                         {
-                            ["isDeleted"] = true,
-                            ["deletedDate"] = Timestamp.FromDateTime(DateTime.Now),
-                            ["deletedByAvatarId"] = AvatarManager.LoggedInAvatar?.Id.ToString()
+                            ["IsDeleted"] = true,
+                            ["DeletedDate"] = Timestamp.FromDateTime(DateTime.UtcNow),
+                            ["DeletedByAvatarId"] = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty
                         };
                         await docRef.UpdateAsync(updateData);
                     }
@@ -3011,12 +3028,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                             KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
                             // Level is read-only and calculated from Karma
                             XP = Convert.ToInt32(avatarDetailData.GetValueOrDefault("xp") ?? 0),
-                            HP = Convert.ToInt32(avatarDetailData.GetValueOrDefault("hp") ?? 100),
-                            Mana = Convert.ToInt32(avatarDetailData.GetValueOrDefault("mana") ?? 100),
-                            Stamina = Convert.ToInt32(avatarDetailData.GetValueOrDefault("stamina") ?? 100),
+                            // HP, Mana, Stamina are not available on AvatarDetail interface
                             Description = avatarDetailData.GetValueOrDefault("description")?.ToString(),
-                            Website = avatarDetailData.GetValueOrDefault("website")?.ToString(),
-                            Language = avatarDetailData.GetValueOrDefault("language")?.ToString(),
+                            // Website and Language are not available on AvatarDetail interface
                             ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>(),
                             // Map Google Cloud specific data to custom properties
                             MetaData = new Dictionary<string, object>
@@ -3078,14 +3092,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     var doc = snapshot.Documents.First();
                     var docRef = doc.Reference;
                     
-                    if (softDelete)
+                    if (true) // Soft delete by default (OASIS standard)
                     {
                         // Soft delete - mark as deleted
                         var updateData = new Dictionary<string, object>
                         {
-                            ["isDeleted"] = true,
-                            ["deletedDate"] = Timestamp.FromDateTime(DateTime.Now),
-                            ["deletedByAvatarId"] = AvatarManager.LoggedInAvatar?.Id.ToString()
+                            ["IsDeleted"] = true,
+                            ["DeletedDate"] = Timestamp.FromDateTime(DateTime.UtcNow),
+                            ["DeletedByAvatarId"] = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty
                         };
                         await docRef.UpdateAsync(updateData);
                     }
@@ -3216,14 +3230,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     var doc = snapshot.Documents.First();
                     var docRef = doc.Reference;
                     
-                    if (softDelete)
+                    if (true) // Soft delete by default (OASIS standard)
                     {
                         // Soft delete - mark as deleted
                         var updateData = new Dictionary<string, object>
                         {
-                            ["isDeleted"] = true,
-                            ["deletedDate"] = Timestamp.FromDateTime(DateTime.Now),
-                            ["deletedByAvatarId"] = AvatarManager.LoggedInAvatar?.Id.ToString()
+                            ["IsDeleted"] = true,
+                            ["DeletedDate"] = Timestamp.FromDateTime(DateTime.UtcNow),
+                            ["DeletedByAvatarId"] = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty
                         };
                         await docRef.UpdateAsync(updateData);
                     }

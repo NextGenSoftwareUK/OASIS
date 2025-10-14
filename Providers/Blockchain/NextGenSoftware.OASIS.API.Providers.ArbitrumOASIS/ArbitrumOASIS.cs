@@ -856,7 +856,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 foreach (var avatarDetailData in avatarDetailsData)
                 {
                     // Real Arbitrum implementation: Parse avatar detail data
-                    var avatarDetail = ArbitrumOASIS.ParseArbitrumToAvatarDetail(avatarDetailData);
+                    var avatarDetail = ParseArbitrumToAvatarDetail(avatarDetailData);
                     if (avatarDetail != null)
                     {
                         avatarDetails.Add(avatarDetail);
@@ -1008,7 +1008,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             AvatarInfo avatarInfo =
                 await _contractHandler.QueryAsync<GetAvatarByIdFunction, AvatarInfo>(new()
                 {
-                    EntityId = avatarEntityId
+                    Id = avatarEntityId
                 });
 
             if (avatarInfo is null)
@@ -1197,7 +1197,7 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             AvatarDetailInfo detailInfo =
                 await _contractHandler.QueryAsync<GetAvatarDetailByIdFunction, AvatarDetailInfo>(new()
                 {
-                    EntityId = avatarDetailEntityId
+                    Id = avatarDetailEntityId
                 });
 
             if (detailInfo is null)
@@ -2767,7 +2767,81 @@ file static class ArbitrumContractHelper
     /// <summary>
     /// Parse Arbitrum NFT data to OASIS NFT
     /// </summary>
-    private static OASISNFT ParseArbitrumToNFT(object nftData)
+        private static IAvatarDetail ParseArbitrumToAvatarDetail(object avatarDetailData)
+        {
+            try
+            {
+                // Real Arbitrum implementation: Parse actual smart contract data
+                if (avatarDetailData == null) return null;
+                
+                // Parse the actual data from Arbitrum smart contract response
+                var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(avatarDetailData.ToString());
+                if (dataDict == null) return null;
+                
+                var avatarDetail = new AvatarDetail
+                {
+                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                    Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
+                    Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
+                    FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "",
+                    LastName = dataDict.GetValueOrDefault("lastName")?.ToString() ?? "",
+                    CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
+                    ModifiedDate = dataDict.ContainsKey("modifiedDate") ? DateTime.Parse(dataDict["modifiedDate"].ToString()) : DateTime.UtcNow,
+                    AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(dataDict.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
+                    KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
+                    Level = dataDict.ContainsKey("level") ? Convert.ToInt32(dataDict["level"]) : 1,
+                    XP = dataDict.ContainsKey("xp") ? Convert.ToInt32(dataDict["xp"]) : 0,
+                    Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "",
+                    MetaData = new Dictionary<string, object>
+                    {
+                        ["ArbitrumData"] = avatarDetailData,
+                        ["ParsedAt"] = DateTime.UtcNow,
+                        ["Provider"] = "ArbitrumOASIS"
+                    }
+                };
+                return avatarDetail;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        private static IAvatar ParseArbitrumToAvatar(object avatarData)
+        {
+            try
+            {
+                // Real Arbitrum implementation: Parse actual smart contract data
+                if (avatarData == null) return null;
+                
+                // Parse the actual data from Arbitrum smart contract response
+                var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(avatarData.ToString());
+                if (dataDict == null) return null;
+                
+                var avatar = new Avatar
+                {
+                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                    Username = dataDict.GetValueOrDefault("username")?.ToString() ?? "",
+                    Email = dataDict.GetValueOrDefault("email")?.ToString() ?? "",
+                    CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
+                    ModifiedDate = dataDict.ContainsKey("modifiedDate") ? DateTime.Parse(dataDict["modifiedDate"].ToString()) : DateTime.UtcNow,
+                    AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(dataDict.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
+                    MetaData = new Dictionary<string, object>
+                    {
+                        ["ArbitrumData"] = avatarData,
+                        ["ParsedAt"] = DateTime.UtcNow,
+                        ["Provider"] = "ArbitrumOASIS"
+                    }
+                };
+                return avatar;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        private static OASISNFT ParseArbitrumToNFT(object nftData)
     {
         try
         {
@@ -2812,6 +2886,12 @@ public class GetAvatarsCountFunction : FunctionMessage
 }
 
 public class GetAvatarByIdFunction : FunctionMessage
+{
+    [Parameter("uint256", "id", 1)]
+    public uint Id { get; set; }
+}
+
+public class GetHolonByIdyIdFunction : FunctionMessage
 {
     [Parameter("uint256", "id", 1)]
     public uint Id { get; set; }
