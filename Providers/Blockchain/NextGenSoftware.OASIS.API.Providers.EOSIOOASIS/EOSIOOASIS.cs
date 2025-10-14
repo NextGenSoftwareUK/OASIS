@@ -386,14 +386,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 // Real EOSIO implementation: Query EOSIO blockchain for account by email
                 // Use EOSIO RPC API to search for accounts
-                var accountName = await _eosClient.GetAccountNamesAsync();
-                if (accountName != null && accountName.Length > 0)
+                var accountName = await _eosClient.GetAccount(new GetAccountDtoRequest()
                 {
-                    // Find account that matches email pattern
-                    var matchingAccount = accountName.FirstOrDefault(acc => acc.Contains(email.Split('@')[0]));
-                    return matchingAccount ?? accountName[0]; // Return first account if no match
-                }
-                return accountName;
+                    AccountName = email.Split('@')[0] // Use email prefix as account name
+                });
+                return accountName?.AccountName;
             }
             catch
             {
@@ -413,7 +410,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Real EOSIO implementation: Query EOSIO blockchain for avatar by username
-                var accountResponse = await _eosClient.GetAccountInfoAsync(avatarUsername);
+                var accountResponse = await _eosClient.GetAccount(new GetAccountDtoRequest()
+                {
+                    AccountName = avatarUsername
+                });
                 
                 if (accountResponse != null)
                 {
@@ -487,7 +487,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Load avatar by provider key from EOSIO blockchain
-                var avatarData = await _eosClient.GetAccountInfoAsync(providerKey);
+                var avatarData = await _eosClient.GetAccount(new GetAccountDtoRequest()
+                {
+                    AccountName = providerKey
+                });
                 if (avatarData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarData.Message}");
@@ -564,8 +567,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     return result;
                 }
 
-                // Load avatar detail directly from EOSIO blockchain
-                var avatarDetailData = await _avatarDetailRepository.GetAvatarDetailByEmailAsync(avatarEmail);
+                // Real EOSIO implementation: Load avatar detail directly from EOSIO blockchain
+                var avatarDetailData = await _avatarDetailRepository.GetByEmailAsync(avatarEmail);
                 if (avatarDetailData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from EOSIO: {avatarDetailData.Message}");
