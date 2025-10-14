@@ -1297,7 +1297,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 }
 
                 // Load holons by multiple metadata from Firestore
-                var query = _firestoreDb.Collection("holons");
+                var collection = _firestoreDb.Collection("holons");
+                var query = (Query)collection;
                 
                 // Apply multiple metadata filters
                 foreach (var kvp in metaKeyValuePairs)
@@ -1414,7 +1415,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     foreach (var doc in snapshot.Documents)
                     {
                         var avatarData = doc.ConvertTo<Dictionary<string, object>>();
-                        var player = new Player
+                            var player = new Avatar
                         {
                             Id = Guid.Parse(doc.Id),
                             Username = avatarData.GetValueOrDefault("username")?.ToString(),
@@ -1462,7 +1463,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     }
                 }
                 
-                result.Result = players;
+                result.Result = players.Cast<IAvatar>();
                 result.IsError = false;
                 result.Message = $"Players near me loaded successfully from Google Cloud Firestore with full property mapping ({players.Count} players)";
             }
@@ -1764,10 +1765,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         ["version"] = holon.Version,
                         ["isActive"] = holon.IsActive,
                         // Map ALL Holon properties
-                        ["parentId"] = holon.ParentHolonId?.ToString(),
-                        ["providerKey"] = holon.ProviderKey,
-                        ["previousVersionId"] = holon.PreviousVersionId?.ToString(),
-                        ["nextVersionId"] = holon.VersionId?.ToString(),
+                        ["parentId"] = holon.ParentHolonId.ToString(),
+                        ["providerKey"] = holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS],
+                        ["previousVersionId"] = holon.PreviousVersionId.ToString(),
+                        ["nextVersionId"] = holon.VersionId.ToString(),
                         ["isChanged"] = holon.IsChanged,
                         ["isNew"] = holon.IsNewHolon,
                         ["isDeleted"] = !holon.IsActive,
@@ -2221,10 +2222,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         ["version"] = holon.Version,
                         ["isActive"] = holon.IsActive,
                         // Map ALL Holon properties
-                        ["parentId"] = holon.ParentHolonId?.ToString(),
-                        ["providerKey"] = holon.ProviderKey,
-                        ["previousVersionId"] = holon.PreviousVersionId?.ToString(),
-                        ["nextVersionId"] = holon.VersionId?.ToString(),
+                        ["parentId"] = holon.ParentHolonId.ToString(),
+                        ["providerKey"] = holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS],
+                        ["previousVersionId"] = holon.PreviousVersionId.ToString(),
+                        ["nextVersionId"] = holon.VersionId.ToString(),
                         ["isChanged"] = holon.IsChanged,
                         ["isNew"] = holon.IsNewHolon,
                         ["isDeleted"] = !holon.IsActive,
