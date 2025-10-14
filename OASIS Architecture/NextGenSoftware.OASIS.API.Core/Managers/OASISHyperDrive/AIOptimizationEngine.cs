@@ -55,14 +55,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
         /// <summary>
         /// Get AI-driven provider recommendations based on historical performance and current context
         /// </summary>
-        public async Task<List<EnumValue<ProviderType>>> GetProviderRecommendationsAsync(
+        public async Task<List<ProviderRecommendation>> GetProviderRecommendationsAsync(
             IRequest request,
             List<ProviderType> availableProviders,
             Dictionary<string, object> context = null)
         {
             try
             {
-                var recommendations = new List<EnumValue<ProviderType>>();
+                var recommendations = new List<ProviderRecommendation>();
                 
                 foreach (var provider in availableProviders)
                 {
@@ -72,7 +72,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                     // Calculate AI score based on multiple factors
                     var score = await CalculateProviderScoreAsync(provider, request, context);
                     
-                    recommendations.Add(new EnumValue<ProviderType>(provider));
+                    recommendations.Add(new ProviderRecommendation
+                    {
+                        ProviderType = provider,
+                        Score = score,
+                        Confidence = 0.8, // Default confidence
+                        Reasoning = $"AI-calculated score based on historical performance"
+                    });
                 }
 
                 // Sort by score (highest first) and return top recommendations
@@ -322,9 +328,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
         /// <summary>
         /// Get fallback recommendations when AI fails
         /// </summary>
-        private List<EnumValue<ProviderType>> GetFallbackRecommendations(List<ProviderType> availableProviders)
+        private List<ProviderRecommendation> GetFallbackRecommendations(List<ProviderType> availableProviders)
         {
-            var recommendations = new List<EnumValue<ProviderType>>();
+            var recommendations = new List<ProviderRecommendation>();
             
             foreach (var provider in availableProviders)
             {
@@ -338,7 +344,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                         _ => 0.5
                     };
                     
-                    recommendations.Add(new EnumValue<ProviderType>(provider));
+                    recommendations.Add(new ProviderRecommendation
+                    {
+                        ProviderType = provider,
+                        Score = score,
+                        Confidence = 0.6, // Lower confidence for fallback
+                        Reasoning = "Fallback recommendation based on provider type"
+                    });
                 }
             }
             
@@ -388,5 +400,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
         public long ResponseTimeMs { get; set; }
         public DateTime Timestamp { get; set; }
         public string ErrorMessage { get; set; }
+    }
+
+    /// <summary>
+    /// Provider recommendation with score and reasoning
+    /// </summary>
+    public class ProviderRecommendation
+    {
+        public ProviderType ProviderType { get; set; }
+        public double Score { get; set; }
+        public double Confidence { get; set; }
+        public string Reasoning { get; set; }
     }
 }

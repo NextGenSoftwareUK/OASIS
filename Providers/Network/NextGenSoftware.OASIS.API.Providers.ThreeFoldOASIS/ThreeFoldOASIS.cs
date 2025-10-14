@@ -716,8 +716,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                     if (firstGroup is ISearchTextGroup textGroup)
                         searchText = textGroup.SearchQuery;
 
-                    if (firstGroup.HolonSearchParams != null && firstGroup.HolonSearchParams.MetaData is Dictionary<string, string> metaDict)
-                        metaData = metaDict;
+                    if (firstGroup.HolonSearchParams != null && firstGroup.HolonSearchParams.MetaData)
+                    {
+                        metaData = new Dictionary<string, string>();
+                    }
                 }
 
                 var searchRequest = new

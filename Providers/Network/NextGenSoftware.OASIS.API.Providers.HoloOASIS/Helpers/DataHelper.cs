@@ -357,7 +357,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 Model3D = hcAvatarDetail.Model3D,
                 ModifiedByAvatarId = new Guid(hcAvatarDetail.ModifiedBy),
                 ModifiedDate = hcAvatarDetail.ModifiedDate,
-                Name = hcAvatarDetail.Name,
+                // Name is read-only, use the Name property from the source
+                // The Name property will be computed from FirstName, LastName, Title in AvatarDetail
                 Omniverse = hcAvatarDetail.Omniverse,
                 //Original = hcAvatarDetail.Original,
                 ParentHolonId = hcAvatarDetail.ParentHolonId,
@@ -391,7 +392,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 Email = keyValuePair["email"],
                 Username = keyValuePair["username"],
                 HolonType = (HolonType)Enum.Parse(typeof(HolonType), keyValuePair["holon_type"]),
-                Name = keyValuePair["name"],
+                // Name property is read-only in AvatarDetail, will be computed from FirstName, LastName, Title
                 Description = keyValuePair["description"],
                 AllChildIdListCache = keyValuePair["all_child_id_list_cache"],
                 ChildIdListCache = keyValuePair["child_id_list_cache"],
@@ -630,7 +631,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             {
                 Id = new Guid(keyValuePair["id"]),
                 HolonType = (HolonType)Enum.Parse(typeof(HolonType), keyValuePair["holon_type"]),
-                Name = keyValuePair["name"],
+                // Name property is read-only in AvatarDetail, will be computed from FirstName, LastName, Title
                 Description = keyValuePair["description"],
                 AllChildIdListCache = keyValuePair["all_child_id_list_cache"],
                 ChildIdListCache = keyValuePair["child_id_list_cache"],

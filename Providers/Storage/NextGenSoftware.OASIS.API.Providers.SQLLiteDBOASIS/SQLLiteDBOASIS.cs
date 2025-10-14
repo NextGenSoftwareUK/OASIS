@@ -655,8 +655,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 if (avatarResult.Result?.ProviderWallets != null)
                 {
-                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.ProviderType))
-                        providerWallets[grp.Key] = grp.ToList();
+                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.Key))
+                        providerWallets[grp.Key] = grp.SelectMany(g => g.Value).ToList();
                 }
 
                 result.Result = providerWallets;
@@ -697,8 +697,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 if (avatarResult.Result?.ProviderWallets != null)
                 {
-                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.ProviderType))
-                        providerWallets[grp.Key] = grp.ToList();
+                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.Key))
+                        providerWallets[grp.Key] = grp.SelectMany(g => g.Value).ToList();
                 }
 
                 result.Result = providerWallets;
@@ -739,8 +739,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 if (avatarResult.Result?.ProviderWallets != null)
                 {
-                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.ProviderType))
-                        providerWallets[grp.Key] = grp.ToList();
+                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.Key))
+                        providerWallets[grp.Key] = grp.SelectMany(g => g.Value).ToList();
                 }
 
                 result.Result = providerWallets;

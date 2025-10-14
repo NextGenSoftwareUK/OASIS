@@ -189,7 +189,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // Use AI optimization engine for intelligent selection
             var aiEngine = AIOptimizationEngine.Instance;
             var recommendations = aiEngine.GetProviderRecommendationsAsync(new StorageOperationRequest(), providers.Select(p => p.Value).ToList()).Result;
-            var selectedProvider = recommendations.FirstOrDefault()?.Value ?? providers.First().Value;
+            var selectedProvider = recommendations.FirstOrDefault()?.ProviderType ?? providers.First().Value;
             
             return new EnumValue<ProviderType>(selectedProvider);
         }

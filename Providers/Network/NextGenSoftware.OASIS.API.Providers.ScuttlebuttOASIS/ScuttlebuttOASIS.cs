@@ -661,10 +661,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     if (firstGroup is ISearchTextGroup textGroup)
                         searchQuery = textGroup.SearchQuery;
 
-                    if (firstGroup.HolonSearchParams != null && firstGroup.HolonSearchParams.MetaData != null)
+                    if (firstGroup.HolonSearchParams != null && firstGroup.HolonSearchParams.MetaData)
                     {
-                        if (firstGroup.HolonSearchParams.MetaData is Dictionary<string, string>)
-                            metaData = (Dictionary<string, string>)firstGroup.HolonSearchParams.MetaData;
+                        // MetaData is a boolean flag indicating whether to search metadata
+                        // The actual metadata search should be handled differently
+                        metaData = new Dictionary<string, string>(); // Initialize empty metadata dictionary
                     }
                 }
 

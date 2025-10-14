@@ -428,7 +428,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Load avatar by provider key first
-                var avatarResult = await LoadAvatarAsync(providerKey);
+                var avatarResult = await LoadAvatarAsync(Guid.Parse(providerKey));
                 if (avatarResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
@@ -619,10 +619,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            return DeleteHolonAsync(providerKey).Result;
+            return DeleteHolonByProviderKeyAsync(providerKey).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        public async Task<OASISResult<IHolon>> DeleteHolonByProviderKeyAsync(string providerKey)
         {
             var result = new OASISResult<IHolon>();
             try
@@ -750,7 +750,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Load holon by provider key from Ethereum smart contract
-                var holonData = await _nextGenSoftwareOasisService.GetHolonByProviderKeyAsync(providerKey);
+                var holonData = await _nextGenSoftwareOasisService.GetHolonByProviderKeyQueryAsync(providerKey);
                 if (holonData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {holonData.Message}");
@@ -793,7 +793,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Load holons for parent from Ethereum smart contract
-                var holonsData = await _nextGenSoftwareOasisService.GetHolonsForParentAsync(id.ToString());
+                var holonsData = await _nextGenSoftwareOasisService.GetHolonsForParentQueryAsync(id.ToString());
                 if (holonsData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent: {holonsData.Message}");
@@ -845,7 +845,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Load holons for parent by provider key from Ethereum smart contract
-                var holonsData = await _nextGenSoftwareOasisService.GetHolonsForParentByProviderKeyAsync(providerKey);
+                var holonsData = await _nextGenSoftwareOasisService.GetHolonsForParentByProviderKeyQueryAsync(providerKey);
                 if (holonsData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key: {holonsData.Message}");
@@ -897,7 +897,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Load all holons from Ethereum smart contract
-                var holonsData = await _nextGenSoftwareOasisService.GetAllHolonsAsync();
+                var holonsData = await _nextGenSoftwareOasisService.GetAllHolonsQueryAsync();
                 if (holonsData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading all holons: {holonsData.Message}");
@@ -1065,12 +1065,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 // Query all avatars from Ethereum smart contract
                 var avatarsData = await _nextGenSoftwareOasisService.GetAllAvatarsQueryAsync();
                 
-                if (avatarsData != null && avatarsData.Count > 0)
+                if (avatarsData != null && avatarsData.Result != null && avatarsData.Result.Count() > 0)
                 {
                     var avatars = new List<IAvatar>();
-                    foreach (var avatarData in avatarsData)
+                    foreach (var avatarData in avatarsData.Result)
                     {
-                        var avatar = ParseEthereumToAvatar(avatarData);
+                        var avatar = JsonConvert.DeserializeObject<Avatar>(avatarData.ToString());
                         if (avatar != null)
                         {
                             avatars.Add(avatar);
@@ -1144,7 +1144,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Load avatar detail directly from Ethereum smart contract
-                var avatarDetailData = await _nextGenSoftwareOasisService.GetAvatarDetailByEmailQueryAsync(avatarEmail);
+                var avatarDetailData = await _nextGenSoftwareOasisService.GetAvatarByEmailQueryAsync(avatarEmail);
                 if (avatarDetailData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Ethereum: {avatarDetailData.Message}");
@@ -1153,7 +1153,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 if (avatarDetailData.Result != null)
                 {
-                    var avatarDetail = ParseEthereumToAvatarDetail(avatarDetailData.Result);
+                    var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailData.Result);
                     if (avatarDetail != null)
                     {
                         result.Result = avatarDetail;
@@ -1194,10 +1194,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Load avatar detail directly from Ethereum smart contract
-                var avatarDetailData = await _nextGenSoftwareOasisService.GetAvatarDetailByUsernameQueryAsync(avatarUsername);
+                var avatarDetailData = await _nextGenSoftwareOasisService.GetAvatarByUsernameQueryAsync(avatarUsername);
                 if (avatarDetailData != null)
                 {
-                    var avatarDetail = ParseEthereumToAvatarDetail(avatarDetailData);
+                    var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailData.Result);
                     if (avatarDetail != null)
                     {
                         result.Result = avatarDetail;
@@ -1254,7 +1254,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameVersionAsync(string avatarUsername, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
             try
@@ -1266,7 +1266,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Load avatar detail by username from Ethereum smart contract
-                var avatarDetailData = await _nextGenSoftwareOasisService.GetAvatarDetailByUsernameAsync(avatarUsername);
+                var avatarDetailData = await _nextGenSoftwareOasisService.GetAvatarByUsernameQueryAsync(avatarUsername);
                 if (avatarDetailData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username: {avatarDetailData.Message}");
@@ -1292,7 +1292,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailVersionAsync(string avatarEmail, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
             try
@@ -1304,7 +1304,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Load avatar detail by email from Ethereum smart contract
-                var avatarDetailData = await _nextGenSoftwareOasisService.GetAvatarDetailByEmailAsync(avatarEmail);
+                var avatarDetailData = await _nextGenSoftwareOasisService.GetAvatarByEmailQueryAsync(avatarEmail);
                 if (avatarDetailData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email: {avatarDetailData.Message}");
@@ -1393,7 +1393,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 
                 if (avatarData != null)
                 {
-                    var avatar = ParseEthereumToAvatar(avatarData);
+                    var avatar = JsonConvert.DeserializeObject<Avatar>(avatarData.ToString());
                     if (avatar != null)
                     {
                         response.Result = avatar;
@@ -1418,7 +1418,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return response;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyVersionAsync(string providerKey, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
             try
@@ -1464,7 +1464,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        public async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsByVersionAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
@@ -1510,7 +1510,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return LoadAllAvatarsAsync(version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+        // Duplicate removed; use contract-backed implementation below
+        /*public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
             try
@@ -1549,14 +1550,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Ethereum: {ex.Message}", ex);
             }
             return result;
-        }
+        }*/
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
             return LoadAvatarByEmailAsync(avatarEmail, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        // Duplicate removed; use contract-backed implementation below
+        /*public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
             try
@@ -1595,7 +1597,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Ethereum: {ex.Message}", ex);
             }
             return result;
-        }
+        }*/
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {

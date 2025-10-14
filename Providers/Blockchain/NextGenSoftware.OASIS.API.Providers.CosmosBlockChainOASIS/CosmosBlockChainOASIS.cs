@@ -18,6 +18,7 @@ using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 // using Microsoft.Azure.Cosmos;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
@@ -1849,7 +1850,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                     return result;
                 }
 
-                result.Result = new NFTTransactionRespone { Success = true, Message = "NFT data loaded successfully" };
+                result.Result = new OASISNFT { Title = "Cosmos NFT", Description = "NFT from Cosmos blockchain" };
                 result.IsError = false;
                 result.Message = "NFT data loaded successfully from Cosmos blockchain";
             }

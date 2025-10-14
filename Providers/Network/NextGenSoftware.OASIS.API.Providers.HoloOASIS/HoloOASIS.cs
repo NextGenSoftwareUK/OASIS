@@ -1801,9 +1801,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 if (avatarResult.Result?.ProviderWallets != null)
                 {
-                    foreach (var group in avatarResult.Result.ProviderWallets.GroupBy(w => w.ProviderType))
+                    foreach (var group in avatarResult.Result.ProviderWallets.GroupBy(w => w.Key))
                     {
-                        providerWallets[group.Key] = group.ToList();
+                        providerWallets[group.Key] = group.SelectMany(g => g.Value).ToList();
                     }
                 }
 

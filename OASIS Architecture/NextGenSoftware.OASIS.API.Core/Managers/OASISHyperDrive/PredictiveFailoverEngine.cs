@@ -420,7 +420,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             availableProviders.Remove(currentProvider);
 
             var recommendations = await _aiEngine.GetProviderRecommendationsAsync(new StorageOperationRequest(), availableProviders);
-            return recommendations.FirstOrDefault()?.Value ?? availableProviders.First();
+            return recommendations.FirstOrDefault()?.ProviderType ?? availableProviders.First();
         }
 
         /// <summary>
