@@ -1120,17 +1120,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 var searchResults = new SearchResults();
                 var foundHolons = new List<IHolon>();
 
-                // Search through Pinata files using metadata
-                // TODO: Implement proper Pinata service integration
-                var files = new List<object>(); // Placeholder - _pinataService.GetFilesAsync();
+                // Real Pinata implementation: Search through Pinata files using metadata
+                var files = await _pinataService.GetFilesAsync();
                 
                 foreach (var file in files)
                 {
                     try
                     {
-                        // Download and parse the file content
-                        // TODO: Implement proper Pinata service integration
-                        var content = ""; // Placeholder - await _pinataService.GetFileContentAsync(file.IpfsHash);
+                        // Real Pinata implementation: Download and parse the file content
+                        var content = await _pinataService.GetFileContentAsync(file.IpfsHash);
                         var holon = JsonConvert.DeserializeObject<Holon>(content);
                         
                         if (holon != null && MatchesSearchCriteria(holon, searchParams))
@@ -1221,8 +1219,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Search for the holon file in Pinata by ID
-                // TODO: Implement proper Pinata service integration
-                var files = new List<object>(); // Placeholder - await _pinataService.GetFilesAsync();
+                // Real Pinata implementation: Load child holons from Pinata files
+                var files = await _pinataService.GetFilesAsync();
                 var holonFile = files.FirstOrDefault(f => f.ToString().Contains(id.ToString()));
                 
                 if (holonFile == null)
@@ -1313,15 +1311,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 var childHolons = new List<IHolon>();
-                // TODO: Implement proper Pinata service integration
-                var files = new List<object>(); // Placeholder - await _pinataService.GetFilesAsync();
+                // Real Pinata implementation: Load child holons from Pinata files
+                var files = await _pinataService.GetFilesAsync();
                 
                 foreach (var file in files)
                 {
                     try
                     {
-                        // TODO: Implement proper Pinata service integration
-                        var content = ""; // Placeholder - await _pinataService.GetFileContentAsync(file.IpfsHash);
+                        // Real Pinata implementation: Get file content from Pinata IPFS
+                        var content = await _pinataService.GetFileContentAsync(file.IpfsHash);
                         var holon = JsonConvert.DeserializeObject<Holon>(content);
                         
                         if (holon != null && holon.ParentHolonId == id && 
