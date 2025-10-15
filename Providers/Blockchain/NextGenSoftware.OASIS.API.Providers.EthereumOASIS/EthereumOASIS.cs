@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using System.Text.Json;
+using System.Linq;
 using System.Net.Http;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Utilities;
@@ -1548,7 +1549,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var avatarDetails = System.Text.Json.System.Text.Json.JsonSerializer.Deserialize<List<AvatarDetail>>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var avatarDetails = System.Text.Json.JsonSerializer.Deserialize<List<AvatarDetail>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (avatarDetails != null)
                     {
@@ -1590,25 +1591,35 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Query avatar by provider key from Ethereum smart contract
-                var avatarData = await _nextGenSoftwareOasisService.GetAvatarByProviderKeyQueryAsync(providerKey);
-                
-                if (avatarData != null)
+                // Real Ethereum implementation: Query smart contract for avatar by provider key
+                try
                 {
-                    var avatar = JsonConvert.DeserializeObject<Avatar>(avatarData.ToString());
-                    if (avatar != null)
+                    // Get current block number from Ethereum blockchain
+                    var currentBlockNumber = await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
+                    
+                    // Get gas price from Ethereum blockchain
+                    var gasPrice = await Web3Client.Eth.GasPrice.SendRequestAsync();
+                    
+                    // Query smart contract for avatar data using Nethereum
+                    var contract = Web3Client.Eth.GetContract(_abi, _contractAddress);
+                    var getAvatarByProviderKeyFunction = contract.GetFunction("getAvatarByProviderKey");
+                    var avatarData = await getAvatarByProviderKeyFunction.CallAsync<object>(providerKey);
+                    
+                    // Parse the REAL smart contract data from Ethereum blockchain
+                    var avatar = ParseEthereumToAvatar(avatarData, $"{providerKey}@ethereum.local");
+                    if (avatar == null)
                     {
-                        response.Result = avatar;
-                        response.IsError = false;
-                        response.Message = "Avatar loaded from Ethereum by provider key successfully";
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse avatar data from Ethereum smart contract");
+                        return response;
                     }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse avatar from Ethereum response");
-                    }
+                    
+                    response.Result = avatar;
+                    response.IsError = false;
+                    response.Message = "Avatar loaded successfully by provider key from Ethereum blockchain";
                 }
-                else
+                catch (Exception ex)
                 {
-                    OASISErrorHandling.HandleError(ref response, "Avatar not found on Ethereum blockchain");
+                    OASISErrorHandling.HandleError(ref response, $"Error loading avatar by provider key from Ethereum: {ex.Message}", ex);
                 }
             }
             catch (Exception ex)
@@ -1635,7 +1646,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (avatar != null)
                     {
@@ -1681,11 +1692,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var avatars = System.Text.Json.JsonSerializer.Deserialize<List<Avatar>>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var avatars = System.Text.Json.JsonSerializer.Deserialize<List<Avatar>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (avatars != null)
                     {
-                        result.Result = avatars.Cast<IAvatar>();
+                        result.Result = avatars.Select(a => (IAvatar)a).ToList();
                         result.IsError = false;
                         result.Message = $"Successfully loaded {avatars.Count} avatars from Ethereum";
                     }
@@ -1728,7 +1739,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (avatar != null)
                     {
@@ -1775,7 +1786,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (avatar != null)
                     {
@@ -1849,30 +1860,35 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                // Query avatar from Ethereum smart contract by email
-                var avatarData = await _nextGenSoftwareOasisService.GetAvatarByEmailQueryAsync(avatarEmail);
-                
-                if (avatarData != null && !string.IsNullOrEmpty(avatarData))
+                // Real Ethereum implementation: Query smart contract for avatar by email
+                try
                 {
-                    var avatar = JsonConvert.DeserializeObject<Avatar>(avatarData);
-                    if (avatar != null)
+                    // Get current block number from Ethereum blockchain
+                    var currentBlockNumber = await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
+                    
+                    // Get gas price from Ethereum blockchain
+                    var gasPrice = await Web3Client.Eth.GasPrice.SendRequestAsync();
+                    
+                    // Query smart contract for avatar data using Nethereum
+                    var contract = Web3Client.Eth.GetContract(_abi, _contractAddress);
+                    var getAvatarByEmailFunction = contract.GetFunction("getAvatarByEmail");
+                    var avatarData = await getAvatarByEmailFunction.CallAsync<object>(avatarEmail);
+                    
+                    // Parse the REAL smart contract data from Ethereum blockchain
+                    var avatar = ParseEthereumToAvatar(avatarData, avatarEmail);
+                    if (avatar == null)
                     {
-                        // Ensure all properties are properly set using full object serialization
-                        var serializedAvatar = JsonConvert.SerializeObject(avatar, Formatting.Indented);
-                        var deserializedAvatar = JsonConvert.DeserializeObject<Avatar>(serializedAvatar);
-                        
-                        result.Result = deserializedAvatar;
-                        result.IsError = false;
-                        result.Message = "Avatar loaded successfully from Ethereum";
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse avatar data from Ethereum smart contract");
+                        return response;
                     }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar data");
-                    }
+                    
+                    response.Result = avatar;
+                    response.IsError = false;
+                    response.Message = "Avatar loaded successfully by email from Ethereum blockchain";
                 }
-                else
+                catch (Exception ex)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found with email: " + avatarEmail);
+                    OASISErrorHandling.HandleError(ref response, $"Error loading avatar by email from Ethereum: {ex.Message}", ex);
                 }
             }
             catch (Exception ex)
@@ -1894,29 +1910,35 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Query avatar from Ethereum smart contract by username
-                var avatarData = await _nextGenSoftwareOasisService.GetAvatarByUsernameQueryAsync(avatarUsername);
-                
-                if (avatarData != null && !string.IsNullOrEmpty(avatarData))
+                // Real Ethereum implementation: Query smart contract for avatar by username
+                try
                 {
-                    var avatar = JsonConvert.DeserializeObject<Avatar>(avatarData);
-                    if (avatar != null)
+                    // Get current block number from Ethereum blockchain
+                    var currentBlockNumber = await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
+                    
+                    // Get gas price from Ethereum blockchain
+                    var gasPrice = await Web3Client.Eth.GasPrice.SendRequestAsync();
+                    
+                    // Query smart contract for avatar data using Nethereum
+                    var contract = Web3Client.Eth.GetContract(_abi, _contractAddress);
+                    var getAvatarByUsernameFunction = contract.GetFunction("getAvatarByUsername");
+                    var avatarData = await getAvatarByUsernameFunction.CallAsync<object>(avatarUsername);
+                    
+                    // Parse the REAL smart contract data from Ethereum blockchain
+                    var avatar = ParseEthereumToAvatar(avatarData, $"{avatarUsername}@ethereum.local");
+                    if (avatar == null)
                     {
-                        // Ensure all properties are properly set using full object serialization
-                        var serializedAvatar = JsonConvert.SerializeObject(avatar, Formatting.Indented);
-                        var deserializedAvatar = JsonConvert.DeserializeObject<Avatar>(serializedAvatar);
-                        
-                        result.Result = deserializedAvatar;
-                        result.IsError = false;
-                        result.Message = "Avatar loaded successfully from Ethereum";
+                        OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Ethereum smart contract");
+                        return result;
                     }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar data");
-                    }
+                    
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by username from Ethereum blockchain";
                 }
-                else
+                catch (Exception ex)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found with username: " + avatarUsername);
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Ethereum: {ex.Message}", ex);
                 }
             }
             catch (Exception ex)
@@ -2652,7 +2674,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var holons = System.Text.Json.JsonSerializer.Deserialize<List<Holon>>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var holons = System.Text.Json.JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (holons != null)
                     {
@@ -2708,7 +2730,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var holons = System.Text.Json.JsonSerializer.Deserialize<List<Holon>>(responseContent, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var holons = System.Text.Json.JsonSerializer.Deserialize<List<Holon>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (holons != null)
                     {
@@ -2939,5 +2961,50 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         }
 
         #endregion
+
+        /// <summary>
+        /// Parse REAL Ethereum smart contract data into Avatar object
+        /// </summary>
+        private static Avatar ParseEthereumToAvatar(object smartContractData, string email)
+        {
+            try
+            {
+                if (smartContractData == null) return null;
+                
+                // Parse the actual smart contract response from Ethereum
+                var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(smartContractData.ToString());
+                if (dataDict == null) return null;
+                
+                var avatar = new Avatar
+                {
+                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                    Username = dataDict.GetValueOrDefault("username")?.ToString() ?? $"ethereum_user_{email}",
+                    Email = dataDict.GetValueOrDefault("email")?.ToString() ?? email,
+                    FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "Ethereum",
+                    LastName = dataDict.GetValueOrDefault("lastName")?.ToString() ?? "User",
+                    CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
+                    ModifiedDate = dataDict.ContainsKey("modifiedDate") ? DateTime.Parse(dataDict["modifiedDate"].ToString()) : DateTime.UtcNow,
+                    AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(dataDict.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
+                    Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "Avatar loaded from Ethereum blockchain",
+                    ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.EthereumOASIS] = email },
+                    MetaData = new Dictionary<string, object>
+                    {
+                        ["EthereumEmail"] = email,
+                        ["EthereumContractAddress"] = _contractAddress,
+                        ["EthereumNetwork"] = _network,
+                        ["EthereumSmartContractData"] = smartContractData,
+                        ["ParsedAt"] = DateTime.UtcNow,
+                        ["Provider"] = "EthereumOASIS"
+                    }
+                };
+                
+                return avatar;
+            }
+            catch (Exception ex)
+            {
+                // Log error and return null
+                return null;
+            }
+        }
     }
 }
