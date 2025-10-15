@@ -1,4 +1,5 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
+﻿using System;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
@@ -10,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string MapProviderDescription { get; set; }
         void SetCurrentMapProvider(MapProviderType mapProviderType);
         bool CreateAndDrawRouteOnMapBetweenHolons(IHolon fromHolon, IHolon toHolon);
+        bool CreateAndDrawRouteOnMapBetweenHolons(Guid fromHolonId, Guid toHolonId);
         bool CreateAndDrawRouteOnMapBeweenPoints(MapPoints points);
         bool Draw2DSpriteOnHUD(object sprite, float x, float y);
         bool Draw2DSpriteOnMap(object sprite, float x, float y);

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <FileUpgradeFlags>40</FileUpgradeFlags>
     <UpgradeBackupLocation>C:\Users\Naveen Reddy\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\Backup\NextGenSoftware.OASIS.API.Providers.MoralisOASIS\</UpgradeBackupLocation>
     <OldToolsVersion>2.0</OldToolsVersion>
