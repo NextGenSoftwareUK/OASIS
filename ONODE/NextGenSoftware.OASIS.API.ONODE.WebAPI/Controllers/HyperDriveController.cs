@@ -144,13 +144,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 var result = _configManager.UpdateConfiguration(config);
-                if (result.IsSuccess)
+                if (result.IsError)
                 {
-                    return Ok(result);
+                    return BadRequest(result);
                 }
                 else
                 {
-                    return BadRequest(result);
+                    return Ok(result);
                 }
             }
             catch (Exception ex)
@@ -281,7 +281,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                 foreach (var provider in config.LoadBalancingProviders)
                 {
-                    connections[provider] = _performanceMonitor.GetActiveConnections(provider);
+                    if (Enum.TryParse<ProviderType>(provider, out var providerType))
+                    {
+                        connections[providerType] = _performanceMonitor.GetActiveConnections(providerType);
+                    }
                 }
 
                 return Ok(new OASISResult<Dictionary<ProviderType, int>>
@@ -311,7 +314,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 var config = _configManager.GetConfiguration();
                 var availableProviders = config.LoadBalancingProviders;
-                var selectedStrategy = strategy ?? config.DefaultStrategy;
+                var selectedStrategy = strategy ?? (Enum.TryParse<LoadBalancingStrategy>(config.DefaultStrategy, out var defaultStrategy) ? defaultStrategy : LoadBalancingStrategy.RoundRobin);
 
                 var bestProvider = _performanceMonitor.GetBestProvider(availableProviders, selectedStrategy);
 
@@ -514,9 +517,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     AutoFailoverEnabled = config.AutoFailoverEnabled,
                     AutoReplicationEnabled = config.AutoReplicationEnabled,
                     AutoLoadBalancingEnabled = config.AutoLoadBalancingEnabled,
-                    DefaultStrategy = config.DefaultStrategy,
-                    EnabledProviders = config.EnabledProviders,
-                    LoadBalancingProviders = config.LoadBalancingProviders,
+                    DefaultStrategy = Enum.TryParse<LoadBalancingStrategy>(config.DefaultStrategy, out var defaultStrategy) ? defaultStrategy : LoadBalancingStrategy.RoundRobin,
+                    EnabledProviders = config.EnabledProviders.Select(p => Enum.TryParse<ProviderType>(p, out var providerType) ? providerType : ProviderType.None).Where(p => p != ProviderType.None).ToList(),
+                    LoadBalancingProviders = config.LoadBalancingProviders.Select(p => Enum.TryParse<ProviderType>(p, out var providerType) ? providerType : ProviderType.None).Where(p => p != ProviderType.None).ToList(),
                     TotalProviders = config.EnabledProviders.Count,
                     ActiveProviders = config.EnabledProviders.Count, // Simplified for now
                     LastHealthCheck = DateTime.UtcNow
@@ -551,7 +554,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<List<OptimizationRecommendation>>
                 {
                     Result = recommendations,
-                    IsSuccess = true,
+                    IsError = false,
                     Message = "AI optimization recommendations retrieved successfully."
                 });
             }
@@ -1004,8 +1007,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
                 var list = dna.ReplicationRules.ScheduleRules;
-                var idx = list.FindIndex(r => r.Id == rule.Id);
-                if (string.IsNullOrEmpty(rule.Id)) rule.Id = Guid.NewGuid().ToString();
+                var idx = list.FindIndex(r => r.Name == rule.Name);
+                if (string.IsNullOrEmpty(rule.Name)) rule.Name = Guid.NewGuid().ToString();
                 if (idx >= 0) list[idx] = rule; else list.Add(rule);
                 OASISDNAManager.SaveDNA();
                 return Ok(new OASISResult<ScheduleRuleConfig> { Result = rule });
@@ -1158,8 +1161,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
                 var list = dna.FailoverRules.EscalationRules;
-                var idx = list.FindIndex(r => r.Id == rule.Id);
-                if (string.IsNullOrEmpty(rule.Id)) rule.Id = Guid.NewGuid().ToString();
+                var idx = list.FindIndex(r => r.Name == rule.Name);
+                if (string.IsNullOrEmpty(rule.Name)) rule.Name = Guid.NewGuid().ToString();
                 if (idx >= 0) list[idx] = rule; else list.Add(rule);
                 OASISDNAManager.SaveDNA();
                 return Ok(new OASISResult<EscalationRuleConfig> { Result = rule });
