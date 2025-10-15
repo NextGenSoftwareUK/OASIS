@@ -23,6 +23,7 @@ public class SolanaAvatarDetailDto : SolanaBaseDto
 
     public IList<IKarmaAkashicRecord> KarmaAkashicRecords { get; set; } = new List<IKarmaAkashicRecord>();
     public int Level { get; set; }
+    public long Karma { get; set; }
     public int XP { get; set; }
     public int Xp { get; set; }
 

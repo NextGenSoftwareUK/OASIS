@@ -9,6 +9,7 @@ using EosSharp.Core.Api.v1;
 using EosSharp.Core.Providers;
 using Newtonsoft.Json;
 using NextGenSoftware.Logging;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableRows;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.Models;
@@ -136,6 +137,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
         private void ReleaseUnmanagedResources()
         {
             _eosClient.Dispose();
+        }
+
+        public Task<ImmutableArray<HolonDto>> ReadAllByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ImmutableArray<HolonDto>> ReadAllByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All)
+        {
+            throw new NotImplementedException();
         }
 
         ~AvatarDetailEosProviderRepository()
