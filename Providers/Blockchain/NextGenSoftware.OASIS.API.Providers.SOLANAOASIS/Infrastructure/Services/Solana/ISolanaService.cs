@@ -9,4 +9,7 @@ public interface ISolanaService
     Task<OASISResult<SolanaAvatarDto>> GetAvatarByUsernameAsync(string username);
     Task<OASISResult<SolanaAvatarDto>> GetAvatarByIdAsync(Guid id);
     Task<OASISResult<SolanaAvatarDto>> GetAvatarByEmailAsync(string email);
+    Task<OASISResult<SolanaAvatarDetailDto>> GetAvatarDetailByIdAsync(Guid id);
+    Task<OASISResult<SolanaAvatarDetailDto>> GetAvatarDetailByUsernameAsync(string username);
+    Task<OASISResult<SolanaAvatarDetailDto>> GetAvatarDetailByEmailAsync(string email);
 }

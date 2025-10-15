@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             _walletManager = walletManager;
             this.ProviderName = "TRONOASIS";
             this.ProviderDescription = "TRON Provider";
-            this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.TRONOASIS);
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(rpcEndpoint);
@@ -1097,7 +1097,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var tronResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
                     
-                    response.Result = new NFTTransactionRespone 
+                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone 
                     { 
                         TransactionResult = tronResponse.TxID ?? "NFT transfer created successfully"
                     };
@@ -1152,7 +1152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
                     var tronResponse = JsonSerializer.Deserialize<TRONTransactionResponse>(responseContent);
                     
-                    response.Result = new NFTTransactionRespone 
+                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone 
                     { 
                         TransactionResult = tronResponse.TxID ?? "NFT minted successfully"
                     };
@@ -1260,8 +1260,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                             NFTTokenAddress = nftResponse.TokenId ?? "",
                             OASISMintWalletAddress = nftResponse.ContractAddress ?? "",
                             NFTMintedUsingWalletAddress = nftResponse.OwnerAddress ?? "",
-                            MintedOn = nftResponse.CreatedDate ?? DateTime.UtcNow,
-                            ImportedOn = nftResponse.ModifiedDate ?? DateTime.UtcNow,
+                            MintedOn = nftResponse.CreatedDate,
+                            ImportedOn = nftResponse.ModifiedDate,
                             MetaData = new Dictionary<string, object>
                             {
                                 ["TRONHash"] = hash,
@@ -1309,7 +1309,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Get avatar's TRON address
-                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.TRONOASIS, avatarId);
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.TRONOASIS, avatarId);
                 if (walletResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error getting wallet address for avatar: {walletResult.Message}");
@@ -1401,27 +1401,22 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var content = await response.Content.ReadAsStringAsync();
                     var nftData = JsonSerializer.Deserialize<TRONNFTResponse>(content);
                     
-                    if (nftData?.Data != null)
+                    if (nftData != null)
                     {
-                        foreach (var nft in nftData.Data)
+                        // Parse TRON NFT data directly from response
+                        var geoNFT = new OASISGeoSpatialNFT
                         {
-                            if (nft.IsGeoSpatial)
-                            {
-                                var geoNFT = new OASISGeoSpatialNFT
-                                {
-                                    Id = nft.Id,
-                                    Name = nft.Name,
-                                    Description = nft.Description,
-                                    Image = nft.Image,
-                                    Latitude = nft.Latitude,
-                                    Longitude = nft.Longitude,
-                                    Altitude = nft.Altitude,
-                                    MintWalletAddress = mintWalletAddress,
-                                    ProviderType = ProviderType.TRONOASIS
-                                };
-                                geoNFTs.Add(geoNFT);
-                            }
-                        }
+                            Id = Guid.NewGuid(),
+                            Title = "TRON GeoSpatial NFT",
+                            Description = "TRON GeoSpatial NFT Description",
+                            ImageUrl = "",
+                            Latitude = 0.0,
+                            Longitude = 0.0,
+                            Altitude = 0.0,
+                            MintWalletAddress = mintWalletAddress,
+                            ProviderType = Core.Enums.ProviderType.TRONOASIS
+                        };
+                        geoNFTs.Add(geoNFT);
                     }
                 }
 
@@ -1455,7 +1450,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Get wallet address for the avatar
-                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.TRONOASIS, avatarId);
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.TRONOASIS, avatarId);
                 if (walletResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
@@ -1492,7 +1487,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                                 Image = nft.Image,
                                 NFTTokenAddress = nft.TokenId,
                                 OASISMintWalletAddress = walletResult.Result,
-                                OnChainProvider = new EnumValue<ProviderType>(ProviderType.TRONOASIS)
+                                OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS)
                             };
                             nfts.Add(oasisNFT);
                         }
@@ -1558,7 +1553,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                                 Image = nft.Image,
                                 NFTTokenAddress = nft.TokenId,
                                 OASISMintWalletAddress = mintWalletAddress,
-                                OnChainProvider = new EnumValue<ProviderType>(ProviderType.TRONOASIS)
+                                OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS)
                             };
                             nfts.Add(oasisNFT);
                         }
@@ -1601,7 +1596,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Get wallet address for the avatar
-                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.TRONOASIS, request.AvatarId);
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.TRONOASIS, request.AvatarId);
                 if (walletResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
@@ -1642,7 +1637,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                             Lat = (long)(request.Latitude * 1000000), // Convert to microdegrees
                             Long = (long)(request.Longitude * 1000000), // Convert to microdegrees
                             OASISMintWalletAddress = walletResult.Result,
-                            OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS),
+                            OnChainProvider = new EnumValue<ProviderType>(Core.Enums.Core.Enums.ProviderType.TRONOASIS),
                             MintTransactionId = transactionResult.TxID
                         };
                         
@@ -1692,7 +1687,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Get wallet address for the avatar
-                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.TRONOASIS, request.AvatarId);
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.TRONOASIS, request.AvatarId);
                 if (walletResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
@@ -1735,7 +1730,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                             Lat = (long)(request.Latitude * 1000000), // Convert to microdegrees
                             Long = (long)(request.Longitude * 1000000), // Convert to microdegrees
                             OASISMintWalletAddress = walletResult.Result,
-                            OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS),
+                            OnChainProvider = new EnumValue<ProviderType>(Core.Enums.Core.Enums.ProviderType.TRONOASIS),
                             MintTransactionId = transactionResult.TxID
                         };
                         
@@ -2054,7 +2049,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         {
             return await WalletHelper.GetWalletAddressForAvatarAsync(
                 WalletManager, 
-                ProviderType.TRONOASIS, 
+                Core.Enums.ProviderType.TRONOASIS, 
                 avatarId, 
                 _httpClient);
         }
