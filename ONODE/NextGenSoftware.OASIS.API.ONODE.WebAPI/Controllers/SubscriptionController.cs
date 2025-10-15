@@ -486,7 +486,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return "user_test_123";
         }
 
-        private async Task<object> GetUserUsageAsync(string userId)
+        private async Task<dynamic> GetUserUsageAsync(string userId)
         {
             // TODO: Implement real usage tracking from database
             // For now, return mock data
@@ -498,7 +498,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             };
         }
 
-        private async Task<object> GetUserSubscriptionAsync(string userId)
+        private async Task<dynamic> GetUserSubscriptionAsync(string userId)
         {
             // TODO: Implement real subscription lookup from database
             // For now, return mock data
@@ -831,6 +831,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public decimal CostPerFailover { get; set; }
         public decimal CostPerGB { get; set; }
         public string PlanType { get; set; }
+        public int RequestLimit { get; set; }
         }
 
 
