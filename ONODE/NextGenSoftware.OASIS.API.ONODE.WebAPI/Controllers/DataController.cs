@@ -683,7 +683,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
    [HttpPost("save-holon/{holon}")]
    public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(Holon holon)
    {
-       return await SaveHolon(new SaveHolonRequest() { Holon = holon });
+       return await SaveHolon(new Models.Data.SaveHolonRequest() { Holon = holon });
 
        //OASISResult<Holon> response = new OASISResult<Holon>();
        //OASISResult<IHolon> result = await HolonManager.SaveHolonAsync(holon);
@@ -713,7 +713,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}")]
         public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(Holon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
-            return await SaveHolon(new SaveHolonRequest()
+            return await SaveHolon(new Models.Data.SaveHolonRequest()
             {
                 Holon = holon,
                 SaveChildren = saveChildren,
@@ -747,7 +747,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(Holon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, string providerType = "Default", bool setGlobally = false)
         {
-            return await SaveHolon(new SaveHolonRequest() 
+            return await SaveHolon(new Models.Data.SaveHolonRequest() 
             { 
                 Holon = holon,
                 SaveChildren = saveChildren,
@@ -796,7 +796,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{AutoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}")]
         public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(Holon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, string providerType = "Default", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
         {
-            return await SaveHolon(new SaveHolonRequest()
+            return await SaveHolon(new Models.Data.SaveHolonRequest()
             {
                 Holon = holon,
                 SaveChildren = saveChildren,
