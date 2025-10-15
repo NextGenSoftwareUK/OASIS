@@ -1548,11 +1548,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var avatarDetails = JsonSerializer.Deserialize<List<AvatarDetail>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var avatarDetails = System.Text.Json.System.Text.Json.JsonSerializer.Deserialize<List<AvatarDetail>>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (avatarDetails != null)
                     {
-                        result.Result = avatarDetails.Cast<IAvatarDetail>();
+                        result.Result = avatarDetails.Select(ad => (IAvatarDetail)ad).ToList();
                         result.IsError = false;
                         result.Message = $"Successfully loaded {avatarDetails.Count} avatar details from Ethereum";
                     }
@@ -1635,7 +1635,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var avatar = JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (avatar != null)
                     {
@@ -1681,7 +1681,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var avatars = JsonSerializer.Deserialize<List<Avatar>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var avatars = System.Text.Json.JsonSerializer.Deserialize<List<Avatar>>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (avatars != null)
                     {
@@ -1728,7 +1728,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var avatar = JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (avatar != null)
                     {
@@ -1775,7 +1775,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var avatar = JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (avatar != null)
                     {
@@ -2652,7 +2652,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var holons = System.Text.Json.JsonSerializer.Deserialize<List<Holon>>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (holons != null)
                     {
@@ -2708,7 +2708,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var holons = JsonSerializer.Deserialize<List<Holon>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var holons = System.Text.Json.JsonSerializer.Deserialize<List<Holon>>(responseContent, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     
                     if (holons != null)
                     {
