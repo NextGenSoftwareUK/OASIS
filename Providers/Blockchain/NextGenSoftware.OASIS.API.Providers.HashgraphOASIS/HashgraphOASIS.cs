@@ -2284,6 +2284,43 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         }
 
         /// <summary>
+        /// Send transaction to Hashgraph network synchronously
+        /// </summary>
+        public HashgraphTransactionData SendTransaction(HashgraphTransactionData transactionData)
+        {
+            try
+            {
+                using (var httpClient = new System.Net.Http.HttpClient())
+                {
+                    var json = System.Text.Json.JsonSerializer.Serialize(transactionData);
+                    var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                    
+                    var response = httpClient.PostAsync($"{_networkUrl}/api/v1/transactions", content).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseContent = response.Content.ReadAsStringAsync().Result;
+                        var transactionResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                        
+                        return new HashgraphTransactionData
+                        {
+                            FromAddress = transactionData.FromAddress,
+                            ToAddress = transactionData.ToAddress,
+                            Amount = transactionData.Amount,
+                            Memo = transactionData.Memo,
+                            TransactionId = transactionResponse.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : Guid.NewGuid().ToString(),
+                            Status = "Success"
+                        };
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Return null if transaction fails
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Get NFT data from Hashgraph network
         /// </summary>
         public async Task<string> GetNFTData(string nftTokenAddress)

@@ -29,5 +29,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         public Task<string> GetRequiredKeys(GetRequiredKeysRequestDto getRequiredKeysRequestDto);
         public Task<GetAccountResponseDto> GetAccountAsync(GetAccountDtoRequest getAccountDtoRequest);
         public Task<string[]> GetCurrencyBalanceAsync(GetCurrencyBalanceRequestDto getCurrencyBalanceRequestDto);
+        public Task<object> GetHolonByProviderKeyAsync(string providerKey);
+        public Task<List<object>> GetHolonsForParentAsync(Guid parentId);
+        public Task<List<object>> GetHolonsForParentByProviderKeyAsync(string providerKey);
+        public Task<bool> DeleteHolonByProviderKeyAsync(string providerKey);
+        public Task<object> ExportAllDataForAvatarByIdAsync(Guid avatarId);
     }
 }
