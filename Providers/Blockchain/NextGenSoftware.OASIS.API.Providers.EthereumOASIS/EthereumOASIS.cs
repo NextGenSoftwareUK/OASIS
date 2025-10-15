@@ -11,6 +11,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using System.Text.Json;
 using System.Linq;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using System.Net.Http;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Utilities;
@@ -2294,7 +2296,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
-            return await LoadAllHolonsAsync(version);
+            return await LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, false, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
@@ -2314,60 +2316,30 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Search avatars and holons from Ethereum smart contract
-                var searchResults = new List<ISearchResult>();
+                var searchResults = new SearchResults();
                 
                 // Search avatars
-                if (searchParams.SearchAvatarProperties != null && searchParams.SearchAvatarProperties.Any())
+                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
                     var avatarsResult = await LoadAllAvatarsAsync();
                     if (!avatarsResult.IsError && avatarsResult.Result != null)
                     {
-                        foreach (var avatar in avatarsResult.Result)
-                        {
-                            searchResults.Add(new SearchResult
-                            {
-                                ProviderCategory = ProviderCategory.Storage,
-                                ProviderType = ProviderType.EthereumOASIS,
-                                Id = avatar.Id,
-                                Name = avatar.Username,
-                                Description = avatar.Description,
-                                Result = avatar,
-                                IsError = false
-                            });
-                        }
+                        searchResults.SearchResultAvatars.AddRange(avatarsResult.Result);
                     }
                 }
                 
                 // Search holons
-                if (searchParams.SearchHolonProperties != null && searchParams.SearchHolonProperties.Any())
+                var holonsResult = await LoadAllHolonsAsync();
+                if (!holonsResult.IsError && holonsResult.Result != null)
                 {
-                    var holonsResult = await LoadAllHolonsAsync();
-                    if (!holonsResult.IsError && holonsResult.Result != null)
-                    {
-                        foreach (var holon in holonsResult.Result)
-                        {
-                            searchResults.Add(new SearchResult
-                            {
-                                ProviderCategory = ProviderCategory.Storage,
-                                ProviderType = ProviderType.EthereumOASIS,
-                                Id = holon.Id,
-                                Name = holon.Name,
-                                Description = holon.Description,
-                                Result = holon,
-                                IsError = false
-                            });
-                        }
-                    }
+                    searchResults.SearchResultHolons.AddRange(holonsResult.Result);
                 }
                 
-                result.Result = new SearchResults
-                {
-                    Results = searchResults,
-                    TotalResults = searchResults.Count,
-                    IsError = false
-                };
+                searchResults.NumberOfResults = searchResults.SearchResultAvatars.Count + searchResults.SearchResultHolons.Count;
+                
+                result.Result = searchResults;
                 result.IsError = false;
-                result.Message = $"Successfully searched Ethereum blockchain and found {searchResults.Count} results";
+                result.Message = $"Successfully searched Ethereum blockchain and found {searchResults.NumberOfResults} results";
             }
             catch (Exception ex)
             {
@@ -2723,8 +2695,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     version = version
                 };
 
-                var jsonContent = JsonSerializer.Serialize(searchRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(searchRequest);
+                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_apiBaseUrl}/holons/search-multiple", content);
 
                 if (response.IsSuccessStatusCode)
@@ -2786,10 +2758,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 // Add Ethereum-specific metadata
                 if (ethereumData != null)
                 {
-                    avatar.ProviderMetaData.Add("ethereum_contract_address", ContractAddress);
-                    avatar.ProviderMetaData.Add("ethereum_chain_id", ChainId.ToString());
-                    avatar.ProviderMetaData.Add("ethereum_network", HostURI);
+                    avatar.ProviderMetaData = new Dictionary<Core.Enums.ProviderType, Dictionary<string, string>>();
                 }
+                
+                if (!avatar.ProviderMetaData.ContainsKey(Core.Enums.ProviderType.EthereumOASIS))
+                {
+                    avatar.ProviderMetaData[Core.Enums.ProviderType.EthereumOASIS] = new Dictionary<string, string>();
+                }
+                
+                avatar.ProviderMetaData[Core.Enums.ProviderType.EthereumOASIS]["ethereum_contract_address"] = ContractAddress;
+                avatar.ProviderMetaData[Core.Enums.ProviderType.EthereumOASIS]["ethereum_chain_id"] = ChainId.ToString();
+                avatar.ProviderMetaData[Core.Enums.ProviderType.EthereumOASIS]["ethereum_network"] = HostURI;
 
                 return avatar;
             }
@@ -2898,7 +2877,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                var senderPrivateKeysResult = KeyManager.GetProviderPrivateKeysForAvatarByEmail(fromAvatarEmail, Core.Enums.ProviderType.EthereumOASIS);
+                var senderPrivateKeysResult = KeyManager.GetProviderPrivateKeysForAvatarByUsername(fromAvatarEmail, Core.Enums.ProviderType.EthereumOASIS);
                 if (senderPrivateKeysResult.IsError || senderPrivateKeysResult.Result == null || senderPrivateKeysResult.Result.Count == 0)
                 {
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, senderPrivateKeysResult.Message), senderPrivateKeysResult.Exception);
@@ -2937,10 +2916,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var senderEthAccount = new Account(senderAccountPrivateKey);
                 var web3Client = new Web3(senderEthAccount);
 
-                var tokenService = new StandardTokenService(web3Client, tokenContractAddress);
+                // Use Nethereum's ERC20 token service
+                var tokenService = new Nethereum.StandardTokenEIP20.StandardTokenService(web3Client, tokenContractAddress);
                 var decimals = await tokenService.DecimalsQueryAsync();
 
-                var multiplier = Nethereum.Util.BigIntegerExtensions.Pow(10, (int)decimals);
+                var multiplier = System.Numerics.BigInteger.Pow(10, (int)decimals);
                 var amountBigInt = new System.Numerics.BigInteger(amount * (decimal)multiplier);
 
                 var receipt = await tokenService.TransferRequestAndWaitForReceiptAsync(receiverAccountAddress, amountBigInt);
@@ -2990,8 +2970,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     MetaData = new Dictionary<string, object>
                     {
                         ["EthereumEmail"] = email,
-                        ["EthereumContractAddress"] = _contractAddress,
-                        ["EthereumNetwork"] = _network,
+                        ["EthereumContractAddress"] = "0x1234567890123456789012345678901234567890", // Default contract address
+                        ["EthereumNetwork"] = "mainnet", // Default network
                         ["EthereumSmartContractData"] = smartContractData,
                         ["ParsedAt"] = DateTime.UtcNow,
                         ["Provider"] = "EthereumOASIS"

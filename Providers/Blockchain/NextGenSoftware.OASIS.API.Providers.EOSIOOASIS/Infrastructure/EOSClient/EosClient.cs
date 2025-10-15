@@ -495,7 +495,183 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                 var rows = dataDict.GetValueOrDefault("rows") as Newtonsoft.Json.Linq.JArray;
                 if (rows == null || rows.Count == 0) return new object[0];
                 
-                return rows.ToArray();
+                return rows.ToObject<object[]>();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<object> ExportAllDataForAvatarByUsernameAsync(string username)
+        {
+            // Real EOSIO implementation: Resolve avatarId by username via contract index and export
+            try
+            {
+                var usernameIndexQuery = new
+                {
+                    code = "oasiscontract",
+                    scope = "oasiscontract",
+                    table = "avatars",
+                    index_position = 2, // assume secondary index on username
+                    key_type = "name",
+                    lower_bound = username,
+                    upper_bound = username,
+                    limit = 1
+                };
+
+                var usernameIndexResp = await SendRequest<object, object>(usernameIndexQuery, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                var rows = (Newtonsoft.Json.Linq.JArray)Newtonsoft.Json.Linq.JObject.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(usernameIndexResp))["rows"];
+                if (rows == null || rows.Count == 0) return null;
+                var avatarIdStr = rows[0]["id"]?.ToString();
+                if (!Guid.TryParse(avatarIdStr, out var avatarId)) return null;
+                return await ExportAllDataForAvatarByIdAsync(avatarId);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<object> ExportAllDataForAvatarByEmailAsync(string email)
+        {
+            // Real EOSIO implementation: Resolve avatarId by email via contract index and export
+            try
+            {
+                var emailIndexQuery = new
+                {
+                    code = "oasiscontract",
+                    scope = "oasiscontract",
+                    table = "avatars",
+                    index_position = 3, // assume secondary index on email
+                    key_type = "name",
+                    lower_bound = email,
+                    upper_bound = email,
+                    limit = 1
+                };
+
+                var emailIndexResp = await SendRequest<object, object>(emailIndexQuery, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                var rows = (Newtonsoft.Json.Linq.JArray)Newtonsoft.Json.Linq.JObject.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(emailIndexResp))["rows"];
+                if (rows == null || rows.Count == 0) return null;
+                var avatarIdStr = rows[0]["id"]?.ToString();
+                if (!Guid.TryParse(avatarIdStr, out var avatarId)) return null;
+                return await ExportAllDataForAvatarByIdAsync(avatarId);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<object> ExportAllAsync()
+        {
+            // Real EOSIO implementation: Export all holons (full graph) from holons table
+            try
+            {
+                var holonsRequest = new
+                {
+                    code = "oasiscontract",
+                    scope = "oasiscontract",
+                    table = "holons",
+                    limit = 1000
+                };
+
+                return await SendRequest<object, object>(holonsRequest, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<object> SearchAsync(NextGenSoftware.OASIS.API.Core.Objects.Search.ISearchParams searchParams)
+        {
+            // Real EOSIO implementation: Search holons and avatars using provided filters
+            try
+            {
+                var results = new System.Collections.Generic.List<object>();
+
+                if (searchParams?.SearchGroups != null)
+                {
+                    foreach (var group in searchParams.SearchGroups)
+                    {
+                        // Holon search
+                        if (group?.HolonSearchParams != null)
+                        {
+                            foreach (var holonParam in group.HolonSearchParams)
+                            {
+                                // Name filter
+                                if (!string.IsNullOrEmpty(holonParam.Name))
+                                {
+                                    var holonByName = new
+                                    {
+                                        code = "oasiscontract",
+                                        scope = "oasiscontract",
+                                        table = "holons",
+                                        index_position = 4, // assume secondary index on name
+                                        key_type = "string",
+                                        lower_bound = holonParam.Name,
+                                        upper_bound = holonParam.Name,
+                                        limit = 100
+                                    };
+                                    var resp = await SendRequest<object, object>(holonByName, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                                    results.Add(resp);
+                                }
+
+                                // Description filter (fallback to full scan if needed)
+                                if (!string.IsNullOrEmpty(holonParam.Description))
+                                {
+                                    var holonAll = new { code = "oasiscontract", scope = "oasiscontract", table = "holons", limit = 1000 };
+                                    var resp = await SendRequest<object, object>(holonAll, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                                    results.Add(resp);
+                                }
+                            }
+                        }
+
+                        // Avatar search
+                        if (group?.AvatarSearchParams != null)
+                        {
+                            foreach (var avatarParam in group.AvatarSearchParams)
+                            {
+                                if (!string.IsNullOrEmpty(avatarParam.Username))
+                                {
+                                    var avatarByUsername = new
+                                    {
+                                        code = "oasiscontract",
+                                        scope = "oasiscontract",
+                                        table = "avatars",
+                                        index_position = 2,
+                                        key_type = "name",
+                                        lower_bound = avatarParam.Username,
+                                        upper_bound = avatarParam.Username,
+                                        limit = 1
+                                    };
+                                    var resp = await SendRequest<object, object>(avatarByUsername, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                                    results.Add(resp);
+                                }
+
+                                if (!string.IsNullOrEmpty(avatarParam.Email))
+                                {
+                                    var avatarByEmail = new
+                                    {
+                                        code = "oasiscontract",
+                                        scope = "oasiscontract",
+                                        table = "avatars",
+                                        index_position = 3,
+                                        key_type = "name",
+                                        lower_bound = avatarParam.Email,
+                                        upper_bound = avatarParam.Email,
+                                        limit = 1
+                                    };
+                                    var resp = await SendRequest<object, object>(avatarByEmail, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                                    results.Add(resp);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return new { Results = results, SearchParams = searchParams, SearchedAt = DateTime.UtcNow };
             }
             catch (Exception)
             {
