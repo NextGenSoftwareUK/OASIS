@@ -241,9 +241,9 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return result;
             }
 
-            if (avatarData.Result != null)
+            if (result.Result != null)
             {
-                var avatar = ParseSolanaToAvatar(avatarData.Result);
+                var avatar = ParseSolanaToAvatar(result.Result);
                 if (avatar != null)
                 {
                     result.Result = avatar;
@@ -287,9 +287,9 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return response;
             }
 
-            if (avatarData.Result != null)
+            if (result.Result != null)
             {
-                var avatar = ParseSolanaToAvatar(avatarData.Result);
+                var avatar = ParseSolanaToAvatar(result.Result);
                 if (avatar != null)
                 {
                     response.Result = avatar;

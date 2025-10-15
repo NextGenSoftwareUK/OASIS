@@ -598,10 +598,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                         // Holon search
                         if (group?.HolonSearchParams != null)
                         {
-                            foreach (var holonParam in group.HolonSearchParams)
-                            {
+                            var holonParam = group.HolonSearchParams;
                                 // Name filter
-                                if (!string.IsNullOrEmpty(holonParam.Name))
+                                if (holonParam.Name)
                                 {
                                     var holonByName = new
                                     {
@@ -619,21 +618,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                                 }
 
                                 // Description filter (fallback to full scan if needed)
-                                if (!string.IsNullOrEmpty(holonParam.Description))
+                                if (holonParam.Description)
                                 {
                                     var holonAll = new { code = "oasiscontract", scope = "oasiscontract", table = "holons", limit = 1000 };
                                     var resp = await SendRequest<object, object>(holonAll, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
                                     results.Add(resp);
                                 }
-                            }
                         }
 
                         // Avatar search
                         if (group?.AvatarSearchParams != null)
                         {
-                            foreach (var avatarParam in group.AvatarSearchParams)
-                            {
-                                if (!string.IsNullOrEmpty(avatarParam.Username))
+                            var avatarParam = group.AvatarSearchParams;
+                                if (avatarParam.Username)
                                 {
                                     var avatarByUsername = new
                                     {
@@ -650,7 +647,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                                     results.Add(resp);
                                 }
 
-                                if (!string.IsNullOrEmpty(avatarParam.Email))
+                                if (avatarParam.Email)
                                 {
                                     var avatarByEmail = new
                                     {
@@ -666,7 +663,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                                     var resp = await SendRequest<object, object>(avatarByEmail, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
                                     results.Add(resp);
                                 }
-                            }
                         }
                     }
                 }
