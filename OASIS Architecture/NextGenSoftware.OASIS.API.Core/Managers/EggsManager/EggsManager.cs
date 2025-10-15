@@ -319,6 +319,111 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             return await Task.FromResult(result);
         }
+
+        #region Competition Tracking
+
+        private async Task UpdateCompetitionScoresAsync(Guid avatarId, Egg egg)
+        {
+            try
+            {
+                // Update egg collection competition scores
+                var competitionManager = CompetitionManager.Instance;
+                
+                // Calculate score based on egg rarity and type
+                var score = CalculateEggScore(egg);
+                
+                // Update daily, weekly, monthly, quarterly, and yearly scores
+                await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.EggCollection, SeasonType.Daily, score);
+                await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.EggCollection, SeasonType.Weekly, score);
+                await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.EggCollection, SeasonType.Monthly, score);
+                await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.EggCollection, SeasonType.Quarterly, score);
+                await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.EggCollection, SeasonType.Yearly, score);
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail the egg discovery
+                Console.WriteLine($"Error updating competition scores: {ex.Message}");
+            }
+        }
+
+        private long CalculateEggScore(Egg egg)
+        {
+            // Base score calculation based on rarity and type
+            var baseScore = egg.Rarity switch
+            {
+                EggRarity.Common => 10,
+                EggRarity.Uncommon => 25,
+                EggRarity.Rare => 50,
+                EggRarity.Epic => 100,
+                EggRarity.Legendary => 250,
+                EggRarity.Mythic => 500,
+                _ => 10
+            };
+
+            // Bonus for unique types
+            var typeBonus = egg.EggType switch
+            {
+                EggType.Dragon => 50,
+                EggType.Diamond => 100,
+                EggType.Platinum => 75,
+                EggType.Gold => 50,
+                EggType.Silver => 25,
+                EggType.Bronze => 10,
+                _ => 0
+            };
+
+            // Discovery method bonus
+            var discoveryBonus = egg.DiscoveryMethod switch
+            {
+                "Secret Location" => 100,
+                "Puzzle Solved" => 75,
+                "Quest Completion" => 50,
+                "Exploration" => 25,
+                _ => 10
+            };
+
+            return baseScore + typeBonus + discoveryBonus;
+        }
+
+        public async Task<OASISResult<Dictionary<string, object>>> GetEggCollectionStatsAsync(Guid avatarId)
+        {
+            var result = new OASISResult<Dictionary<string, object>>();
+            try
+            {
+                if (_avatarEggs.TryGetValue(avatarId, out var eggs))
+                {
+                    var stats = new Dictionary<string, object>
+                    {
+                        ["totalEggs"] = eggs.Count,
+                        ["uniqueTypes"] = eggs.Select(e => e.EggType).Distinct().Count(),
+                        ["rarityDistribution"] = eggs.GroupBy(e => e.Rarity).ToDictionary(g => g.Key.ToString(), g => g.Count()),
+                        ["typeDistribution"] = eggs.GroupBy(e => e.EggType).ToDictionary(g => g.Key.ToString(), g => g.Count()),
+                        ["discoveryMethods"] = eggs.GroupBy(e => e.DiscoveryMethod).ToDictionary(g => g.Key, g => g.Count()),
+                        ["totalScore"] = eggs.Sum(e => CalculateEggScore(e)),
+                        ["averageRarity"] = eggs.Average(e => (int)e.Rarity),
+                        ["mostCommonType"] = eggs.GroupBy(e => e.EggType).OrderByDescending(g => g.Count()).FirstOrDefault()?.Key.ToString(),
+                        ["rarestEgg"] = eggs.OrderByDescending(e => (int)e.Rarity).FirstOrDefault()?.Name
+                    };
+
+                    result.Result = stats;
+                    result.Message = "Egg collection statistics retrieved successfully.";
+                }
+                else
+                {
+                    result.Result = new Dictionary<string, object>();
+                    result.Message = "No eggs found for this avatar.";
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error retrieving egg collection statistics: {ex.Message}";
+                result.Exception = ex;
+            }
+            return await Task.FromResult(result);
+        }
+
+        #endregion
     }
 
     public class Egg
