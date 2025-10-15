@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,46 @@ using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
+
+
+    /// <summary>
+    /// Model for recording requests
+    /// </summary>
+    public class RecordRequestModel
+    {
+        public ProviderType ProviderType { get; set; }
+        public bool Success { get; set; }
+        public double ResponseTimeMs { get; set; }
+        public double Cost { get; set; }
+    }
+
+    /// <summary>
+    /// Model for recording connections
+    /// </summary>
+    public class RecordConnectionModel
+    {
+        public ProviderType ProviderType { get; set; }
+        public bool IsConnecting { get; set; }
+    }
+
+    /// <summary>
+    /// HyperDrive status information
+    /// </summary>
+    public class HyperDriveStatus
+    {
+        public bool IsEnabled { get; set; }
+        public bool AutoFailoverEnabled { get; set; }
+        public bool AutoReplicationEnabled { get; set; }
+        public bool AutoLoadBalancingEnabled { get; set; }
+        public LoadBalancingStrategy DefaultStrategy { get; set; }
+        public List<ProviderType> EnabledProviders { get; set; }
+        public List<ProviderType> LoadBalancingProviders { get; set; }
+        public int TotalProviders { get; set; }
+        public int ActiveProviders { get; set; }
+        public DateTime LastHealthCheck { get; set; }
+    }
+
+
     [ApiController]
     [Route("api/[controller]")]
     public class HyperDriveController : ControllerBase
@@ -43,7 +85,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<OASISHyperDriveConfig>
                 {
                     Result = config,
-                    IsSuccess = true,
                     Message = "HyperDrive configuration retrieved successfully."
                 });
             }
@@ -65,9 +106,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var dna = OASISDNAManager.Instance.OASISDNA;
+                var dna = OASISDNAManager.OASISDNA.OASIS;
                 var mode = dna?.HyperDriveMode ?? "Legacy";
-                return Ok(new OASISResult<string> { Result = mode, IsSuccess = true, Message = "HyperDrive mode retrieved." });
+                return Ok(new OASISResult<string> { Result = mode, Message = "HyperDrive mode retrieved." });
             }
             catch (Exception ex)
             {
@@ -80,13 +121,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var dna = OASISDNAManager.Instance.OASISDNA;
+                var dna = OASISDNAManager.OASISDNA.OASIS;
                 if (dna != null)
                 {
                     dna.HyperDriveMode = mode;
-                    await OASISDNAManager.Instance.SaveOASISDNAAsync();
+                    await OASISDNAManager.SaveDNAAsync();
                 }
-                return Ok(new OASISResult<bool> { Result = true, IsSuccess = true, Message = "HyperDrive mode updated." });
+                return Ok(new OASISResult<bool> { Result = true, Message = "HyperDrive mode updated." });
             }
             catch (Exception ex)
             {
@@ -176,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<Dictionary<ProviderType, ProviderPerformanceMetrics>>
                 {
                     Result = metrics,
-                    IsSuccess = true,
+
                     Message = "Performance metrics retrieved successfully."
                 });
             }
@@ -204,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     return Ok(new OASISResult<ProviderPerformanceMetrics>
                     {
                         Result = metrics,
-                        IsSuccess = true,
+
                         Message = $"Performance metrics for {providerType} retrieved successfully."
                     });
                 }
@@ -237,7 +278,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 var connections = new Dictionary<ProviderType, int>();
                 var config = _configManager.GetConfiguration();
-                
+
                 foreach (var provider in config.LoadBalancingProviders)
                 {
                     connections[provider] = _performanceMonitor.GetActiveConnections(provider);
@@ -246,7 +287,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<Dictionary<ProviderType, int>>
                 {
                     Result = connections,
-                    IsSuccess = true,
+
                     Message = "Connection counts retrieved successfully."
                 });
             }
@@ -273,11 +314,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var selectedStrategy = strategy ?? config.DefaultStrategy;
 
                 var bestProvider = _performanceMonitor.GetBestProvider(availableProviders, selectedStrategy);
-                
+
                 return Ok(new OASISResult<ProviderType>
                 {
                     Result = bestProvider,
-                    IsSuccess = true,
+
                     Message = $"Best provider selected using {selectedStrategy} strategy."
                 });
             }
@@ -300,16 +341,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 _performanceMonitor.RecordRequest(
-                    request.ProviderType, 
-                    request.Success, 
-                    request.ResponseTimeMs, 
+                    request.ProviderType,
+                    request.Success,
+                    request.ResponseTimeMs,
                     request.Cost
                 );
 
                 return Ok(new OASISResult<bool>
                 {
                     Result = true,
-                    IsSuccess = true,
+
                     Message = "Request recorded successfully."
                 });
             }
@@ -336,7 +377,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<bool>
                 {
                     Result = true,
-                    IsSuccess = true,
+
                     Message = "Connection activity recorded successfully."
                 });
             }
@@ -363,7 +404,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<bool>
                 {
                     Result = true,
-                    IsSuccess = true,
+
                     Message = $"Geographic information for {providerType} updated successfully."
                 });
             }
@@ -390,7 +431,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<bool>
                 {
                     Result = true,
-                    IsSuccess = true,
+
                     Message = $"Cost analysis for {providerType} updated successfully."
                 });
             }
@@ -417,7 +458,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<bool>
                 {
                     Result = true,
-                    IsSuccess = true,
+
                     Message = $"Metrics for {providerType} reset successfully."
                 });
             }
@@ -444,7 +485,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<bool>
                 {
                     Result = true,
-                    IsSuccess = true,
+
                     Message = "All metrics reset successfully."
                 });
             }
@@ -484,7 +525,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<HyperDriveStatus>
                 {
                     Result = status,
-                    IsSuccess = true,
+
                     Message = "HyperDrive status retrieved successfully."
                 });
             }
@@ -510,7 +551,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<List<OptimizationRecommendation>>
                 {
                     Result = recommendations,
-                    IsSuccess = true,
+
                     Message = "AI optimization recommendations retrieved successfully."
                 });
             }
@@ -536,7 +577,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<PredictiveAnalytics>
                 {
                     Result = analytics,
-                    IsSuccess = true,
+
                     Message = $"Predictive analytics for {providerType} retrieved successfully."
                 });
             }
@@ -562,7 +603,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<AnalyticsReport>
                 {
                     Result = report,
-                    IsSuccess = true,
+
                     Message = "Analytics report generated successfully."
                 });
             }
@@ -588,7 +629,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<DashboardData>
                 {
                     Result = dashboard,
-                    IsSuccess = true,
+
                     Message = "Dashboard data retrieved successfully."
                 });
             }
@@ -614,7 +655,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<FailoverPrediction>
                 {
                     Result = predictions,
-                    IsSuccess = true,
+
                     Message = "Failure predictions retrieved successfully."
                 });
             }
@@ -640,7 +681,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<bool>
                 {
                     Result = true,
-                    IsSuccess = true,
+
                     Message = "Analytics data recorded successfully."
                 });
             }
@@ -666,7 +707,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<bool>
                 {
                     Result = true,
-                    IsSuccess = true,
+
                     Message = "Performance data recorded successfully."
                 });
             }
@@ -692,7 +733,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<bool>
                 {
                     Result = true,
-                    IsSuccess = true,
+
                     Message = "Failure event recorded successfully."
                 });
             }
@@ -718,7 +759,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<List<CostOptimizationRecommendation>>
                 {
                     Result = recommendations,
-                    IsSuccess = true,
+
                     Message = "Cost optimization recommendations retrieved successfully."
                 });
             }
@@ -744,7 +785,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<List<PerformanceOptimizationRecommendation>>
                 {
                     Result = recommendations,
-                    IsSuccess = true,
+
                     Message = "Performance optimization recommendations retrieved successfully."
                 });
             }
@@ -770,7 +811,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<bool>
                 {
                     Result = result,
-                    IsSuccess = true,
+
                     Message = "Preventive failover initiated successfully."
                 });
             }
@@ -789,1073 +830,1037 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     // Replication Management
     // -------------------------
     [HttpPost("replication/triggers")]
-    public ActionResult<OASISResult<ReplicationTriggerConfig>> CreateReplicationTrigger([FromBody] ReplicationTriggerConfig trigger)
-    {
-        try
+        public ActionResult<OASISResult<ReplicationTriggerConfig>> CreateReplicationTrigger([FromBody] ReplicationTriggerConfig trigger)
         {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            trigger.Id ??= Guid.NewGuid().ToString();
-            dna.ReplicationRules.ReplicationTriggers.Add(trigger);
-            OASISDNAManager.Instance.SaveOASISDNA();
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                trigger.Id ??= Guid.NewGuid().ToString();
+                dna.ReplicationRules.ReplicationTriggers.Add(trigger);
+                OASISDNAManager.SaveDNA();
 
-            return Ok(new OASISResult<ReplicationTriggerConfig>
-            {
-                Result = trigger,
-                IsSuccess = true,
-                Message = "Replication trigger created successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<ReplicationTriggerConfig>
-            {
-                IsError = true,
-                Message = $"Failed to create replication trigger: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
-
-    [HttpPut("replication/triggers/{id}")]
-    public ActionResult<OASISResult<ReplicationTriggerConfig>> UpdateReplicationTrigger(string id, [FromBody] ReplicationTriggerConfig trigger)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var list = dna.ReplicationRules.ReplicationTriggers;
-            var idx = list.FindIndex(t => t.Id == id);
-            if (idx < 0)
-            {
-                return NotFound(new OASISResult<ReplicationTriggerConfig>
+                return Ok(new OASISResult<ReplicationTriggerConfig>
                 {
-                    IsError = true,
-                    Message = $"Replication trigger {id} not found."
+                    Result = trigger,
+
+                    Message = "Replication trigger created successfully."
                 });
             }
-            trigger.Id = id;
-            list[idx] = trigger;
-            OASISDNAManager.Instance.SaveOASISDNA();
-
-            return Ok(new OASISResult<ReplicationTriggerConfig>
+            catch (Exception ex)
             {
-                Result = trigger,
-                IsSuccess = true,
-                Message = "Replication trigger updated successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<ReplicationTriggerConfig>
-            {
-                IsError = true,
-                Message = $"Failed to update replication trigger: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
-
-    [HttpDelete("replication/triggers/{id}")]
-    public ActionResult<OASISResult<bool>> DeleteReplicationTrigger(string id)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var removed = dna.ReplicationRules.ReplicationTriggers.RemoveAll(t => t.Id == id) > 0;
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<bool>
-            {
-                Result = removed,
-                IsSuccess = removed,
-                Message = removed ? "Replication trigger deleted successfully." : "Trigger not found."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool>
-            {
-                IsError = true,
-                Message = $"Failed to delete replication trigger: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
-
-    [HttpGet("replication/provider-rules")]
-    public ActionResult<OASISResult<List<ProviderReplicationRuleConfig>>> GetProviderReplicationRules()
-    {
-        try
-        {
-            var rules = OASISDNAManager.Instance.OASISDNA.ReplicationRules.ProviderRules;
-            return Ok(new OASISResult<List<ProviderReplicationRuleConfig>> { Result = rules, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<List<ProviderReplicationRuleConfig>> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpPut("replication/provider-rules")]
-    public ActionResult<OASISResult<ProviderReplicationRuleConfig>> UpdateProviderReplicationRule([FromBody] ProviderReplicationRuleConfig rule)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var list = dna.ReplicationRules.ProviderRules;
-            var idx = list.FindIndex(r => r.ProviderType == rule.ProviderType);
-            if (idx >= 0) list[idx] = rule; else list.Add(rule);
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<ProviderReplicationRuleConfig> { Result = rule, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<ProviderReplicationRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpGet("replication/data-type-rules")]
-    public ActionResult<OASISResult<List<DataTypeReplicationRuleConfig>>> GetDataTypeReplicationRules()
-    {
-        try
-        {
-            var rules = OASISDNAManager.Instance.OASISDNA.ReplicationRules.DataTypeRules;
-            return Ok(new OASISResult<List<DataTypeReplicationRuleConfig>> { Result = rules, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<List<DataTypeReplicationRuleConfig>> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpPut("replication/data-type-rules")]
-    public ActionResult<OASISResult<DataTypeReplicationRuleConfig>> UpdateDataTypeReplicationRule([FromBody] DataTypeReplicationRuleConfig rule)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var list = dna.ReplicationRules.DataTypeRules;
-            var idx = list.FindIndex(r => r.DataType == rule.DataType);
-            if (idx >= 0) list[idx] = rule; else list.Add(rule);
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<DataTypeReplicationRuleConfig> { Result = rule, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<DataTypeReplicationRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpGet("replication/schedule-rules")]
-    public ActionResult<OASISResult<List<ScheduleRuleConfig>>> GetScheduleRules()
-    {
-        try
-        {
-            var rules = OASISDNAManager.Instance.OASISDNA.ReplicationRules.ScheduleRules;
-            return Ok(new OASISResult<List<ScheduleRuleConfig>> { Result = rules, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<List<ScheduleRuleConfig>> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpPut("replication/schedule-rules")]
-    public ActionResult<OASISResult<ScheduleRuleConfig>> UpdateScheduleRule([FromBody] ScheduleRuleConfig rule)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var list = dna.ReplicationRules.ScheduleRules;
-            var idx = list.FindIndex(r => r.Id == rule.Id);
-            if (string.IsNullOrEmpty(rule.Id)) rule.Id = Guid.NewGuid().ToString();
-            if (idx >= 0) list[idx] = rule; else list.Add(rule);
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<ScheduleRuleConfig> { Result = rule, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<ScheduleRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpGet("replication/cost-optimization")]
-    public ActionResult<OASISResult<CostOptimizationRuleConfig>> GetCostOptimizationRule()
-    {
-        try
-        {
-            var rule = OASISDNAManager.Instance.OASISDNA.ReplicationRules.CostOptimization;
-            return Ok(new OASISResult<CostOptimizationRuleConfig> { Result = rule, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<CostOptimizationRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpPut("replication/cost-optimization")]
-    public ActionResult<OASISResult<CostOptimizationRuleConfig>> UpdateCostOptimizationRule([FromBody] CostOptimizationRuleConfig rule)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            dna.ReplicationRules.CostOptimization = rule;
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<CostOptimizationRuleConfig> { Result = rule, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<CostOptimizationRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    // -------------------------
-    // Failover Management
-    // -------------------------
-    [HttpPost("failover/triggers")]
-    public ActionResult<OASISResult<FailoverTriggerConfig>> CreateFailoverTrigger([FromBody] FailoverTriggerConfig trigger)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            trigger.Id ??= Guid.NewGuid().ToString();
-            dna.FailoverRules.FailoverTriggers.Add(trigger);
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<FailoverTriggerConfig> { Result = trigger, IsSuccess = true, Message = "Failover trigger created successfully." });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<FailoverTriggerConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpPut("failover/triggers/{id}")]
-    public ActionResult<OASISResult<FailoverTriggerConfig>> UpdateFailoverTrigger(string id, [FromBody] FailoverTriggerConfig trigger)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var list = dna.FailoverRules.FailoverTriggers;
-            var idx = list.FindIndex(t => t.Id == id);
-            if (idx < 0)
-            {
-                return NotFound(new OASISResult<FailoverTriggerConfig> { IsError = true, Message = $"Failover trigger {id} not found." });
+                return BadRequest(new OASISResult<ReplicationTriggerConfig>
+                {
+                    IsError = true,
+                    Message = $"Failed to create replication trigger: {ex.Message}",
+                    Exception = ex
+                });
             }
-            trigger.Id = id;
-            list[idx] = trigger;
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<FailoverTriggerConfig> { Result = trigger, IsSuccess = true });
         }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<FailoverTriggerConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
 
-    [HttpDelete("failover/triggers/{id}")]
-    public ActionResult<OASISResult<bool>> DeleteFailoverTrigger(string id)
-    {
-        try
+        [HttpPut("replication/triggers/{id}")]
+        public ActionResult<OASISResult<ReplicationTriggerConfig>> UpdateReplicationTrigger(string id, [FromBody] ReplicationTriggerConfig trigger)
         {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var removed = dna.FailoverRules.FailoverTriggers.RemoveAll(t => t.Id == id) > 0;
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<bool> { Result = removed, IsSuccess = removed, Message = removed ? "Failover trigger deleted successfully." : "Trigger not found." });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpGet("failover/provider-rules")]
-    public ActionResult<OASISResult<List<ProviderFailoverRuleConfig>>> GetProviderFailoverRules()
-    {
-        try
-        {
-            var rules = OASISDNAManager.Instance.OASISDNA.FailoverRules.ProviderRules;
-            return Ok(new OASISResult<List<ProviderFailoverRuleConfig>> { Result = rules, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<List<ProviderFailoverRuleConfig>> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpPut("failover/provider-rules")]
-    public ActionResult<OASISResult<ProviderFailoverRuleConfig>> UpdateProviderFailoverRule([FromBody] ProviderFailoverRuleConfig rule)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var list = dna.FailoverRules.ProviderRules;
-            var idx = list.FindIndex(r => r.ProviderType == rule.ProviderType);
-            if (idx >= 0) list[idx] = rule; else list.Add(rule);
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<ProviderFailoverRuleConfig> { Result = rule, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<ProviderFailoverRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpGet("failover/escalation-rules")]
-    public ActionResult<OASISResult<List<EscalationRuleConfig>>> GetEscalationRules()
-    {
-        try
-        {
-            var rules = OASISDNAManager.Instance.OASISDNA.FailoverRules.EscalationRules;
-            return Ok(new OASISResult<List<EscalationRuleConfig>> { Result = rules, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<List<EscalationRuleConfig>> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpPut("failover/escalation-rules")]
-    public ActionResult<OASISResult<EscalationRuleConfig>> UpdateEscalationRule([FromBody] EscalationRuleConfig rule)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var list = dna.FailoverRules.EscalationRules;
-            var idx = list.FindIndex(r => r.Id == rule.Id);
-            if (string.IsNullOrEmpty(rule.Id)) rule.Id = Guid.NewGuid().ToString();
-            if (idx >= 0) list[idx] = rule; else list.Add(rule);
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<EscalationRuleConfig> { Result = rule, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<EscalationRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    // -------------------------
-    // Subscription Alerts/Notifications
-    // -------------------------
-    [HttpGet("subscription/usage-alerts")]
-    public ActionResult<OASISResult<List<UsageAlertConfig>>> GetUsageAlerts()
-    {
-        try
-        {
-            var list = OASISDNAManager.Instance.OASISDNA.SubscriptionConfig.UsageAlerts;
-            return Ok(new OASISResult<List<UsageAlertConfig>> { Result = list, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<List<UsageAlertConfig>> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpPost("subscription/usage-alerts")]
-    public ActionResult<OASISResult<UsageAlertConfig>> CreateUsageAlert([FromBody] UsageAlertConfig alert)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            alert.Id ??= Guid.NewGuid().ToString();
-            dna.SubscriptionConfig.UsageAlerts.Add(alert);
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<UsageAlertConfig> { Result = alert, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<UsageAlertConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpPut("subscription/usage-alerts/{id}")]
-    public ActionResult<OASISResult<UsageAlertConfig>> UpdateUsageAlert(string id, [FromBody] UsageAlertConfig alert)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var list = dna.SubscriptionConfig.UsageAlerts;
-            var idx = list.FindIndex(a => a.Id == id);
-            if (idx < 0) return NotFound(new OASISResult<UsageAlertConfig> { IsError = true, Message = "Alert not found" });
-            alert.Id = id;
-            list[idx] = alert;
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<UsageAlertConfig> { Result = alert, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<UsageAlertConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpDelete("subscription/usage-alerts/{id}")]
-    public ActionResult<OASISResult<bool>> DeleteUsageAlert(string id)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var removed = dna.SubscriptionConfig.UsageAlerts.RemoveAll(a => a.Id == id) > 0;
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<bool> { Result = removed, IsSuccess = removed });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpGet("subscription/quota-notifications")]
-    public ActionResult<OASISResult<List<QuotaNotificationConfig>>> GetQuotaNotifications()
-    {
-        try
-        {
-            var list = OASISDNAManager.Instance.OASISDNA.SubscriptionConfig.QuotaNotifications;
-            return Ok(new OASISResult<List<QuotaNotificationConfig>> { Result = list, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<List<QuotaNotificationConfig>> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpPost("subscription/quota-notifications")]
-    public ActionResult<OASISResult<QuotaNotificationConfig>> CreateQuotaNotification([FromBody] QuotaNotificationConfig notification)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            notification.Id ??= Guid.NewGuid().ToString();
-            dna.SubscriptionConfig.QuotaNotifications.Add(notification);
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<QuotaNotificationConfig> { Result = notification, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<QuotaNotificationConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpPut("subscription/quota-notifications/{id}")]
-    public ActionResult<OASISResult<QuotaNotificationConfig>> UpdateQuotaNotification(string id, [FromBody] QuotaNotificationConfig notification)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var list = dna.SubscriptionConfig.QuotaNotifications;
-            var idx = list.FindIndex(n => n.Id == id);
-            if (idx < 0) return NotFound(new OASISResult<QuotaNotificationConfig> { IsError = true, Message = "Notification not found" });
-            notification.Id = id;
-            list[idx] = notification;
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<QuotaNotificationConfig> { Result = notification, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<QuotaNotificationConfig> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpDelete("subscription/quota-notifications/{id}")]
-    public ActionResult<OASISResult<bool>> DeleteQuotaNotification(string id)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var removed = dna.SubscriptionConfig.QuotaNotifications.RemoveAll(n => n.Id == id) > 0;
-            OASISDNAManager.Instance.SaveOASISDNA();
-            return Ok(new OASISResult<bool> { Result = removed, IsSuccess = removed });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    // -------------------------
-    // Cost Endpoints
-    // -------------------------
-    [HttpGet("costs/current")]
-    public ActionResult<OASISResult<Dictionary<string, decimal>>> GetCurrentCosts()
-    {
-        try
-        {
-            var costs = AdvancedAnalyticsEngine.Instance.GetCurrentCostsAsync().Result;
-            return Ok(new OASISResult<Dictionary<string, decimal>> { Result = costs, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<Dictionary<string, decimal>> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpGet("costs/history")]
-    public ActionResult<OASISResult<Dictionary<string, List<decimal>>>> GetCostHistory([FromQuery] string timeRange = "Last30Days")
-    {
-        try
-        {
-            var history = AdvancedAnalyticsEngine.Instance.GetCostHistoryAsync(timeRange).Result;
-            return Ok(new OASISResult<Dictionary<string, List<decimal>>> { Result = history, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<Dictionary<string, List<decimal>>> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpGet("costs/projections")]
-    public ActionResult<OASISResult<Dictionary<string, decimal>>> GetCostProjections()
-    {
-        try
-        {
-            var projections = AdvancedAnalyticsEngine.Instance.GetCostProjectionsAsync().Result;
-            return Ok(new OASISResult<Dictionary<string, decimal>> { Result = projections, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<Dictionary<string, decimal>> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpPut("costs/limits")]
-    public ActionResult<OASISResult<bool>> SetCostLimits([FromBody] Dictionary<string, decimal> limits)
-    {
-        try
-        {
-            AdvancedAnalyticsEngine.Instance.SetCostLimits(limits);
-            return Ok(new OASISResult<bool> { Result = true, IsSuccess = true, Message = "Cost limits updated successfully." });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    // -------------------------
-    // Recommendations Endpoints
-    // -------------------------
-    [HttpGet("recommendations/smart")]
-    public ActionResult<OASISResult<Dictionary<string, object>>> GetSmartRecommendations()
-    {
-        try
-        {
-            var recs = AIOptimizationEngine.Instance.GetSmartRecommendationsAsync().Result;
-            return Ok(new OASISResult<Dictionary<string, object>> { Result = recs, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<Dictionary<string, object>> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-
-    [HttpGet("recommendations/security")]
-    public ActionResult<OASISResult<Dictionary<string, object>>> GetSecurityRecommendations()
-    {
-        try
-        {
-            var recs = AdvancedAnalyticsEngine.Instance.GetSecurityRecommendationsAsync().Result;
-            return Ok(new OASISResult<Dictionary<string, object>> { Result = recs, IsSuccess = true });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<Dictionary<string, object>> { IsError = true, Message = ex.Message, Exception = ex });
-        }
-    }
-    /// <summary>
-    /// Model for recording requests
-    /// </summary>
-    public class RecordRequestModel
-    {
-        public ProviderType ProviderType { get; set; }
-        public bool Success { get; set; }
-        public double ResponseTimeMs { get; set; }
-        public double Cost { get; set; }
-    }
-
-    /// <summary>
-    /// Model for recording connections
-    /// </summary>
-    public class RecordConnectionModel
-    {
-        public ProviderType ProviderType { get; set; }
-        public bool IsConnecting { get; set; }
-    }
-
-    /// <summary>
-    /// HyperDrive status information
-    /// </summary>
-    public class HyperDriveStatus
-    {
-        public bool IsEnabled { get; set; }
-        public bool AutoFailoverEnabled { get; set; }
-        public bool AutoReplicationEnabled { get; set; }
-        public bool AutoLoadBalancingEnabled { get; set; }
-        public LoadBalancingStrategy DefaultStrategy { get; set; }
-        public List<ProviderType> EnabledProviders { get; set; }
-        public List<ProviderType> LoadBalancingProviders { get; set; }
-        public int TotalProviders { get; set; }
-        public int ActiveProviders { get; set; }
-        public DateTime LastHealthCheck { get; set; }
-    }
-
-    // Enhanced HyperDrive API Endpoints
-
-    /// <summary>
-    /// Gets replication rules configuration
-    /// </summary>
-    [HttpGet("replication/rules")]
-    public ActionResult<OASISResult<ReplicationRulesConfig>> GetReplicationRules()
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var rules = dna?.ReplicationRules ?? new ReplicationRulesConfig();
-            
-            return Ok(new OASISResult<ReplicationRulesConfig>
+            try
             {
-                Result = rules,
-                IsSuccess = true,
-                Message = "Replication rules retrieved successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<ReplicationRulesConfig>
-            {
-                IsError = true,
-                Message = $"Failed to get replication rules: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var list = dna.ReplicationRules.ReplicationTriggers;
+                var idx = list.FindIndex(t => t.Id == id);
+                if (idx < 0)
+                {
+                    return NotFound(new OASISResult<ReplicationTriggerConfig>
+                    {
+                        IsError = true,
+                        Message = $"Replication trigger {id} not found."
+                    });
+                }
+                trigger.Id = id;
+                list[idx] = trigger;
+                OASISDNAManager.SaveDNA();
 
-    /// <summary>
-    /// Updates replication rules configuration
-    /// </summary>
-    [HttpPut("replication/rules")]
-    public async Task<ActionResult<OASISResult<bool>>> UpdateReplicationRules([FromBody] ReplicationRulesConfig rules)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            if (dna != null)
-            {
-                dna.ReplicationRules = rules;
-                await OASISDNAManager.Instance.SaveOASISDNAAsync();
+                return Ok(new OASISResult<ReplicationTriggerConfig>
+                {
+                    Result = trigger,
+
+                    Message = "Replication trigger updated successfully."
+                });
             }
-            
-            return Ok(new OASISResult<bool>
+            catch (Exception ex)
             {
-                Result = true,
-                IsSuccess = true,
-                Message = "Replication rules updated successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool>
-            {
-                IsError = true,
-                Message = $"Failed to update replication rules: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
-
-    /// <summary>
-    /// Gets failover rules configuration
-    /// </summary>
-    [HttpGet("failover/rules")]
-    public ActionResult<OASISResult<FailoverRulesConfig>> GetFailoverRules()
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var rules = dna?.FailoverRules ?? new FailoverRulesConfig();
-            
-            return Ok(new OASISResult<FailoverRulesConfig>
-            {
-                Result = rules,
-                IsSuccess = true,
-                Message = "Failover rules retrieved successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<FailoverRulesConfig>
-            {
-                IsError = true,
-                Message = $"Failed to get failover rules: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
-
-    /// <summary>
-    /// Updates failover rules configuration
-    /// </summary>
-    [HttpPut("failover/rules")]
-    public async Task<ActionResult<OASISResult<bool>>> UpdateFailoverRules([FromBody] FailoverRulesConfig rules)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            if (dna != null)
-            {
-                dna.FailoverRules = rules;
-                await OASISDNAManager.Instance.SaveOASISDNAAsync();
+                return BadRequest(new OASISResult<ReplicationTriggerConfig>
+                {
+                    IsError = true,
+                    Message = $"Failed to update replication trigger: {ex.Message}",
+                    Exception = ex
+                });
             }
-            
-            return Ok(new OASISResult<bool>
-            {
-                Result = true,
-                IsSuccess = true,
-                Message = "Failover rules updated successfully."
-            });
         }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool>
-            {
-                IsError = true,
-                Message = $"Failed to update failover rules: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
 
-    /// <summary>
-    /// Gets subscription configuration
-    /// </summary>
-    [HttpGet("subscription/config")]
-    public ActionResult<OASISResult<SubscriptionConfig>> GetSubscriptionConfig()
-    {
-        try
+        [HttpDelete("replication/triggers/{id}")]
+        public ActionResult<OASISResult<bool>> DeleteReplicationTrigger(string id)
         {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var config = dna?.SubscriptionConfig ?? new SubscriptionConfig();
-            
-            return Ok(new OASISResult<SubscriptionConfig>
+            try
             {
-                Result = config,
-                IsSuccess = true,
-                Message = "Subscription configuration retrieved successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<SubscriptionConfig>
-            {
-                IsError = true,
-                Message = $"Failed to get subscription config: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
-
-    /// <summary>
-    /// Updates subscription configuration
-    /// </summary>
-    [HttpPut("subscription/config")]
-    public async Task<ActionResult<OASISResult<bool>>> UpdateSubscriptionConfig([FromBody] SubscriptionConfig config)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            if (dna != null)
-            {
-                dna.SubscriptionConfig = config;
-                await OASISDNAManager.Instance.SaveOASISDNAAsync();
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var removed = dna.ReplicationRules.ReplicationTriggers.RemoveAll(t => t.Id == id) > 0;
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<bool>
+                {
+                    Result = removed,
+                    Message = removed ? "Replication trigger deleted successfully." : "Trigger not found."
+                });
             }
-            
-            return Ok(new OASISResult<bool>
+            catch (Exception ex)
             {
-                Result = true,
-                IsSuccess = true,
-                Message = "Subscription configuration updated successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool>
-            {
-                IsError = true,
-                Message = $"Failed to update subscription config: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
-
-    /// <summary>
-    /// Gets data permissions configuration
-    /// </summary>
-    [HttpGet("data-permissions")]
-    public ActionResult<OASISResult<DataPermissionsConfig>> GetDataPermissions()
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var permissions = dna?.DataPermissions ?? new DataPermissionsConfig();
-            
-            return Ok(new OASISResult<DataPermissionsConfig>
-            {
-                Result = permissions,
-                IsSuccess = true,
-                Message = "Data permissions retrieved successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<DataPermissionsConfig>
-            {
-                IsError = true,
-                Message = $"Failed to get data permissions: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
-
-    /// <summary>
-    /// Updates data permissions configuration
-    /// </summary>
-    [HttpPut("data-permissions")]
-    public async Task<ActionResult<OASISResult<bool>>> UpdateDataPermissions([FromBody] DataPermissionsConfig permissions)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            if (dna != null)
-            {
-                dna.DataPermissions = permissions;
-                await OASISDNAManager.Instance.SaveOASISDNAAsync();
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to delete replication trigger: {ex.Message}",
+                    Exception = ex
+                });
             }
-            
-            return Ok(new OASISResult<bool>
-            {
-                Result = true,
-                IsSuccess = true,
-                Message = "Data permissions updated successfully."
-            });
         }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool>
-            {
-                IsError = true,
-                Message = $"Failed to update data permissions: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
 
-    /// <summary>
-    /// Gets intelligent mode configuration
-    /// </summary>
-    [HttpGet("intelligent-mode")]
-    public ActionResult<OASISResult<IntelligentModeConfig>> GetIntelligentMode()
-    {
-        try
+        [HttpGet("replication/provider-rules")]
+        public ActionResult<OASISResult<List<ProviderReplicationRuleConfig>>> GetProviderReplicationRules()
         {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var mode = dna?.IntelligentMode ?? new IntelligentModeConfig();
-            
-            return Ok(new OASISResult<IntelligentModeConfig>
+            try
             {
-                Result = mode,
-                IsSuccess = true,
-                Message = "Intelligent mode configuration retrieved successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<IntelligentModeConfig>
-            {
-                IsError = true,
-                Message = $"Failed to get intelligent mode: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
-
-    /// <summary>
-    /// Updates intelligent mode configuration
-    /// </summary>
-    [HttpPut("intelligent-mode")]
-    public async Task<ActionResult<OASISResult<bool>>> UpdateIntelligentMode([FromBody] IntelligentModeConfig mode)
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            if (dna != null)
-            {
-                dna.IntelligentMode = mode;
-                await OASISDNAManager.Instance.SaveOASISDNAAsync();
+                var rules = OASISDNAManager.OASISDNA.OASIS.ReplicationRules.ProviderRules;
+                return Ok(new OASISResult<List<ProviderReplicationRuleConfig>> { Result = rules });
             }
-            
-            return Ok(new OASISResult<bool>
+            catch (Exception ex)
             {
-                Result = true,
-                IsSuccess = true,
-                Message = "Intelligent mode configuration updated successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool>
-            {
-                IsError = true,
-                Message = $"Failed to update intelligent mode: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
-
-    /// <summary>
-    /// Enables intelligent mode
-    /// </summary>
-    [HttpPost("intelligent-mode/enable")]
-    public async Task<ActionResult<OASISResult<bool>>> EnableIntelligentMode()
-    {
-        try
-        {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            if (dna != null)
-            {
-                dna.IntelligentMode.IsEnabled = true;
-                await OASISDNAManager.Instance.SaveOASISDNAAsync();
+                return BadRequest(new OASISResult<List<ProviderReplicationRuleConfig>> { IsError = true, Message = ex.Message, Exception = ex });
             }
-            
-            return Ok(new OASISResult<bool>
-            {
-                Result = true,
-                IsSuccess = true,
-                Message = "Intelligent mode enabled successfully."
-            });
         }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool>
-            {
-                IsError = true,
-                Message = $"Failed to enable intelligent mode: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
 
-    /// <summary>
-    /// Disables intelligent mode
-    /// </summary>
-    [HttpPost("intelligent-mode/disable")]
-    public async Task<ActionResult<OASISResult<bool>>> DisableIntelligentMode()
-    {
-        try
+        [HttpPut("replication/provider-rules")]
+        public ActionResult<OASISResult<ProviderReplicationRuleConfig>> UpdateProviderReplicationRule([FromBody] ProviderReplicationRuleConfig rule)
         {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            if (dna != null)
+            try
             {
-                dna.IntelligentMode.IsEnabled = false;
-                await OASISDNAManager.Instance.SaveOASISDNAAsync();
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var list = dna.ReplicationRules.ProviderRules;
+                var idx = list.FindIndex(r => r.ProviderType == rule.ProviderType);
+                if (idx >= 0) list[idx] = rule; else list.Add(rule);
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<ProviderReplicationRuleConfig> { Result = rule });
             }
-            
-            return Ok(new OASISResult<bool>
+            catch (Exception ex)
             {
-                Result = true,
-                IsSuccess = true,
-                Message = "Intelligent mode disabled successfully."
-            });
+                return BadRequest(new OASISResult<ProviderReplicationRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
         }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool>
-            {
-                IsError = true,
-                Message = $"Failed to disable intelligent mode: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
 
-    /// <summary>
-    /// Gets current usage statistics
-    /// </summary>
-    [HttpGet("quota/usage")]
-    public ActionResult<OASISResult<Dictionary<string, int>>> GetCurrentUsage()
-    {
-        try
+        [HttpGet("replication/data-type-rules")]
+        public ActionResult<OASISResult<List<DataTypeReplicationRuleConfig>>> GetDataTypeReplicationRules()
         {
-            // This would typically come from a usage tracking service
-            var usage = new Dictionary<string, int>
+            try
+            {
+                var rules = OASISDNAManager.OASISDNA.OASIS.ReplicationRules.DataTypeRules;
+                return Ok(new OASISResult<List<DataTypeReplicationRuleConfig>> { Result = rules });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<List<DataTypeReplicationRuleConfig>> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpPut("replication/data-type-rules")]
+        public ActionResult<OASISResult<DataTypeReplicationRuleConfig>> UpdateDataTypeReplicationRule([FromBody] DataTypeReplicationRuleConfig rule)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var list = dna.ReplicationRules.DataTypeRules;
+                var idx = list.FindIndex(r => r.DataType == rule.DataType);
+                if (idx >= 0) list[idx] = rule; else list.Add(rule);
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<DataTypeReplicationRuleConfig> { Result = rule });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<DataTypeReplicationRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpGet("replication/schedule-rules")]
+        public ActionResult<OASISResult<List<ScheduleRuleConfig>>> GetScheduleRules()
+        {
+            try
+            {
+                var rules = OASISDNAManager.OASISDNA.OASIS.ReplicationRules.ScheduleRules;
+                return Ok(new OASISResult<List<ScheduleRuleConfig>> { Result = rules });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<List<ScheduleRuleConfig>> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpPut("replication/schedule-rules")]
+        public ActionResult<OASISResult<ScheduleRuleConfig>> UpdateScheduleRule([FromBody] ScheduleRuleConfig rule)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var list = dna.ReplicationRules.ScheduleRules;
+                var idx = list.FindIndex(r => r.Id == rule.Id);
+                if (string.IsNullOrEmpty(rule.Id)) rule.Id = Guid.NewGuid().ToString();
+                if (idx >= 0) list[idx] = rule; else list.Add(rule);
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<ScheduleRuleConfig> { Result = rule });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<ScheduleRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpGet("replication/cost-optimization")]
+        public ActionResult<OASISResult<CostOptimizationRuleConfig>> GetCostOptimizationRule()
+        {
+            try
+            {
+                var rule = OASISDNAManager.OASISDNA.OASIS.ReplicationRules.CostOptimization;
+                return Ok(new OASISResult<CostOptimizationRuleConfig> { Result = rule });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<CostOptimizationRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpPut("replication/cost-optimization")]
+        public ActionResult<OASISResult<CostOptimizationRuleConfig>> UpdateCostOptimizationRule([FromBody] CostOptimizationRuleConfig rule)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                dna.ReplicationRules.CostOptimization = rule;
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<CostOptimizationRuleConfig> { Result = rule });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<CostOptimizationRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        // -------------------------
+        // Failover Management
+        // -------------------------
+        [HttpPost("failover/triggers")]
+        public ActionResult<OASISResult<FailoverTriggerConfig>> CreateFailoverTrigger([FromBody] FailoverTriggerConfig trigger)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                trigger.Id ??= Guid.NewGuid().ToString();
+                dna.FailoverRules.FailoverTriggers.Add(trigger);
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<FailoverTriggerConfig> { Result = trigger, Message = "Failover trigger created successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<FailoverTriggerConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpPut("failover/triggers/{id}")]
+        public ActionResult<OASISResult<FailoverTriggerConfig>> UpdateFailoverTrigger(string id, [FromBody] FailoverTriggerConfig trigger)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var list = dna.FailoverRules.FailoverTriggers;
+                var idx = list.FindIndex(t => t.Id == id);
+                if (idx < 0)
+                {
+                    return NotFound(new OASISResult<FailoverTriggerConfig> { IsError = true, Message = $"Failover trigger {id} not found." });
+                }
+                trigger.Id = id;
+                list[idx] = trigger;
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<FailoverTriggerConfig> { Result = trigger });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<FailoverTriggerConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpDelete("failover/triggers/{id}")]
+        public ActionResult<OASISResult<bool>> DeleteFailoverTrigger(string id)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var removed = dna.FailoverRules.FailoverTriggers.RemoveAll(t => t.Id == id) > 0;
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<bool> { Result = removed, Message = removed ? "Failover trigger deleted successfully." : "Trigger not found." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpGet("failover/provider-rules")]
+        public ActionResult<OASISResult<List<ProviderFailoverRuleConfig>>> GetProviderFailoverRules()
+        {
+            try
+            {
+                var rules = OASISDNAManager.OASISDNA.OASIS.FailoverRules.ProviderRules;
+                return Ok(new OASISResult<List<ProviderFailoverRuleConfig>> { Result = rules });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<List<ProviderFailoverRuleConfig>> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpPut("failover/provider-rules")]
+        public ActionResult<OASISResult<ProviderFailoverRuleConfig>> UpdateProviderFailoverRule([FromBody] ProviderFailoverRuleConfig rule)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var list = dna.FailoverRules.ProviderRules;
+                var idx = list.FindIndex(r => r.ProviderType == rule.ProviderType);
+                if (idx >= 0) list[idx] = rule; else list.Add(rule);
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<ProviderFailoverRuleConfig> { Result = rule });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<ProviderFailoverRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpGet("failover/escalation-rules")]
+        public ActionResult<OASISResult<List<EscalationRuleConfig>>> GetEscalationRules()
+        {
+            try
+            {
+                var rules = OASISDNAManager.OASISDNA.OASIS.FailoverRules.EscalationRules;
+                return Ok(new OASISResult<List<EscalationRuleConfig>> { Result = rules });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<List<EscalationRuleConfig>> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpPut("failover/escalation-rules")]
+        public ActionResult<OASISResult<EscalationRuleConfig>> UpdateEscalationRule([FromBody] EscalationRuleConfig rule)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var list = dna.FailoverRules.EscalationRules;
+                var idx = list.FindIndex(r => r.Id == rule.Id);
+                if (string.IsNullOrEmpty(rule.Id)) rule.Id = Guid.NewGuid().ToString();
+                if (idx >= 0) list[idx] = rule; else list.Add(rule);
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<EscalationRuleConfig> { Result = rule });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<EscalationRuleConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        // -------------------------
+        // Subscription Alerts/Notifications
+        // -------------------------
+        [HttpGet("subscription/usage-alerts")]
+        public ActionResult<OASISResult<List<UsageAlertConfig>>> GetUsageAlerts()
+        {
+            try
+            {
+                var list = OASISDNAManager.OASISDNA.OASIS.SubscriptionConfig.UsageAlerts;
+                return Ok(new OASISResult<List<UsageAlertConfig>> { Result = list });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<List<UsageAlertConfig>> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpPost("subscription/usage-alerts")]
+        public ActionResult<OASISResult<UsageAlertConfig>> CreateUsageAlert([FromBody] UsageAlertConfig alert)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                alert.Id ??= Guid.NewGuid().ToString();
+                dna.SubscriptionConfig.UsageAlerts.Add(alert);
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<UsageAlertConfig> { Result = alert });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<UsageAlertConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpPut("subscription/usage-alerts/{id}")]
+        public ActionResult<OASISResult<UsageAlertConfig>> UpdateUsageAlert(string id, [FromBody] UsageAlertConfig alert)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var list = dna.SubscriptionConfig.UsageAlerts;
+                var idx = list.FindIndex(a => a.Id == id);
+                if (idx < 0) return NotFound(new OASISResult<UsageAlertConfig> { IsError = true, Message = "Alert not found" });
+                alert.Id = id;
+                list[idx] = alert;
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<UsageAlertConfig> { Result = alert });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<UsageAlertConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpDelete("subscription/usage-alerts/{id}")]
+        public ActionResult<OASISResult<bool>> DeleteUsageAlert(string id)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var removed = dna.SubscriptionConfig.UsageAlerts.RemoveAll(a => a.Id == id) > 0;
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<bool> { Result = removed });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpGet("subscription/quota-notifications")]
+        public ActionResult<OASISResult<List<QuotaNotificationConfig>>> GetQuotaNotifications()
+        {
+            try
+            {
+                var list = OASISDNAManager.OASISDNA.OASIS.SubscriptionConfig.QuotaNotifications;
+                return Ok(new OASISResult<List<QuotaNotificationConfig>> { Result = list });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<List<QuotaNotificationConfig>> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpPost("subscription/quota-notifications")]
+        public ActionResult<OASISResult<QuotaNotificationConfig>> CreateQuotaNotification([FromBody] QuotaNotificationConfig notification)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                notification.Id ??= Guid.NewGuid().ToString();
+                dna.SubscriptionConfig.QuotaNotifications.Add(notification);
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<QuotaNotificationConfig> { Result = notification });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<QuotaNotificationConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpPut("subscription/quota-notifications/{id}")]
+        public ActionResult<OASISResult<QuotaNotificationConfig>> UpdateQuotaNotification(string id, [FromBody] QuotaNotificationConfig notification)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var list = dna.SubscriptionConfig.QuotaNotifications;
+                var idx = list.FindIndex(n => n.Id == id);
+                if (idx < 0) return NotFound(new OASISResult<QuotaNotificationConfig> { IsError = true, Message = "Notification not found" });
+                notification.Id = id;
+                list[idx] = notification;
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<QuotaNotificationConfig> { Result = notification });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<QuotaNotificationConfig> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpDelete("subscription/quota-notifications/{id}")]
+        public ActionResult<OASISResult<bool>> DeleteQuotaNotification(string id)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var removed = dna.SubscriptionConfig.QuotaNotifications.RemoveAll(n => n.Id == id) > 0;
+                OASISDNAManager.SaveDNA();
+                return Ok(new OASISResult<bool> { Result = removed });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        // -------------------------
+        // Cost Endpoints
+        // -------------------------
+        [HttpGet("costs/current")]
+        public ActionResult<OASISResult<Dictionary<string, decimal>>> GetCurrentCosts()
+        {
+            try
+            {
+                var costs = AdvancedAnalyticsEngine.Instance.GetCurrentCostsAsync().Result;
+                return Ok(new OASISResult<Dictionary<string, decimal>> { Result = costs });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<Dictionary<string, decimal>> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpGet("costs/history")]
+        public ActionResult<OASISResult<Dictionary<string, List<decimal>>>> GetCostHistory([FromQuery] string timeRange = "Last30Days")
+        {
+            try
+            {
+                var history = AdvancedAnalyticsEngine.Instance.GetCostHistoryAsync(timeRange).Result;
+                return Ok(new OASISResult<Dictionary<string, List<decimal>>> { Result = history });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<Dictionary<string, List<decimal>>> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpGet("costs/projections")]
+        public ActionResult<OASISResult<Dictionary<string, decimal>>> GetCostProjections()
+        {
+            try
+            {
+                var projections = AdvancedAnalyticsEngine.Instance.GetCostProjectionsAsync().Result;
+                return Ok(new OASISResult<Dictionary<string, decimal>> { Result = projections });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<Dictionary<string, decimal>> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpPut("costs/limits")]
+        public ActionResult<OASISResult<bool>> SetCostLimits([FromBody] Dictionary<string, decimal> limits)
+        {
+            try
+            {
+                AdvancedAnalyticsEngine.Instance.SetCostLimits(limits);
+                return Ok(new OASISResult<bool> { Result = true, Message = "Cost limits updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        // -------------------------
+        // Recommendations Endpoints
+        // -------------------------
+        [HttpGet("recommendations/smart")]
+        public ActionResult<OASISResult<Dictionary<string, object>>> GetSmartRecommendations()
+        {
+            try
+            {
+                var recs = AIOptimizationEngine.Instance.GetSmartRecommendationsAsync().Result;
+                return Ok(new OASISResult<Dictionary<string, object>> { Result = recs });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<Dictionary<string, object>> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+
+        [HttpGet("recommendations/security")]
+        public ActionResult<OASISResult<Dictionary<string, object>>> GetSecurityRecommendations()
+        {
+            try
+            {
+                var recs = AdvancedAnalyticsEngine.Instance.GetSecurityRecommendationsAsync().Result;
+                return Ok(new OASISResult<Dictionary<string, object>> { Result = recs });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<Dictionary<string, object>> { IsError = true, Message = ex.Message, Exception = ex });
+            }
+        }
+    
+
+        // Enhanced HyperDrive API Endpoints
+
+        /// <summary>
+        /// Gets replication rules configuration
+        /// </summary>
+        [HttpGet("replication/rules")]
+        public ActionResult<OASISResult<ReplicationRulesConfig>> GetReplicationRules()
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var rules = dna?.ReplicationRules ?? new ReplicationRulesConfig();
+
+                return Ok(new OASISResult<ReplicationRulesConfig>
+                {
+                    Result = rules,
+
+                    Message = "Replication rules retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<ReplicationRulesConfig>
+                {
+                    IsError = true,
+                    Message = $"Failed to get replication rules: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Updates replication rules configuration
+        /// </summary>
+        [HttpPut("replication/rules")]
+        public async Task<ActionResult<OASISResult<bool>>> UpdateReplicationRules([FromBody] ReplicationRulesConfig rules)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                if (dna != null)
+                {
+                    dna.ReplicationRules = rules;
+                    await OASISDNAManager.SaveDNAAsync();
+                }
+
+                return Ok(new OASISResult<bool>
+                {
+                    Result = true,
+
+                    Message = "Replication rules updated successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to update replication rules: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets failover rules configuration
+        /// </summary>
+        [HttpGet("failover/rules")]
+        public ActionResult<OASISResult<FailoverRulesConfig>> GetFailoverRules()
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var rules = dna?.FailoverRules ?? new FailoverRulesConfig();
+
+                return Ok(new OASISResult<FailoverRulesConfig>
+                {
+                    Result = rules,
+
+                    Message = "Failover rules retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<FailoverRulesConfig>
+                {
+                    IsError = true,
+                    Message = $"Failed to get failover rules: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Updates failover rules configuration
+        /// </summary>
+        [HttpPut("failover/rules")]
+        public async Task<ActionResult<OASISResult<bool>>> UpdateFailoverRules([FromBody] FailoverRulesConfig rules)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                if (dna != null)
+                {
+                    dna.FailoverRules = rules;
+                    await OASISDNAManager.SaveDNAAsync();
+                }
+
+                return Ok(new OASISResult<bool>
+                {
+                    Result = true,
+
+                    Message = "Failover rules updated successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to update failover rules: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets subscription configuration
+        /// </summary>
+        [HttpGet("subscription/config")]
+        public ActionResult<OASISResult<SubscriptionConfig>> GetSubscriptionConfig()
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var config = dna?.SubscriptionConfig ?? new SubscriptionConfig();
+
+                return Ok(new OASISResult<SubscriptionConfig>
+                {
+                    Result = config,
+
+                    Message = "Subscription configuration retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<SubscriptionConfig>
+                {
+                    IsError = true,
+                    Message = $"Failed to get subscription config: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Updates subscription configuration
+        /// </summary>
+        [HttpPut("subscription/config")]
+        public async Task<ActionResult<OASISResult<bool>>> UpdateSubscriptionConfig([FromBody] SubscriptionConfig config)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                if (dna != null)
+                {
+                    dna.SubscriptionConfig = config;
+                    await OASISDNAManager.SaveDNAAsync();
+                }
+
+                return Ok(new OASISResult<bool>
+                {
+                    Result = true,
+
+                    Message = "Subscription configuration updated successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to update subscription config: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets data permissions configuration
+        /// </summary>
+        [HttpGet("data-permissions")]
+        public ActionResult<OASISResult<DataPermissionsConfig>> GetDataPermissions()
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var permissions = dna?.DataPermissions ?? new DataPermissionsConfig();
+
+                return Ok(new OASISResult<DataPermissionsConfig>
+                {
+                    Result = permissions,
+
+                    Message = "Data permissions retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<DataPermissionsConfig>
+                {
+                    IsError = true,
+                    Message = $"Failed to get data permissions: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Updates data permissions configuration
+        /// </summary>
+        [HttpPut("data-permissions")]
+        public async Task<ActionResult<OASISResult<bool>>> UpdateDataPermissions([FromBody] DataPermissionsConfig permissions)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                if (dna != null)
+                {
+                    dna.DataPermissions = permissions;
+                    await OASISDNAManager.SaveDNAAsync();
+                }
+
+                return Ok(new OASISResult<bool>
+                {
+                    Result = true,
+
+                    Message = "Data permissions updated successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to update data permissions: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets intelligent mode configuration
+        /// </summary>
+        [HttpGet("intelligent-mode")]
+        public ActionResult<OASISResult<IntelligentModeConfig>> GetIntelligentMode()
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var mode = dna?.IntelligentMode ?? new IntelligentModeConfig();
+
+                return Ok(new OASISResult<IntelligentModeConfig>
+                {
+                    Result = mode,
+
+                    Message = "Intelligent mode configuration retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IntelligentModeConfig>
+                {
+                    IsError = true,
+                    Message = $"Failed to get intelligent mode: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Updates intelligent mode configuration
+        /// </summary>
+        [HttpPut("intelligent-mode")]
+        public async Task<ActionResult<OASISResult<bool>>> UpdateIntelligentMode([FromBody] IntelligentModeConfig mode)
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                if (dna != null)
+                {
+                    dna.IntelligentMode = mode;
+                    await OASISDNAManager.SaveDNAAsync();
+                }
+
+                return Ok(new OASISResult<bool>
+                {
+                    Result = true,
+
+                    Message = "Intelligent mode configuration updated successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to update intelligent mode: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Enables intelligent mode
+        /// </summary>
+        [HttpPost("intelligent-mode/enable")]
+        public async Task<ActionResult<OASISResult<bool>>> EnableIntelligentMode()
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                if (dna != null)
+                {
+                    dna.IntelligentMode.IsEnabled = true;
+                    await OASISDNAManager.SaveDNAAsync();
+                }
+
+                return Ok(new OASISResult<bool>
+                {
+                    Result = true,
+
+                    Message = "Intelligent mode enabled successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to enable intelligent mode: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Disables intelligent mode
+        /// </summary>
+        [HttpPost("intelligent-mode/disable")]
+        public async Task<ActionResult<OASISResult<bool>>> DisableIntelligentMode()
+        {
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                if (dna != null)
+                {
+                    dna.IntelligentMode.IsEnabled = false;
+                    await OASISDNAManager.SaveDNAAsync();
+                }
+
+                return Ok(new OASISResult<bool>
+                {
+                    Result = true,
+
+                    Message = "Intelligent mode disabled successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Failed to disable intelligent mode: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets current usage statistics
+        /// </summary>
+        [HttpGet("quota/usage")]
+        public ActionResult<OASISResult<Dictionary<string, int>>> GetCurrentUsage()
+        {
+            try
+            {
+                // This would typically come from a usage tracking service
+                var usage = new Dictionary<string, int>
             {
                 { "Replications", 45 },
                 { "Failovers", 3 },
                 { "Storage", 2 },
                 { "Requests", 1250 }
             };
-            
-            return Ok(new OASISResult<Dictionary<string, int>>
-            {
-                Result = usage,
-                IsSuccess = true,
-                Message = "Current usage retrieved successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<Dictionary<string, int>>
-            {
-                IsError = true,
-                Message = $"Failed to get current usage: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
 
-    /// <summary>
-    /// Gets quota limits for current subscription
-    /// </summary>
-    [HttpGet("quota/limits")]
-    public ActionResult<OASISResult<Dictionary<string, int>>> GetQuotaLimits()
-    {
-        try
+                return Ok(new OASISResult<Dictionary<string, int>>
+                {
+                    Result = usage,
+
+                    Message = "Current usage retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<Dictionary<string, int>>
+                {
+                    IsError = true,
+                    Message = $"Failed to get current usage: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets quota limits for current subscription
+        /// </summary>
+        [HttpGet("quota/limits")]
+        public ActionResult<OASISResult<Dictionary<string, int>>> GetQuotaLimits()
         {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var config = dna?.SubscriptionConfig ?? new SubscriptionConfig();
-            
-            var limits = new Dictionary<string, int>
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var config = dna?.SubscriptionConfig ?? new SubscriptionConfig();
+
+                var limits = new Dictionary<string, int>
             {
                 { "Replications", config.MaxReplicationsPerMonth },
                 { "Failovers", config.MaxFailoversPerMonth },
                 { "Storage", config.MaxStorageGB },
                 { "Requests", GetRequestLimit(config.PlanType) }
             };
-            
-            return Ok(new OASISResult<Dictionary<string, int>>
-            {
-                Result = limits,
-                IsSuccess = true,
-                Message = "Quota limits retrieved successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<Dictionary<string, int>>
-            {
-                IsError = true,
-                Message = $"Failed to get quota limits: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
 
-    /// <summary>
-    /// Checks quota status for a specific type
-    /// </summary>
-    [HttpGet("quota/status")]
-    public ActionResult<OASISResult<Dictionary<string, object>>> CheckQuotaStatus()
-    {
-        try
+                return Ok(new OASISResult<Dictionary<string, int>>
+                {
+                    Result = limits,
+
+                    Message = "Quota limits retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<Dictionary<string, int>>
+                {
+                    IsError = true,
+                    Message = $"Failed to get quota limits: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Checks quota status for a specific type
+        /// </summary>
+        [HttpGet("quota/status")]
+        public ActionResult<OASISResult<Dictionary<string, object>>> CheckQuotaStatus()
         {
-            var dna = OASISDNAManager.Instance.OASISDNA;
-            var config = dna?.SubscriptionConfig ?? new SubscriptionConfig();
-            
-            var status = new Dictionary<string, object>
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                var config = dna?.SubscriptionConfig ?? new SubscriptionConfig();
+
+                var status = new Dictionary<string, object>
             {
                 { "PlanType", config.PlanType },
                 { "PayAsYouGoEnabled", config.PayAsYouGoEnabled },
@@ -1876,98 +1881,99 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     }
                 }
             };
-            
-            return Ok(new OASISResult<Dictionary<string, object>>
-            {
-                Result = status,
-                IsSuccess = true,
-                Message = "Quota status retrieved successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<Dictionary<string, object>>
-            {
-                IsError = true,
-                Message = $"Failed to get quota status: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
 
-    /// <summary>
-    /// Gets free providers list
-    /// </summary>
-    [HttpGet("providers/free")]
-    public ActionResult<OASISResult<List<string>>> GetFreeProviders()
-    {
-        try
-        {
-            var freeProviders = new List<string>
+                return Ok(new OASISResult<Dictionary<string, object>>
+                {
+                    Result = status,
+
+                    Message = "Quota status retrieved successfully."
+                });
+            }
+            catch (Exception ex)
             {
-                "MongoOASIS", "IPFSOASIS", "SEEDSOASIS", "ScuttlebuttOASIS", 
-                "ThreeFoldOASIS", "HoloOASIS", "PLANOASIS", "SOLIDOASIS", 
+                return BadRequest(new OASISResult<Dictionary<string, object>>
+                {
+                    IsError = true,
+                    Message = $"Failed to get quota status: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets free providers list
+        /// </summary>
+        [HttpGet("providers/free")]
+        public ActionResult<OASISResult<List<string>>> GetFreeProviders()
+        {
+            try
+            {
+                var freeProviders = new List<string>
+            {
+                "MongoOASIS", "IPFSOASIS", "SEEDSOASIS", "ScuttlebuttOASIS",
+                "ThreeFoldOASIS", "HoloOASIS", "PLANOASIS", "SOLIDOASIS",
                 "BlockStackOASIS", "Web3CoreOASIS"
             };
-            
-            return Ok(new OASISResult<List<string>>
-            {
-                Result = freeProviders,
-                IsSuccess = true,
-                Message = "Free providers retrieved successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<List<string>>
-            {
-                IsError = true,
-                Message = $"Failed to get free providers: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
 
-    /// <summary>
-    /// Gets low-cost providers list
-    /// </summary>
-    [HttpGet("providers/low-cost")]
-    public ActionResult<OASISResult<List<string>>> GetLowCostProviders()
-    {
-        try
+                return Ok(new OASISResult<List<string>>
+                {
+                    Result = freeProviders,
+
+                    Message = "Free providers retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<List<string>>
+                {
+                    IsError = true,
+                    Message = $"Failed to get free providers: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets low-cost providers list
+        /// </summary>
+        [HttpGet("providers/low-cost")]
+        public ActionResult<OASISResult<List<string>>> GetLowCostProviders()
         {
-            var lowCostProviders = new List<string>
+            try
+            {
+                var lowCostProviders = new List<string>
             {
                 "PolygonOASIS", "FantomOASIS", "TelosOASIS", "ArbitrumOASIS"
             };
-            
-            return Ok(new OASISResult<List<string>>
-            {
-                Result = lowCostProviders,
-                IsSuccess = true,
-                Message = "Low-cost providers retrieved successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<List<string>>
-            {
-                IsError = true,
-                Message = $"Failed to get low-cost providers: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
 
-    private int GetRequestLimit(string planType)
-    {
-        return planType switch
+                return Ok(new OASISResult<List<string>>
+                {
+                    Result = lowCostProviders,
+
+                    Message = "Low-cost providers retrieved successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<List<string>>
+                {
+                    IsError = true,
+                    Message = $"Failed to get low-cost providers: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        private int GetRequestLimit(string planType)
         {
-            "Free" => 1000,
-            "Basic" => 10000,
-            "Pro" => 100000,
-            "Enterprise" => int.MaxValue,
-            _ => 1000
-        };
+            return planType switch
+            {
+                "Free" => 1000,
+                "Basic" => 10000,
+                "Pro" => 100000,
+                "Enterprise" => int.MaxValue,
+                _ => 1000
+            };
+        }   
     }
 }
