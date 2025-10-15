@@ -824,7 +824,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 });
             }
         }
-    }
 
     // -------------------------
     // Replication Management
