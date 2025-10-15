@@ -257,7 +257,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             switch (stripeEvent.Type)
             {
                 case "checkout.session.completed":
-                    await HandleCheckoutSessionCompletedAsync(stripeEvent.Data.Object as Checkout.Session);
+                    await HandleCheckoutSessionCompletedAsync(stripeEvent.Data.Object as Stripe.Checkout.Session);
                     break;
 
                 case "customer.subscription.created":
@@ -287,7 +287,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        private async Task HandleCheckoutSessionCompletedAsync(Checkout.Session session)
+        private async Task HandleCheckoutSessionCompletedAsync(Stripe.Checkout.Session session)
         {
             // Create or update user subscription
             var userId = session.Metadata.GetValueOrDefault("user_id");
@@ -510,7 +510,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         try
         {
-            var dna = OASISDNAManager.Instance.OASISDNA;
+            var dna = OASISDNAManager.OASISDNA.OASIS;
             if (dna != null)
             {
                 // Update subscription configuration
@@ -552,13 +552,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     dna.FailoverRules.CostThreshold = limits.CostThreshold;
                 }
                 
-                await OASISDNAManager.Instance.SaveOASISDNAAsync();
+                await OASISDNAManager.SaveDNAAsync();
             }
             
             return Ok(new OASISResult<bool>
             {
                 Result = true,
-                IsSuccess = true,
                 Message = "HyperDrive configuration updated successfully for subscription plan."
             });
         }
@@ -581,7 +580,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         try
         {
-            var dna = OASISDNAManager.Instance.OASISDNA;
+            var dna = OASISDNAManager.OASISDNA.OASIS;
             var config = dna?.SubscriptionConfig ?? new SubscriptionConfig();
             
             // This would typically come from a usage tracking service
@@ -614,7 +613,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new OASISResult<HyperDriveUsageDto>
             {
                 Result = usage,
-                IsSuccess = true,
                 Message = "HyperDrive usage retrieved successfully."
             });
         }
@@ -637,7 +635,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         try
         {
-            var dna = OASISDNAManager.Instance.OASISDNA;
+            var dna = OASISDNAManager.OASISDNA.OASIS;
             var config = dna?.SubscriptionConfig ?? new SubscriptionConfig();
             
             var limits = GetPlanLimits(config.PlanType);
@@ -658,7 +656,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(new OASISResult<QuotaCheckResult>
             {
                 Result = result,
-                IsSuccess = true,
                 Message = "Quota check completed successfully."
             });
         }
