@@ -440,21 +440,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement usage retrieval
+                var userId = GetCurrentUserId();
+                var userUsage = await GetUserUsageAsync(userId);
+                
+                // Get current subscription details
+                var subscription = await GetUserSubscriptionAsync(userId);
+                var planLimits = GetPlanLimits(subscription?.PlanId ?? "free");
+                
                 var usage = new
                 {
                     currentMonth = new
                     {
-                        requests = 45000,
-                        limit = 100000,
-                        remaining = 55000,
-                        overage = 0
+                        requests = userUsage.RequestsThisMonth,
+                        limit = planLimits.RequestLimit,
+                        remaining = Math.Max(0, planLimits.RequestLimit - userUsage.RequestsThisMonth),
+                        overage = Math.Max(0, userUsage.RequestsThisMonth - planLimits.RequestLimit)
                     },
-                    payAsYouGoEnabled = false,
+                    payAsYouGoEnabled = subscription?.PayAsYouGoEnabled ?? false,
                     overageCharges = new
                     {
-                        currentMonth = 0.00m,
+                        currentMonth = userUsage.OverageCharges,
                         currency = "USD"
+                    },
+                    subscription = new
+                    {
+                        planId = subscription?.PlanId ?? "free",
+                        status = subscription?.Status ?? "active",
+                        currentPeriodStart = subscription?.CurrentPeriodStart,
+                        currentPeriodEnd = subscription?.CurrentPeriodEnd
                     }
                 };
 
@@ -462,7 +475,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Failed to retrieve usage data" });
+                return StatusCode(500, new { error = "Failed to retrieve usage data", details = ex.Message });
             }
         }
 
@@ -475,26 +488,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private async Task<object> GetUserUsageAsync(string userId)
         {
-            // This would typically query the database for actual usage data
+            // TODO: Implement real usage tracking from database
             // For now, return mock data
             return new
             {
-                currentMonth = new
-                {
-                    requests = 45000,
-                    limit = 100000,
-                    remaining = 55000,
-                    overage = 0
-                },
-                payAsYouGoEnabled = false,
-                overageCharges = new
-                {
-                    currentMonth = 0.00m,
-                    currency = "USD"
-                },
-                lastUpdated = DateTime.UtcNow,
-                periodStart = DateTime.UtcNow.AddDays(-15),
-                periodEnd = DateTime.UtcNow.AddDays(15)
+                RequestsThisMonth = 45000,
+                OverageCharges = 0.00m,
+                LastUpdated = DateTime.UtcNow
+            };
+        }
+
+        private async Task<object> GetUserSubscriptionAsync(string userId)
+        {
+            // TODO: Implement real subscription lookup from database
+            // For now, return mock data
+            return new
+            {
+                PlanId = "pro",
+                Status = "active",
+                PayAsYouGoEnabled = false,
+                CurrentPeriodStart = DateTime.UtcNow.AddDays(-15),
+                CurrentPeriodEnd = DateTime.UtcNow.AddDays(15)
             };
         }
 

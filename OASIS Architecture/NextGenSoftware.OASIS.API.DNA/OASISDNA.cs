@@ -601,6 +601,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class EscalationRuleConfig
     {
+        public string Name { get; set; }
         public string Level { get; set; } = "Medium";
         public FailoverConditionConfig Condition { get; set; }
         public FailoverActionConfig Action { get; set; }

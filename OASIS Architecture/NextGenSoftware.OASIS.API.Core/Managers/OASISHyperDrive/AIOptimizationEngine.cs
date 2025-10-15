@@ -391,7 +391,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
         /// <summary>
         /// Gets AI-powered optimization recommendations
         /// </summary>
-        public async Task<List<OptimizationRecommendation>> GetOptimizationRecommendationsAsync()
+        public async Task<List<OptimizationRecommendation>> GetSmartRecommendationsAsync()
         {
             try
             {
@@ -420,6 +420,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                 return new List<OptimizationRecommendation>();
             }
         }
+
+        ///// <summary>
+        ///// Gets smart recommendations for optimization
+        ///// </summary>
+        //public async Task<List<OptimizationRecommendation>> GetSmartRecommendationsAsync()
+        //{
+        //    return await GetOptimizationRecommendationsAsync();
+        //}
 
         /// <summary>
         /// Records performance data for AI training
