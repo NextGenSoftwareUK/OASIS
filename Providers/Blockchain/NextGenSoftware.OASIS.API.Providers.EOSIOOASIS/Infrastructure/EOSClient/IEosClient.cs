@@ -35,5 +35,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         public Task<List<object>> GetHolonsForParentByProviderKeyAsync(string providerKey);
         public Task<bool> DeleteHolonByProviderKeyAsync(string providerKey);
         public Task<object> ExportAllDataForAvatarByIdAsync(Guid avatarId);
+        public Task<object> ExportAllDataForAvatarByUsernameAsync(string username);
+        public Task<object> ExportAllDataForAvatarByEmailAsync(string email);
+        public Task<object> ExportAllAsync();
+        public Task<object> SearchAsync(NextGenSoftware.OASIS.API.Core.Objects.Search.ISearchParams searchParams);
     }
 }

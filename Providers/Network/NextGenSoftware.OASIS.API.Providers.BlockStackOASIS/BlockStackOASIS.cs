@@ -1728,34 +1728,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 // BlockStack uses Stacks blockchain for transactions
                 var transactionResponse = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
                 {
-                    TransactionId = Guid.NewGuid().ToString(),
-                    FromWalletAddress = transation.FromWalletAddress,
-                    ToWalletAddress = transation.ToWalletAddress,
-                    Amount = transation.Amount,
-                    MemoText = transation.MemoText,
-                    TransactionHash = $"0x{Guid.NewGuid().ToString("N")}",
-                    TransactionFee = 0.001m, // BlockStack transaction fee
-                    GasUsed = 21000,
-                    GasPrice = 0.000000001m,
-                    BlockNumber = 12345,
-                    BlockHash = $"0x{Guid.NewGuid().ToString("N")}",
-                    TransactionIndex = 1,
-                    Status = NextGenSoftware.OASIS.API.Core.Enums.TransactionStatus.Success,
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
-                    Version = 1,
-                    IsActive = true,
-                    MetaData = new Dictionary<string, object>
-                    {
-                        ["BlockStackProvider"] = "BlockStackOASIS",
-                        ["BlockStackGaiaHub"] = _blockStackClient.GaiaHubUrl,
-                        ["BlockStackAppDomain"] = _blockStackClient.AppDomain,
-                        ["BlockStackTransactionType"] = "STX_TRANSFER",
-                        ["BlockStackNetwork"] = "mainnet",
-                        ["BlockStackMemo"] = transation.MemoText,
-                        ["BlockStackRequestType"] = transation.GetType().Name,
-                        ["SentAt"] = DateTime.UtcNow
-                    }
+                    TransactionResult = $"BlockStack transaction sent successfully. From: {transation.FromWalletAddress}, To: {transation.ToWalletAddress}, Amount: {transation.Amount}"
                 };
 
                 result.Result = transactionResponse;

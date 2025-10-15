@@ -1278,15 +1278,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 // Query EOSIO smart contract for holon by provider key
                 var holonData = await _eosClient.GetHolonByProviderKeyAsync(providerKey);
-                if (holonData.IsError)
+                if (holonData != null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from EOSIO: {holonData.Message}");
-                    return result;
-                }
-
-                if (holonData.Result != null)
-                {
-                    var holon = ParseEOSIOToHolon(holonData.Result);
+                    var holon = ParseEOSIOToHolon(holonData);
                     if (holon != null)
                     {
                         result.Result = holon;
@@ -1331,15 +1325,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Query EOSIO smart contract for holons for parent
-                var holonsData = await _eosClient.GetHolonsForParentAsync(id, type);
-                if (holonsData.IsError)
+                var holonsData = await _eosClient.GetHolonsForParentAsync(id);
+                if (holonsData != null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from EOSIO: {holonsData.Message}");
-                    return result;
-                }
-
-                var holons = new List<IHolon>();
-                foreach (var holonData in holonsData.Result)
+                    var holons = new List<IHolon>();
+                    foreach (var holonData in holonsData)
                 {
                     var holon = ParseEOSIOToHolon(holonData);
                     if (holon != null)
@@ -1348,9 +1338,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     }
                 }
 
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons for parent from EOSIO";
+                    result.Result = holons;
+                    result.IsError = false;
+                    result.Message = $"Successfully loaded {holons.Count} holons for parent from EOSIO";
+                }
             }
             catch (Exception ex)
             {
@@ -1380,15 +1371,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Query EOSIO smart contract for holons for parent by provider key
-                var holonsData = await _eosClient.GetHolonsForParentByProviderKeyAsync(providerKey, type);
-                if (holonsData.IsError)
+                var holonsData = await _eosClient.GetHolonsForParentByProviderKeyAsync(providerKey);
+                if (holonsData != null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from EOSIO: {holonsData.Message}");
-                    return result;
-                }
-
-                var holons = new List<IHolon>();
-                foreach (var holonData in holonsData.Result)
+                    var holons = new List<IHolon>();
+                    foreach (var holonData in holonsData)
                 {
                     var holon = ParseEOSIOToHolon(holonData);
                     if (holon != null)
@@ -1397,9 +1384,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     }
                 }
 
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons for parent by provider key from EOSIO";
+                    result.Result = holons;
+                    result.IsError = false;
+                    result.Message = $"Successfully loaded {holons.Count} holons for parent by provider key from EOSIO";
+                }
             }
             catch (Exception ex)
             {
@@ -1705,13 +1693,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 // Delete holon directly by provider key from EOSIO blockchain
                 var deleteResult = await _eosClient.DeleteHolonByProviderKeyAsync(providerKey);
-                if (deleteResult.IsError)
+                if (!deleteResult)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from EOSIO: {deleteResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, "Error deleting holon by provider key from EOSIO");
                     return result;
                 }
 
-                result.Result = deleteResult.Result;
+                result.Result = null; // Holon deleted, so return null
                 result.IsError = false;
                 result.Message = "Holon deleted successfully by provider key from EOSIO";
             }
@@ -1778,17 +1766,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Export all holons for avatar from EOSIO blockchain
-                var holonsData = await _eosClient.ExportAllDataForAvatarByIdAsync(avatarId, version);
-                if (holonsData.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from EOSIO: {holonsData.Message}");
-                    return result;
-                }
-
+                var holonsData = await _eosClient.ExportAllDataForAvatarByIdAsync(avatarId);
                 var holons = new List<IHolon>();
-                foreach (var holonData in holonsData.Result)
+                
+                if (holonsData != null)
                 {
-                    var holon = ParseEOSIOToHolon(holonData);
+                    // Parse the exported data into holons
+                    var holon = ParseEOSIOToHolon(holonsData);
                     if (holon != null)
                     {
                         holons.Add(holon);
@@ -1823,17 +1807,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Export all holons for avatar by username from EOSIO blockchain
-                var holonsData = await _eosClient.ExportAllDataForAvatarByUsernameAsync(avatarUsername, version);
-                if (holonsData.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from EOSIO: {holonsData.Message}");
-                    return result;
-                }
-
+                var holonsData = await _eosClient.ExportAllDataForAvatarByUsernameAsync(avatarUsername);
                 var holons = new List<IHolon>();
-                foreach (var holonData in holonsData.Result)
+                
+                if (holonsData != null)
                 {
-                    var holon = ParseEOSIOToHolon(holonData);
+                    // Parse the exported data into holons
+                    var holon = ParseEOSIOToHolon(holonsData);
                     if (holon != null)
                     {
                         holons.Add(holon);
@@ -1868,17 +1848,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Export all holons for avatar by email from EOSIO blockchain
-                var holonsData = await _eosClient.ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version);
-                if (holonsData.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from EOSIO: {holonsData.Message}");
-                    return result;
-                }
-
+                var holonsData = await _eosClient.ExportAllDataForAvatarByEmailAsync(avatarEmailAddress);
                 var holons = new List<IHolon>();
-                foreach (var holonData in holonsData.Result)
+                
+                if (holonsData != null)
                 {
-                    var holon = ParseEOSIOToHolon(holonData);
+                    // Parse the exported data into holons
+                    var holon = ParseEOSIOToHolon(holonsData);
                     if (holon != null)
                     {
                         holons.Add(holon);
@@ -1913,17 +1889,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Export all holons from EOSIO blockchain
-                var holonsData = await _eosClient.ExportAllAsync(version);
-                if (holonsData.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error exporting all data from EOSIO: {holonsData.Message}");
-                    return result;
-                }
-
+                var holonsData = await _eosClient.ExportAllAsync();
                 var holons = new List<IHolon>();
-                foreach (var holonData in holonsData.Result)
+                
+                if (holonsData != null)
                 {
-                    var holon = ParseEOSIOToHolon(holonData);
+                    // Parse the exported data into holons
+                    var holon = ParseEOSIOToHolon(holonsData);
                     if (holon != null)
                     {
                         holons.Add(holon);
@@ -2125,7 +2097,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 // token parameter currently defaults to network native token in repository (EOS)
                 var transferResult = await _transferRepository.TransferEosToken(fromWalletResult.Result, toWalletResult.Result, amount);
-                OASISResultHelper.CopyResult(transferResult, result);
+                result.IsError = transferResult.IsError;
+                result.Message = transferResult.Message;
+                result.InnerMessages = transferResult.InnerMessages;
+                result.Result = transferResult.Result;
             }
             catch (Exception ex)
             {
@@ -2163,7 +2138,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 var transferResult = await _transferRepository.TransferEosToken(fromWalletResult.Result, toWalletResult.Result, amount);
-                OASISResultHelper.CopyResult(transferResult, result);
+                result.IsError = transferResult.IsError;
+                result.Message = transferResult.Message;
+                result.InnerMessages = transferResult.InnerMessages;
+                result.Result = transferResult.Result;
             }
             catch (Exception ex)
             {
@@ -2206,7 +2184,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 var transferResult = await _transferRepository.TransferEosToken(fromWalletResult.Result, toWalletResult.Result, amount);
-                OASISResultHelper.CopyResult(transferResult, result);
+                result.IsError = transferResult.IsError;
+                result.Message = transferResult.Message;
+                result.InnerMessages = transferResult.InnerMessages;
+                result.Result = transferResult.Result;
             }
             catch (Exception ex)
             {
