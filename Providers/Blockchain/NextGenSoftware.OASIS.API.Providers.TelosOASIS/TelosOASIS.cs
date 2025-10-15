@@ -539,7 +539,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var result = new OASISResult<IEnumerable<IPlayer>> { Result = new List<IPlayer>(), Message = "GetPlayersNearMe is not supported by Telos provider." };
+            var result = new OASISResult<IEnumerable<IAvatar>> { Result = new List<IAvatar>(), Message = "GetAvatarsNearMe is not supported by Telos provider." };
             return result;
         }
 
