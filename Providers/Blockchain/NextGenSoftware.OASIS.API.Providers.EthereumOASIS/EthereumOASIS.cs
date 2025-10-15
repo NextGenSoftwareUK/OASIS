@@ -1267,8 +1267,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                         }
                     };
                     
-                    result.Result = avatarDetail;
-                    result.IsError = false;
+                        result.Result = avatarDetail;
+                        result.IsError = false;
                     result.Message = "Avatar detail loaded successfully by email from Ethereum";
                 }
                 catch (Exception ex)
@@ -1324,10 +1324,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                         }
                     };
                     
-                    result.Result = avatarDetail;
-                    result.IsError = false;
-                    result.Message = "Avatar detail loaded successfully by username from Ethereum";
-                }
+                        result.Result = avatarDetail;
+                        result.IsError = false;
+                        result.Message = "Avatar detail loaded successfully by username from Ethereum";
+                    }
                 catch (Exception ex)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Ethereum: {ex.Message}", ex);
@@ -1615,8 +1615,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                         return response;
                     }
                     
-                    response.Result = avatar;
-                    response.IsError = false;
+                        response.Result = avatar;
+                        response.IsError = false;
                     response.Message = "Avatar loaded successfully by provider key from Ethereum blockchain";
                 }
                 catch (Exception ex)
@@ -1885,7 +1885,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     }
                     
                     result.Result = avatar;
-                    result.IsError = false;
+                        result.IsError = false;
                     result.Message = "Avatar loaded successfully by email from Ethereum blockchain";
                 }
                 catch (Exception ex)
@@ -1935,7 +1935,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     }
                     
                     result.Result = avatar;
-                    result.IsError = false;
+                        result.IsError = false;
                     result.Message = "Avatar loaded successfully by username from Ethereum blockchain";
                 }
                 catch (Exception ex)
@@ -2329,9 +2329,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
                 
                 // Search holons
-                var holonsResult = await LoadAllHolonsAsync();
-                if (!holonsResult.IsError && holonsResult.Result != null)
-                {
+                    var holonsResult = await LoadAllHolonsAsync();
+                    if (!holonsResult.IsError && holonsResult.Result != null)
+                    {
                     searchResults.SearchResultHolons.AddRange(holonsResult.Result);
                 }
                 
@@ -2917,13 +2917,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var web3Client = new Web3(senderEthAccount);
 
                 // Use Nethereum's ERC20 token service
-                var tokenService = new Nethereum.StandardTokenEIP20.StandardTokenService(web3Client, tokenContractAddress);
-                var decimals = await tokenService.DecimalsQueryAsync();
-
-                var multiplier = System.Numerics.BigInteger.Pow(10, (int)decimals);
+                var erc20Abi = "[{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
+                var erc20Contract = web3Client.Eth.GetContract(erc20Abi, tokenContractAddress);
+                var decimalsFunction = erc20Contract.GetFunction("decimals");
+                var decimals = await decimalsFunction.CallAsync<byte>();
+                var multiplier = System.Numerics.BigInteger.Pow(10, decimals);
                 var amountBigInt = new System.Numerics.BigInteger(amount * (decimal)multiplier);
-
-                var receipt = await tokenService.TransferRequestAndWaitForReceiptAsync(receiverAccountAddress, amountBigInt);
+                var transferFunction = erc20Contract.GetFunction("transfer");
+                var receipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(senderEthAccount.Address, new Nethereum.Hex.HexTypes.HexBigInteger(600000), null, null, receiverAccountAddress, amountBigInt);
                 if (receipt.HasErrors() == true)
                 {
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-20 transfer failed."));

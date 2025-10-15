@@ -1250,9 +1250,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     // Parse JSON response from TRON API
                     var nftResponse = JsonSerializer.Deserialize<TRONNFTResponse>(nftData);
                     if (nftResponse != null)
+                {
+                    var nft = new OASISNFT
                     {
-                        var nft = new OASISNFT
-                        {
                             Id = Guid.NewGuid(),
                             Title = "TRON NFT",
                             Description = "TRON NFT Description",
@@ -1263,17 +1263,17 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                             MintedOn = nftResponse.CreatedDate,
                             ImportedOn = nftResponse.ModifiedDate,
                             MetaData = new Dictionary<string, object>
-                            {
-                                ["TRONHash"] = hash,
+                        {
+                            ["TRONHash"] = hash,
                                 ["TRONContractAddress"] = nftResponse.ContractAddress ?? "",
                                 ["TRONOwnerAddress"] = nftResponse.OwnerAddress ?? "",
                                 ["TRONTokenId"] = nftResponse.TokenId ?? "",
-                                ["Provider"] = "TRONOASIS"
-                            }
-                        };
-                        result.Result = nft;
-                        result.IsError = false;
-                        result.Message = "NFT loaded successfully from TRON";
+                            ["Provider"] = "TRONOASIS"
+                        }
+                    };
+                    result.Result = nft;
+                    result.IsError = false;
+                    result.Message = "NFT loaded successfully from TRON";
                     }
                     else
                     {
@@ -1317,7 +1317,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Query TRON blockchain for all GeoNFTs owned by this address
-                var responseJson = await _httpClient.GetStringAsync($"{TRON_API_BASE_URL}/geo-nfts/{(walletResult.Result?.WalletAddress ?? walletResult.Result?.ToString())}");
+                var address = walletResult.Result is IProviderWallet w ? w.WalletAddress : walletResult.Result?.ToString();
+                var responseJson = await _httpClient.GetStringAsync($"{TRON_API_BASE_URL}/geo-nfts/{address}");
                 var geoArray = Newtonsoft.Json.Linq.JArray.Parse(responseJson);
 
                 var geoNFTs = new List<IOASISGeoSpatialNFT>();
@@ -1411,19 +1412,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     if (nftData != null)
                     {
                         // Parse TRON NFT data directly from response
-                        var geoNFT = new OASISGeoSpatialNFT
-                        {
+                                var geoNFT = new OASISGeoSpatialNFT
+                                {
                             Id = Guid.NewGuid(),
                             Title = "TRON GeoSpatial NFT",
                             Description = "TRON GeoSpatial NFT Description",
-                            ImageUrl = "",
-                            Latitude = 0.0,
-                            Longitude = 0.0,
-                            Altitude = 0.0,
-                            MintWalletAddress = mintWalletAddress,
-                            ProviderType = Core.Enums.ProviderType.TRONOASIS
-                        };
-                        geoNFTs.Add(geoNFT);
+                            ImageUrl = string.Empty,
+                            Lat = 0,
+                            Long = 0,
+                            OASISMintWalletAddress = mintWalletAddress,
+                            GeoNFTMetaDataProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS)
+                                };
+                                geoNFTs.Add(geoNFT);
                     }
                 }
 
@@ -1480,20 +1480,19 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var nftData = JsonSerializer.Deserialize<TRONNFTResponse>(content);
-                    
-                    if (nftData?.Data != null)
+                    var nftArray = Newtonsoft.Json.Linq.JArray.Parse(content);
+                    if (nftArray != null)
                     {
-                        foreach (var nft in nftData.Data)
+                        foreach (var nft in nftArray)
                         {
                             var oasisNFT = new OASISNFT
                             {
-                                Id = nft.Id,
-                                Title = nft.Name,
-                                Description = nft.Description,
-                                Image = nft.Image,
-                                NFTTokenAddress = nft.TokenId,
-                                OASISMintWalletAddress = walletResult.Result,
+                                Id = Guid.NewGuid(),
+                                Title = nft["name"]?.ToString() ?? "TRON NFT",
+                                Description = nft["description"]?.ToString() ?? string.Empty,
+                                ImageUrl = nft["imageUrl"]?.ToString() ?? string.Empty,
+                                NFTTokenAddress = nft["tokenId"]?.ToString() ?? string.Empty,
+                                OASISMintWalletAddress = walletResult.Result?.ToString(),
                                 OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS)
                             };
                             nfts.Add(oasisNFT);
@@ -1546,19 +1545,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var nftData = JsonSerializer.Deserialize<TRONNFTResponse>(content);
-                    
-                    if (nftData?.Data != null)
+                    var nftArray = Newtonsoft.Json.Linq.JArray.Parse(content);
+                    if (nftArray != null)
                     {
-                        foreach (var nft in nftData.Data)
+                        foreach (var nft in nftArray)
                         {
                             var oasisNFT = new OASISNFT
                             {
-                                Id = nft.Id,
-                                Title = nft.Name,
-                                Description = nft.Description,
-                                Image = nft.Image,
-                                NFTTokenAddress = nft.TokenId,
+                                Id = Guid.NewGuid(),
+                                Title = nft["name"]?.ToString() ?? "TRON NFT",
+                                Description = nft["description"]?.ToString() ?? string.Empty,
+                                ImageUrl = nft["imageUrl"]?.ToString() ?? string.Empty,
+                                NFTTokenAddress = nft["tokenId"]?.ToString() ?? string.Empty,
                                 OASISMintWalletAddress = mintWalletAddress,
                                 OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS)
                             };
@@ -1596,14 +1594,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     return result;
                 }
 
-                if (request.AvatarId == Guid.Empty)
+                if (request.PlacedByAvatarId == Guid.Empty)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Avatar ID cannot be empty");
                     return result;
                 }
 
                 // Get wallet address for the avatar
-                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.TRONOASIS, request.AvatarId);
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.TRONOASIS, request.PlacedByAvatarId);
                 if (walletResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
@@ -1614,14 +1612,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 var placeTransaction = new
                 {
                     owner_address = walletResult.Result,
-                    contract_address = request.ContractAddress,
+                    contract_address = request.OriginalOASISNFTOffChainProvider?.Value.ToString(),
                     function_selector = "placeGeoNFT",
                     parameter = new
                     {
-                        tokenId = request.TokenId,
-                        latitude = request.Latitude,
-                        longitude = request.Longitude,
-                        altitude = request.Altitude
+                        tokenId = request.OriginalOASISNFTId.ToString(),
+                        latitude = request.Lat,
+                        longitude = request.Long,
+                        altitude = 0
                     }
                 };
 
@@ -2214,16 +2212,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             }
             return null;
         }
+        }
     }
-}
 
-/// <summary>
-/// TRON account information
-/// </summary>
-public class TRONAccountInfo
-{
-    public string Address { get; set; }
-    public long? Balance { get; set; }
-    public long? Energy { get; set; }
-    public long? Bandwidth { get; set; }
+    /// <summary>
+    /// TRON account information
+    /// </summary>
+    public class TRONAccountInfo
+    {
+        public string Address { get; set; }
+        public long? Balance { get; set; }
+        public long? Energy { get; set; }
+        public long? Bandwidth { get; set; }
 }
