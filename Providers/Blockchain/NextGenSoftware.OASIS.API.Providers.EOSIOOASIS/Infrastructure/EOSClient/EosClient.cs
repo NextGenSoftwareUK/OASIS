@@ -177,6 +177,20 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
             }
         }
 
+        public async Task<GetAccountResponseDto> GetAccountAsync(GetAccountDtoRequest getAccountDtoRequest)
+        {
+            // Real EOSIO implementation: Call EOSIO blockchain API to get account
+            return await SendRequest<GetAccountResponseDto, GetAccountDtoRequest>(getAccountDtoRequest,
+                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_account"));
+        }
+
+        public async Task<string[]> GetCurrencyBalanceAsync(GetCurrencyBalanceRequestDto getCurrencyBalanceRequestDto)
+        {
+            // Real EOSIO implementation: Call EOSIO blockchain API to get currency balance
+            return await SendRequest<string[], GetCurrencyBalanceRequestDto>(getCurrencyBalanceRequestDto,
+                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_currency_balance"));
+        }
+
         ~EosClient()
         {
             ReleaseUnmanagedResources();

@@ -612,14 +612,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                             Description = $"EOSIO account: {accountResponse.AccountName}",
                             Address = accountResponse.AccountName,
                             Country = "EOSIO",
-                            KarmaAkashicRecords = accountResponse.CoreLiquidBalance?.Split(' ')[0] != null ? 
-                                decimal.Parse(accountResponse.CoreLiquidBalance.Split(' ')[0]) : 0,
-                            Level = accountResponse.HeadBlockNum ?? 1,
+                            KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
+                            // Level = accountResponse.HeadBlockNum ?? 1, // Read-only property
                             XP = accountResponse.RamUsage ?? 0,
-                            HP = 100,
-                            Mana = accountResponse.CoreLiquidBalance?.Split(' ')[0] != null ? 
-                                decimal.Parse(accountResponse.CoreLiquidBalance.Split(' ')[0]) : 100,
-                            Stamina = 100,
                             MetaData = new Dictionary<string, object>
                             {
                                 ["EOSIOAccountName"] = accountResponse.AccountName,
