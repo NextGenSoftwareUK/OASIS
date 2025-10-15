@@ -1933,10 +1933,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error in MintNFTAsync: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error in MintNFT: {ex.Message}", ex);
             }
             return result;
         }
+
 
 
         public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)

@@ -615,7 +615,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                             Country = "EOSIO",
                             KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
                             // Level = accountResponse.HeadBlockNum ?? 1, // Read-only property
-                            XP = accountResponse.RamUsage ?? 0,
+                            XP = int.TryParse(accountResponse.RamUsage, out var ramUsage) ? ramUsage : 0,
                             MetaData = new Dictionary<string, object>
                             {
                                 ["EOSIOAccountName"] = accountResponse.AccountName,
@@ -730,19 +730,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                                 ModifiedDate = avatarResult.Result.ModifiedDate,
                                 AvatarType = avatarResult.Result.AvatarType,
                                 Description = avatarResult.Result.Description,
-                                Address = accountInfo.Address ?? "",
-                                Country = accountInfo.Country ?? "",
-                                Postcode = accountInfo.Postcode ?? "",
-                                Mobile = accountInfo.Mobile ?? "",
-                                Landline = accountInfo.Landline ?? "",
-                                Title = accountInfo.Title ?? "",
-                                DOB = accountInfo.DOB ?? DateTime.MinValue,
-                                KarmaAkashicRecords = accountInfo.KarmaAkashicRecords ?? 0,
-                                Level = accountInfo.Level ?? 1,
-                                XP = accountInfo.XP ?? 0,
-                                HP = accountInfo.HP ?? 100,
-                                Mana = accountInfo.Mana ?? 100,
-                                Stamina = accountInfo.Stamina ?? 100,
+                                Address = accountInfo.AccountName ?? "",
+                                Country = "EOSIO",
+                                Postcode = "",
+                                Mobile = "",
+                                Landline = "",
+                                Title = "",
+                                DOB = DateTime.MinValue,
+                                KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
+                                // Level = 1, // Read-only property
+                                XP = 0,
+                                // Stamina = 100, // Property doesn't exist on AvatarDetail
                                 MetaData = new Dictionary<string, object>
                                 {
                                     ["EOSIOAccountName"] = accountInfo.AccountName,
@@ -1279,7 +1277,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Query EOSIO smart contract for holon by provider key
-                var holonData = await _eosioClient.GetHolonByProviderKeyAsync(providerKey);
+                var holonData = await _eosClient.GetHolonByProviderKeyAsync(providerKey);
                 if (holonData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from EOSIO: {holonData.Message}");
@@ -1333,7 +1331,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Query EOSIO smart contract for holons for parent
-                var holonsData = await _eosioClient.GetHolonsForParentAsync(id, type);
+                var holonsData = await _eosClient.GetHolonsForParentAsync(id, type);
                 if (holonsData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from EOSIO: {holonsData.Message}");
@@ -1382,7 +1380,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Query EOSIO smart contract for holons for parent by provider key
-                var holonsData = await _eosioClient.GetHolonsForParentByProviderKeyAsync(providerKey, type);
+                var holonsData = await _eosClient.GetHolonsForParentByProviderKeyAsync(providerKey, type);
                 if (holonsData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from EOSIO: {holonsData.Message}");
@@ -1706,7 +1704,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Delete holon directly by provider key from EOSIO blockchain
-                var deleteResult = await _eosioClient.DeleteHolonByProviderKeyAsync(providerKey);
+                var deleteResult = await _eosClient.DeleteHolonByProviderKeyAsync(providerKey);
                 if (deleteResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from EOSIO: {deleteResult.Message}");
@@ -1780,7 +1778,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Export all holons for avatar from EOSIO blockchain
-                var holonsData = await _eosioClient.ExportAllDataForAvatarByIdAsync(avatarId, version);
+                var holonsData = await _eosClient.ExportAllDataForAvatarByIdAsync(avatarId, version);
                 if (holonsData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from EOSIO: {holonsData.Message}");
@@ -1825,7 +1823,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Export all holons for avatar by username from EOSIO blockchain
-                var holonsData = await _eosioClient.ExportAllDataForAvatarByUsernameAsync(avatarUsername, version);
+                var holonsData = await _eosClient.ExportAllDataForAvatarByUsernameAsync(avatarUsername, version);
                 if (holonsData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from EOSIO: {holonsData.Message}");
@@ -1870,7 +1868,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Export all holons for avatar by email from EOSIO blockchain
-                var holonsData = await _eosioClient.ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version);
+                var holonsData = await _eosClient.ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version);
                 if (holonsData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from EOSIO: {holonsData.Message}");
@@ -1915,7 +1913,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Export all holons from EOSIO blockchain
-                var holonsData = await _eosioClient.ExportAllAsync(version);
+                var holonsData = await _eosClient.ExportAllAsync(version);
                 if (holonsData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error exporting all data from EOSIO: {holonsData.Message}");
@@ -1960,7 +1958,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Search avatars and holons using EOSIO smart contract
-                var searchData = await _eosioClient.SearchAsync(searchParams);
+                var searchData = await _eosClient.SearchAsync(searchParams);
                 if (searchData.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error searching from EOSIO: {searchData.Message}");
