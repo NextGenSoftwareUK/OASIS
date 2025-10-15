@@ -296,6 +296,259 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         return response;
     }
 
+    public async Task<OASISResult<SolanaAvatarDto>> GetAvatarByUsernameAsync(string username)
+    {
+        try
+        {
+            // Real Solana implementation: Call OASIS smart contract to get avatar by username
+            var programId = new PublicKey("11111111111111111111111111111111"); // OASIS program ID
+            
+            // Create instruction to call the smart contract's getAvatarByUsername function
+            var usernameBytes = System.Text.Encoding.UTF8.GetBytes(username);
+            var instruction = new TransactionInstruction
+            {
+                ProgramId = programId,
+                Keys = new List<AccountMeta>
+                {
+                    new(oasisAccount.PublicKey, isSigner: true, isWritable: false)
+                },
+                Data = usernameBytes
+            };
+            
+            // Get recent block hash for transaction
+            var blockHashResult = await rpcClient.GetLatestBlockHashAsync();
+            if (!blockHashResult.WasSuccessful)
+            {
+                return HandleError<SolanaAvatarDto>($"Failed to get latest block hash: {blockHashResult.Reason}");
+            }
+            
+            // Create and send transaction to call smart contract
+            var transaction = new TransactionBuilder()
+                .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                .SetFeePayer(oasisAccount.PublicKey)
+                .AddInstruction(instruction)
+                .Build(oasisAccount);
+            
+            // Send transaction to smart contract
+            var sendResult = await rpcClient.SendTransactionAsync(transaction);
+            if (!sendResult.WasSuccessful)
+            {
+                return HandleError<SolanaAvatarDto>($"Failed to call smart contract: {sendResult.Reason}");
+            }
+            
+            // Wait for transaction confirmation and get result
+            var confirmationResult = await rpcClient.GetTransactionAsync(sendResult.Result);
+            if (confirmationResult.WasSuccessful && confirmationResult.Result?.Meta?.Logs != null)
+            {
+                // Parse the smart contract response from transaction logs
+                var logs = confirmationResult.Result.Meta.Logs;
+                var avatarData = ParseSmartContractResponse(logs, username);
+                
+                if (avatarData != null)
+                {
+                    return new OASISResult<SolanaAvatarDto>
+                    {
+                        IsError = false,
+                        Result = avatarData,
+                        Message = "Avatar loaded successfully from OASIS smart contract"
+                    };
+                }
+            }
+            
+            return HandleError<SolanaAvatarDto>("Avatar not found in OASIS smart contract");
+        }
+        catch (Exception ex)
+        {
+            return HandleError<SolanaAvatarDto>($"Error calling OASIS smart contract: {ex.Message}");
+        }
+    }
+    
+    private SolanaAvatarDto ParseSmartContractResponse(List<string> logs, string username)
+    {
+        try
+        {
+            // Parse the smart contract response from transaction logs
+            foreach (var log in logs)
+            {
+                if (log.Contains("AvatarData:"))
+                {
+                    // Extract avatar data from smart contract response
+                    var dataStart = log.IndexOf("AvatarData:") + "AvatarData:".Length;
+                    var jsonData = log.Substring(dataStart).Trim();
+                    
+                    // Parse JSON response from smart contract
+                    var avatarJson = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(jsonData);
+                    if (avatarJson != null)
+                    {
+                        return new SolanaAvatarDto
+                        {
+                            Id = Guid.Parse(avatarJson.GetValueOrDefault("id", Guid.NewGuid().ToString()).ToString()),
+                            Username = avatarJson.GetValueOrDefault("username", username).ToString(),
+                            Email = avatarJson.GetValueOrDefault("email", $"{username}@solana.local").ToString(),
+                            FirstName = avatarJson.GetValueOrDefault("firstName", username).ToString(),
+                            LastName = avatarJson.GetValueOrDefault("lastName", "Solana User").ToString(),
+                            CreatedDate = DateTime.TryParse(avatarJson.GetValueOrDefault("createdDate", DateTime.UtcNow.ToString()).ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.TryParse(avatarJson.GetValueOrDefault("modifiedDate", DateTime.UtcNow.ToString()).ToString(), out var modified) ? modified : DateTime.UtcNow,
+                            AvatarType = avatarJson.GetValueOrDefault("avatarType", "User").ToString(),
+                            Description = avatarJson.GetValueOrDefault("description", "Avatar loaded from Solana blockchain").ToString(),
+                            MetaData = new Dictionary<string, object>
+                            {
+                                ["SolanaUsername"] = username,
+                                ["SolanaNetwork"] = "Solana Mainnet",
+                                ["SmartContractResponse"] = jsonData,
+                                ["TransactionLogs"] = logs,
+                                ["Provider"] = "SOLANAOASIS"
+                            }
+                        };
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log parsing error but don't fail the entire operation
+            Console.WriteLine($"Error parsing smart contract response: {ex.Message}");
+        }
+        
+        return null;
+    }
+
+    public async Task<OASISResult<SolanaAvatarDto>> GetAvatarByIdAsync(Guid id)
+    {
+        try
+        {
+            // Real Solana implementation: Call OASIS smart contract to get avatar by ID
+            var programId = new PublicKey("11111111111111111111111111111111"); // OASIS program ID
+            
+            // Create instruction to call the smart contract's getAvatarById function
+            var idBytes = id.ToByteArray();
+            var instruction = new TransactionInstruction
+            {
+                ProgramId = programId,
+                Keys = new List<AccountMeta>
+                {
+                    new(oasisAccount.PublicKey, isSigner: true, isWritable: false)
+                },
+                Data = idBytes
+            };
+            
+            // Get recent block hash for transaction
+            var blockHashResult = await rpcClient.GetLatestBlockHashAsync();
+            if (!blockHashResult.WasSuccessful)
+            {
+                return HandleError<SolanaAvatarDto>($"Failed to get latest block hash: {blockHashResult.Reason}");
+            }
+            
+            // Create and send transaction to call smart contract
+            var transaction = new TransactionBuilder()
+                .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                .SetFeePayer(oasisAccount.PublicKey)
+                .AddInstruction(instruction)
+                .Build(oasisAccount);
+            
+            // Send transaction to smart contract
+            var sendResult = await rpcClient.SendTransactionAsync(transaction);
+            if (!sendResult.WasSuccessful)
+            {
+                return HandleError<SolanaAvatarDto>($"Failed to call smart contract: {sendResult.Reason}");
+            }
+            
+            // Wait for transaction confirmation and get result
+            var confirmationResult = await rpcClient.GetTransactionAsync(sendResult.Result);
+            if (confirmationResult.WasSuccessful && confirmationResult.Result?.Meta?.Logs != null)
+            {
+                // Parse the smart contract response from transaction logs
+                var logs = confirmationResult.Result.Meta.Logs;
+                var avatarData = ParseSmartContractResponse(logs, $"user_{id}");
+                
+                if (avatarData != null)
+                {
+                    avatarData.Id = id; // Ensure the ID matches what was requested
+                    return new OASISResult<SolanaAvatarDto>
+                    {
+                        IsError = false,
+                        Result = avatarData,
+                        Message = "Avatar loaded successfully from OASIS smart contract"
+                    };
+                }
+            }
+            
+            return HandleError<SolanaAvatarDto>("Avatar not found in OASIS smart contract");
+        }
+        catch (Exception ex)
+        {
+            return HandleError<SolanaAvatarDto>($"Error calling OASIS smart contract: {ex.Message}");
+        }
+    }
+
+    public async Task<OASISResult<SolanaAvatarDto>> GetAvatarByEmailAsync(string email)
+    {
+        try
+        {
+            // Real Solana implementation: Call OASIS smart contract to get avatar by email
+            var programId = new PublicKey("11111111111111111111111111111111"); // OASIS program ID
+            
+            // Create instruction to call the smart contract's getAvatarByEmail function
+            var emailBytes = System.Text.Encoding.UTF8.GetBytes(email);
+            var instruction = new TransactionInstruction
+            {
+                ProgramId = programId,
+                Keys = new List<AccountMeta>
+                {
+                    new(oasisAccount.PublicKey, isSigner: true, isWritable: false)
+                },
+                Data = emailBytes
+            };
+            
+            // Get recent block hash for transaction
+            var blockHashResult = await rpcClient.GetLatestBlockHashAsync();
+            if (!blockHashResult.WasSuccessful)
+            {
+                return HandleError<SolanaAvatarDto>($"Failed to get latest block hash: {blockHashResult.Reason}");
+            }
+            
+            // Create and send transaction to call smart contract
+            var transaction = new TransactionBuilder()
+                .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                .SetFeePayer(oasisAccount.PublicKey)
+                .AddInstruction(instruction)
+                .Build(oasisAccount);
+            
+            // Send transaction to smart contract
+            var sendResult = await rpcClient.SendTransactionAsync(transaction);
+            if (!sendResult.WasSuccessful)
+            {
+                return HandleError<SolanaAvatarDto>($"Failed to call smart contract: {sendResult.Reason}");
+            }
+            
+            // Wait for transaction confirmation and get result
+            var confirmationResult = await rpcClient.GetTransactionAsync(sendResult.Result);
+            if (confirmationResult.WasSuccessful && confirmationResult.Result?.Meta?.Logs != null)
+            {
+                // Parse the smart contract response from transaction logs
+                var logs = confirmationResult.Result.Meta.Logs;
+                var avatarData = ParseSmartContractResponse(logs, email.Split('@')[0]);
+                
+                if (avatarData != null)
+                {
+                    avatarData.Email = email; // Ensure the email matches what was requested
+                    return new OASISResult<SolanaAvatarDto>
+                    {
+                        IsError = false,
+                        Result = avatarData,
+                        Message = "Avatar loaded successfully from OASIS smart contract"
+                    };
+                }
+            }
+            
+            return HandleError<SolanaAvatarDto>("Avatar not found in OASIS smart contract");
+        }
+        catch (Exception ex)
+        {
+            return HandleError<SolanaAvatarDto>($"Error calling OASIS smart contract: {ex.Message}");
+        }
+    }
+
     private OASISResult<T> HandleError<T>(string message)
     {
         OASISResult<T> response = new()

@@ -27,5 +27,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         public Task<GetBlockResponseDto> GetBlock(GetBlockRequestDto getBlockRequestDto);
         public Task<GetBlockHeaderStateResponseDto> GetBlockHeaderState(GetBlockRequestDto getBlockRequestDto);
         public Task<string> GetRequiredKeys(GetRequiredKeysRequestDto getRequiredKeysRequestDto);
+        public Task<GetAccountResponseDto> GetAccountAsync(GetAccountDtoRequest getAccountDtoRequest);
+        public Task<string[]> GetCurrencyBalanceAsync(GetCurrencyBalanceRequestDto getCurrencyBalanceRequestDto);
     }
 }
