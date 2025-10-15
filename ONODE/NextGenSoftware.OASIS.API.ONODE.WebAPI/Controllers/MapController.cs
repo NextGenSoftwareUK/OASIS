@@ -320,7 +320,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("nearby")]
         public async Task<OASISResult<List<MapLocation>>> GetNearbyLocations([FromQuery] double latitude, [FromQuery] double longitude, [FromQuery] double radiusKm = 10.0)
         {
-            return await MapManager.Instance.GetNearbyLocationsAsync(Avatar.Id, latitude, longitude, radiusKm);
+            return await MapManager.GetNearbyLocationsAsync(Avatar.Id, latitude, longitude, radiusKm);
         }
 
         /// <summary>
@@ -333,7 +333,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("visit/{locationId}")]
         public async Task<OASISResult<bool>> VisitLocation(Guid locationId, [FromBody] string purpose = null)
         {
-            return await MapManager.Instance.VisitLocationAsync(Avatar.Id, locationId, purpose);
+            return await MapManager.VisitLocationAsync(Avatar.Id, locationId, purpose);
         }
 
         /// <summary>
@@ -346,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("visit-history")]
         public async Task<OASISResult<List<MapVisit>>> GetVisitHistory([FromQuery] int limit = 50, [FromQuery] int offset = 0)
         {
-            return await MapManager.Instance.GetVisitHistoryAsync(Avatar.Id, limit, offset);
+            return await MapManager.GetVisitHistoryAsync(Avatar.Id, limit, offset);
         }
 
         /// <summary>
@@ -358,7 +358,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="longitude">Optional longitude for proximity search</param>
         /// <param name="radiusKm">Optional search radius in kilometers</param>
         /// <returns>List of matching locations</returns>
-        [HttpGet("search")]
+        [HttpGet("search-locations")]
         public async Task<OASISResult<List<MapLocation>>> SearchLocations(
             [FromQuery] string query,
             [FromQuery] LocationType? type = null,
@@ -366,7 +366,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             [FromQuery] double? longitude = null,
             [FromQuery] double? radiusKm = null)
         {
-            return await MapManager.Instance.SearchLocationsAsync(query, type, latitude, longitude, radiusKm);
+            return await MapManager.SearchLocationsAsync(query, type, latitude, longitude, radiusKm);
         }
 
         /// <summary>
@@ -377,7 +377,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("stats")]
         public async Task<OASISResult<Dictionary<string, object>>> GetMapStats()
         {
-            return await MapManager.Instance.GetMapStatsAsync(Avatar.Id);
+            return await MapManager.GetMapStatsAsync(Avatar.Id);
         }
     }
 }

@@ -8,8 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.Utilities;
-using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+// Removed invalid ONODE.Core references - these will be implemented when needed
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {

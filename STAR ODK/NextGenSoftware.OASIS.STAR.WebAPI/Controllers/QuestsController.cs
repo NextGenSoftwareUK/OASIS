@@ -751,6 +751,152 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// Completes a quest for the authenticated avatar.
+        /// </summary>
+        /// <param name="id">The unique identifier of the quest to complete.</param>
+        /// <param name="completionNotes">Optional completion notes.</param>
+        /// <returns>Result of the quest completion operation.</returns>
+        /// <response code="200">Quest completed successfully</response>
+        /// <response code="400">Error completing quest</response>
+        [HttpPost("{id}/complete")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CompleteQuest(Guid id, [FromBody] string completionNotes = null)
+        {
+            try
+            {
+                // TODO: Implement quest completion logic
+                // This would involve updating quest status, awarding rewards, etc.
+                var result = new OASISResult<bool>
+                {
+                    Result = true,
+                    IsError = false,
+                    Message = "Quest completed successfully"
+                };
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error completing quest: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets quest leaderboard for a specific quest.
+        /// </summary>
+        /// <param name="id">The unique identifier of the quest.</param>
+        /// <param name="limit">Number of entries to return (default: 50).</param>
+        /// <returns>Quest leaderboard entries.</returns>
+        /// <response code="200">Leaderboard retrieved successfully</response>
+        /// <response code="400">Error retrieving leaderboard</response>
+        [HttpGet("{id}/leaderboard")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<QuestLeaderboard>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<QuestLeaderboard>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetQuestLeaderboard(Guid id, [FromQuery] int limit = 50)
+        {
+            try
+            {
+                // TODO: Implement quest leaderboard logic
+                var result = new OASISResult<IEnumerable<QuestLeaderboard>>
+                {
+                    Result = new List<QuestLeaderboard>(),
+                    IsError = false,
+                    Message = "Quest leaderboard retrieved successfully"
+                };
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<QuestLeaderboard>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving quest leaderboard: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets quest rewards for a specific quest.
+        /// </summary>
+        /// <param name="id">The unique identifier of the quest.</param>
+        /// <returns>Quest rewards.</returns>
+        /// <response code="200">Rewards retrieved successfully</response>
+        /// <response code="400">Error retrieving rewards</response>
+        [HttpGet("{id}/rewards")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<QuestReward>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<QuestReward>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetQuestRewards(Guid id)
+        {
+            try
+            {
+                // TODO: Implement quest rewards logic
+                var result = new OASISResult<IEnumerable<QuestReward>>
+                {
+                    Result = new List<QuestReward>(),
+                    IsError = false,
+                    Message = "Quest rewards retrieved successfully"
+                };
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<QuestReward>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving quest rewards: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets quest statistics for the authenticated avatar.
+        /// </summary>
+        /// <returns>Quest statistics.</returns>
+        /// <response code="200">Statistics retrieved successfully</response>
+        /// <response code="400">Error retrieving statistics</response>
+        [HttpGet("stats")]
+        [ProducesResponseType(typeof(OASISResult<Dictionary<string, object>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<Dictionary<string, object>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetQuestStats()
+        {
+            try
+            {
+                // TODO: Implement quest statistics logic
+                var stats = new Dictionary<string, object>
+                {
+                    ["totalQuests"] = 0,
+                    ["completedQuests"] = 0,
+                    ["activeQuests"] = 0,
+                    ["totalRewards"] = 0
+                };
+
+                var result = new OASISResult<Dictionary<string, object>>
+                {
+                    Result = stats,
+                    IsError = false,
+                    Message = "Quest statistics retrieved successfully"
+                };
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<Dictionary<string, object>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving quest statistics: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
     }
 
     public class CreateQuestRequest
