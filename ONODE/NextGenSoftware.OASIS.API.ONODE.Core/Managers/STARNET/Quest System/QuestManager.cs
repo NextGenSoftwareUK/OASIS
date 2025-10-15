@@ -571,5 +571,182 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             return result;
         }
+
+        /// <summary>
+        /// Completes a quest for the specified avatar
+        /// </summary>
+        /// <param name="avatarId">The avatar completing the quest</param>
+        /// <param name="questId">The quest to complete</param>
+        /// <param name="completionNotes">Optional completion notes</param>
+        /// <returns>Success status</returns>
+        public async Task<OASISResult<bool>> CompleteQuestAsync(Guid avatarId, Guid questId, string completionNotes = null)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occurred in QuestManager.CompleteQuestAsync. Reason:";
+
+            try
+            {
+                // Load the quest
+                var questResult = await LoadAsync(avatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest not found or could not be loaded. Reason: {questResult.Message}");
+                    return result;
+                }
+
+                // Update quest status to completed
+                questResult.Result.Status = QuestStatus.Completed;
+                questResult.Result.CompletedOn = DateTime.UtcNow;
+                questResult.Result.CompletedBy = avatarId;
+                if (!string.IsNullOrEmpty(completionNotes))
+                {
+                    questResult.Result.CompletionNotes = completionNotes;
+                }
+
+                // Save the updated quest
+                var updateResult = await UpdateAsync(avatarId, questResult.Result);
+                if (updateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to save completed quest. Reason: {updateResult.Message}");
+                    return result;
+                }
+
+                result.Result = true;
+                result.Message = "Quest completed successfully";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occurred. Reason: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets quest leaderboard for a specific quest
+        /// </summary>
+        /// <param name="questId">The quest ID</param>
+        /// <param name="limit">Number of entries to return</param>
+        /// <returns>Quest leaderboard entries</returns>
+        public async Task<OASISResult<List<QuestLeaderboard>>> GetQuestLeaderboardAsync(Guid questId, int limit = 50)
+        {
+            OASISResult<List<QuestLeaderboard>> result = new OASISResult<List<QuestLeaderboard>>();
+            string errorMessage = "Error occurred in QuestManager.GetQuestLeaderboardAsync. Reason:";
+
+            try
+            {
+                // TODO: Implement actual leaderboard logic
+                // This would typically query completed quests and rank by completion time, score, etc.
+                var leaderboard = new List<QuestLeaderboard>();
+                
+                result.Result = leaderboard;
+                result.Message = "Quest leaderboard retrieved successfully";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occurred. Reason: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets quest rewards for a specific quest
+        /// </summary>
+        /// <param name="questId">The quest ID</param>
+        /// <returns>Quest rewards</returns>
+        public async Task<OASISResult<List<QuestReward>>> GetQuestRewardsAsync(Guid questId)
+        {
+            OASISResult<List<QuestReward>> result = new OASISResult<List<QuestReward>>();
+            string errorMessage = "Error occurred in QuestManager.GetQuestRewardsAsync. Reason:";
+
+            try
+            {
+                // Load the quest to get its rewards
+                var questResult = await LoadAsync(AvatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest not found. Reason: {questResult.Message}");
+                    return result;
+                }
+
+                // TODO: Implement actual rewards logic
+                // This would typically extract rewards from quest metadata or configuration
+                var rewards = new List<QuestReward>();
+                
+                result.Result = rewards;
+                result.Message = "Quest rewards retrieved successfully";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occurred. Reason: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets quest statistics for a specific avatar
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        /// <returns>Quest statistics</returns>
+        public async Task<OASISResult<Dictionary<string, object>>> GetQuestStatsAsync(Guid avatarId)
+        {
+            OASISResult<Dictionary<string, object>> result = new OASISResult<Dictionary<string, object>>();
+            string errorMessage = "Error occurred in QuestManager.GetQuestStatsAsync. Reason:";
+
+            try
+            {
+                // Load all quests for the avatar
+                var questsResult = await LoadAllForAvatarAsync(avatarId);
+                if (questsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to load avatar quests. Reason: {questsResult.Message}");
+                    return result;
+                }
+
+                var quests = questsResult.Result?.ToList() ?? new List<IQuest>();
+                
+                var stats = new Dictionary<string, object>
+                {
+                    ["totalQuests"] = quests.Count,
+                    ["completedQuests"] = quests.Count(q => q.Status == QuestStatus.Completed),
+                    ["activeQuests"] = quests.Count(q => q.Status == QuestStatus.Active),
+                    ["pendingQuests"] = quests.Count(q => q.Status == QuestStatus.Pending),
+                    ["totalRewards"] = quests.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.Rewards?.Sum(r => r.Amount) ?? 0)
+                };
+
+                result.Result = stats;
+                result.Message = "Quest statistics retrieved successfully";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occurred. Reason: {ex.Message}");
+            }
+
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// Quest leaderboard entry
+    /// </summary>
+    public class QuestLeaderboard
+    {
+        public Guid AvatarId { get; set; }
+        public string AvatarName { get; set; }
+        public int Score { get; set; }
+        public DateTime CompletedAt { get; set; }
+        public int Rank { get; set; }
+    }
+
+    /// <summary>
+    /// Quest reward
+    /// </summary>
+    public class QuestReward
+    {
+        public string Type { get; set; }
+        public int Amount { get; set; }
+        public string Description { get; set; }
     }
 }

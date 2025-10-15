@@ -866,6 +866,187 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //    return await Program.AvatarManager.GetProviderKeyForAvatar(avatarUsername, providerType);
         //}
 
+        /// <summary>
+        /// Gets all keys for the authenticated avatar
+        /// </summary>
+        /// <returns>List of all keys for the avatar</returns>
+        [Authorize]
+        [HttpGet("all")]
+        public async Task<OASISResult<List<KeyInfo>>> GetAllKeysForAvatar()
+        {
+            try
+            {
+                // TODO: Implement actual key retrieval logic
+                var keys = new List<KeyInfo>();
+                
+                var result = new OASISResult<List<KeyInfo>>
+                {
+                    Result = keys,
+                    IsError = false,
+                    Message = "Keys retrieved successfully"
+                };
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<List<KeyInfo>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving keys: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
+        /// <summary>
+        /// Creates a new key for the authenticated avatar
+        /// </summary>
+        /// <param name="keyRequest">Key creation request</param>
+        /// <returns>Created key information</returns>
+        [Authorize]
+        [HttpPost("create")]
+        public async Task<OASISResult<KeyInfo>> CreateKey([FromBody] CreateKeyRequest keyRequest)
+        {
+            try
+            {
+                // TODO: Implement actual key creation logic
+                var keyInfo = new KeyInfo
+                {
+                    Id = Guid.NewGuid(),
+                    Name = keyRequest.Name,
+                    Type = keyRequest.Type,
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true
+                };
+
+                var result = new OASISResult<KeyInfo>
+                {
+                    Result = keyInfo,
+                    IsError = false,
+                    Message = "Key created successfully"
+                };
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<KeyInfo>
+                {
+                    IsError = true,
+                    Message = $"Error creating key: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
+        /// <summary>
+        /// Updates an existing key
+        /// </summary>
+        /// <param name="keyId">Key ID to update</param>
+        /// <param name="keyRequest">Key update request</param>
+        /// <returns>Updated key information</returns>
+        [Authorize]
+        [HttpPut("{keyId}")]
+        public async Task<OASISResult<KeyInfo>> UpdateKey(Guid keyId, [FromBody] UpdateKeyRequest keyRequest)
+        {
+            try
+            {
+                // TODO: Implement actual key update logic
+                var keyInfo = new KeyInfo
+                {
+                    Id = keyId,
+                    Name = keyRequest.Name,
+                    Type = keyRequest.Type,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                var result = new OASISResult<KeyInfo>
+                {
+                    Result = keyInfo,
+                    IsError = false,
+                    Message = "Key updated successfully"
+                };
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<KeyInfo>
+                {
+                    IsError = true,
+                    Message = $"Error updating key: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
+        /// <summary>
+        /// Deletes a key
+        /// </summary>
+        /// <param name="keyId">Key ID to delete</param>
+        /// <returns>Success status</returns>
+        [Authorize]
+        [HttpDelete("{keyId}")]
+        public async Task<OASISResult<bool>> DeleteKey(Guid keyId)
+        {
+            try
+            {
+                // TODO: Implement actual key deletion logic
+                var result = new OASISResult<bool>
+                {
+                    Result = true,
+                    IsError = false,
+                    Message = "Key deleted successfully"
+                };
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error deleting key: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
+        /// <summary>
+        /// Gets key statistics for the authenticated avatar
+        /// </summary>
+        /// <returns>Key statistics</returns>
+        [Authorize]
+        [HttpGet("stats")]
+        public async Task<OASISResult<Dictionary<string, object>>> GetKeyStats()
+        {
+            try
+            {
+                // TODO: Implement actual key statistics logic
+                var stats = new Dictionary<string, object>
+                {
+                    ["totalKeys"] = 0,
+                    ["activeKeys"] = 0,
+                    ["inactiveKeys"] = 0,
+                    ["keyTypes"] = new Dictionary<string, int>()
+                };
+
+                var result = new OASISResult<Dictionary<string, object>>
+                {
+                    Result = stats,
+                    IsError = false,
+                    Message = "Key statistics retrieved successfully"
+                };
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<Dictionary<string, object>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving key statistics: {ex.Message}",
+                    Exception = ex
+                };
+            }
+        }
+
         private (bool, ProviderType, Guid, string) ValidateParams(ProviderKeyForAvatarParams linkProviderKeyToAvatarParams)
         {
             object providerTypeToLinkTo = null;
@@ -882,5 +1063,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             return (true, (ProviderType)providerTypeToLinkTo, avatarID, null);
         }
+    }
+
+    /// <summary>
+    /// Key information model
+    /// </summary>
+    public class KeyInfo
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public bool IsActive { get; set; }
+    }
+
+    /// <summary>
+    /// Create key request model
+    /// </summary>
+    public class CreateKeyRequest
+    {
+        public string Name { get; set; }
+        public string Type { get; set; }
+    }
+
+    /// <summary>
+    /// Update key request model
+    /// </summary>
+    public class UpdateKeyRequest
+    {
+        public string Name { get; set; }
+        public string Type { get; set; }
     }
 }

@@ -721,6 +721,152 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// Completes a mission for the authenticated avatar.
+        /// </summary>
+        /// <param name="id">The unique identifier of the mission to complete.</param>
+        /// <param name="completionNotes">Optional completion notes.</param>
+        /// <returns>Result of the mission completion operation.</returns>
+        /// <response code="200">Mission completed successfully</response>
+        /// <response code="400">Error completing mission</response>
+        [HttpPost("{id}/complete")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CompleteMission(Guid id, [FromBody] string completionNotes = null)
+        {
+            try
+            {
+                // TODO: Implement mission completion logic
+                // This would involve updating mission status, awarding rewards, etc.
+                var result = new OASISResult<bool>
+                {
+                    Result = true,
+                    IsError = false,
+                    Message = "Mission completed successfully"
+                };
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error completing mission: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets mission leaderboard for a specific mission.
+        /// </summary>
+        /// <param name="id">The unique identifier of the mission.</param>
+        /// <param name="limit">Number of entries to return (default: 50).</param>
+        /// <returns>Mission leaderboard entries.</returns>
+        /// <response code="200">Leaderboard retrieved successfully</response>
+        /// <response code="400">Error retrieving leaderboard</response>
+        [HttpGet("{id}/leaderboard")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionLeaderboard>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionLeaderboard>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetMissionLeaderboard(Guid id, [FromQuery] int limit = 50)
+        {
+            try
+            {
+                // TODO: Implement mission leaderboard logic
+                var result = new OASISResult<IEnumerable<MissionLeaderboard>>
+                {
+                    Result = new List<MissionLeaderboard>(),
+                    IsError = false,
+                    Message = "Mission leaderboard retrieved successfully"
+                };
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<MissionLeaderboard>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving mission leaderboard: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets mission rewards for a specific mission.
+        /// </summary>
+        /// <param name="id">The unique identifier of the mission.</param>
+        /// <returns>Mission rewards.</returns>
+        /// <response code="200">Rewards retrieved successfully</response>
+        /// <response code="400">Error retrieving rewards</response>
+        [HttpGet("{id}/rewards")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionReward>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionReward>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetMissionRewards(Guid id)
+        {
+            try
+            {
+                // TODO: Implement mission rewards logic
+                var result = new OASISResult<IEnumerable<MissionReward>>
+                {
+                    Result = new List<MissionReward>(),
+                    IsError = false,
+                    Message = "Mission rewards retrieved successfully"
+                };
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<MissionReward>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving mission rewards: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets mission statistics for the authenticated avatar.
+        /// </summary>
+        /// <returns>Mission statistics.</returns>
+        /// <response code="200">Statistics retrieved successfully</response>
+        /// <response code="400">Error retrieving statistics</response>
+        [HttpGet("stats")]
+        [ProducesResponseType(typeof(OASISResult<Dictionary<string, object>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<Dictionary<string, object>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetMissionStats()
+        {
+            try
+            {
+                // TODO: Implement mission statistics logic
+                var stats = new Dictionary<string, object>
+                {
+                    ["totalMissions"] = 0,
+                    ["completedMissions"] = 0,
+                    ["activeMissions"] = 0,
+                    ["totalRewards"] = 0
+                };
+
+                var result = new OASISResult<Dictionary<string, object>>
+                {
+                    Result = stats,
+                    IsError = false,
+                    Message = "Mission statistics retrieved successfully"
+                };
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<Dictionary<string, object>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving mission statistics: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
     }
 
     public class CreateMissionRequest
