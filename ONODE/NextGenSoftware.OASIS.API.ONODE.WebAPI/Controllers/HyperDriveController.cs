@@ -313,7 +313,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 var config = _configManager.GetConfiguration();
-                var availableProviders = config.LoadBalancingProviders;
+                var availableProviders = config.LoadBalancingProviders?.Select(p => Enum.TryParse<ProviderType>(p, out var providerType) ? providerType : ProviderType.None).Where(p => p != ProviderType.None).ToList() ?? new List<ProviderType>();
                 var selectedStrategy = strategy ?? (Enum.TryParse<LoadBalancingStrategy>(config.DefaultStrategy, out var defaultStrategy) ? defaultStrategy : LoadBalancingStrategy.RoundRobin);
 
                 var bestProvider = _performanceMonitor.GetBestProvider(availableProviders, selectedStrategy);
@@ -550,7 +550,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var recommendations = _aiEngine.GetOptimizationRecommendationsAsync().Result;
+                var recommendations = _aiEngine.GetSmartRecommendationsAsync().Result;
                 return Ok(new OASISResult<List<OptimizationRecommendation>>
                 {
                     Result = recommendations,
@@ -1378,7 +1378,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             try
             {
                 var recs = AIOptimizationEngine.Instance.GetSmartRecommendationsAsync().Result;
-                return Ok(new OASISResult<Dictionary<string, object>> { Result = recs });
+                var result = new Dictionary<string, object> { { "recommendations", recs } };
+                return Ok(new OASISResult<Dictionary<string, object>> { Result = result });
             }
             catch (Exception ex)
             {
