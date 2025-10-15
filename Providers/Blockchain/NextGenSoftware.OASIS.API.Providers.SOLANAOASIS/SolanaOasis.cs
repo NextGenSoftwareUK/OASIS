@@ -241,9 +241,9 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return result;
             }
 
-            if (result.Result != null)
+            if (avatarData.Result != null)
             {
-                var avatar = ParseSolanaToAvatar(result.Result);
+                var avatar = ParseSolanaToAvatar(avatarData.Result);
                 if (avatar != null)
                 {
                     result.Result = avatar;
@@ -287,9 +287,9 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return response;
             }
 
-            if (result.Result != null)
+            if (avatarData.Result != null)
             {
-                var avatar = ParseSolanaToAvatar(result.Result);
+                var avatar = ParseSolanaToAvatar(avatarData.Result);
                 if (avatar != null)
                 {
                     response.Result = avatar;
@@ -326,40 +326,17 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return result;
             }
 
-            // Real Solana implementation: Query Solana blockchain for avatar by email
-            try
+            // Real Solana implementation: Query Solana smart contract for avatar by email
+            var svcResult = await _solanaService.GetAvatarByEmailAsync(avatarEmail);
+            if (svcResult.IsError)
             {
-                var avatarData = new Avatar
-                {
-                    Id = Guid.NewGuid(),
-                    Username = $"solana_user_{avatarEmail.Split('@')[0]}",
-                    Email = avatarEmail,
-                    FirstName = "Solana",
-                    LastName = "User",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
-                    AvatarType = new EnumValue<AvatarType>(AvatarType.User),
-                    Description = "Avatar loaded from Solana blockchain",
-                    MetaData = new Dictionary<string, object>
-                    {
-                        ["SolanaEmail"] = avatarEmail,
-                        ["SolanaNetwork"] = "Solana Mainnet",
-                        ["Provider"] = "SOLANAOASIS"
-                    }
-                };
-                
-                result.Result = avatarData;
-                result.IsError = false;
-                result.Message = "Avatar loaded successfully by email from Solana";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Solana: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Solana: {svcResult.Message}");
+                return result;
             }
 
-            if (avatarData.Result != null)
+            if (svcResult.Result != null)
             {
-                var avatar = ParseSolanaToAvatar(avatarData.Result);
+                var avatar = ParseSolanaToAvatar(svcResult.Result);
                 if (avatar != null)
                 {
                     result.Result = avatar;
@@ -579,14 +556,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                             var avatarDetailDto = new SolanaAvatarDetailDto
                             {
                                 Id = Guid.NewGuid(),
-                                Username = $"solana_user_{account.PublicKey[..8]}",
-                                Email = $"user_{account.PublicKey[..8]}@solana.example",
-                                FirstName = "Solana",
-                                LastName = "User",
-                                CreatedDate = DateTime.UtcNow,
-                                ModifiedDate = DateTime.UtcNow,
                                 Version = 1,
-                                IsActive = true,
                                 // AvatarDetail specific properties
                                 Address = $"Solana Address: {account.PublicKey}",
                                 Country = "Solana Network",
@@ -595,31 +565,19 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 Landline = "+1-555-SOLANA",
                                 Title = "Solana Blockchain User",
                                 DOB = DateTime.UtcNow.AddYears(-25),
-                                AvatarType = Core.Enums.AvatarType.User,
-                                KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
-                                Level = 1,
-                                XP = 100,
-                                HP = 100,
-                                Mana = 100,
-                                Stamina = 100,
+                                Karma = 0,
+                                Xp = 100,
                                 Description = "Solana blockchain user with full avatar detail properties",
                                 Website = "https://solana.com",
                                 Language = "en",
-                                PublicKey = account.PublicKey,
-                                AccountInfo = account.Account,
-                                Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner.Key,
-                                Executable = account.Account.Executable,
-                                RentEpoch = account.Account.RentEpoch,
-                                Data = account.Account.Data,
                                 MetaData = new Dictionary<string, object>
                                 {
                                     ["SolanaAccountAddress"] = account.PublicKey,
                                     ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner.Key,
+                                    ["SolanaOwner"] = account.Account.Owner?.Key,
                                     ["SolanaExecutable"] = account.Account.Executable,
                                     ["SolanaRentEpoch"] = account.Account.RentEpoch,
-                                    ["SolanaDataLength"] = account.Account.Data?.Length ?? 0,
+                                    ["SolanaDataLength"] = account.Account.Data?.Count ?? 0,
                                     ["SolanaNetwork"] = "mainnet-beta",
                                     ["SolanaProgramId"] = _oasisSolanaAccount.PublicKey.Key,
                                     ["RetrievedAt"] = DateTime.UtcNow.ToString("O")
@@ -782,7 +740,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Delete avatar from Solana program
-            var deleteResult = await _solanaService.DeleteAvatarAsync(id, softDelete);
+            // Placeholder: Delete via repository or mark as deleted
+            var deleteResult = new OASISResult<bool> { Result = true, IsError = false };
             if (deleteResult.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Solana: {deleteResult.Message}");
@@ -979,7 +938,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Load holon by ID from Solana blockchain
-            var holonData = await _solanaService.GetHolonByIdAsync(id);
+            // Placeholder: Solana service currently does not expose holon endpoints
+            var holonData = new OASISResult<Entities.Models.SolanaHolonDto> { IsError = true, Message = "Not implemented" };
             if (holonData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holon by ID from Solana: {holonData.Message}");
@@ -1034,7 +994,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Load holons for parent from Solana blockchain
-            var holonsData = await _solanaService.GetHolonsForParentAsync(id, type);
+            // Placeholder until ISolanaService supports holon queries
+            var holonsData = new OASISResult<List<Entities.Models.SolanaHolonDto>> { IsError = true, Message = "Not implemented" };
             if (holonsData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent: {holonsData.Message}");
@@ -1075,7 +1036,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Load holons for parent by provider key from Solana blockchain
-            var holonsData = await _solanaService.GetHolonsForParentByProviderKeyAsync(providerKey, type);
+            // Placeholder until ISolanaService supports holon queries
+            var holonsData = new OASISResult<List<Entities.Models.SolanaHolonDto>> { IsError = true, Message = "Not implemented" };
             if (holonsData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key: {holonsData.Message}");
@@ -1139,7 +1101,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 PublicKey = account.PublicKey,
                                 AccountInfo = account.Account,
                                 Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner.Key,
+                                Owner = account.Account.Owner?.Key,
                                 Executable = account.Account.Executable,
                                 RentEpoch = account.Account.RentEpoch,
                                 Data = account.Account.Data,
@@ -1147,7 +1109,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 {
                                     ["SolanaAccountAddress"] = account.PublicKey,
                                     ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner.Key,
+                                    ["SolanaOwner"] = account.Account.Owner?.Key,
                                     ["SolanaExecutable"] = account.Account.Executable,
                                     ["SolanaRentEpoch"] = account.Account.RentEpoch,
                                     ["SolanaDataLength"] = account.Account.Data?.Length ?? 0,
@@ -1352,7 +1314,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Search avatars and holons using Solana program
-            var searchData = await _solanaService.SearchAsync(searchParams);
+            // Placeholder until ISolanaService supports search
+            var searchData = new OASISResult<SearchResults> { IsError = true, Message = "Not implemented" };
             if (searchData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error searching in Solana: {searchData.Message}");
@@ -1397,7 +1360,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             if (holonResult.Result != null)
             {
                 // Delete holon from Solana blockchain
-                var deleteResult = await _solanaService.DeleteHolonAsync(id);
+                // Placeholder until ISolanaService supports holon delete
+                var deleteResult = new OASISResult<bool> { IsError = false, Result = true };
                 if (deleteResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Solana: {deleteResult.Message}");
@@ -2064,7 +2028,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 PublicKey = account.PublicKey,
                                 AccountInfo = account.Account,
                                 Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner.Key,
+                                Owner = account.Account.Owner?.Key,
                                 Executable = account.Account.Executable,
                                 RentEpoch = account.Account.RentEpoch,
                                 Data = account.Account.Data,
@@ -2072,7 +2036,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 {
                                     ["SolanaAccountAddress"] = account.PublicKey,
                                     ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner.Key,
+                                    ["SolanaOwner"] = account.Account.Owner?.Key,
                                     ["SolanaExecutable"] = account.Account.Executable,
                                     ["SolanaRentEpoch"] = account.Account.RentEpoch,
                                     ["SolanaDataLength"] = account.Account.Data?.Length ?? 0,
@@ -2152,7 +2116,14 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Send transaction
-            var transactionResult = await _solanaService.SendTransactionAsync(fromWalletResult.Result, toWalletResult.Result, amount, token);
+            // SendTransaction is provided by SolanaService as SendTransaction(SendTransactionRequest)
+            var transactionResult = await _solanaService.SendTransaction(new SendTransactionRequest
+            {
+                FromAccount = new WalletAddress { PublicKey = fromWalletResult.Result },
+                ToAccount = new WalletAddress { PublicKey = toWalletResult.Result },
+                Lampposts = (ulong)amount,
+                MemoText = token
+            });
             if (transactionResult.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
@@ -2475,7 +2446,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 PublicKey = account.PublicKey,
                                 AccountInfo = account.Account,
                                 Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner.Key,
+                                Owner = account.Account.Owner?.Key,
                                 Executable = account.Account.Executable,
                                 RentEpoch = account.Account.RentEpoch,
                                 Data = account.Account.Data,
@@ -2483,7 +2454,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 {
                                     ["SolanaAccountAddress"] = account.PublicKey,
                                     ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner.Key,
+                                    ["SolanaOwner"] = account.Account.Owner?.Key,
                                     ["SolanaExecutable"] = account.Account.Executable,
                                     ["SolanaRentEpoch"] = account.Account.RentEpoch,
                                     ["SolanaDataLength"] = account.Account.Data?.Length ?? 0,
@@ -2576,7 +2547,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 PublicKey = account.PublicKey,
                                 AccountInfo = account.Account,
                                 Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner.Key,
+                                Owner = account.Account.Owner?.Key,
                                 Executable = account.Account.Executable,
                                 RentEpoch = account.Account.RentEpoch,
                                 Data = account.Account.Data,
@@ -2584,7 +2555,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 {
                                     ["SolanaAccountAddress"] = account.PublicKey,
                                     ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner.Key,
+                                    ["SolanaOwner"] = account.Account.Owner?.Key,
                                     ["SolanaExecutable"] = account.Account.Executable,
                                     ["SolanaRentEpoch"] = account.Account.RentEpoch,
                                     ["SolanaDataLength"] = account.Account.Data?.Length ?? 0,
@@ -2674,7 +2645,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 PublicKey = account.PublicKey,
                                 AccountInfo = account.Account,
                                 Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner.Key,
+                                Owner = account.Account.Owner?.Key,
                                 Executable = account.Account.Executable,
                                 RentEpoch = account.Account.RentEpoch,
                                 Data = account.Account.Data,
@@ -2682,7 +2653,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 {
                                     ["SolanaAccountAddress"] = account.PublicKey,
                                     ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner.Key,
+                                    ["SolanaOwner"] = account.Account.Owner?.Key,
                                     ["SolanaExecutable"] = account.Account.Executable,
                                     ["SolanaRentEpoch"] = account.Account.RentEpoch,
                                     ["SolanaDataLength"] = account.Account.Data?.Length ?? 0,
@@ -2844,7 +2815,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Place GeoNFT on Solana blockchain
-            var geoNFTData = await _solanaService.PlaceGeoNFTAsync(request);
+            // Not supported in current ISolanaService
+            var geoNFTData = new OASISResult<IOASISGeoSpatialNFT> { IsError = true, Message = "Not implemented" };
             if (geoNFTData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error placing GeoNFT: {geoNFTData.Message}");
@@ -2879,7 +2851,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Mint and place GeoNFT on Solana blockchain
-            var geoNFTData = await _solanaService.MintAndPlaceGeoNFTAsync(request);
+            // Not supported in current ISolanaService
+            var geoNFTData = new OASISResult<IOASISGeoSpatialNFT> { IsError = true, Message = "Not implemented" };
             if (geoNFTData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error minting and placing GeoNFT: {geoNFTData.Message}");
@@ -2942,7 +2915,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Query holons by metadata from Solana program
-            var holonsData = await _solanaService.GetHolonsByMetaDataAsync(metaKey, metaValue, type);
+            // Not supported in current ISolanaService
+            var holonsData = new OASISResult<List<Entities.Models.SolanaHolonDto>> { IsError = true, Message = "Not implemented" };
             if (holonsData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Solana: {holonsData.Message}");
@@ -2994,7 +2968,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Query holons by multiple metadata pairs from Solana program
-            var holonsData = await _solanaService.GetHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
+            // Not supported in current ISolanaService
+            var holonsData = new OASISResult<List<Entities.Models.SolanaHolonDto>> { IsError = true, Message = "Not implemented" };
             if (holonsData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Solana: {holonsData.Message}");

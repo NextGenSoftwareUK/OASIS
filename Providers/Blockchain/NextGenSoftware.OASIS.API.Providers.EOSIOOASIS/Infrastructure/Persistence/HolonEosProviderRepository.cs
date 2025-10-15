@@ -147,6 +147,109 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             return holonTableRows.Rows.ToImmutableArray();
         }
 
+        public async Task<ImmutableArray<HolonDto>> ReadAllByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All)
+        {
+            var holonTableRows = await _eosClient.GetTableRows<HolonDto>(new GetTableRowsRequestDto
+            {
+                Code = _eosAccountName,
+                Scope = _eosAccountName,
+                Table = _holonTable
+            });
+
+            //TODO: Finish implementing properly.
+            var filteredHolons = holonTableRows.Rows.Where(holon =>
+            {
+                // Filter by HolonType if specified
+                //if (type != HolonType.All)
+                //{
+                //    var baseHolon = holon.GetBaseHolon();
+                //    if (baseHolon == null || baseHolon.GetType().Name != type.ToString())
+                //        return false;
+                //}
+
+                // Parse Info as metadata dictionary
+                Dictionary<string, string>? holonMeta = null;
+                if (!string.IsNullOrEmpty(holon.Info))
+                {
+                    try
+                    {
+                        holonMeta = JsonConvert.DeserializeObject<Dictionary<string, string>>(holon.Info);
+                    }
+                    catch
+                    {
+                        // Ignore malformed Info
+                        return false;
+                    }
+                }
+                if (holonMeta == null)
+                    return false;
+
+                // Match metadata key-value pairs
+                if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
+                    return true;
+
+                if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
+                {
+                    // All key-value pairs must match
+                    return metaKeyValuePairs.All(kv => holonMeta.ContainsKey(kv.Key) && holonMeta[kv.Key] == kv.Value);
+                }
+                else
+                {
+                    // Any key-value pair matches
+                    return metaKeyValuePairs.Any(kv => holonMeta.ContainsKey(kv.Key) && holonMeta[kv.Key] == kv.Value);
+                }
+            });
+
+            return filteredHolons.ToImmutableArray();
+        }
+
+        public async Task<ImmutableArray<HolonDto>> ReadAllByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All)
+        {
+            var holonTableRows = await _eosClient.GetTableRows<HolonDto>(new GetTableRowsRequestDto
+            {
+                Code = _eosAccountName,
+                Scope = _eosAccountName,
+                Table = _holonTable
+            });
+
+            //TODO: Finish implementing properly.
+            var filteredHolons = holonTableRows.Rows.Where(holon =>
+            {
+                // Optionally filter by HolonType (commented out in other overload)
+                //if (type != HolonType.All)
+                //{
+                //    var baseHolon = holon.GetBaseHolon();
+                //    if (baseHolon == null || baseHolon.GetType().Name != type.ToString())
+                //        return false;
+                //}
+
+                // Parse Info as metadata dictionary
+                Dictionary<string, string>? holonMeta = null;
+                if (!string.IsNullOrEmpty(holon.Info))
+                {
+                    try
+                    {
+                        holonMeta = JsonConvert.DeserializeObject<Dictionary<string, string>>(holon.Info);
+                    }
+                    catch
+                    {
+                        // Ignore malformed Info
+                        return false;
+                    }
+                }
+                if (holonMeta == null)
+                    return false;
+
+                // Match metadata key-value pair
+                if (string.IsNullOrEmpty(metaKey))
+                    return true;
+
+                return holonMeta.ContainsKey(metaKey) && holonMeta[metaKey] == metaValue;
+            });
+
+            return filteredHolons.ToImmutableArray();
+        }
+
         public async Task DeleteSoft(Guid id)
         {
             if (id == null)
