@@ -1650,22 +1650,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 // BlockStack uses Stacks blockchain for transactions
                 var transactionResponse = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses.TransactionRespone
                 {
-                    TransactionResult = $"BlockStack transaction sent successfully. From: {fromWalletAddress}, To: {toWalletAddress}, Amount: {amount}",
-                    TransactionHash = $"0x{Guid.NewGuid().ToString("N")}",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
-                    Version = 1,
-                    IsActive = true,
-                    MetaData = new Dictionary<string, object>
-                    {
-                        ["BlockStackProvider"] = "BlockStackOASIS",
-                        ["BlockStackGaiaHub"] = _blockStackClient.GaiaHubUrl,
-                        ["BlockStackAppDomain"] = _blockStackClient.AppDomain,
-                        ["BlockStackTransactionType"] = "STX_TRANSFER",
-                        ["BlockStackNetwork"] = "mainnet",
-                        ["BlockStackMemo"] = memoText,
-                        ["SentAt"] = DateTime.UtcNow
-                    }
+                    TransactionResult = $"BlockStack transaction sent successfully. From: {fromWalletAddress}, To: {toWalletAddress}, Amount: {amount}"
                 };
 
                 result.Result = transactionResponse;

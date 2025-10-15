@@ -9,6 +9,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using System.Text.Json;
+using System.Net.Http;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Utilities;
 using Nethereum.Web3;
@@ -36,6 +38,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         private string _contractAddress;
         private string _network;
         private string _abi;
+        private HttpClient _httpClient;
+        private string _apiBaseUrl;
 
         private KeyManager KeyManager
         {
