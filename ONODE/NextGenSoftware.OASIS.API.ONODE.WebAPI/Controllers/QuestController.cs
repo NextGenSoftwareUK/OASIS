@@ -1,224 +1,81 @@
-﻿//using System;
-//using Microsoft.AspNetCore.Cors;
-//using Microsoft.AspNetCore.Mvc;
-//using NextGenSoftware.OASIS.API.Core.Enums;
-//using NextGenSoftware.OASIS.API.Core.Helpers;
-//using NextGenSoftware.OASIS.API.Core.Holons;
-//using NextGenSoftware.OASIS.API.Core.Managers;
-//using NextGenSoftware.OASIS.API.Core.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Common;
 
-//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
-//{
-//    [Route("api/quest")]
-//    [ApiController]
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+{
+    [ApiController]
+    [Route("api/quest")]
+    public class QuestController : OASISControllerBase
+    {
+        public QuestController()
+        {
+        }
 
-//    //[EnableCors(origins: "http://mywebclient.azurewebsites.net", headers: "*", methods: "*")]
-//    [EnableCors()]
-//    public class QuestController : OASISControllerBase
-//    {
-//        private QuestManager _questManager;
+        /// <summary>
+        /// Get available quests for the current avatar
+        /// </summary>
+        /// <param name="type">Optional quest type filter</param>
+        /// <param name="difficulty">Optional difficulty filter</param>
+        /// <returns>List of available quests</returns>
+        [Authorize]
+        [HttpGet("available")]
+        public async Task<OASISResult<List<Quest>>> GetAvailableQuests([FromQuery] QuestType? type = null, [FromQuery] QuestDifficulty? difficulty = null)
+        {
+            return await QuestManager.Instance.GetAvailableQuestsAsync(Avatar.Id, type, difficulty);
+        }
 
-//        private QuestManager QuestManager
-//        {
-//            get
-//            {
-//                if (_questManager == null)
-//                    _questManager = new QuestManager(GetAndActivateDefaultStorageProvider());
+        /// <summary>
+        /// Start a quest
+        /// </summary>
+        /// <param name="questId">Quest ID</param>
+        /// <returns>Success status</returns>
+        [Authorize]
+        [HttpPost("start/{questId}")]
+        public async Task<OASISResult<bool>> StartQuest(Guid questId)
+        {
+            return await QuestManager.Instance.StartQuestAsync(Avatar.Id, questId);
+        }
 
-//                return _questManager;
-//            }
-//        }
+        /// <summary>
+        /// Update quest progress
+        /// </summary>
+        /// <param name="questId">Quest ID</param>
+        /// <param name="progress">Progress percentage (0-100)</param>
+        /// <param name="note">Optional progress note</param>
+        /// <returns>Success status</returns>
+        [Authorize]
+        [HttpPost("update-progress/{questId}")]
+        public async Task<OASISResult<bool>> UpdateQuestProgress(Guid questId, [FromBody] int progress, [FromBody] string note = null)
+        {
+            return await QuestManager.Instance.UpdateQuestProgressAsync(Avatar.Id, questId, progress, note);
+        }
 
-//        public QuestController() : base()
-//        {
+        /// <summary>
+        /// Get quest progress for the current avatar
+        /// </summary>
+        /// <param name="status">Optional status filter</param>
+        /// <returns>List of quest progress</returns>
+        [Authorize]
+        [HttpGet("progress")]
+        public async Task<OASISResult<List<QuestProgress>>> GetQuestProgress([FromQuery] QuestStatus? status = null)
+        {
+            return await QuestManager.Instance.GetQuestProgressAsync(Avatar.Id, status);
+        }
 
-//        }
-
-//        /// <summary>
-//        /// Search all quests for the given search parameters.
-//        /// </summary>
-//        /// <param name="searchParams"></param>
-//        /// <returns></returns>
-//        [HttpGet("Search/{searchParams}")]
-//        public OASISResult<ISearchResults> Search(ISearchParams searchParams)
-//        {
-//            return new(QuestManager.SearchAsync(searchParams).Result);
-//        }
-
-//        /// <summary>
-//        /// Search all quests for the given search parameters.
-//        /// </summary>
-//        /// <param name="searchParams"></param>
-//        /// <param name="providerType">Pass in the provider you wish to use.</param>
-//        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-//        /// <returns></returns>
-//        [HttpGet("Search/{searchParams}/{providerType}/{setGlobally}")]
-//        public OASISResult<ISearchResults> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
-//        {
-//            GetAndActivateProvider(providerType, setGlobally);
-//            return new(QuestManager.SearchAsync(searchParams).Result);
-//        }
-
-//        /// <summary>
-//        /// Find nearest quest on the map.
-//        /// </summary>
-//        /// <returns></returns>
-//        [HttpGet("FindNearestQuestOnMap")]
-//        public OASISResult<Quest> FindNearestQuestOnMap()
-//        {
-//            return new(QuestManager.FindNearestQuestOnMap());
-//        }
-
-//        /// <summary>
-//        /// Find nearest quest on the map. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-//        /// </summary>
-//        /// <param name="providerType">Pass in the provider you wish to use.</param>
-//        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-//        /// <returns></returns>
-//        [HttpGet("FindNearestQuestOnMap/{providerType}/{setGlobally}")]
-//        public OASISResult<Quest> FindNearestQuestOnMap(ProviderType providerType, bool setGlobally = false)
-//        {
-//            GetAndActivateProvider(providerType, setGlobally);
-//            return new(QuestManager.FindNearestQuestOnMap());
-//        }
-
-//        /// <summary>
-//        /// Marks a given quest as completed.
-//        /// </summary>
-//        /// <param name="quest"></param>
-//        /// <returns></returns>
-//        [HttpPost("CompleteQuest/{quest}")]
-//        public OASISResult<bool> CompleteQuest(Guid questId)
-//        {
-//            return new(QuestManager.CompleteQuest(questId));
-//        }
-
-//        /// <summary>
-//        /// Marks a given quest as completed. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-//        /// </summary>
-//        /// <param name="quest"></param>
-//        /// <param name="providerType">Pass in the provider you wish to use.</param>
-//        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-//        /// <returns></returns>
-//        [HttpPost("CompleteQuest/{quest}/{providerType}/{setGlobally}")]
-//        public OASISResult<bool> CompleteQuest(Guid questId, ProviderType providerType, bool setGlobally = false)
-//        {
-//            GetAndActivateProvider(providerType, setGlobally);
-//            return new(QuestManager.CompleteQuest(questId));
-//        }
-
-//        /// <summary>
-//        /// Create a quest.
-//        /// </summary>
-//        /// <param name="quest"></param>
-//        /// <returns></returns>
-//        [HttpPost("CreateQuest/{quest}")]
-//        public OASISResult<bool> CreateQuest(Quest quest)
-//        {
-//            return new(QuestManager.CreateQuest(quest));
-//        }
-
-//        /// <summary>
-//        /// Create a quest. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-//        /// </summary>
-//        /// <param name="quest"></param>
-//        /// <param name="providerType">Pass in the provider you wish to use.</param>
-//        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-//        /// <returns></returns>
-//        [HttpPost("CreateQuest/{quest}/{providerType}/{setGlobally}")]
-//        public OASISResult<bool> CreateQuest(Quest quest, ProviderType providerType, bool setGlobally = false)
-//        {
-//            GetAndActivateProvider(providerType, setGlobally);
-//            return new(QuestManager.CreateQuest(quest));
-//        }
-
-//        /// <summary>
-//        /// Highlight a given quest on the map.
-//        /// </summary>
-//        /// <param name="quest"></param>
-//        /// <returns></returns>
-//        [HttpPost("HighlightQuestOnMap/{quest}")]
-//        public OASISResult<bool> HighlightQuestOnMap(Guid questId)
-//        {
-//            return new(QuestManager.HighlightQuestOnMap(questId));
-//        }
-
-//        /// <summary>
-//        /// Highlight a given quest on the map. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-//        /// </summary>
-//        /// <param name="quest"></param>
-//        /// <param name="providerType">Pass in the provider you wish to use.</param>
-//        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-//        /// <returns></returns>
-//        [HttpPost("HighlightQuestOnMap/{quest}/{providerType}/{setGlobally}")]
-//        public OASISResult<bool> HighlightQuestOnMap(Guid questId, ProviderType providerType, bool setGlobally = false)
-//        {
-//            GetAndActivateProvider(providerType, setGlobally);
-//            return new(QuestManager.HighlightQuestOnMap(questId));
-//        }
-
-
-
-//        //[HttpGet("GetAllCurrentQuestsForAvatar/{avatar}")]
-//        //public ActionResult<List<Quest>> GetAllCurrentquestsForAvatar(Avatar avatar)
-//        //{
-//        //    return questManager.GetAllCurrentQuestsForAvatar((IAvatar)avatar);
-//        //}
-
-//        //[HttpGet("GetAllCurrentQuestsForLoggedInAvatar")]
-//        //public ActionResult<List<Quest>> GetAllCurrentQuestsForLoggedInAvatar()
-//        //{
-//        //    return questManager.GetAllCurrentQuestsForAvatar(Avatar);
-//        //}
-
-//        /// <summary>
-//        /// Update a given quest.
-//        /// </summary>
-//        /// <param name="quest"></param>
-//        /// <returns></returns>
-//        [HttpPost("UpdateQuest/{quest}")]
-//        public OASISResult<bool> UpdateQuest(Quest quest)
-//        {
-//            return new(QuestManager.UpdateQuest(quest));
-//        }
-
-//        /// <summary>
-//        /// Update a given quest. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-//        /// </summary>
-//        /// <param name="quest"></param>
-//        /// <param name="providerType">Pass in the provider you wish to use.</param>
-//        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-//        /// <returns></returns>
-//        [HttpPost("UpdateQuest/{quest}/{providerType}/{setGlobally}")]
-//        public OASISResult<bool> UpdateQuest(Quest quest, ProviderType providerType, bool setGlobally = false)
-//        {
-//            GetAndActivateProvider(providerType, setGlobally);
-//            return new(QuestManager.UpdateQuest(quest));
-//        }
-
-//        /// <summary>
-//        /// Delete a given quest.
-//        /// </summary>
-//        /// <param name="questId"></param>
-//        /// <returns></returns>
-//        [HttpDelete("DeleteQuest/{quest}")]
-//        public OASISResult<bool> DeleteQuest(Guid questId)
-//        {
-//            return new(QuestManager.DeleteQuest(questId));
-//        }
-
-//        /// <summary>
-//        /// Delete a given quest. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-//        /// </summary>
-//        /// <param name="questId"></param>
-//        /// <param name="providerType">Pass in the provider you wish to use.</param>
-//        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-//        /// <returns></returns>
-//        [HttpDelete("DeleteQuest/{quest}/{providerType}/{setGlobally}")]
-//        public OASISResult<bool> DeleteQuest(Guid questId, ProviderType providerType, bool setGlobally = false)
-//        {
-//            GetAndActivateProvider(providerType, setGlobally);
-//            return new(QuestManager.DeleteQuest(questId));
-//        }
-//    }
-//}
+        /// <summary>
+        /// Get quest statistics for the current avatar
+        /// </summary>
+        /// <returns>Quest statistics</returns>
+        [Authorize]
+        [HttpGet("stats")]
+        public async Task<OASISResult<Dictionary<string, object>>> GetQuestStats()
+        {
+            return await QuestManager.Instance.GetQuestStatsAsync(Avatar.Id);
+        }
+    }
+}

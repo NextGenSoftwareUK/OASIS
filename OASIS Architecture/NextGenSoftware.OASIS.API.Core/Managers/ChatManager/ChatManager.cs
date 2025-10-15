@@ -303,6 +303,123 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
+
+        #region Competition Tracking
+
+        private async Task UpdateChatCompetitionScoresAsync(Guid avatarId, int messageLength)
+        {
+            try
+            {
+                var competitionManager = CompetitionManager.Instance;
+                
+                // Calculate score based on message length and activity
+                var score = CalculateChatScore(messageLength);
+                
+                // Update chat session competition scores
+                await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.ChatSessions, SeasonType.Daily, score);
+                await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.ChatSessions, SeasonType.Weekly, score);
+                await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.ChatSessions, SeasonType.Monthly, score);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating chat competition scores: {ex.Message}");
+            }
+        }
+
+        private long CalculateChatScore(int messageLength)
+        {
+            // Base score for sending a message
+            var baseScore = 1;
+            
+            // Bonus for longer messages (encouraging meaningful communication)
+            var lengthBonus = Math.Min(messageLength / 10, 10); // Max 10 bonus points
+            
+            return baseScore + lengthBonus;
+        }
+
+        public async Task<OASISResult<Dictionary<string, object>>> GetChatStatsAsync(Guid avatarId)
+        {
+            var result = new OASISResult<Dictionary<string, object>>();
+            try
+            {
+                var totalMessages = 0;
+                var totalSessions = 0;
+                var totalCharacters = 0;
+                var averageMessageLength = 0.0;
+
+                // Calculate stats from chat history
+                foreach (var session in _chatHistory.Values)
+                {
+                    var userMessages = session.Where(m => m.SenderId == avatarId).ToList();
+                    totalMessages += userMessages.Count;
+                    totalCharacters += userMessages.Sum(m => m.Content?.Length ?? 0);
+                }
+
+                totalSessions = _activeSessions.Values.Count(s => s.ParticipantIds.Contains(avatarId));
+                averageMessageLength = totalMessages > 0 ? (double)totalCharacters / totalMessages : 0;
+
+                var stats = new Dictionary<string, object>
+                {
+                    ["totalMessages"] = totalMessages,
+                    ["totalSessions"] = totalSessions,
+                    ["totalCharacters"] = totalCharacters,
+                    ["averageMessageLength"] = Math.Round(averageMessageLength, 2),
+                    ["totalScore"] = totalMessages + (totalCharacters / 10), // Simple scoring
+                    ["mostActiveDay"] = GetMostActiveDay(avatarId),
+                    ["longestMessage"] = GetLongestMessage(avatarId)
+                };
+
+                result.Result = stats;
+                result.Message = "Chat statistics retrieved successfully.";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error retrieving chat statistics: {ex.Message}";
+                result.Exception = ex;
+            }
+            return await Task.FromResult(result);
+        }
+
+        private string GetMostActiveDay(Guid avatarId)
+        {
+            var dayCounts = new Dictionary<string, int>();
+            
+            foreach (var session in _chatHistory.Values)
+            {
+                var userMessages = session.Where(m => m.SenderId == avatarId);
+                foreach (var message in userMessages)
+                {
+                    var day = message.Timestamp.ToString("dddd");
+                    dayCounts[day] = dayCounts.GetValueOrDefault(day, 0) + 1;
+                }
+            }
+
+            return dayCounts.OrderByDescending(kvp => kvp.Value).FirstOrDefault().Key ?? "Unknown";
+        }
+
+        private string GetLongestMessage(Guid avatarId)
+        {
+            var longestMessage = "";
+            var maxLength = 0;
+
+            foreach (var session in _chatHistory.Values)
+            {
+                var userMessages = session.Where(m => m.SenderId == avatarId);
+                foreach (var message in userMessages)
+                {
+                    if (message.Content?.Length > maxLength)
+                    {
+                        maxLength = message.Content.Length;
+                        longestMessage = message.Content;
+                    }
+                }
+            }
+
+            return longestMessage.Length > 100 ? longestMessage.Substring(0, 100) + "..." : longestMessage;
+        }
+
+        #endregion
     }
 
     /// <summary>

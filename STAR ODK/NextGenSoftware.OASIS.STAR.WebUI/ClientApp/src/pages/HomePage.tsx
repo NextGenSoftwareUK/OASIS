@@ -81,7 +81,7 @@ const HomePage: React.FC = () => {
     {
       icon: <Build sx={{ fontSize: 40, color: '#2196f3' }} />,
       title: 'STAR ODK Platform',
-      description: 'Low-code metaverse development with OAPPs, missions, NFTs, and comprehensive gamification',
+      description: 'No/Low-code metaverse development with OAPPs, missions, NFTs, and comprehensive gamification',
     },
     {
       icon: <Memory sx={{ fontSize: 40, color: '#9c27b0' }} />,
@@ -96,7 +96,7 @@ const HomePage: React.FC = () => {
     {
       icon: <Apps sx={{ fontSize: 40, color: '#e91e63' }} />,
       title: 'STARNET Holons Linking',
-      description: 'Revolutionary linking system - any STARNETHolon can be connected to any other STARNETHolon as dependencies',
+        description: 'Next Generation linking system - any STARNET Holon can be connected to any other STARNET Holon as dependencies creating unique & infinite possibilities!',
     },
     {
       icon: <Code sx={{ fontSize: 40, color: '#795548' }} />,
@@ -508,10 +508,12 @@ const HomePage: React.FC = () => {
                   </Box>
                   <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
                     The foundational data aggregation and identity layer with OASIS HyperDrive 
-                    auto-failover system. Universal data aggregation across all Web2 and Web3 providers.
+                    auto-failover/auto-load balance/auto-replication system. Universal data aggregation across all Web2 and Web3 providers.
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
                     <Chip label="Auto-Failover" size="small" />
+                    <Chip label="Auto-Load Balancing" size="small" />
+                    <Chip label="Auto-Replication" size="small" />
                     <Chip label="Universal Data" size="small" />
                     <Chip label="Identity Management" size="small" />
                     <Chip label="Karma System" size="small" />
@@ -531,13 +533,17 @@ const HomePage: React.FC = () => {
                   </Box>
                   <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
                     The gamification and business layer with STAR ODK (Omniverse Interoperable 
-                    Metaverse Low Code Generator). Build OAPPs, manage missions, and create NFTs.
+                    Metaverse Low Code Generator). Build OAPPs, manage quests, missions and create NFTs, Geo-NFTs, Geo-HotSpots & much more!
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
                     <Chip label="STAR ODK" size="small" />
                     <Chip label="OAPPs Framework" size="small" />
-                    <Chip label="Missions & NFTs" size="small" />
-                    <Chip label="Low-Code Development" size="small" />
+                    <Chip label="Libraries, Runtimes, Templates & Pugins" size="small" />
+                    <Chip label="Chaptes, Missions, Quests & Inventory Items" size="small" />
+                    <Chip label="NFTs, Geo-NFTs & Geo-HotSpots" size="small" />
+                    <Chip label="Celestial Spaces & Celestial Bodies" size="small" />
+                    <Chip label="Zomes, Holons & Meta Data DNA" size="small" />
+                    <Chip label="No/Low-Code Development" size="small" />
                   </Stack>
                 </Paper>
               </Grid>
@@ -584,6 +590,7 @@ const HomePage: React.FC = () => {
                     <Chip label="Cross-Platform Auth" size="small" />
                     <Chip label="Privacy-Preserving" size="small" />
                     <Chip label="Karma Integration" size="small" />
+                    <Chip label="Quad Layer Quantum/Biometric/Aura Encryption System" size="small" />
                   </Stack>
                 </Paper>
               </Grid>
@@ -603,9 +610,10 @@ const HomePage: React.FC = () => {
                     Drag-and-drop OAPP builder, asset management, and publishing platform.
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
-                    <Chip label="App/Asset/STARNET Holon Store" size="small" />
+                    <Chip label="App Store" size="small" />
                     <Chip label="OAPP Builder" size="small" />
                     <Chip label="Asset Management" size="small" />
+                    <Chip label="STARNET Holon Management" size="small" />
                     <Chip label="Publishing Platform" size="small" />
                   </Stack>
                 </Paper>
@@ -622,15 +630,15 @@ const HomePage: React.FC = () => {
                     </Typography>
                   </Box>
                   <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                    Powerful command-line interface for developers. Link any STARNETHolon to any other 
-                    STARNETHolon as dependencies. Unlimited combinations and creativity.
+                    Powerful command-line interface for developers. Link any STARNET Holon to any other 
+                    STARNE THolon as dependencies. Unlimited combinations and creativity.
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
                     <Chip label="STAR CLI" size="small" />
                     <Chip label="DNA/STARNET (Holon) System" size="small" />
                     <Chip label="Dependencies" size="small" />
                     <Chip label="Developer Tools" size="small" />
-                    <Chip label="CLI To The OASIS" size="small" />
+                    <Chip label="Powerful CLI To The OASIS" size="small" />
                   </Stack>
                 </Paper>
               </Grid>
