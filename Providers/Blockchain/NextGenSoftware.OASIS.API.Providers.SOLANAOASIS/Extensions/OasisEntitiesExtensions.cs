@@ -29,9 +29,14 @@ public static class OasisEntitiesExtensions
         {
             Address = avatarDetail.Address,
             Id = avatarDetail.Id,
-            Karma = avatarDetail.Karma,
             Mobile = avatarDetail.Mobile,
-            Xp = avatarDetail.XP,
+            Level = avatarDetail.Level,
+            XP = avatarDetail.XP,
+            Karma = avatarDetail.Karma,
+            Username = avatarDetail.Username,
+            Email = avatarDetail.Email,
+            DOB = avatarDetail.DOB,
+            CreatedDate = avatarDetail.CreatedDate,
             Version = avatarDetail.Version,
             IsDeleted = avatarDetail.IsActive,
             PreviousVersionId = avatarDetail.PreviousVersionId

@@ -403,21 +403,21 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                         return new SolanaAvatarDto
                         {
                             Id = Guid.Parse(avatarJson.GetValueOrDefault("id", Guid.NewGuid().ToString()).ToString()),
-                            Username = avatarJson.GetValueOrDefault("username", username).ToString(),
+                            UserName = avatarJson.GetValueOrDefault("username", username).ToString(),
                             Email = avatarJson.GetValueOrDefault("email", $"{username}@solana.local").ToString(),
+                            Password = string.Empty,
                             FirstName = avatarJson.GetValueOrDefault("firstName", username).ToString(),
-                            LastName = avatarJson.GetValueOrDefault("lastName", "Solana User").ToString(),
+                            LastName = avatarJson.GetValueOrDefault("lastName", string.Empty).ToString(),
                             CreatedDate = DateTime.TryParse(avatarJson.GetValueOrDefault("createdDate", DateTime.UtcNow.ToString()).ToString(), out var created) ? created : DateTime.UtcNow,
                             ModifiedDate = DateTime.TryParse(avatarJson.GetValueOrDefault("modifiedDate", DateTime.UtcNow.ToString()).ToString(), out var modified) ? modified : DateTime.UtcNow,
                             AvatarType = avatarJson.GetValueOrDefault("avatarType", "User").ToString(),
-                            Description = avatarJson.GetValueOrDefault("description", "Avatar loaded from Solana blockchain").ToString(),
+                            Description = avatarJson.GetValueOrDefault("description", "").ToString(),
                             MetaData = new Dictionary<string, object>
                             {
                                 ["SolanaUsername"] = username,
                                 ["SolanaNetwork"] = "Solana Mainnet",
                                 ["SmartContractResponse"] = jsonData,
                                 ["TransactionLogs"] = logs,
-                                ["Provider"] = "SOLANAOASIS"
                             }
                         };
                     }
