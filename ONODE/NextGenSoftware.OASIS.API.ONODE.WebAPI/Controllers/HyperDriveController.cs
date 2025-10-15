@@ -551,7 +551,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Ok(new OASISResult<List<OptimizationRecommendation>>
                 {
                     Result = recommendations,
-
+                    IsSuccess = true,
                     Message = "AI optimization recommendations retrieved successfully."
                 });
             }

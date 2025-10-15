@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using System.Web.Http.Description;
+using System.ComponentModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -135,7 +135,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>OASIS result indicating whether email verification was successful.</returns>
         /// <response code="200">Email verification completed (success or failure)</response>
         /// <response code="400">Invalid or expired verification token</response>
-        [ResponseType(typeof(OASISHttpResponseMessage<bool>))]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
         [HttpPost("verify-email")]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
@@ -155,7 +155,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>OASIS result indicating whether email verification was successful.</returns>
         /// <response code="200">Email verification completed (success or failure)</response>
         /// <response code="400">Invalid or expired verification token</response>
-        [ResponseType(typeof(OASISHttpResponseMessage<bool>))]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
         [HttpPost("verify-email/{providerType}/{setGlobally}")]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
