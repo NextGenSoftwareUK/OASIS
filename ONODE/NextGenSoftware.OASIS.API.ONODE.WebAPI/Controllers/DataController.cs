@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<Holon>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
-        public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(LoadHolonRequest request)
+        public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Models.Data.LoadHolonRequest request)
         {
             //OASISResult<Holon> response = new OASISResult<Holon>();
             OASISHttpResponseMessage<Holon> response;
@@ -652,7 +652,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
      /// <returns></returns>
      [Authorize]
      [HttpPost("save-holon")]
-     public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(SaveHolonRequest request)
+     public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(Models.Data.SaveHolonRequest request)
      {
          OASISConfigResult<IHolon> configResult = ConfigureOASISEngine<IHolon>(request);
 
@@ -826,7 +826,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("save-holon-off-chain")]
-        public async Task<OASISHttpResponseMessage<Holon>> SaveHolonOffChain(SaveHolonRequest request)
+        public async Task<OASISHttpResponseMessage<Holon>> SaveHolonOffChain(Models.Data.SaveHolonRequest request)
         {
             return HttpResponseHelper.FormatResponse(new OASISResult<Holon>
             {
