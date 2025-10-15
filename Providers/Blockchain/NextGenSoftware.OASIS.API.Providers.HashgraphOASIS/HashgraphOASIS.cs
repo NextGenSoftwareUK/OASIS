@@ -1871,9 +1871,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<INFTTransactionRespone>();
             try
             {
-                // Real Hashgraph implementation: Mint NFT
+                // Real Hashgraph implementation: Mint NFT synchronously
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(new HashgraphTransactionData
+                var transactionResult = hashgraphClient.SendTransaction(new HashgraphTransactionData
                 {
                     FromAddress = transation.SendToAddressAfterMinting,
                     ToAddress = transation.SendToAddressAfterMinting,
@@ -1911,10 +1911,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 var hashgraphClient = new HashgraphClient();
                 var transactionResult = await hashgraphClient.SendTransactionAsync(new HashgraphTransactionData
                 {
-                    FromAddress = transation.FromWalletAddress,
-                    ToAddress = transation.ToWalletAddress,
+                    FromAddress = transation.SendToAddressAfterMinting,
+                    ToAddress = transation.SendToAddressAfterMinting,
                     Amount = 0, // Minting doesn't require amount
-                    Memo = $"NFT Mint: {transation.NFTTokenId}"
+                    Memo = $"NFT Mint: {transation.Title}"
                 });
 
                 if (transactionResult != null)
@@ -1937,6 +1937,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             }
             return result;
         }
+
 
         public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
         {
@@ -2067,10 +2068,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 // Add Hashgraph-specific metadata
                 if (accountInfo != null)
                 {
-                    avatar.ProviderMetaData.Add("hashgraph_account_id", accountInfo.AccountId ?? "");
-                    avatar.ProviderMetaData.Add("hashgraph_balance", accountInfo.Balance?.ToString() ?? "0");
-                    avatar.ProviderMetaData.Add("hashgraph_auto_renew_period", accountInfo.AutoRenewPeriod?.ToString() ?? "0");
-                    avatar.ProviderMetaData.Add("hashgraph_expiry", accountInfo.Expiry?.ToString() ?? "");
+                    avatar.ProviderMetaData.Add(Core.Enums.ProviderType.HashgraphOASIS, new Dictionary<string, string>
+                    {
+                        ["hashgraph_account_id"] = accountInfo.AccountId ?? "",
+                        ["hashgraph_balance"] = accountInfo.Balance?.ToString() ?? "0",
+                        ["hashgraph_auto_renew_period"] = accountInfo.AutoRenewPeriod?.ToString() ?? "0"
+                    });
+                    avatar.ProviderMetaData[Core.Enums.ProviderType.HashgraphOASIS]["hashgraph_expiry"] = accountInfo.Expiry?.ToString() ?? "";
                 }
 
                 return avatar;

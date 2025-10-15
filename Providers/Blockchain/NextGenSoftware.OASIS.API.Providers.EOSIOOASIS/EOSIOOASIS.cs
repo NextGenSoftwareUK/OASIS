@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
@@ -624,7 +625,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                                 ["EOSIORamUsage"] = accountResponse.RamUsage,
                                 ["EOSIOPrivileged"] = accountResponse.Privileged,
                                 ["EOSIONetwork"] = "EOSIO Mainnet",
-                                ["EOSIOCurrencyBalance"] = balanceResponse?.Result?.FirstOrDefault() ?? "0 EOS",
+                                ["EOSIOCurrencyBalance"] = balanceResponse?.FirstOrDefault() ?? "0 EOS",
                                 ["Provider"] = "EOSIOOASIS"
                             }
                         };
