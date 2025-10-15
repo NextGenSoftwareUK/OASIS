@@ -74,6 +74,99 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
+        /// Gets current costs for all providers
+        /// </summary>
+        public async Task<Dictionary<string, decimal>> GetCurrentCostsAsync()
+        {
+            var costs = new Dictionary<string, decimal>();
+            
+            foreach (var provider in _analyticsData.Keys)
+            {
+                var providerCosts = _performanceMonitor.GetProviderCosts(provider);
+                costs[provider.ToString()] = providerCosts;
+            }
+            
+            return await Task.FromResult(costs);
+        }
+
+        /// <summary>
+        /// Gets cost history for all providers
+        /// </summary>
+        public async Task<Dictionary<string, List<decimal>>> GetCostHistoryAsync(string timeRange = "Last30Days")
+        {
+            var history = new Dictionary<string, List<decimal>>();
+            
+            var days = timeRange switch
+            {
+                "Last7Days" => 7,
+                "Last30Days" => 30,
+                "Last90Days" => 90,
+                _ => 30
+            };
+            
+            foreach (var provider in _analyticsData.Keys)
+            {
+                var providerHistory = _performanceMonitor.GetProviderCostHistory(provider, days);
+                history[provider.ToString()] = providerHistory;
+            }
+            
+            return await Task.FromResult(history);
+        }
+
+        /// <summary>
+        /// Gets cost projections for all providers
+        /// </summary>
+        public async Task<Dictionary<string, decimal>> GetCostProjectionsAsync()
+        {
+            var projections = new Dictionary<string, decimal>();
+            
+            foreach (var provider in _analyticsData.Keys)
+            {
+                var growthRate = _performanceMonitor.GetProviderCostGrowthRate(provider);
+                var currentCost = _performanceMonitor.GetProviderCosts(provider);
+                var projectedCost = currentCost * (1 + growthRate);
+                projections[provider.ToString()] = projectedCost;
+            }
+            
+            return await Task.FromResult(projections);
+        }
+
+        /// <summary>
+        /// Sets cost limits for providers
+        /// </summary>
+        public void SetCostLimits(Dictionary<string, decimal> limits)
+        {
+            foreach (var limit in limits)
+            {
+                if (Enum.TryParse<ProviderType>(limit.Key, out var providerType))
+                {
+                    _performanceMonitor.SetProviderCostLimit(providerType, limit.Value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets security recommendations
+        /// </summary>
+        public async Task<Dictionary<string, object>> GetSecurityRecommendationsAsync()
+        {
+            var recommendations = new Dictionary<string, object>
+            {
+                { "security_recommendations", new List<string>
+                    {
+                        "Enable multi-factor authentication for all providers",
+                        "Implement encryption at rest for sensitive data",
+                        "Regular security audits and penetration testing",
+                        "Monitor for unusual access patterns",
+                        "Keep all provider SDKs and dependencies updated"
+                    }
+                }
+            };
+            
+            return await Task.FromResult(recommendations);
+        }
+
+        /// <summary>
         /// Gets comprehensive analytics report
         /// </summary>
         public async Task<AnalyticsReport> GetAnalyticsReportAsync(ProviderType? providerType = null, TimeRange timeRange = TimeRange.Last24Hours)
