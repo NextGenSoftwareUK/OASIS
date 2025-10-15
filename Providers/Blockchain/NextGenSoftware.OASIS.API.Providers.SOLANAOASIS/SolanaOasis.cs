@@ -553,7 +553,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                         try
                         {
                             // Parse account data to SolanaAvatarDetailDto with extended properties
-                            var avatarDetailDto = new SolanaAvatarDetailDto
+                var avatarDetailDto = new SolanaAvatarDetailDto
                             {
                                 Id = Guid.NewGuid(),
                                 Version = 1,
@@ -574,12 +574,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 {
                                     ["SolanaAccountAddress"] = account.PublicKey,
                                     ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner?.Key,
+                                    ["SolanaOwner"] = account.Account.Owner,
                                     ["SolanaExecutable"] = account.Account.Executable,
                                     ["SolanaRentEpoch"] = account.Account.RentEpoch,
                                     ["SolanaDataLength"] = account.Account.Data?.Count ?? 0,
                                     ["SolanaNetwork"] = "mainnet-beta",
-                                    ["SolanaProgramId"] = _oasisSolanaAccount.PublicKey.Key,
+                                ["SolanaProgramId"] = _oasisSolanaAccount.PublicKey.Key,
                                     ["RetrievedAt"] = DateTime.UtcNow.ToString("O")
                                 }
                             };
@@ -948,7 +948,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
             if (holonData.Result != null)
             {
-                var holon = ParseSolanaToHolon(holonData.Result);
+                var holon = holonData.Result != null ? holonData.Result.GetHolon() : null;
                 if (holon != null)
                 {
                     result.Result = holon;
@@ -1002,7 +1002,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return result;
             }
 
-            result.Result = holonsData.Result;
+            result.Result = holonsData.Result?.Select(h => h.GetHolon());
             result.IsError = false;
             result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons for parent from Solana";
         }
@@ -1044,7 +1044,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return result;
             }
 
-            result.Result = holonsData.Result;
+            result.Result = holonsData.Result?.Select(h => h.GetHolon());
             result.IsError = false;
             result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons for parent by provider key from Solana";
         }
@@ -1101,7 +1101,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 PublicKey = account.PublicKey,
                                 AccountInfo = account.Account,
                                 Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner?.Key,
+                                Owner = account.Account.Owner,
                                 Executable = account.Account.Executable,
                                 RentEpoch = account.Account.RentEpoch,
                                 Data = account.Account.Data,
@@ -1109,10 +1109,10 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 {
                                     ["SolanaAccountAddress"] = account.PublicKey,
                                     ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner?.Key,
+                                    ["SolanaOwner"] = account.Account.Owner,
                                     ["SolanaExecutable"] = account.Account.Executable,
                                     ["SolanaRentEpoch"] = account.Account.RentEpoch,
-                                    ["SolanaDataLength"] = account.Account.Data?.Length ?? 0,
+                                    ["SolanaDataLength"] = account.Account.Data?.Count ?? 0,
                                     ["SolanaNetwork"] = "mainnet-beta",
                                     ["SolanaProgramId"] = _oasisSolanaAccount.PublicKey.Key,
                                     ["RetrievedAt"] = DateTime.UtcNow.ToString("O")
@@ -1144,7 +1144,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return result;
             }
 
-            result.Result = holonsData.Result;
+            result.Result = holonsData.Result?.Select(h => h.GetHolon());
             result.IsError = false;
             result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons from Solana";
         }
@@ -1888,7 +1888,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return result;
             }
 
-            result.Result = holonsData.Result;
+            result.Result = holonsData.Result?.Select(h => h.GetHolon());
             result.IsError = false;
             result.Message = $"Successfully exported {holonsData.Result?.Count() ?? 0} holons for avatar from Solana";
         }
@@ -2028,7 +2028,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 PublicKey = account.PublicKey,
                                 AccountInfo = account.Account,
                                 Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner?.Key,
+                                Owner = account.Account.Owner,
                                 Executable = account.Account.Executable,
                                 RentEpoch = account.Account.RentEpoch,
                                 Data = account.Account.Data,
@@ -2036,10 +2036,10 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                                 {
                                     ["SolanaAccountAddress"] = account.PublicKey,
                                     ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner?.Key,
+                                    ["SolanaOwner"] = account.Account.Owner,
                                     ["SolanaExecutable"] = account.Account.Executable,
                                     ["SolanaRentEpoch"] = account.Account.RentEpoch,
-                                    ["SolanaDataLength"] = account.Account.Data?.Length ?? 0,
+                                    ["SolanaDataLength"] = account.Account.Data.Count,
                                     ["SolanaNetwork"] = "mainnet-beta",
                                     ["SolanaProgramId"] = _oasisSolanaAccount.PublicKey.Key,
                                     ["RetrievedAt"] = DateTime.UtcNow.ToString("O")
@@ -2087,8 +2087,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
     }
 
-    public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount,
-        string token)
+    public async Task<OASISResult<string>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
     {
         var result = new OASISResult<string>();
         try
@@ -2100,8 +2099,8 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             }
 
             // Get wallet addresses for both avatars
-            var fromWalletResult = await WalletHelper.GetWalletAddressAsync(fromAvatarId, ProviderType.SolanaOASIS);
-            var toWalletResult = await WalletHelper.GetWalletAddressAsync(toAvatarId, ProviderType.SolanaOASIS);
+            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.Value, fromAvatarId);
+            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.Value, toAvatarId);
 
             if (fromWalletResult.IsError)
             {
@@ -2119,9 +2118,9 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             // SendTransaction is provided by SolanaService as SendTransaction(SendTransactionRequest)
             var transactionResult = await _solanaService.SendTransaction(new SendTransactionRequest
             {
-                FromAccount = new WalletAddress { PublicKey = fromWalletResult.Result },
-                ToAccount = new WalletAddress { PublicKey = toWalletResult.Result },
-                Lampposts = (ulong)amount,
+                FromAccount = new BaseAccountRequest { PublicKey = fromWalletResult.Result },
+                ToAccount = new BaseAccountRequest { PublicKey = toWalletResult.Result },
+                Amount = (ulong)amount,
                 MemoText = token
             });
             if (transactionResult.IsError)
@@ -2130,7 +2129,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return result;
             }
 
-            result.Result = transactionResult.Result;
+            result.Result = transactionResult;
             result.IsError = false;
             result.Message = "Transaction sent successfully";
         }
@@ -2400,506 +2399,6 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         return result;
     }
 
-    public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForAvatar(Guid avatarId)
-    {
-        return LoadAllGeoNFTsForAvatarAsync(avatarId).Result;
-    }
-
-    public async Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForAvatarAsync(Guid avatarId)
-    {
-        var result = new OASISResult<List<IOASISGeoSpatialNFT>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
-
-            // Load all GeoNFTs for avatar from Solana blockchain
-            // Real Solana implementation: Get all geo NFTs for avatar using RPC client
-            var geoNFTsData = new OASISResult<List<SolanaGeoNFTDto>>();
-            try
-            {
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    var geoNFTList = new List<SolanaGeoNFTDto>();
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            var geoNFTDto = new SolanaGeoNFTDto
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = $"Solana Geo NFT {account.PublicKey[..8]}",
-                                Description = $"Solana blockchain geo NFT with account {account.PublicKey}",
-                                CreatedDate = DateTime.UtcNow,
-                                ModifiedDate = DateTime.UtcNow,
-                                Version = 1,
-                                IsActive = true,
-                                AvatarId = avatarId,
-                                Latitude = 40.7128 + (new Random().NextDouble() - 0.5) * 0.1,
-                                Longitude = -74.0060 + (new Random().NextDouble() - 0.5) * 0.1,
-                                Altitude = 0,
-                                PublicKey = account.PublicKey,
-                                AccountInfo = account.Account,
-                                Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner?.Key,
-                                Executable = account.Account.Executable,
-                                RentEpoch = account.Account.RentEpoch,
-                                Data = account.Account.Data,
-                                MetaData = new Dictionary<string, object>
-                                {
-                                    ["SolanaAccountAddress"] = account.PublicKey,
-                                    ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner?.Key,
-                                    ["SolanaExecutable"] = account.Account.Executable,
-                                    ["SolanaRentEpoch"] = account.Account.RentEpoch,
-                                    ["SolanaDataLength"] = account.Account.Data?.Length ?? 0,
-                                    ["SolanaNetwork"] = "mainnet-beta",
-                                    ["SolanaProgramId"] = _oasisSolanaAccount.PublicKey.Key,
-                                    ["AvatarId"] = avatarId.ToString(),
-                                    ["RetrievedAt"] = DateTime.UtcNow.ToString("O")
-                                }
-                            };
-                            geoNFTList.Add(geoNFTDto);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error parsing Solana geo NFT {account.PublicKey}: {ex.Message}");
-                        }
-                    }
-                    geoNFTsData.Result = geoNFTList;
-                    geoNFTsData.IsError = false;
-                    geoNFTsData.Message = $"Successfully loaded {geoNFTList.Count} geo NFTs from Solana blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref geoNFTsData, $"Failed to get program accounts from Solana: {accounts.Reason}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref geoNFTsData, $"Error querying geo NFTs from Solana: {ex.Message}", ex);
-            }
-            if (geoNFTsData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading GeoNFTs for avatar: {geoNFTsData.Message}");
-                return result;
-            }
-
-            result.Result = geoNFTsData.Result;
-            result.IsError = false;
-            result.Message = $"Successfully loaded {geoNFTsData.Result?.Count ?? 0} GeoNFTs for avatar from Solana";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading GeoNFTs for avatar from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public OASISResult<List<IOASISGeoSpatialNFT>> LoadAllGeoNFTsForMintAddress(string mintWalletAddress)
-    {
-        return LoadAllGeoNFTsForMintAddressAsync(mintWalletAddress).Result;
-    }
-
-    public async Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
-    {
-        var result = new OASISResult<List<IOASISGeoSpatialNFT>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
-
-            // Load all GeoNFTs for mint address from Solana blockchain
-            // Real Solana implementation: Get all geo NFTs for mint address using RPC client
-            var geoNFTsData = new OASISResult<List<SolanaGeoNFTDto>>();
-            try
-            {
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    var geoNFTList = new List<SolanaGeoNFTDto>();
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            var geoNFTDto = new SolanaGeoNFTDto
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = $"Solana Geo NFT {account.PublicKey[..8]}",
-                                Description = $"Solana blockchain geo NFT with account {account.PublicKey}",
-                                CreatedDate = DateTime.UtcNow,
-                                ModifiedDate = DateTime.UtcNow,
-                                Version = 1,
-                                IsActive = true,
-                                MintWalletAddress = mintWalletAddress,
-                                Latitude = 40.7128 + (new Random().NextDouble() - 0.5) * 0.1,
-                                Longitude = -74.0060 + (new Random().NextDouble() - 0.5) * 0.1,
-                                Altitude = 0,
-                                PublicKey = account.PublicKey,
-                                AccountInfo = account.Account,
-                                Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner?.Key,
-                                Executable = account.Account.Executable,
-                                RentEpoch = account.Account.RentEpoch,
-                                Data = account.Account.Data,
-                                MetaData = new Dictionary<string, object>
-                                {
-                                    ["SolanaAccountAddress"] = account.PublicKey,
-                                    ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner?.Key,
-                                    ["SolanaExecutable"] = account.Account.Executable,
-                                    ["SolanaRentEpoch"] = account.Account.RentEpoch,
-                                    ["SolanaDataLength"] = account.Account.Data?.Length ?? 0,
-                                    ["SolanaNetwork"] = "mainnet-beta",
-                                    ["SolanaProgramId"] = _oasisSolanaAccount.PublicKey.Key,
-                                    ["MintWalletAddress"] = mintWalletAddress,
-                                    ["RetrievedAt"] = DateTime.UtcNow.ToString("O")
-                                }
-                            };
-                            geoNFTList.Add(geoNFTDto);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error parsing Solana geo NFT {account.PublicKey}: {ex.Message}");
-                        }
-                    }
-                    geoNFTsData.Result = geoNFTList;
-                    geoNFTsData.IsError = false;
-                    geoNFTsData.Message = $"Successfully loaded {geoNFTList.Count} geo NFTs from Solana blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref geoNFTsData, $"Failed to get program accounts from Solana: {accounts.Reason}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref geoNFTsData, $"Error querying geo NFTs from Solana: {ex.Message}", ex);
-            }
-            if (geoNFTsData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading GeoNFTs for mint address: {geoNFTsData.Message}");
-                return result;
-            }
-
-            result.Result = geoNFTsData.Result;
-            result.IsError = false;
-            result.Message = $"Successfully loaded {geoNFTsData.Result?.Count ?? 0} GeoNFTs for mint address from Solana";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading GeoNFTs for mint address from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public OASISResult<List<IOASISNFT>> LoadAllNFTsForAvatar(Guid avatarId)
-    {
-        return LoadAllNFTsForAvatarAsync(avatarId).Result;
-    }
-
-    public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForAvatarAsync(Guid avatarId)
-    {
-        var result = new OASISResult<List<IOASISNFT>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
-
-            // Load all NFTs for avatar from Solana blockchain
-            // Real Solana implementation: Get all NFTs for avatar using RPC client
-            var nftsData = new OASISResult<List<SolanaNFTDto>>();
-            try
-            {
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    var nftList = new List<SolanaNFTDto>();
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            var nftDto = new SolanaNFTDto
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = $"Solana NFT {account.PublicKey[..8]}",
-                                Description = $"Solana blockchain NFT with account {account.PublicKey}",
-                                CreatedDate = DateTime.UtcNow,
-                                ModifiedDate = DateTime.UtcNow,
-                                Version = 1,
-                                IsActive = true,
-                                AvatarId = avatarId,
-                                PublicKey = account.PublicKey,
-                                AccountInfo = account.Account,
-                                Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner?.Key,
-                                Executable = account.Account.Executable,
-                                RentEpoch = account.Account.RentEpoch,
-                                Data = account.Account.Data,
-                                MetaData = new Dictionary<string, object>
-                                {
-                                    ["SolanaAccountAddress"] = account.PublicKey,
-                                    ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner?.Key,
-                                    ["SolanaExecutable"] = account.Account.Executable,
-                                    ["SolanaRentEpoch"] = account.Account.RentEpoch,
-                                    ["SolanaDataLength"] = account.Account.Data?.Length ?? 0,
-                                    ["SolanaNetwork"] = "mainnet-beta",
-                                    ["SolanaProgramId"] = _oasisSolanaAccount.PublicKey.Key,
-                                    ["AvatarId"] = avatarId.ToString(),
-                                    ["RetrievedAt"] = DateTime.UtcNow.ToString("O")
-                                }
-                            };
-                            nftList.Add(nftDto);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error parsing Solana NFT {account.PublicKey}: {ex.Message}");
-                        }
-                    }
-                    nftsData.Result = nftList;
-                    nftsData.IsError = false;
-                    nftsData.Message = $"Successfully loaded {nftList.Count} NFTs from Solana blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref nftsData, $"Failed to get program accounts from Solana: {accounts.Reason}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref nftsData, $"Error querying NFTs from Solana: {ex.Message}", ex);
-            }
-            if (nftsData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading NFTs for avatar: {nftsData.Message}");
-                return result;
-            }
-
-            result.Result = nftsData.Result;
-            result.IsError = false;
-            result.Message = $"Successfully loaded {nftsData.Result?.Count ?? 0} NFTs for avatar from Solana";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading NFTs for avatar from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public OASISResult<List<IOASISNFT>> LoadAllNFTsForMintAddress(string mintWalletAddress)
-    {
-        return LoadAllNFTsForMintAddressAsync(mintWalletAddress).Result;
-    }
-
-    public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
-    {
-        var result = new OASISResult<List<IOASISNFT>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
-
-            // Load all NFTs for mint address from Solana blockchain
-            // Real Solana implementation: Get all NFTs for mint address using RPC client
-            var nftsData = new OASISResult<List<SolanaNFTDto>>();
-            try
-            {
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    var nftList = new List<SolanaNFTDto>();
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            var nftDto = new SolanaNFTDto
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = $"Solana NFT {account.PublicKey[..8]}",
-                                Description = $"Solana blockchain NFT with account {account.PublicKey}",
-                                CreatedDate = DateTime.UtcNow,
-                                ModifiedDate = DateTime.UtcNow,
-                                Version = 1,
-                                IsActive = true,
-                                MintWalletAddress = mintWalletAddress,
-                                PublicKey = account.PublicKey,
-                                AccountInfo = account.Account,
-                                Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner.Key,
-                                Executable = account.Account.Executable,
-                                RentEpoch = account.Account.RentEpoch,
-                                Data = account.Account.Data,
-                                MetaData = new Dictionary<string, object>
-                                {
-                                    ["SolanaAccountAddress"] = account.PublicKey,
-                                    ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner.Key,
-                                    ["SolanaExecutable"] = account.Account.Executable,
-                                    ["SolanaRentEpoch"] = account.Account.RentEpoch,
-                                    ["SolanaDataLength"] = account.Account.Data?.Length ?? 0,
-                                    ["SolanaNetwork"] = "mainnet-beta",
-                                    ["SolanaProgramId"] = _oasisSolanaAccount.PublicKey.Key,
-                                    ["MintWalletAddress"] = mintWalletAddress,
-                                    ["RetrievedAt"] = DateTime.UtcNow.ToString("O")
-                                }
-                            };
-                            nftList.Add(nftDto);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error parsing Solana NFT {account.PublicKey}: {ex.Message}");
-                        }
-                    }
-                    nftsData.Result = nftList;
-                    nftsData.IsError = false;
-                    nftsData.Message = $"Successfully loaded {nftList.Count} NFTs from Solana blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref nftsData, $"Failed to get program accounts from Solana: {accounts.Reason}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref nftsData, $"Error querying NFTs from Solana: {ex.Message}", ex);
-            }
-            if (nftsData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading NFTs for mint address: {nftsData.Message}");
-                return result;
-            }
-
-            result.Result = nftsData.Result;
-            result.IsError = false;
-            result.Message = $"Successfully loaded {nftsData.Result?.Count ?? 0} NFTs for mint address from Solana";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading NFTs for mint address from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public OASISResult<IOASISGeoSpatialNFT> PlaceGeoNFT(IPlaceGeoSpatialNFTRequest request)
-    {
-        return PlaceGeoNFTAsync(request).Result;
-    }
-
-    public async Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(IPlaceGeoSpatialNFTRequest request)
-    {
-        var result = new OASISResult<IOASISGeoSpatialNFT>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
-
-            // Place GeoNFT on Solana blockchain
-            // Not supported in current ISolanaService
-            var geoNFTData = new OASISResult<IOASISGeoSpatialNFT> { IsError = true, Message = "Not implemented" };
-            if (geoNFTData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error placing GeoNFT: {geoNFTData.Message}");
-                return result;
-            }
-
-            result.Result = geoNFTData.Result;
-            result.IsError = false;
-            result.Message = "Successfully placed GeoNFT on Solana";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error placing GeoNFT on Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public OASISResult<IOASISGeoSpatialNFT> MintAndPlaceGeoNFT(IMintAndPlaceGeoSpatialNFTRequest request)
-    {
-        return MintAndPlaceGeoNFTAsync(request).Result;
-    }
-
-    public async Task<OASISResult<IOASISGeoSpatialNFT>> MintAndPlaceGeoNFTAsync(IMintAndPlaceGeoSpatialNFTRequest request)
-    {
-        var result = new OASISResult<IOASISGeoSpatialNFT>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-                return result;
-            }
-
-            // Mint and place GeoNFT on Solana blockchain
-            // Not supported in current ISolanaService
-            var geoNFTData = new OASISResult<IOASISGeoSpatialNFT> { IsError = true, Message = "Not implemented" };
-            if (geoNFTData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error minting and placing GeoNFT: {geoNFTData.Message}");
-                return result;
-            }
-
-            result.Result = geoNFTData.Result;
-            result.IsError = false;
-            result.Message = "Successfully minted and placed GeoNFT on Solana";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error minting and placing GeoNFT on Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //public override Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey,
         string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true,
         int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
@@ -2926,7 +2425,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             var holons = new List<IHolon>();
             foreach (var holonData in holonsData.Result)
             {
-                var holon = ParseSolanaToHolon(holonData);
+                var holon = holonData != null ? holonData.GetHolon() : null;
                 if (holon != null)
                 {
                     holons.Add(holon);
@@ -2979,7 +2478,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             var holons = new List<IHolon>();
             foreach (var holonData in holonsData.Result)
             {
-                var holon = ParseSolanaToHolon(holonData);
+                var holon = holonData != null ? holonData.GetHolon() : null;
                 if (holon != null)
                 {
                     holons.Add(holon);
@@ -3106,17 +2605,15 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                     Mobile = GetSolanaProperty(solanaData, "mobile") ?? "",
                     Landline = GetSolanaProperty(solanaData, "landline") ?? "",
                     Title = GetSolanaProperty(solanaData, "title") ?? "",
-                    DOB = DateTime.TryParse(GetSolanaProperty(solanaData, "dob"), out var dob) ? dob : (DateTime?)null,
-                    AvatarType = Enum.TryParse<AvatarType>(GetSolanaProperty(solanaData, "avatarType"), out var avatarType) ? avatarType : AvatarType.User,
-                    KarmaAkashicRecords = int.TryParse(GetSolanaProperty(solanaData, "karmaAkashicRecords"), out var karma) ? karma : 0,
-                    Level = int.TryParse(GetSolanaProperty(solanaData, "level"), out var level) ? level : 1,
+                    //DOB = DateTime.TryParse(GetSolanaProperty(solanaData, "dob"), out var dob) ? dob : (DateTime?)null,
+                    //AvatarType = Enum.TryParse<AvatarType>(GetSolanaProperty(solanaData, "avatarType"), out var avatarType) ? avatarType : AvatarType.User,
+                    //KarmaAkashicRecords = int.TryParse(GetSolanaProperty(solanaData, "karmaAkashicRecords"), out var karma) ? karma : 0,
+                    //Level = int.TryParse(GetSolanaProperty(solanaData, "level"), out var level) ? level : 1,
                     XP = int.TryParse(GetSolanaProperty(solanaData, "xp"), out var xp) ? xp : 0,
-                    HP = int.TryParse(GetSolanaProperty(solanaData, "hp"), out var hp) ? hp : 100,
-                    Mana = int.TryParse(GetSolanaProperty(solanaData, "mana"), out var mana) ? mana : 100,
-                    Stamina = int.TryParse(GetSolanaProperty(solanaData, "stamina"), out var stamina) ? stamina : 100,
+                    //HP = int.TryParse(GetSolanaProperty(solanaData, "hp"), out var hp) ? hp : 100,
+                    //Mana = int.TryParse(GetSolanaProperty(solanaData, "mana"), out var mana) ? mana : 100,
+                    //Stamina = int.TryParse(GetSolanaProperty(solanaData, "stamina"), out var stamina) ? stamina : 100,
                     Description = GetSolanaProperty(solanaData, "description") ?? "Solana user",
-                    Website = GetSolanaProperty(solanaData, "website") ?? "",
-                    Language = GetSolanaProperty(solanaData, "language") ?? "en"
                 };
             }
 

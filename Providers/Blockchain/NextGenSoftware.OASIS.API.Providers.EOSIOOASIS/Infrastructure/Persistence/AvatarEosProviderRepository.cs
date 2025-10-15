@@ -230,6 +230,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             _eosClient.Dispose();
         }
 
+        public Task<ImmutableArray<HolonDto>> ReadAllByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ImmutableArray<HolonDto>> ReadAllByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All)
+        {
+            throw new NotImplementedException();
+        }
+
         ~AvatarEosProviderRepository()
         {
             ReleaseUnmanagedResources();
