@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     /// 
     /// BACKWARD COMPATIBILITY: All existing methods remain functional during transition period.
     /// </summary>
-    [Obsolete("ProviderManager is being refactored. Use ProviderManagerNew or specialized classes (ProviderRegistry, ProviderSelector, ProviderSwitcher, ProviderConfigurator) instead. See class documentation for migration path.")]
+    //[Obsolete("ProviderManager is being refactored. Use ProviderManagerNew or specialized classes (ProviderRegistry, ProviderSelector, ProviderSwitcher, ProviderConfigurator) instead. See class documentation for migration path.")]
     public class ProviderManager : OASISManager
     {
         private static ProviderManager _instance = null;

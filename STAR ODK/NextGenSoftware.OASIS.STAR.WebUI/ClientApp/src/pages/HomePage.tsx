@@ -223,7 +223,7 @@ const HomePage: React.FC = () => {
               </Box>
               
               <Typography variant="h2" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-                Welcome to OASIS
+                Welcome to The OASIS & STARNET!
               </Typography>
               
               <Typography variant="h5" sx={{ mb: 4, opacity: 0.9, maxWidth: 800, mx: 'auto' }}>
