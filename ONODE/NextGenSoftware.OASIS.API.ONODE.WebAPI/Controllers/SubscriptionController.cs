@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -19,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public SubscriptionController(IConfiguration configuration)
         {
             _configuration = configuration;
-        }
+}
 
         [HttpGet("plans")]
         public ActionResult<IEnumerable<PlanDto>> GetPlans()
@@ -155,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Metadata = new Dictionary<string, string>
                 {
                     { "plan_id", plan.Id },
-                    { "user_id", request.UserId ?? "anonymous" }
+                    { "avatar_id", request.AvatarId ?? "anonymous" }
                 }
             };
 
@@ -495,40 +496,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             };
         }
 
-    public class PlanDto
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public decimal PriceMonthly { get; set; }
-        public string Currency { get; set; }
-        public string[] Features { get; set; }
-        public bool IsContactSales { get; set; }
-        public int MaxRequestsPerMonth { get; set; }
-        public int MaxStorageGB { get; set; }
-        public string SupportLevel { get; set; }
-    }
-
-    public class CreateCheckoutSessionRequest
-    {
-        [Required]
-        public string PlanId { get; set; }
-        public string SuccessUrl { get; set; }
-        public string CancelUrl { get; set; }
-        public string CouponCode { get; set; }
-    }
-
-    public class CreateCheckoutSessionResponse
-    {
-        public bool IsError { get; set; }
-        public string Message { get; set; }
-        public string SessionId { get; set; }
-        public string SessionUrl { get; set; }
-    }
-
-    public class TogglePayAsYouGoRequest
-    {
-        public bool Enabled { get; set; }
-    }
+    
 
     // HyperDrive Integration Methods
 
@@ -758,11 +726,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 CostPerGB = 0
             }
         };
+
     }
 
-    private int GetRequestLimit(string planType)
-    {
-        return planType switch
+        private int GetRequestLimit(string planType)
+        {
+            return planType switch
         {
             "Free" => 1000,
             "Basic" => 10000,
@@ -770,12 +739,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             "Enterprise" => int.MaxValue,
             _ => 1000
         };
-    }
+        }
 
-    private int GetCurrentUsage(string operationType)
-    {
-        // This would typically come from a usage tracking service
-        return operationType switch
+        private int GetCurrentUsage(string operationType)
+        {
+            // This would typically come from a usage tracking service
+            return operationType switch
         {
             "Replications" => 45,
             "Failovers" => 3,
@@ -783,11 +752,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             "Requests" => 1250,
             _ => 0
         };
-    }
+        }
 
-    private int GetLimitForOperation(string operationType, PlanLimits limits)
-    {
-        return operationType switch
+        private int GetLimitForOperation(string operationType, PlanLimits limits)
+        {
+            return operationType switch
         {
             "Replications" => limits.MaxReplications,
             "Failovers" => limits.MaxFailovers,
@@ -795,42 +764,42 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             "Requests" => GetRequestLimit(limits.PlanType),
             _ => 0
         };
-    }
+        }
 
-    private decimal GetEstimatedCost(string operationType, SubscriptionConfig config)
-    {
-        return operationType switch
+        private decimal GetEstimatedCost(string operationType, SubscriptionConfig config)
+        {
+            return operationType switch
         {
             "Replications" => config.CostPerReplication,
             "Failovers" => config.CostPerFailover,
             "Storage" => config.CostPerGB,
             _ => 0
         };
-    }
+        }
 
-    // Supporting classes for HyperDrive integration
-    public class UpdateHyperDriveConfigRequest
-    {
+        // Supporting classes for HyperDrive integration
+        public class UpdateHyperDriveConfigRequest
+        {
         public string PlanType { get; set; }
         public bool PayAsYouGoEnabled { get; set; }
-    }
+        }
 
-    public class HyperDriveUsageDto
-    {
+        public class HyperDriveUsageDto
+        {
         public string PlanType { get; set; }
         public bool PayAsYouGoEnabled { get; set; }
         public Dictionary<string, int> CurrentUsage { get; set; }
         public Dictionary<string, int> Limits { get; set; }
         public Dictionary<string, decimal> Costs { get; set; }
-    }
+        }
 
-    public class QuotaCheckRequest
-    {
+        public class QuotaCheckRequest
+        {
         public string OperationType { get; set; }
-    }
+        }
 
-    public class QuotaCheckResult
-    {
+        public class QuotaCheckResult
+        {
         public bool CanProceed { get; set; }
         public int CurrentUsage { get; set; }
         public int Limit { get; set; }
@@ -838,10 +807,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public bool WouldExceedQuota { get; set; }
         public bool RequiresPayAsYouGo { get; set; }
         public decimal EstimatedCost { get; set; }
-    }
+        }
 
-    public class PlanLimits
-    {
+        public class PlanLimits
+        {
         public int MaxReplications { get; set; }
         public int MaxFailovers { get; set; }
         public int MaxStorageGB { get; set; }
@@ -850,7 +819,44 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public decimal CostPerFailover { get; set; }
         public decimal CostPerGB { get; set; }
         public string PlanType { get; set; }
+        }
+
+
+        public class PlanDto
+        {
+            public string Id { get; set; }
+            public string Name { get; set; }
+            public decimal PriceMonthly { get; set; }
+            public string Currency { get; set; }
+            public string[] Features { get; set; }
+            public bool IsContactSales { get; set; }
+            public int MaxRequestsPerMonth { get; set; }
+            public int MaxStorageGB { get; set; }
+            public string SupportLevel { get; set; }
+        }
+
+        public class CreateCheckoutSessionRequest
+        {
+            [Required]
+            public string PlanId { get; set; }
+            public string SuccessUrl { get; set; }
+            public string CancelUrl { get; set; }
+            public string CouponCode { get; set; }
+            public string CustomerEmail { get; set; }
+            public string AvatarId { get; set; }
+        }
+
+        public class CreateCheckoutSessionResponse
+        {
+            public bool IsError { get; set; }
+            public string Message { get; set; }
+            public string SessionId { get; set; }
+            public string SessionUrl { get; set; }
+        }
+
+        public class TogglePayAsYouGoRequest
+        {
+            public bool Enabled { get; set; }
+        }
+
     }
-}
-
-
