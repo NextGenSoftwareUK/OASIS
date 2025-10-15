@@ -387,6 +387,217 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                 // Ignore training errors
             }
         }
+
+        /// <summary>
+        /// Gets AI-powered optimization recommendations
+        /// </summary>
+        public async Task<List<OptimizationRecommendation>> GetOptimizationRecommendationsAsync()
+        {
+            try
+            {
+                var recommendations = new List<OptimizationRecommendation>();
+                
+                // Analyze current performance patterns
+                var performanceAnalysis = AnalyzePerformancePatterns();
+                
+                // Generate cost optimization recommendations
+                var costRecommendations = GenerateCostOptimizationRecommendations(performanceAnalysis);
+                recommendations.AddRange(costRecommendations);
+                
+                // Generate performance optimization recommendations
+                var performanceRecommendations = GeneratePerformanceOptimizationRecommendations(performanceAnalysis);
+                recommendations.AddRange(performanceRecommendations);
+                
+                // Generate reliability optimization recommendations
+                var reliabilityRecommendations = GenerateReliabilityOptimizationRecommendations(performanceAnalysis);
+                recommendations.AddRange(reliabilityRecommendations);
+                
+                return recommendations;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error generating optimization recommendations: {ex.Message}");
+                return new List<OptimizationRecommendation>();
+            }
+        }
+
+        /// <summary>
+        /// Records performance data for AI training
+        /// </summary>
+        public void RecordPerformanceData(ProviderType providerType, PerformanceDataPoint dataPoint)
+        {
+            try
+            {
+                // Convert PerformanceDataPoint to internal format
+                var performanceData = new ProviderPerformanceData
+                {
+                    ProviderType = providerType,
+                    RequestType = dataPoint.Operation,
+                    IsSuccess = dataPoint.Success,
+                    ResponseTimeMs = (long)dataPoint.Duration.TotalMilliseconds,
+                    Timestamp = dataPoint.Timestamp,
+                    ErrorMessage = dataPoint.ErrorMessage
+                };
+
+                _historicalData.Add(performanceData);
+
+                // Keep only recent data (last 7 days)
+                var cutoffDate = DateTime.UtcNow.AddDays(-7);
+                _historicalData.RemoveAll(d => d.Timestamp < cutoffDate);
+
+                // Update provider score
+                var result = new OASISResult<object>
+                {
+                    IsError = !dataPoint.Success,
+                    Message = dataPoint.ErrorMessage
+                };
+                
+                UpdateProviderScoreAsync(providerType, result, (long)dataPoint.Duration.TotalMilliseconds).Wait();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error recording performance data: {ex.Message}");
+            }
+        }
+
+        private Dictionary<string, object> AnalyzePerformancePatterns()
+        {
+            var analysis = new Dictionary<string, object>();
+            
+            try
+            {
+                var recentData = _historicalData.Where(d => d.Timestamp > DateTime.UtcNow.AddHours(-24)).ToList();
+                
+                if (recentData.Any())
+                {
+                    analysis["TotalOperations"] = recentData.Count;
+                    analysis["SuccessRate"] = recentData.Count(d => d.IsSuccess) / (double)recentData.Count;
+                    analysis["AverageResponseTime"] = recentData.Average(d => d.ResponseTimeMs);
+                    analysis["ErrorRate"] = recentData.Count(d => !d.IsSuccess) / (double)recentData.Count;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error analyzing performance patterns: {ex.Message}");
+            }
+            
+            return analysis;
+        }
+
+        private List<OptimizationRecommendation> GenerateCostOptimizationRecommendations(Dictionary<string, object> analysis)
+        {
+            var recommendations = new List<OptimizationRecommendation>();
+            
+            try
+            {
+                // Find expensive providers
+                var expensiveProviders = _providerScores.Where(p => p.Value < 0.3).Select(p => p.Key).ToList();
+                
+                if (expensiveProviders.Any())
+                {
+                    recommendations.Add(new OptimizationRecommendation
+                    {
+                        Title = "Switch to Cost-Effective Providers",
+                        Description = $"Consider switching from expensive providers to more cost-effective alternatives.",
+                        Category = "Cost Optimization",
+                        Type = OptimizationType.Cost,
+                        Priority = PriorityLevel.High,
+                        EstimatedImpact = 0.3m,
+                        EstimatedCost = 0m,
+                        AffectedProviders = expensiveProviders,
+                        ImplementationSteps = new List<string>
+                        {
+                            "Analyze current provider costs",
+                            "Identify cost-effective alternatives",
+                            "Implement gradual migration",
+                            "Monitor cost savings"
+                        },
+                        ConfidenceScore = 0.8m,
+                        Reason = "High cost providers detected in current configuration"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error generating cost recommendations: {ex.Message}");
+            }
+            
+            return recommendations;
+        }
+
+        private List<OptimizationRecommendation> GeneratePerformanceOptimizationRecommendations(Dictionary<string, object> analysis)
+        {
+            var recommendations = new List<OptimizationRecommendation>();
+            
+            try
+            {
+                if (analysis.ContainsKey("AverageResponseTime") && (double)analysis["AverageResponseTime"] > 2000)
+                {
+                    recommendations.Add(new OptimizationRecommendation
+                    {
+                        Title = "Optimize Response Times",
+                        Description = "Average response time is above optimal threshold. Consider performance optimizations.",
+                        Category = "Performance",
+                        Type = OptimizationType.Performance,
+                        Priority = PriorityLevel.High,
+                        EstimatedImpact = 0.4m,
+                        EstimatedCost = 0m,
+                        ImplementationSteps = new List<string>
+                        {
+                            "Enable caching mechanisms",
+                            "Optimize database queries",
+                            "Implement connection pooling",
+                            "Consider CDN for static content"
+                        },
+                        ConfidenceScore = 0.7m,
+                        Reason = "Response times exceed 2 second threshold"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error generating performance recommendations: {ex.Message}");
+            }
+            
+            return recommendations;
+        }
+
+        private List<OptimizationRecommendation> GenerateReliabilityOptimizationRecommendations(Dictionary<string, object> analysis)
+        {
+            var recommendations = new List<OptimizationRecommendation>();
+            
+            try
+            {
+                if (analysis.ContainsKey("ErrorRate") && (double)analysis["ErrorRate"] > 0.05)
+                {
+                    recommendations.Add(new OptimizationRecommendation
+                    {
+                        Title = "Improve System Reliability",
+                        Description = "Error rate is above acceptable threshold. Implement reliability improvements.",
+                        Category = "Reliability",
+                        Type = OptimizationType.Reliability,
+                        Priority = PriorityLevel.Critical,
+                        EstimatedImpact = 0.5m,
+                        EstimatedCost = 0m,
+                        ImplementationSteps = new List<string>
+                        {
+                            "Implement circuit breakers",
+                            "Add retry mechanisms",
+                            "Enable failover strategies",
+                            "Monitor error patterns"
+                        },
+                        ConfidenceScore = 0.9m,
+                        Reason = "Error rate exceeds 5% threshold"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error generating reliability recommendations: {ex.Message}");
+            }
+            
+            return recommendations;
+        }
     }
 
     /// <summary>

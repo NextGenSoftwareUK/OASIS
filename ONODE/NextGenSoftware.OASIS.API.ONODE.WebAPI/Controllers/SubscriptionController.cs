@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using System.Linq;
+using Stripe;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -20,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public SubscriptionController(IConfiguration configuration)
         {
             _configuration = configuration;
-}
+        }
 
         [HttpGet("plans")]
         public ActionResult<IEnumerable<PlanDto>> GetPlans()
@@ -34,8 +35,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { IsError = true, Message = $"Error loading plans: {ex.Message}" });
-            }
-        }
+    }
+}
 
         private List<PlanDto> LoadSubscriptionPlans()
         {
@@ -125,6 +126,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+
         private async Task<Stripe.Checkout.Session> CreateStripeCheckoutSessionAsync(CreateCheckoutSessionRequest request)
         {
             // Set Stripe API key
@@ -170,8 +172,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 throw new InvalidOperationException("Enterprise plan requires contact sales");
 
             // Check if price already exists
-            var priceService = new Stripe.PriceService();
-            var existingPrices = await priceService.ListAsync(new Stripe.PriceListOptions
+            var priceService = new PriceService();
+            var existingPrices = await priceService.ListAsync(new PriceListOptions
             {
                 Active = true,
                 Limit = 100
@@ -186,8 +188,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return existingPrice.Id;
 
             // Create new price
-            var productService = new Stripe.ProductService();
-            var product = await productService.CreateAsync(new Stripe.ProductCreateOptions
+            var productService = new ProductService();
+            var product = await productService.CreateAsync(new ProductCreateOptions
             {
                 Name = plan.Name,
                 Description = string.Join(", ", plan.Features),
@@ -200,12 +202,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 }
             });
 
-            var price = await priceService.CreateAsync(new Stripe.PriceCreateOptions
+            var price = await priceService.CreateAsync(new PriceCreateOptions
             {
                 Product = product.Id,
                 UnitAmount = (long)(plan.PriceMonthly * 100),
                 Currency = plan.Currency.ToLower(),
-                Recurring = new Stripe.PriceRecurringOptions
+                Recurring = new PriceRecurringOptions
                 {
                     Interval = "month"
                 }
@@ -233,14 +235,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     return BadRequest("Missing Stripe signature");
 
                 // Verify the webhook signature
-                var stripeEvent = Stripe.EventUtility.ConstructEvent(body, signatureHeader, webhookSecret);
+                var stripeEvent = EventUtility.ConstructEvent(body, signatureHeader, webhookSecret);
 
                 // Handle the event
                 await HandleStripeEventAsync(stripeEvent);
 
                 return Ok();
             }
-            catch (Stripe.StripeException ex)
+            catch (StripeException ex)
             {
                 return BadRequest($"Stripe error: {ex.Message}");
             }
@@ -250,32 +252,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        private async Task HandleStripeEventAsync(Stripe.Event stripeEvent)
+        private async Task HandleStripeEventAsync(Event stripeEvent)
         {
             switch (stripeEvent.Type)
             {
                 case "checkout.session.completed":
-                    await HandleCheckoutSessionCompletedAsync(stripeEvent.Data.Object as Stripe.Checkout.Session);
+                    await HandleCheckoutSessionCompletedAsync(stripeEvent.Data.Object as Checkout.Session);
                     break;
 
                 case "customer.subscription.created":
-                    await HandleSubscriptionCreatedAsync(stripeEvent.Data.Object as Stripe.Subscription);
+                    await HandleSubscriptionCreatedAsync(stripeEvent.Data.Object as Subscription);
                     break;
 
                 case "customer.subscription.updated":
-                    await HandleSubscriptionUpdatedAsync(stripeEvent.Data.Object as Stripe.Subscription);
+                    await HandleSubscriptionUpdatedAsync(stripeEvent.Data.Object as Subscription);
                     break;
 
                 case "customer.subscription.deleted":
-                    await HandleSubscriptionDeletedAsync(stripeEvent.Data.Object as Stripe.Subscription);
+                    await HandleSubscriptionDeletedAsync(stripeEvent.Data.Object as Subscription);
                     break;
 
                 case "invoice.payment_succeeded":
-                    await HandlePaymentSucceededAsync(stripeEvent.Data.Object as Stripe.Invoice);
+                    await HandlePaymentSucceededAsync(stripeEvent.Data.Object as Invoice);
                     break;
 
                 case "invoice.payment_failed":
-                    await HandlePaymentFailedAsync(stripeEvent.Data.Object as Stripe.Invoice);
+                    await HandlePaymentFailedAsync(stripeEvent.Data.Object as Invoice);
                     break;
 
                 default:
@@ -285,7 +287,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        private async Task HandleCheckoutSessionCompletedAsync(Stripe.Checkout.Session session)
+        private async Task HandleCheckoutSessionCompletedAsync(Checkout.Session session)
         {
             // Create or update user subscription
             var userId = session.Metadata.GetValueOrDefault("user_id");
@@ -298,26 +300,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        private async Task HandleSubscriptionCreatedAsync(Stripe.Subscription subscription)
+        private async Task HandleSubscriptionCreatedAsync(Subscription subscription)
         {
             // Handle new subscription creation
             await UpdateSubscriptionStatusAsync(subscription.Id, "active", subscription.CustomerId);
         }
 
-        private async Task HandleSubscriptionUpdatedAsync(Stripe.Subscription subscription)
+        private async Task HandleSubscriptionUpdatedAsync(Subscription subscription)
         {
             // Handle subscription updates
             var status = subscription.Status;
             await UpdateSubscriptionStatusAsync(subscription.Id, status, subscription.CustomerId);
         }
 
-        private async Task HandleSubscriptionDeletedAsync(Stripe.Subscription subscription)
+        private async Task HandleSubscriptionDeletedAsync(Subscription subscription)
         {
             // Handle subscription cancellation
             await UpdateSubscriptionStatusAsync(subscription.Id, "cancelled", subscription.CustomerId);
         }
 
-        private async Task HandlePaymentSucceededAsync(Stripe.Invoice invoice)
+        private async Task HandlePaymentSucceededAsync(Invoice invoice)
         {
             // Handle successful payment
             if (invoice.SubscriptionId != null)
@@ -326,7 +328,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        private async Task HandlePaymentFailedAsync(Stripe.Invoice invoice)
+        private async Task HandlePaymentFailedAsync(Invoice invoice)
         {
             // Handle failed payment
             if (invoice.SubscriptionId != null)
@@ -726,7 +728,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 CostPerGB = 0
             }
         };
-
     }
 
         private int GetRequestLimit(string planType)
@@ -858,5 +859,5 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             public bool Enabled { get; set; }
         }
-
     }
+}
