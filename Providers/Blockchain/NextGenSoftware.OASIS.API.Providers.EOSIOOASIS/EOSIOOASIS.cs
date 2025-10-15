@@ -2786,7 +2786,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Search for holons by metadata using EOSIO repository
-                var holons = await _holonRepository.LoadHolonsByMetaDataAsync(metaKey, metaValue, type);
+                var holons = await _holonRepository.ReadAllByMetaData(metaKey, metaValue, type);
                 
                 if (holons != null && holons.Any())
                 {
@@ -2836,7 +2836,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Search for holons by multiple metadata key-value pairs using EOSIO repository
-                var holons = await _holonRepository.LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
+                var holons = await _holonRepository.ReadAllByMetaData(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
                 
                 if (holons != null && holons.Any())
                 {
