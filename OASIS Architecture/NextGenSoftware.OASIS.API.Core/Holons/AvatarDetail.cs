@@ -106,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         // A record of all the karma the user has earnt/lost along with when and where from.
         public IList<IKarmaAkashicRecord> KarmaAkashicRecords { get; set; }
 
-        public async Task<OASISResult<KarmaAkashicRecord>> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        public async Task<OASISResult<KarmaAkashicRecord>> KarmaEarntAsync(KarmaTypePositive karmaType, Enums.KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
             KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
@@ -120,7 +120,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return new OASISResult<KarmaAkashicRecord>(record);
         }
 
-        public OASISResult<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        public OASISResult<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, Enums.KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
             KarmaAkashicRecord record = AddKarmaToAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
@@ -134,7 +134,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return new OASISResult<KarmaAkashicRecord>(record);
         }
 
-        public async Task<OASISResult<KarmaAkashicRecord>> KarmaLostAsync(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        public async Task<OASISResult<KarmaAkashicRecord>> KarmaLostAsync(KarmaTypeNegative karmaType, Enums.KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
             KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 
@@ -148,7 +148,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return new OASISResult<KarmaAkashicRecord>(record);
         }
 
-        public OASISResult<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
+        public OASISResult<KarmaAkashicRecord> KarmaLost(KarmaTypeNegative karmaType, Enums.KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0)
         {
             KarmaAkashicRecord record = RemoveKarmaFromAkashicRecord(karmaType, karmaSourceType, karamSourceTitle, karmaSourceDesc, webLink, karmaOverride);
 

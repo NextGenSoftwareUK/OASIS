@@ -25,7 +25,6 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Mythic,
         Divine,
         Infernal,
-        Celestial,
         Void,
         Shadow,
         Light,
