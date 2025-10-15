@@ -1709,9 +1709,9 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         #region IOASISNETProvider Implementation
 
-        public OASISResult<IEnumerable<IPlayer>> GetPlayersNearMe()
+        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radius)
         {
-            var response = new OASISResult<IEnumerable<IPlayer>>();
+            var response = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
                 // REAL Neo4j implementation for getting players near me
@@ -1729,17 +1729,17 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     var result = session.RunAsync(query, parameters).Result;
                     var records = result.ToListAsync().Result;
                     
-                    var players = new List<IPlayer>();
+                    var players = new List<IAvatar>();
                     foreach (var record in records)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
                         
-                        players.Add(new AvatarDetail
+                        players.Add(new Avatar
                         {
                             Id = Guid.Parse(node["Id"].As<string>()),
                             Username = node["Username"].As<string>(),
                             Email = node["Email"].As<string>()
-                        } as IPlayer);
+                        } as IAvatar);
                     }
                     
                     response.Result = players;
@@ -1755,7 +1755,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             return response;
         }
 
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType holonType = HolonType.All)
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radius, HolonType holonType = HolonType.All)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
