@@ -703,7 +703,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
             }
 
-            if (string.IsNullOrEmpty(transactionHash))
+            if (!string.IsNullOrEmpty(transactionHash))
             {
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 
@@ -2071,7 +2071,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return result;
             }
 
-            result.Result = holonsData.Result;
+            result.Result = holonsData.Result?.Select(h => h.GetHolon());
             result.IsError = false;
             result.Message = $"Successfully exported {holonsData.Result?.Count() ?? 0} holons from Solana";
         }
@@ -2129,7 +2129,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
                 return result;
             }
 
-            result.Result = transactionResult;
+            result.Result = transactionResult.Result.TransactionHash;
             result.IsError = false;
             result.Message = "Transaction sent successfully";
         }
