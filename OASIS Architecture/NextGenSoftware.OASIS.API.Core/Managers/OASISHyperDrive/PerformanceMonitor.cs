@@ -465,5 +465,111 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 LoggingManager.Logger.Log($"Error updating metrics for {providerType.Name}: {ex.Message}", LogType.Error);
             }
         }
+
+        /// <summary>
+        /// Gets current costs for a provider
+        /// </summary>
+        public decimal GetProviderCosts(ProviderType providerType)
+        {
+            lock (_lockObject)
+            {
+                if (_costAnalysis.TryGetValue(providerType, out var costAnalysis))
+                {
+                    return (decimal)costAnalysis.TotalCost;
+                }
+                
+                // Return default cost based on provider type
+                return providerType switch
+                {
+                    ProviderType.SQLLiteDBOASIS => 0.01m,
+                    ProviderType.MongoDBOASIS => 0.05m,
+                    ProviderType.AzureCosmosDBOASIS => 0.10m,
+                    ProviderType.Neo4jOASIS => 0.08m,
+                    ProviderType.AWSOASIS => 0.12m,
+                    ProviderType.GoogleCloudOASIS => 0.11m,
+                    _ => 0.05m
+                };
+            }
+        }
+
+        /// <summary>
+        /// Gets cost history for a provider over specified days
+        /// </summary>
+        public List<decimal> GetProviderCostHistory(ProviderType providerType, int days)
+        {
+            lock (_lockObject)
+            {
+                var history = new List<decimal>();
+                var cutoffDate = DateTime.UtcNow.AddDays(-days);
+                
+                // Get historical cost data from request history
+                if (_requestHistory.TryGetValue(providerType, out var requestQueue))
+                {
+                    var relevantRequests = requestQueue
+                        .Where(timestamp => timestamp >= cutoffDate)
+                        .OrderBy(timestamp => timestamp)
+                        .ToList();
+
+                    // Group by day and calculate daily costs
+                    var dailyGroups = relevantRequests
+                        .GroupBy(timestamp => timestamp.Date)
+                        .OrderBy(g => g.Key);
+
+                    foreach (var dayGroup in dailyGroups)
+                    {
+                        // Calculate daily cost based on request count and provider type
+                        var requestCount = dayGroup.Count();
+                        var baseCost = GetProviderCosts(providerType);
+                        var dailyCost = baseCost * requestCount;
+                        history.Add(dailyCost);
+                    }
+                }
+
+                return history;
+            }
+        }
+
+        /// <summary>
+        /// Gets cost growth rate for a provider
+        /// </summary>
+        public decimal GetProviderCostGrowthRate(ProviderType providerType)
+        {
+            lock (_lockObject)
+            {
+                var recentCosts = GetProviderCostHistory(providerType, 30);
+                if (recentCosts.Count < 2) return 0m;
+
+                var firstWeek = recentCosts.Take(7).Average();
+                var lastWeek = recentCosts.TakeLast(7).Average();
+
+                if (firstWeek == 0) return 0m;
+
+                return (decimal)((lastWeek - firstWeek) / firstWeek);
+            }
+        }
+
+        /// <summary>
+        /// Sets cost limit for a provider
+        /// </summary>
+        public void SetProviderCostLimit(ProviderType providerType, decimal limit)
+        {
+            lock (_lockObject)
+            {
+                if (_costAnalysis.TryGetValue(providerType, out var costAnalysis))
+                {
+                    costAnalysis.TotalCost = (double)limit;
+                }
+                else
+                {
+                    _costAnalysis[providerType] = new CostAnalysis
+                    {
+                        ProviderType = providerType,
+                        TotalCost = (double)limit,
+                        LastUpdated = DateTime.UtcNow
+                    };
+                }
+            }
+        }
+
     }
 }
