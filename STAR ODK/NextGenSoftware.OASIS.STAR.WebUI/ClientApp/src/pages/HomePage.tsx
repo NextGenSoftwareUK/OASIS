@@ -95,7 +95,7 @@ const HomePage: React.FC = () => {
     },
     {
       icon: <Apps sx={{ fontSize: 40, color: '#e91e63' }} />,
-      title: 'STARNETHolons Linking',
+      title: 'STARNET Holons Linking',
       description: 'Revolutionary linking system - any STARNETHolon can be connected to any other STARNETHolon as dependencies',
     },
     {
@@ -121,7 +121,7 @@ const HomePage: React.FC = () => {
     {
       icon: <Public sx={{ fontSize: 40, color: '#ff5722' }} />,
       title: 'Cross-Platform Universal System',
-      description: 'ALL STARNETHolons can be shared across ANY OAPP (apps, games, sites, services, platforms) with infinite use cases',
+      description: 'ALL STARNET Holons can be shared across ANY OAPP (apps, games, sites, services, platforms) with infinite use cases',
     },
     {
       icon: <Terminal sx={{ fontSize: 40, color: '#795548' }} />,
@@ -211,7 +211,7 @@ const HomePage: React.FC = () => {
                   whileHover={{ scale: 1.05 }}
                 >
                   <img 
-                    src="/star-logo.png" 
+                    src="/star-logo-1.png" 
                     alt="STAR Logo" 
                     style={{ 
                       maxWidth: '300px', 
@@ -351,7 +351,7 @@ const HomePage: React.FC = () => {
             </Typography>
             
             <Typography variant="h6" align="center" color="text.secondary" sx={{ mb: 6 }}>
-              ALL STARNETHolons can be shared across ANY OAPP (apps, games, sites, services, platforms, etc.) - 
+              ALL STARNET Holons can be shared across ANY OAPP (apps, games, sites, services, platforms, etc.) - 
               creating infinite possibilities for games, businesses, shops, e-commerce, finance, education, healthcare, and everything else!
             </Typography>
             
@@ -403,12 +403,12 @@ const HomePage: React.FC = () => {
         </Container>
       </Box>
 
-      {/* STARNETHolons Section */}
+      {/* STARNET Holons Section */}
       <Box sx={{ py: 12, bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
           <motion.div variants={itemVariants}>
             <Typography variant="h4" align="center" gutterBottom sx={{ mb: 8, fontWeight: 'bold' }}>
-              STARNETHolons - The Building Blocks of the Metaverse
+              STARNET Holons - The Building Blocks of the Metaverse
             </Typography>
             
             <Typography variant="h6" align="center" color="text.secondary" sx={{ mb: 6 }}>
@@ -428,11 +428,11 @@ const HomePage: React.FC = () => {
                 { name: 'Missions', description: 'Mission Objectives', icon: <FlightTakeoff />, color: '#f44336' },
                 { name: 'Chapters', description: 'Story Chapters', icon: <MenuBook />, color: '#795548' },
                 { name: 'Inventory Items', description: 'Game Items & Rewards', icon: <Inventory />, color: '#607d8b' },
-                { name: 'Celestial Spaces', description: 'Virtual Environments', icon: <Public />, color: '#00bcd4' },
-                { name: 'Celestial Bodies', description: 'Planets & Moons', icon: <SpaceDashboard />, color: '#3f51b5' },
+                { name: 'Celestial Spaces', description: 'MagicVerses, Superverses, Multiverses, Universes, Galaxies, Solar Systems & More!', icon: <Public />, color: '#00bcd4' },
+                { name: 'Celestial Bodies', description: 'Stars, Planets, Moons & More!', icon: <SpaceDashboard />, color: '#3f51b5' },
                 { name: 'Zomes', description: 'Holochain Zomes', icon: <Memory />, color: '#e91e63' },
                 { name: 'Holons', description: 'Basic Data Structures', icon: <DataObject />, color: '#009688' },
-                { name: 'MetaDataDNA', description: 'DNA Metadata', icon: <Code />, color: '#ff5722' },
+                { name: 'MetaData DNA', description: 'DNA Metadata', icon: <Code />, color: '#ff5722' },
               ].map((holon, index) => (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
                   <motion.div
@@ -468,21 +468,21 @@ const HomePage: React.FC = () => {
               ))}
             </Grid>
             
-            <Box sx={{ mt: 6, textAlign: 'center' }}>
-              <Typography variant="h6" gutterBottom>
-                Example Linkings - Infinite Possibilities:
-              </Typography>
-              <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap">
-                <Chip label="Quest + GeoNFT" color="primary" />
-                <Chip label="OAPP + NFT" color="secondary" />
-                <Chip label="Mission + Inventory Items" color="success" />
-                <Chip label="GeoHotSpot + Quest" color="warning" />
-                <Chip label="Template + Library" color="info" />
-                <Chip label="Runtime + Zome" color="error" />
-                <Chip label="Celestial Space + Celestial Body" color="primary" />
-                <Chip label="Any STARNETHolon + Any STARNETHolon!" color="secondary" />
-              </Stack>
-            </Box>
+            {/*<Box sx={{ mt: 6, textAlign: 'center' }}>*/}
+            {/*  <Typography variant="h6" gutterBottom>*/}
+            {/*    Example Linkings - Infinite Possibilities:*/}
+            {/*  </Typography>*/}
+            {/*  <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap">*/}
+            {/*    <Chip label="Quest + GeoNFT" color="primary" />*/}
+            {/*    <Chip label="OAPP + NFT" color="secondary" />*/}
+            {/*    <Chip label="Mission + Inventory Items" color="success" />*/}
+            {/*    <Chip label="GeoHotSpot + Quest" color="warning" />*/}
+            {/*    <Chip label="Template + Library" color="info" />*/}
+            {/*    <Chip label="Runtime + Zome" color="error" />*/}
+            {/*    <Chip label="Celestial Space + Celestial Body" color="primary" />*/}
+            {/*    <Chip label="Any STARNETHolon + Any STARNETHolon!" color="secondary" />*/}
+            {/*  </Stack>*/}
+            {/*</Box>*/}
           </motion.div>
         </Container>
       </Box>
@@ -603,7 +603,7 @@ const HomePage: React.FC = () => {
                     Drag-and-drop OAPP builder, asset management, and publishing platform.
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
-                    <Chip label="App Store" size="small" />
+                    <Chip label="App/Asset/STARNET Holon Store" size="small" />
                     <Chip label="OAPP Builder" size="small" />
                     <Chip label="Asset Management" size="small" />
                     <Chip label="Publishing Platform" size="small" />
@@ -627,9 +627,10 @@ const HomePage: React.FC = () => {
                   </Typography>
                   <Stack direction="row" spacing={1} flexWrap="wrap">
                     <Chip label="STAR CLI" size="small" />
-                    <Chip label="DNA System" size="small" />
+                    <Chip label="DNA/STARNET (Holon) System" size="small" />
                     <Chip label="Dependencies" size="small" />
                     <Chip label="Developer Tools" size="small" />
+                    <Chip label="CLI To The OASIS" size="small" />
                   </Stack>
                 </Paper>
               </Grid>
@@ -649,7 +650,7 @@ const HomePage: React.FC = () => {
               <Typography variant="h6" sx={{ mb: 6, opacity: 0.9 }}>
                 Join the OASIS ecosystem and be part of the first universal Web4/Web5 infrastructure 
                 that connects everything to everything. Use STAR CLI and STARNET Web UI to build OAPPs, 
-                link ALL STARNETHolons as dependencies, manage assets, earn karma, and shape the future of 
+                link ALL STARNET Holons as dependencies, manage assets, earn karma, and shape the future of 
                 games, businesses, shops, e-commerce, finance, education, healthcare, and everything else!
               </Typography>
               <Stack direction="row" spacing={2} justifyContent="center">
