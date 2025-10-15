@@ -1129,7 +1129,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     try
                     {
                         // Real Pinata implementation: Download and parse the file content
-                        var content = await _pinataService.GetFileContentAsync(file.IpfsHash);
+                        var content = await _pinataService.GetFileContentAsync(file.IpfsPinHash);
                         var holon = JsonConvert.DeserializeObject<Holon>(content);
                         
                         if (holon != null && MatchesSearchCriteria(holon, searchParams))
@@ -1320,7 +1320,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     try
                     {
                         // Real Pinata implementation: Get file content from Pinata IPFS
-                        var content = await _pinataService.GetFileContentAsync(file.IpfsHash);
+                        var content = await _pinataService.GetFileContentAsync(file.IpfsPinHash);
                         var holon = JsonConvert.DeserializeObject<Holon>(content);
                         
                         if (holon != null && holon.ParentHolonId == id && 
