@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -243,8 +246,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("authenticate-token/{JWTToken}")]
         public async Task<OASISHttpResponseMessage<string>> Authenticate(string JWTToken)
         {
-            // TODO: Implement ValidateAccountTokenAsync in AvatarManager or use alternative method
-            return HttpResponseHelper.FormatResponse(new OASISResult<string> { IsError = true, Message = "ValidateAccountTokenAsync not yet implemented in AvatarManager" });
+            // Use AvatarManager for JWT token validation
+            var result = AvatarManager.ValidateAccountToken(JWTToken);
+            return HttpResponseHelper.FormatResponse(result);
         }
 
         /// <summary>
@@ -429,13 +433,86 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
+        // OBSOLETE: Create method is deprecated - use Register endpoint instead
+        /*
         [Authorize(AvatarType.Wizard)]
         [HttpPost("create/{model}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> Create(CreateRequest model)
         {
-            // TODO: Replace with AvatarManager equivalent
-            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "AvatarService.Create not yet migrated to AvatarManager" });
+            try
+            {
+                // Validate required fields
+                if (string.IsNullOrEmpty(model.Username) || string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password))
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> 
+                    { 
+                        IsError = true, 
+                        Message = "Username, email, and password are required" 
+                    });
+                }
+
+                // Check if username already exists
+                var existingAvatar = await Program.AvatarManager.LoadAvatarAsync(model.Username);
+                if (existingAvatar.Result != null)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> 
+                    { 
+                        IsError = true, 
+                        Message = "Username already exists" 
+                    });
+                }
+
+                // Check if email already exists
+                var existingAvatarByEmail = await Program.AvatarManager.LoadAvatarByEmailAsync(model.Email);
+                if (existingAvatarByEmail.Result != null)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> 
+                    { 
+                        IsError = true, 
+                        Message = "Email already exists" 
+                    });
+                }
+
+                // Create new avatar
+                var avatar = new Avatar
+                {
+                    Username = model.Username,
+                    Email = model.Email,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Password = model.Password,
+                    AvatarType = !string.IsNullOrEmpty(model.AvatarType) ? new EnumValue<AvatarType>(Enum.Parse<AvatarType>(model.AvatarType)) : new EnumValue<AvatarType>(AvatarType.User),
+                    CreatedDate = DateTime.UtcNow
+                };
+
+                // Save avatar - convert to IAvatar interface
+                var result = await Program.AvatarManager.SaveAvatarAsync((IAvatar)avatar);
+                
+                if (result.IsError)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> 
+                    { 
+                        IsError = true, 
+                        Message = result.Message 
+                    });
+                }
+
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> 
+                { 
+                    Result = result.Result, 
+                    IsError = false 
+                });
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> 
+                { 
+                    IsError = true, 
+                    Message = $"Failed to create avatar: {ex.Message}" 
+                });
+            }
         }
+        */
 
         /// <summary>
         ///     Allows a Wizard(Admin) to create new avatars including other wizards.
@@ -447,6 +524,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerType"></param>
         /// <param name="setGlobally"></param>
         /// <returns></returns>
+        // OBSOLETE: Create method is deprecated - use Register endpoint instead
+        /*
         [Authorize(AvatarType.Wizard)]
         [HttpPost("create/{model}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> Create(CreateRequest model, ProviderType providerType,
@@ -455,6 +534,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await Create(model);
         }
+        */
 
         /// <summary>
         /// Get's the terms &amp; services agreement for creating an avatar and joining the OASIS.
@@ -1104,8 +1184,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            // TODO: Convert UpdateRequest to IAvatarDetail or use different method
-            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "UpdateRequest to IAvatarDetail conversion not yet implemented" });
+            // Use AvatarManager for business logic
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.Update(id, avatar));
         }
 
         /// <summary>
@@ -1144,8 +1224,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            // TODO: Convert UpdateRequest to IAvatarDetail or use different method
-            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "UpdateRequest to IAvatarDetail conversion not yet implemented" });
+            // Use AvatarManager for business logic
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.UpdateByEmail(email, avatar));
         }
 
         /// <summary>
@@ -1180,8 +1260,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
-            // TODO: Convert UpdateRequest to IAvatarDetail or use different method
-            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "UpdateRequest to IAvatarDetail conversion not yet implemented" });
+            // Use AvatarManager for business logic
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.UpdateByUsername(username, avatar));
         }
 
         /// <summary>
