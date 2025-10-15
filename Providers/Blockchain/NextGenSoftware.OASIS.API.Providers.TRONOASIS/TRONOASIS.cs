@@ -1317,37 +1317,44 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 // Query TRON blockchain for all GeoNFTs owned by this address
-                var geoNFTsData = await _httpClient.GetStringAsync($"{TRON_API_BASE_URL}/geo-nfts/{walletResult.Result}");
-                if (geoNFTsData.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading GeoNFTs from TRON: {geoNFTsData.Message}");
-                    return result;
-                }
+                var responseJson = await _httpClient.GetStringAsync($"{TRON_API_BASE_URL}/geo-nfts/{(walletResult.Result?.WalletAddress ?? walletResult.Result?.ToString())}");
+                var geoArray = Newtonsoft.Json.Linq.JArray.Parse(responseJson);
 
                 var geoNFTs = new List<IOASISGeoSpatialNFT>();
-                foreach (var nftData in geoNFTsData.Result)
+                foreach (var item in geoArray)
                 {
+                    var title = item["name"]?.ToString() ?? "TRON GeoSpatial NFT";
+                    var description = item["description"]?.ToString() ?? string.Empty;
+                    var imageUrl = item["imageUrl"]?.ToString() ?? string.Empty;
+                    var tokenId = item["tokenId"]?.ToString() ?? string.Empty;
+                    var contractAddress = item["contractAddress"]?.ToString() ?? string.Empty;
+                    var ownerAddress = item["ownerAddress"]?.ToString() ?? string.Empty;
+                    var lat = item["latitude"] != null ? (long)(item["latitude"].Value<double>() * 1_000_000d) : 0L;
+                    var lon = item["longitude"] != null ? (long)(item["longitude"].Value<double>() * 1_000_000d) : 0L;
+                    var mintedOn = item["createdDate"] != null ? System.DateTime.Parse(item["createdDate"].ToString()) : System.DateTime.UtcNow;
+                    var importedOn = item["modifiedDate"] != null ? System.DateTime.Parse(item["modifiedDate"].ToString()) : System.DateTime.UtcNow;
+
                     var geoNFT = new OASISGeoSpatialNFT
                     {
-                        Id = nftData.Id,
-                        Title = nftData.Name,
-                        Description = nftData.Description,
-                        ImageUrl = nftData.ImageUrl,
-                        NFTTokenAddress = nftData.TokenId,
-                        OASISMintWalletAddress = nftData.ContractAddress,
-                        NFTMintedUsingWalletAddress = nftData.OwnerAddress,
-                        Lat = (long)(nftData.Latitude * 1000000), // Convert to microdegrees
-                        Long = (long)(nftData.Longitude * 1000000), // Convert to microdegrees
-                        MintedOn = nftData.CreatedDate,
-                        ImportedOn = nftData.ModifiedDate,
+                        Id = System.Guid.NewGuid(),
+                        Title = title,
+                        Description = description,
+                        ImageUrl = imageUrl,
+                        NFTTokenAddress = tokenId,
+                        OASISMintWalletAddress = contractAddress,
+                        NFTMintedUsingWalletAddress = ownerAddress,
+                        Lat = lat,
+                        Long = lon,
+                        MintedOn = mintedOn,
+                        ImportedOn = importedOn,
                         MetaData = new Dictionary<string, object>
                         {
-                            ["TRONContractAddress"] = nftData.ContractAddress,
-                            ["TRONOwnerAddress"] = nftData.OwnerAddress,
-                            ["TRONTokenId"] = nftData.TokenId,
-                            ["Latitude"] = nftData.Latitude,
-                            ["Longitude"] = nftData.Longitude,
-                            ["Altitude"] = nftData.Altitude,
+                            ["TRONContractAddress"] = contractAddress,
+                            ["TRONOwnerAddress"] = ownerAddress,
+                            ["TRONTokenId"] = tokenId,
+                            ["Latitude"] = item["latitude"]?.ToString(),
+                            ["Longitude"] = item["longitude"]?.ToString(),
+                            ["Altitude"] = item["altitude"]?.ToString(),
                             ["Provider"] = "TRONOASIS"
                         }
                     };
