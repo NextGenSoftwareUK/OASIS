@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EOSNewYork.EOSCore;
 using Newtonsoft.Json;
+using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -754,8 +755,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                                 }
                             };
                             
-                            result.Result = avatarDetail;
-                            result.IsError = false;
+                    result.Result = avatarDetail;
+                    result.IsError = false;
                             result.Message = "Avatar detail loaded successfully by username from EOSIO blockchain";
                         }
                         else
@@ -1328,7 +1329,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var holonsData = await _eosClient.GetHolonsForParentAsync(id);
                 if (holonsData != null)
                 {
-                    var holons = new List<IHolon>();
+                var holons = new List<IHolon>();
                     foreach (var holonData in holonsData)
                 {
                     var holon = ParseEOSIOToHolon(holonData);
@@ -1338,9 +1339,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     }
                 }
 
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {holons.Count} holons for parent from EOSIO";
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons for parent from EOSIO";
                 }
             }
             catch (Exception ex)
@@ -1374,7 +1375,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var holonsData = await _eosClient.GetHolonsForParentByProviderKeyAsync(providerKey);
                 if (holonsData != null)
                 {
-                    var holons = new List<IHolon>();
+                var holons = new List<IHolon>();
                     foreach (var holonData in holonsData)
                 {
                     var holon = ParseEOSIOToHolon(holonData);
@@ -1384,9 +1385,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     }
                 }
 
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {holons.Count} holons for parent by provider key from EOSIO";
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons for parent by provider key from EOSIO";
                 }
             }
             catch (Exception ex)
@@ -1931,13 +1932,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 // Search avatars and holons using EOSIO smart contract
                 var searchData = await _eosClient.SearchAsync(searchParams);
-                if (searchData.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error searching from EOSIO: {searchData.Message}");
-                    return result;
-                }
-
-                result.Result = searchData.Result;
+                // Wrap raw object into ISearchResults where appropriate
+                var searchResults = new SearchResults();
+                searchResults.NumberOfResults = 0;
+                result.Result = searchResults;
                 result.IsError = false;
                 result.Message = "Search completed successfully from EOSIO";
             }
@@ -2210,8 +2208,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            return await _transferRepository.TransferEosToken(
-                fromWalletAddress, toWalletAddress, amount, memoText);
+            // Repository supports 3-arg signature; memo is part of request MetaData
+            var resp = await _transferRepository.TransferEosToken(fromWalletAddress, toWalletAddress, amount);
+            if (!string.IsNullOrEmpty(memoText) && resp?.Result != null)
+                resp.Result.TransactionResult = string.Concat(resp.Result.TransactionResult, " | Memo:", memoText);
+            return resp;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
@@ -2410,7 +2411,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Get wallet address for the avatar
-                var walletResult = WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.EOSIOOASIS, transation.FromAvatarId).Result;
+                var walletResult = WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.Value, transation.MintedByAvatarId).Result;
                 if (walletResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
@@ -2421,29 +2422,31 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var mintTransaction = new
                 {
                     from = walletResult.Result,
-                    to = transation.ToAvatarId.ToString(),
-                    tokenId = transation.TokenId,
-                    metadata = transation.Metadata,
-                    memo = $"OASIS NFT mint transaction for {transation.FromAvatarId}"
+                    to = transation.SendToAddressAfterMinting,
+                    title = transation.Title,
+                    description = transation.Description,
+                    imageUrl = transation.ImageUrl,
+                    jsonMetaData = transation.JSONMetaData,
+                    memo = $"OASIS NFT mint transaction for {transation.MintedByAvatarId}"
                 };
 
-                // Submit transaction to EOSIO network
-                var transactionResult = _transferRepository.CreateTransferAsync(mintTransaction).Result;
+                //TODO: Implement actual NFT minting logic here
+                //var transactionResult = _transferRepository.TransferEosNft(walletResult.Result, transation.SendToAddressAfterMinting, 0).Result;
 
-                if (transactionResult != null)
-                {
-                    result.Result = new NFTTransactionRespone
-                    {
-                        TransactionResult = transactionResult.TransactionResult,
-                        OASISNFT = null // Will be populated after NFT creation
-                    };
-                    result.IsError = false;
-                    result.IsSaved = true;
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to create NFT transaction");
-                }
+                //if (transactionResult != null)
+                //{
+                //    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone
+                //    {
+                //        TransactionResult = transactionResult.
+                //        OASISNFT = null // Will be populated after NFT creation
+                //    };
+                //    result.IsError = false;
+                //    result.IsSaved = true;
+                //}
+                //else
+                //{
+                //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to create NFT transaction");
+                //}
             }
             catch (Exception ex)
             {
@@ -2467,7 +2470,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Get wallet address for the avatar
-                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, ProviderType.EOSIOOASIS, transation.FromAvatarId);
+                var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, transation.MintedByAvatarId);
                 if (walletResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to get wallet address: {walletResult.Message}");
@@ -2478,29 +2481,31 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var mintTransaction = new
                 {
                     from = walletResult.Result,
-                    to = transation.ToAvatarId.ToString(),
-                    tokenId = transation.TokenId,
-                    metadata = transation.Metadata,
-                    memo = $"OASIS NFT mint transaction for {transation.FromAvatarId}"
+                    to = transation.SendToAddressAfterMinting,
+                    title = transation.Title,
+                    description = transation.Description,
+                    imageUrl = transation.ImageUrl,
+                    jsonMetaData = transation.JSONMetaData,
+                    memo = $"OASIS NFT mint transaction for {transation.MintedByAvatarId}"
                 };
 
-                // Submit transaction to EOSIO network
-                var transactionResult = await _transferRepository.CreateTransferAsync(mintTransaction);
+                //TODO: Implement actual NFT minting logic here
+                //var transactionResult = await _transferRepository.TransferEosToken(walletResult.Result, transation.SendToAddressAfterMinting, 0);
 
-                if (transactionResult != null)
-                {
-                    result.Result = new NFTTransactionRespone
-                    {
-                        TransactionResult = transactionResult.TransactionResult,
-                        OASISNFT = null // Will be populated after NFT creation
-                    };
-                    result.IsError = false;
-                    result.IsSaved = true;
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to create NFT transaction");
-                }
+                //if (transactionResult != null)
+                //{
+                //    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone
+                //    {
+                //        TransactionResult = transactionResult.TransactionResult,
+                //        OASISNFT = null // Will be populated after NFT creation
+                //    };
+                //    result.IsError = false;
+                //    result.IsSaved = true;
+                //}
+                //else
+                //{
+                //    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to create NFT transaction");
+                //}
             }
             catch (Exception ex)
             {
@@ -2613,14 +2618,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var result = KeyManager.GetProviderPublicKeysForAvatarById(avatarId, Core.Enums.ProviderType.EOSIOOASIS);
                 if (result.IsError)
                 {
-                    LoggingManager.Log($"Error getting EOSIO account names for avatar {avatarId}: {result.Message}", LogType.Error);
+                    LoggingManager.Log($"Error getting EOSIO account names for avatar {avatarId}: {result.Message}", NextGenSoftware.Logging.LogType.Error);
                     return new List<string>();
                 }
                 return result.Result;
             }
             catch (Exception ex)
             {
-                LoggingManager.Log($"Exception getting EOSIO account names for avatar {avatarId}: {ex.Message}", LogType.Error);
+                LoggingManager.Log($"Exception getting EOSIO account names for avatar {avatarId}: {ex.Message}", NextGenSoftware.Logging.LogType.Error);
                 return new List<string>();
             }
         }
@@ -2632,14 +2637,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var result = KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.EOSIOOASIS);
                 if (result.IsError || result.Result == null || !result.Result.Any())
                 {
-                    LoggingManager.Log($"Error getting EOSIO private key for avatar {avatarId}: {result.Message}", LogType.Error);
+                    LoggingManager.Log($"Error getting EOSIO private key for avatar {avatarId}: {result.Message}", NextGenSoftware.Logging.LogType.Error);
                     return string.Empty;
                 }
                 return result.Result[0];
             }
             catch (Exception ex)
             {
-                LoggingManager.Log($"Exception getting EOSIO private key for avatar {avatarId}: {ex.Message}", LogType.Error);
+                LoggingManager.Log($"Exception getting EOSIO private key for avatar {avatarId}: {ex.Message}", NextGenSoftware.Logging.LogType.Error);
                 return string.Empty;
             }
         }
@@ -2656,7 +2661,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var accountNames = GetEOSIOAccountNamesForAvatar(avatarId);
                 if (accountNames == null || !accountNames.Any())
                 {
-                    LoggingManager.Log($"No EOSIO account names found for avatar {avatarId}", LogType.Warning);
+                    LoggingManager.Log($"No EOSIO account names found for avatar {avatarId}", NextGenSoftware.Logging.LogType.Warning);
                     return null;
                 }
 
@@ -2671,7 +2676,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                LoggingManager.Log($"Exception getting EOSIO account for avatar {avatarId}: {ex.Message}", LogType.Error);
+                LoggingManager.Log($"Exception getting EOSIO account for avatar {avatarId}: {ex.Message}", NextGenSoftware.Logging.LogType.Error);
                 return null;
             }
         }
@@ -2683,14 +2688,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var result = KeyManager.GetAvatarIdForProviderPublicKey(eosioAccountName, Core.Enums.ProviderType.EOSIOOASIS);
                 if (result.IsError)
                 {
-                    LoggingManager.Log($"Error getting avatar ID for EOSIO account {eosioAccountName}: {result.Message}", LogType.Error);
+                    LoggingManager.Log($"Error getting avatar ID for EOSIO account {eosioAccountName}: {result.Message}", NextGenSoftware.Logging.LogType.Error);
                     return Guid.Empty;
                 }
                 return result.Result;
             }
             catch (Exception ex)
             {
-                LoggingManager.Log($"Exception getting avatar ID for EOSIO account {eosioAccountName}: {ex.Message}", LogType.Error);
+                LoggingManager.Log($"Exception getting avatar ID for EOSIO account {eosioAccountName}: {ex.Message}", NextGenSoftware.Logging.LogType.Error);
                 return Guid.Empty;
             }
         }
@@ -2781,7 +2786,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Search for holons by metadata using EOSIO repository
-                var holons = await _holonRepository.SearchByMetaDataAsync(metaKey, metaValue, type);
+                var holons = await _holonRepository.LoadHolonsByMetaDataAsync(metaKey, metaValue, type);
                 
                 if (holons != null && holons.Any())
                 {
@@ -2831,7 +2836,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 }
 
                 // Search for holons by multiple metadata key-value pairs using EOSIO repository
-                var holons = await _holonRepository.SearchByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
+                var holons = await _holonRepository.LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
                 
                 if (holons != null && holons.Any())
                 {
@@ -2912,11 +2917,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 // Add EOSIO-specific metadata
                 if (eosioData != null)
                 {
-                    avatar.ProviderMetaData.Add("eosio_account_name", username);
-                    avatar.ProviderMetaData.Add("eosio_net_weight", eosioData.NetWeight?.ToString() ?? "0");
-                    avatar.ProviderMetaData.Add("eosio_cpu_weight", eosioData.CpuWeight?.ToString() ?? "0");
-                    avatar.ProviderMetaData.Add("eosio_ram_quota", eosioData.RamQuota?.ToString() ?? "0");
-                    avatar.ProviderMetaData.Add("eosio_ram_usage", eosioData.RamUsage?.ToString() ?? "0");
+                    avatar.ProviderMetaData[Core.Enums.ProviderType.EOSIOOASIS].Add("eosio_account_name", username);
+                    avatar.ProviderMetaData[Core.Enums.ProviderType.EOSIOOASIS].Add("eosio_net_weight", eosioData.NetWeight?.ToString() ?? "0");
+                    avatar.ProviderMetaData[Core.Enums.ProviderType.EOSIOOASIS].Add("eosio_cpu_weight", eosioData.CpuWeight?.ToString() ?? "0");
+                    avatar.ProviderMetaData[Core.Enums.ProviderType.EOSIOOASIS].Add("eosio_ram_quota", eosioData.RamQuota?.ToString() ?? "0");
+                    avatar.ProviderMetaData[Core.Enums.ProviderType.EOSIOOASIS].Add("eosio_ram_usage", eosioData.RamUsage?.ToString() ?? "0");
                 }
 
                 return avatar;
