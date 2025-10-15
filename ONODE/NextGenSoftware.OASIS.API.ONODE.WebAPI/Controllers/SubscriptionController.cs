@@ -494,7 +494,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 periodEnd = DateTime.UtcNow.AddDays(15)
             };
         }
-    }
 
     public class PlanDto
     {
