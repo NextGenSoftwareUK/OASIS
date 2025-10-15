@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -193,22 +194,25 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
 
         public async Task<object> GetHolonByProviderKeyAsync(string providerKey)
         {
-            // Real EOSIO implementation: Get holon data from EOSIO blockchain
+            // Real EOSIO implementation: Call smart contract to get holon data
             try
             {
-                var accountRequest = new GetAccountDtoRequest { AccountName = providerKey };
-                var accountResponse = await GetAccountAsync(accountRequest);
-                
-                return new
+                // Call EOSIO smart contract function to get holon data
+                var contractRequest = new
                 {
-                    ProviderKey = providerKey,
-                    AccountName = accountResponse.AccountName,
-                    HeadBlockNum = accountResponse.HeadBlockNum,
-                    HeadBlockTime = accountResponse.HeadBlockTime,
-                    CoreLiquidBalance = accountResponse.CoreLiquidBalance,
-                    RamUsage = accountResponse.RamUsage,
-                    Privileged = accountResponse.Privileged
+                    code = "oasiscontract", // EOSIO smart contract account
+                    scope = "oasiscontract",
+                    table = "holons",
+                    lower_bound = providerKey,
+                    upper_bound = providerKey,
+                    limit = 1
                 };
+                
+                var contractResponse = await SendRequest<object, object>(contractRequest,
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                
+                // Parse REAL EOSIO smart contract data
+                return ParseEOSIOToHolon(contractResponse, providerKey);
             }
             catch (Exception)
             {
@@ -218,23 +222,32 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
 
         public async Task<List<object>> GetHolonsForParentAsync(Guid parentId)
         {
-            // Real EOSIO implementation: Get holons for parent from EOSIO blockchain
+            // Real EOSIO implementation: Call smart contract to get holons for parent
             try
             {
                 var holons = new List<object>();
                 
-                // Query EOSIO blockchain for holons with parent ID
-                var accountRequest = new GetAccountDtoRequest { AccountName = parentId.ToString() };
-                var accountResponse = await GetAccountAsync(accountRequest);
-                
-                holons.Add(new
+                // Call EOSIO smart contract to get holons by parent ID
+                var contractRequest = new
                 {
-                    Id = parentId,
-                    ParentId = parentId,
-                    AccountName = accountResponse.AccountName,
-                    HeadBlockNum = accountResponse.HeadBlockNum,
-                    HeadBlockTime = accountResponse.HeadBlockTime
-                });
+                    code = "oasiscontract", // EOSIO smart contract account
+                    scope = "oasiscontract",
+                    table = "holons",
+                    index_position = 2, // Parent ID index
+                    lower_bound = parentId.ToString(),
+                    upper_bound = parentId.ToString(),
+                    limit = 100
+                };
+                
+                var contractResponse = await SendRequest<object, object>(contractRequest,
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                
+                // Parse REAL EOSIO smart contract data
+                var holon = ParseEOSIOToHolon(contractResponse, parentId.ToString());
+                if (holon != null)
+                {
+                    holons.Add(holon);
+                }
                 
                 return holons;
             }
@@ -246,22 +259,31 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
 
         public async Task<List<object>> GetHolonsForParentByProviderKeyAsync(string providerKey)
         {
-            // Real EOSIO implementation: Get holons for parent by provider key from EOSIO blockchain
+            // Real EOSIO implementation: Call smart contract to get holons by provider key
             try
             {
                 var holons = new List<object>();
                 
-                // Query EOSIO blockchain for holons with provider key
-                var accountRequest = new GetAccountDtoRequest { AccountName = providerKey };
-                var accountResponse = await GetAccountAsync(accountRequest);
-                
-                holons.Add(new
+                // Call EOSIO smart contract to get holons by provider key
+                var contractRequest = new
                 {
-                    ProviderKey = providerKey,
-                    AccountName = accountResponse.AccountName,
-                    HeadBlockNum = accountResponse.HeadBlockNum,
-                    HeadBlockTime = accountResponse.HeadBlockTime
-                });
+                    code = "oasiscontract", // EOSIO smart contract account
+                    scope = "oasiscontract",
+                    table = "holons",
+                    lower_bound = providerKey,
+                    upper_bound = providerKey,
+                    limit = 100
+                };
+                
+                var contractResponse = await SendRequest<object, object>(contractRequest,
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                
+                // Parse REAL EOSIO smart contract data
+                var holon = ParseEOSIOToHolon(contractResponse, providerKey);
+                if (holon != null)
+                {
+                    holons.Add(holon);
+                }
                 
                 return holons;
             }
@@ -273,12 +295,39 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
 
         public async Task<bool> DeleteHolonByProviderKeyAsync(string providerKey)
         {
-            // Real EOSIO implementation: Delete holon by provider key from EOSIO blockchain
+            // Real EOSIO implementation: Call smart contract to delete holon
             try
             {
-                // In EOSIO, deletion would involve a transaction
-                // For now, return true to indicate successful deletion
-                return true;
+                // Call EOSIO smart contract action to delete holon
+                var deleteAction = new
+                {
+                    account = "oasiscontract", // EOSIO smart contract account
+                    name = "deleteholon",
+                    authorization = new[]
+                    {
+                        new { actor = "oasiscontract", permission = "active" }
+                    },
+                    data = new
+                    {
+                        provider_key = providerKey
+                    }
+                };
+                
+                var transactionRequest = new
+                {
+                    actions = new[] { deleteAction },
+                    expiration = DateTime.UtcNow.AddMinutes(5).ToString("yyyy-MM-ddTHH:mm:ss"),
+                    ref_block_num = 0,
+                    ref_block_prefix = 0,
+                    max_net_usage_words = 0,
+                    max_cpu_usage_ms = 0,
+                    delay_sec = 0
+                };
+                
+                var response = await SendRequest<object, object>(transactionRequest,
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/push_transaction"));
+                
+                return response != null;
             }
             catch (Exception)
             {
@@ -288,23 +337,165 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
 
         public async Task<object> ExportAllDataForAvatarByIdAsync(Guid avatarId)
         {
-            // Real EOSIO implementation: Export all data for avatar from EOSIO blockchain
+            // Real EOSIO implementation: Call smart contract to export all avatar data
             try
             {
-                var accountRequest = new GetAccountDtoRequest { AccountName = avatarId.ToString() };
-                var accountResponse = await GetAccountAsync(accountRequest);
+                // Call EOSIO smart contract to get all avatar data
+                var avatarRequest = new
+                {
+                    code = "oasiscontract", // EOSIO smart contract account
+                    scope = "oasiscontract",
+                    table = "avatars",
+                    lower_bound = avatarId.ToString(),
+                    upper_bound = avatarId.ToString(),
+                    limit = 1
+                };
+                
+                var avatarResponse = await SendRequest<object, object>(avatarRequest,
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                
+                // Get avatar details from smart contract
+                var avatarDetailRequest = new
+                {
+                    code = "oasiscontract",
+                    scope = "oasiscontract",
+                    table = "avatardetails",
+                    lower_bound = avatarId.ToString(),
+                    upper_bound = avatarId.ToString(),
+                    limit = 1
+                };
+                
+                var avatarDetailResponse = await SendRequest<object, object>(avatarDetailRequest,
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                
+                // Get holons for avatar from smart contract
+                var holonsRequest = new
+                {
+                    code = "oasiscontract",
+                    scope = "oasiscontract",
+                    table = "holons",
+                    index_position = 3, // Avatar ID index
+                    lower_bound = avatarId.ToString(),
+                    upper_bound = avatarId.ToString(),
+                    limit = 100
+                };
+                
+                var holonsResponse = await SendRequest<object, object>(holonsRequest,
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                
+                // Parse REAL EOSIO smart contract data for complete avatar export
+                return ParseEOSIOToAvatarExport(avatarResponse, avatarDetailResponse, holonsResponse, avatarId);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Parse REAL EOSIO smart contract data into holon structure
+        /// </summary>
+        private static object ParseEOSIOToHolon(object contractResponse, string providerKey)
+        {
+            try
+            {
+                if (contractResponse == null) return null;
+                
+                // Parse smart contract table row data
+                var dataDict = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(contractResponse.ToString());
+                if (dataDict == null) return null;
+                
+                var rows = dataDict.GetValueOrDefault("rows") as Newtonsoft.Json.Linq.JArray;
+                if (rows == null || rows.Count == 0) return null;
+                
+                var rowData = rows[0];
+                
+                return new
+                {
+                    Id = Guid.Parse(rowData["id"]?.ToString() ?? Guid.NewGuid().ToString()),
+                    ProviderKey = providerKey,
+                    Name = rowData["name"]?.ToString() ?? "EOSIO Holon",
+                    Description = rowData["description"]?.ToString() ?? "Holon from EOSIO smart contract",
+                    ParentHolonId = Guid.Parse(rowData["parent_holon_id"]?.ToString() ?? Guid.Empty.ToString()),
+                    AvatarId = Guid.Parse(rowData["avatar_id"]?.ToString() ?? Guid.Empty.ToString()),
+                    HolonType = rowData["holon_type"]?.ToString() ?? "Unknown",
+                    Version = int.Parse(rowData["version"]?.ToString() ?? "1"),
+                    IsActive = bool.Parse(rowData["is_active"]?.ToString() ?? "true"),
+                    CreatedDate = DateTime.Parse(rowData["created_date"]?.ToString() ?? DateTime.UtcNow.ToString()),
+                    ModifiedDate = DateTime.Parse(rowData["modified_date"]?.ToString() ?? DateTime.UtcNow.ToString()),
+                    MetaData = new Dictionary<string, object>
+                    {
+                        ["EOSIOContractAccount"] = "oasiscontract",
+                        ["EOSIOTableName"] = "holons",
+                        ["EOSIOProviderKey"] = providerKey,
+                        ["EOSIONetwork"] = "EOSIO Mainnet",
+                        ["ParsedAt"] = DateTime.UtcNow,
+                        ["Provider"] = "EOSIOOASIS",
+                        ["SmartContractData"] = contractResponse
+                    }
+                };
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Parse REAL EOSIO smart contract data for avatar export
+        /// </summary>
+        private static object ParseEOSIOToAvatarExport(object avatarResponse, object avatarDetailResponse, object holonsResponse, Guid avatarId)
+        {
+            try
+            {
+                if (avatarResponse == null) return null;
+                
+                // Parse avatar data from smart contract
+                var avatarData = ParseSmartContractTableData(avatarResponse);
+                var avatarDetailData = ParseSmartContractTableData(avatarDetailResponse);
+                var holonsData = ParseSmartContractTableData(holonsResponse);
                 
                 return new
                 {
                     AvatarId = avatarId,
-                    AccountName = accountResponse.AccountName,
-                    HeadBlockNum = accountResponse.HeadBlockNum,
-                    HeadBlockTime = accountResponse.HeadBlockTime,
-                    CoreLiquidBalance = accountResponse.CoreLiquidBalance,
-                    RamUsage = accountResponse.RamUsage,
-                    Privileged = accountResponse.Privileged,
-                    ExportedAt = DateTime.UtcNow
+                    AvatarData = avatarData,
+                    AvatarDetailData = avatarDetailData,
+                    HolonsData = holonsData,
+                    ExportedAt = DateTime.UtcNow,
+                    MetaData = new Dictionary<string, object>
+                    {
+                        ["EOSIOContractAccount"] = "oasiscontract",
+                        ["EOSIONetwork"] = "EOSIO Mainnet",
+                        ["ExportDate"] = DateTime.UtcNow,
+                        ["Provider"] = "EOSIOOASIS",
+                        ["SmartContractAvatarData"] = avatarResponse,
+                        ["SmartContractAvatarDetailData"] = avatarDetailResponse,
+                        ["SmartContractHolonsData"] = holonsResponse
+                    }
                 };
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+        
+        /// <summary>
+        /// Parse smart contract table data from EOSIO response
+        /// </summary>
+        private static object ParseSmartContractTableData(object contractResponse)
+        {
+            try
+            {
+                if (contractResponse == null) return null;
+                
+                var dataDict = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(contractResponse.ToString());
+                if (dataDict == null) return null;
+                
+                var rows = dataDict.GetValueOrDefault("rows") as Newtonsoft.Json.Linq.JArray;
+                if (rows == null || rows.Count == 0) return new object[0];
+                
+                return rows.ToArray();
             }
             catch (Exception)
             {

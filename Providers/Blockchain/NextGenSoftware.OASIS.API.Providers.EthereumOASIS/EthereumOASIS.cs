@@ -1878,17 +1878,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     var avatar = ParseEthereumToAvatar(avatarData, avatarEmail);
                     if (avatar == null)
                     {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse avatar data from Ethereum smart contract");
-                        return response;
+                        OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Ethereum smart contract");
+                        return result;
                     }
                     
-                    response.Result = avatar;
-                    response.IsError = false;
-                    response.Message = "Avatar loaded successfully by email from Ethereum blockchain";
+                    result.Result = avatar;
+                    result.IsError = false;
+                    result.Message = "Avatar loaded successfully by email from Ethereum blockchain";
                 }
                 catch (Exception ex)
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Error loading avatar by email from Ethereum: {ex.Message}", ex);
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Ethereum: {ex.Message}", ex);
                 }
             }
             catch (Exception ex)
