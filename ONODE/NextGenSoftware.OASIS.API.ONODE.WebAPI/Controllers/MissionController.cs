@@ -1,176 +1,81 @@
-﻿//using System;
-//using System.Threading.Tasks;
-//using Microsoft.AspNetCore.Cors;
-//using Microsoft.AspNetCore.Mvc;
-//using NextGenSoftware.OASIS.API.Core.Enums;
-//using NextGenSoftware.OASIS.API.Core.Helpers;
-//using NextGenSoftware.OASIS.API.Core.Holons;
-//using NextGenSoftware.OASIS.API.Core.Interfaces;
-//using NextGenSoftware.OASIS.API.Core.Managers;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Common;
 
-//namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
-//{
-//    [Route("api/mission")]
-//    [ApiController]
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
+{
+    [ApiController]
+    [Route("api/mission")]
+    public class MissionController : OASISControllerBase
+    {
+        public MissionController()
+        {
+        }
 
-//    //[EnableCors(origins: "http://mywebclient.azurewebsites.net", headers: "*", methods: "*")]
-//    [EnableCors()]
-//    public class MissionController : OASISControllerBase
-//    {
-//        private MissionManager _missionManager;
+        /// <summary>
+        /// Get available missions for the current avatar
+        /// </summary>
+        /// <param name="type">Optional mission type filter</param>
+        /// <param name="difficulty">Optional difficulty filter</param>
+        /// <returns>List of available missions</returns>
+        [Authorize]
+        [HttpGet("available")]
+        public async Task<OASISResult<List<Mission>>> GetAvailableMissions([FromQuery] MissionType? type = null, [FromQuery] MissionDifficulty? difficulty = null)
+        {
+            return await MissionManager.Instance.GetAvailableMissionsAsync(Avatar.Id, type, difficulty);
+        }
 
-//        private MissionManager MissionManager
-//        {
-//            get
-//            {
-//                if (_missionManager == null)
-//                    _missionManager = new MissionManager(GetAndActivateDefaultStorageProvider());
+        /// <summary>
+        /// Start a mission
+        /// </summary>
+        /// <param name="missionId">Mission ID</param>
+        /// <returns>Success status</returns>
+        [Authorize]
+        [HttpPost("start/{missionId}")]
+        public async Task<OASISResult<bool>> StartMission(Guid missionId)
+        {
+            return await MissionManager.Instance.StartMissionAsync(Avatar.Id, missionId);
+        }
 
-//                return _missionManager;
-//            }
-//        }
+        /// <summary>
+        /// Update mission progress
+        /// </summary>
+        /// <param name="missionId">Mission ID</param>
+        /// <param name="progress">Progress percentage (0-100)</param>
+        /// <param name="note">Optional progress note</param>
+        /// <returns>Success status</returns>
+        [Authorize]
+        [HttpPost("update-progress/{missionId}")]
+        public async Task<OASISResult<bool>> UpdateMissionProgress(Guid missionId, [FromBody] int progress, [FromBody] string note = null)
+        {
+            return await MissionManager.Instance.UpdateMissionProgressAsync(Avatar.Id, missionId, progress, note);
+        }
 
-//        public MissionController()
-//        {
+        /// <summary>
+        /// Get mission progress for the current avatar
+        /// </summary>
+        /// <param name="status">Optional status filter</param>
+        /// <returns>List of mission progress</returns>
+        [Authorize]
+        [HttpGet("progress")]
+        public async Task<OASISResult<List<MissionProgress>>> GetMissionProgress([FromQuery] MissionStatus? status = null)
+        {
+            return await MissionManager.Instance.GetMissionProgressAsync(Avatar.Id, status);
+        }
 
-//        }
-
-//        /// <summary>
-//        /// Search all missions for the given search parameters.
-//        /// </summary>
-//        /// <param name="searchParams"></param>
-//        /// <returns></returns>
-//        [HttpGet("Search/{searchParams}")]
-//        public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
-//        {
-//            return new(await MissionManager.SearchAsync(searchParams));
-//        }
-
-//        /// <summary>
-//        /// Search all missions for the given search parameters. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-//        /// </summary>
-//        /// <param name="searchParams"></param>
-//        /// <param name="providerType">Pass in the provider you wish to use.</param>
-//        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-//        /// <returns></returns>
-//        [HttpGet("Search/{searchParams}/{providerType}/{setGlobally}")]
-//        public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams, ProviderType providerType, bool setGlobally = false)
-//        {
-//            GetAndActivateProvider(providerType, setGlobally);
-//            return new(await MissionManager.SearchAsync(searchParams));
-//        }
-
-//        /// <summary>
-//        /// Set's the given mission as completed.
-//        /// </summary>
-//        /// <param name="missionId"></param>
-//        /// <returns></returns>
-//        [HttpPost("CompleteMission/{missionId}")]
-//        public OASISResult<bool> CompleteMission(Guid missionId)
-//        {
-//            return new(MissionManager.CompleteMission(missionId));
-//        }
-
-//        /// <summary>
-//        /// Set's the given mission as completed. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-//        /// </summary>
-//        /// <param name="missionId"></param>
-//        /// <param name="providerType">Pass in the provider you wish to use.</param>
-//        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-//        /// <returns></returns>
-//        [HttpPost("CompleteMission/{missionId}/{providerType}/{setGlobally}")]
-//        public OASISResult<bool> CompleteMission(Guid missionId, ProviderType providerType, bool setGlobally = false)
-//        {
-//            GetAndActivateProvider(providerType, setGlobally);
-//            return new(MissionManager.CompleteMission(missionId));
-//        }
-
-//        /// <summary>
-//        /// Create's a new mission.
-//        /// </summary>
-//        /// <param name="mission"></param>
-//        /// <returns></returns>
-//        [HttpPost("CreateMission/{mission}")]
-//        public OASISResult<bool> CreateMission(Mission mission)
-//        {
-//            return new(MissionManager.CreateMission(mission));
-//        }
-
-//        /// <summary>
-//        /// Create's a new mission. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-//        /// </summary>
-//        /// <param name="mission"></param>
-//        /// <param name="providerType">Pass in the provider you wish to use.</param>
-//        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-//        /// <returns></returns>
-//        [HttpPost("CreateMission/{mission}/{providerType}/{setGlobally}")]
-//        public OASISResult<bool> CreateMission(Mission mission, ProviderType providerType, bool setGlobally = false)
-//        {
-//            GetAndActivateProvider(providerType, setGlobally);
-//            return new(MissionManager.CreateMission(mission));
-//        }
-
-//        //TODO: GET WORKING LATER!
-//        //[HttpGet("GetAllCurrentMissionsForAvatar/{avatar}")]
-//        //public ActionResult<IMissionData> GetAllCurrentMissionsForAvatar(Avatar avatar)
-//        //{
-//        //    return Ok(MissionManager.GetAllCurrentMissionsForAvatar((IAvatar)avatar));
-//        //}
-
-//        //[HttpGet("GetAllCurrentMissionsForLoggedInAvatar")]
-//        //public ActionResult<List<Mission>> GetAllCurrentMissionsForLoggedInAvatar()
-//        //{
-//        //    return MissionManager.GetAllCurrentMissionsForAvatar(Avatar);
-//        //}
-
-//        /// <summary>
-//        /// Update's a given mission.
-//        /// </summary>
-//        /// <param name="mission"></param>
-//        /// <returns></returns>
-//        [HttpPost("UpdateMission/{mission}")]
-//        public OASISResult<bool> UpdateMission(Mission mission)
-//        {
-//            return new(MissionManager.UpdateMission(mission));
-//        }
-
-//        /// <summary>
-//        /// Update's a given mission. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-//        /// </summary>
-//        /// <param name="mission"></param>
-//        /// <param name="providerType">Pass in the provider you wish to use.</param>
-//        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-//        /// <returns></returns>
-//        [HttpPost("UpdateMission/{mission}/{providerType}/{setGlobally}")]
-//        public OASISResult<bool> UpdateMission(Mission mission, ProviderType providerType, bool setGlobally = false)
-//        {
-//            GetAndActivateProvider(providerType, setGlobally);
-//            return new(MissionManager.UpdateMission(mission));
-//        }
-
-//        /// <summary>
-//        /// Delete's a given mission.
-//        /// </summary>
-//        /// <param name="missionId"></param>
-//        /// <returns></returns>
-//        [HttpDelete("DeleteMission/{missionId}")]
-//        public OASISResult<bool> DeleteMission(Guid missionId)
-//        {
-//            return new(MissionManager.DeleteMission(missionId));
-//        }
-
-//        /// <summary>
-//        /// Delete's a given mission. Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
-//        /// </summary>
-//        /// <param name="missionId"></param>
-//        /// <param name="providerType">Pass in the provider you wish to use.</param>
-//        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-//        /// <returns></returns>
-//        [HttpDelete("DeleteMission/{missionId}/{providerType}/{setGlobally}")]
-//        public OASISResult<bool> DeleteMission(Guid missionId, ProviderType providerType, bool setGlobally = false)
-//        {
-//            GetAndActivateProvider(providerType, setGlobally);
-//            return new(MissionManager.DeleteMission(missionId));
-//        }
-//    }
-//}
+        /// <summary>
+        /// Get mission statistics for the current avatar
+        /// </summary>
+        /// <returns>Mission statistics</returns>
+        [Authorize]
+        [HttpGet("stats")]
+        public async Task<OASISResult<Dictionary<string, object>>> GetMissionStats()
+        {
+            return await MissionManager.Instance.GetMissionStatsAsync(Avatar.Id);
+        }
+    }
+}
