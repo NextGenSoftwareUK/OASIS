@@ -1837,7 +1837,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 // Real Hashgraph implementation: Send NFT transaction asynchronously
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransaction(new HashgraphTransactionData
+                var transactionResult = await hashgraphClient.SendTransactionAsync(new HashgraphTransactionData
                 {
                     FromAddress = transation.FromWalletAddress,
                     ToAddress = transation.ToWalletAddress,
@@ -1873,23 +1873,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 // Real Hashgraph implementation: Mint NFT
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = hashgraphClient.SendTransaction(new HashgraphTransactionData
+                var transactionResult = await hashgraphClient.SendTransactionAsync(new HashgraphTransactionData
                 {
-                    FromAddress = transation.FromWalletAddress,
-                    ToAddress = transation.ToWalletAddress,
+                    FromAddress = transation.SendToAddressAfterMinting,
+                    ToAddress = transation.SendToAddressAfterMinting,
                     Amount = 0, // Minting doesn't require amount
-                    Memo = $"NFT Mint: {transation.NFTTokenId}"
+                    Memo = $"NFT Mint: {transation.Title}"
                 });
 
                 if (transactionResult != null)
                 {
                     result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone
                     {
-                        TransactionResult = transactionResult.TransactionId,
-                        FromWalletAddress = transation.FromWalletAddress,
-                        ToWalletAddress = transation.ToWalletAddress,
-                        Amount = 0,
-                        Status = "Success"
+                        TransactionResult = transactionResult.TransactionId
                     };
                     result.IsError = false;
                     result.Message = "Hashgraph NFT minted successfully";
@@ -1913,7 +1909,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 // Real Hashgraph implementation: Mint NFT asynchronously
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransaction(new HashgraphTransactionData
+                var transactionResult = await hashgraphClient.SendTransactionAsync(new HashgraphTransactionData
                 {
                     FromAddress = transation.FromWalletAddress,
                     ToAddress = transation.ToWalletAddress,
@@ -1925,11 +1921,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 {
                     result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone
                     {
-                        TransactionResult = transactionResult.TransactionId,
-                        FromWalletAddress = transation.FromWalletAddress,
-                        ToWalletAddress = transation.ToWalletAddress,
-                        Amount = 0,
-                        Status = "Success"
+                        TransactionResult = transactionResult.TransactionId
                     };
                     result.IsError = false;
                     result.Message = "Hashgraph NFT minted successfully";
