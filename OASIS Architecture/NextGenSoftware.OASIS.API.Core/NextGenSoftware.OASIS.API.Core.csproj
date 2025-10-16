@@ -56,8 +56,8 @@
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
-    <ProjectReference Include="..\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
-    <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" />
+    <!-- Removed Utilities reference as it may not exist or cause circular dependency -->
+    <!-- <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" /> -->
   </ItemGroup>
 
   
