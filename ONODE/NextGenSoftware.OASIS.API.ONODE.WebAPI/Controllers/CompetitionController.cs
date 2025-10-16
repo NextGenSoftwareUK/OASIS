@@ -1,3 +1,5 @@
+// CompetitionController moved to STAR API - commented out in case we need to restore it later
+/*
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -192,3 +194,4 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         #endregion
     }
 }
+*/

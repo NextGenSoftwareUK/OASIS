@@ -519,10 +519,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 var competitionManager = CompetitionManager.Instance;
 
+                // TODO: Implement competition score updates when CompetitionManager is properly integrated
+                // For now, just log the activity
+                Console.WriteLine($"Map activity recorded for avatar {avatarId} at location {locationId}");
+                
                 // Calculate score based on location type and exploration
                 var score = CalculateMapScore(locationId);
 
-                // Update social activity competition scores
+                // TODO: Update competition scores when CompetitionManager is available
                 await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.SocialActivity, SeasonType.Daily, score);
                 await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.SocialActivity, SeasonType.Weekly, score);
                 await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.SocialActivity, SeasonType.Monthly, score);

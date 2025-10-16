@@ -162,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return new OASISResult<KarmaAkashicRecord>(record);
         }
 
-        private KarmaAkashicRecord AddKarmaToAkashicRecord(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
+        private KarmaAkashicRecord AddKarmaToAkashicRecord(KarmaTypePositive karmaType, Enums.KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
         {
             int karma = GetKarmaForType(karmaType);
 
@@ -181,7 +181,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 KarmaSourceTitle = karamSourceTitle,
                 KarmaSourceDesc = karmaSourceDesc,
                 WebLink = webLink,
-                KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType),
+                KarmaSource = new EnumValue<Enums.KarmaSourceType>(karmaSourceType),
                 KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Earnt),
                 KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(KarmaTypeNegative.None),
                 KarmaTypePositive = new EnumValue<KarmaTypePositive>(karmaType),
@@ -194,7 +194,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             return record;
         }
 
-        private KarmaAkashicRecord RemoveKarmaFromAkashicRecord(KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
+        private KarmaAkashicRecord RemoveKarmaFromAkashicRecord(KarmaTypeNegative karmaType, Enums.KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
         {
             int karma = GetKarmaForType(karmaType);
 
@@ -213,7 +213,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
                 KarmaSourceTitle = karamSourceTitle,
                 KarmaSourceDesc = karmaSourceDesc,
                 WebLink = webLink,
-                KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType),
+                KarmaSource = new EnumValue<Enums.KarmaSourceType>(karmaSourceType),
                 KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Lost),
                 KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(karmaType),
                 KarmaTypePositive = new EnumValue<KarmaTypePositive>(KarmaTypePositive.None),

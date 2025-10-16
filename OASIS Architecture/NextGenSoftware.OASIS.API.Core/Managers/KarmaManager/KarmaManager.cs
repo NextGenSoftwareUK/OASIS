@@ -198,7 +198,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Deduct from sender
-                var deductResult = await DeductKarmaAsync(fromAvatarId, amount, KarmaSourceType.Transfer, $"Transferred to {toAvatarId}");
+                var deductResult = await DeductKarmaAsync(fromAvatarId, amount, KarmaCategory.Transfer, $"Transferred to {toAvatarId}");
                 if (deductResult.IsError)
                 {
                     result.IsError = true;
@@ -208,11 +208,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Add to recipient
-                var addResult = await AddKarmaAsync(toAvatarId, amount, KarmaSourceType.Transfer, $"Received from {fromAvatarId}");
+                var addResult = await AddKarmaAsync(toAvatarId, amount, KarmaCategory.Transfer, $"Received from {toAvatarId}");
                 if (addResult.IsError)
                 {
                     // Rollback the deduction
-                    await AddKarmaAsync(fromAvatarId, amount, KarmaSourceType.Transfer, "Transfer rollback");
+                    await AddKarmaAsync(fromAvatarId, amount, KarmaCategory.Transfer, "Transfer rollback");
                     result.IsError = true;
                     result.Result = false;
                     result.Message = addResult.Message;
@@ -315,7 +315,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public DateTime Timestamp { get; set; }
     }
 
-    public enum KarmaSourceType
+    public enum KarmaCategory
     {
         Quest,
         SocialActivity,
