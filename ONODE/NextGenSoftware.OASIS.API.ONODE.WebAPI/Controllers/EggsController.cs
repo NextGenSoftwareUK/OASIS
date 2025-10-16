@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿// EggsController moved to STAR API - commented out in case we need to restore it later
+/*
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -65,3 +67,4 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
     }
 }
+*/

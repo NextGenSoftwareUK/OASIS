@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         //   OASISSettings _settings;
 
-        //public ChatController(IOptions<OASISSettings> OASISSettings) : base(OASISSettings)
+        //public ChatController(IOptions<OASISDNA> OASISSettings) : base(OASISSettings)
         public ChatController()
         {
             //_settings = OASISSettings.Value;

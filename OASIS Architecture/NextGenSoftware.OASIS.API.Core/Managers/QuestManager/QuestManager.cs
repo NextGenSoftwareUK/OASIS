@@ -234,7 +234,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // In a real implementation, this would get the quest details and award appropriate rewards
                 // For now, award some default rewards
                 var karmaManager = KarmaManager.Instance;
-                await karmaManager.AddKarmaAsync(avatarId, 200, KarmaSourceType.Quest, "Quest completion reward");
+                await karmaManager.AddKarmaAsync(avatarId, 200, KarmaSourceType.Game, "Quest completion reward");
             }
             catch (Exception ex)
             {
