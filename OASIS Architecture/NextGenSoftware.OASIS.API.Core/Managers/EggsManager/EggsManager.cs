@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.Utilities;
@@ -56,11 +57,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     var eggsData = eggsHolon.Result.MetaData.GetValueOrDefault("eggs", new List<Dictionary<string, object>>());
                     var eggs = new List<Egg>();
                     
-                    foreach (var eggData in eggsData)
+                    if (eggsData is List<object> eggsList)
                     {
-                        var egg = DeserializeEgg(eggData);
-                        if (egg != null)
-                            eggs.Add(egg);
+                        foreach (var eggData in eggsList)
+                        {
+                            if (eggData is Dictionary<string, object> eggDict)
+                            {
+                                var egg = DeserializeEgg(eggDict);
+                                if (egg != null)
+                                    eggs.Add(egg);
+                            }
+                        }
                     }
                     
                     result.Result = eggs;
@@ -184,7 +191,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     DiscoveryMethod = discoveryMethod,
                     DiscoveredAt = DateTime.UtcNow,
                     IsDisplayed = true,
-                    GalleryPosition = "auto", // Will be positioned automatically in gallery
+                    GalleryPosition = GalleryPosition.Hidden, // Will be positioned automatically in gallery
                     Tags = new List<string> { eggType.ToString().ToLower(), rarity.ToString().ToLower(), discoveryMethod.ToString().ToLower() }
                 };
 
@@ -226,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     DiscoveryMethod = EggDiscoveryMethod.QuestCompletion,
                     DiscoveredAt = DateTime.UtcNow,
                     IsDisplayed = true,
-                    GalleryPosition = "auto",
+                    GalleryPosition = GalleryPosition.Hidden,
                     Tags = new List<string> { eggType.ToString().ToLower(), rarity.ToString().ToLower(), "quest", "reward" }
                 };
 
@@ -268,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     DiscoveryMethod = EggDiscoveryMethod.PuzzleSolved,
                     DiscoveredAt = DateTime.UtcNow,
                     IsDisplayed = true,
-                    GalleryPosition = "auto",
+                    GalleryPosition = GalleryPosition.Hidden,
                     Tags = new List<string> { eggType.ToString().ToLower(), rarity.ToString().ToLower(), "puzzle", "solved" }
                 };
 
@@ -310,7 +317,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     DiscoveryMethod = EggDiscoveryMethod.SecretLocation,
                     DiscoveredAt = DateTime.UtcNow,
                     IsDisplayed = true,
-                    GalleryPosition = "auto",
+                    GalleryPosition = GalleryPosition.Hidden,
                     Tags = new List<string> { eggType.ToString().ToLower(), rarity.ToString().ToLower(), "hidden", "secret" }
                 };
 
@@ -504,6 +511,160 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         #endregion
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Serialize an egg to dictionary for storage
+        /// </summary>
+        private Dictionary<string, object> SerializeEgg(Egg egg)
+        {
+            return new Dictionary<string, object>
+            {
+                ["id"] = egg.Id,
+                ["name"] = egg.Name,
+                ["description"] = egg.Description,
+                ["eggType"] = egg.EggType.ToString(),
+                ["rarity"] = egg.Rarity.ToString(),
+                ["rarityLevel"] = egg.RarityLevel,
+                ["location"] = egg.Location,
+                ["locationId"] = egg.LocationId,
+                ["discoveryMethod"] = egg.DiscoveryMethod.ToString(),
+                ["discoveredAt"] = egg.DiscoveredAt,
+                ["isDisplayed"] = egg.IsDisplayed,
+                ["galleryPosition"] = egg.GalleryPosition.ToString(),
+                ["tags"] = egg.Tags,
+                ["avatarId"] = egg.AvatarId,
+                ["isHatched"] = egg.IsHatched,
+                ["hatchedAt"] = egg.HatchedAt,
+                ["eggCategory"] = egg.EggCategory.ToString(),
+                ["isHatchable"] = egg.IsHatchable,
+                ["hatchedAt"] = egg.HatchedAt,
+                ["discoveredAt"] = egg.DiscoveredAt,
+                ["stats"] = egg.Stats,
+                ["metadata"] = egg.Metadata,
+                ["unlockedQuests"] = egg.UnlockedQuests,
+                ["unlockedAreas"] = egg.UnlockedAreas,
+                ["avatarUpgrades"] = egg.AvatarUpgrades.Select(upgrade => new Dictionary<string, object>
+                {
+                    ["upgradeType"] = upgrade.UpgradeType,
+                    ["value"] = upgrade.Value,
+                    ["description"] = upgrade.Description,
+                    ["isPermanent"] = upgrade.IsPermanent,
+                    ["expiresAt"] = upgrade.ExpiresAt
+                }).ToList(),
+                ["hatchedPets"] = egg.HatchedPets.Select(pet => new Dictionary<string, object>
+                {
+                    ["id"] = pet.Id,
+                    ["name"] = pet.Name,
+                    ["species"] = pet.Species,
+                    ["element"] = pet.Element,
+                    ["level"] = pet.Level,
+                    ["experience"] = pet.Experience,
+                    ["stats"] = pet.Stats,
+                    ["abilities"] = pet.Abilities,
+                    ["isActive"] = pet.IsActive,
+                    ["hatchedAt"] = pet.HatchedAt,
+                    ["metadata"] = pet.Metadata
+                }).ToList()
+            };
+        }
+
+        /// <summary>
+        /// Deserialize dictionary to egg object
+        /// </summary>
+        private Egg DeserializeEgg(Dictionary<string, object> data)
+        {
+            return new Egg
+            {
+                Id = Guid.Parse(data["id"].ToString()),
+                Name = data["name"].ToString(),
+                Description = data["description"].ToString(),
+                EggType = Enum.Parse<EggType>(data["eggType"].ToString()),
+                Rarity = Enum.Parse<EggRarity>(data["rarity"].ToString()),
+                RarityLevel = Convert.ToInt32(data["rarityLevel"]),
+                Score = Convert.ToInt32(data.GetValueOrDefault("score", 0)),
+                Location = data["location"].ToString(),
+                LocationId = Guid.Parse(data["locationId"].ToString()),
+                DiscoveryMethod = Enum.Parse<EggDiscoveryMethod>(data["discoveryMethod"].ToString()),
+                DiscoveredAt = Convert.ToDateTime(data["discoveredAt"]),
+                IsDisplayed = Convert.ToBoolean(data["isDisplayed"]),
+                GalleryPosition = Enum.TryParse<GalleryPosition>(data.GetValueOrDefault("galleryPosition", "Hidden").ToString(), out var galleryPosition) ? galleryPosition : GalleryPosition.Hidden,
+                Tags = ((List<object>)data["tags"]).Cast<string>().ToList(),
+                AvatarId = Guid.Parse(data["avatarId"].ToString()),
+                IsHatched = Convert.ToBoolean(data.GetValueOrDefault("isHatched", false)),
+                HatchedAt = data.GetValueOrDefault("hatchedAt") != null ? Convert.ToDateTime(data["hatchedAt"]) : (DateTime?)null,
+                EggCategory = Enum.TryParse<EggCategory>(data.GetValueOrDefault("eggCategory", "Standard").ToString(), out var category) ? category : EggCategory.Standard,
+                IsHatchable = Convert.ToBoolean(data.GetValueOrDefault("isHatchable", true)),
+                HatchedDate = data.GetValueOrDefault("hatchedDate") != null ? DateTime.Parse(data["hatchedDate"].ToString()) : (DateTime?)null,
+                DiscoveredDate = data.GetValueOrDefault("discoveredDate") != null ? DateTime.Parse(data["discoveredDate"].ToString()) : DateTime.UtcNow,
+                Stats = data.GetValueOrDefault("stats") as Dictionary<string, object> ?? new Dictionary<string, object>(),
+                Metadata = data.GetValueOrDefault("metadata") as Dictionary<string, object> ?? new Dictionary<string, object>(),
+                UnlockedQuests = ((List<object>)data.GetValueOrDefault("unlockedQuests", new List<object>())).Cast<string>().ToList(),
+                UnlockedAreas = ((List<object>)data.GetValueOrDefault("unlockedAreas", new List<object>())).Cast<string>().ToList(),
+                AvatarUpgrades = ((List<object>)data.GetValueOrDefault("avatarUpgrades", new List<object>())).Select(upgradeData =>
+                {
+                    var upgradeDict = (Dictionary<string, object>)upgradeData;
+                    return new AvatarUpgrade
+                    {
+                        UpgradeType = upgradeDict["upgradeType"].ToString(),
+                        Value = Convert.ToInt32(upgradeDict["value"]),
+                        Description = upgradeDict["description"].ToString(),
+                        IsPermanent = Convert.ToBoolean(upgradeDict["isPermanent"]),
+                        ExpiresAt = upgradeDict["expiresAt"] != null ? DateTime.Parse(upgradeDict["expiresAt"].ToString()) : (DateTime?)null
+                    };
+                }).ToList(),
+                HatchedPets = ((List<object>)data.GetValueOrDefault("hatchedPets", new List<object>())).Select(petData =>
+                {
+                    var petDict = (Dictionary<string, object>)petData;
+                    return new Pet
+                    {
+                        Id = Guid.Parse(petDict["id"].ToString()),
+                        Name = petDict["name"].ToString(),
+                        Species = petDict["species"].ToString(),
+                        Element = petDict["element"].ToString(),
+                        Level = Convert.ToInt32(petDict["level"]),
+                        Experience = Convert.ToInt32(petDict["experience"]),
+                        Stats = petDict["stats"] as Dictionary<string, int> ?? new Dictionary<string, int>(),
+                        Abilities = ((List<object>)petDict["abilities"]).Cast<string>().ToList(),
+                        IsActive = Convert.ToBoolean(petDict["isActive"]),
+                        HatchedAt = Convert.ToDateTime(petDict["hatchedAt"]),
+                        Metadata = petDict["metadata"] as Dictionary<string, object> ?? new Dictionary<string, object>()
+                    };
+                }).ToList()
+            };
+        }
+
+        /// <summary>
+        /// Save eggs to storage
+        /// </summary>
+        private async Task SaveEggsAsync(Guid avatarId, List<Egg> eggs)
+        {
+            try
+            {
+                var eggsData = eggs.Select(SerializeEgg).ToList();
+                
+                // Create eggs holon with eggs data in MetaData
+                var eggsHolon = new Holon
+                {
+                    Id = Guid.NewGuid(),
+                    Name = $"Eggs_{avatarId}",
+                    Description = $"Eggs discovered by avatar {avatarId}",
+                    CreatedByAvatarId = avatarId,
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow,
+                    MetaData = new Dictionary<string, object> { ["eggs"] = eggsData }
+                };
+                
+                await HolonManager.Instance.SaveHolonAsync(eggsHolon);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving eggs: {ex.Message}");
+            }
+        }
+
+        #endregion
     }
 
     public class Egg
@@ -631,118 +792,4 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public DateTime LastUpdated { get; set; }
         public Dictionary<string, object> Achievements { get; set; } = new Dictionary<string, object>();
     }
-
-    #region Helper Methods
-
-    /// <summary>
-    /// Serialize an egg to dictionary for storage
-    /// </summary>
-    private Dictionary<string, object> SerializeEgg(Egg egg)
-    {
-        return new Dictionary<string, object>
-        {
-            ["id"] = egg.Id,
-            ["name"] = egg.Name,
-            ["description"] = egg.Description,
-            ["eggType"] = egg.EggType.ToString(),
-            ["rarity"] = egg.Rarity.ToString(),
-            ["rarityLevel"] = egg.RarityLevel,
-            ["score"] = egg.Score,
-            ["location"] = egg.Location,
-            ["locationId"] = egg.LocationId,
-            ["discoveryMethod"] = egg.DiscoveryMethod.ToString(),
-            ["isDisplayed"] = egg.IsDisplayed,
-            ["galleryPosition"] = egg.GalleryPosition.ToString(),
-            ["eggCategory"] = egg.EggCategory.ToString(),
-            ["isHatchable"] = egg.IsHatchable,
-            ["isHatched"] = egg.IsHatched,
-            ["hatchedDate"] = egg.HatchedDate,
-            ["discoveredDate"] = egg.DiscoveredDate,
-            ["createdDate"] = egg.CreatedDate,
-            ["modifiedDate"] = egg.ModifiedDate
-        };
-    }
-
-    /// <summary>
-    /// Deserialize an egg from dictionary
-    /// </summary>
-    private Egg DeserializeEgg(Dictionary<string, object> eggData)
-    {
-        try
-        {
-            var egg = new Egg
-            {
-                Id = Guid.Parse(eggData.GetValueOrDefault("id", Guid.NewGuid()).ToString()),
-                Name = eggData.GetValueOrDefault("name", "").ToString(),
-                Description = eggData.GetValueOrDefault("description", "").ToString(),
-                EggType = Enum.TryParse<EggType>(eggData.GetValueOrDefault("eggType", "Bronze").ToString(), out var eggType) ? eggType : EggType.Bronze,
-                Rarity = Enum.TryParse<EggRarity>(eggData.GetValueOrDefault("rarity", "Common").ToString(), out var rarity) ? rarity : EggRarity.Common,
-                RarityLevel = Convert.ToInt32(eggData.GetValueOrDefault("rarityLevel", 1)),
-                Score = Convert.ToInt32(eggData.GetValueOrDefault("score", 0)),
-                Location = eggData.GetValueOrDefault("location", "").ToString(),
-                LocationId = Guid.Parse(eggData.GetValueOrDefault("locationId", Guid.Empty).ToString()),
-                DiscoveryMethod = Enum.TryParse<EggDiscoveryMethod>(eggData.GetValueOrDefault("discoveryMethod", "Exploration").ToString(), out var discoveryMethod) ? discoveryMethod : EggDiscoveryMethod.Exploration,
-                IsDisplayed = Convert.ToBoolean(eggData.GetValueOrDefault("isDisplayed", false)),
-                GalleryPosition = Enum.TryParse<GalleryPosition>(eggData.GetValueOrDefault("galleryPosition", "Hidden").ToString(), out var galleryPosition) ? galleryPosition : GalleryPosition.Hidden,
-                EggCategory = Enum.TryParse<EggCategory>(eggData.GetValueOrDefault("eggCategory", "Standard").ToString(), out var category) ? category : EggCategory.Standard,
-                IsHatchable = Convert.ToBoolean(eggData.GetValueOrDefault("isHatchable", true)),
-                IsHatched = Convert.ToBoolean(eggData.GetValueOrDefault("isHatched", false)),
-                HatchedDate = eggData.GetValueOrDefault("hatchedDate") != null ? DateTime.Parse(eggData["hatchedDate"].ToString()) : (DateTime?)null,
-                DiscoveredDate = eggData.GetValueOrDefault("discoveredDate") != null ? DateTime.Parse(eggData["discoveredDate"].ToString()) : DateTime.UtcNow,
-                CreatedDate = eggData.GetValueOrDefault("createdDate") != null ? DateTime.Parse(eggData["createdDate"].ToString()) : DateTime.UtcNow,
-                ModifiedDate = eggData.GetValueOrDefault("modifiedDate") != null ? DateTime.Parse(eggData["modifiedDate"].ToString()) : DateTime.UtcNow
-            };
-
-            return egg;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error deserializing egg: {ex.Message}");
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Save eggs to persistent storage
-    /// </summary>
-    private async Task SaveEggsAsync(Guid avatarId, List<Egg> eggs)
-    {
-        try
-        {
-            var eggsData = eggs.Select(SerializeEgg).ToList();
-            
-            var eggsHolon = await HolonManager.Instance.LoadHolonAsync($"eggs_{avatarId}");
-            
-            if (eggsHolon.IsError || eggsHolon.Result == null)
-            {
-                // Create new eggs holon
-                var newHolon = new Holon
-                {
-                    Id = Guid.NewGuid(),
-                    Name = $"Eggs_{avatarId}",
-                    Description = $"Eggs discovered by avatar {avatarId}",
-                    MetaData = new Dictionary<string, object> { ["eggs"] = eggsData },
-                    CreatedByAvatarId = avatarId,
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow
-                };
-                
-                await HolonManager.Instance.SaveHolonAsync(newHolon);
-            }
-            else
-            {
-                // Update existing eggs holon
-                var existingHolon = eggsHolon.Result;
-                existingHolon.MetaData["eggs"] = eggsData;
-                existingHolon.ModifiedDate = DateTime.UtcNow;
-                await HolonManager.Instance.SaveHolonAsync(existingHolon);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error saving eggs: {ex.Message}");
-        }
-    }
-
-    #endregion
 }
