@@ -51,13 +51,14 @@ export const AvatarProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       const result = await avatarService.signin(signinData);
       
       if (result.isError || !result.result) {
-        toast.error(result.message || 'Sign in failed2');
+        toast.error(result.message || 'Sign in failed');
         return false;
       }
 
       setCurrentAvatar(result.result);
       localStorage.setItem('oasisAvatar', JSON.stringify(result.result));
-      toast.success(`Welcome back to The OASIS, ${result.result.firstName}! 🌟`);
+        /*toast.success(`Welcome back to The OASIS, ${result.result.firstName}! 🌟`);*/
+        toast.success(`Welcome back to The OASIS David! 🌟`);
       return true;
     } catch (error) {
       toast.error('Sign in failed. Please try again.');
