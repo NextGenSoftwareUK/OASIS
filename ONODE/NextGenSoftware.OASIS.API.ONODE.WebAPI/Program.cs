@@ -13,6 +13,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
     public class Program
     {
         private static AvatarManager _avatarManager;
+        private static SettingsManager _settingsManager;
+        private static StatsManager _statsManager;
 
         //public static bool IsDevEnviroment = false;
         //public static string LIVE_OASISAPI = "https://oasisweb4.one"; //"https://api.oasisweb4.one/api";
@@ -49,6 +51,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 }
 
                 return _avatarManager;
+            }
+        }
+
+        public static SettingsManager SettingsManager
+        {
+            get
+            {
+                if (_settingsManager == null)
+                {
+                    _settingsManager = SettingsManager.Instance;
+                }
+                return _settingsManager;
+            }
+        }
+
+        public static StatsManager StatsManager
+        {
+            get
+            {
+                if (_statsManager == null)
+                {
+                    _statsManager = StatsManager.Instance;
+                }
+                return _statsManager;
             }
         }
 
