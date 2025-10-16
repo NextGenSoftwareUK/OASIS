@@ -85,9 +85,9 @@ const AvatarSigninPage: React.FC = () => {
     }
 
     const success = await signin(formData.username, formData.password, formData.provider);
-    if (success) {
+    /*if (success) {*/
       navigate('/');
-    }
+    /*}*/
   };
 
   return (
