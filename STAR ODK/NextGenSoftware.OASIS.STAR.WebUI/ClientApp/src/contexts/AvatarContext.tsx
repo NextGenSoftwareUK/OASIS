@@ -51,7 +51,7 @@ export const AvatarProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       const result = await avatarService.signin(signinData);
       
       if (result.isError || !result.result) {
-        toast.error(result.message || 'Sign in failed');
+        toast.error(result.message || 'Sign in failed2');
         return false;
       }
 
