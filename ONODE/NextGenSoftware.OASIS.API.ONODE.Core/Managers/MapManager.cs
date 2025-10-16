@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
@@ -22,8 +23,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
     {
         private static MapManager _instance;
         private readonly object _lockObject = new object();
-        private readonly Dictionary<Guid, List<Mission>> _avatarMissions;
-        private readonly Dictionary<Guid, List<MissionProgress>> _missionProgress;
+        //private readonly Dictionary<Guid, List<Mission>> _avatarMissions;
+        //private readonly Dictionary<Guid, List<MissionProgress>> _missionProgress;
         private readonly Dictionary<Guid, List<MapVisit>> _mapVisits;
 
         //public static MapManager Instance
@@ -76,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return CurrentMapProvider.Draw2DSpriteOnHUD(sprite, x, y);
         }
 
-        public bool HighlightBuildingOnMap(Building building)
+        public bool HighlightBuildingOnMap(IBuilding building)
         {
             return true;
         }
@@ -262,7 +263,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return true;
         }
 
-        public bool SelectBuildingOnMap(Building building)
+        public bool SelectBuildingOnMap(IBuilding building)
         {
             return true;
         }

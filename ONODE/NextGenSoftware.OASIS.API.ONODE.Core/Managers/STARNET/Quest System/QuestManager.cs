@@ -9,11 +9,10 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.STAR.DNA;
-using EOSNewYork.EOSCore.Response.API;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -705,19 +704,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                var quests = questsResult.Result?.ToList() ?? new List<IQuest>();
-                
-                var stats = new Dictionary<string, object>
+                if (questsResult != null && questsResult.Result != null && !questsResult.IsError)
                 {
-                    ["totalQuests"] = quests.Count,
-                    ["completedQuests"] = quests.Count(q => q.Status == QuestStatus.Completed),
-                    ["activeQuests"] = quests.Count(q => q.Status == QuestStatus.Active),
-                    ["pendingQuests"] = quests.Count(q => q.Status == QuestStatus.Pending),
-                    ["totalRewards"] = quests.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.Rewards?.Sum(r => r.Amount) ?? 0)
-                };
+                    var stats = new Dictionary<string, object>
+                    {
+                        ["totalQuests"] = questsResult.Result.Count(),
+                        ["completedQuests"] = questsResult.Result.Count(q => q.Status == QuestStatus.Completed),
+                        ["activeQuests"] = questsResult.Result.Count(q => q.Status == QuestStatus.InProgress),
+                        ["pendingQuests"] = questsResult.Result.Count(q => q.Status == QuestStatus.NotStarted),
+                        ["totalKarmaEarnt"] = questsResult.Result.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.RewardKarma),
+                        ["totalXPEarnt"] = questsResult.Result.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.RewardXP),
+                        //["totalRewards"] = questsResult.Result.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.Rewards?.Sum(r => r.Amount) ?? 0)
+                    };
 
-                result.Result = stats;
-                result.Message = "Quest statistics retrieved successfully";
+                    result.Result = stats;
+                    result.Message = "Quest statistics retrieved successfully";
+                }
+                else      
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} No quests found for the avatar.");
             }
             catch (Exception ex)
             {

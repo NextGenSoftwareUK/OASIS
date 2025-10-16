@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -68,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 // Update mission status to completed
-                missionResult.Result.Status = MissionStatus.Completed;
+                missionResult.Result.Status = QuestStatus.Completed;
                 missionResult.Result.CompletedOn = DateTime.UtcNow;
                 missionResult.Result.CompletedBy = avatarId;
                 if (!string.IsNullOrEmpty(completionNotes))
@@ -178,19 +182,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                var missions = missionsResult.Result?.ToList() ?? new List<IMission>();
-                
-                var stats = new Dictionary<string, object>
+                if (missionsResult.Result != null && missionsResult.Result != null && !missionsResult.IsError)
                 {
-                    ["totalMissions"] = missions.Count,
-                    ["completedMissions"] = missions.Count(m => m.Status == MissionStatus.Completed),
-                    ["activeMissions"] = missions.Count(m => m.Status == MissionStatus.Active),
-                    ["pendingMissions"] = missions.Count(m => m.Status == MissionStatus.Pending),
-                    ["totalRewards"] = missions.Where(m => m.Status == MissionStatus.Completed).Sum(m => m.Rewards?.Sum(r => r.Amount) ?? 0)
-                };
+                    var stats = new Dictionary<string, object>
+                    {
+                        ["totalMissions"] = missionsResult.Result.Count(),
+                        ["completedMissions"] = missionsResult.Result.Count(m => m.Status == QuestStatus.Completed),
+                        ["activeMissions"] = missionsResult.Result.Count(m => m.Status == QuestStatus.InProgress),
+                        ["pendingMissions"] = missionsResult.Result.Count(m => m.Status == QuestStatus.NotStarted),
+                        ["totalKarmaEarnt"] = missionsResult.Result.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.RewardKarma),
+                        ["totalXPEarnt"] = missionsResult.Result.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.RewardXP),
+                        //["totalRewards"] = missionsResult.Result.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.Rewards?.Sum(r => r.Amount) ?? 0)
+                    };
 
-                result.Result = stats;
-                result.Message = "Mission statistics retrieved successfully";
+                    result.Result = stats;
+                    result.Message = "Mission statistics retrieved successfully";
+                }
+                else
+                                    {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} No missions found for avatar.");
+                    return result;
+                }
             }
             catch (Exception ex)
             {
