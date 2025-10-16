@@ -36,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         
         public string OASISSystemAccountId { get; set; }
         public string OASISAPIURL { get; set; }
+        public Guid SettingsLookupHolonId { get; set; } = Guid.Empty;
     }
 
     public class SecuritySettings
