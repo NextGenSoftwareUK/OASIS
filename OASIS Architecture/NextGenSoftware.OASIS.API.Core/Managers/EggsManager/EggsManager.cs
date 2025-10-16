@@ -42,15 +42,29 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<List<Egg>>();
             try
             {
-                if (_avatarEggs.TryGetValue(avatarId, out var eggs))
-                {
-                    result.Result = eggs.ToList();
-                    result.Message = "Hidden eggs discovered by this avatar retrieved successfully.";
-                }
-                else
+                // Load eggs from persistent storage using HolonManager
+                var eggsHolon = await HolonManager.Instance.LoadHolonAsync($"eggs_{avatarId}");
+                
+                if (eggsHolon.IsError || eggsHolon.Result == null)
                 {
                     result.Result = new List<Egg>();
                     result.Message = "No hidden eggs discovered yet. Keep exploring the OASIS!";
+                }
+                else
+                {
+                    // Deserialize eggs from holon metadata
+                    var eggsData = eggsHolon.Result.MetaData.GetValueOrDefault("eggs", new List<Dictionary<string, object>>());
+                    var eggs = new List<Egg>();
+                    
+                    foreach (var eggData in eggsData)
+                    {
+                        var egg = DeserializeEgg(eggData);
+                        if (egg != null)
+                            eggs.Add(egg);
+                    }
+                    
+                    result.Result = eggs;
+                    result.Message = "Hidden eggs discovered by this avatar retrieved successfully.";
                 }
             }
             catch (Exception ex)
@@ -174,14 +188,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     Tags = new List<string> { eggType.ToString().ToLower(), rarity.ToString().ToLower(), discoveryMethod.ToString().ToLower() }
                 };
 
-                lock (_lockObject)
-                {
-                    if (!_avatarEggs.ContainsKey(avatarId))
-                    {
-                        _avatarEggs[avatarId] = new List<Egg>();
-                    }
-                    _avatarEggs[avatarId].Add(newEgg);
-                }
+                // Load existing eggs and add new one
+                var existingEggs = await GetAllEggsAsync(avatarId);
+                var eggs = existingEggs.Result ?? new List<Egg>();
+                eggs.Add(newEgg);
+                
+                // Save to persistent storage
+                await SaveEggsAsync(avatarId, eggs);
 
                 result.Result = newEgg;
                 result.Message = $"🎉 Congratulations! You discovered a {rarity} {name} egg!";
@@ -367,16 +380,75 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 _ => 10
             };
 
-            //TODO: Finish mapping types to scores! :)
-            // Bonus for unique types
+            // Complete mapping of all egg types to scores
             var typeBonus = egg.EggType switch
             {
-                EggType.Dragon => 50,
-                EggType.Diamond => 100,
-                EggType.Platinum => 75,
-                EggType.Gold => 50,
-                EggType.Silver => 25,
+                // Basic metals
                 EggType.Bronze => 10,
+                EggType.Silver => 25,
+                EggType.Gold => 50,
+                EggType.Platinum => 75,
+                EggType.Diamond => 100,
+                
+                // Dragons and mythical creatures
+                EggType.Dragon => 150,
+                
+                // Elemental types
+                EggType.Fire => 60,
+                EggType.Ice => 60,
+                EggType.Lightning => 70,
+                EggType.Storm => 80,
+                EggType.Wind => 50,
+                EggType.Earth => 55,
+                EggType.Water => 55,
+                EggType.Air => 50,
+                
+                // Spiritual and cosmic types
+                EggType.Spirit => 90,
+                EggType.Cosmic => 120,
+                EggType.Celestial => 130,
+                EggType.Mystic => 100,
+                EggType.Ancient => 110,
+                EggType.Legendary => 140,
+                EggType.Mythic => 150,
+                EggType.Divine => 160,
+                
+                // Dark and light types
+                EggType.Infernal => 85,
+                EggType.Void => 95,
+                EggType.Shadow => 80,
+                EggType.Light => 90,
+                
+                // Gem types
+                EggType.Crystal => 70,
+                EggType.Obsidian => 75,
+                EggType.Ruby => 80,
+                EggType.Sapphire => 80,
+                EggType.Emerald => 80,
+                EggType.Amethyst => 75,
+                EggType.Pearl => 70,
+                EggType.Coral => 65,
+                EggType.Jade => 75,
+                EggType.Onyx => 75,
+                EggType.Topaz => 70,
+                EggType.Garnet => 75,
+                EggType.Aquamarine => 70,
+                EggType.Peridot => 65,
+                EggType.Citrine => 70,
+                EggType.Moonstone => 85,
+                EggType.Sunstone => 85,
+                EggType.Starstone => 90,
+                
+                // Celestial objects
+                EggType.Comet => 100,
+                EggType.Meteor => 95,
+                EggType.Asteroid => 90,
+                EggType.Nebula => 110,
+                EggType.Galaxy => 120,
+                EggType.Universe => 130,
+                EggType.Multiverse => 140,
+                EggType.Omniverse => 150,
+                
                 _ => 0
             };
 
@@ -490,8 +562,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public EggDiscoveryMethod DiscoveryMethod { get; set; }
         public bool IsDisplayed { get; set; } // Whether it's shown in avatar's gallery
         
-        //TODO: Change to Enum.
-        public string GalleryPosition { get; set; } // Position in avatar's trophy gallery
+        public GalleryPosition GalleryPosition { get; set; } = GalleryPosition.Hidden; // Position in avatar's trophy gallery
         
         // Egg Categories
         public EggCategory EggCategory { get; set; }
@@ -560,4 +631,118 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public DateTime LastUpdated { get; set; }
         public Dictionary<string, object> Achievements { get; set; } = new Dictionary<string, object>();
     }
+
+    #region Helper Methods
+
+    /// <summary>
+    /// Serialize an egg to dictionary for storage
+    /// </summary>
+    private Dictionary<string, object> SerializeEgg(Egg egg)
+    {
+        return new Dictionary<string, object>
+        {
+            ["id"] = egg.Id,
+            ["name"] = egg.Name,
+            ["description"] = egg.Description,
+            ["eggType"] = egg.EggType.ToString(),
+            ["rarity"] = egg.Rarity.ToString(),
+            ["rarityLevel"] = egg.RarityLevel,
+            ["score"] = egg.Score,
+            ["location"] = egg.Location,
+            ["locationId"] = egg.LocationId,
+            ["discoveryMethod"] = egg.DiscoveryMethod.ToString(),
+            ["isDisplayed"] = egg.IsDisplayed,
+            ["galleryPosition"] = egg.GalleryPosition.ToString(),
+            ["eggCategory"] = egg.EggCategory.ToString(),
+            ["isHatchable"] = egg.IsHatchable,
+            ["isHatched"] = egg.IsHatched,
+            ["hatchedDate"] = egg.HatchedDate,
+            ["discoveredDate"] = egg.DiscoveredDate,
+            ["createdDate"] = egg.CreatedDate,
+            ["modifiedDate"] = egg.ModifiedDate
+        };
+    }
+
+    /// <summary>
+    /// Deserialize an egg from dictionary
+    /// </summary>
+    private Egg DeserializeEgg(Dictionary<string, object> eggData)
+    {
+        try
+        {
+            var egg = new Egg
+            {
+                Id = Guid.Parse(eggData.GetValueOrDefault("id", Guid.NewGuid()).ToString()),
+                Name = eggData.GetValueOrDefault("name", "").ToString(),
+                Description = eggData.GetValueOrDefault("description", "").ToString(),
+                EggType = Enum.TryParse<EggType>(eggData.GetValueOrDefault("eggType", "Bronze").ToString(), out var eggType) ? eggType : EggType.Bronze,
+                Rarity = Enum.TryParse<EggRarity>(eggData.GetValueOrDefault("rarity", "Common").ToString(), out var rarity) ? rarity : EggRarity.Common,
+                RarityLevel = Convert.ToInt32(eggData.GetValueOrDefault("rarityLevel", 1)),
+                Score = Convert.ToInt32(eggData.GetValueOrDefault("score", 0)),
+                Location = eggData.GetValueOrDefault("location", "").ToString(),
+                LocationId = Guid.Parse(eggData.GetValueOrDefault("locationId", Guid.Empty).ToString()),
+                DiscoveryMethod = Enum.TryParse<EggDiscoveryMethod>(eggData.GetValueOrDefault("discoveryMethod", "Exploration").ToString(), out var discoveryMethod) ? discoveryMethod : EggDiscoveryMethod.Exploration,
+                IsDisplayed = Convert.ToBoolean(eggData.GetValueOrDefault("isDisplayed", false)),
+                GalleryPosition = Enum.TryParse<GalleryPosition>(eggData.GetValueOrDefault("galleryPosition", "Hidden").ToString(), out var galleryPosition) ? galleryPosition : GalleryPosition.Hidden,
+                EggCategory = Enum.TryParse<EggCategory>(eggData.GetValueOrDefault("eggCategory", "Standard").ToString(), out var category) ? category : EggCategory.Standard,
+                IsHatchable = Convert.ToBoolean(eggData.GetValueOrDefault("isHatchable", true)),
+                IsHatched = Convert.ToBoolean(eggData.GetValueOrDefault("isHatched", false)),
+                HatchedDate = eggData.GetValueOrDefault("hatchedDate") != null ? DateTime.Parse(eggData["hatchedDate"].ToString()) : (DateTime?)null,
+                DiscoveredDate = eggData.GetValueOrDefault("discoveredDate") != null ? DateTime.Parse(eggData["discoveredDate"].ToString()) : DateTime.UtcNow,
+                CreatedDate = eggData.GetValueOrDefault("createdDate") != null ? DateTime.Parse(eggData["createdDate"].ToString()) : DateTime.UtcNow,
+                ModifiedDate = eggData.GetValueOrDefault("modifiedDate") != null ? DateTime.Parse(eggData["modifiedDate"].ToString()) : DateTime.UtcNow
+            };
+
+            return egg;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deserializing egg: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Save eggs to persistent storage
+    /// </summary>
+    private async Task SaveEggsAsync(Guid avatarId, List<Egg> eggs)
+    {
+        try
+        {
+            var eggsData = eggs.Select(SerializeEgg).ToList();
+            
+            var eggsHolon = await HolonManager.Instance.LoadHolonAsync($"eggs_{avatarId}");
+            
+            if (eggsHolon.IsError || eggsHolon.Result == null)
+            {
+                // Create new eggs holon
+                var newHolon = new Holon
+                {
+                    Id = Guid.NewGuid(),
+                    Name = $"Eggs_{avatarId}",
+                    Description = $"Eggs discovered by avatar {avatarId}",
+                    MetaData = new Dictionary<string, object> { ["eggs"] = eggsData },
+                    CreatedByAvatarId = avatarId,
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow
+                };
+                
+                await HolonManager.Instance.SaveHolonAsync(newHolon);
+            }
+            else
+            {
+                // Update existing eggs holon
+                var existingHolon = eggsHolon.Result;
+                existingHolon.MetaData["eggs"] = eggsData;
+                existingHolon.ModifiedDate = DateTime.UtcNow;
+                await HolonManager.Instance.SaveHolonAsync(existingHolon);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving eggs: {ex.Message}");
+        }
+    }
+
+    #endregion
 }
