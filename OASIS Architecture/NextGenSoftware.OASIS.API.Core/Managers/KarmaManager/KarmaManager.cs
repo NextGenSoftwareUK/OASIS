@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.Utilities;
@@ -183,6 +185,187 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return await Task.FromResult(result);
         }
 
+        public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(Guid avatarId, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
+        {
+            var result = new OASISResult<KarmaAkashicRecord>();
+            try
+            {
+                // Load avatar detail
+                var avatarDetailResult = AvatarManager.Instance.LoadAvatarDetail(avatarId);
+                if (avatarDetailResult.IsError || avatarDetailResult.Result == null)
+                {
+                    result.IsError = true;
+                    result.Message = $"Error loading avatar detail. Reason: {avatarDetailResult.Message}";
+                    return await Task.FromResult(result);
+                }
+                var avatarDetail = avatarDetailResult.Result;
+
+                // Calculate karma amount
+                var karmaAmount = GetKarmaForType(karmaType);
+                if (karmaType == KarmaTypePositive.Other)
+                    karmaAmount = karmaOverride;
+
+                // Update avatar totals
+                avatarDetail.Karma += karmaAmount;
+
+                // Create akashic record
+                var record = new KarmaAkashicRecord
+                {
+                    AvatarId = avatarId,
+                    Date = DateTime.Now,
+                    Karma = karmaAmount,
+                    TotalKarma = avatarDetail.Karma,
+                    // Provider expects EnumValue<ProviderType>; use the current provider enum directly
+                    Provider = ProviderManager.Instance.CurrentStorageProviderType,
+                    KarmaSourceTitle = karamSourceTitle,
+                    KarmaSourceDesc = karmaSourceDesc,
+                    WebLink = webLink,
+                    KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType),
+                    KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Earnt),
+                    KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(KarmaTypeNegative.None),
+                    KarmaTypePositive = new EnumValue<KarmaTypePositive>(karmaType)
+                };
+
+                if (avatarDetail.KarmaAkashicRecords == null)
+                    avatarDetail.KarmaAkashicRecords = new List<IKarmaAkashicRecord>();
+                avatarDetail.KarmaAkashicRecords.Add(record);
+
+                // Persist avatar detail
+                AvatarManager.Instance.SaveAvatarDetail(avatarDetail);
+
+                // Update in-memory ledgers and competition
+                var amount = Math.Abs(record.Karma);
+                await AddKarmaAsync(avatarId, amount, record.KarmaSource.Value, karamSourceTitle);
+                await UpdateKarmaCompetitionScoresAsync(avatarId, amount);
+
+                result.Result = record;
+                result.Message = "Karma added successfully.";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error adding karma: {ex.Message}";
+                result.Exception = ex;
+            }
+            return await Task.FromResult(result);
+        }
+
+        public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(Guid avatarId, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, int karmaOverride = 0)
+        {
+            var result = new OASISResult<KarmaAkashicRecord>();
+            try
+            {
+                // Load avatar detail
+                var avatarDetailResult = AvatarManager.Instance.LoadAvatarDetail(avatarId);
+                if (avatarDetailResult.IsError || avatarDetailResult.Result == null)
+                {
+                    result.IsError = true;
+                    result.Message = $"Error loading avatar detail. Reason: {avatarDetailResult.Message}";
+                    return await Task.FromResult(result);
+                }
+                var avatarDetail = avatarDetailResult.Result;
+
+                // Calculate karma amount
+                var karmaAmount = GetKarmaForType(karmaType);
+                if (karmaType == KarmaTypeNegative.Other)
+                    karmaAmount = karmaOverride;
+
+                // Update avatar totals
+                avatarDetail.Karma -= karmaAmount;
+
+                // Create akashic record
+                var record = new KarmaAkashicRecord
+                {
+                    AvatarId = avatarId,
+                    Date = DateTime.Now,
+                    Karma = karmaAmount,
+                    TotalKarma = avatarDetail.Karma,
+                    // Provider expects EnumValue<ProviderType>; use the current provider enum directly
+                    Provider = ProviderManager.Instance.CurrentStorageProviderType,
+                    KarmaSourceTitle = karamSourceTitle,
+                    KarmaSourceDesc = karmaSourceDesc,
+                    WebLink = webLink,
+                    KarmaSource = new EnumValue<KarmaSourceType>(karmaSourceType),
+                    KarmaEarntOrLost = new EnumValue<KarmaEarntOrLost>(KarmaEarntOrLost.Lost),
+                    KarmaTypeNegative = new EnumValue<KarmaTypeNegative>(karmaType),
+                    KarmaTypePositive = new EnumValue<KarmaTypePositive>(KarmaTypePositive.None)
+                };
+
+                if (avatarDetail.KarmaAkashicRecords == null)
+                    avatarDetail.KarmaAkashicRecords = new List<IKarmaAkashicRecord>();
+                avatarDetail.KarmaAkashicRecords.Add(record);
+
+                // Persist avatar detail
+                AvatarManager.Instance.SaveAvatarDetail(avatarDetail);
+
+                // Update in-memory ledgers and competition (negative amount)
+                var amount = Math.Abs(record.Karma);
+                await DeductKarmaAsync(avatarId, amount, record.KarmaSource.Value, karamSourceTitle);
+                await UpdateKarmaCompetitionScoresAsync(avatarId, -amount);
+
+                result.Result = record;
+                result.Message = "Karma removed successfully.";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error removing karma: {ex.Message}";
+                result.Exception = ex;
+            }
+            return await Task.FromResult(result);
+        }
+
+        private int GetKarmaForType(KarmaTypePositive karmaType)
+        {
+            switch (karmaType)
+            {
+                case KarmaTypePositive.BeAHero: return 7;
+                case KarmaTypePositive.BeASuperHero: return 8;
+                case KarmaTypePositive.BeATeamPlayer: return 5;
+                case KarmaTypePositive.BeingDetermined: return 5;
+                case KarmaTypePositive.BeingFast: return 5;
+                case KarmaTypePositive.ContributingTowardsAGoodCauseAdministrator: return 3;
+                case KarmaTypePositive.ContributingTowardsAGoodCauseSpeaker: return 8;
+                case KarmaTypePositive.ContributingTowardsAGoodCauseContributor: return 5;
+                case KarmaTypePositive.ContributingTowardsAGoodCauseCreatorOrganiser: return 10;
+                case KarmaTypePositive.ContributingTowardsAGoodCauseFunder: return 8;
+                case KarmaTypePositive.ContributingTowardsAGoodCausePeacefulProtesterActivist: return 5;
+                case KarmaTypePositive.ContributingTowardsAGoodCauseSharer: return 3;
+                case KarmaTypePositive.HelpingAnimals: return 5;
+                case KarmaTypePositive.HelpingTheEnvironment: return 5;
+                case KarmaTypePositive.Other: return 2;
+                case KarmaTypePositive.OurWorld: return 5;
+                case KarmaTypePositive.SelfHelpImprovement: return 2;
+                default: return 0;
+            }
+        }
+
+        private int GetKarmaForType(KarmaTypeNegative karmaType)
+        {
+            switch (karmaType)
+            {
+                case KarmaTypeNegative.AttackPhysciallyOtherPersonOrPeople: return 10;
+                case KarmaTypeNegative.AttackVerballyOtherPersonOrPeople: return 5;
+                case KarmaTypeNegative.BeingSelfish: return 3;
+                case KarmaTypeNegative.DisrespectPersonOrPeople: return 4;
+                case KarmaTypeNegative.DropLitter: return 9;
+                case KarmaTypeNegative.HarmingAnimals: return 10;
+                case KarmaTypeNegative.HarmingChildren: return 9;
+                case KarmaTypeNegative.HarmingNature: return 10;
+                case KarmaTypeNegative.NotTeamPlayer: return 3;
+                case KarmaTypeNegative.NutritionEatDiary: return 6;
+                case KarmaTypeNegative.NutritionEatDrinkUnhealthy: return 3;
+                case KarmaTypeNegative.NutritionEatMeat: return 7;
+                case KarmaTypeNegative.Other: return 1;
+                case KarmaTypeNegative.OurWorldAttackOtherPlayer: return 7;
+                case KarmaTypeNegative.OurWorldBeSelfish: return 4;
+                case KarmaTypeNegative.OurWorldDisrespectOtherPlayer: return 5;
+                case KarmaTypeNegative.OurWorldDropLitter: return 7;
+                case KarmaTypeNegative.OurWorldNotTeamPlayer: return 3;
+                default: return 0;
+            }
+        }
+
         public async Task<OASISResult<bool>> TransferKarmaAsync(Guid fromAvatarId, Guid toAvatarId, long amount, string description = null)
         {
             var result = new OASISResult<bool>();
@@ -198,7 +381,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Deduct from sender
-                var deductResult = await DeductKarmaAsync(fromAvatarId, amount, KarmaCategory.Transfer, $"Transferred to {toAvatarId}");
+                var deductResult = await DeductKarmaAsync(fromAvatarId, amount, KarmaSourceType.Platform, $"Transferred to {toAvatarId}");
                 if (deductResult.IsError)
                 {
                     result.IsError = true;
@@ -208,11 +391,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // Add to recipient
-                var addResult = await AddKarmaAsync(toAvatarId, amount, KarmaCategory.Transfer, $"Received from {toAvatarId}");
+                var addResult = await AddKarmaAsync(toAvatarId, amount, KarmaSourceType.Platform, $"Received from {toAvatarId}");
                 if (addResult.IsError)
                 {
                     // Rollback the deduction
-                    await AddKarmaAsync(fromAvatarId, amount, KarmaCategory.Transfer, "Transfer rollback");
+                    await AddKarmaAsync(fromAvatarId, amount, KarmaSourceType.Platform, "Transfer rollback");
                     result.IsError = true;
                     result.Result = false;
                     result.Message = addResult.Message;

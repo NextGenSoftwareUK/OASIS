@@ -1184,8 +1184,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
+            // Load existing avatar and update with new data
+            var existingAvatarResult = await Program.AvatarManager.LoadAvatarAsync(id);
+            if (existingAvatarResult.IsError || existingAvatarResult.Result == null)
+                return HttpResponseHelper.FormatResponse(existingAvatarResult, HttpStatusCode.NotFound);
+
+            var existingAvatar = existingAvatarResult.Result;
+            
+            // Update avatar properties from UpdateRequest
+            if (!string.IsNullOrEmpty(avatar.Title)) existingAvatar.Title = avatar.Title;
+            if (!string.IsNullOrEmpty(avatar.FirstName)) existingAvatar.FirstName = avatar.FirstName;
+            if (!string.IsNullOrEmpty(avatar.LastName)) existingAvatar.LastName = avatar.LastName;
+            if (!string.IsNullOrEmpty(avatar.Username)) existingAvatar.Username = avatar.Username;
+            if (!string.IsNullOrEmpty(avatar.Email)) existingAvatar.Email = avatar.Email;
+            if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = avatar.Password;
+            if (!string.IsNullOrEmpty(avatar.AvatarType)) 
+            {
+                if (Enum.TryParse<AvatarType>(avatar.AvatarType, out var avatarType))
+                    existingAvatar.AvatarType = new EnumValue<AvatarType>(avatarType);
+            }
+
             // Use AvatarManager for business logic
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.Update(id, avatar));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.SaveAvatarAsync(existingAvatar));
         }
 
         /// <summary>
@@ -1224,8 +1244,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
+            // Load existing avatar by email and update with new data
+            var existingAvatarResult = await Program.AvatarManager.LoadAvatarByEmailAsync(email);
+            if (existingAvatarResult.IsError || existingAvatarResult.Result == null)
+                return HttpResponseHelper.FormatResponse(existingAvatarResult, HttpStatusCode.NotFound);
+
+            var existingAvatar = existingAvatarResult.Result;
+            
+            // Update avatar properties from UpdateRequest
+            if (!string.IsNullOrEmpty(avatar.Title)) existingAvatar.Title = avatar.Title;
+            if (!string.IsNullOrEmpty(avatar.FirstName)) existingAvatar.FirstName = avatar.FirstName;
+            if (!string.IsNullOrEmpty(avatar.LastName)) existingAvatar.LastName = avatar.LastName;
+            if (!string.IsNullOrEmpty(avatar.Username)) existingAvatar.Username = avatar.Username;
+            if (!string.IsNullOrEmpty(avatar.Email)) existingAvatar.Email = avatar.Email;
+            if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = avatar.Password;
+            if (!string.IsNullOrEmpty(avatar.AvatarType)) 
+            {
+                if (Enum.TryParse<AvatarType>(avatar.AvatarType, out var avatarType))
+                    existingAvatar.AvatarType = new EnumValue<AvatarType>(avatarType);
+            }
+
             // Use AvatarManager for business logic
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.UpdateByEmail(email, avatar));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.SaveAvatarAsync(existingAvatar));
         }
 
         /// <summary>
@@ -1260,8 +1300,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
                 return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
 
+            // Load existing avatar by username and update with new data
+            var existingAvatarResult = await Program.AvatarManager.LoadAvatarAsync(username);
+            if (existingAvatarResult.IsError || existingAvatarResult.Result == null)
+                return HttpResponseHelper.FormatResponse(existingAvatarResult, HttpStatusCode.NotFound);
+
+            var existingAvatar = existingAvatarResult.Result;
+            
+            // Update avatar properties from UpdateRequest
+            if (!string.IsNullOrEmpty(avatar.Title)) existingAvatar.Title = avatar.Title;
+            if (!string.IsNullOrEmpty(avatar.FirstName)) existingAvatar.FirstName = avatar.FirstName;
+            if (!string.IsNullOrEmpty(avatar.LastName)) existingAvatar.LastName = avatar.LastName;
+            if (!string.IsNullOrEmpty(avatar.Username)) existingAvatar.Username = avatar.Username;
+            if (!string.IsNullOrEmpty(avatar.Email)) existingAvatar.Email = avatar.Email;
+            if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = avatar.Password;
+            if (!string.IsNullOrEmpty(avatar.AvatarType)) 
+            {
+                if (Enum.TryParse<AvatarType>(avatar.AvatarType, out var avatarType))
+                    existingAvatar.AvatarType = new EnumValue<AvatarType>(avatarType);
+            }
+
             // Use AvatarManager for business logic
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.UpdateByUsername(username, avatar));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.SaveAvatarAsync(existingAvatar));
         }
 
         /// <summary>

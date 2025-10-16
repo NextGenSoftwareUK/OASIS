@@ -2,14 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -35,22 +31,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             get
             {
                 if (_mapManager == null)
-                    _mapManager = new MapManager(GetAndActivateDefaultStorageProvider());
+                    _mapManager = new MapManager(AvatarId);
 
                 return _mapManager;
             }
         }
 
-        /// <summary>
-        /// Search the map.
-        /// </summary>
-        /// <param name="searchParams"></param>
-        /// <returns></returns>
-        [HttpGet("Search/{searchParams}")]
-        public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
-        {
-            return new(await MapManager.SearchAsync(searchParams));
-        }
+        //TODO: Implement ASAP! :)
+        ///// <summary>
+        ///// Search the map.
+        ///// </summary>
+        ///// <param name="searchParams"></param>
+        ///// <returns></returns>
+        //[HttpGet("Search/{searchParams}")]
+        //public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
+        //{
+        //    return new(await MapManager.SearchAsync(searchParams));
+        //}
 
         ///// <summary>
         ///// Search the map.
@@ -195,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("PamMapDown/{value}")]
         public OASISResult<bool> PamMapDown(float value)
         {
-            return new(MapManager.PamMapDown(value));
+            return new(MapManager.PanMapDown(value));
         }
 
         /// <summary>
@@ -206,7 +203,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("PamMapLeft/{value}")]
         public OASISResult<bool> PamMapLeft(float value)
         {
-            return new(MapManager.PamMapLeft(value));
+            return new(MapManager.PanMapLeft(value));
         }
 
         /// <summary>
@@ -217,7 +214,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("PamMapRight/{value}")]
         public OASISResult<bool> PamMapRight(float value)
         {
-            return new(MapManager.PamMapRight(value));
+            return new(MapManager.PanMapRight(value));
         }
 
         /// <summary>
@@ -228,7 +225,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("PamMapUp/{value}")]
         public OASISResult<bool> PamMapUp(float value)
         {
-            return new(MapManager.PamMapUp(value));
+            return new(MapManager.PanMapUp(value));
         }
 
         /// <summary>

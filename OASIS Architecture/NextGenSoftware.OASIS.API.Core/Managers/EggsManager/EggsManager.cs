@@ -151,7 +151,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return await Task.FromResult(result);
         }
 
-        public async Task<OASISResult<Egg>> DiscoverEggAsync(Guid avatarId, EggType eggType, string name, string location, EggDiscoveryMethod discoveryMethod, EggRarity rarity = EggRarity.Common, int rarityLevel = 1)
+        //public async Task<OASISResult<Egg>> DiscoverEggAsync(Guid avatarId, EggType eggType, string name, string location, EggDiscoveryMethod discoveryMethod, EggRarity rarity = EggRarity.Common, int rarityLevel = 1)
+        public async Task<OASISResult<Egg>> DiscoverEggAsync(Guid avatarId, EggType eggType, string name, Guid locationId, string location, EggDiscoveryMethod discoveryMethod, EggRarity rarity = EggRarity.Common)
         {
             var result = new OASISResult<Egg>();
             try
@@ -163,8 +164,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     EggType = eggType,
                     Name = name,
                     Rarity = rarity,
-                    RarityLevel = rarityLevel,
+                    //RarityLevel = rarityLevel,
                     Location = location,
+                    LocationId = locationId,
                     DiscoveryMethod = discoveryMethod,
                     DiscoveredAt = DateTime.UtcNow,
                     IsDisplayed = true,
@@ -193,6 +195,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return await Task.FromResult(result);
         }
 
+        /*
         public async Task<OASISResult<Egg>> DiscoverEggFromQuestAsync(Guid avatarId, Guid questId, EggType eggType, string name, EggRarity rarity = EggRarity.Rare, int rarityLevel = 3)
         {
             var result = new OASISResult<Egg>();
@@ -205,7 +208,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     EggType = eggType,
                     Name = name,
                     Rarity = rarity,
-                    RarityLevel = rarityLevel,
+                    //RarityLevel = rarityLevel,
                     Location = "Quest Reward",
                     DiscoveryMethod = EggDiscoveryMethod.QuestCompletion,
                     DiscoveredAt = DateTime.UtcNow,
@@ -317,7 +320,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Exception = ex;
             }
             return await Task.FromResult(result);
-        }
+        }*/
+
 
         #region Competition Tracking
 
@@ -356,9 +360,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 EggRarity.Epic => 100,
                 EggRarity.Legendary => 250,
                 EggRarity.Mythic => 500,
+                EggRarity.Divine => 700,
+                EggRarity.Celestial => 800,
+                EggRarity.Transcendent => 900,
+                EggRarity.Omnipotent => 1000,
                 _ => 10
             };
 
+            //TODO: Finish mapping types to scores! :)
             // Bonus for unique types
             var typeBonus = egg.EggType switch
             {
@@ -433,11 +442,55 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public string Name { get; set; }
         public string Description { get; set; }
         public EggRarity Rarity { get; set; }
-        public int RarityLevel { get; set; } // 1-10 scale
+        public int RarityLevel
+        {
+            get
+            {
+                switch (Rarity)
+                {
+                    case EggRarity.Common:
+                        return 1;
+
+                    case EggRarity.Uncommon:
+                        return 2;
+
+                    case EggRarity.Rare:
+                        return 3;
+
+                    case EggRarity.Epic:
+                        return 4;
+
+                    case EggRarity.Legendary:
+                        return 5;
+
+                    case EggRarity.Mythic:
+                        return 6;
+
+                    case EggRarity.Divine:
+                        return 7;
+
+                    case EggRarity.Celestial:
+                        return 8;
+
+                    case EggRarity.Transcendent:
+                        return 9;
+
+                    case EggRarity.Omnipotent:
+                        return 10;
+
+                    default:
+                        return 0;
+                }
+            }
+        }
+
         public DateTime DiscoveredAt { get; set; }
         public string Location { get; set; } // Where in the OASIS it was found
+        public Guid LocationId { get; set; } // Where in the OASIS it was found
         public EggDiscoveryMethod DiscoveryMethod { get; set; }
         public bool IsDisplayed { get; set; } // Whether it's shown in avatar's gallery
+        
+        //TODO: Change to Enum.
         public string GalleryPosition { get; set; } // Position in avatar's trophy gallery
         
         // Egg Categories
