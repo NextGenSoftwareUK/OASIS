@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.DNA;
@@ -320,5 +321,268 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             return result;
         }
+
+        #region Settings Management
+
+        /// <summary>
+        /// Save a setting for an avatar in a specific category
+        /// </summary>
+        /// <typeparam name="T">Type of the setting value</typeparam>
+        /// <param name="avatarId">Avatar ID</param>
+        /// <param name="category">Settings category (subscription, notifications, privacy, hyperdrive, custom)</param>
+        /// <param name="key">Setting key</param>
+        /// <param name="value">Setting value</param>
+        /// <returns>Success result</returns>
+        public async Task<OASISResult<bool>> SaveSettingAsync<T>(Guid avatarId, string category, string key, T value)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                // Get or create the settings holon for this category
+                var settingsHolon = await GetOrCreateSettingsHolonAsync(avatarId, category);
+                
+                // Update the setting in MetaData
+                settingsHolon.MetaData[key] = value;
+                settingsHolon.ModifiedDate = DateTime.UtcNow;
+                
+                // Save the updated holon
+                var saveResult = await SaveHolonAsync(settingsHolon);
+                if (saveResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = $"Failed to save setting: {saveResult.Message}";
+                    return result;
+                }
+                
+                result.Result = true;
+                result.Message = $"Setting '{key}' saved successfully in category '{category}'";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error saving setting: {ex.Message}";
+                result.Exception = ex;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Load a setting for an avatar from a specific category
+        /// </summary>
+        /// <typeparam name="T">Type of the setting value</typeparam>
+        /// <param name="avatarId">Avatar ID</param>
+        /// <param name="category">Settings category (subscription, notifications, privacy, hyperdrive, custom)</param>
+        /// <param name="key">Setting key</param>
+        /// <param name="defaultValue">Default value if setting not found</param>
+        /// <returns>Setting value or default</returns>
+        public async Task<OASISResult<T>> LoadSettingAsync<T>(Guid avatarId, string category, string key, T defaultValue = default(T))
+        {
+            var result = new OASISResult<T>();
+            try
+            {
+                // Get the settings holon for this category
+                var settingsHolon = await GetOrCreateSettingsHolonAsync(avatarId, category);
+                
+                // Get the setting from MetaData
+                if (settingsHolon.MetaData.ContainsKey(key))
+                {
+                    var value = settingsHolon.MetaData[key];
+                    if (value is T)
+                    {
+                        result.Result = (T)value;
+                    }
+                    else
+                    {
+                        result.Result = defaultValue;
+                    }
+                }
+                else
+                {
+                    result.Result = defaultValue;
+                }
+                
+                result.Message = $"Setting '{key}' loaded from category '{category}'";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error loading setting: {ex.Message}";
+                result.Exception = ex;
+                result.Result = defaultValue;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Get all settings for an avatar from a specific category
+        /// </summary>
+        /// <param name="avatarId">Avatar ID</param>
+        /// <param name="category">Settings category</param>
+        /// <returns>Dictionary of all settings in the category</returns>
+        public async Task<OASISResult<Dictionary<string, object>>> GetAllSettingsAsync(Guid avatarId, string category)
+        {
+            var result = new OASISResult<Dictionary<string, object>>();
+            try
+            {
+                // Get the settings holon for this category
+                var settingsHolon = await GetOrCreateSettingsHolonAsync(avatarId, category);
+                
+                result.Result = new Dictionary<string, object>(settingsHolon.MetaData);
+                result.Message = $"All settings loaded from category '{category}'";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error loading all settings: {ex.Message}";
+                result.Exception = ex;
+                result.Result = new Dictionary<string, object>();
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Get or create a settings holon for an avatar and category
+        /// </summary>
+        /// <param name="avatarId">Avatar ID</param>
+        /// <param name="category">Settings category</param>
+        /// <returns>Settings holon</returns>
+        private async Task<IHolon> GetOrCreateSettingsHolonAsync(Guid avatarId, string category)
+        {
+            try
+            {
+                // Get lookup holon ID from OASISDNA
+                var lookupHolonId = GetLookupHolonIdFromDNA();
+                
+                if (lookupHolonId == Guid.Empty)
+                {
+                    // Create new lookup holon if none exists
+                    lookupHolonId = await CreateLookupHolonAsync();
+                }
+                
+                // Load the lookup holon to get the mapping
+                var lookupHolon = await LoadHolonAsync(lookupHolonId);
+                
+                if (lookupHolon.IsError || lookupHolon.Result == null)
+                {
+                    // Create new lookup holon if loading failed
+                    lookupHolonId = await CreateLookupHolonAsync();
+                    lookupHolon = await LoadHolonAsync(lookupHolonId);
+                }
+                
+                // Create the mapping key
+                var mappingKey = $"settings_avatar_{avatarId}_{category}";
+                
+                // Check if mapping exists in lookup holon
+                if (lookupHolon.Result.MetaData.ContainsKey(mappingKey))
+                {
+                    var settingsHolonId = Guid.Parse(lookupHolon.Result.MetaData[mappingKey].ToString());
+                    
+                    // Load the existing settings holon
+                    var settingsHolon = await LoadHolonAsync(settingsHolonId);
+                    
+                    if (!settingsHolon.IsError && settingsHolon.Result != null)
+                    {
+                        return settingsHolon.Result;
+                    }
+                }
+                
+                // Create new settings holon
+                var newSettingsHolon = new Holon
+                {
+                    Id = Guid.NewGuid(),
+                    Name = mappingKey,
+                    Description = $"Settings for avatar {avatarId} in category {category}",
+                    CreatedByAvatarId = avatarId,
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow,
+                    MetaData = new Dictionary<string, object>()
+                };
+                
+                // Save the new settings holon
+                await SaveHolonAsync(newSettingsHolon);
+                
+                // Update lookup holon with new mapping
+                lookupHolon.Result.MetaData[mappingKey] = newSettingsHolon.Id.ToString();
+                lookupHolon.Result.ModifiedDate = DateTime.UtcNow;
+                await SaveHolonAsync(lookupHolon.Result);
+                
+                return newSettingsHolon;
+            }
+            catch (Exception ex)
+            {
+                // Fallback: create settings holon directly (without lookup)
+                var holonName = $"settings_avatar_{avatarId}_{category}";
+                var newHolon = new Holon
+                {
+                    Id = Guid.NewGuid(),
+                    Name = holonName,
+                    Description = $"Settings for avatar {avatarId} in category {category}",
+                    CreatedByAvatarId = avatarId,
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow,
+                    MetaData = new Dictionary<string, object>()
+                };
+                
+                await SaveHolonAsync(newHolon);
+                return newHolon;
+            }
+        }
+        
+        /// <summary>
+        /// Get lookup holon ID from OASISDNA
+        /// </summary>
+        /// <returns>Lookup holon ID</returns>
+        private Guid GetLookupHolonIdFromDNA()
+        {
+            try
+            {
+                if (OASISDNA != null && OASISDNA.OASIS.SettingsLookupHolonId != Guid.Empty)
+                {
+                    return OASISDNA.OASIS.SettingsLookupHolonId;
+                }
+                return Guid.Empty;
+            }
+            catch
+            {
+                return Guid.Empty;
+            }
+        }
+        
+        /// <summary>
+        /// Create a new lookup holon and store its ID in OASISDNA
+        /// </summary>
+        /// <returns>New lookup holon ID</returns>
+        private async Task<Guid> CreateLookupHolonAsync()
+        {
+            try
+            {
+                var lookupHolon = new Holon
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "SettingsLookup",
+                    Description = "Lookup holon for settings avatar/category to holon ID mappings",
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow,
+                    MetaData = new Dictionary<string, object>()
+                };
+                
+                await SaveHolonAsync(lookupHolon);
+                
+                // Store lookup holon ID in OASISDNA
+                if (OASISDNA != null)
+                {
+                    OASISDNA.OASIS.SettingsLookupHolonId = lookupHolon.Id;
+                    // Note: OASISDNA will be saved when the application shuts down or when explicitly saved elsewhere
+                }
+                
+                return lookupHolon.Id;
+            }
+            catch
+            {
+                return Guid.Empty;
+            }
+        }
+
+        #endregion
     }
 } 

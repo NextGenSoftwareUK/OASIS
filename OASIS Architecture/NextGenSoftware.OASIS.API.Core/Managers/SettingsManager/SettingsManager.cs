@@ -88,7 +88,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     // Global HyperDrive Settings
                     ["isEnabled"] = hyperDriveConfig?.IsEnabled ?? true,
                     ["defaultStrategy"] = hyperDriveConfig?.DefaultStrategy ?? "Auto",
-                    ["hyperDriveMode"] = _OASISDNA?.OASIS?.HyperDriveMode ?? "Legacy",
+                    ["hyperDriveMode"] = OASISDNA?.OASIS?.HyperDriveMode ?? "Legacy",
                     
                     // Auto-Failover Settings
                     ["autoFailoverEnabled"] = hyperDriveConfig?.AutoFailoverEnabled ?? true,
@@ -522,10 +522,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                // Get subscription data from HolonManager
-                var subscriptionHolon = await HolonManager.Instance.LoadHolonAsync($"subscription_{avatarId}");
+                // Load all subscription settings using the new generic method
+                var settingsResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "subscription");
                 
-                if (subscriptionHolon.IsError || subscriptionHolon.Result == null)
+                if (settingsResult.IsError || settingsResult.Result == null || settingsResult.Result.Count == 0)
                 {
                     // Return default subscription info if no data found
                     return new Dictionary<string, object>
@@ -553,31 +553,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     };
                 }
 
-                // Parse subscription data from holon
-                var subscriptionData = subscriptionHolon.Result.MetaData;
-                return new Dictionary<string, object>
-                {
-                    ["currentPlan"] = subscriptionData.GetValueOrDefault("currentPlan", "Bronze"),
-                    ["planType"] = subscriptionData.GetValueOrDefault("planType", "Bronze"),
-                    ["isActive"] = subscriptionData.GetValueOrDefault("isActive", true),
-                    ["expiresAt"] = subscriptionData.GetValueOrDefault("expiresAt", DateTime.UtcNow.AddDays(30)),
-                    ["maxRequestsPerMonth"] = subscriptionData.GetValueOrDefault("maxRequestsPerMonth", 10000),
-                    ["maxStorageGB"] = subscriptionData.GetValueOrDefault("maxStorageGB", 10),
-                    ["maxAvatars"] = subscriptionData.GetValueOrDefault("maxAvatars", 5),
-                    ["maxOAPPs"] = subscriptionData.GetValueOrDefault("maxOAPPs", 3),
-                    ["requestsUsedThisMonth"] = subscriptionData.GetValueOrDefault("requestsUsedThisMonth", 0),
-                    ["storageUsedGB"] = subscriptionData.GetValueOrDefault("storageUsedGB", 0),
-                    ["avatarsCreated"] = subscriptionData.GetValueOrDefault("avatarsCreated", 1),
-                    ["oappsCreated"] = subscriptionData.GetValueOrDefault("oappsCreated", 0),
-                    ["autoRenew"] = subscriptionData.GetValueOrDefault("autoRenew", true),
-                    ["paymentMethod"] = subscriptionData.GetValueOrDefault("paymentMethod", "card"),
-                    ["hyperDriveEnabled"] = subscriptionData.GetValueOrDefault("hyperDriveEnabled", true),
-                    ["advancedAnalytics"] = subscriptionData.GetValueOrDefault("advancedAnalytics", false),
-                    ["prioritySupport"] = subscriptionData.GetValueOrDefault("prioritySupport", false),
-                    ["customDomains"] = subscriptionData.GetValueOrDefault("customDomains", false),
-                    ["apiKeys"] = subscriptionData.GetValueOrDefault("apiKeys", 1),
-                    ["webhooks"] = subscriptionData.GetValueOrDefault("webhooks", 0)
-                };
+                return settingsResult.Result;
             }
             catch
             {
@@ -594,38 +570,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                // Get existing subscription holon or create new one
-                var subscriptionHolon = await HolonManager.Instance.LoadHolonAsync($"subscription_{avatarId}");
-                
-                if (subscriptionHolon.IsError || subscriptionHolon.Result == null)
+                // Save each setting using the new generic method
+                foreach (var setting in settings)
                 {
-                    // Create new subscription holon
-                    var newHolon = new Holon
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = $"Subscription_{avatarId}",
-                        Description = $"Subscription settings for avatar {avatarId}",
-                        MetaData = settings,
-                        CreatedByAvatarId = avatarId,
-                        CreatedDate = DateTime.UtcNow,
-                        ModifiedDate = DateTime.UtcNow
-                    };
-                    
-                    await HolonManager.Instance.SaveHolonAsync(newHolon);
-                }
-                else
-                {
-                    // Update existing subscription holon
-                    var existingHolon = subscriptionHolon.Result;
-                    
-                    // Update metadata with new settings
-                    foreach (var setting in settings)
-                    {
-                        existingHolon.MetaData[setting.Key] = setting.Value;
-                    }
-                    
-                    existingHolon.ModifiedDate = DateTime.UtcNow;
-                    await HolonManager.Instance.SaveHolonAsync(existingHolon);
+                    await HolonManager.Instance.SaveSettingAsync(avatarId, "subscription", setting.Key, setting.Value);
                 }
             }
             catch (Exception ex)
