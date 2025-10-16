@@ -503,21 +503,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                // Create gifts count holon with default count
-                var giftsHolon = new Holon
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "GiftsCount",
-                    Description = "Total gifts count across the OASIS",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
-                    MetaData = new Dictionary<string, object>
-                    {
-                        ["totalGifts"] = 0
-                    }
-                };
-                
-                return Convert.ToInt32(giftsHolon.MetaData.GetValueOrDefault("totalGifts", 0));
+                // Load gifts count using the new settings system
+                var giftsResult = await HolonManager.Instance.LoadSettingAsync<int>(Guid.Empty, "system", "totalGifts", 0);
+                return giftsResult.Result;
             }
             catch
             {
@@ -533,21 +521,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                // Create chat messages count holon with default count
-                var chatHolon = new Holon
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "ChatMessagesCount",
-                    Description = "Total chat messages count across the OASIS",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
-                    MetaData = new Dictionary<string, object>
-                    {
-                        ["totalMessages"] = 0
-                    }
-                };
-                
-                return Convert.ToInt32(chatHolon.MetaData.GetValueOrDefault("totalMessages", 0));
+                // Load chat messages count using the new settings system
+                var messagesResult = await HolonManager.Instance.LoadSettingAsync<int>(Guid.Empty, "system", "totalMessages", 0);
+                return messagesResult.Result;
             }
             catch
             {
@@ -563,21 +539,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             try
             {
-                // Create active users count holon with default count
-                var activeUsersHolon = new Holon
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "ActiveUsersCount",
-                    Description = "Active users count across the OASIS",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
-                    MetaData = new Dictionary<string, object>
-                    {
-                        ["activeUsers"] = 0
-                    }
-                };
-                
-                return Convert.ToInt32(activeUsersHolon.MetaData.GetValueOrDefault("activeUsers", 0));
+                // Load active users count using the new settings system
+                var usersResult = await HolonManager.Instance.LoadSettingAsync<int>(Guid.Empty, "system", "activeUsers", 0);
+                return usersResult.Result;
             }
             catch
             {
