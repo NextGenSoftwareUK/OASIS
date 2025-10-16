@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 
@@ -352,18 +353,30 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Dictionary<string, object>>();
             try
             {
-                // TODO: Implement quest statistics when QuestManager is available
-                // For now, return default quest stats
-                result.Result = new Dictionary<string, object>
+                // Load quest statistics using the new settings system
+                var questStatsResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "quests");
+                
+                if (questStatsResult.IsError || questStatsResult.Result == null || questStatsResult.Result.Count == 0)
                 {
-                    ["totalQuests"] = 0,
-                    ["completedQuests"] = 0,
-                    ["activeQuests"] = 0,
-                    ["questCompletionRate"] = 0,
-                    ["averageQuestTime"] = 0,
-                    ["questTypes"] = new Dictionary<string, int>(),
-                    ["recentQuests"] = new List<object>()
-                };
+                    // Return default quest stats if no data found
+                    result.Result = new Dictionary<string, object>
+                    {
+                        ["totalQuests"] = 0,
+                        ["completedQuests"] = 0,
+                        ["activeQuests"] = 0,
+                        ["questCompletionRate"] = 0.0,
+                        ["averageQuestTime"] = 0,
+                        ["questTypes"] = new Dictionary<string, int>(),
+                        ["recentQuests"] = new List<object>(),
+                        ["questStreak"] = 0,
+                        ["longestQuestStreak"] = 0,
+                        ["totalQuestRewards"] = 0
+                    };
+                }
+                else
+                {
+                    result.Result = questStatsResult.Result;
+                }
                 
                 result.Message = "Quest statistics retrieved successfully.";
             }
@@ -384,18 +397,46 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Dictionary<string, object>>();
             try
             {
-                // TODO: Implement leaderboard statistics when CompetitionManager is available
-                // For now, return default leaderboard stats
+                // Get leaderboard statistics using CompetitionManager
+                var competitionManager = CompetitionManager.Instance;
+                
+                // Get current rank for different competition types
+                var currentRank = 0;
+                var totalScore = 0;
+                var currentLeague = "Bronze";
+                
+                try
+                {
+                    // Get rank for karma competition
+                    var rankResult = await competitionManager.GetAvatarRankAsync(avatarId, CompetitionType.Karma, SeasonType.Monthly);
+                    if (!rankResult.IsError && rankResult.Result != null)
+                    {
+                        currentRank = (int)rankResult.Result.Rank;
+                        totalScore = (int)rankResult.Result.Score;
+                        
+                        // Determine league based on rank
+                        if (currentRank <= 10) currentLeague = "Diamond";
+                        else if (currentRank <= 50) currentLeague = "Platinum";
+                        else if (currentRank <= 100) currentLeague = "Gold";
+                        else if (currentRank <= 500) currentLeague = "Silver";
+                        else currentLeague = "Bronze";
+                    }
+                }
+                catch
+                {
+                    // Use defaults if CompetitionManager fails
+                }
+                
                 result.Result = new Dictionary<string, object>
                 {
-                    ["currentRank"] = 0,
-                    ["previousRank"] = 0,
-                    ["rankChange"] = 0,
-                    ["currentLeague"] = "Bronze",
-                    ["previousLeague"] = "Bronze",
-                    ["leaguePromoted"] = false,
-                    ["leagueDemoted"] = false,
-                    ["totalScore"] = 0,
+                    ["currentRank"] = currentRank,
+                    ["previousRank"] = currentRank, // Would need historical data for this
+                    ["rankChange"] = 0, // Would need historical data for this
+                    ["currentLeague"] = currentLeague,
+                    ["previousLeague"] = currentLeague, // Would need historical data for this
+                    ["leaguePromoted"] = false, // Would need historical data for this
+                    ["leagueDemoted"] = false, // Would need historical data for this
+                    ["totalScore"] = totalScore,
                     ["seasonStart"] = DateTime.UtcNow.AddDays(-30),
                     ["seasonEnd"] = DateTime.UtcNow.AddDays(30),
                     ["badges"] = new List<string>(),
