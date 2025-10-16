@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -344,5 +346,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             GetAndActivateProvider(providerType, setGlobally);
             return RemoveKarmaFromAvatar(avatarId, addKarmaToAvatarRequest);
         }
+
+        /// <summary>
+        /// Gets karma statistics (totals, distributions, recent activity) for a given avatar.
+        /// </summary>
+        [HttpGet("get-karma-stats/{avatarId}")]
+        public async Task<OASISResult<Dictionary<string, object>>> GetKarmaStats(Guid avatarId)
+        {
+            return await KarmaManager.Instance.GetKarmaStatsAsync(avatarId);
+        }
+
+        /// <summary>
+        /// Gets karma statistics for a given avatar with provider activation.
+        /// </summary>
+        [HttpGet("get-karma-stats/{avatarId}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<Dictionary<string, object>>> GetKarmaStats(Guid avatarId, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetKarmaStats(avatarId);
+        }
+
+        /// <summary>
+        /// Gets karma history (paged) for a given avatar.
+        /// </summary>
+        [HttpGet("get-karma-history/{avatarId}")]
+        public async Task<OASISResult<List<KarmaTransaction>>> GetKarmaHistory(Guid avatarId, int limit = 50, int offset = 0)
+        {
+            return await KarmaManager.Instance.GetKarmaHistoryAsync(avatarId, limit, offset);
+        }
+
+        /// <summary>
+        /// Gets karma history (paged) for a given avatar with provider activation.
+        /// </summary>
+        [HttpGet("get-karma-history/{avatarId}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<List<KarmaTransaction>>> GetKarmaHistory(Guid avatarId, ProviderType providerType, bool setGlobally = false, int limit = 50, int offset = 0)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetKarmaHistory(avatarId, limit, offset);
+        }
+
+        // NOTE: Karma cannot be transferred; endpoint intentionally commented out per product rules
+        // [Authorize]
+        // [HttpPost("transfer-karma")]
+        // public async Task<OASISResult<bool>> TransferKarma([FromBody] TransferKarmaRequest request)
+        // {
+        //     return await KarmaManager.Instance.TransferKarmaAsync(request.FromAvatarId, request.ToAvatarId, request.Amount, request.Description);
+        // }
     }
 }
