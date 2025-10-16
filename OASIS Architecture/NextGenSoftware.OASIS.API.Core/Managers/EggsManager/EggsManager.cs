@@ -527,6 +527,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 ["eggType"] = egg.EggType.ToString(),
                 ["rarity"] = egg.Rarity.ToString(),
                 ["rarityLevel"] = egg.RarityLevel,
+                ["score"] = egg.Score,
                 ["location"] = egg.Location,
                 ["locationId"] = egg.LocationId,
                 ["discoveryMethod"] = egg.DiscoveryMethod.ToString(),
@@ -537,10 +538,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 ["avatarId"] = egg.AvatarId,
                 ["isHatched"] = egg.IsHatched,
                 ["hatchedAt"] = egg.HatchedAt,
+                ["hatchedDate"] = egg.HatchedDate,
+                ["discoveredDate"] = egg.DiscoveredDate,
                 ["eggCategory"] = egg.EggCategory.ToString(),
                 ["isHatchable"] = egg.IsHatchable,
-                ["hatchedAt"] = egg.HatchedAt,
-                ["discoveredAt"] = egg.DiscoveredAt,
                 ["stats"] = egg.Stats,
                 ["metadata"] = egg.Metadata,
                 ["unlockedQuests"] = egg.UnlockedQuests,
@@ -582,7 +583,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 Description = data["description"].ToString(),
                 EggType = Enum.Parse<EggType>(data["eggType"].ToString()),
                 Rarity = Enum.Parse<EggRarity>(data["rarity"].ToString()),
-                RarityLevel = Convert.ToInt32(data["rarityLevel"]),
+                // RarityLevel is read-only, calculated from Rarity
                 Score = Convert.ToInt32(data.GetValueOrDefault("score", 0)),
                 Location = data["location"].ToString(),
                 LocationId = Guid.Parse(data["locationId"].ToString()),
@@ -594,10 +595,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 AvatarId = Guid.Parse(data["avatarId"].ToString()),
                 IsHatched = Convert.ToBoolean(data.GetValueOrDefault("isHatched", false)),
                 HatchedAt = data.GetValueOrDefault("hatchedAt") != null ? Convert.ToDateTime(data["hatchedAt"]) : (DateTime?)null,
-                EggCategory = Enum.TryParse<EggCategory>(data.GetValueOrDefault("eggCategory", "Standard").ToString(), out var category) ? category : EggCategory.Standard,
+                HatchedDate = data.GetValueOrDefault("hatchedDate") != null ? Convert.ToDateTime(data["hatchedDate"]) : (DateTime?)null,
+                DiscoveredDate = data.GetValueOrDefault("discoveredDate") != null ? Convert.ToDateTime(data["discoveredDate"]) : (DateTime?)null,
+                EggCategory = Enum.TryParse<EggCategory>(data.GetValueOrDefault("eggCategory", "Trophy").ToString(), out var category) ? category : EggCategory.Trophy,
                 IsHatchable = Convert.ToBoolean(data.GetValueOrDefault("isHatchable", true)),
-                HatchedDate = data.GetValueOrDefault("hatchedDate") != null ? DateTime.Parse(data["hatchedDate"].ToString()) : (DateTime?)null,
-                DiscoveredDate = data.GetValueOrDefault("discoveredDate") != null ? DateTime.Parse(data["discoveredDate"].ToString()) : DateTime.UtcNow,
                 Stats = data.GetValueOrDefault("stats") as Dictionary<string, object> ?? new Dictionary<string, object>(),
                 Metadata = data.GetValueOrDefault("metadata") as Dictionary<string, object> ?? new Dictionary<string, object>(),
                 UnlockedQuests = ((List<object>)data.GetValueOrDefault("unlockedQuests", new List<object>())).Cast<string>().ToList(),
@@ -730,6 +731,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public bool IsHatchable { get; set; } // Can this egg be hatched?
         public bool IsHatched { get; set; } // Has this egg been hatched?
         public DateTime? HatchedAt { get; set; } // When was it hatched?
+        public DateTime? HatchedDate { get; set; } // When was it hatched? (alternative property)
+        public DateTime? DiscoveredDate { get; set; } // When was it discovered? (alternative property)
+        public int Score { get; set; } // Score value for this egg
         
         // Rewards and Perks
         public List<string> UnlockedQuests { get; set; } = new List<string>(); // Quest IDs unlocked
