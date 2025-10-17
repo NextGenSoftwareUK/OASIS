@@ -45,6 +45,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (OASISDNA.OASIS.StatsCacheTtlSeconds > 0)
                         CacheTtl = TimeSpan.FromSeconds(OASISDNA.OASIS.StatsCacheTtlSeconds);
                 }
+
+                // Subscribe to settings saved to invalidate cache immediately
+                try
+                {
+                    HolonManager.Instance.SettingsSaved += InvalidateCache;
+                }
+                catch { }
             }
             catch
             {
@@ -88,6 +95,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             lock (_cacheLock)
             {
                 _statsCache[key] = (DateTime.UtcNow, data);
+            }
+        }
+
+        public void InvalidateCache(Guid avatarId, string category)
+        {
+            var key = BuildCacheKey(avatarId, category);
+            lock (_cacheLock)
+            {
+                _statsCache.Remove(key);
             }
         }
 

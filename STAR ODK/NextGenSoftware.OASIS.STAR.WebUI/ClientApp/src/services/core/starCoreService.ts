@@ -164,6 +164,53 @@ class STARCoreService extends BaseService {
   }
 
   /**
+   * Get settings
+   */
+  async getSettings(): Promise<OASISResult<any>> {
+    return this.handleRequest(
+      () => this.starApi.get('/star/settings'),
+      // Fallback demo data mirrors the default structure used in SettingsPage
+      {
+        general: {
+          theme: 'dark',
+          language: 'en',
+          timezone: 'UTC',
+          autoSave: true,
+          demoMode: true,
+        },
+        notifications: {
+          emailNotifications: true,
+          pushNotifications: true,
+          soundEnabled: true,
+          volume: 70,
+        },
+        performance: {
+          cacheSize: 1024,
+          maxConnections: 10,
+          autoOptimize: true,
+          compressionLevel: 5,
+        },
+        security: {
+          twoFactorAuth: false,
+          sessionTimeout: 30,
+          logLevel: 'info',
+          encryptionEnabled: true,
+        },
+        oasiss: {
+          defaultProvider: 'Auto',
+          backupEnabled: true,
+          syncInterval: 300,
+          maxRetries: 3,
+          enabledProviders: ['Auto', 'MongoDBOASIS', 'IPFSOASIS', 'EthereumOASIS'],
+          autoReplication: true,
+          replicationProviders: ['Auto', 'IPFSOASIS', 'PinataOASIS'],
+        },
+      },
+      'Settings retrieved (Demo Mode)'
+    );
+  }
+
+  /**
    * Get store items
    */
   async getStoreItems(): Promise<OASISResult<any[]>> {
