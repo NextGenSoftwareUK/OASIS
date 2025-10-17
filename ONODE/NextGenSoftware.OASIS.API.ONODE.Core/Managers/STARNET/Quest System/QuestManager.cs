@@ -564,7 +564,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(questResult, result);
 
             if (questResult != null && questResult.Result != null && !questResult.IsError)
+            {
+                // Update quest statistics in settings system whenever quests change
+                try
+                {
+                    await UpdateQuestStatisticsAsync(avatarId);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't fail the main operation
+                    Console.WriteLine($"Warning: Failed to update quest statistics: {ex.Message}");
+                }
+
                 result.Result = questResult.Result;
+            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with QuestManager.Update. Reason: {questResult.Message}");
 
@@ -610,6 +623,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
+                // Update quest statistics in settings system whenever quests change
+                try
+                {
+                    await UpdateQuestStatisticsAsync(avatarId);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't fail the main operation
+                    Console.WriteLine($"Warning: Failed to update quest statistics: {ex.Message}");
+                }
+
                 result.Result = true;
                 result.Message = "Quest completed successfully";
             }
@@ -619,6 +643,39 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Updates quest statistics in the settings system whenever quests change
+        /// </summary>
+        /// <param name="avatarId">The avatar ID</param>
+        private async Task UpdateQuestStatisticsAsync(Guid avatarId)
+        {
+            try
+            {
+                // Load all quests for the avatar
+                var questsResult = await LoadAllForAvatarAsync(avatarId);
+                if (questsResult.IsError || questsResult.Result == null)
+                    return;
+
+                var quests = questsResult.Result;
+                var stats = new Dictionary<string, object>
+                {
+                    ["totalQuests"] = quests.Count(),
+                    ["completedQuests"] = quests.Count(q => q.Status == QuestStatus.Completed),
+                    ["activeQuests"] = quests.Count(q => q.Status == QuestStatus.InProgress),
+                    ["pendingQuests"] = quests.Count(q => q.Status == QuestStatus.NotStarted),
+                    ["totalKarmaEarnt"] = quests.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.RewardKarma),
+                    ["totalXPEarnt"] = quests.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.RewardXP),
+                };
+
+                // Save all statistics to the settings system in one operation
+                await HolonManager.Instance.SaveSettingsAsync(avatarId, "quests", stats);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating quest statistics: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -717,21 +774,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         //["totalRewards"] = questsResult.Result.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.Rewards?.Sum(r => r.Amount) ?? 0)
                     };
 
-                    // Save quest statistics to the settings system for StatsManager to load
-                    try
-                    {
-                        await HolonManager.Instance.SaveSettingAsync(avatarId, "quests", "totalQuests", stats["totalQuests"]);
-                        await HolonManager.Instance.SaveSettingAsync(avatarId, "quests", "completedQuests", stats["completedQuests"]);
-                        await HolonManager.Instance.SaveSettingAsync(avatarId, "quests", "activeQuests", stats["activeQuests"]);
-                        await HolonManager.Instance.SaveSettingAsync(avatarId, "quests", "pendingQuests", stats["pendingQuests"]);
-                        await HolonManager.Instance.SaveSettingAsync(avatarId, "quests", "totalKarmaEarnt", stats["totalKarmaEarnt"]);
-                        await HolonManager.Instance.SaveSettingAsync(avatarId, "quests", "totalXPEarnt", stats["totalXPEarnt"]);
-                    }
-                    catch (Exception ex)
-                    {
-                        // Log the error but don't fail the main operation
-                        Console.WriteLine($"Warning: Failed to save quest statistics to settings system: {ex.Message}");
-                    }
 
                     result.Result = stats;
                     result.Message = "Quest statistics retrieved successfully";
