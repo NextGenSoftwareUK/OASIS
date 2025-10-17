@@ -83,10 +83,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         // Save leaderboard statistics to the settings system for StatsManager to load
                         try
                         {
-                            await HolonManager.Instance.SaveSettingAsync(avatarId, "leaderboard", "currentRank", entry.Rank);
-                            await HolonManager.Instance.SaveSettingAsync(avatarId, "leaderboard", "totalScore", entry.Score);
-                            await HolonManager.Instance.SaveSettingAsync(avatarId, "leaderboard", "competitionType", competitionType.ToString());
-                            await HolonManager.Instance.SaveSettingAsync(avatarId, "leaderboard", "seasonType", seasonType.ToString());
+                            var leaderboardStats = new Dictionary<string, object>
+                            {
+                                ["currentRank"] = entry.Rank,
+                                ["totalScore"] = entry.Score,
+                                ["competitionType"] = competitionType.ToString(),
+                                ["seasonType"] = seasonType.ToString()
+                            };
+                            await HolonManager.Instance.SaveSettingsAsync(avatarId, "leaderboard", leaderboardStats);
                         }
                         catch (Exception ex)
                         {
