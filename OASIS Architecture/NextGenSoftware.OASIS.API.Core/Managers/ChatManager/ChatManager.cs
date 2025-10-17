@@ -180,6 +180,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
+                // Update chat statistics in settings system whenever messages are sent
+                try
+                {
+                    var chatStats = new Dictionary<string, object>
+                    {
+                        ["totalMessagesSent"] = _chatHistory.Values.SelectMany(messages => messages).Count(m => m.SenderId == senderId),
+                        ["totalSessions"] = _activeSessions.Values.Count(s => s.ParticipantIds.Contains(senderId)),
+                        ["lastMessageSent"] = DateTime.UtcNow,
+                        ["lastMessageType"] = messageType.ToString()
+                    };
+                    await HolonManager.Instance.SaveSettingsAsync(senderId, "chat", chatStats);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't fail the main operation
+                    Console.WriteLine($"Warning: Failed to save chat statistics: {ex.Message}");
+                }
+
                 result.Result = messageId;
                 result.IsError = false;
             }
