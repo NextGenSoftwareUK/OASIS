@@ -358,6 +358,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 
                 result.Result = true;
                 result.Message = $"Setting '{key}' saved successfully in category '{category}'";
+                try { SettingsSaved?.Invoke(avatarId, category); } catch { }
             }
             catch (Exception ex)
             {
@@ -403,6 +404,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 
                 result.Result = true;
                 result.Message = $"{settings.Count} settings saved successfully in category '{category}'";
+
+                try
+                {
+                    SettingsSaved?.Invoke(avatarId, category);
+                }
+                catch { }
             }
             catch (Exception ex)
             {
