@@ -367,6 +367,49 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
+        /// Save multiple settings for an avatar in a specific category in one operation
+        /// </summary>
+        /// <param name="avatarId">Avatar ID</param>
+        /// <param name="category">Settings category (subscription, notifications, privacy, hyperdrive, custom)</param>
+        /// <param name="settings">Dictionary of settings to save</param>
+        /// <returns>Success result</returns>
+        public async Task<OASISResult<bool>> SaveSettingsAsync(Guid avatarId, string category, Dictionary<string, object> settings)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                // Get or create the settings holon for this category
+                var settingsHolon = await GetOrCreateSettingsHolonAsync(avatarId, category);
+                
+                // Update all settings in MetaData in one go
+                foreach (var setting in settings)
+                {
+                    settingsHolon.MetaData[setting.Key] = setting.Value;
+                }
+                settingsHolon.ModifiedDate = DateTime.UtcNow;
+                
+                // Save the updated holon
+                var saveResult = await SaveHolonAsync(settingsHolon);
+                if (saveResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = $"Failed to save settings: {saveResult.Message}";
+                    return result;
+                }
+                
+                result.Result = true;
+                result.Message = $"{settings.Count} settings saved successfully in category '{category}'";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error saving settings: {ex.Message}";
+                result.Exception = ex;
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Load a setting for an avatar from a specific category
         /// </summary>
         /// <typeparam name="T">Type of the setting value</typeparam>
