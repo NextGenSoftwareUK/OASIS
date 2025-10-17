@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Card, CardContent, Grid, Button, Chip, TextField,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
@@ -16,6 +16,7 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from 'react-query';
 import { onetService } from '../services/core/onetService';
+import signalRService from '../services/signalRService';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -47,11 +48,46 @@ const ONETPage: React.FC = () => {
   const [messageTo, setMessageTo] = useState('');
   const [messageContent, setMessageContent] = useState('');
   const [messageType, setMessageType] = useState('text');
+  const [liveMessages, setLiveMessages] = useState<any[]>([]);
   const queryClient = useQueryClient();
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
+
+  // Initialize SignalR and subscribe to live message events
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        await signalRService.start();
+      } catch (e) {
+        console.error('SignalR start failed:', e);
+      }
+    })();
+
+    const onMessageReceived = ({ user, message }: any) => {
+      if (!isMounted) return;
+      setLiveMessages(prev => [
+        {
+          id: `live-${Date.now()}`,
+          from: user,
+          to: 'me',
+          content: message,
+          status: 'received',
+          timestamp: new Date().toISOString()
+        },
+        ...prev
+      ]);
+    };
+
+    signalRService.on('messageReceived', onMessageReceived);
+
+    return () => {
+      isMounted = false;
+      signalRService.off('messageReceived', onMessageReceived);
+    };
+  }, []);
 
   // Queries
   const { data: statusData, isLoading: statusLoading } = useQuery(
@@ -129,6 +165,8 @@ const ONETPage: React.FC = () => {
   const handleSendMessage = async () => {
     try {
       await onetService.sendMessage(messageTo, messageContent, messageType);
+      // Also send via SignalR for realtime fanout where supported
+      try { await signalRService.sendMessage(messageTo, messageContent); } catch {}
       queryClient.invalidateQueries('onet-messages');
       setMessageDialogOpen(false);
       setMessageTo('');
@@ -428,44 +466,9 @@ const ONETPage: React.FC = () => {
             </Grid>
           </TabPanel>
 
-          {/* Messages Tab */}
+          {/* Messages Tab removed; use dedicated Messaging page */}
           <TabPanel value={tabValue} index={1}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">Recent Messages</Typography>
-              <Button
-                variant="contained"
-                startIcon={<Send />}
-                onClick={() => setMessageDialogOpen(true)}
-              >
-                Send Message
-              </Button>
-            </Box>
-            {messagesLoading ? (
-              <CircularProgress />
-            ) : messagesData?.result ? (
-              <List>
-                {messagesData.result.map((msg: any) => (
-                  <ListItem key={msg.id} divider>
-                    <ListItemIcon>
-                      <Message color="primary" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={`From: ${msg.from} → To: ${msg.to}`}
-                      secondary={`${msg.content} • ${new Date(msg.timestamp).toLocaleString()}`}
-                    />
-                    <ListItemSecondaryAction>
-                      <Chip 
-                        label={msg.status}
-                        color={getStatusColor(msg.status) as any}
-                        size="small"
-                      />
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
-              </List>
-            ) : (
-              <Typography color="text.secondary">No messages available</Typography>
-            )}
+            <Typography color="text.secondary">Messaging has moved to the Messaging page.</Typography>
           </TabPanel>
 
           {/* Channels Tab */}
@@ -671,43 +674,7 @@ const ONETPage: React.FC = () => {
           </TabPanel>
         </Card>
 
-        {/* Send Message Dialog */}
-        <Dialog open={messageDialogOpen} onClose={() => setMessageDialogOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Send Message</DialogTitle>
-          <DialogContent>
-            <TextField
-              fullWidth
-              label="To Avatar ID"
-              value={messageTo}
-              onChange={(e) => setMessageTo(e.target.value)}
-              sx={{ mb: 2, mt: 1 }}
-            />
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Message Type</InputLabel>
-              <Select
-                value={messageType}
-                onChange={(e) => setMessageType(e.target.value)}
-                label="Message Type"
-              >
-                <MenuItem value="text">Text</MenuItem>
-                <MenuItem value="image">Image</MenuItem>
-                <MenuItem value="file">File</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              fullWidth
-              label="Message Content"
-              value={messageContent}
-              onChange={(e) => setMessageContent(e.target.value)}
-              multiline
-              rows={4}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setMessageDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSendMessage} variant="contained">Send Message</Button>
-          </DialogActions>
-        </Dialog>
+        {/* Send Message Dialog removed */}
       </motion.div>
     </Box>
   );
