@@ -39,11 +39,12 @@ import {
   FilterList,
   Visibility,
   Share,
+  Info,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { statsService, avatarService } from '../services';
+import { statsService, avatarService, starCoreService } from '../services';
 
 interface AvatarKarma {
   id: string;
@@ -89,7 +90,7 @@ const KarmaPage: React.FC = () => {
           async () => {
             try {
               // Try to get real data first
-              const response = await statsService.getLeaderboard?.();
+              const response = await starCoreService.getKarmaLeaderboard();
               return response;
             } catch (error) {
               // Fallback to impressive demo data - only log to console
@@ -577,6 +578,12 @@ const KarmaPage: React.FC = () => {
               <Typography variant="subtitle1" color="text.secondary">
                 Track karma scores, achievements, and OAPP contributions across the OASIS
               </Typography>
+              <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Info sx={{ color: 'white' }} />
+                <Typography variant="body2" sx={{ color: 'white' }}>
+                  Track karma scores, achievements, and contributions. Earn karma through OAPP usage and community participation.
+                </Typography>
+              </Box>
             </Box>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Button

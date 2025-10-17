@@ -214,7 +214,7 @@ const OAPPsPage: React.FC = () => {
 
       try {
         const response = await oappService.getAll();
-        return response.result;
+        return response;
         } catch (error) {
         console.error('Error fetching OAPPs:', error);
         throw error;
@@ -263,7 +263,7 @@ const OAPPsPage: React.FC = () => {
 
       try {
         const response = await oappService.getAll();
-        return response.result;
+        return response;
       } catch (error) {
         console.error('Error fetching my OAPPs:', error);
         throw error;
@@ -312,7 +312,7 @@ const OAPPsPage: React.FC = () => {
 
       try {
         const response = await oappService.getAll();
-        return response.result;
+        return response;
       } catch (error) {
         console.error('Error fetching installed OAPPs:', error);
         throw error;
@@ -524,7 +524,13 @@ const OAPPsPage: React.FC = () => {
           </Typography>
             <Typography variant="body1" color="text.secondary">
               Discover, create, and manage OASIS Applications
-          </Typography>
+            </Typography>
+            <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Info sx={{ color: 'white' }} />
+              <Typography variant="body2" sx={{ color: 'white' }}>
+                Browse, install, and manage OAPPs. Create new ones with the OAPP Builder.
+              </Typography>
+            </Box>
       </Box>
           <Stack direction="row" spacing={2}>
             <Tooltip title="Create New OAPP">
@@ -581,7 +587,7 @@ const OAPPsPage: React.FC = () => {
             <Typography color="error">Error loading OAPPs</Typography>
           </Box>
         ) : (
-          <OAPPGrid oapps={(allOAPPs as any)?.result || []} />
+          <OAPPGrid oapps={allOAPPs?.result || []} />
         )}
           </TabPanel>
 
@@ -595,7 +601,7 @@ const OAPPsPage: React.FC = () => {
             <Typography color="error">Error loading my OAPPs</Typography>
           </Box>
         ) : (
-          <OAPPGrid oapps={(myOAPPs as any)?.result || []} showActions={false} />
+          <OAPPGrid oapps={myOAPPs?.result || []} showActions={false} />
         )}
           </TabPanel>
 
@@ -609,7 +615,7 @@ const OAPPsPage: React.FC = () => {
             <Typography color="error">Error loading installed OAPPs</Typography>
           </Box>
         ) : (
-          <OAPPGrid oapps={(installedOAPPs as any)?.result || []} />
+          <OAPPGrid oapps={installedOAPPs?.result || []} />
         )}
           </TabPanel>
 

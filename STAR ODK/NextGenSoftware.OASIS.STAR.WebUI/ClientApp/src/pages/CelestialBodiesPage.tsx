@@ -34,6 +34,7 @@ import {
   Explore,
   Refresh,
   FilterList,
+  Info,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -347,6 +348,12 @@ const CelestialBodiesPage: React.FC = () => {
             <Typography variant="subtitle1" color="text.secondary">
               Explore and manage planets, stars, moons, and other celestial objects
             </Typography>
+            <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Info sx={{ color: 'white' }} />
+              <Typography variant="body2" sx={{ color: 'white' }}>
+                Discover and explore celestial bodies in the OASIS universe. Track physical properties and characteristics.
+              </Typography>
+            </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl size="small" sx={{ minWidth: 140 }}>
@@ -487,9 +494,9 @@ const CelestialBodiesPage: React.FC = () => {
                           Physical Properties:
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                          <Chip label={`Mass: ${(body.mass / 1e24).toFixed(1)}×10²⁴ kg`} size="small" variant="outlined" />
-                          <Chip label={`Radius: ${body.radius.toLocaleString()} km`} size="small" variant="outlined" />
-                          <Chip label={`Temp: ${body.temperature}K`} size="small" variant="outlined" />
+                          <Chip label={`Mass: ${((body.mass ?? 0) / 1e24).toFixed(1)}×10²⁴ kg`} size="small" variant="outlined" />
+                          <Chip label={`Radius: ${(body.radius ?? 0).toLocaleString()} km`} size="small" variant="outlined" />
+                          <Chip label={`Temp: ${body.temperature ?? 0}K`} size="small" variant="outlined" />
                         </Box>
                       </Box>
                       

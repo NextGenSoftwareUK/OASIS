@@ -98,7 +98,7 @@ const MissionsPage: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   // Fetch Missions
-  const { data: missions, isLoading, error } = useQuery('missions', missionService.getAll);
+  const { data: missions, isLoading, error } = useQuery('missions', () => missionService.getAll());
 
   // Create Mission mutation
   const createMissionMutation = useMutation(
@@ -214,6 +214,12 @@ const MissionsPage: React.FC = () => {
           <Typography variant="body1" color="text.secondary">
             Manage your Missions and Tasks
           </Typography>
+          <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Info sx={{ color: 'white' }} />
+            <Typography variant="body2" sx={{ color: 'white' }}>
+              Track, start and complete Missions. Data updates in real-time.
+            </Typography>
+          </Box>
         </Box>
         <Button
           variant="contained"

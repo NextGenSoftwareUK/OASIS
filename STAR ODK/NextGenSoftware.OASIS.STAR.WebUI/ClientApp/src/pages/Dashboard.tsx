@@ -62,14 +62,31 @@ import { useQuery } from 'react-query';
 import { starCoreService, avatarService } from '../services';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import CloseIcon from '@mui/icons-material/Close';
+import React from 'react';
 
 interface DashboardProps {
   isConnected: boolean;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
+  const [showInfo, setShowInfo] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
+  const DismissibleInfoBar: React.FC = () => {
+    if (!showInfo) return null;
+    return (
+      <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1, position: 'relative' }}>
+        <Info sx={{ color: 'white' }} />
+        <Typography variant="body2" sx={{ color: 'white' }}>
+          <strong>System Status:</strong> Monitor OAPPs, Runtimes, Templates, and all ecosystem components. Click refresh to update real-time data.
+        </Typography>
+        <IconButton size="small" onClick={() => setShowInfo(false)} sx={{ position: 'absolute', right: 8, top: 8, color: 'white' }}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+    );
+  };
 
   // Fetch dashboard data
   const { data: dashboardData, isLoading, error, refetch } = useQuery(
@@ -271,12 +288,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
             <Typography variant="subtitle1" color="text.secondary">
               Real-time analytics and system overview
             </Typography>
-            <Box sx={{ mt: 1, p: 2, bgcolor: 'info.light', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Info color="primary" />
-              <Typography variant="body2" color="text.primary">
-                <strong>System Status:</strong> Monitor OAPPs, Runtimes, Templates, and all ecosystem components. Click refresh to update real-time data.
-              </Typography>
-            </Box>
+            <DismissibleInfoBar />
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Tooltip title="Refresh Data">
@@ -647,7 +659,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
                           }
                         />
                         <ListItemSecondaryAction>
-                          <IconButton size="small">
+                          <IconButton size="small" onClick={() => navigate(`/oapps/${oapp.id}`)}>
                             <Visibility />
                           </IconButton>
                         </ListItemSecondaryAction>
@@ -725,7 +737,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
                           }
                         />
                         <ListItemSecondaryAction>
-                          <IconButton size="small">
+                          <IconButton size="small" onClick={() => navigate(`/runtimes/${runtime.id}`)}>
                             <Visibility />
                           </IconButton>
                         </ListItemSecondaryAction>
@@ -804,7 +816,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
                           }
                         />
                         <ListItemSecondaryAction>
-                          <IconButton size="small">
+                          <IconButton size="small" onClick={() => navigate(`/templates/${template.id}`)}>
                             <Visibility />
                           </IconButton>
                         </ListItemSecondaryAction>
@@ -888,7 +900,7 @@ const Dashboard: React.FC<DashboardProps> = ({ isConnected }) => {
                           }
                         />
                         <ListItemSecondaryAction>
-                          <IconButton size="small">
+                          <IconButton size="small" onClick={() => navigate(`/store/${item.id}`)}>
                             <Visibility />
                           </IconButton>
                         </ListItemSecondaryAction>

@@ -97,7 +97,7 @@ const QuestsPage: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   // Fetch Quests
-  const { data: quests, isLoading, error } = useQuery('quests', questService.getAll);
+  const { data: quests, isLoading, error } = useQuery('quests', () => questService.getAll());
 
   // Create Quest mutation
   const createQuestMutation = useMutation(
@@ -213,6 +213,12 @@ const QuestsPage: React.FC = () => {
           <Typography variant="body1" color="text.secondary">
             Manage your Quests and Adventures
           </Typography>
+          <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Info sx={{ color: 'white' }} />
+            <Typography variant="body2" sx={{ color: 'white' }}>
+              View, create and manage Quests. Data updates in real-time.
+            </Typography>
+          </Box>
         </Box>
         <Button
           variant="contained"
