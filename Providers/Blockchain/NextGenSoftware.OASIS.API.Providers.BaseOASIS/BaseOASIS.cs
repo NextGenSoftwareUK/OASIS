@@ -226,46 +226,6 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
-    public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-    {
-        var result = new OASISResult<bool>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
-            }
-
-            // Delete avatar directly by provider key without loading first
-            var deleteRequest = new
-            {
-                providerKey = providerKey,
-                softDelete = softDelete
-            };
-
-            var jsonContent = JsonSerializer.Serialize(deleteRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            var deleteResponse = await _httpClient.PostAsync("/api/v1/avatars/delete/by-provider-key", content);
-            if (deleteResponse.IsSuccessStatusCode)
-            {
-                result.Result = true;
-                result.IsError = false;
-                result.Message = "Avatar deleted successfully by provider key from Base";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar by provider key from Base: {deleteResponse.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key from Base: {ex.Message}", ex);
-        }
-        return result;
-    }
-
     public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
     {
         return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
@@ -361,45 +321,6 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
-    public async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-    {
-        var result = new OASISResult<bool>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
-            }
-
-            // Delete avatar directly by username without loading first
-            var deleteRequest = new
-            {
-                username = avatarUsername,
-                softDelete = softDelete
-            };
-
-            var jsonContent = JsonSerializer.Serialize(deleteRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            var deleteResponse = await _httpClient.PostAsync("/api/v1/avatars/delete/by-username", content);
-            if (deleteResponse.IsSuccessStatusCode)
-            {
-                result.Result = true;
-                result.IsError = false;
-                result.Message = "Avatar deleted successfully by username from Base";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar by username from Base: {deleteResponse.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username from Base: {ex.Message}", ex);
-        }
-        return result;
-    }
 
     public override OASISResult<IHolon> DeleteHolon(Guid id)
     {
@@ -507,65 +428,6 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
-    public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-    {
-        var result = new OASISResult<IHolon>();
-
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
-            }
-
-            // Base is immutable, so we can't actually delete
-            // Instead, we mark the holon as deleted in a new transaction
-            var deleteData = new
-            {
-                action = "delete",
-                providerKey = providerKey,
-                timestamp = DateTime.UtcNow
-            };
-
-            var deleteJson = JsonSerializer.Serialize(deleteData);
-            var deleteBytes = Encoding.UTF8.GetBytes(deleteJson);
-
-            // Create Base transaction with delete marker
-            var transactionRequest = new
-            {
-                from = _oasisAccount?.Address,
-                to = "0x0000000000000000000000000000000000000000", // Burn address
-                value = "0x0",
-                data = "0x" + Convert.ToHexString(deleteBytes)
-            };
-
-            // Submit transaction to Base network
-            var jsonContent = JsonSerializer.Serialize(transactionRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            var submitResponse = await _httpClient.PostAsync("/api/v1/sendRawTransaction", content);
-            if (submitResponse.IsSuccessStatusCode)
-            {
-                var responseContent = await submitResponse.Content.ReadAsStringAsync();
-                var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                result.Result = new Holon { ProviderWallets = new Dictionary<ProviderType, IWallet> { { ProviderType.BaseOASIS, new Wallet { Address = providerKey, ProviderType = ProviderType.BaseOASIS } } } };
-                result.IsError = false;
-                result.Message = "Holon deletion marked successfully on Base blockchain";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to mark holon deletion on Base: {submitResponse.StatusCode}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error marking holon deletion on Base: {ex.Message}", ex);
-        }
-
-        return result;
-    }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
     {
@@ -2544,6 +2406,50 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         }
         return result;
     }
+
+    #region IOASISNETProvider Implementation
+
+    public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
+    {
+        var result = new OASISResult<IEnumerable<IAvatar>>();
+        
+        try
+        {
+            // Base blockchain doesn't support geospatial queries directly
+            // This would need to be implemented with off-chain indexing
+            result.Result = new List<IAvatar>();
+            result.IsError = false;
+            result.Message = "Geospatial queries not supported on Base blockchain";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Base: {ex.Message}", ex);
+        }
+        
+        return result;
+    }
+
+    public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+    {
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        
+        try
+        {
+            // Base blockchain doesn't support geospatial queries directly
+            // This would need to be implemented with off-chain indexing
+            result.Result = new List<IHolon>();
+            result.IsError = false;
+            result.Message = "Geospatial queries not supported on Base blockchain";
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Base: {ex.Message}", ex);
+        }
+        
+        return result;
+    }
+
+    #endregion
 }
 
 [Function(BaseContractHelper.GetAvatarDetailByIdFuncName, typeof(GetAvatarDetailByIdFunction))]

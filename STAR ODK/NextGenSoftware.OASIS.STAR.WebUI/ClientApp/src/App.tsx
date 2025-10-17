@@ -77,6 +77,9 @@ import MessagingPage from './pages/MessagingPage';
 import ChatPage from './pages/ChatPage';
 import SocialPage from './pages/SocialPage';
 import ContactPage from './pages/ContactPage';
+import OASISDNAConfigPage from './pages/OASISDNAConfigPage';
+import ONETPage from './pages/ONETPage';
+import ONODEPage from './pages/ONODEPage';
 
 // Services
 import { starCoreService } from './services';
@@ -1056,8 +1059,8 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
-              <Route 
-                path="/contact" 
+              <Route
+                path="/contact"
                 element={
                   <motion.div
                     initial="initial"
@@ -1068,6 +1071,54 @@ const App: React.FC = () => {
                   >
                     <ContactPage />
                   </motion.div>
+                }
+              />
+              <Route
+                path="/oasisdna"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <OASISDNAConfigPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/onet"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <ONETPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/onode"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <ONODEPage />
+                    </motion.div>
+                  </ProtectedRoute>
                 }
               />
             </Routes>
