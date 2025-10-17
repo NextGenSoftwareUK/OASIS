@@ -16,6 +16,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     public class StatsManager : OASISManager
     {
         private static StatsManager _instance;
+        private readonly object _cacheLock = new object();
+        private readonly Dictionary<string, (DateTime fetchedAt, Dictionary<string, object> data)> _statsCache
+            = new Dictionary<string, (DateTime, Dictionary<string, object>)>();
+
+        // Caching controls (can be toggled at runtime)
+        public static bool EnableCaching { get; set; } = false;
+        public static TimeSpan CacheTtl { get; set; } = TimeSpan.FromSeconds(45);
 
         public static StatsManager Instance
         {
@@ -30,6 +37,58 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private StatsManager(IOASISStorageProvider OASISStorageProvider, OASISDNA OASISDNA = null) : base(OASISStorageProvider, OASISDNA)
         {
+            try
+            {
+                if (OASISDNA != null && OASISDNA.OASIS != null)
+                {
+                    EnableCaching = OASISDNA.OASIS.StatsCacheEnabled;
+                    if (OASISDNA.OASIS.StatsCacheTtlSeconds > 0)
+                        CacheTtl = TimeSpan.FromSeconds(OASISDNA.OASIS.StatsCacheTtlSeconds);
+                }
+            }
+            catch
+            {
+                // ignore config issues; defaults remain
+            }
+        }
+
+        private string BuildCacheKey(Guid avatarId, string category)
+        {
+            return $"{avatarId}:{category}";
+        }
+
+        private bool TryGetFromCache(Guid avatarId, string category, out Dictionary<string, object> cached)
+        {
+            cached = null;
+            if (!EnableCaching)
+                return false;
+
+            var key = BuildCacheKey(avatarId, category);
+            lock (_cacheLock)
+            {
+                if (_statsCache.TryGetValue(key, out var entry))
+                {
+                    if (DateTime.UtcNow - entry.fetchedAt <= CacheTtl && entry.data != null)
+                    {
+                        cached = entry.data;
+                        return true;
+                    }
+                    _statsCache.Remove(key);
+                }
+            }
+            return false;
+        }
+
+        private void SetCache(Guid avatarId, string category, Dictionary<string, object> data)
+        {
+            if (!EnableCaching || data == null)
+                return;
+
+            var key = BuildCacheKey(avatarId, category);
+            lock (_cacheLock)
+            {
+                _statsCache[key] = (DateTime.UtcNow, data);
+            }
         }
 
         /// <summary>
@@ -126,12 +185,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Dictionary<string, object>>();
             try
             {
+                // cache check
+                if (TryGetFromCache(avatarId, "karma", out var cachedKarma))
+                {
+                    result.Result = cachedKarma;
+                    result.Message = "Karma statistics retrieved from cache.";
+                    return result;
+                }
                 // Try to load karma statistics from the settings system first
                 var karmaStatsResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "karma");
                 if (!karmaStatsResult.IsError && karmaStatsResult.Result != null && karmaStatsResult.Result.Count > 0)
                 {
                     result.Result = karmaStatsResult.Result;
                     result.Message = "Karma statistics retrieved from settings system.";
+                    SetCache(avatarId, "karma", result.Result);
                 }
                 else
                 {
@@ -152,6 +219,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     else
                     {
                         result.Result = karmaManagerResult.Result;
+                        SetCache(avatarId, "karma", result.Result);
                     }
                     result.Message = "Karma statistics retrieved from KarmaManager (fallback).";
                 }
@@ -213,23 +281,45 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Dictionary<string, object>>();
             try
             {
-                var giftStatsResult = await GiftsManager.Instance.GetGiftStatsAsync(avatarId);
-                if (giftStatsResult.IsError)
+                // cache check
+                if (TryGetFromCache(avatarId, "gifts", out var cachedGifts))
                 {
-                    result.Result = new Dictionary<string, object>
-                    {
-                        ["sentGifts"] = 0,
-                        ["receivedGifts"] = 0,
-                        ["openedGifts"] = 0,
-                        ["unopenedGifts"] = 0,
-                        ["giftTypeDistribution"] = new Dictionary<string, int>(),
-                        ["totalScore"] = 0,
-                        ["mostCommonGiftType"] = "None"
-                    };
+                    result.Result = cachedGifts;
+                    result.Message = "Gift statistics retrieved from cache.";
+                    return result;
+                }
+
+                // Try storage first
+                var giftsSettings = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "gifts");
+                if (!giftsSettings.IsError && giftsSettings.Result != null && giftsSettings.Result.Count > 0)
+                {
+                    result.Result = giftsSettings.Result;
+                    result.Message = "Gift statistics retrieved from settings system.";
+                    SetCache(avatarId, "gifts", result.Result);
                 }
                 else
                 {
-                    result.Result = giftStatsResult.Result;
+                    // Fallback to manager
+                    var giftStatsResult = await GiftsManager.Instance.GetGiftStatsAsync(avatarId);
+                    if (giftStatsResult.IsError)
+                    {
+                        result.Result = new Dictionary<string, object>
+                        {
+                            ["sentGifts"] = 0,
+                            ["receivedGifts"] = 0,
+                            ["openedGifts"] = 0,
+                            ["unopenedGifts"] = 0,
+                            ["giftTypeDistribution"] = new Dictionary<string, int>(),
+                            ["totalScore"] = 0,
+                            ["mostCommonGiftType"] = "None"
+                        };
+                    }
+                    else
+                    {
+                        result.Result = giftStatsResult.Result;
+                        SetCache(avatarId, "gifts", result.Result);
+                    }
+                    result.Message = "Gift statistics retrieved from GiftsManager (fallback).";
                 }
                 
                 result.Message = "Gift statistics retrieved successfully.";
@@ -251,12 +341,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Dictionary<string, object>>();
             try
             {
+                // cache check
+                if (TryGetFromCache(avatarId, "chat", out var cachedChat))
+                {
+                    result.Result = cachedChat;
+                    result.Message = "Chat statistics retrieved from cache.";
+                    return result;
+                }
                 // Try to load chat statistics from the settings system first
                 var chatStatsResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "chat");
                 if (!chatStatsResult.IsError && chatStatsResult.Result != null && chatStatsResult.Result.Count > 0)
                 {
                     result.Result = chatStatsResult.Result;
                     result.Message = "Chat statistics retrieved from settings system.";
+                    SetCache(avatarId, "chat", result.Result);
                 }
                 else
                 {
@@ -276,6 +374,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     else
                     {
                         result.Result = chatManagerResult.Result;
+                        SetCache(avatarId, "chat", result.Result);
                     }
                     result.Message = "Chat statistics retrieved from ChatManager (fallback).";
                 }
@@ -297,24 +396,46 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Dictionary<string, object>>();
             try
             {
-                var keyStatsResult = await KeyManager.Instance.GetKeyStatsAsync(avatarId);
-                if (keyStatsResult.IsError)
+                // cache check
+                if (TryGetFromCache(avatarId, "keys", out var cachedKeys))
                 {
-                    result.Result = new Dictionary<string, object>
-                    {
-                        ["totalKeys"] = 0,
-                        ["activeKeys"] = 0,
-                        ["inactiveKeys"] = 0,
-                        ["totalUsage"] = 0,
-                        ["keyTypeDistribution"] = new Dictionary<string, int>(),
-                        ["averageUsagePerKey"] = 0,
-                        ["mostUsedKeyType"] = "None",
-                        ["totalScore"] = 0
-                    };
+                    result.Result = cachedKeys;
+                    result.Message = "Key statistics retrieved from cache.";
+                    return result;
+                }
+
+                // Try storage first
+                var keySettings = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "keys");
+                if (!keySettings.IsError && keySettings.Result != null && keySettings.Result.Count > 0)
+                {
+                    result.Result = keySettings.Result;
+                    result.Message = "Key statistics retrieved from settings system.";
+                    SetCache(avatarId, "keys", result.Result);
                 }
                 else
                 {
-                    result.Result = keyStatsResult.Result;
+                    // Fallback to manager
+                    var keyStatsResult = await KeyManager.Instance.GetKeyStatsAsync(avatarId);
+                    if (keyStatsResult.IsError)
+                    {
+                        result.Result = new Dictionary<string, object>
+                        {
+                            ["totalKeys"] = 0,
+                            ["activeKeys"] = 0,
+                            ["inactiveKeys"] = 0,
+                            ["totalUsage"] = 0,
+                            ["keyTypeDistribution"] = new Dictionary<string, int>(),
+                            ["averageUsagePerKey"] = 0,
+                            ["mostUsedKeyType"] = "None",
+                            ["totalScore"] = 0
+                        };
+                    }
+                    else
+                    {
+                        result.Result = keyStatsResult.Result;
+                        SetCache(avatarId, "keys", result.Result);
+                    }
+                    result.Message = "Key statistics retrieved from KeyManager (fallback).";
                 }
                 
                 result.Message = "Key statistics retrieved successfully.";
@@ -368,12 +489,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Dictionary<string, object>>();
             try
             {
-                // Load quest statistics using the new settings system
-                var questStatsResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "quests");
-                
-                if (questStatsResult.IsError || questStatsResult.Result == null || questStatsResult.Result.Count == 0)
+                // cache check
+                if (TryGetFromCache(avatarId, "quests", out var cachedQuests))
                 {
-                    // Return default quest stats if no data found
+                    result.Result = cachedQuests;
+                    result.Message = "Quest statistics retrieved from cache.";
+                    return result;
+                }
+
+                // Load quest statistics using the new settings system (storage-first)
+                var questStatsResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "quests");
+                if (!questStatsResult.IsError && questStatsResult.Result != null && questStatsResult.Result.Count > 0)
+                {
+                    result.Result = questStatsResult.Result;
+                    result.Message = "Quest statistics retrieved from settings system.";
+                    SetCache(avatarId, "quests", result.Result);
+                }
+                else
+                {
+                    // Fallback not available here to avoid cross-project dependency on QuestManager.
+                    // Return safe defaults.
                     result.Result = new Dictionary<string, object>
                     {
                         ["totalQuests"] = 0,
@@ -387,10 +522,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         ["longestQuestStreak"] = 0,
                         ["totalQuestRewards"] = 0
                     };
-                }
-                else
-                {
-                    result.Result = questStatsResult.Result;
                 }
                 
                 result.Message = "Quest statistics retrieved successfully.";
@@ -412,6 +543,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Dictionary<string, object>>();
             try
             {
+                // cache check (we key as leaderboard)
+                if (TryGetFromCache(avatarId, "leaderboard", out var cachedLeaderboard))
+                {
+                    result.Result = cachedLeaderboard;
+                    result.Message = "Leaderboard statistics retrieved from cache.";
+                    return result;
+                }
+
+                // Try storage first for latest saved stats from CompetitionManager
+                var lbSettings = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "leaderboard");
+                if (!lbSettings.IsError && lbSettings.Result != null && lbSettings.Result.Count > 0)
+                {
+                    result.Result = lbSettings.Result;
+                    result.Message = "Leaderboard statistics retrieved from settings system.";
+                    SetCache(avatarId, "leaderboard", result.Result);
+                    return result;
+                }
+
                 // Get leaderboard statistics using CompetitionManager directly
                 var competitionManager = CompetitionManager.Instance;
                 
@@ -456,6 +605,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     ["badges"] = new List<string>(),
                     ["recentAchievements"] = new List<object>()
                 };
+                SetCache(avatarId, "leaderboard", result.Result);
                 
                 result.Message = "Leaderboard statistics retrieved successfully.";
             }
