@@ -52,6 +52,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useNavigate } from 'react-router-dom';
 import { starCoreService, avatarService } from '../services';
 import { useDemoMode } from '../contexts/DemoModeContext';
 import toast from 'react-hot-toast';
@@ -100,6 +101,7 @@ interface Settings {
 }
 
 const SettingsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { isDemoMode, setDemoMode } = useDemoMode();
   const [settings, setSettings] = useState<Settings>({
     general: {
@@ -360,8 +362,8 @@ const SettingsPage: React.FC = () => {
                 boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)',
               }}
               onClick={() => {
-                // Navigate to HyperDrive page
-                window.location.href = '/hyperdrive';
+                // Navigate to HyperDrive page using React Router
+                navigate('/my-data');
               }}
             >
               Configure HyperDrive

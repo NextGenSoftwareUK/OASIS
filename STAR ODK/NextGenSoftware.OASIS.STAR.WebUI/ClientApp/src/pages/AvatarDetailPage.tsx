@@ -697,7 +697,7 @@ const AvatarDetailPage: React.FC = () => {
                     Recent Activity
                   </Typography>
                   <List dense>
-                    {sessionData?.sessions.slice(0, 3).map((session) => (
+                    {(sessionData?.sessions || []).slice(0, 3).map((session) => (
                       <ListItem key={session.id} divider>
                         <ListItemIcon>
                           <Avatar sx={{ bgcolor: session.isActive ? 'success.main' : 'grey.400' }}>

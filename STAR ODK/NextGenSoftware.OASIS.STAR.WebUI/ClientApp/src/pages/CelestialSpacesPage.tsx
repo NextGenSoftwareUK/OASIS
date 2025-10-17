@@ -34,6 +34,7 @@ import {
   Star,
   Refresh,
   FilterList,
+  Info,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -361,6 +362,12 @@ const CelestialSpacesPage: React.FC = () => {
             <Typography variant="subtitle1" color="text.secondary">
               Explore and manage galaxies, solar systems, nebulae, and cosmic regions
             </Typography>
+            <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Info sx={{ color: 'white' }} />
+              <Typography variant="body2" sx={{ color: 'white' }}>
+                Discover and explore celestial spaces in the OASIS universe. Track cosmic regions and their properties.
+              </Typography>
+            </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl size="small" sx={{ minWidth: 140 }}>
@@ -500,9 +507,9 @@ const CelestialSpacesPage: React.FC = () => {
                           Properties:
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                          <Chip label={`Size: ${space.size.toLocaleString()} ly`} size="small" variant="outlined" />
-                          <Chip label={`Age: ${space.age}B years`} size="small" variant="outlined" />
-                          <Chip label={`Bodies: ${space.celestialBodies.toLocaleString()}`} size="small" variant="outlined" />
+                          <Chip label={`Size: ${(space.size ?? 0).toLocaleString()} ly`} size="small" variant="outlined" />
+                          <Chip label={`Age: ${space.age ?? 0}B years`} size="small" variant="outlined" />
+                          <Chip label={`Bodies: ${(space.celestialBodies ?? 0).toLocaleString()}`} size="small" variant="outlined" />
                         </Box>
                       </Box>
                       

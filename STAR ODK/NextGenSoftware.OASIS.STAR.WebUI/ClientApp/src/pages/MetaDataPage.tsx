@@ -105,9 +105,9 @@ const MetaDataPage: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   // Fetch MetaData for each type
-  const { data: celestialBodyMeta, isLoading: loadingCelestialBody } = useQuery('celestialBodyMeta', celestialBodyMetaService.getAll);
-  const { data: zomeMeta, isLoading: loadingZome } = useQuery('zomeMeta', zomeMetaService.getAll);
-  const { data: holonMeta, isLoading: loadingHolon } = useQuery('holonMeta', holonMetaService.getAll);
+  const { data: celestialBodyMeta, isLoading: loadingCelestialBody } = useQuery('celestialBodyMeta', () => celestialBodyMetaService.getAll());
+  const { data: zomeMeta, isLoading: loadingZome } = useQuery('zomeMeta', () => zomeMetaService.getAll());
+  const { data: holonMeta, isLoading: loadingHolon } = useQuery('holonMeta', () => holonMetaService.getAll());
 
   // Get current data based on active tab
   const getCurrentData = () => {
