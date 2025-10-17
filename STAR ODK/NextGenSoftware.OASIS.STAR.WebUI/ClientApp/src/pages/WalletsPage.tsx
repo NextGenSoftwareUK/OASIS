@@ -295,10 +295,18 @@ const WalletsPage: React.FC = () => {
     <Box sx={{ p: 3 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <AccountBalanceWallet color="primary" />
-          OASIS Universal Wallet
-        </Typography>
+        <Box>
+          <Typography variant="h4" component="h1" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AccountBalanceWallet color="primary" />
+            OASIS Universal Wallet
+          </Typography>
+          <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Info sx={{ color: 'white' }} />
+            <Typography variant="body2" sx={{ color: 'white' }}>
+              Universal wallet supporting 15+ blockchains and fiat currencies. One-click transfers between any wallet type.
+            </Typography>
+          </Box>
+        </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
             variant="outlined"
@@ -356,6 +364,42 @@ const WalletsPage: React.FC = () => {
         </Card>
       )}
 
+      {/* Fund Distribution Graphs */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Fund Distribution by Chain
+              </Typography>
+              <Box sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.50', borderRadius: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  📊 Chain Distribution Chart
+                  <br />
+                  Ethereum: 45% | Bitcoin: 25% | Solana: 15% | Others: 15%
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Asset Type Distribution
+              </Typography>
+              <Box sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.50', borderRadius: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  📈 Asset Type Chart
+                  <br />
+                  Crypto: 70% | Fiat: 20% | NFTs: 8% | DeFi: 2%
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
       {/* Filters and Search */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
@@ -370,6 +414,19 @@ const WalletsPage: React.FC = () => {
                   <MenuItem value="all">All Types</MenuItem>
                   <MenuItem value="Ethereum">Ethereum</MenuItem>
                   <MenuItem value="Bitcoin">Bitcoin</MenuItem>
+                  <MenuItem value="Solana">Solana</MenuItem>
+                  <MenuItem value="Polygon">Polygon</MenuItem>
+                  <MenuItem value="Avalanche">Avalanche</MenuItem>
+                  <MenuItem value="BSC">BSC</MenuItem>
+                  <MenuItem value="Arbitrum">Arbitrum</MenuItem>
+                  <MenuItem value="Optimism">Optimism</MenuItem>
+                  <MenuItem value="Cardano">Cardano</MenuItem>
+                  <MenuItem value="Polkadot">Polkadot</MenuItem>
+                  <MenuItem value="Cosmos">Cosmos</MenuItem>
+                  <MenuItem value="USD">USD (Fiat)</MenuItem>
+                  <MenuItem value="EUR">EUR (Fiat)</MenuItem>
+                  <MenuItem value="GBP">GBP (Fiat)</MenuItem>
+                  <MenuItem value="JPY">JPY (Fiat)</MenuItem>
                   <MenuItem value="Other">Other</MenuItem>
                 </Select>
               </FormControl>

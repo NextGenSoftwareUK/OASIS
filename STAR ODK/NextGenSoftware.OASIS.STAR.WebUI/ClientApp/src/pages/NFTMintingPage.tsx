@@ -464,15 +464,15 @@ const NFTMintingPage: React.FC<NFTMintingPageProps> = () => {
       <Card>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={activeTab} onChange={handleTabChange} aria-label="NFT minting tabs">
-            <Tab label="Basic NFT" />
-            <Tab label="Geo-NFT" />
-            <Tab label="STAR NFT" />
-            <Tab label="STAR Geo-NFT" />
+            <Tab label="WEB4 NFT" />
+            <Tab label="WEB4 GEO-NFT" />
+            <Tab label="WEB5 STAR NFT" />
+            <Tab label="WEB5 STAR GEO-NFT" />
             <Tab label="Cross-Chain Settings" />
           </Tabs>
         </Box>
 
-        {/* Basic NFT Tab */}
+        {/* WEB4 NFT Tab */}
         <TabPanel value={activeTab} index={0}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
@@ -642,7 +642,7 @@ const NFTMintingPage: React.FC<NFTMintingPageProps> = () => {
           </Grid>
         </TabPanel>
 
-        {/* Geo-NFT Tab */}
+        {/* WEB4 GEO-NFT Tab */}
         <TabPanel value={activeTab} index={1}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
@@ -778,7 +778,7 @@ const NFTMintingPage: React.FC<NFTMintingPageProps> = () => {
           </Grid>
         </TabPanel>
 
-        {/* STAR NFT Tab */}
+        {/* WEB5 STAR NFT Tab */}
         <TabPanel value={activeTab} index={2}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
@@ -877,7 +877,7 @@ const NFTMintingPage: React.FC<NFTMintingPageProps> = () => {
           </Grid>
         </TabPanel>
 
-        {/* STAR Geo-NFT Tab */}
+        {/* WEB5 STAR GEO-NFT Tab */}
         <TabPanel value={activeTab} index={3}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
@@ -959,6 +959,16 @@ const NFTMintingPage: React.FC<NFTMintingPageProps> = () => {
                 <FormControlLabel
                   control={<Switch defaultChecked />}
                   label="Publishing"
+                />
+                
+                <FormControlLabel
+                  control={<Switch defaultChecked />}
+                  label="Search & Discovery"
+                />
+                
+                <FormControlLabel
+                  control={<Switch defaultChecked />}
+                  label="Download & Install"
                 />
               </Stack>
               

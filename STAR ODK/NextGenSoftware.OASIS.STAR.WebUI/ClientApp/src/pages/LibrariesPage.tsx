@@ -33,6 +33,7 @@ import {
   Star,
   Refresh,
   FilterList,
+  Info,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -152,7 +153,7 @@ const LibrariesPage: React.FC = () => {
               id: '3',
               name: 'Cosmic Graphics Renderer',
               description: 'High-performance 3D graphics library optimized for space and cosmic environments',
-              imageUrl: 'https://via.placeholder.com/400x300/0000FF/FFFFFF?text=TEST3',
+              imageUrl: 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400&h=300&fit=crop',
               version: '3.0.1',
               author: 'Space Graphics Inc',
               category: 'Graphics',
@@ -173,7 +174,7 @@ const LibrariesPage: React.FC = () => {
               id: '4',
               name: 'OASIS Database Connector',
               description: 'Universal database connector for OASIS ecosystem with advanced query optimization',
-              imageUrl: 'https://via.placeholder.com/400x300/FFFF00/000000?text=TEST4',
+              imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop',
               version: '1.5.3',
               author: 'OASIS Core Team',
               category: 'Database',
@@ -392,6 +393,12 @@ const LibrariesPage: React.FC = () => {
             <Typography variant="subtitle1" color="text.secondary">
               Discover and manage code libraries, frameworks, and development tools
             </Typography>
+            <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Info sx={{ color: 'white' }} />
+              <Typography variant="body2" sx={{ color: 'white' }}>
+                Discover, install and manage code libraries. Track usage and performance metrics.
+              </Typography>
+            </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl size="small" sx={{ minWidth: 120 }}>

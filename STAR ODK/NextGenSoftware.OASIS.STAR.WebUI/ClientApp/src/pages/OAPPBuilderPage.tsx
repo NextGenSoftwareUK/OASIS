@@ -582,8 +582,10 @@ const OAPPBuilderPage: React.FC = () => {
   ];
 
   // Drag and drop handlers
-  const handleDragStart = (item: DraggableItem) => {
+  const handleDragStart = (item: DraggableItem, event: React.DragEvent) => {
     setDraggedItem(item);
+    event.dataTransfer.effectAllowed = 'copy';
+    event.dataTransfer.setData('text/plain', item.id);
   };
 
   const handleDragEnd = () => {
@@ -592,6 +594,7 @@ const OAPPBuilderPage: React.FC = () => {
 
   const handleDrop = useCallback((event: React.DragEvent) => {
     event.preventDefault();
+    event.stopPropagation();
     if (!draggedItem) return;
 
     const rect = event.currentTarget.getBoundingClientRect();
@@ -609,10 +612,12 @@ const OAPPBuilderPage: React.FC = () => {
 
     setBuilderComponents(prev => [...prev, newComponent]);
     setDraggedItem(null);
+    toast.success(`${draggedItem.name} added to canvas!`);
   }, [draggedItem]);
 
   const handleDragOver = (event: React.DragEvent) => {
     event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
   };
 
   // Component actions
@@ -655,7 +660,7 @@ const OAPPBuilderPage: React.FC = () => {
   const DraggableItemCard: React.FC<{ item: DraggableItem }> = ({ item }) => (
     <motion.div
       draggable
-      onDragStart={() => handleDragStart(item)}
+      onDragStart={(e) => handleDragStart(item, e)}
       onDragEnd={handleDragEnd}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}

@@ -305,25 +305,33 @@ const SubscriptionManagePage: React.FC = () => {
                   </Box>
 
                   {/* Pay-as-you-go toggle */}
-                  <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                    <Typography variant="subtitle2" gutterBottom>
+                  <Box sx={{ mt: 2, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1 }}>
+                    <Typography variant="subtitle2" gutterBottom sx={{ color: 'white' }}>
                       Pay-as-you-go Billing
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      When enabled, you'll be charged for requests over your plan limit.
+                    <Typography variant="body2" sx={{ mb: 2, color: 'rgba(255,255,255,0.8)' }}>
+                      When pay-as-you-go is enabled, you'll be charged for requests over your plan limit at the overage rate.
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Switch
                         checked={subscription.payAsYouGoEnabled || false}
                         onChange={(e) => handleTogglePayAsYouGo(e.target.checked)}
                         color="primary"
+                        sx={{
+                          '& .MuiSwitch-thumb': {
+                            backgroundColor: subscription.payAsYouGoEnabled ? '#fff' : '#ccc',
+                          },
+                          '& .MuiSwitch-track': {
+                            backgroundColor: subscription.payAsYouGoEnabled ? '#4caf50' : '#666',
+                          },
+                        }}
                       />
-                      <Typography variant="body2">
+                      <Typography variant="body2" sx={{ color: 'white' }}>
                         {subscription.payAsYouGoEnabled ? 'Enabled' : 'Disabled'}
                       </Typography>
                     </Box>
                     {subscription.payAsYouGoEnabled && (
-                      <Typography variant="caption" color="primary" sx={{ mt: 1, display: 'block' }}>
+                      <Typography variant="caption" sx={{ mt: 1, display: 'block', color: 'rgba(255,255,255,0.9)' }}>
                         You will be charged for overage requests at your plan's pay-as-you-go rate.
                       </Typography>
                     )}

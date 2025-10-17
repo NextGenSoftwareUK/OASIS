@@ -76,6 +76,7 @@ import CompetitionPage from './pages/CompetitionPage';
 import MessagingPage from './pages/MessagingPage';
 import ChatPage from './pages/ChatPage';
 import SocialPage from './pages/SocialPage';
+import ContactPage from './pages/ContactPage';
 
 // Services
 import { starCoreService } from './services';
@@ -1053,7 +1054,21 @@ const App: React.FC = () => {
                       <UsagePage />
                     </motion.div>
                   </ProtectedRoute>
-                } 
+                }
+              />
+              <Route 
+                path="/contact" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <ContactPage />
+                  </motion.div>
+                }
               />
             </Routes>
           </AnimatePresence>

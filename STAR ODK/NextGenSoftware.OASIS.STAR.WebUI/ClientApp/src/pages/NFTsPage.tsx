@@ -96,7 +96,7 @@ const NFTsPage: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   // Fetch NFTs
-  const { data: nfts, isLoading, error } = useQuery('nfts', nftService.getAll);
+  const { data: nfts, isLoading, error } = useQuery('nfts', () => nftService.getAll());
 
   // Create NFT mutation
   const createNFTMutation = useMutation(
@@ -211,6 +211,12 @@ const NFTsPage: React.FC = () => {
           <Typography variant="body1" color="text.secondary">
             Manage your Non-Fungible Tokens
           </Typography>
+          <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Info sx={{ color: 'white' }} />
+            <Typography variant="body2" sx={{ color: 'white' }}>
+              Create, manage and publish NFTs. Data updates in real-time.
+            </Typography>
+          </Box>
         </Box>
         <Button
           variant="contained"

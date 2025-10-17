@@ -208,7 +208,7 @@ const STARPluginsPage: React.FC = () => {
                       <Box sx={{ mb: 2 }}>
                         <Rating value={plugin.rating} readOnly size="small" />
                         <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                          ({plugin.downloads.toLocaleString()} downloads)
+                          ({(plugin.downloads ?? 0).toLocaleString()} downloads)
                         </Typography>
                       </Box>
 

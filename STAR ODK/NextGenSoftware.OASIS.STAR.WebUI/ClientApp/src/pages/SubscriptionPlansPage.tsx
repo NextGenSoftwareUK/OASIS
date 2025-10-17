@@ -259,7 +259,7 @@ const SubscriptionPlansPage: React.FC = () => {
                   color="primary"
                   sx={{
                     position: 'absolute',
-                    top: -12,
+                    top: 8,
                     left: '50%',
                     transform: 'translateX(-50%)',
                     zIndex: 1,
@@ -273,7 +273,7 @@ const SubscriptionPlansPage: React.FC = () => {
                   color="secondary"
                   sx={{
                     position: 'absolute',
-                    top: -12,
+                    top: 8,
                     right: 16,
                     zIndex: 1,
                   }}
@@ -342,33 +342,34 @@ const SubscriptionPlansPage: React.FC = () => {
                   sx={{
                     p: 2,
                     mt: 3,
-                    bgcolor: 'grey.50',
+                    bgcolor: '#0d47a1',
+                    color: 'white',
                   }}
                 >
-                  <Typography variant="subtitle2" gutterBottom>
+                  <Typography variant="subtitle2" gutterBottom sx={{ color: 'white' }}>
                     Plan Limits
                   </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
                       API Calls:
                     </Typography>
-                    <Typography variant="body2" fontWeight="medium">
+                    <Typography variant="body2" fontWeight="medium" sx={{ color: 'white' }}>
                       {plan.limits.apiCalls}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
                       Storage:
                     </Typography>
-                    <Typography variant="body2" fontWeight="medium">
+                    <Typography variant="body2" fontWeight="medium" sx={{ color: 'white' }}>
                       {plan.limits.storage}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>
                       Support:
                     </Typography>
-                    <Typography variant="body2" fontWeight="medium">
+                    <Typography variant="body2" fontWeight="medium" sx={{ color: 'white' }}>
                       {plan.limits.support}
                     </Typography>
                   </Box>
