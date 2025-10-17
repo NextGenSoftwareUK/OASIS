@@ -377,7 +377,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     if (_connectedNodes.ContainsKey(nodeId))
                     {
                         // Forward message to next hop
-                        await ForwardMessageAsync(message, nodeId);
+                        var forwardResult = await ForwardMessageAsync(message, nodeId);
+                        if (forwardResult.IsError)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"Failed to forward message to {nodeId}: {forwardResult.Message}");
+                            return result;
+                        }
                     }
                 }
 
@@ -393,10 +398,52 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             return result;
         }
 
-        private async Task ForwardMessageAsync(ONETMessage message, string nodeId)
+        private async Task<OASISResult<bool>> ForwardMessageAsync(ONETMessage message, string nodeId)
         {
-            // Implement message forwarding logic
-            await Task.Delay(10); // Simulate network delay
+            var result = new OASISResult<bool>();
+            
+            try
+            {
+                // Get target node
+                var targetNode = _connectedNodes[nodeId];
+                
+                // Update message routing info
+                message.RoutingPath = message.RoutingPath ?? new List<string>();
+                message.RoutingPath.Add(nodeId);
+                
+                // Simulate network transmission
+                var transmissionDelay = CalculateTransmissionDelay(targetNode.Latency);
+                await Task.Delay(transmissionDelay);
+                
+                // Update node metrics
+                await UpdateNodeMetricsAsync(nodeId, targetNode.Latency, targetNode.Reliability);
+                
+                result.Result = true;
+                result.IsError = false;
+                result.Message = $"Message forwarded to {nodeId} successfully";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error forwarding message: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        private int CalculateTransmissionDelay(double latency)
+        {
+            // Calculate transmission delay based on latency
+            return Math.Max(1, (int)(latency * 10)); // Convert to milliseconds
+        }
+
+        private async Task UpdateNodeMetricsAsync(string nodeId, double latency, int reliability)
+        {
+            // Update node performance metrics
+            if (_connectedNodes.ContainsKey(nodeId))
+            {
+                _connectedNodes[nodeId].Latency = latency;
+                _connectedNodes[nodeId].Reliability = reliability;
+            }
         }
 
         private async Task<double> CalculateNetworkHealthAsync()
@@ -472,6 +519,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? DeliveredAt { get; set; }
         public string DeliveryStatus { get; set; } = "Pending";
+        public List<string> RoutingPath { get; set; } = new List<string>();
+        public SecurityMetadata? SecurityMetadata { get; set; }
     }
 
     public class ONETTopology
