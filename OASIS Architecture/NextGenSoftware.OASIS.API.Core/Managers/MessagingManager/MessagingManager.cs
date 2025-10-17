@@ -66,6 +66,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // Create notification for recipient
                 await CreateNotificationAsync(toAvatarId, "New Message", $"You have a new message from {fromAvatarId}", NotificationType.Message);
 
+                // Update messaging statistics in settings system whenever messages are sent
+                try
+                {
+                    var messagingStats = new Dictionary<string, object>
+                    {
+                        ["totalMessagesSent"] = _messages[fromAvatarId].Count(m => m.FromAvatarId == fromAvatarId),
+                        ["totalMessagesReceived"] = _messages[fromAvatarId].Count(m => m.ToAvatarId == fromAvatarId),
+                        ["lastMessageSent"] = DateTime.UtcNow,
+                        ["lastMessageType"] = messageType.ToString()
+                    };
+                    await HolonManager.Instance.SaveSettingsAsync(fromAvatarId, "messaging", messagingStats);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't fail the main operation
+                    Console.WriteLine($"Warning: Failed to save messaging statistics: {ex.Message}");
+                }
+
                 result.Result = true;
                 result.Message = "Message sent successfully";
             }

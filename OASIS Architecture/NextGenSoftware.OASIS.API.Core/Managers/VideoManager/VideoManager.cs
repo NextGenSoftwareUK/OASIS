@@ -109,6 +109,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
+                // Update video statistics in settings system whenever video calls are started
+                try
+                {
+                    var videoStats = new Dictionary<string, object>
+                    {
+                        ["totalCallsStarted"] = _activeCalls.Count(c => c.Value.InitiatorId == initiatorId),
+                        ["totalCallsParticipated"] = _activeCalls.Count(c => c.Value.ParticipantIds.Contains(initiatorId)),
+                        ["lastCallStarted"] = DateTime.UtcNow,
+                        ["lastCallType"] = callType.ToString(),
+                        ["participantsInLastCall"] = participantIds.Count
+                    };
+                    await HolonManager.Instance.SaveSettingsAsync(initiatorId, "video", videoStats);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't fail the main operation
+                    Console.WriteLine($"Warning: Failed to save video statistics: {ex.Message}");
+                }
+
                 result.Result = callId;
                 result.IsError = false;
             }

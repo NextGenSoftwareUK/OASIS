@@ -126,28 +126,35 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Dictionary<string, object>>();
             try
             {
-                // Use KarmaManager to get karma statistics
-                var karmaStatsResult = await KarmaManager.Instance.GetKarmaStatsAsync(avatarId);
-                if (karmaStatsResult.IsError)
+                // Try to load karma statistics from the settings system first
+                var karmaStatsResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "karma");
+                if (!karmaStatsResult.IsError && karmaStatsResult.Result != null && karmaStatsResult.Result.Count > 0)
                 {
-                    // Return default stats if KarmaManager fails
-                    result.Result = new Dictionary<string, object>
-                    {
-                        ["totalKarma"] = 0,
-                        ["karmaEarned"] = 0,
-                        ["karmaLost"] = 0,
-                        ["karmaTransactions"] = 0,
-                        ["averageKarmaPerDay"] = 0,
-                        ["karmaSources"] = new Dictionary<string, int>(),
-                        ["recentActivity"] = new List<object>()
-                    };
+                    result.Result = karmaStatsResult.Result;
+                    result.Message = "Karma statistics retrieved from settings system.";
                 }
                 else
                 {
-                    result.Result = karmaStatsResult.Result;
+                    // Fallback to KarmaManager if settings system fails or has no data
+                    var karmaManagerResult = await KarmaManager.Instance.GetKarmaStatsAsync(avatarId);
+                    if (karmaManagerResult.IsError)
+                    {
+                        // Return default stats if both fail
+                        result.Result = new Dictionary<string, object>
+                        {
+                            ["totalKarma"] = 0,
+                            ["karmaTransactions"] = 0,
+                            ["lastKarmaChange"] = DateTime.UtcNow,
+                            ["lastKarmaAmount"] = 0,
+                            ["lastKarmaSource"] = "None"
+                        };
+                    }
+                    else
+                    {
+                        result.Result = karmaManagerResult.Result;
+                    }
+                    result.Message = "Karma statistics retrieved from KarmaManager (fallback).";
                 }
-                
-                result.Message = "Karma statistics retrieved successfully.";
             }
             catch (Exception ex)
             {
@@ -244,26 +251,34 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Dictionary<string, object>>();
             try
             {
-                var chatStatsResult = await ChatManager.Instance.GetChatStatsAsync(avatarId);
-                if (chatStatsResult.IsError)
+                // Try to load chat statistics from the settings system first
+                var chatStatsResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "chat");
+                if (!chatStatsResult.IsError && chatStatsResult.Result != null && chatStatsResult.Result.Count > 0)
                 {
-                    result.Result = new Dictionary<string, object>
-                    {
-                        ["totalMessages"] = 0,
-                        ["totalSessions"] = 0,
-                        ["totalCharacters"] = 0,
-                        ["averageMessageLength"] = 0,
-                        ["totalScore"] = 0,
-                        ["mostActiveDay"] = "None",
-                        ["longestMessage"] = 0
-                    };
+                    result.Result = chatStatsResult.Result;
+                    result.Message = "Chat statistics retrieved from settings system.";
                 }
                 else
                 {
-                    result.Result = chatStatsResult.Result;
+                    // Fallback to ChatManager if settings system fails or has no data
+                    var chatManagerResult = await ChatManager.Instance.GetChatStatsAsync(avatarId);
+                    if (chatManagerResult.IsError)
+                    {
+                        // Return default stats if both fail
+                        result.Result = new Dictionary<string, object>
+                        {
+                            ["totalMessagesSent"] = 0,
+                            ["totalSessions"] = 0,
+                            ["lastMessageSent"] = DateTime.UtcNow,
+                            ["lastMessageType"] = "None"
+                        };
+                    }
+                    else
+                    {
+                        result.Result = chatManagerResult.Result;
+                    }
+                    result.Message = "Chat statistics retrieved from ChatManager (fallback).";
                 }
-                
-                result.Message = "Chat statistics retrieved successfully.";
             }
             catch (Exception ex)
             {

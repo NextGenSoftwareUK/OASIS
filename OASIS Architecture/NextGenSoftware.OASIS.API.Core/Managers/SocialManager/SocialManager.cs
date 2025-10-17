@@ -129,6 +129,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 var results = await Task.WhenAll(shareTasks);
                 var successCount = results.Count(r => r);
 
+                // Update social statistics in settings system whenever content is shared
+                try
+                {
+                    var socialStats = new Dictionary<string, object>
+                    {
+                        ["totalShares"] = _socialFeeds.Values.SelectMany(posts => posts).Count(p => p.AvatarId == avatarId),
+                        ["totalProviders"] = _registeredProviders.Count,
+                        ["lastShareDate"] = DateTime.UtcNow,
+                        ["lastShareSuccess"] = successCount > 0,
+                        ["providersUsed"] = successCount
+                    };
+                    await HolonManager.Instance.SaveSettingsAsync(avatarId, "social", socialStats);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't fail the main operation
+                    Console.WriteLine($"Warning: Failed to save social statistics: {ex.Message}");
+                }
+
                 result.Result = successCount > 0;
                 result.Message = $"Shared to {successCount} of {shareTasks.Count} providers";
             }

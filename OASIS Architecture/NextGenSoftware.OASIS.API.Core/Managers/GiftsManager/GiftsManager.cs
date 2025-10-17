@@ -106,6 +106,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // Update competition scores
                 await UpdateGiftCompetitionScoresAsync(fromAvatarId, giftType);
 
+                // Update gift statistics in settings system whenever gifts are sent
+                try
+                {
+                    var giftStats = new Dictionary<string, object>
+                    {
+                        ["totalGiftsSent"] = _giftTransactions[fromAvatarId].Count(t => t.TransactionType == GiftTransactionType.Sent),
+                        ["totalGiftsReceived"] = _avatarGifts[toAvatarId].Count,
+                        ["lastGiftSent"] = DateTime.UtcNow,
+                        ["lastGiftType"] = giftType.ToString()
+                    };
+                    await HolonManager.Instance.SaveSettingsAsync(fromAvatarId, "gifts", giftStats);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't fail the main operation
+                    Console.WriteLine($"Warning: Failed to save gift statistics: {ex.Message}");
+                }
+
                 result.Result = gift;
                 result.Message = "Gift sent successfully.";
             }
