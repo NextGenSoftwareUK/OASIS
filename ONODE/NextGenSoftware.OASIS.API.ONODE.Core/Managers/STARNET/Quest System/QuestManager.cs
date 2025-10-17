@@ -717,6 +717,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         //["totalRewards"] = questsResult.Result.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.Rewards?.Sum(r => r.Amount) ?? 0)
                     };
 
+                    // Save quest statistics to the settings system for StatsManager to load
+                    try
+                    {
+                        await HolonManager.Instance.SaveSettingAsync(avatarId, "quests", "totalQuests", stats["totalQuests"]);
+                        await HolonManager.Instance.SaveSettingAsync(avatarId, "quests", "completedQuests", stats["completedQuests"]);
+                        await HolonManager.Instance.SaveSettingAsync(avatarId, "quests", "activeQuests", stats["activeQuests"]);
+                        await HolonManager.Instance.SaveSettingAsync(avatarId, "quests", "pendingQuests", stats["pendingQuests"]);
+                        await HolonManager.Instance.SaveSettingAsync(avatarId, "quests", "totalKarmaEarnt", stats["totalKarmaEarnt"]);
+                        await HolonManager.Instance.SaveSettingAsync(avatarId, "quests", "totalXPEarnt", stats["totalXPEarnt"]);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log the error but don't fail the main operation
+                        Console.WriteLine($"Warning: Failed to save quest statistics to settings system: {ex.Message}");
+                    }
+
                     result.Result = stats;
                     result.Message = "Quest statistics retrieved successfully";
                 }

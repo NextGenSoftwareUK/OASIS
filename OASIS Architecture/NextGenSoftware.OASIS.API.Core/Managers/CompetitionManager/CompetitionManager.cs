@@ -80,6 +80,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     var entry = entries.FirstOrDefault(e => e.AvatarId == avatarId);
                     if (entry != null)
                     {
+                        // Save leaderboard statistics to the settings system for StatsManager to load
+                        try
+                        {
+                            await HolonManager.Instance.SaveSettingAsync(avatarId, "leaderboard", "currentRank", entry.Rank);
+                            await HolonManager.Instance.SaveSettingAsync(avatarId, "leaderboard", "totalScore", entry.Score);
+                            await HolonManager.Instance.SaveSettingAsync(avatarId, "leaderboard", "competitionType", competitionType.ToString());
+                            await HolonManager.Instance.SaveSettingAsync(avatarId, "leaderboard", "seasonType", seasonType.ToString());
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log the error but don't fail the main operation
+                            Console.WriteLine($"Warning: Failed to save leaderboard statistics to settings system: {ex.Message}");
+                        }
+
                         result.Result = entry;
                         result.Message = "Avatar rank retrieved successfully.";
                     }
