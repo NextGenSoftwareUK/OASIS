@@ -397,10 +397,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Dictionary<string, object>>();
             try
             {
-                // Get leaderboard statistics using CompetitionManager
+                // Get leaderboard statistics using CompetitionManager directly
                 var competitionManager = CompetitionManager.Instance;
                 
-                // Get current rank for different competition types
                 var currentRank = 0;
                 var totalScore = 0;
                 var currentLeague = "Bronze";
