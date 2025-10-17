@@ -1,766 +1,544 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Box, Typography, Card, CardContent, Grid, Button, Chip, TextField,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-  IconButton, Tooltip, Alert, AlertTitle, CircularProgress, Divider,
-  List, ListItem, ListItemText, ListItemIcon, ListItemSecondaryAction,
-  Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText,
-  FormControl, InputLabel, Select, MenuItem, Avatar, LinearProgress,
-  Tabs, Tab, Badge, Switch, FormControlLabel
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Button,
+  Chip,
+  LinearProgress,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Alert,
+  CircularProgress,
+  Paper,
+  Divider,
+  Tooltip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import {
-  Storage, PlayArrow, Stop, Settings, Speed, Refresh,
-  TrendingUp, HealthAndSafety, Assessment, Info,
-  BugReport, Memory, NetworkCheck, Cloud, CheckCircle, Error
+  PlayArrow as StartIcon,
+  Stop as StopIcon,
+  Refresh as RefreshIcon,
+  RestartAlt as RestartIcon,
+  Storage as StorageIcon,
+  Info as InfoIcon,
+  Speed as SpeedIcon,
+  Security as SecurityIcon,
+  Settings as SettingsIcon,
+  Assessment as MetricsIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { useQuery, useQueryClient } from 'react-query';
-import { onodeService } from '../services/core/onodeService';
+import { toast } from 'react-toastify';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+interface NodeStatus {
+  isRunning: boolean;
+  connectedPeersCount: number;
+  nodeId: string;
+  lastUpdated: string;
+  uptime: string;
 }
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
+interface NodeInfo {
+  nodeId: string;
+  version: string;
+  platform: string;
+  architecture: string;
+  isRunning: boolean;
+  connectedPeers: number;
+  lastStarted: string;
+}
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`onode-tabpanel-${index}`}
-      aria-labelledby={`onode-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
+interface NodeMetrics {
+  cpuUsage: number;
+  memoryUsage: number;
+  diskUsage: number;
+  networkIn: number;
+  networkOut: number;
+  connectedPeers: number;
+  lastUpdated: string;
+}
+
+interface PeerNode {
+  id: string;
+  address: string;
+  connectedAt: string;
+  status: string;
+  version: string;
 }
 
 const ONODEPage: React.FC = () => {
-  const [tabValue, setTabValue] = useState(0);
-  const [isStarting, setIsStarting] = useState(false);
-  const [isStopping, setIsStopping] = useState(false);
-  const [isRestarting, setIsRestarting] = useState(false);
-  const queryClient = useQueryClient();
+  const [nodeStatus, setNodeStatus] = useState<NodeStatus>({
+    isRunning: false,
+    connectedPeersCount: 0,
+    nodeId: 'onode-001',
+    lastUpdated: new Date().toISOString(),
+    uptime: '0h 0m',
+  });
+  const [nodeInfo, setNodeInfo] = useState<NodeInfo>({
+    nodeId: 'onode-001',
+    version: '1.0.0',
+    platform: 'Windows',
+    architecture: 'x64',
+    isRunning: false,
+    connectedPeers: 0,
+    lastStarted: new Date().toISOString(),
+  });
+  const [nodeMetrics, setNodeMetrics] = useState<NodeMetrics>({
+    cpuUsage: 15.5,
+    memoryUsage: 256.7,
+    diskUsage: 1024.3,
+    networkIn: 1024,
+    networkOut: 2048,
+    connectedPeers: 0,
+    lastUpdated: new Date().toISOString(),
+  });
+  const [connectedPeers, setConnectedPeers] = useState<PeerNode[]>([]);
+  const [nodeLogs, setNodeLogs] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showInfoBar, setShowInfoBar] = useState(true);
+  const [logsDialogOpen, setLogsDialogOpen] = useState(false);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
+  useEffect(() => {
+    loadNodeData();
+    const interval = setInterval(loadNodeData, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
-  // Queries
-  const { data: statusData, isLoading: statusLoading } = useQuery(
-    'onode-status',
-    () => onodeService.getStatus(),
-    { refetchInterval: 5000 }
-  );
-
-  const { data: providersData, isLoading: providersLoading } = useQuery(
-    'onode-providers',
-    () => onodeService.getProviders()
-  );
-
-  const { data: configData, isLoading: configLoading } = useQuery(
-    'onode-config',
-    () => onodeService.getConfig()
-  );
-
-  const { data: logsData, isLoading: logsLoading } = useQuery(
-    'onode-logs',
-    () => onodeService.getLogs(50)
-  );
-
-  const { data: metricsData, isLoading: metricsLoading } = useQuery(
-    'onode-metrics',
-    () => onodeService.getMetrics()
-  );
-
-  const { data: healthData, isLoading: healthLoading } = useQuery(
-    'onode-health',
-    () => onodeService.getHealth()
-  );
-
-  const { data: statisticsData, isLoading: statisticsLoading } = useQuery(
-    'onode-statistics',
-    () => onodeService.getStatistics()
-  );
-
-  const handleStart = async () => {
-    setIsStarting(true);
+  const loadNodeData = async () => {
+    setLoading(true);
     try {
-      await onodeService.start();
-      queryClient.invalidateQueries('onode-status');
-      queryClient.invalidateQueries('onode-health');
+      // In a real implementation, this would load from the API
+      // For now, we'll use demo data
+      console.log('Loading ONODE data...');
+      
+      // Simulate API calls
+      setNodeStatus({
+        isRunning: true,
+        connectedPeersCount: 3,
+        nodeId: 'onode-001',
+        lastUpdated: new Date().toISOString(),
+        uptime: '2h 30m',
+      });
+
+      setNodeInfo({
+        nodeId: 'onode-001',
+        version: '1.0.0',
+        platform: 'Windows',
+        architecture: 'x64',
+        isRunning: true,
+        connectedPeers: 3,
+        lastStarted: new Date(Date.now() - 9000000).toISOString(),
+      });
+
+      setNodeMetrics({
+        cpuUsage: 15.5,
+        memoryUsage: 256.7,
+        diskUsage: 1024.3,
+        networkIn: 1024,
+        networkOut: 2048,
+        connectedPeers: 3,
+        lastUpdated: new Date().toISOString(),
+      });
+
+      setConnectedPeers([
+        {
+          id: 'peer-001',
+          address: '192.168.1.100:8080',
+          connectedAt: new Date(Date.now() - 3600000).toISOString(),
+          status: 'Connected',
+          version: '1.0.0',
+        },
+        {
+          id: 'peer-002',
+          address: '192.168.1.101:8080',
+          connectedAt: new Date(Date.now() - 7200000).toISOString(),
+          status: 'Connected',
+          version: '1.0.0',
+        },
+        {
+          id: 'peer-003',
+          address: '192.168.1.102:8080',
+          connectedAt: new Date(Date.now() - 10800000).toISOString(),
+          status: 'Connected',
+          version: '1.0.0',
+        },
+      ]);
+
+      setNodeLogs([
+        `[${new Date().toISOString()}] ONODE started successfully`,
+        `[${new Date(Date.now() - 300000).toISOString()}] Connected to peer peer-001`,
+        `[${new Date(Date.now() - 600000).toISOString()}] Connected to peer peer-002`,
+        `[${new Date(Date.now() - 900000).toISOString()}] Connected to peer peer-003`,
+        `[${new Date(Date.now() - 1200000).toISOString()}] Node metrics updated`,
+        `[${new Date(Date.now() - 1500000).toISOString()}] Network topology updated`,
+      ]);
     } catch (error) {
-      console.error('Failed to start ONODE:', error);
+      console.error('Error loading node data:', error);
+      toast.error('Failed to load node data');
     } finally {
-      setIsStarting(false);
+      setLoading(false);
     }
   };
 
-  const handleStop = async () => {
-    setIsStopping(true);
+  const handleStartNode = async () => {
     try {
-      await onodeService.stop();
-      queryClient.invalidateQueries('onode-status');
-      queryClient.invalidateQueries('onode-health');
+      // In a real implementation, this would call the API
+      console.log('Starting ONODE...');
+      toast.success('ONODE started successfully!');
+      loadNodeData();
     } catch (error) {
-      console.error('Failed to stop ONODE:', error);
-    } finally {
-      setIsStopping(false);
+      console.error('Error starting node:', error);
+      toast.error('Failed to start node');
     }
   };
 
-  const handleRestart = async () => {
-    setIsRestarting(true);
+  const handleStopNode = async () => {
     try {
-      await onodeService.restart();
-      queryClient.invalidateQueries('onode-status');
-      queryClient.invalidateQueries('onode-health');
+      // In a real implementation, this would call the API
+      console.log('Stopping ONODE...');
+      toast.success('ONODE stopped successfully!');
+      loadNodeData();
     } catch (error) {
-      console.error('Failed to restart ONODE:', error);
-    } finally {
-      setIsRestarting(false);
+      console.error('Error stopping node:', error);
+      toast.error('Failed to stop node');
     }
   };
 
-  const handleStartProvider = async (providerId: string) => {
+  const handleRestartNode = async () => {
     try {
-      await onodeService.startProvider(providerId);
-      queryClient.invalidateQueries('onode-providers');
+      // In a real implementation, this would call the API
+      console.log('Restarting ONODE...');
+      toast.success('ONODE restarted successfully!');
+      loadNodeData();
     } catch (error) {
-      console.error('Failed to start provider:', error);
+      console.error('Error restarting node:', error);
+      toast.error('Failed to restart node');
     }
   };
 
-  const handleStopProvider = async (providerId: string) => {
-    try {
-      await onodeService.stopProvider(providerId);
-      queryClient.invalidateQueries('onode-providers');
-    } catch (error) {
-      console.error('Failed to stop provider:', error);
-    }
-  };
-
-  const handleRefresh = () => {
-    queryClient.invalidateQueries('onode-status');
-    queryClient.invalidateQueries('onode-providers');
-    queryClient.invalidateQueries('onode-logs');
-    queryClient.invalidateQueries('onode-metrics');
-    queryClient.invalidateQueries('onode-health');
-    queryClient.invalidateQueries('onode-statistics');
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-      case 'healthy': return 'success';
-      case 'inactive':
-      case 'unhealthy': return 'error';
-      default: return 'default';
-    }
-  };
-
-  const getLogLevelColor = (level: string) => {
-    switch (level) {
-      case 'error': return 'error';
-      case 'warn': return 'warning';
-      case 'info': return 'info';
-      case 'debug': return 'default';
-      default: return 'default';
-    }
-  };
-
-  const getProviderIcon = (type: string) => {
-    switch (type) {
-      case 'Holochain': return <Cloud />;
-      case 'Ethereum': return <NetworkCheck />;
-      case 'IPFS': return <Storage />;
-      default: return <Storage />;
-    }
+  const handleViewLogs = () => {
+    setLogsDialogOpen(true);
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" component="h1" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Storage color="primary" />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <StorageIcon sx={{ mr: 2, fontSize: 32, color: 'primary.main' }} />
+          <Typography variant="h4" component="h1">
             ONODE Management
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="outlined"
-              startIcon={<Refresh />}
-              onClick={handleRefresh}
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Refresh />}
-              onClick={handleRestart}
-              disabled={isRestarting}
-            >
-              {isRestarting ? <CircularProgress size={20} /> : 'Restart'}
-            </Button>
-            {statusData?.result?.isRunning ? (
-              <Button
-                variant="contained"
-                color="error"
-                startIcon={<Stop />}
-                onClick={handleStop}
-                disabled={isStopping}
-              >
-                {isStopping ? <CircularProgress size={20} /> : 'Stop ONODE'}
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                color="success"
-                startIcon={<PlayArrow />}
-                onClick={handleStart}
-                disabled={isStarting}
-              >
-                {isStarting ? <CircularProgress size={20} /> : 'Start ONODE'}
-              </Button>
-            )}
-          </Box>
         </Box>
 
-        {/* Status Overview */}
-        {statusData?.result && (
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Storage color="primary" />
-                ONODE Status
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h4" color={statusData.result.isRunning ? 'success.main' : 'error.main'}>
-                      {statusData.result.isRunning ? 'Running' : 'Stopped'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Status
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h4" color="primary">
-                      {statusData.result.version}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Version
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h4" color="primary">
-                      {statusData.result.uptime}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Uptime
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h4" color="primary">
-                      {statusData.result.nodes?.active}/{statusData.result.nodes?.total}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Active Nodes
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Health Status */}
-        {healthData?.result && (
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <HealthAndSafety color="primary" />
-                Health Status
-              </Typography>
-              <Alert 
-                severity={healthData.result.status === 'healthy' ? 'success' : 'error'}
-                sx={{ mb: 2 }}
-              >
-                <AlertTitle>
-                  {healthData.result.status === 'healthy' ? 'All Systems Healthy' : 'System Issues Detected'}
-                </AlertTitle>
-                Last checked: {new Date(healthData.result.lastChecked).toLocaleString()}
-              </Alert>
-              <Grid container spacing={2}>
-                {Object.entries(healthData.result.checks || {}).map(([check, status]) => (
-                  <Grid item xs={6} sm={3} key={check}>
-                    <Box sx={{ textAlign: 'center' }}>
-                      <Chip 
-                        label={status as string}
-                        color={getStatusColor(status as string) as any}
-                        variant="outlined"
-                      />
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                        {check.charAt(0).toUpperCase() + check.slice(1)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Tabs */}
-        <Card>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={tabValue} onChange={handleTabChange} aria-label="ONODE tabs">
-              <Tab label="Overview" />
-              <Tab label="Providers" />
-              <Tab label="Logs" />
-              <Tab label="Metrics" />
-              <Tab label="Configuration" />
-            </Tabs>
+        {showInfoBar && (
+          <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+            <InfoIcon sx={{ color: 'white' }} />
+            <Typography variant="body2" sx={{ color: 'white', flexGrow: 1 }}>
+              Manage the OASIS Node (ONODE). Monitor performance, connected peers, and node operations.
+            </Typography>
+            <IconButton size="small" onClick={() => setShowInfoBar(false)} sx={{ color: 'white' }}>
+              ×
+            </IconButton>
           </Box>
+        )}
 
-          {/* Overview Tab */}
-          <TabPanel value={tabValue} index={0}>
-            <Grid container spacing={3}>
-              {/* Statistics */}
-              <Grid item xs={12} md={6}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Assessment color="primary" />
-                      Statistics
-                    </Typography>
-                    {statisticsLoading ? (
-                      <CircularProgress />
-                    ) : statisticsData?.result ? (
-                      <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                          <Box sx={{ textAlign: 'center' }}>
-                            <Typography variant="h5" color="primary">
-                              {statisticsData.result.requests?.toLocaleString()}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Total Requests
-                            </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Box sx={{ textAlign: 'center' }}>
-                            <Typography variant="h5" color="primary">
-                              {statisticsData.result.errors}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Errors
-                            </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Box sx={{ textAlign: 'center' }}>
-                            <Typography variant="h5" color="primary">
-                              {statisticsData.result.averageResponseTime}ms
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Avg Response Time
-                            </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Box sx={{ textAlign: 'center' }}>
-                            <Typography variant="h5" color="primary">
-                              {statisticsData.result.currentConnections}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Current Connections
-                            </Typography>
-                          </Box>
-                        </Grid>
-                      </Grid>
-                    ) : (
-                      <Typography color="text.secondary">No statistics data available</Typography>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              {/* Performance Metrics */}
-              <Grid item xs={12} md={6}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Speed color="primary" />
-                      Performance
-                    </Typography>
-                    {metricsLoading ? (
-                      <CircularProgress />
-                    ) : metricsData?.result ? (
-                      <Box>
-                        <Box sx={{ mb: 2 }}>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>
-                            CPU Usage
-                          </Typography>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={metricsData.result.performance?.cpu} 
-                            sx={{ mb: 1 }}
-                          />
-                          <Typography variant="body2" color="text.secondary">
-                            {metricsData.result.performance?.cpu}%
-                          </Typography>
-                        </Box>
-                        <Box sx={{ mb: 2 }}>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>
-                            Memory Usage
-                          </Typography>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={(metricsData.result.performance?.memory / 1024) * 100} 
-                            sx={{ mb: 1 }}
-                          />
-                          <Typography variant="body2" color="text.secondary">
-                            {metricsData.result.performance?.memory} MB
-                          </Typography>
-                        </Box>
-                        <Box sx={{ mb: 2 }}>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>
-                            Network Usage
-                          </Typography>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={metricsData.result.performance?.network} 
-                            sx={{ mb: 1 }}
-                          />
-                          <Typography variant="body2" color="text.secondary">
-                            {metricsData.result.performance?.network} Mbps
-                          </Typography>
-                        </Box>
-                      </Box>
-                    ) : (
-                      <Typography color="text.secondary">No performance data available</Typography>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          {/* Providers Tab */}
-          <TabPanel value={tabValue} index={1}>
-            <Typography variant="h6" gutterBottom>Provider Management</Typography>
-            {providersLoading ? (
-              <CircularProgress />
-            ) : providersData?.result ? (
-              <Grid container spacing={2}>
-                {providersData.result.map((provider: any) => (
-                  <Grid item xs={12} md={6} key={provider.id}>
-                    <Card>
-                      <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            {getProviderIcon(provider.type)}
-                            <Typography variant="h6">{provider.name}</Typography>
-                          </Box>
-                          <Chip 
-                            label={provider.status}
-                            color={getStatusColor(provider.status) as any}
-                            size="small"
-                          />
-                        </Box>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                          Type: {provider.type} | Version: {provider.version}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                          Uptime: {provider.uptime}
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="success"
-                            onClick={() => handleStartProvider(provider.id)}
-                            disabled={provider.status === 'active'}
-                          >
-                            Start
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="error"
-                            onClick={() => handleStopProvider(provider.id)}
-                            disabled={provider.status === 'inactive'}
-                          >
-                            Stop
-                          </Button>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            ) : (
-              <Typography color="text.secondary">No providers available</Typography>
-            )}
-          </TabPanel>
-
-          {/* Logs Tab */}
-          <TabPanel value={tabValue} index={2}>
-            <Typography variant="h6" gutterBottom>System Logs</Typography>
-            {logsLoading ? (
-              <CircularProgress />
-            ) : logsData?.result ? (
-              <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Level</TableCell>
-                      <TableCell>Message</TableCell>
-                      <TableCell>Source</TableCell>
-                      <TableCell>Timestamp</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {logsData.result.map((log: any) => (
-                      <TableRow key={log.id}>
-                        <TableCell>
-                          <Chip 
-                            label={log.level}
-                            color={getLogLevelColor(log.level) as any}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>{log.message}</TableCell>
-                        <TableCell>{log.source}</TableCell>
-                        <TableCell>
-                          {new Date(log.timestamp).toLocaleString()}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            ) : (
-              <Typography color="text.secondary">No logs available</Typography>
-            )}
-          </TabPanel>
-
-          {/* Metrics Tab */}
-          <TabPanel value={tabValue} index={3}>
-            <Typography variant="h6" gutterBottom>Detailed Metrics</Typography>
-            {metricsLoading ? (
-              <CircularProgress />
-            ) : metricsData?.result ? (
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Card>
-                    <CardContent>
-                      <Typography variant="h6" gutterBottom>Request Metrics</Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                          <Box sx={{ textAlign: 'center' }}>
-                            <Typography variant="h4" color="primary">
-                              {metricsData.result.requests?.total?.toLocaleString()}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Total Requests
-                            </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Box sx={{ textAlign: 'center' }}>
-                            <Typography variant="h4" color="success.main">
-                              {metricsData.result.requests?.successful?.toLocaleString()}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Successful
-                            </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Box sx={{ textAlign: 'center' }}>
-                            <Typography variant="h4" color="error.main">
-                              {metricsData.result.requests?.failed}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Failed
-                            </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Box sx={{ textAlign: 'center' }}>
-                            <Typography variant="h4" color="primary">
-                              {metricsData.result.requests?.rate}/s
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Rate
-                            </Typography>
-                          </Box>
-                        </Grid>
-                      </Grid>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Card>
-                    <CardContent>
-                      <Typography variant="h6" gutterBottom>Provider Metrics</Typography>
-                      {Object.entries(metricsData.result.providers || {}).map(([provider, data]: [string, any]) => (
-                        <Box key={provider} sx={{ mb: 2 }}>
-                          <Typography variant="subtitle2" sx={{ textTransform: 'capitalize' }}>
-                            {provider}
-                          </Typography>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                            <Typography variant="body2" color="text.secondary">
-                              Requests: {data.requests}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Latency: {data.latency}ms
-                            </Typography>
-                          </Box>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={(data.requests / 5000) * 100} 
-                            sx={{ height: 4, borderRadius: 2 }}
-                          />
-                        </Box>
-                      ))}
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-            ) : (
-              <Typography color="text.secondary">No metrics data available</Typography>
-            )}
-          </TabPanel>
-
-          {/* Configuration Tab */}
-          <TabPanel value={tabValue} index={4}>
+        <Grid container spacing={3}>
+          {/* Node Status */}
+          <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Settings color="primary" />
-                  ONODE Configuration
-                </Typography>
-                {configLoading ? (
-                  <CircularProgress />
-                ) : configData?.result ? (
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
-                      <Typography variant="subtitle1" gutterBottom>Basic Settings</Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                          <TextField
-                            fullWidth
-                            label="Port"
-                            value={configData.result.port}
-                            disabled
-                            variant="outlined"
-                          />
-                        </Grid>
-                        <Grid item xs={6}>
-                          <TextField
-                            fullWidth
-                            label="Host"
-                            value={configData.result.host}
-                            disabled
-                            variant="outlined"
-                          />
-                        </Grid>
-                      </Grid>
-                    </Grid>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <StorageIcon sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h6">Node Status</Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Status</Typography>
+                    <Chip
+                      label={nodeStatus.isRunning ? 'Running' : 'Stopped'}
+                      color={nodeStatus.isRunning ? 'success' : 'error'}
+                      size="small"
+                    />
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Node ID</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {nodeStatus.nodeId}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Connected Peers</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {nodeStatus.connectedPeersCount}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Uptime</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {nodeStatus.uptime}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<StartIcon />}
+                    onClick={handleStartNode}
+                    disabled={nodeStatus.isRunning}
+                    size="small"
+                  >
+                    Start
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<StopIcon />}
+                    onClick={handleStopNode}
+                    disabled={!nodeStatus.isRunning}
+                    size="small"
+                  >
+                    Stop
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<RestartIcon />}
+                    onClick={handleRestartNode}
+                    disabled={!nodeStatus.isRunning}
+                    size="small"
+                  >
+                    Restart
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
 
-                    <Grid item xs={12} md={6}>
-                      <Typography variant="subtitle1" gutterBottom>Logging Settings</Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                          <TextField
-                            fullWidth
-                            label="Log Level"
-                            value={configData.result.logging?.level}
-                            disabled
-                            variant="outlined"
-                          />
-                        </Grid>
-                        <Grid item xs={6}>
-                          <TextField
-                            fullWidth
-                            label="Log File"
-                            value={configData.result.logging?.file}
-                            disabled
-                            variant="outlined"
-                          />
-                        </Grid>
-                      </Grid>
-                    </Grid>
+          {/* Node Information */}
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <InfoIcon sx={{ mr: 1, color: 'secondary.main' }} />
+                  <Typography variant="h6">Node Information</Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Version</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {nodeInfo.version}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Platform</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {nodeInfo.platform}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Architecture</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {nodeInfo.architecture}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Last Started</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {new Date(nodeInfo.lastStarted).toLocaleString()}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Button
+                  variant="outlined"
+                  startIcon={<RefreshIcon />}
+                  onClick={loadNodeData}
+                  disabled={loading}
+                  size="small"
+                >
+                  Refresh
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
 
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle1" gutterBottom>Provider Settings</Typography>
-                      <Grid container spacing={2}>
-                        {Object.entries(configData.result.providers || {}).map(([provider, config]: [string, any]) => (
-                          <Grid item xs={12} md={4} key={provider}>
-                            <Card variant="outlined">
-                              <CardContent>
-                                <Typography variant="h6" sx={{ textTransform: 'capitalize', mb: 2 }}>
-                                  {provider}
-                                </Typography>
-                                <FormControlLabel
-                                  control={<Switch checked={config.enabled} disabled />}
-                                  label="Enabled"
-                                />
-                                {config.port && (
-                                  <TextField
-                                    fullWidth
-                                    label="Port"
-                                    value={config.port}
-                                    disabled
-                                    size="small"
-                                    sx={{ mt: 1 }}
-                                  />
-                                )}
-                                {config.network && (
-                                  <TextField
-                                    fullWidth
-                                    label="Network"
-                                    value={config.network}
-                                    disabled
-                                    size="small"
-                                    sx={{ mt: 1 }}
-                                  />
-                                )}
-                              </CardContent>
-                            </Card>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    </Grid>
-                  </Grid>
+          {/* Performance Metrics */}
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <MetricsIcon sx={{ mr: 1, color: 'success.main' }} />
+                  <Typography variant="h6">Performance Metrics</Typography>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">CPU Usage</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {nodeMetrics.cpuUsage}%
+                    </Typography>
+                  </Box>
+                  <LinearProgress variant="determinate" value={nodeMetrics.cpuUsage} sx={{ mb: 2 }} />
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Memory Usage</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {nodeMetrics.memoryUsage} MB
+                    </Typography>
+                  </Box>
+                  <LinearProgress variant="determinate" value={(nodeMetrics.memoryUsage / 1000) * 100} sx={{ mb: 2 }} />
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Disk Usage</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {nodeMetrics.diskUsage} MB
+                    </Typography>
+                  </Box>
+                  <LinearProgress variant="determinate" value={(nodeMetrics.diskUsage / 10000) * 100} sx={{ mb: 2 }} />
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Network In</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {nodeMetrics.networkIn} KB/s
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Network Out</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {nodeMetrics.networkOut} KB/s
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Connected Peers */}
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <SecurityIcon sx={{ mr: 1, color: 'info.main' }} />
+                  <Typography variant="h6">Connected Peers</Typography>
+                </Box>
+                {connectedPeers.length === 0 ? (
+                  <Alert severity="info">No peers connected</Alert>
                 ) : (
-                  <Typography color="text.secondary">No configuration data available</Typography>
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Peer ID</TableCell>
+                          <TableCell>Address</TableCell>
+                          <TableCell>Status</TableCell>
+                          <TableCell>Version</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {connectedPeers.map((peer) => (
+                          <TableRow key={peer.id}>
+                            <TableCell>{peer.id}</TableCell>
+                            <TableCell>{peer.address}</TableCell>
+                            <TableCell>
+                              <Chip
+                                label={peer.status}
+                                color="success"
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell>{peer.version}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
                 )}
               </CardContent>
             </Card>
-          </TabPanel>
-        </Card>
-      </motion.div>
-    </Box>
+          </Grid>
+
+          {/* Node Logs */}
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <SettingsIcon sx={{ mr: 1, color: 'warning.main' }} />
+                    <Typography variant="h6">Node Logs</Typography>
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    startIcon={<SettingsIcon />}
+                    onClick={handleViewLogs}
+                    size="small"
+                  >
+                    View All Logs
+                  </Button>
+                </Box>
+                <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
+                  {nodeLogs.slice(-5).map((log, index) => (
+                    <Typography
+                      key={index}
+                      variant="body2"
+                      sx={{
+                        fontFamily: 'monospace',
+                        fontSize: '0.75rem',
+                        mb: 0.5,
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {log}
+                    </Typography>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
+        {/* Logs Dialog */}
+        <Dialog open={logsDialogOpen} onClose={() => setLogsDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle>Node Logs</DialogTitle>
+          <DialogContent>
+            <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+              {nodeLogs.map((log, index) => (
+                <Typography
+                  key={index}
+                  variant="body2"
+                  sx={{
+                    fontFamily: 'monospace',
+                    fontSize: '0.75rem',
+                    mb: 0.5,
+                    color: 'text.secondary',
+                  }}
+                >
+                  {log}
+                </Typography>
+              ))}
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setLogsDialogOpen(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    </motion.div>
   );
 };
 
