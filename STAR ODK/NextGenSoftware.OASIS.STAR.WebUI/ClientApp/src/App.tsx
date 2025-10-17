@@ -70,6 +70,12 @@ import SubscriptionPlansPage from './pages/SubscriptionPlansPage';
 import SubscriptionSuccessPage from './pages/SubscriptionSuccessPage';
 import SubscriptionManagePage from './pages/SubscriptionManagePage';
 import UsagePage from './pages/UsagePage';
+import EggsPage from './pages/EggsPage';
+import VideoCallsPage from './pages/VideoCallsPage';
+import CompetitionPage from './pages/CompetitionPage';
+import MessagingPage from './pages/MessagingPage';
+import ChatPage from './pages/ChatPage';
+import SocialPage from './pages/SocialPage';
 
 // Services
 import { starCoreService } from './services';
@@ -141,6 +147,102 @@ const App: React.FC = () => {
           <AnimatePresence mode="wait">
             <Routes>
               <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route 
+                path="/eggs" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <EggsPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/video" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <VideoCallsPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/competition" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <CompetitionPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/messaging" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <MessagingPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/chat" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <ChatPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/social" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <SocialPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
               <Route 
                 path="/home" 
                 element={

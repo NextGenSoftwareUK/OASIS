@@ -5,6 +5,13 @@
 
 // Core Services
 export { starCoreService } from './core/starCoreService';
+export { statsService } from './core/statsService';
+export { eggsService } from './core/eggsService';
+export { videoService } from './core/videoService';
+export { competitionService } from './core/competitionService';
+export { messagingService } from './core/messagingService';
+export { chatService } from './core/chatService';
+export { socialService } from './core/socialService';
 export { avatarService } from './core/avatarService';
 export { walletService } from './core/walletService';
 export { keysService } from './core/keysService';
