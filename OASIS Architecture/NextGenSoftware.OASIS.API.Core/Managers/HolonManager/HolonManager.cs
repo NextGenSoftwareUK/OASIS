@@ -13,6 +13,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class HolonManager : OASISManager
     {
+    // Raised after settings are successfully saved for an avatar/category
+    public event Action<Guid, string> SettingsSaved;
         private static HolonManager _instance = null;
         private OASISResult<IEnumerable<IHolon>> _allHolonsCache = null;
 
@@ -386,6 +388,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     settingsHolon.MetaData[setting.Key] = setting.Value;
                 }
+                // bump a simple version stamp for cache invalidation
+                settingsHolon.MetaData["_versionStamp"] = DateTime.UtcNow.Ticks;
                 settingsHolon.ModifiedDate = DateTime.UtcNow;
                 
                 // Save the updated holon
