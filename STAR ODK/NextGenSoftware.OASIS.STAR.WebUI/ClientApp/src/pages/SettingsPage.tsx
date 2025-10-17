@@ -93,6 +93,10 @@ interface Settings {
     autoReplication: boolean;
     replicationProviders: string[];
   };
+  stats: {
+    enableCaching: boolean;
+    cacheTtlSeconds: number;
+  };
 }
 
 const SettingsPage: React.FC = () => {
@@ -132,6 +136,10 @@ const SettingsPage: React.FC = () => {
       autoReplication: true,
       replicationProviders: ['Auto', 'IPFSOASIS', 'PinataOASIS'],
     },
+    stats: {
+      enableCaching: true,
+      cacheTtlSeconds: 300,
+    },
   });
 
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -150,17 +158,21 @@ const SettingsPage: React.FC = () => {
     }));
   }, [isDemoMode]);
 
-  // Fetch settings with demo data
+  // Fetch settings: try STAR API first, fallback to current local/demo settings
   const { data: settingsData, isLoading, error, refetch } = useQuery(
     'settings',
     async () => {
       try {
-        // Force demo settings to prevent API issues
-        throw 'Forcing demo settings for presentation';
-      } catch (error) {
-        // Fallback to demo settings
-        console.log('Using demo settings for investor presentation');
-        return { result: settings };
+        const response = await starCoreService.getSettings();
+        if (!response.isError && response.result) {
+          return response;
+        }
+        // Fallback to local defaults if API returns error
+        console.warn('STAR settings API returned error, using local defaults.');
+        return { result: settings } as any;
+      } catch (err) {
+        console.warn('STAR settings API failed, using local defaults.', err);
+        return { result: settings } as any;
       }
     }
   );
@@ -254,6 +266,13 @@ const SettingsPage: React.FC = () => {
       color: '#9c27b0',
       settings: settings.oasiss,
       section: 'oasiss' as keyof Settings,
+    },
+    {
+      title: 'Stats & Caching',
+      icon: <SpeedIcon />,
+      color: '#00bcd4',
+      settings: settings.stats,
+      section: 'stats' as keyof Settings,
     },
   ];
 

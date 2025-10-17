@@ -42,7 +42,11 @@ import {
   Terminal,
   CreditCard,
   TrendingUp,
+  NetworkCheck,
+  Search as SearchIcon,
 } from '@mui/icons-material';
+import KeyIcon from '@mui/icons-material/VpnKey';
+import VideoCallIcon from '@mui/icons-material/VideoCall';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAvatar } from '../contexts/AvatarContext';
@@ -100,6 +104,48 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           icon: <MenuBook />,
           path: '/chapters',
           description: 'Story Chapters',
+        },
+      ],
+    },
+    {
+      id: 'tools',
+      title: 'Tools',
+      icon: <Settings />,
+      children: [
+        {
+          id: 'onet',
+          title: 'ONET',
+          icon: <NetworkCheck />,
+          path: '/ONET',
+          description: 'OASIS P2P Network',
+        },
+        {
+          id: 'keys',
+          title: 'Keys',
+          icon: <KeyIcon />,
+          path: '/keys',
+          description: 'Key Management',
+        },
+        {
+          id: 'search',
+          title: 'Search',
+          icon: <SearchIcon />,
+          path: '/search',
+          description: 'Global Search',
+        },
+        {
+          id: 'map',
+          title: 'Map',
+          icon: <LocationOn />,
+          path: '/map',
+          description: 'Geo Map',
+        },
+        {
+          id: 'hypernet',
+          title: 'HyperNET',
+          icon: <Memory />,
+          path: '/hypernet',
+          description: 'HyperNET Management',
         },
       ],
     },
@@ -200,6 +246,13 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           description: 'OASIS Data Objects',
         },
         {
+          id: 'metadata',
+          title: 'MetaData',
+          icon: <DataObject />,
+          path: '/metadata',
+          description: 'Holon Metadata',
+        },
+        {
           id: 'zomes',
           title: 'Zomes',
           icon: <Extension />,
@@ -249,6 +302,34 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           description: 'Karma Leaderboard',
         },
         {
+          id: 'competition',
+          title: 'Competition',
+          icon: <EmojiEvents />,
+          path: '/competition',
+          description: 'Seasons, Ranks & Leagues',
+        },
+        {
+          id: 'messaging',
+          title: 'Messaging',
+          icon: <AccountCircle />,
+          path: '/messaging',
+          description: 'Direct Messages',
+        },
+        {
+          id: 'chat',
+          title: 'Chat',
+          icon: <AccountCircle />,
+          path: '/chat',
+          description: 'Channels & Group Chat',
+        },
+        {
+          id: 'social',
+          title: 'Social',
+          icon: <AccountCircle />,
+          path: '/social',
+          description: 'Feed & Sharing',
+        },
+        {
           id: 'my-data',
           title: 'My Data',
           icon: <CloudUpload />,
@@ -275,6 +356,20 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, isConnected }) => {
           icon: <TrendingUp />,
           path: '/subscription/usage',
           description: 'API Usage & Billing',
+        },
+        {
+          id: 'eggs',
+          title: 'Eggs',
+          icon: <Image />,
+          path: '/eggs',
+          description: 'Discover & Hatch',
+        },
+        {
+          id: 'video',
+          title: 'Video Calls',
+          icon: <VideoCallIcon />,
+          path: '/video',
+          description: 'Start & Manage Calls',
         },
       ],
     },

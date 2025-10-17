@@ -43,7 +43,7 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { starCoreService, avatarService } from '../services';
+import { statsService, avatarService } from '../services';
 
 interface AvatarKarma {
   id: string;
@@ -89,7 +89,7 @@ const KarmaPage: React.FC = () => {
           async () => {
             try {
               // Try to get real data first
-              const response = await starCoreService.getKarmaLeaderboard?.();
+              const response = await statsService.getLeaderboard?.();
               return response;
             } catch (error) {
               // Fallback to impressive demo data - only log to console

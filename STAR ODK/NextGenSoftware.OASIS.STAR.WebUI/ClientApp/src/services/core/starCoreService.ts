@@ -205,6 +205,10 @@ class STARCoreService extends BaseService {
           autoReplication: true,
           replicationProviders: ['Auto', 'IPFSOASIS', 'PinataOASIS'],
         },
+        stats: {
+          enableCaching: true,
+          cacheTtlSeconds: 300,
+        },
       },
       'Settings retrieved (Demo Mode)'
     );
