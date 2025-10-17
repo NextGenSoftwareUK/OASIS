@@ -1,6 +1,7 @@
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
@@ -10,9 +11,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private static ONETManager? _instance;
         private static readonly object _lock = new object();
         private OASISDNA? _oasisdna;
-        private bool _isNetworkRunning = false;
-        private readonly List<NetworkNode> _connectedNodes = new List<NetworkNode>();
-        private readonly Dictionary<string, object> _networkStats = new Dictionary<string, object>();
+        private readonly ONETProtocol _onetProtocol;
+        private readonly ONETConsensus _consensus;
+        private readonly ONETRouting _routing;
+        private readonly ONETSecurity _security;
+        private readonly ONETDiscovery _discovery;
+        private readonly ONETAPIGateway _apiGateway;
 
         public static ONETManager Instance
         {
@@ -34,6 +38,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         private ONETManager()
         {
+            _onetProtocol = ONETProtocol.Instance;
+            _consensus = new ONETConsensus();
+            _routing = new ONETRouting();
+            _security = new ONETSecurity();
+            _discovery = new ONETDiscovery();
+            _apiGateway = new ONETAPIGateway();
             InitializeAsync().Wait();
         }
 
@@ -133,12 +143,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
+                // Get network topology from ONET Protocol
+                var topologyResult = await _onetProtocol.GetNetworkTopologyAsync();
+                if (topologyResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting network topology: {topologyResult.Message}");
+                    return result;
+                }
+
+                var topology = topologyResult.Result;
                 var status = new NetworkStatus
                 {
-                    IsRunning = _isNetworkRunning,
-                    ConnectedNodesCount = _connectedNodes.Count,
-                    NetworkId = _oasisdna?.OASIS?.NetworkId ?? "unknown",
-                    LastUpdated = DateTime.UtcNow
+                    IsRunning = topology.NetworkHealth > 0,
+                    ConnectedNodesCount = topology.Nodes.Count,
+                    NetworkId = _oasisdna?.OASIS?.NetworkId ?? "onet-network",
+                    LastUpdated = topology.LastUpdated
                 };
 
                 result.Result = status;
@@ -162,7 +181,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
-                result.Result = new List<NetworkNode>(_connectedNodes);
+                // Get connected nodes from ONET Protocol
+                var topologyResult = await _onetProtocol.GetNetworkTopologyAsync();
+                if (topologyResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error getting network topology: {topologyResult.Message}");
+                    return result;
+                }
+
+                var topology = topologyResult.Result;
+                var connectedNodes = topology.Nodes.Select(node => new NetworkNode
+                {
+                    Id = node.Id,
+                    Address = node.Address,
+                    ConnectedAt = node.ConnectedAt,
+                    Status = node.Status
+                }).ToList();
+
+                result.Result = connectedNodes;
                 result.IsError = false;
                 result.Message = "Connected nodes retrieved successfully";
             }
@@ -189,27 +225,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                // Check if already connected
-                if (_connectedNodes.Any(n => n.Id == nodeId))
+                // Use ONET Protocol to establish connection
+                var connectResult = await _onetProtocol.ConnectToNodeAsync(nodeId, nodeAddress);
+                if (connectResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Node is already connected");
+                    OASISErrorHandling.HandleError(ref result, $"Failed to connect to node: {connectResult.Message}");
                     return result;
                 }
 
-                // Add to connected nodes (in a real implementation, this would establish actual connection)
-                var node = new NetworkNode
-                {
-                    Id = nodeId,
-                    Address = nodeAddress,
-                    ConnectedAt = DateTime.UtcNow,
-                    Status = "Connected"
-                };
-
-                _connectedNodes.Add(node);
-
                 result.Result = true;
                 result.IsError = false;
-                result.Message = "Successfully connected to node";
+                result.Message = "Successfully connected to ONET node";
             }
             catch (Exception ex)
             {
@@ -293,17 +319,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
-                if (_isNetworkRunning)
+                // Start the ONET Protocol network
+                var startResult = await _onetProtocol.StartNetworkAsync();
+                if (startResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Network is already running");
+                    OASISErrorHandling.HandleError(ref result, $"Failed to start ONET network: {startResult.Message}");
                     return result;
                 }
 
-                _isNetworkRunning = true;
-
                 result.Result = true;
                 result.IsError = false;
-                result.Message = "Network started successfully";
+                result.Message = "ONET P2P network started successfully - Web2 and Web3 unified!";
             }
             catch (Exception ex)
             {
@@ -322,18 +348,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
-                if (!_isNetworkRunning)
+                // Stop the ONET Protocol network
+                var stopResult = await _onetProtocol.StopNetworkAsync();
+                if (stopResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Network is not running");
+                    OASISErrorHandling.HandleError(ref result, $"Failed to stop ONET network: {stopResult.Message}");
                     return result;
                 }
 
-                _isNetworkRunning = false;
-                _connectedNodes.Clear();
-
                 result.Result = true;
                 result.IsError = false;
-                result.Message = "Network stopped successfully";
+                result.Message = "ONET P2P network stopped successfully";
             }
             catch (Exception ex)
             {
@@ -386,22 +411,58 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                if (!_isNetworkRunning)
+                // Use ONET Protocol to broadcast message
+                var onetMessage = new ONETMessage
                 {
-                    OASISErrorHandling.HandleError(ref result, "Network is not running");
+                    Content = message,
+                    MessageType = messageType,
+                    SourceNodeId = "local",
+                    TargetNodeId = "broadcast"
+                };
+
+                var broadcastResult = await _onetProtocol.SendMessageAsync(onetMessage);
+                if (broadcastResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to broadcast message: {broadcastResult.Message}");
                     return result;
                 }
 
-                // In a real implementation, this would broadcast to all connected nodes
-                // For now, we'll just simulate success
-
                 result.Result = true;
                 result.IsError = false;
-                result.Message = "Message broadcasted successfully";
+                result.Message = "Message broadcasted successfully through ONET network";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error broadcasting message: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Call unified API - The GOD API that unifies Web2 and Web3
+        /// </summary>
+        public async Task<OASISResult<object>> CallUnifiedAPIAsync(string endpoint, object parameters, string networkType = "auto")
+        {
+            var result = new OASISResult<object>();
+            
+            try
+            {
+                // Use ONET Protocol to call unified API
+                var apiResult = await _onetProtocol.CallUnifiedAPIAsync(endpoint, parameters, networkType);
+                if (apiResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Unified API call failed: {apiResult.Message}");
+                    return result;
+                }
+
+                result.Result = apiResult.Result;
+                result.IsError = false;
+                result.Message = "Unified API call successful - Web2 and Web3 unified!";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error calling unified API: {ex.Message}", ex);
             }
 
             return result;
