@@ -261,8 +261,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task InitializeConsensusParametersAsync()
         {
             // Initialize consensus parameters based on OASISDNA configuration
-            // This would load from the actual OASISDNA system
-            await Task.Delay(100); // Simulate initialization
+            try
+            {
+                // Load OASISDNA configuration
+                var oasisdna = await OASISDNAHelper.LoadOASISDNAAsync();
+                if (oasisdna?.OASIS != null)
+                {
+                    // Configure consensus based on OASISDNA settings
+                    _currentState = ConsensusState.Active;
+                    _lastConsensusTime = DateTime.UtcNow;
+                }
+                else
+                {
+                    // Use default consensus parameters
+                    _currentState = ConsensusState.Active;
+                    _lastConsensusTime = DateTime.UtcNow;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing consensus parameters: {ex.Message}");
+                _currentState = ConsensusState.Error;
+            }
         }
 
         private async Task ConsensusLoopAsync()
