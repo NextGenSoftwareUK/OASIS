@@ -95,6 +95,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // Update competition scores
                 await UpdateKarmaCompetitionScoresAsync(avatarId, amount);
 
+                // Update karma statistics in settings system whenever karma changes
+                try
+                {
+                    var karmaStats = new Dictionary<string, object>
+                    {
+                        ["totalKarma"] = _avatarKarma[avatarId],
+                        ["karmaTransactions"] = _karmaTransactions[avatarId].Count,
+                        ["lastKarmaChange"] = DateTime.UtcNow,
+                        ["lastKarmaAmount"] = amount,
+                        ["lastKarmaSource"] = sourceType.ToString()
+                    };
+                    await HolonManager.Instance.SaveSettingsAsync(avatarId, "karma", karmaStats);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't fail the main operation
+                    Console.WriteLine($"Warning: Failed to save karma statistics: {ex.Message}");
+                }
+
                 result.Result = true;
                 result.Message = $"Karma added successfully. New total: {_avatarKarma[avatarId]}";
             }
@@ -141,6 +160,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     _karmaTransactions[avatarId].Add(transaction);
 
                     _avatarKarma[avatarId] -= amount;
+                }
+
+                // Update karma statistics in settings system whenever karma changes
+                try
+                {
+                    var karmaStats = new Dictionary<string, object>
+                    {
+                        ["totalKarma"] = _avatarKarma[avatarId],
+                        ["karmaTransactions"] = _karmaTransactions[avatarId].Count,
+                        ["lastKarmaChange"] = DateTime.UtcNow,
+                        ["lastKarmaAmount"] = -amount,
+                        ["lastKarmaSource"] = sourceType.ToString()
+                    };
+                    await HolonManager.Instance.SaveSettingsAsync(avatarId, "karma", karmaStats);
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't fail the main operation
+                    Console.WriteLine($"Warning: Failed to save karma statistics: {ex.Message}");
                 }
 
                 result.Result = true;

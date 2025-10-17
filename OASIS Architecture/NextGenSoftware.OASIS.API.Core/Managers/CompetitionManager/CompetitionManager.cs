@@ -171,6 +171,28 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     RecalculateRanks(entries);
                 }
 
+                // Update leaderboard statistics in settings system whenever scores change
+                try
+                {
+                    var updatedEntry = _leaderboards[competitionType][seasonType].FirstOrDefault(e => e.AvatarId == avatarId);
+                    if (updatedEntry != null)
+                    {
+                        var leaderboardStats = new Dictionary<string, object>
+                        {
+                            ["currentRank"] = updatedEntry.Rank,
+                            ["totalScore"] = updatedEntry.Score,
+                            ["competitionType"] = competitionType.ToString(),
+                            ["seasonType"] = seasonType.ToString()
+                        };
+                        await HolonManager.Instance.SaveSettingsAsync(avatarId, "leaderboard", leaderboardStats);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log the error but don't fail the main operation
+                    Console.WriteLine($"Warning: Failed to save leaderboard statistics: {ex.Message}");
+                }
+
                 result.Result = true;
                 result.Message = "Avatar score updated successfully.";
             }
