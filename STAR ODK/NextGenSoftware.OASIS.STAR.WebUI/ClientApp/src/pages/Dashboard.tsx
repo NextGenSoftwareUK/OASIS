@@ -63,7 +63,6 @@ import { starCoreService, avatarService } from '../services';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import CloseIcon from '@mui/icons-material/Close';
-import React from 'react';
 
 interface DashboardProps {
   isConnected: boolean;

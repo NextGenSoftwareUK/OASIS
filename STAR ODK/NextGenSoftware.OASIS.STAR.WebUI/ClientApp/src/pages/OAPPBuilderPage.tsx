@@ -660,7 +660,7 @@ const OAPPBuilderPage: React.FC = () => {
   const DraggableItemCard: React.FC<{ item: DraggableItem }> = ({ item }) => (
     <motion.div
       draggable
-      onDragStart={(e) => handleDragStart(item, e)}
+      onDragStart={(e) => handleDragStart(item, e as unknown as React.DragEvent)}
       onDragEnd={handleDragEnd}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
