@@ -339,15 +339,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 ProviderType.CardanoOASIS,
                 ProviderType.ArbitrumOASIS,
                 ProviderType.AvalancheOASIS,
-                ProviderType.NearOASIS,
+                ProviderType.NEAROASIS,
                 ProviderType.PolkadotOASIS,
-                ProviderType.CosmosOASIS
+                ProviderType.CosmosBlockChainOASIS
             };
 
             _providerCategories[ProviderCategory.Cloud] = new List<ProviderType>
             {
                 ProviderType.AWSOASIS,
-                ProviderType.AzureOASIS,
+                ProviderType.AzureStorageOASIS,
                 ProviderType.GoogleCloudOASIS
             };
 

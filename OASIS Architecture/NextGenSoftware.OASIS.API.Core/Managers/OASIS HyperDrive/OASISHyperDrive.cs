@@ -549,12 +549,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
             try
             {
                 // Get current provider status and network topology
-                var activeProviders = _providerManager.GetActiveProviders();
+                var activeProviders = _providerManager.GetAllProviders();
                 var topology = new NetworkTopology
                 {
                     TotalProviders = activeProviders.Count,
                     ActiveProviders = activeProviders.Where(p => p.IsActive).Count(),
-                    NetworkHealth = _performanceMonitor.GetOverallHealth(),
+                    NetworkHealth = _performanceMonitor.GetNetworkHealth(),
                     LastUpdated = DateTime.UtcNow
                 };
                 

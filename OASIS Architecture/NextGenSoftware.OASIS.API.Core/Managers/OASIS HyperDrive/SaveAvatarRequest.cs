@@ -9,5 +9,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public Guid AvatarId { get; set; }
         public object Avatar { get; set; }
         public ProviderType PreferredProvider { get; set; } = ProviderType.Default;
+        
+        // IRequest interface implementation
+        public string RequestType { get; set; } = "SaveAvatar";
+        public int Priority { get; set; } = 5;
+        public string ProviderTypeString { get; set; } = "Default";
+        public System.Collections.Generic.Dictionary<string, object> Parameters { get; set; } = new System.Collections.Generic.Dictionary<string, object>();
     }
 }
