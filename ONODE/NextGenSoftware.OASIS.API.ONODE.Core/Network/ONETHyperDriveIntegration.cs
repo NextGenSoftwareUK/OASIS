@@ -7,6 +7,8 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -14,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// ONET HyperDrive Integration - Integrates ONET P2P network with OASIS HyperDrive
     /// Provides intelligent routing, auto-failover, and load balancing across the entire OASIS ecosystem
     /// </summary>
-    public class ONETHyperDriveIntegration : OASISManagerBase
+    public class ONETHyperDriveIntegration : OASISManager
     {
         private readonly OASISHyperDrive _hyperDrive;
         private readonly ONETProtocol _onetProtocol;

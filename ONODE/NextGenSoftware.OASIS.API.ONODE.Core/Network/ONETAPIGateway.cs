@@ -4,6 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -12,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// Creates a single API interface that abstracts all of the internet (Web2 + Web3)
     /// The "GOD API" - One API to rule them all!
     /// </summary>
-    public class ONETAPIGateway : OASISManagerBase
+    public class ONETAPIGateway : OASISManager
     {
         private readonly Dictionary<string, APIBridge> _apiBridges = new Dictionary<string, APIBridge>();
         private readonly Dictionary<string, APIRoute> _apiRoutes = new Dictionary<string, APIRoute>();

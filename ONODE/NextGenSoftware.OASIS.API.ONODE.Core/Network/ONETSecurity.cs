@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -13,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// ONET Security System - Provides end-to-end encryption and security for P2P communications
     /// Implements quantum-resistant cryptography and zero-trust security model
     /// </summary>
-    public class ONETSecurity : OASISManagerBase
+    public class ONETSecurity : OASISManager
     {
         private readonly Dictionary<string, SecurityKey> _nodeKeys = new Dictionary<string, SecurityKey>();
         private readonly Dictionary<string, SecuritySession> _activeSessions = new Dictionary<string, SecuritySession>();
