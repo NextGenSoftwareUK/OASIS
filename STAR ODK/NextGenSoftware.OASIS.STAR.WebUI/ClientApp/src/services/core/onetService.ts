@@ -1,4 +1,4 @@
-import { OASISResult } from '../types';
+import { OASISResult } from '../../types/star';
 
 export interface NetworkStatus {
   isRunning: boolean;

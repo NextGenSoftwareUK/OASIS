@@ -46,58 +46,23 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { onodeService, NodeStatus, NodeInfo, NodeMetrics, PeerNode, NodeStats } from '../services/core/onodeService';
 
-interface NodeStatus {
-  isRunning: boolean;
-  connectedPeersCount: number;
-  nodeId: string;
-  lastUpdated: string;
-  uptime: string;
-}
-
-interface NodeInfo {
-  nodeId: string;
-  version: string;
-  platform: string;
-  architecture: string;
-  isRunning: boolean;
-  connectedPeers: number;
-  lastStarted: string;
-}
-
-interface NodeMetrics {
-  cpuUsage: number;
-  memoryUsage: number;
-  diskUsage: number;
-  networkIn: number;
-  networkOut: number;
-  connectedPeers: number;
-  lastUpdated: string;
-}
-
-interface PeerNode {
-  id: string;
-  address: string;
-  connectedAt: string;
-  status: string;
-  version: string;
-}
-
 const ONODEPage: React.FC = () => {
   const [nodeStatus, setNodeStatus] = useState<NodeStatus>({
     isRunning: false,
-    connectedPeersCount: 0,
     nodeId: 'onode-001',
+    version: '1.0.0',
+    uptime: 0,
     lastUpdated: new Date().toISOString(),
-    uptime: '0h 0m',
   });
   const [nodeInfo, setNodeInfo] = useState<NodeInfo>({
     nodeId: 'onode-001',
+    name: 'ONODE-001',
     version: '1.0.0',
     platform: 'Windows',
     architecture: 'x64',
-    isRunning: false,
-    connectedPeers: 0,
-    lastStarted: new Date().toISOString(),
+    uptime: 0,
+    memoryUsage: 256.7,
+    cpuUsage: 15.5,
   });
   const [nodeMetrics, setNodeMetrics] = useState<NodeMetrics>({
     cpuUsage: 15.5,
@@ -105,7 +70,7 @@ const ONODEPage: React.FC = () => {
     diskUsage: 1024.3,
     networkIn: 1024,
     networkOut: 2048,
-    connectedPeers: 0,
+    connections: 0,
     lastUpdated: new Date().toISOString(),
   });
   const [connectedPeers, setConnectedPeers] = useState<PeerNode[]>([]);
@@ -130,20 +95,21 @@ const ONODEPage: React.FC = () => {
       // Simulate API calls
       setNodeStatus({
         isRunning: true,
-        connectedPeersCount: 3,
         nodeId: 'onode-001',
+        version: '1.0.0',
+        uptime: 9000, // 2.5 hours in seconds
         lastUpdated: new Date().toISOString(),
-        uptime: '2h 30m',
       });
 
       setNodeInfo({
         nodeId: 'onode-001',
+        name: 'ONODE-001',
         version: '1.0.0',
         platform: 'Windows',
         architecture: 'x64',
-        isRunning: true,
-        connectedPeers: 3,
-        lastStarted: new Date(Date.now() - 9000000).toISOString(),
+        uptime: 9000,
+        memoryUsage: 256.7,
+        cpuUsage: 15.5,
       });
 
       setNodeMetrics({
@@ -152,31 +118,34 @@ const ONODEPage: React.FC = () => {
         diskUsage: 1024.3,
         networkIn: 1024,
         networkOut: 2048,
-        connectedPeers: 3,
+        connections: 3,
         lastUpdated: new Date().toISOString(),
       });
 
       setConnectedPeers([
         {
           id: 'peer-001',
+          name: 'Peer-001',
           address: '192.168.1.100:8080',
-          connectedAt: new Date(Date.now() - 3600000).toISOString(),
-          status: 'Connected',
-          version: '1.0.0',
+          status: 'connected',
+          latency: 15,
+          lastSeen: new Date(Date.now() - 3600000).toISOString(),
         },
         {
           id: 'peer-002',
+          name: 'Peer-002',
           address: '192.168.1.101:8080',
-          connectedAt: new Date(Date.now() - 7200000).toISOString(),
-          status: 'Connected',
-          version: '1.0.0',
+          status: 'connected',
+          latency: 22,
+          lastSeen: new Date(Date.now() - 7200000).toISOString(),
         },
         {
           id: 'peer-003',
+          name: 'Peer-003',
           address: '192.168.1.102:8080',
-          connectedAt: new Date(Date.now() - 10800000).toISOString(),
-          status: 'Connected',
-          version: '1.0.0',
+          status: 'connected',
+          latency: 18,
+          lastSeen: new Date(Date.now() - 10800000).toISOString(),
         },
       ]);
 
@@ -288,15 +257,15 @@ const ONODEPage: React.FC = () => {
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">Connected Peers</Typography>
+                    <Typography variant="body2">Version</Typography>
                     <Typography variant="body2" fontWeight="bold">
-                      {nodeStatus.connectedPeersCount}
+                      {nodeStatus.version}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body2">Uptime</Typography>
                     <Typography variant="body2" fontWeight="bold">
-                      {nodeStatus.uptime}
+                      {Math.floor(nodeStatus.uptime / 3600)}h {Math.floor((nodeStatus.uptime % 3600) / 60)}m
                     </Typography>
                   </Box>
                 </Box>
@@ -361,9 +330,15 @@ const ONODEPage: React.FC = () => {
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">Last Started</Typography>
+                    <Typography variant="body2">Name</Typography>
                     <Typography variant="body2" fontWeight="bold">
-                      {new Date(nodeInfo.lastStarted).toLocaleString()}
+                      {nodeInfo.name}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Uptime</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {Math.floor(nodeInfo.uptime / 3600)}h {Math.floor((nodeInfo.uptime % 3600) / 60)}m
                     </Typography>
                   </Box>
                 </Box>
@@ -425,6 +400,12 @@ const ONODEPage: React.FC = () => {
                       {nodeMetrics.networkOut} KB/s
                     </Typography>
                   </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2">Connections</Typography>
+                    <Typography variant="body2" fontWeight="bold">
+                      {nodeMetrics.connections}
+                    </Typography>
+                  </Box>
                 </Box>
               </CardContent>
             </Card>
@@ -446,24 +427,26 @@ const ONODEPage: React.FC = () => {
                       <TableHead>
                         <TableRow>
                           <TableCell>Peer ID</TableCell>
+                          <TableCell>Name</TableCell>
                           <TableCell>Address</TableCell>
                           <TableCell>Status</TableCell>
-                          <TableCell>Version</TableCell>
+                          <TableCell>Latency</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {connectedPeers.map((peer) => (
                           <TableRow key={peer.id}>
                             <TableCell>{peer.id}</TableCell>
+                            <TableCell>{peer.name}</TableCell>
                             <TableCell>{peer.address}</TableCell>
                             <TableCell>
                               <Chip
                                 label={peer.status}
-                                color="success"
+                                color={peer.status === 'connected' ? 'success' : 'default'}
                                 size="small"
                               />
                             </TableCell>
-                            <TableCell>{peer.version}</TableCell>
+                            <TableCell>{peer.latency}ms</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
