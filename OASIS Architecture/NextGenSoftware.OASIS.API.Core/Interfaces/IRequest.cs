@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     {
         string RequestType { get; set; }
         int Priority { get; set; }
-        string ProviderType { get; set; }
+        string ProviderTypeString { get; set; }
         Dictionary<string, object> Parameters { get; set; }
     }
 }
