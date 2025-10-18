@@ -22,9 +22,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private readonly ONETDiscovery _discovery;
         private readonly ONETAPIGateway _apiGateway;
 
-        public ONETManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
+        private readonly List<ONETNode> _connectedNodes = new List<ONETNode>();
+        private bool _isNetworkRunning = false;
+
+        public ONETManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, Guid.NewGuid(), oasisdna)
         {
-            _onetProtocol = ONETProtocol.Instance;
+            _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
             _consensus = new ONETConsensus(storageProvider, oasisdna);
             _routing = new ONETRouting(storageProvider, oasisdna);
             _security = new ONETSecurity(storageProvider, oasisdna);
@@ -46,7 +49,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref oasisdnaResult, $"Error initializing ONET manager: {ex.Message}", ex);
+                var errorResult = new OASISResult<OASISDNA>();
+                OASISErrorHandling.HandleError(ref errorResult, $"Error initializing ONET manager: {ex.Message}", ex);
             }
         }
 
