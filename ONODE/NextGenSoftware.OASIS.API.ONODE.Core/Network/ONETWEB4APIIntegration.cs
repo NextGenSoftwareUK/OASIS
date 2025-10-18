@@ -19,10 +19,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     {
         private readonly ONETProtocol _onetProtocol;
         private readonly Dictionary<string, WEB4APIService> _web4Services = new Dictionary<string, WEB4APIService>();
-        private readonly Dictionary<string, APIEndpoint> _apiEndpoints = new Dictionary<string, APIEndpoint>();
+        private readonly Dictionary<string, WEB4APIEndpoint> _apiEndpoints = new Dictionary<string, WEB4APIEndpoint>();
         private bool _isIntegrated = false;
 
-        public ONETWEB4APIIntegration()
+        public ONETWEB4APIIntegration(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _onetProtocol = ONETProtocol.Instance;
             InitializeWEB4Services();
@@ -292,7 +292,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 foreach (var endpoint in service.Endpoints)
                 {
-                    var apiEndpoint = new APIEndpoint
+                    var apiEndpoint = new WEB4APIEndpoint
                     {
                         Id = $"{service.Name.ToLower()}_{endpoint.Replace("/", "_")}",
                         ServiceName = service.Name,
@@ -432,7 +432,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public double AverageResponseTime { get; set; }
     }
 
-    public class APIEndpoint
+    public class WEB4APIEndpoint
     {
         public string Id { get; set; } = string.Empty;
         public string ServiceName { get; set; } = string.Empty;

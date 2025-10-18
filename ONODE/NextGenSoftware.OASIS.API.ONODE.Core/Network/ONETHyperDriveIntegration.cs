@@ -22,13 +22,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly ONETProtocol _onetProtocol;
         private readonly Dictionary<string, ProviderPerformance> _providerPerformance = new Dictionary<string, ProviderPerformance>();
         private readonly Dictionary<string, NetworkRoute> _optimizedRoutes = new Dictionary<string, NetworkRoute>();
-        private bool _isIntegrated = false;
 
-        public ONETHyperDriveIntegration()
+        public ONETHyperDriveIntegration(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _hyperDrive = new OASISHyperDrive();
             _onetProtocol = ONETProtocol.Instance;
         }
+        private bool _isIntegrated = false;
 
         /// <summary>
         /// Initialize ONET-HyperDrive integration
@@ -129,7 +129,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var unifiedTopology = new UnifiedNetworkTopology
                 {
                     ONETNodes = onetTopology.Result?.Nodes ?? new List<ONETNode>(),
-                    HyperDriveProviders = hyperDriveTopology.Result?.Providers ?? new List<ProviderInfo>(),
+                    HyperDriveProviders = hyperDriveTopology.Result?.Providers ?? new List<HyperDriveProviderInfo>(),
                     NetworkHealth = CalculateUnifiedNetworkHealth(onetTopology.Result, hyperDriveTopology.Result),
                     TotalNodes = (onetTopology.Result?.Nodes.Count ?? 0) + (hyperDriveTopology.Result?.Providers.Count ?? 0),
                     ActiveConnections = await GetActiveConnectionsAsync(),
@@ -493,7 +493,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     public class UnifiedNetworkTopology
     {
         public List<ONETNode> ONETNodes { get; set; } = new List<ONETNode>();
-        public List<ProviderInfo> HyperDriveProviders { get; set; } = new List<ProviderInfo>();
+        public List<HyperDriveProviderInfo> HyperDriveProviders { get; set; } = new List<HyperDriveProviderInfo>();
         public double NetworkHealth { get; set; }
         public int TotalNodes { get; set; }
         public List<NetworkConnection> ActiveConnections { get; set; } = new List<NetworkConnection>();
@@ -529,7 +529,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public DateTime LastUpdated { get; set; }
     }
 
-    public class ProviderInfo
+    public class HyperDriveProviderInfo
     {
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;

@@ -21,6 +21,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, DiscoveryMethod> _discoveryMethods = new Dictionary<string, DiscoveryMethod>();
         private readonly List<DiscoveryListener> _discoveryListeners = new List<DiscoveryListener>();
         private bool _isDiscoveryActive = false;
+
+        public ONETDiscovery(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
+        {
+        }
         private readonly object _discoveryLock = new object();
 
         public async Task<OASISResult<bool>> StartDiscoveryAsync()
