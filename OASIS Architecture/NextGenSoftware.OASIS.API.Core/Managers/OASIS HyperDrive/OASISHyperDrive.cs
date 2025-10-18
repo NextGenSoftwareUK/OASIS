@@ -538,6 +538,47 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                 Exception = result.Exception
             };
         }
+
+        /// <summary>
+        /// Get network topology information
+        /// </summary>
+        public async Task<OASISResult<NetworkTopology>> GetNetworkTopologyAsync()
+        {
+            var result = new OASISResult<NetworkTopology>();
+            
+            try
+            {
+                // Get current provider status and network topology
+                var activeProviders = _providerManager.GetActiveProviders();
+                var topology = new NetworkTopology
+                {
+                    TotalProviders = activeProviders.Count,
+                    ActiveProviders = activeProviders.Where(p => p.IsActive).Count(),
+                    NetworkHealth = _performanceMonitor.GetOverallHealth(),
+                    LastUpdated = DateTime.UtcNow
+                };
+                
+                result.Result = topology;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting network topology: {ex.Message}", ex);
+            }
+            
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// Network topology information
+    /// </summary>
+    public class NetworkTopology
+    {
+        public int TotalProviders { get; set; }
+        public int ActiveProviders { get; set; }
+        public double NetworkHealth { get; set; }
+        public DateTime LastUpdated { get; set; }
     }
 
 }
