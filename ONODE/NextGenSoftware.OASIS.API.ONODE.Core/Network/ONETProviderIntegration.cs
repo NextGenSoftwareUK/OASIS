@@ -21,14 +21,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<ProviderType, ProviderBridge> _providerBridges = new Dictionary<ProviderType, ProviderBridge>();
         private readonly Dictionary<string, ProviderNode> _providerNodes = new Dictionary<string, ProviderNode>();
         private readonly Dictionary<ProviderCategory, List<ProviderType>> _providerCategories = new Dictionary<ProviderCategory, List<ProviderType>>();
-        private bool _isIntegrated = false;
 
-        public ONETProviderIntegration()
+        public ONETProviderIntegration(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _onetProtocol = ONETProtocol.Instance;
             InitializeProviderBridges();
             InitializeProviderCategories();
         }
+        private bool _isIntegrated = false;
 
         /// <summary>
         /// Initialize ONET-Provider integration

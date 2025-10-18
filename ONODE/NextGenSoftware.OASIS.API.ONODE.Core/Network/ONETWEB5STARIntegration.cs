@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, STAREndpoint> _starEndpoints = new Dictionary<string, STAREndpoint>();
         private bool _isIntegrated = false;
 
-        public ONETWEB5STARIntegration()
+        public ONETWEB5STARIntegration(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _onetProtocol = ONETProtocol.Instance;
             InitializeSTARServices();
