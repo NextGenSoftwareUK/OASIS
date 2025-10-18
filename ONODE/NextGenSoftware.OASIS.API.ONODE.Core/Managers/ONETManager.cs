@@ -23,22 +23,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private readonly ONETDiscovery _discovery;
         private readonly ONETAPIGateway _apiGateway;
         
-        // HoloNET P2P Network Support
-        private HoloOASIS? _holoOASIS;
+        // P2P Network Support
+        private IP2PNetworkProvider _p2pNetworkProvider;
         private P2PNetworkType _networkType = P2PNetworkType.Internal;
+        private HoloOASIS? _holoOASIS;
 
         private readonly List<ONETNode> _connectedNodes = new List<ONETNode>();
         private bool _isNetworkRunning = false;
 
-        public ONETManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, Guid.NewGuid(), oasisdna)
+        public ONETManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null, P2PNetworkType networkType = P2PNetworkType.Internal) : base(storageProvider, Guid.NewGuid(), oasisdna)
         {
+            _networkType = networkType;
             _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
             _consensus = new ONETConsensus(storageProvider, oasisdna);
             _routing = new ONETRouting(storageProvider, oasisdna);
             _security = new ONETSecurity(storageProvider, oasisdna);
             _discovery = new ONETDiscovery(storageProvider, oasisdna);
             _apiGateway = new ONETAPIGateway(storageProvider, oasisdna);
+            
+            // Initialize P2P network provider based on type
+            InitializeP2PNetworkProvider();
+            
             InitializeAsync().Wait();
+        }
+
+        private void InitializeP2PNetworkProvider()
+        {
+            switch (_networkType)
+            {
+                case P2PNetworkType.Internal:
+                    _p2pNetworkProvider = new InternalP2PNetworkProvider(
+                        _onetProtocol, _consensus, _routing, _security, _discovery, _apiGateway);
+                    break;
+                    
+                case P2PNetworkType.HoloNET:
+                    if (_holoOASIS == null)
+                    {
+                        throw new InvalidOperationException("HoloOASIS provider is required for HoloNET P2P network type");
+                    }
+                    _p2pNetworkProvider = new HoloNETP2PNetworkProvider(_holoOASIS);
+                    break;
+                    
+                default:
+                    throw new ArgumentException($"Unsupported P2P network type: {_networkType}");
+            }
         }
 
         private async Task InitializeAsync()
@@ -138,26 +166,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
-                // Get network topology from ONET Protocol
-                var topologyResult = await _onetProtocol.GetNetworkTopologyAsync();
-                if (topologyResult.IsError)
+                // Use P2P network provider to get network status
+                var statusResult = await _p2pNetworkProvider.GetNetworkStatusAsync();
+                if (statusResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error getting network topology: {topologyResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error getting network status: {statusResult.Message}");
                     return result;
                 }
 
-                var topology = topologyResult.Result;
-                var status = new NetworkStatus
-                {
-                    IsRunning = topology.NetworkHealth > 0,
-                    ConnectedNodesCount = topology.Nodes.Count,
-                    NetworkId = _oasisdna?.OASIS?.NetworkId ?? "onet-network",
-                    LastUpdated = topology.LastUpdated
-                };
-
-                result.Result = status;
+                result.Result = statusResult.Result;
                 result.IsError = false;
-                result.Message = "Network status retrieved successfully";
+                result.Message = $"Network status retrieved successfully using {_networkType}";
             }
             catch (Exception ex)
             {
@@ -314,17 +333,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
-                // Start the ONET Protocol network
-                var startResult = await _onetProtocol.StartNetworkAsync();
+                // Use P2P network provider to start network
+                var startResult = await _p2pNetworkProvider.StartNetworkAsync();
                 if (startResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to start ONET network: {startResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Failed to start P2P network: {startResult.Message}");
                     return result;
                 }
 
+                _isNetworkRunning = true;
                 result.Result = true;
                 result.IsError = false;
-                result.Message = "ONET P2P network started successfully - Web2 and Web3 unified!";
+                result.Message = $"ONET P2P network started successfully using {_networkType} - Web2 and Web3 unified!";
             }
             catch (Exception ex)
             {
@@ -343,17 +363,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
-                // Stop the ONET Protocol network
-                var stopResult = await _onetProtocol.StopNetworkAsync();
+                // Use P2P network provider to stop network
+                var stopResult = await _p2pNetworkProvider.StopNetworkAsync();
                 if (stopResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to stop ONET network: {stopResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Failed to stop P2P network: {stopResult.Message}");
                     return result;
                 }
 
+                _isNetworkRunning = false;
                 result.Result = true;
                 result.IsError = false;
-                result.Message = "ONET P2P network stopped successfully";
+                result.Message = $"ONET P2P network stopped successfully using {_networkType}";
             }
             catch (Exception ex)
             {
