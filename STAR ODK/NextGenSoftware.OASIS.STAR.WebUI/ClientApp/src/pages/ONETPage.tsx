@@ -38,6 +38,8 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { onetService, NetworkStatus, NetworkNode, NetworkStats, ConnectNodeRequest, DisconnectNodeRequest, BroadcastMessageRequest } from '../services/core/onetService';
 
 interface NetworkStatus {
   isRunning: boolean;
@@ -89,45 +91,30 @@ const ONETPage: React.FC = () => {
   const loadNetworkData = async () => {
     setLoading(true);
     try {
-      // In a real implementation, this would load from the API
-      // For now, we'll use demo data
       console.log('Loading ONET network data...');
       
-      // Simulate API calls
-      setNetworkStatus({
-        isRunning: true,
-        connectedNodesCount: 5,
-        networkId: 'onet-network',
-        lastUpdated: new Date().toISOString(),
-      });
-
-      setConnectedNodes([
-        {
-          id: 'node-001',
-          address: '192.168.1.100:8080',
-          connectedAt: new Date(Date.now() - 3600000).toISOString(),
-          status: 'Connected',
-        },
-        {
-          id: 'node-002',
-          address: '192.168.1.101:8080',
-          connectedAt: new Date(Date.now() - 7200000).toISOString(),
-          status: 'Connected',
-        },
-        {
-          id: 'node-003',
-          address: '192.168.1.102:8080',
-          connectedAt: new Date(Date.now() - 10800000).toISOString(),
-          status: 'Connected',
-        },
-      ]);
-
-      setNetworkStats({
-        totalNodes: 5,
-        networkRunning: true,
-        uptime: '2h 30m',
-        lastActivity: new Date().toISOString(),
-      });
+      // Load network status
+      const statusResult = await onetService.getNetworkStatus();
+      if (!statusResult.isError && statusResult.result) {
+        setNetworkStatus(statusResult.result);
+      }
+      
+      // Load connected nodes
+      const nodesResult = await onetService.getConnectedNodes();
+      if (!nodesResult.isError && nodesResult.result) {
+        setConnectedNodes(nodesResult.result);
+      }
+      
+      // Load network stats
+      const statsResult = await onetService.getNetworkStats();
+      if (!statsResult.isError && statsResult.result) {
+        setNetworkStats({
+          totalNodes: statsResult.result.totalNodes || 0,
+          networkRunning: statsResult.result.isRunning || false,
+          uptime: statsResult.result.uptime || '0h 0m',
+          lastActivity: statsResult.result.lastUpdated || new Date().toISOString(),
+        });
+      }
     } catch (error) {
       console.error('Error loading network data:', error);
       toast.error('Failed to load network data');
@@ -138,10 +125,14 @@ const ONETPage: React.FC = () => {
 
   const handleStartNetwork = async () => {
     try {
-      // In a real implementation, this would call the API
       console.log('Starting ONET network...');
-      toast.success('Network started successfully!');
-      loadNetworkData();
+      const result = await onetService.startNetwork();
+      if (!result.isError) {
+        toast.success('Network started successfully!');
+        loadNetworkData();
+      } else {
+        toast.error(result.message || 'Failed to start network');
+      }
     } catch (error) {
       console.error('Error starting network:', error);
       toast.error('Failed to start network');
@@ -150,10 +141,14 @@ const ONETPage: React.FC = () => {
 
   const handleStopNetwork = async () => {
     try {
-      // In a real implementation, this would call the API
       console.log('Stopping ONET network...');
-      toast.success('Network stopped successfully!');
-      loadNetworkData();
+      const result = await onetService.stopNetwork();
+      if (!result.isError) {
+        toast.success('Network stopped successfully!');
+        loadNetworkData();
+      } else {
+        toast.error(result.message || 'Failed to stop network');
+      }
     } catch (error) {
       console.error('Error stopping network:', error);
       toast.error('Failed to stop network');
@@ -167,13 +162,20 @@ const ONETPage: React.FC = () => {
     }
 
     try {
-      // In a real implementation, this would call the API
       console.log('Connecting to node:', newNodeId, newNodeAddress);
-      toast.success(`Connected to node ${newNodeId}`);
-      setConnectDialogOpen(false);
-      setNewNodeId('');
-      setNewNodeAddress('');
-      loadNetworkData();
+      const result = await onetService.connectToNode({
+        nodeId: newNodeId,
+        nodeAddress: newNodeAddress,
+      });
+      if (!result.isError) {
+        toast.success(`Connected to node ${newNodeId}`);
+        setConnectDialogOpen(false);
+        setNewNodeId('');
+        setNewNodeAddress('');
+        loadNetworkData();
+      } else {
+        toast.error(result.message || 'Failed to connect to node');
+      }
     } catch (error) {
       console.error('Error connecting to node:', error);
       toast.error('Failed to connect to node');
@@ -182,10 +184,14 @@ const ONETPage: React.FC = () => {
 
   const handleDisconnectNode = async (nodeId: string) => {
     try {
-      // In a real implementation, this would call the API
       console.log('Disconnecting from node:', nodeId);
-      toast.success(`Disconnected from node ${nodeId}`);
-      loadNetworkData();
+      const result = await onetService.disconnectFromNode({ nodeId });
+      if (!result.isError) {
+        toast.success(`Disconnected from node ${nodeId}`);
+        loadNetworkData();
+      } else {
+        toast.error(result.message || 'Failed to disconnect from node');
+      }
     } catch (error) {
       console.error('Error disconnecting from node:', error);
       toast.error('Failed to disconnect from node');

@@ -44,6 +44,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { onodeService, NodeStatus, NodeInfo, NodeMetrics, PeerNode, NodeStats } from '../services/core/onodeService';
 
 interface NodeStatus {
   isRunning: boolean;

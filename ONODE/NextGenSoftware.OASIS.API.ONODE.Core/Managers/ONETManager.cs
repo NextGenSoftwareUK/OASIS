@@ -14,8 +14,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public class ONETManager : OASISManager
     {
-        private static ONETManager? _instance;
-        private static readonly object _lock = new object();
         private OASISDNA? _oasisdna;
         private readonly ONETProtocol _onetProtocol;
         private readonly ONETConsensus _consensus;
@@ -24,32 +22,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private readonly ONETDiscovery _discovery;
         private readonly ONETAPIGateway _apiGateway;
 
-        public static ONETManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_lock)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new ONETManager();
-                        }
-                    }
-                }
-                return _instance;
-            }
-        }
-
-        private ONETManager()
+        public ONETManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _onetProtocol = ONETProtocol.Instance;
-            _consensus = new ONETConsensus();
-            _routing = new ONETRouting();
-            _security = new ONETSecurity();
-            _discovery = new ONETDiscovery();
-            _apiGateway = new ONETAPIGateway();
+            _consensus = new ONETConsensus(storageProvider, oasisdna);
+            _routing = new ONETRouting(storageProvider, oasisdna);
+            _security = new ONETSecurity(storageProvider, oasisdna);
+            _discovery = new ONETDiscovery(storageProvider, oasisdna);
+            _apiGateway = new ONETAPIGateway(storageProvider, oasisdna);
             InitializeAsync().Wait();
         }
 
