@@ -465,7 +465,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 // Load from the actual OASISDNA system
-                var oasisdna = await OASISDNAHelper.LoadOASISDNAAsync();
+                var oasisdna = await OASISDNAManager.LoadDNAAsync();
                 if (oasisdna == null)
                 {
                     // Create default configuration if none exists
@@ -506,7 +506,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 // Save using the actual OASISDNA system
-                var saveResult = await OASISDNAHelper.SaveOASISDNAAsync(oasisdna);
+                var saveResult = await OASISDNAManager.SaveDNAAsync();
                 if (saveResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error saving OASISDNA: {saveResult.Message}");
