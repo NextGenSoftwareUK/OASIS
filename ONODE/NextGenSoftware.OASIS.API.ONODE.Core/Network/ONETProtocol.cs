@@ -446,7 +446,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 // Load from the actual OASISDNA system
-                var oasisdna = await OASISDNAHelper.LoadOASISDNAAsync();
+                var oasisdna = await OASISDNAManager.LoadDNAAsync();
                 if (oasisdna == null)
                 {
                     // Create default configuration
