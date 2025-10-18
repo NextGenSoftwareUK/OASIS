@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -10,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// ONET Consensus Mechanism - Ensures network coordination and agreement
     /// Implements hybrid consensus combining Proof of Stake, Proof of Work, and Byzantine Fault Tolerance
     /// </summary>
-    public class ONETConsensus : OASISManagerBase
+    public class ONETConsensus : OASISManager
     {
         private readonly Dictionary<string, ConsensusNode> _consensusNodes = new Dictionary<string, ConsensusNode>();
         private readonly List<ConsensusProposal> _pendingProposals = new List<ConsensusProposal>();

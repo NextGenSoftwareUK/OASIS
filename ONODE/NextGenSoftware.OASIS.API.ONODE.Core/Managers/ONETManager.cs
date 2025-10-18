@@ -1,12 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
-    public class ONETManager : OASISManagerBase
+    public class ONETManager : OASISManager
     {
         private static ONETManager? _instance;
         private static readonly object _lock = new object();

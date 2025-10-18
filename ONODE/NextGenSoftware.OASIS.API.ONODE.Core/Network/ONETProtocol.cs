@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -11,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// ONET Protocol - The unified network protocol that bridges Web2 and Web3
     /// Creates a network of networks to unify all of the internet into one powerful API
     /// </summary>
-    public class ONETProtocol : OASISManagerBase
+    public class ONETProtocol : OASISManager
     {
         private static ONETProtocol? _instance;
         private static readonly object _lock = new object();

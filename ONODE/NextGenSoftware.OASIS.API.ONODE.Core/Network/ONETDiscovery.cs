@@ -4,6 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -11,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// ONET Discovery System - Finds and connects to available ONET nodes
     /// Implements advanced discovery protocols including DHT, mDNS, and blockchain-based discovery
     /// </summary>
-    public class ONETDiscovery : OASISManagerBase
+    public class ONETDiscovery : OASISManager
     {
         private readonly Dictionary<string, DiscoveredNode> _discoveredNodes = new Dictionary<string, DiscoveredNode>();
         private readonly Dictionary<string, DiscoveryMethod> _discoveryMethods = new Dictionary<string, DiscoveryMethod>();

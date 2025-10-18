@@ -6,6 +6,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -13,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// ONET Provider Integration - Integrates all Web2 and Web3 providers with ONET network
     /// Creates a unified provider ecosystem that works seamlessly across all OASIS providers
     /// </summary>
-    public class ONETProviderIntegration : OASISManagerBase
+    public class ONETProviderIntegration : OASISManager
     {
         private readonly ONETProtocol _onetProtocol;
         private readonly Dictionary<ProviderType, ProviderBridge> _providerBridges = new Dictionary<ProviderType, ProviderBridge>();
