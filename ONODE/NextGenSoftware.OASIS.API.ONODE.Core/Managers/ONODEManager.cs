@@ -13,33 +13,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public class ONODEManager : OASISManager
     {
-        private static ONODEManager? _instance;
-        private static readonly object _lock = new object();
         private OASISDNA? _oasisdna;
         private bool _isNodeRunning = false;
         private readonly List<PeerNode> _connectedPeers = new List<PeerNode>();
         private readonly Dictionary<string, object> _nodeStats = new Dictionary<string, object>();
         private readonly List<string> _nodeLogs = new List<string>();
 
-        public static ONODEManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_lock)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new ONODEManager();
-                        }
-                    }
-                }
-                return _instance;
-            }
-        }
-
-        private ONODEManager()
+        public ONODEManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             InitializeAsync().Wait();
         }

@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await ONETManager.Instance.GetOASISDNAAsync();
+                var result = await _onetManager.GetOASISDNAAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await ONETManager.Instance.UpdateOASISDNAAsync(oasisdna);
+                var result = await _onetManager.UpdateOASISDNAAsync(oasisdna);
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await ONETManager.Instance.GetNetworkStatusAsync();
+                var result = await _onetManager.GetNetworkStatusAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -87,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await ONETManager.Instance.GetConnectedNodesAsync();
+                var result = await _onetManager.GetConnectedNodesAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -105,7 +105,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await ONETManager.Instance.ConnectToNodeAsync(request.NodeId, request.NodeAddress);
+                var result = await _onetManager.ConnectToNodeAsync(request.NodeId, request.NodeAddress);
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -127,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await ONETManager.Instance.DisconnectFromNodeAsync(request.NodeId);
+                var result = await _onetManager.DisconnectFromNodeAsync(request.NodeId);
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -149,7 +149,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await ONETManager.Instance.GetNetworkStatsAsync();
+                var result = await _onetManager.GetNetworkStatsAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -167,7 +167,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await ONETManager.Instance.StartNetworkAsync();
+                var result = await _onetManager.StartNetworkAsync();
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -189,7 +189,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await ONETManager.Instance.StopNetworkAsync();
+                var result = await _onetManager.StopNetworkAsync();
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -211,7 +211,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await ONETManager.Instance.GetNetworkTopologyAsync();
+                var result = await _onetManager.GetNetworkTopologyAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await ONETManager.Instance.BroadcastMessageAsync(request.Message, request.MessageType);
+                var result = await _onetManager.BroadcastMessageAsync(request.Message, request.MessageType);
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
