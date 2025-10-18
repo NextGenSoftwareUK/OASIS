@@ -4,6 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -11,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// ONET Intelligent Routing System - Optimizes message delivery across the network
     /// Implements advanced routing algorithms including Dijkstra, A*, and machine learning-based routing
     /// </summary>
-    public class ONETRouting : OASISManagerBase
+    public class ONETRouting : OASISManager
     {
         private readonly Dictionary<string, RoutingNode> _routingTable = new Dictionary<string, RoutingNode>();
         private readonly Dictionary<string, List<RoutingPath>> _pathCache = new Dictionary<string, List<RoutingPath>>();

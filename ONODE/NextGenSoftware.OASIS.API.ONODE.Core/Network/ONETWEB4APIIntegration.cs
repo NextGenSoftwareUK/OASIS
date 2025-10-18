@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -14,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// ONET WEB4 API Integration - Integrates ONET P2P network with WEB4 OASIS API
     /// Provides unified access to all WEB4 APIs through the ONET network
     /// </summary>
-    public class ONETWEB4APIIntegration : OASISManagerBase
+    public class ONETWEB4APIIntegration : OASISManager
     {
         private readonly ONETProtocol _onetProtocol;
         private readonly Dictionary<string, WEB4APIService> _web4Services = new Dictionary<string, WEB4APIService>();

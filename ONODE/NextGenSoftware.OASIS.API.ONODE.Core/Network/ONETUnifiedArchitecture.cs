@@ -6,6 +6,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -14,11 +16,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// Creates the "GOD API" that unifies Web2, Web3, P2P, HyperDrive, and all OASIS technologies
     /// This is the pinnacle of the OASIS vision - One API to rule them all!
     /// </summary>
-    public class ONETUnifiedArchitecture : OASISManagerBase
+    public class ONETUnifiedArchitecture : OASISManager
     {
         private readonly ONETProtocol _onetProtocol;
         private readonly ONETHyperDriveIntegration _hyperDriveIntegration;
         private readonly ONETWEB4APIIntegration _web4Integration;
+        private readonly ONETWEB5STARIntegration _web5STARIntegration;
         private readonly ONETProviderIntegration _providerIntegration;
         private readonly Dictionary<string, UnifiedService> _unifiedServices = new Dictionary<string, UnifiedService>();
         private readonly Dictionary<string, UnifiedEndpoint> _unifiedEndpoints = new Dictionary<string, UnifiedEndpoint>();
@@ -29,6 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             _onetProtocol = ONETProtocol.Instance;
             _hyperDriveIntegration = new ONETHyperDriveIntegration();
             _web4Integration = new ONETWEB4APIIntegration();
+            _web5STARIntegration = new ONETWEB5STARIntegration();
             _providerIntegration = new ONETProviderIntegration();
         }
 
