@@ -22,13 +22,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, SecuritySession> _activeSessions = new Dictionary<string, SecuritySession>();
         private readonly SecurityConfig _securityConfig;
         private readonly EncryptionProvider _encryptionProvider;
-        private bool _isInitialized = false;
 
-        public ONETSecurity()
+        public ONETSecurity(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _securityConfig = new SecurityConfig();
             _encryptionProvider = new EncryptionProvider();
         }
+        private bool _isInitialized = false;
 
         public async Task<OASISResult<bool>> InitializeAsync(OASISDNA? oasisdna)
         {

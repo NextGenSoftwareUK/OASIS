@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
@@ -12,10 +13,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class ONETController : OASISControllerBase
     {
         private readonly ILogger<ONETController> _logger;
+        private readonly ONETManager _onetManager;
 
-        public ONETController(ILogger<ONETController> logger)
+        public ONETController(ILogger<ONETController> logger, ONETManager onetManager)
         {
             _logger = logger;
+            _onetManager = onetManager;
         }
 
         /// <summary>

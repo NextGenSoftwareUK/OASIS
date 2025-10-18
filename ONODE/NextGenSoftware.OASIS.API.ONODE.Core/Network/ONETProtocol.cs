@@ -20,6 +20,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private static readonly object _lock = new object();
         private readonly Dictionary<string, ONETNode> _connectedNodes = new Dictionary<string, ONETNode>();
         private readonly Dictionary<string, ONETBridge> _networkBridges = new Dictionary<string, ONETBridge>();
+
+        public ONETProtocol(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
+        {
+        }
         private readonly ONETConsensus _consensus;
         private readonly ONETRouting _routing;
         private readonly ONETSecurity _security;

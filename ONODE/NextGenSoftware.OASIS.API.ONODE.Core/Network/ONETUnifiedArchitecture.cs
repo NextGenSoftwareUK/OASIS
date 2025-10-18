@@ -27,13 +27,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, UnifiedEndpoint> _unifiedEndpoints = new Dictionary<string, UnifiedEndpoint>();
         private bool _isUnified = false;
 
-        public ONETUnifiedArchitecture()
+        public ONETUnifiedArchitecture(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _onetProtocol = ONETProtocol.Instance;
-            _hyperDriveIntegration = new ONETHyperDriveIntegration();
-            _web4Integration = new ONETWEB4APIIntegration();
-            _web5STARIntegration = new ONETWEB5STARIntegration();
-            _providerIntegration = new ONETProviderIntegration();
+            _hyperDriveIntegration = new ONETHyperDriveIntegration(storageProvider, oasisdna);
+            _web4Integration = new ONETWEB4APIIntegration(storageProvider, oasisdna);
+            _web5STARIntegration = new ONETWEB5STARIntegration(storageProvider, oasisdna);
+            _providerIntegration = new ONETProviderIntegration(storageProvider, oasisdna);
         }
 
         /// <summary>
@@ -396,14 +396,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             await Task.Delay(100); // Simulate initialization
         }
 
-        private async Task<RoutingStrategy> DetermineOptimalRoutingStrategyAsync(
+        private async Task<UnifiedRoutingStrategy> DetermineOptimalRoutingStrategyAsync(
             string service, 
             string endpoint, 
             string networkType, 
             string providerType)
         {
             // Intelligent routing strategy determination
-            var strategy = new RoutingStrategy
+            var strategy = new UnifiedRoutingStrategy
             {
                 Service = service,
                 Endpoint = endpoint,
@@ -523,7 +523,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             string service, 
             string endpoint, 
             object parameters, 
-            RoutingStrategy strategy)
+            UnifiedRoutingStrategy strategy)
         {
             var result = new OASISResult<T>();
             
@@ -674,7 +674,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public DateTime CreatedAt { get; set; }
     }
 
-    public class RoutingStrategy
+    public class UnifiedRoutingStrategy
     {
         public string Service { get; set; } = string.Empty;
         public string Endpoint { get; set; } = string.Empty;

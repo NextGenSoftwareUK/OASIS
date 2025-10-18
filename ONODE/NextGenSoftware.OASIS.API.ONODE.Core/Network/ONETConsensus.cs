@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -20,6 +21,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly List<ConsensusProposal> _pendingProposals = new List<ConsensusProposal>();
         private readonly Dictionary<string, ConsensusVote> _votes = new Dictionary<string, ConsensusVote>();
         private ConsensusState _currentState = ConsensusState.Initializing;
+
+        public ONETConsensus(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
+        {
+        }
         private string _currentLeader = string.Empty;
         private DateTime _lastConsensusTime = DateTime.UtcNow;
         private readonly object _consensusLock = new object();

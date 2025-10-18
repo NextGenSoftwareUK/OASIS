@@ -22,16 +22,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, APIRoute> _apiRoutes = new Dictionary<string, APIRoute>();
         private readonly Dictionary<string, APIEndpoint> _endpoints = new Dictionary<string, APIEndpoint>();
         private readonly APIRouter _router;
-        private readonly APILoadBalancer _loadBalancer;
-        private readonly APICache _cache;
-        private bool _isInitialized = false;
 
-        public ONETAPIGateway()
+        public ONETAPIGateway(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _router = new APIRouter();
             _loadBalancer = new APILoadBalancer();
             _cache = new APICache();
         }
+        private readonly APILoadBalancer _loadBalancer;
+        private readonly APICache _cache;
+        private bool _isInitialized = false;
 
         public async Task<OASISResult<bool>> InitializeAsync()
         {

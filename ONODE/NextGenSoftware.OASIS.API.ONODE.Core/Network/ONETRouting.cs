@@ -21,6 +21,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, List<RoutingPath>> _pathCache = new Dictionary<string, List<RoutingPath>>();
         private readonly Dictionary<string, NetworkMetrics> _nodeMetrics = new Dictionary<string, NetworkMetrics>();
         private readonly RoutingAlgorithm _algorithm = RoutingAlgorithm.Intelligent;
+
+        public ONETRouting(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
+        {
+        }
         private bool _isRoutingActive = false;
         private readonly object _routingLock = new object();
 
