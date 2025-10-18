@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         public ONETWEB5STARIntegration(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
-            _onetProtocol = ONETProtocol.Instance;
+            _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
             InitializeSTARServices();
         }
 

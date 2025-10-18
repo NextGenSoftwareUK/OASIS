@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         public ONETUnifiedArchitecture(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
-            _onetProtocol = ONETProtocol.Instance;
+            _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
             _hyperDriveIntegration = new ONETHyperDriveIntegration(storageProvider, oasisdna);
             _web4Integration = new ONETWEB4APIIntegration(storageProvider, oasisdna);
             _web5STARIntegration = new ONETWEB5STARIntegration(storageProvider, oasisdna);

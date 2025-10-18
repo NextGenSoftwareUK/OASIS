@@ -41,27 +41,6 @@ import { toast } from 'react-toastify';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { onetService, NetworkStatus, NetworkNode, NetworkStats, ConnectNodeRequest, DisconnectNodeRequest, BroadcastMessageRequest } from '../services/core/onetService';
 
-interface NetworkStatus {
-  isRunning: boolean;
-  connectedNodesCount: number;
-  networkId: string;
-  lastUpdated: string;
-}
-
-interface NetworkNode {
-  id: string;
-  address: string;
-  connectedAt: string;
-  status: string;
-}
-
-interface NetworkStats {
-  totalNodes: number;
-  networkRunning: boolean;
-  uptime: string;
-  lastActivity: string;
-}
-
 const ONETPage: React.FC = () => {
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>({
     isRunning: false,
@@ -72,9 +51,10 @@ const ONETPage: React.FC = () => {
   const [connectedNodes, setConnectedNodes] = useState<NetworkNode[]>([]);
   const [networkStats, setNetworkStats] = useState<NetworkStats>({
     totalNodes: 0,
-    networkRunning: false,
-    uptime: '0h 0m',
-    lastActivity: new Date().toISOString(),
+    activeConnections: 0,
+    messagesPerSecond: 0,
+    averageLatency: 0,
+    networkHealth: 0,
   });
   const [loading, setLoading] = useState(false);
   const [showInfoBar, setShowInfoBar] = useState(true);
@@ -110,9 +90,10 @@ const ONETPage: React.FC = () => {
       if (!statsResult.isError && statsResult.result) {
         setNetworkStats({
           totalNodes: statsResult.result.totalNodes || 0,
-          networkRunning: statsResult.result.isRunning || false,
-          uptime: statsResult.result.uptime || '0h 0m',
-          lastActivity: statsResult.result.lastUpdated || new Date().toISOString(),
+          activeConnections: statsResult.result.activeConnections || 0,
+          messagesPerSecond: statsResult.result.messagesPerSecond || 0,
+          averageLatency: statsResult.result.averageLatency || 0,
+          networkHealth: statsResult.result.networkHealth || 0,
         });
       }
     } catch (error) {
@@ -305,15 +286,15 @@ const ONETPage: React.FC = () => {
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">Uptime</Typography>
+                    <Typography variant="body2">Network Health</Typography>
                     <Typography variant="body2" fontWeight="bold">
-                      {networkStats.uptime}
+                      {networkStats.networkHealth}%
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2">Last Activity</Typography>
+                    <Typography variant="body2">Messages/sec</Typography>
                     <Typography variant="body2" fontWeight="bold">
-                      {new Date(networkStats.lastActivity).toLocaleTimeString()}
+                      {networkStats.messagesPerSecond}
                     </Typography>
                   </Box>
                 </Box>
@@ -361,7 +342,7 @@ const ONETPage: React.FC = () => {
                         </ListItemIcon>
                         <ListItemText
                           primary={node.id}
-                          secondary={`${node.address} • Connected: ${new Date(node.connectedAt).toLocaleString()}`}
+                          secondary={`${node.address} • Last seen: ${new Date(node.lastSeen).toLocaleString()}`}
                         />
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Chip

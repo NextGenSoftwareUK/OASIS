@@ -21,9 +21,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, ONETNode> _connectedNodes = new Dictionary<string, ONETNode>();
         private readonly Dictionary<string, ONETBridge> _networkBridges = new Dictionary<string, ONETBridge>();
 
-        public ONETProtocol(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
-        {
-        }
         private readonly ONETConsensus _consensus;
         private readonly ONETRouting _routing;
         private readonly ONETSecurity _security;
@@ -32,31 +29,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private bool _isNetworkRunning = false;
         private OASISDNA? _oasisdna;
 
-        public static ONETProtocol Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (_lock)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new ONETProtocol();
-                        }
-                    }
-                }
-                return _instance;
-            }
-        }
 
-        private ONETProtocol()
+        public ONETProtocol(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
-            _consensus = new ONETConsensus();
-            _routing = new ONETRouting();
-            _security = new ONETSecurity();
-            _discovery = new ONETDiscovery();
-            _apiGateway = new ONETAPIGateway();
+            _consensus = new ONETConsensus(storageProvider, oasisdna);
+            _routing = new ONETRouting(storageProvider, oasisdna);
+            _security = new ONETSecurity(storageProvider, oasisdna);
+            _discovery = new ONETDiscovery(storageProvider, oasisdna);
+            _apiGateway = new ONETAPIGateway(storageProvider, oasisdna);
             InitializeAsync().Wait();
         }
 
