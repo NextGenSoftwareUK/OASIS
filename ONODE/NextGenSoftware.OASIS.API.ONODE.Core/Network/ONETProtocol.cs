@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private OASISDNA? _oasisdna;
 
 
-        public ONETProtocol(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
+        public ONETProtocol(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, Guid.NewGuid(), oasisdna)
         {
             _consensus = new ONETConsensus(storageProvider, oasisdna);
             _routing = new ONETRouting(storageProvider, oasisdna);
