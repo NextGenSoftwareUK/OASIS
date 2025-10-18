@@ -16,6 +16,8 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         SmartContract,
         NFT,
         Application,
-        Renderer
+        Renderer,
+        Blockchain,
+        Cloud
     }
 }
