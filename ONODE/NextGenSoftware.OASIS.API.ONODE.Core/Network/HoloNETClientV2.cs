@@ -206,8 +206,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // - Caching layer for reduced network queries
             // - WASM optimization for 1000x performance improvement
             
-            // TODO: Implement specific configuration for Holochain 0.5.6+
-            await Task.CompletedTask;
+            // Implement specific configuration for Holochain 0.5.6+
+            try
+            {
+                // Configure Holochain 0.5.6+ specific features
+                var config = new Dictionary<string, object>
+                {
+                    ["kitsune2_enabled"] = true,
+                    ["quic_enabled"] = true,
+                    ["integrated_keystore"] = true,
+                    ["caching_layer"] = true,
+                    ["wasm_optimization"] = true,
+                    ["network_id"] = "holochain-v2-network",
+                    ["bootstrap_nodes"] = new[] { "localhost:8888", "localhost:8889" },
+                    ["max_connections"] = 200,
+                    ["connection_timeout"] = 30000,
+                    ["discovery_interval"] = 5000,
+                    ["gossip_interval"] = 1000
+                };
+                
+                // Apply configuration to Holochain conductor
+                await ApplyHolochainV2Configuration(config);
+                
+                Console.WriteLine("Holochain 0.5.6+ configuration applied successfully");
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error configuring Holochain 0.5.6+: {ex.Message}", ex);
+            }
         }
 
         private void SetupEnhancedEventHandlers()
@@ -219,7 +245,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // - Caching layer events
             // - WASM optimization events
             
-            // TODO: Implement enhanced event handler setup
+            // Set up enhanced event handlers for Holochain 0.5.6+ features
+            try
+            {
+                if (_holoNETClient != null)
+                {
+                    // Subscribe to HoloNET client events
+                    _holoNETClient.OnConnected += OnHoloNETConnected;
+                    _holoNETClient.OnDisconnected += OnHoloNETDisconnected;
+                    _holoNETClient.OnDataReceived += OnHoloNETDataReceived;
+                    _holoNETClient.OnDataSent += OnHoloNETDataSent;
+                }
+                
+                Console.WriteLine("Enhanced event handlers set up successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error setting up enhanced event handlers: {ex.Message}");
+            }
         }
 
         private async Task ConnectWithEnhancedFeatures(string conductorUri)
@@ -231,15 +274,62 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // - Activate caching layer
             // - Optimize WASM execution
             
-            // TODO: Implement enhanced connection
-            await Task.CompletedTask;
+            // Connect to Holochain conductor with enhanced features
+            try
+            {
+                if (_holoNETClient != null)
+                {
+                    // Connect to Holochain conductor
+                    var connectResult = await _holoNETClient.ConnectAsync(conductorUri);
+                    if (connectResult != null && !connectResult.IsError)
+                    {
+                        Console.WriteLine("Enhanced connection to Holochain conductor established");
+                        
+                        // Initialize enhanced features after connection
+                        await InitializeEnhancedFeatures();
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Failed to connect to Holochain conductor: {connectResult?.Message}");
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("HoloNET client is not initialized");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error connecting with enhanced features: {ex.Message}", ex);
+            }
         }
 
         private async Task<List<ONETNode>> GetDiscoveredNodesAsync()
         {
             // Get discovered nodes using Kitsune2
-            // TODO: Implement node discovery
-            return await Task.FromResult(new List<ONETNode>());
+            // Get discovered nodes using Kitsune2 networking
+            try
+            {
+                if (_holoNETClient != null)
+                {
+                    // Use HoloNET client to get network stats and extract nodes
+                    var networkStatsResult = await _holoNETClient.DumpNetworkStatsAsync();
+                    if (networkStatsResult != null && !networkStatsResult.IsError)
+                    {
+                        // Parse network stats to extract node information
+                        var nodes = ParseNetworkStatsToNodes(networkStatsResult);
+                        return nodes;
+                    }
+                }
+                
+                // Fallback to cached discovered nodes
+                return _discoveredNodes.Values.ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting discovered nodes: {ex.Message}");
+                return new List<ONETNode>();
+            }
         }
 
         private async Task<List<NetworkConnection>> GetActiveConnectionsAsync()
