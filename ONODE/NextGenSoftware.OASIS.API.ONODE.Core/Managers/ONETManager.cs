@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using System.Text.Json;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -21,6 +22,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private readonly ONETSecurity _security;
         private readonly ONETDiscovery _discovery;
         private readonly ONETAPIGateway _apiGateway;
+        
+        // HoloNET P2P Network Support
+        private HoloOASIS? _holoOASIS;
+        private P2PNetworkType _networkType = P2PNetworkType.Internal;
 
         private readonly List<ONETNode> _connectedNodes = new List<ONETNode>();
         private bool _isNetworkRunning = false;
