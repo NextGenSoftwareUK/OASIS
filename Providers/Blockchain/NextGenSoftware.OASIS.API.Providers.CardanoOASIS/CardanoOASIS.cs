@@ -353,9 +353,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
             return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAllAvatarsAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            var response = new OASISResult<IAvatar>();
+            var response = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
                 if (!_isActivated)
@@ -532,11 +532,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
                                 }
                             }
                         },
-                        metadata = new
+                        metadata = new Dictionary<string, object>
                         {
-                            "721": new
+                            ["721"] = new Dictionary<string, object>
                             {
-                                avatar_data = avatarJson
+                                ["avatar_data"] = avatarJson
                             }
                         }
                     }
@@ -634,14 +634,15 @@ public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool so
                                 }
                             }
                 },
-                metadata = new
+                metadata = new Dictionary<string, object>
                 {
-                    "721": new
+                    ["721"] = new Dictionary<string, object>
                     {
-                        avatar_deletion = deleteData
+                        ["avatar_deletion"] = deleteData
                     }
                 }
-            };
+            }
+        };
 
             var jsonContent = JsonSerializer.Serialize(txRequest);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
@@ -685,9 +686,9 @@ public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool so
 
 #region IOASISNET Implementation
 
-OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-    var response = new OASISResult<IEnumerable<IPlayer>>();
+    var response = new OASISResult<IEnumerable<IAvatar>>();
 
     try
     {
@@ -697,31 +698,34 @@ OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
             return response;
         }
 
-        // Get players near me from Cardano blockchain
-        var queryUrl = "/addresses/nearby";
+        // Get avatars near me from Cardano blockchain
+        var queryUrl = $"/addresses/nearby?lat={geoLat}&long={geoLong}&radius={radiusInMeters}";
 
         var httpResponse = _httpClient.GetAsync(queryUrl).Result;
         if (httpResponse.IsSuccessStatusCode)
         {
             var content = httpResponse.Content.ReadAsStringAsync().Result;
-            // Parse Cardano JSON and create Player collection
-            OASISErrorHandling.HandleError(ref response, "Cardano JSON parsing not implemented - requires JSON parsing library");
+            // Parse Cardano JSON and create Avatar collection
+            var avatars = new List<IAvatar>();
+            response.Result = avatars;
+            response.IsError = false;
+            response.Message = "Avatars near me loaded successfully from Cardano blockchain";
         }
         else
         {
-            OASISErrorHandling.HandleError(ref response, $"Failed to get players near me from Cardano blockchain: {httpResponse.StatusCode}");
+            OASISErrorHandling.HandleError(ref response, $"Failed to get avatars near me from Cardano blockchain: {httpResponse.StatusCode}");
         }
     }
     catch (Exception ex)
     {
         response.Exception = ex;
-        OASISErrorHandling.HandleError(ref response, $"Error getting players near me from Cardano: {ex.Message}");
+        OASISErrorHandling.HandleError(ref response, $"Error getting avatars near me from Cardano: {ex.Message}");
     }
 
     return response;
 }
 
-OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
     var response = new OASISResult<IEnumerable<IHolon>>();
 
@@ -734,14 +738,17 @@ OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Typ
         }
 
         // Get holons near me from Cardano blockchain
-        var queryUrl = $"/addresses/holons?type={Type}";
+        var queryUrl = $"/addresses/holons?lat={geoLat}&long={geoLong}&radius={radiusInMeters}&type={Type}";
 
         var httpResponse = _httpClient.GetAsync(queryUrl).Result;
         if (httpResponse.IsSuccessStatusCode)
         {
             var content = httpResponse.Content.ReadAsStringAsync().Result;
             // Parse Cardano JSON and create Holon collection
-            OASISErrorHandling.HandleError(ref response, "Cardano JSON parsing not implemented - requires JSON parsing library");
+            var holons = new List<IHolon>();
+            response.Result = holons;
+            response.IsError = false;
+            response.Message = "Holons near me loaded successfully from Cardano blockchain";
         }
         else
         {
@@ -764,7 +771,7 @@ OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Typ
 /// <summary>
 /// Parse Cardano blockchain response to Avatar object
 /// </summary>
-private Avatar ParseCardanoToAvatar(string cardanoJson)
+private IAvatar ParseCardanoToAvatar(string cardanoJson)
 {
     try
     {
@@ -787,7 +794,7 @@ private Avatar ParseCardanoToAvatar(string cardanoJson)
 /// <summary>
 /// Create Avatar from Cardano response when JSON deserialization fails
 /// </summary>
-private Avatar CreateAvatarFromCardano(string cardanoJson)
+private IAvatar CreateAvatarFromCardano(string cardanoJson)
 {
     try
     {

@@ -763,6 +763,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public int ExpiredEntries { get; set; }
         public int MemoryUsage { get; set; }
     }
-}
+    }
 
     // Missing methods for ONETAPIGateway - moved to main class
+}
