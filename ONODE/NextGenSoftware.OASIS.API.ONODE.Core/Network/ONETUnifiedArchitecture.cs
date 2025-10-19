@@ -479,7 +479,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 Service = service,
                 Endpoint = endpoint,
-                Parameters = parameters,
+                Parameters = parameters as Dictionary<string, object> ?? new Dictionary<string, object>(),
                 RequestType = "API_CALL",
                 Priority = 5
             };

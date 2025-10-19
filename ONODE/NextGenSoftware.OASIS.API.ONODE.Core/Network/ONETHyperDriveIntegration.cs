@@ -39,8 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             
             try
             {
-                // Initialize HyperDrive
-                await _hyperDrive.InitializeAsync();
+                // Initialize HyperDrive (no initialization needed)
                 
                 // Initialize ONET Protocol
                 await _onetProtocol.StartNetworkAsync();

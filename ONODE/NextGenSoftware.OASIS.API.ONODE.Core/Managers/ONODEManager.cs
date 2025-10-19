@@ -26,10 +26,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         private async Task InitializeAsync()
         {
+            var oasisdnaResult = new OASISResult<OASISDNA>();
             try
             {
                 // Load OASISDNA configuration
-                var oasisdnaResult = await LoadOASISDNAAsync();
+                oasisdnaResult = await LoadOASISDNAAsync();
                 if (!oasisdnaResult.IsError && oasisdnaResult.Result != null)
                 {
                     _oasisdna = oasisdnaResult.Result;
@@ -446,21 +447,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
-                // In a real implementation, this would load from storage
-                // For now, return a default configuration
-                var oasisdna = new OASISDNA
-                {
-                    OASIS = new OASISDNA.OASISConfig
-                    {
-                        NetworkId = "onode-network",
-                        EnableLogging = true,
-                        LogLevel = "Info"
-                    }
-                };
+                // Load from the actual OASISDNA system
+                var oasisdna = await OASISDNAManager.LoadDNAAsync();
 
-                result.Result = oasisdna;
-                result.IsError = false;
-                result.Message = "OASISDNA configuration loaded successfully";
+                if (oasisdna != null && oasisdna.Result != null && !oasisdna.IsError)
+                {
+                    result.Result = oasisdna.Result;
+                    result.IsError = false;
+                    result.Message = "OASISDNA configuration loaded successfully";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load OASISDNA configuration. Reason: {oasisdna?.Message ?? "Unknown error"}");
             }
             catch (Exception ex)
             {
