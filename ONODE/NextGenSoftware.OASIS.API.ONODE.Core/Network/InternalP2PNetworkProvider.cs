@@ -497,6 +497,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             catch (Exception ex)
             {
                 Console.WriteLine($"Error calculating network health: {ex.Message}");
+                // Calculate actual network health based on real metrics
+                try
+                {
+                    var latency = await _onetProtocol.GetAverageLatencyAsync();
+                    var bandwidth = await _onetProtocol.GetThroughputAsync();
+                    var connectionCount = _connectedNodes.Count;
+                    
+                    // Calculate health score based on real metrics
+                    var latencyScore = Math.Max(0, 1.0 - (latency / 1000.0)); // Lower latency = higher score
+                    var bandwidthScore = Math.Min(1.0, bandwidth / 1000.0); // Higher bandwidth = higher score
+                    var connectionScore = Math.Min(1.0, connectionCount / 10.0); // More connections = higher score
+                    
+                    var healthScore = (latencyScore * 0.4 + bandwidthScore * 0.3 + connectionScore * 0.3);
+                    return Math.Max(0.0, Math.Min(1.0, healthScore));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error calculating network health: {ex.Message}");
+                }
+                
                 return 0.5; // Default to 50% health on error
             }
         }

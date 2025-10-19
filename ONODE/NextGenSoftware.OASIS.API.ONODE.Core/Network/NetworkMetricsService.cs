@@ -68,6 +68,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             catch (Exception ex)
             {
                 Console.WriteLine($"Error calculating health from metrics: {ex.Message}");
+                // Calculate actual network health based on real metrics
+                try
+                {
+                    var latency = await _holoNETClient.GetNetworkLatencyAsync();
+                    var bandwidth = await _holoNETClient.GetNetworkBandwidthAsync();
+                    var uptime = await _holoNETClient.GetNetworkUptimeAsync();
+                    
+                    // Calculate health score (0-1)
+                    var latencyScore = Math.Max(0, 1.0 - (latency / 1000.0)); // Lower latency = higher score
+                    var bandwidthScore = Math.Min(1.0, bandwidth / 1000.0); // Higher bandwidth = higher score
+                    var uptimeScore = uptime / 100.0; // Uptime percentage
+                    
+                    var healthScore = (latencyScore * 0.3 + bandwidthScore * 0.3 + uptimeScore * 0.4);
+                    return Math.Max(0.0, Math.Min(1.0, healthScore));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error calculating network health: {ex.Message}");
+                }
+                
                 return 0.5; // Default health on error
             }
         }
