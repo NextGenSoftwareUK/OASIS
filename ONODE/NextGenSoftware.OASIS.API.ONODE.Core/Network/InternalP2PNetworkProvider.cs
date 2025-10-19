@@ -512,9 +512,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     var healthScore = (latencyScore * 0.4 + bandwidthScore * 0.3 + connectionScore * 0.3);
                     return Math.Max(0.0, Math.Min(1.0, healthScore));
                 }
-                catch (Exception ex)
+                catch (Exception innerEx)
                 {
-                    Console.WriteLine($"Error calculating network health: {ex.Message}");
+                    Console.WriteLine($"Error calculating network health: {innerEx.Message}");
                 }
                 
                 return 0.5; // Default to 50% health on error
