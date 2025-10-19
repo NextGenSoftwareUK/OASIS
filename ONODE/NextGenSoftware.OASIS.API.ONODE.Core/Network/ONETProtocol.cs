@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -77,8 +78,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                // Log error using proper logging system
-                // TODO: Replace with proper logging
+                var result = new OASISResult<bool>();
+                OASISErrorHandling.HandleError(ref result, $"Error initializing ONET Protocol: {ex.Message}", ex);
             }
         }
 
@@ -150,13 +151,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // Clear connected nodes
                 _connectedNodes.Clear();
                 
-                // Log successful stop using proper logging system
-                // TODO: Replace with proper logging
+                LoggingManager.Log("ONET Protocol stopped successfully", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                // Log error using proper logging system
-                // TODO: Replace with proper logging
+                var result = new OASISResult<bool>();
+                OASISErrorHandling.HandleError(ref result, $"Error stopping ONET Protocol: {ex.Message}", ex);
             }
         }
 
@@ -195,8 +195,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 foreach (var node in _connectedNodes.Values)
                 {
                     // In real implementation, this would send via the network
-                    // Log broadcast message using proper logging system
-                    // TODO: Replace with proper logging
+                    LoggingManager.Log($"Broadcasting message to node {node.Id}: {message.Content}", Logging.LogType.Debug);
                 }
                 
                 result.Result = true;
@@ -481,8 +480,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                // Log error using proper logging system
-                // TODO: Replace with proper logging
+                var result = new OASISResult<List<string>>();
+                OASISErrorHandling.HandleError(ref result, $"Error getting node capabilities for {nodeId}: {ex.Message}", ex);
                 // Return basic capabilities as fallback
                 return new List<string> { "P2P", "API", "Storage", "Compute" };
             }
@@ -596,8 +595,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                // Log error using proper logging system
-                // TODO: Replace with proper logging
+                var result = new OASISResult<double>();
+                OASISErrorHandling.HandleError(ref result, $"Error calculating network health: {ex.Message}", ex);
                 // Return minimum health on error
                 return 0.1;
             }
@@ -657,8 +656,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                // Log error using proper logging system
-                // TODO: Replace with proper logging
+                var result = new OASISResult<double>();
+                OASISErrorHandling.HandleError(ref result, $"Error measuring latency to {nodeId}: {ex.Message}", ex);
             }
             
             return 100.0; // Default high latency on error
@@ -694,8 +693,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                // Log error using proper logging system
-                // TODO: Replace with proper logging
+                var result = new OASISResult<double>();
+                OASISErrorHandling.HandleError(ref result, $"Error measuring bandwidth to {nodeId}: {ex.Message}", ex);
             }
             
             return 10.0; // Default low bandwidth on error
@@ -729,8 +728,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                // Log error using proper logging system
-                // TODO: Replace with proper logging
+                var result = new OASISResult<double>();
+                OASISErrorHandling.HandleError(ref result, $"Error calculating average latency: {ex.Message}", ex);
             }
             
             return 100.0; // Default high average latency on error
@@ -772,8 +771,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                // Log error using proper logging system
-                // TODO: Replace with proper logging
+                var result = new OASISResult<double>();
+                OASISErrorHandling.HandleError(ref result, $"Error calculating throughput: {ex.Message}", ex);
             }
             
             return 10.0; // Default low throughput on error
