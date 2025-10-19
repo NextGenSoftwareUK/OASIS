@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -22,6 +24,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private bool _isNetworkRunning = false;
         private readonly Dictionary<string, ONETNode> _connectedNodes = new Dictionary<string, ONETNode>();
         private readonly Dictionary<string, NetworkConnection> _networkConnections = new Dictionary<string, NetworkConnection>();
+        private readonly List<NetworkConnection> _failedConnections = new List<NetworkConnection>();
+        private OASISDNA? _oasisdna;
         
         // Events
         public event EventHandler<NodeConnectedEventArgs> NodeConnected;
@@ -196,10 +200,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     var node = new ONETNode
                     {
-                        NodeId = nodeId,
-                        Endpoint = endpoint,
+                        Id = nodeId,
+                        Address = endpoint,
                         ConnectedAt = DateTime.UtcNow,
-                        IsActive = true
+                        Status = "Connected"
                     };
                     
                     _connectedNodes[nodeId] = node;
@@ -308,9 +312,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 // Use ONET protocol to send direct message
-                var sendResult = await _onetProtocol.SendMessageAsync(nodeId, message, metadata);
+                var onetMessage = new ONETMessage
+                {
+                    TargetNodeId = nodeId,
+                    Content = message,
+                    MessageType = "P2P_MESSAGE",
+                    SourceNodeId = "local"
+                };
+                var sendResult = await _onetProtocol.SendMessageAsync(onetMessage);
                 
-                result.Result = sendResult.Result;
+                result.Result = !sendResult.IsError;
                 result.IsError = sendResult.IsError;
                 result.Message = sendResult.Message;
             }
@@ -465,10 +476,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 if (_onetProtocol != null)
                 {
                     var healthResult = await _onetProtocol.CalculateNetworkHealthAsync();
-                    if (!healthResult.IsError)
-                    {
-                        return healthResult.Result;
-                    }
+                    return healthResult;
                 }
                 
                 // Calculate based on connected nodes and network activity
@@ -584,10 +592,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 var node = new ONETNode
                 {
-                    NodeId = e.NodeId,
-                    Endpoint = e.Endpoint,
+                    Id = e.NodeId,
+                    Address = e.Endpoint,
                     ConnectedAt = e.ConnectedAt,
-                    IsActive = true
+                    Status = "Connected"
                 };
                 
                 _connectedNodes[e.NodeId] = node;

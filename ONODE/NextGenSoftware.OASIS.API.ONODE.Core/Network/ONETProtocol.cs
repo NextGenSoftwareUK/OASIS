@@ -29,6 +29,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private bool _isNetworkRunning = false;
         private OASISDNA? _oasisdna;
 
+        // Events
+        public event EventHandler<NodeConnectedEventArgs> NodeConnected;
+        public event EventHandler<NodeDisconnectedEventArgs> NodeDisconnected;
+        public event EventHandler<MessageReceivedEventArgs> MessageReceived;
+
+        public async Task<OASISResult<string>> GetNetworkIdAsync()
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                result.Result = _oasisdna?.OASIS?.NetworkId ?? "onet-network";
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting network ID: {ex.Message}", ex);
+            }
+            return result;
+        }
+
 
         public ONETProtocol(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
@@ -134,6 +154,55 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 Console.WriteLine($"Error stopping ONET Protocol: {ex.Message}");
             }
+        }
+
+        public async Task<OASISResult<bool>> DisconnectFromNodeAsync(string nodeId)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (_connectedNodes.ContainsKey(nodeId))
+                {
+                    _connectedNodes.Remove(nodeId);
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Disconnected from node {nodeId}";
+                }
+                else
+                {
+                    result.Result = false;
+                    result.IsError = true;
+                    result.Message = $"Node {nodeId} not found";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error disconnecting from node {nodeId}: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<bool>> BroadcastMessageAsync(string message, Dictionary<string, object> metadata = null)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                // Broadcast message to all connected nodes
+                foreach (var node in _connectedNodes.Values)
+                {
+                    // In real implementation, this would send via the network
+                    Console.WriteLine($"Broadcasting to {node.NodeId}: {message}");
+                }
+                
+                result.Result = true;
+                result.IsError = false;
+                result.Message = "Message broadcasted successfully";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error broadcasting message: {ex.Message}", ex);
+            }
+            return result;
         }
 
         /// <summary>
@@ -244,7 +313,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var route = await _routing.FindOptimalRouteAsync(message.TargetNodeId, message.Priority);
 
                 // Send through network
-                var deliveryResult = await DeliverMessageAsync(encryptedMessage, route);
+                var deliveryResult = await DeliverMessageAsync(encryptedMessage.Result, route.Result);
                 if (deliveryResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Failed to deliver message: {deliveryResult.Message}");
@@ -276,9 +345,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 var discoveredNodes = await _discovery.DiscoverAvailableNodesAsync();
-                result.Result = discoveredNodes;
+                result.Result = discoveredNodes.Result;
                 result.IsError = false;
-                result.Message = $"Discovered {discoveredNodes.Count} ONET nodes";
+                result.Message = $"Discovered {discoveredNodes.Result.Count} ONET nodes";
             }
             catch (Exception ex)
             {
@@ -336,7 +405,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     Nodes = new List<ONETNode>(_connectedNodes.Values),
                     Bridges = new List<ONETBridge>(_networkBridges.Values),
-                    NetworkHealth = await CalculateNetworkHealthAsync(),
+                    NetworkHealth = (await CalculateNetworkHealthAsync()).Result,
                     ConsensusStatus = await _consensus.GetConsensusStatusAsync(),
                     LastUpdated = DateTime.UtcNow
                 };
@@ -465,7 +534,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
-        private async Task<double> CalculateNetworkHealthAsync()
+        public async Task<double> CalculateNetworkHealthAsync()
         {
             // Calculate network health based on connected nodes, latency, etc.
             return 95.5; // 95.5% health

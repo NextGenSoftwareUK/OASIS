@@ -265,9 +265,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 IsActive = true
             };
 
-            _providerBridges[ProviderType.AzureOASIS] = new ProviderBridge
+            _providerBridges[ProviderType.AzureStorageOASIS] = new ProviderBridge
             {
-                ProviderType = ProviderType.AzureOASIS,
+                ProviderType = ProviderType.AzureStorageOASIS,
                 Category = ProviderCategory.Cloud,
                 Name = "Azure",
                 Description = "Microsoft Azure integration",

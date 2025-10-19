@@ -37,6 +37,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             await StartDiscoveryAsync();
         }
 
+        // Events
+        public event EventHandler<NodeDiscoveredEventArgs> NodeDiscovered;
+        public event EventHandler<NodeLostEventArgs> NodeLost;
+
         public async Task StopAsync()
         {
             try

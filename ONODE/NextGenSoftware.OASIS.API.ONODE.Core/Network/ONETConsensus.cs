@@ -35,6 +35,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private DateTime _lastConsensusTime = DateTime.UtcNow;
         private readonly object _consensusLock = new object();
 
+        // Events
+        public event EventHandler<ConsensusReachedEventArgs> ConsensusReached;
+        public event EventHandler<ConsensusFailedEventArgs> ConsensusFailed;
+
         public async Task<OASISResult<bool>> InitializeAsync()
         {
             var result = new OASISResult<bool>();
