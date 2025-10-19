@@ -33,8 +33,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public async Task StartAsync()
         {
             // Start API gateway
-            // Initialize API Gateway
-            await Task.CompletedTask;
+            await InitializeAPIGatewayAsync();
         }
 
         private readonly APILoadBalancer _loadBalancer;
@@ -251,6 +250,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
 
             return result;
+        }
+
+        private async Task InitializeAPIGatewayAsync()
+        {
+            // Initialize API Gateway components
+            await InitializeAPIBridgesAsync();
+            await InitializeAPIRoutesAsync();
+            await InitializeEndpointsAsync();
+            await _router.InitializeAsync(_apiRoutes);
+            await _loadBalancer.InitializeAsync();
+            await _cache.InitializeAsync();
         }
 
         private async Task InitializeAPIBridgesAsync()

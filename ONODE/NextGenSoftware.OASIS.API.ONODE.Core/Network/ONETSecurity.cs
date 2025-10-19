@@ -38,8 +38,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public async Task StartAsync()
         {
             // Start security system
-            // Initialize security system
-            await Task.CompletedTask;
+            await InitializeSecurityAsync();
         }
 
         // Events
@@ -344,10 +343,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             await Task.Delay(100); // Simulate configuration loading
         }
 
+        private async Task InitializeSecurityAsync()
+        {
+            // Initialize security system components
+            await LoadSecurityConfigurationAsync(OASISDNA);
+            await GenerateMasterKeysAsync();
+            await StartSecurityMonitoringAsync();
+        }
+
         private async Task GenerateMasterKeysAsync()
         {
             // Generate master security keys for the network
             await Task.Delay(100); // Simulate key generation
+        }
+
+        private async Task StartSecurityMonitoringAsync()
+        {
+            // Start security monitoring processes
+            await Task.Delay(100); // Simulate security monitoring startup
         }
 
         private async Task<SecurityKey> GenerateSessionKeysAsync()
