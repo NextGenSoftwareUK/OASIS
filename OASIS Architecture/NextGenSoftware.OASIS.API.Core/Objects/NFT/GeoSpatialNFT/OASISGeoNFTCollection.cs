@@ -17,5 +17,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         public string ThumbnailUrl { get; set; }
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
         public List<IOASISGeoSpatialNFT> OASISGeoNFTs { get; set; } = new List<IOASISGeoSpatialNFT>();
+        public List<string> OASISGeoNFTIds { get; set; } = new List<string>();
+        public List<string> Tags { get; set; }
     }
 }

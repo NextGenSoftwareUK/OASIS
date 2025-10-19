@@ -689,10 +689,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     {
         public string Service { get; set; } = string.Empty;
         public string Endpoint { get; set; } = string.Empty;
-        public object Parameters { get; set; } = new object();
+        public Dictionary<string, object> Parameters { get; set; } = new Dictionary<string, object>();
         public string RequestType { get; set; } = string.Empty;
         public int Priority { get; set; }
         public ProviderType? ProviderType { get; set; }
+        public string ProviderTypeString { get; set; } = string.Empty;
     }
 
     public class UnifiedArchitectureStats

@@ -23,6 +23,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         public int NumberToMint { get; set; }
         public bool StoreNFTMetaDataOnChain { get; set; }
         public Dictionary<string, object> MetaData { get; set; }
+        public List<string> Tags { get; set; }
         public EnumValue<ProviderType> OffChainProvider { get; set; }
         public EnumValue<ProviderType> OnChainProvider { get; set; }
         public EnumValue<NFTStandardType> NFTStandardType { get; set; }

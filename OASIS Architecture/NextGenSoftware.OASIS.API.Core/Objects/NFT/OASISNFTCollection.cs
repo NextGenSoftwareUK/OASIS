@@ -17,6 +17,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         public string ThumbnailUrl { get; set; }
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
         public List<IOASISNFT> OASISNFTs { get; set; } = new List<IOASISNFT>();
+        public List<string> OASISNFTIds { get; set; } = new List<string>();
+        public List<string> Tags { get; set; }
 
         //TODO: Is it better to have seperate collections for NFTs and GeoNFTs?
         //public List<IOASISGeoNFTCollection> OASIGeoSNFTs { get; set; } = new List<IOASISGeoNFTCollection>();

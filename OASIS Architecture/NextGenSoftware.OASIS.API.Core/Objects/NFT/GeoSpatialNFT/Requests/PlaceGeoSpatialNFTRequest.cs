@@ -1,7 +1,8 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
+﻿using System;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
 using NextGenSoftware.Utilities;
-using System;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
 {
@@ -14,5 +15,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         //public string NFTURL { get; set; } //The URL the NFT is on (if applicable).
         //public Guid PlacedByAvatarId { get; set; } //The Avatar ID that is placing this GeoNFT.
         //public ProviderType GeoNFTMetaDataProvider { get; set; }
+
+        public List<string> Tags { get; set; }
     }
 }

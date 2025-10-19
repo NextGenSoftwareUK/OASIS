@@ -25,6 +25,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public ONETDiscovery(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
         }
+
+        public async Task InitializeAsync()
+        {
+            // Initialize discovery system
+            await Task.CompletedTask;
+        }
+
+        public async Task StartAsync()
+        {
+            await StartDiscoveryAsync();
+        }
         private readonly object _discoveryLock = new object();
 
         public async Task<OASISResult<bool>> StartDiscoveryAsync()

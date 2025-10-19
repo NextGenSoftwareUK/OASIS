@@ -64,6 +64,8 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         STARNFT,
         GeoNFT,
         STARGeoNFT,
+        NFTCollection,
+        GeoNFTCollection,
         GeoHotSpot,
         STARNETHolon,
         OAPP,

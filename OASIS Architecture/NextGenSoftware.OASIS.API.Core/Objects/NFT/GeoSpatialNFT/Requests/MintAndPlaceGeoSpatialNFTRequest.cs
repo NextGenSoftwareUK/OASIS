@@ -42,5 +42,6 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         public bool WaitTillNFTSent { get; set; } = true;
         public int WaitForNFTToSendInSeconds { get; set; } = 60;
         public int AttemptToSendEveryXSeconds { get; set; } = 1;
+        public List<string> Tags { get; set; } = new List<string>();
     }
 }
