@@ -29,7 +29,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public async Task InitializeAsync()
         {
             // Initialize routing system
-            await Task.CompletedTask;
+            // Initialize routing algorithms based on OASIS DNA configuration
+            await InitializeRoutingAlgorithmsAsync();
         }
 
         public async Task StartAsync()
