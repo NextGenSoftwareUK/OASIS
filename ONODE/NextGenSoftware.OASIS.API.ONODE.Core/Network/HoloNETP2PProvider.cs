@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
+using System.Net.WebSockets;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {

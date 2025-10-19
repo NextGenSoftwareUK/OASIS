@@ -112,6 +112,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             await StartNetworkAsync();
         }
 
+        public async Task StopAsync()
+        {
+            try
+            {
+                _isNetworkRunning = false;
+                
+                // Stop all network components
+                await _consensus.StopAsync();
+                await _routing.StopAsync();
+                await _security.StopAsync();
+                await _discovery.StopAsync();
+                await _apiGateway.StopAsync();
+                
+                // Clear connected nodes
+                _connectedNodes.Clear();
+                
+                Console.WriteLine("ONET Protocol stopped successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error stopping ONET Protocol: {ex.Message}");
+            }
+        }
+
         /// <summary>
         /// Stop the ONET P2P network
         /// </summary>

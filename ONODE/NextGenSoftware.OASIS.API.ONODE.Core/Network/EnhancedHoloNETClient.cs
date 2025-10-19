@@ -1,3 +1,7 @@
+/*
+// OBSOLETE FILE - Use the upgraded existing HoloNET client instead
+// This file is commented out to avoid conflicts
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// - Enhanced security with integrated keystore
     /// - Improved WASM performance (1000x faster)
     /// - Caching layer integration
+    /// OBSOLETE - Use upgraded existing HoloNET client instead
     /// </summary>
     public class EnhancedHoloNETClient
     {
@@ -21,6 +26,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private bool _isInitialized = false;
         private bool _isConnected = false;
         private readonly Dictionary<string, object> _networkConfig = new Dictionary<string, object>();
+        private readonly Dictionary<string, NetworkNode> _discoveredNodes = new Dictionary<string, NetworkNode>();
+        private readonly Dictionary<string, NetworkConnection> _activeConnections = new Dictionary<string, NetworkConnection>();
         
         // Latest Holochain 0.5.6+ features
         private bool _kitsune2Enabled = true;
@@ -980,3 +987,4 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         #endregion
     }
 }
+*/

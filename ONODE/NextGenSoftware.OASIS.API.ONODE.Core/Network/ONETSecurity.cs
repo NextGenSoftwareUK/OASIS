@@ -40,6 +40,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Start security system
             await Task.CompletedTask;
         }
+
+        public async Task StopAsync()
+        {
+            try
+            {
+                // Stop security operations
+                Console.WriteLine("ONET Security stopped successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error stopping ONET Security: {ex.Message}");
+            }
+        }
         private bool _isInitialized = false;
 
         public async Task<OASISResult<bool>> InitializeAsync(OASISDNA? oasisdna)
