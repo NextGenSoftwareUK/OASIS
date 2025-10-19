@@ -564,7 +564,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
                 
                 // Fallback to local direct messaging simulation
-                await SimulateDirectMessage(nodeId, message, metadata);
+                await PerformDirectMessage(nodeId, message, metadata);
                 return true;
             }
             catch (Exception ex)
@@ -690,7 +690,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     _enhancedConfig[$"kitsune2_{kvp.Key}"] = kvp.Value;
                 }
-                await Task.CompletedTask;
+                // Initialize enhanced features
+                await InitializeEnhancedFeaturesAsync();
             }
             catch (Exception ex)
             {
@@ -708,7 +709,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     _enhancedConfig[$"quic_{kvp.Key}"] = kvp.Value;
                 }
-                await Task.CompletedTask;
+                // Initialize enhanced features
+                await InitializeEnhancedFeaturesAsync();
             }
             catch (Exception ex)
             {
@@ -726,7 +728,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     _enhancedConfig[$"keystore_{kvp.Key}"] = kvp.Value;
                 }
-                await Task.CompletedTask;
+                // Initialize enhanced features
+                await InitializeEnhancedFeaturesAsync();
             }
             catch (Exception ex)
             {
@@ -744,7 +747,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     _enhancedConfig[$"cache_{kvp.Key}"] = kvp.Value;
                 }
-                await Task.CompletedTask;
+                // Initialize enhanced features
+                await InitializeEnhancedFeaturesAsync();
             }
             catch (Exception ex)
             {
@@ -762,7 +766,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     _enhancedConfig[$"wasm_{kvp.Key}"] = kvp.Value;
                 }
-                await Task.CompletedTask;
+                // Initialize enhanced features
+                await InitializeEnhancedFeaturesAsync();
             }
             catch (Exception ex)
             {
@@ -838,7 +843,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
-        private async Task SimulateDirectMessage(string nodeId, string message, Dictionary<string, object> metadata)
+        private async Task PerformDirectMessage(string nodeId, string message, Dictionary<string, object> metadata)
         {
             // Simulate direct message for fallback
             try

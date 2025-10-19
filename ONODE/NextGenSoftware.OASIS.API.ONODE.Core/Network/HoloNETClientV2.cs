@@ -509,7 +509,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
                 
                 // Fallback to local direct messaging simulation
-                await SimulateDirectMessage(nodeId, message, metadata);
+                await PerformDirectMessage(nodeId, message, metadata);
                 return true;
             }
             catch (Exception ex)

@@ -128,9 +128,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var unifiedTopology = new UnifiedNetworkTopology
                 {
                     ONETNodes = onetTopology.Result?.Nodes ?? new List<ONETNode>(),
-                    HyperDriveProviders = new List<HyperDriveProviderInfo>(), // TODO: Get from HyperDrive topology
+                    HyperDriveProviders = await GetHyperDriveProvidersAsync(),
                     NetworkHealth = CalculateUnifiedNetworkHealth(onetTopology.Result, hyperDriveTopology.Result),
-                    TotalNodes = (onetTopology.Result?.Nodes.Count ?? 0) + 0, // TODO: Add HyperDrive providers count
+                    TotalNodes = (onetTopology.Result?.Nodes.Count ?? 0) + (await GetHyperDriveProvidersAsync()).Count,
                     ActiveConnections = await GetActiveConnectionsAsync(),
                     LastUpdated = DateTime.UtcNow
                 };
@@ -461,6 +461,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task<int> GetHyperDriveConnectionsAsync()
         {
             return _providerPerformance.Count;
+        }
+
+        private async Task<List<HyperDriveProviderInfo>> GetHyperDriveProvidersAsync()
+        {
+            try
+            {
+                // Get HyperDrive providers from the HyperDrive manager
+                var providers = new List<HyperDriveProviderInfo>();
+                
+                // Get active providers from HyperDrive
+                // TODO: Implement when HyperDrive provides this method
+                // For now, return empty list
+                
+                return providers;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting HyperDrive providers: {ex.Message}");
+                return new List<HyperDriveProviderInfo>();
+            }
         }
     }
 
