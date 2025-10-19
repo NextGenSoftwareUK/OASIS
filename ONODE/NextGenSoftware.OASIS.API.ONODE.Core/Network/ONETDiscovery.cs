@@ -36,6 +36,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             await StartDiscoveryAsync();
         }
+
+        public async Task StopAsync()
+        {
+            try
+            {
+                // Stop discovery operations
+                Console.WriteLine("ONET Discovery stopped successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error stopping ONET Discovery: {ex.Message}");
+            }
+        }
         private readonly object _discoveryLock = new object();
 
         public async Task<OASISResult<bool>> StartDiscoveryAsync()

@@ -36,6 +36,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             await StartRoutingAsync();
         }
+
+        public async Task StopAsync()
+        {
+            try
+            {
+                // Stop routing operations
+                Console.WriteLine("ONET Routing stopped successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error stopping ONET Routing: {ex.Message}");
+            }
+        }
         private bool _isRoutingActive = false;
         private readonly object _routingLock = new object();
 

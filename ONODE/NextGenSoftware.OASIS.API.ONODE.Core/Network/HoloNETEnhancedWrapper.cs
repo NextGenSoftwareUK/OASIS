@@ -1,3 +1,7 @@
+/*
+// OBSOLETE FILE - Use the upgraded existing HoloNET client instead
+// This file is commented out to avoid conflicts
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// <summary>
     /// Enhanced HoloNET Wrapper - Extends existing HoloNET client with Holochain 0.5.6+ features
     /// Provides backward compatibility while adding latest Holochain capabilities
+    /// OBSOLETE - Use upgraded existing HoloNET client instead
     /// </summary>
     public class HoloNETEnhancedWrapper
     {
@@ -990,3 +995,4 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         #endregion
     }
 }
+*/

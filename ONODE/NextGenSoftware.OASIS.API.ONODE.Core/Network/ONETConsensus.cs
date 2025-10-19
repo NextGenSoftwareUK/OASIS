@@ -30,6 +30,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             await InitializeAsync();
         }
+
         private string _currentLeader = string.Empty;
         private DateTime _lastConsensusTime = DateTime.UtcNow;
         private readonly object _consensusLock = new object();

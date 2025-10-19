@@ -61,7 +61,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         throw new InvalidOperationException("HoloOASIS provider is required for HoloNET P2P network type");
                     }
-                    _p2pNetworkProvider = new HoloNETP2PNetworkProvider(_holoOASIS);
+                    _p2pNetworkProvider = new HoloNETP2PProvider(null, null, OASISDNA);
                     break;
                     
                 default:

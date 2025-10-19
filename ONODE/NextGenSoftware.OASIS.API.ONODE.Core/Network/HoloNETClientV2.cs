@@ -1,3 +1,7 @@
+/*
+// OBSOLETE FILE - Use the upgraded existing HoloNET client instead
+// This file is commented out to avoid conflicts
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// <summary>
     /// HoloNET Client V2 - Enhanced for Holochain 0.5.6+ with latest features
     /// Supports Kitsune2, QUIC protocol, integrated keystore, and WASM optimization
+    /// OBSOLETE - Use upgraded existing HoloNET client instead
     /// </summary>
     public class HoloNETClientV2 : HoloNETClientBase
     {
@@ -23,10 +28,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, object> _enhancedConfig = new Dictionary<string, object>();
         private readonly Dictionary<string, NetworkNode> _discoveredNodes = new Dictionary<string, NetworkNode>();
         private readonly Dictionary<string, NetworkConnection> _activeConnections = new Dictionary<string, NetworkConnection>();
+        private readonly List<NetworkConnection> _failedConnections = new List<NetworkConnection>();
+        private readonly HoloNETClientBase _holoNETClient;
 
         public HoloNETClientV2() : base()
         {
+            _holoNETClient = this;
             InitializeEnhancedConfiguration();
+        }
+
+        /// <summary>
+        /// Initialize with Holochain 0.5.6+ enhanced features
+        /// </summary>
+        public async Task<OASISResult<bool>> InitializeAsync()
+        {
+            return await InitializeEnhancedAsync();
         }
 
         /// <summary>
@@ -738,6 +754,152 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
+        /// <summary>
+        /// Dump network statistics
+        /// </summary>
+        public async Task<OASISResult<string>> DumpNetworkStatsAsync()
+        {
+            var result = new OASISResult<string>();
+            try
+            {
+                var stats = $"Network Stats:\n" +
+                           $"Discovered Nodes: {_discoveredNodes.Count}\n" +
+                           $"Active Connections: {_activeConnections.Count}\n" +
+                           $"Failed Connections: {_failedConnections.Count}\n" +
+                           $"Kitsune2 Enabled: {_kitsune2Enabled}\n" +
+                           $"QUIC Protocol Enabled: {_quicProtocolEnabled}";
+                
+                result.Result = stats;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error dumping network stats: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Dump network metrics
+        /// </summary>
+        public async Task<OASISResult<NetworkMetrics>> DumpNetworkMetricsAsync()
+        {
+            var result = new OASISResult<NetworkMetrics>();
+            try
+            {
+                var metrics = new NetworkMetrics
+                {
+                    TotalNodes = _discoveredNodes.Count,
+                    ActiveConnections = _activeConnections.Count,
+                    FailedConnections = _failedConnections.Count,
+                    NetworkHealth = CalculateNetworkHealth(),
+                    MessagesPerSecond = CalculateMessagesPerSecond(),
+                    AverageLatency = CalculateAverageLatency(),
+                    LastUpdated = DateTime.UtcNow
+                };
+                
+                result.Result = metrics;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error dumping network metrics: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Broadcast message to network
+        /// </summary>
+        public async Task<OASISResult<bool>> BroadcastMessageAsync(string message, string messageType = "general")
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                // Simulate broadcasting message to all connected nodes
+                foreach (var connection in _activeConnections.Values)
+                {
+                    // In real implementation, this would send via Holochain conductor
+                    Console.WriteLine($"Broadcasting to {connection.ToNodeId}: {message}");
+                }
+                
+                result.Result = true;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error broadcasting message: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Send direct message to specific node
+        /// </summary>
+        public async Task<OASISResult<bool>> SendDirectMessageAsync(string nodeId, string message)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (_activeConnections.ContainsKey(nodeId))
+                {
+                    // In real implementation, this would send via Holochain conductor
+                    Console.WriteLine($"Sending direct message to {nodeId}: {message}");
+                    result.Result = true;
+                    result.IsError = false;
+                }
+                else
+                {
+                    result.Result = false;
+                    result.IsError = true;
+                    result.Message = $"Node {nodeId} not found in active connections";
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending direct message: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Configure conductor with enhanced features
+        /// </summary>
+        public async Task<OASISResult<bool>> ConfigureConductorAsync()
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                // Configure conductor with Holochain 0.5.6+ features
+                await ConfigureForHolochain056();
+                result.Result = true;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error configuring conductor: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        private double CalculateNetworkHealth()
+        {
+            if (_activeConnections.Count == 0) return 0.0;
+            return Math.Min(1.0, (double)_activeConnections.Count / Math.Max(1, _discoveredNodes.Count));
+        }
+
+        private double CalculateMessagesPerSecond()
+        {
+            // Simulate message rate calculation
+            return _activeConnections.Count * 0.5;
+        }
+
+        private double CalculateAverageLatency()
+        {
+            if (_activeConnections.Count == 0) return 0.0;
+            return _activeConnections.Values.Average(c => c.Latency);
+        }
+
         #endregion
     }
 
@@ -754,3 +916,4 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public double Bandwidth { get; set; }
     }
 }
+*/
