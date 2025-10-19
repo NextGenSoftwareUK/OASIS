@@ -128,9 +128,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var unifiedTopology = new UnifiedNetworkTopology
                 {
                     ONETNodes = onetTopology.Result?.Nodes ?? new List<ONETNode>(),
-                    HyperDriveProviders = hyperDriveTopology.Result?.Providers ?? new List<HyperDriveProviderInfo>(),
+                    HyperDriveProviders = new List<HyperDriveProviderInfo>(), // TODO: Get from HyperDrive topology
                     NetworkHealth = CalculateUnifiedNetworkHealth(onetTopology.Result, hyperDriveTopology.Result),
-                    TotalNodes = (onetTopology.Result?.Nodes.Count ?? 0) + (hyperDriveTopology.Result?.Providers.Count ?? 0),
+                    TotalNodes = (onetTopology.Result?.Nodes.Count ?? 0) + 0, // TODO: Add HyperDrive providers count
                     ActiveConnections = await GetActiveConnectionsAsync(),
                     LastUpdated = DateTime.UtcNow
                 };
@@ -304,7 +304,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task UpdatePerformanceMetricsAsync<T>(IRequest request, OASISResult<T> result)
         {
             // Update performance metrics for both ONET and HyperDrive
-            var providerId = request.ProviderType?.ToString() ?? "unknown";
+            var providerId = request.ProviderTypeString ?? "unknown";
             
             if (!_providerPerformance.ContainsKey(providerId))
             {
@@ -345,10 +345,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 connections.Add(new NetworkConnection
                 {
-                    Id = node.Id,
-                    Type = "P2P",
-                    Status = node.Status,
-                    Latency = node.Latency
+                    FromNodeId = node.Id,
+                    ToNodeId = "hyperdrive",
+                    Latency = node.Latency,
+                    Bandwidth = 1000.0, // Default bandwidth
+                    IsActive = node.Status == "Connected"
                 });
             }
             

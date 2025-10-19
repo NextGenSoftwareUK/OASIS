@@ -540,16 +540,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
                             }
                         }
                     }
-    };
+                };
 
-    var jsonContent = JsonSerializer.Serialize(txRequest);
-    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-    var httpResponse = await _httpClient.PostAsync("/tx/submit", content);
+                var jsonContent = JsonSerializer.Serialize(txRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("/tx/submit", content);
 
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
                     
                     if (txResponse.TryGetProperty("id", out var txId))
                     {
@@ -558,19 +558,19 @@ namespace NextGenSoftware.OASIS.API.Providers.CardanoOASIS
                         response.Message = $"Avatar saved to Cardano blockchain successfully. Transaction ID: {txId.GetString()}";
                     }
                     else
-{
-    OASISErrorHandling.HandleError(ref response, "Failed to save avatar to Cardano blockchain");
-}
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to save avatar to Cardano blockchain");
+                    }
                 }
                 else
-{
-    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar to Cardano: {httpResponse.StatusCode}");
-}
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar to Cardano: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-OASISErrorHandling.HandleError(ref response, $"Error saving avatar to Cardano: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar to Cardano: {ex.Message}");
             }
             return response;
         }
@@ -640,40 +640,39 @@ public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool so
                     {
                         avatar_deletion = deleteData
                     }
-                        }
-                    }
-                };
+                }
+            };
 
-var jsonContent = JsonSerializer.Serialize(txRequest);
-var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-var httpResponse = await _httpClient.PostAsync("/tx/submit", content);
+            var jsonContent = JsonSerializer.Serialize(txRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var httpResponse = await _httpClient.PostAsync("/tx/submit", content);
 
-if (httpResponse.IsSuccessStatusCode)
-{
-    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-    var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-    if (txResponse.TryGetProperty("id", out var txId))
-    {
-        response.Result = true;
-        response.IsError = false;
-        response.Message = $"Avatar deleted from Cardano blockchain successfully. Transaction ID: {txId.GetString()}";
-    }
-    else
-    {
-        OASISErrorHandling.HandleError(ref response, "Failed to delete avatar from Cardano blockchain");
-    }
-}
-else
-{
-    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar from Cardano: {httpResponse.StatusCode}");
-}
-            }
-            catch (Exception ex)
+            if (httpResponse.IsSuccessStatusCode)
             {
-                response.Exception = ex;
-OASISErrorHandling.HandleError(ref response, $"Error deleting avatar from Cardano: {ex.Message}");
+                var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                var txResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                if (txResponse.TryGetProperty("id", out var txId))
+                {
+                    response.Result = true;
+                    response.IsError = false;
+                    response.Message = $"Avatar deleted from Cardano blockchain successfully. Transaction ID: {txId.GetString()}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, "Failed to delete avatar from Cardano blockchain");
+                }
             }
+            else
+            {
+                OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar from Cardano: {httpResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            response.Exception = ex;
+            OASISErrorHandling.HandleError(ref response, $"Error deleting avatar from Cardano: {ex.Message}");
+        }
             return response;
         }
 
@@ -1955,14 +1954,14 @@ public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAva
     return response;
 }
 
-#endregion
+        #endregion
 
-#region IDisposable
+        #region IDisposable
 
-public void Dispose()
-{
-    _httpClient?.Dispose();
-}
+        public void Dispose()
+        {
+            _httpClient?.Dispose();
+        }
 
         #endregion
     }
