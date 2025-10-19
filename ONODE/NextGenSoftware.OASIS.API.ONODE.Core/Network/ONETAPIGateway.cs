@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
@@ -323,7 +324,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error initializing API gateway: {ex.Message}");
+                var result = new OASISResult<bool>();
+                OASISErrorHandling.HandleError(ref result, $"Error initializing API gateway: {ex.Message}", ex);
                 throw;
             }
         }
@@ -358,7 +360,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 RetryCount = 4
             };
 
-            await Task.Delay(100); // Simulate initialization
+            // Real initialization would happen here
+            // For now, simulate actual setup time
+            await Task.Delay(50);
         }
 
         private async Task InitializeEndpointsAsync()
@@ -418,7 +422,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 _endpoints[endpoint.Key] = endpoint.Value;
             }
 
-            await Task.Delay(100); // Simulate initialization
+            // Real initialization would happen here
+            // For now, simulate actual setup time
+            await Task.Delay(50);
         }
 
         private async Task<string> DetermineOptimalNetworkTypeAsync(string endpoint, object parameters)
@@ -532,7 +538,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error selecting bridge: {ex.Message}");
+                var result = new OASISResult<APIEndpoint>();
+                OASISErrorHandling.HandleError(ref result, $"Error selecting bridge: {ex.Message}", ex);
                 return null;
             }
             return new APIEndpoint
@@ -559,7 +566,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error checking status: {ex.Message}");
+                var result = new OASISResult<string>();
+                OASISErrorHandling.HandleError(ref result, $"Error checking status: {ex.Message}", ex);
                 return "Error";
             }
             return "Active";
@@ -610,7 +618,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     {
         public async Task InitializeAsync(Dictionary<string, APIRoute> routes)
         {
-            await Task.Delay(100); // Simulate initialization
+            // Real initialization would happen here
+            // For now, simulate actual setup time
+            await Task.Delay(50);
         }
     }
 
@@ -618,7 +628,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     {
         public async Task InitializeAsync()
         {
-            await Task.Delay(100); // Simulate initialization
+            // Real initialization would happen here
+            // For now, simulate actual setup time
+            await Task.Delay(50);
         }
 
     public class APICache
@@ -627,7 +639,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         public async Task InitializeAsync()
         {
-            await Task.Delay(100); // Simulate initialization
+            // Real initialization would happen here
+            // For now, simulate actual setup time
+            await Task.Delay(50);
         }
 
         public async Task<object?> GetAsync(string key)
@@ -654,7 +668,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in cache lookup: {ex.Message}");
+                var result = new OASISResult<object>();
+                OASISErrorHandling.HandleError(ref result, $"Error in cache lookup: {ex.Message}", ex);
             }
             if (_cache.ContainsKey(key) && _cache[key].ExpiresAt > DateTime.UtcNow)
             {
