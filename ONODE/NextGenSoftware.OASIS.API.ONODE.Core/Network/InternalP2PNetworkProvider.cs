@@ -358,7 +358,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     Latency = await CalculateAverageLatencyAsync(),
                     Throughput = await CalculateThroughputAsync(),
                     ActiveConnections = _connectedNodes.Count,
-                    FailedConnections = _failedConnections.Count
+                    FailedConnections = _failedConnections.Count,
                     LastChecked = DateTime.UtcNow
                 };
                 

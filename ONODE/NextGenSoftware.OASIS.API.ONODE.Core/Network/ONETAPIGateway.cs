@@ -29,6 +29,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             _loadBalancer = new APILoadBalancer();
             _cache = new APICache();
         }
+
+        public async Task StartAsync()
+        {
+            // Start API gateway
+            await Task.CompletedTask;
+        }
         private readonly APILoadBalancer _loadBalancer;
         private readonly APICache _cache;
         private bool _isInitialized = false;

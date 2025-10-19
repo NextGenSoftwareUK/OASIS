@@ -500,14 +500,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public DateTime LastUpdated { get; set; }
     }
 
-    public class NetworkConnection
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
-        public double Latency { get; set; }
-    }
-
     public class NetworkOptimization
     {
         public List<string> OptimizationsApplied { get; set; } = new List<string>();

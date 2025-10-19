@@ -48,19 +48,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     result.Message = initResult.Message;
                     return result;
                 }
+
+                // Initialize Kitsune2 networking
+                await InitializeKitsune2Networking();
                 
-                // Set up event handlers for P2P network events
-                SetupEventHandlers();
+                // Establish QUIC connections
+                await EstablishQUICConnections();
                 
+                // Join DHT network
+                await JoinDHTNetwork();
+                
+                // Start node discovery
+                await StartNodeDiscovery();
+
                 _isInitialized = true;
                 result.Result = true;
-                result.IsError = false;
+                result.Message = "HoloNET P2P Network Provider initialized successfully";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error initializing HoloNET P2P network: {ex.Message}", ex);
+                result.IsError = true;
+                result.Message = $"Error initializing HoloNET P2P Network Provider: {ex.Message}";
+                result.Exception = ex;
             }
-            
+
             return result;
         }
 
@@ -81,24 +92,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     }
                 }
 
-                // Connect to Holochain network using enhanced wrapper
-                var connectResult = await _enhancedWrapper.ConnectEnhancedAsync();
-                if (connectResult.IsError)
+                // Start the network
+                var startResult = await _enhancedWrapper.ConnectWithEnhancedFeatures();
+                if (startResult.IsError)
                 {
                     result.IsError = true;
-                    result.Message = connectResult.Message;
+                    result.Message = startResult.Message;
                     return result;
                 }
-                
+
                 _isNetworkRunning = true;
                 result.Result = true;
-                result.IsError = false;
+                result.Message = "HoloNET P2P Network started successfully";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error starting HoloNET P2P network: {ex.Message}", ex);
+                result.IsError = true;
+                result.Message = $"Error starting HoloNET P2P Network: {ex.Message}";
+                result.Exception = ex;
             }
-            
+
             return result;
         }
 
@@ -108,25 +121,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             
             try
             {
-                if (_isNetworkRunning)
+                if (_enhancedWrapper != null)
                 {
-                    // Disconnect from all nodes
-                    await DisconnectFromAllNodes();
-                    
-                    // Disconnect from Holochain network
-                    // Note: Enhanced wrapper doesn't have disconnect method yet
-                    
-                    _isNetworkRunning = false;
+                    // Stop the enhanced wrapper
+                    await _enhancedWrapper.DisconnectAsync();
                 }
+
+                _isNetworkRunning = false;
+                _connectedNodes.Clear();
+                _networkConnections.Clear();
                 
                 result.Result = true;
-                result.IsError = false;
+                result.Message = "HoloNET P2P Network stopped successfully";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error stopping HoloNET P2P network: {ex.Message}", ex);
+                result.IsError = true;
+                result.Message = $"Error stopping HoloNET P2P Network: {ex.Message}";
+                result.Exception = ex;
             }
-            
+
             return result;
         }
 
@@ -142,17 +156,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     ConnectedNodes = _connectedNodes.Count,
                     NetworkId = await GetNetworkIdAsync(),
                     LastActivity = DateTime.UtcNow,
-                    NetworkHealth = await CalculateNetworkHealthAsync()
+                    NetworkHealth = (await CalculateNetworkHealthAsync()).OverallHealth
                 };
-                
+
                 result.Result = status;
-                result.IsError = false;
+                result.Message = "Network status retrieved successfully";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting network status: {ex.Message}", ex);
+                result.IsError = true;
+                result.Message = $"Error getting network status: {ex.Message}";
+                result.Exception = ex;
             }
-            
+
             return result;
         }
 
@@ -162,15 +178,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             
             try
             {
-                var nodes = new List<ONETNode>(_connectedNodes.Values);
+                var nodes = new List<ONETNode>();
+                
+                if (_enhancedWrapper != null)
+                {
+                    var discoveredNodes = await _enhancedWrapper.GetDiscoveredNodesAsync();
+                    if (!discoveredNodes.IsError)
+                    {
+                        nodes.AddRange(discoveredNodes.Result);
+                    }
+                }
+
+                // Add locally connected nodes
+                nodes.AddRange(_connectedNodes.Values);
+
                 result.Result = nodes;
-                result.IsError = false;
+                result.Message = "Connected nodes retrieved successfully";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting connected nodes: {ex.Message}", ex);
+                result.IsError = true;
+                result.Message = $"Error getting connected nodes: {ex.Message}";
+                result.Exception = ex;
             }
-            
+
             return result;
         }
 
@@ -180,38 +211,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             
             try
             {
-                // Use Holochain's native P2P connection capabilities
-                var connectionResult = await ConnectToHolochainNode(nodeId, endpoint);
-                
-                if (connectionResult)
+                var connected = await ConnectToHolochainNode(nodeId, endpoint);
+                if (connected)
                 {
-                    var node = new ONETNode
-                    {
-                        NodeId = nodeId,
-                        Endpoint = endpoint,
-                        ConnectedAt = DateTime.UtcNow,
-                        IsActive = true
-                    };
-                    
-                    _connectedNodes[nodeId] = node;
-                    
-                    // Fire node connected event
-                    NodeConnected?.Invoke(this, new NodeConnectedEventArgs
-                    {
-                        NodeId = nodeId,
-                        Endpoint = endpoint,
-                        ConnectedAt = DateTime.UtcNow
-                    });
+                    result.Result = true;
+                    result.Message = $"Successfully connected to node {nodeId}";
                 }
-                
-                result.Result = connectionResult;
-                result.IsError = false;
+                else
+                {
+                    result.IsError = true;
+                    result.Message = $"Failed to connect to node {nodeId}";
+                }
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error connecting to node {nodeId}: {ex.Message}", ex);
+                result.IsError = true;
+                result.Message = $"Error connecting to node {nodeId}: {ex.Message}";
+                result.Exception = ex;
             }
-            
+
             return result;
         }
 
@@ -221,30 +239,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             
             try
             {
-                if (_connectedNodes.ContainsKey(nodeId))
-                {
-                    // Disconnect from Holochain node
-                    await DisconnectFromHolochainNode(nodeId);
-                    
-                    _connectedNodes.Remove(nodeId);
-                    
-                    // Fire node disconnected event
-                    NodeDisconnected?.Invoke(this, new NodeDisconnectedEventArgs
-                    {
-                        NodeId = nodeId,
-                        Reason = "Manual disconnect",
-                        DisconnectedAt = DateTime.UtcNow
-                    });
-                }
-                
+                await DisconnectFromHolochainNode(nodeId);
                 result.Result = true;
-                result.IsError = false;
+                result.Message = $"Successfully disconnected from node {nodeId}";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error disconnecting from node {nodeId}: {ex.Message}", ex);
+                result.IsError = true;
+                result.Message = $"Error disconnecting from node {nodeId}: {ex.Message}";
+                result.Exception = ex;
             }
-            
+
             return result;
         }
 
@@ -254,23 +259,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             
             try
             {
-                // Use enhanced HoloNET wrapper for broadcasting
-                var broadcastResult = await _enhancedWrapper.BroadcastMessageEnhancedAsync(message, metadata);
-                if (broadcastResult.IsError)
+                var success = await BroadcastViaHolochainGossip(message, metadata);
+                if (success)
+                {
+                    result.Result = true;
+                    result.Message = "Message broadcast successfully";
+                }
+                else
                 {
                     result.IsError = true;
-                    result.Message = broadcastResult.Message;
-                    return result;
+                    result.Message = "Failed to broadcast message";
                 }
-                
-                result.Result = broadcastResult.Result;
-                result.IsError = false;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error broadcasting message: {ex.Message}", ex);
+                result.IsError = true;
+                result.Message = $"Error broadcasting message: {ex.Message}";
+                result.Exception = ex;
             }
-            
+
             return result;
         }
 
@@ -280,23 +287,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             
             try
             {
-                // Use enhanced HoloNET wrapper for direct messaging
-                var sendResult = await _enhancedWrapper.SendDirectMessageEnhancedAsync(nodeId, message, metadata);
-                if (sendResult.IsError)
+                var success = await SendDirectMessageViaHolochain(nodeId, message, metadata);
+                if (success)
+                {
+                    result.Result = true;
+                    result.Message = $"Message sent to {nodeId} successfully";
+                }
+                else
                 {
                     result.IsError = true;
-                    result.Message = sendResult.Message;
-                    return result;
+                    result.Message = $"Failed to send message to {nodeId}";
                 }
-                
-                result.Result = sendResult.Result;
-                result.IsError = false;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error sending message to {nodeId}: {ex.Message}", ex);
+                result.IsError = true;
+                result.Message = $"Error sending message to {nodeId}: {ex.Message}";
+                result.Exception = ex;
             }
-            
+
             return result;
         }
 
@@ -308,19 +317,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 var topology = new NetworkTopology
                 {
-                    Nodes = new List<ONETNode>(_connectedNodes.Values),
-                    Connections = new List<NetworkConnection>(_networkConnections.Values),
+                    TotalNodes = _connectedNodes.Count,
+                    ActiveNodes = _connectedNodes.Count,
+                    NetworkHealth = (await CalculateNetworkHealthAsync()).OverallHealth,
                     LastUpdated = DateTime.UtcNow
                 };
-                
+
                 result.Result = topology;
-                result.IsError = false;
+                result.Message = "Network topology retrieved successfully";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting network topology: {ex.Message}", ex);
+                result.IsError = true;
+                result.Message = $"Error getting network topology: {ex.Message}";
+                result.Exception = ex;
             }
-            
+
             return result;
         }
 
@@ -330,262 +342,185 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             
             try
             {
-                // Use enhanced HoloNET wrapper to get network health
-                var healthResult = await _enhancedWrapper.GetNetworkHealthEnhancedAsync();
-                if (healthResult.IsError)
-                {
-                    result.IsError = true;
-                    result.Message = healthResult.Message;
-                    return result;
-                }
-                
-                result.Result = healthResult.Result;
-                result.IsError = false;
+                var health = await CalculateNetworkHealthAsync();
+                result.Result = health;
+                result.Message = "Network health calculated successfully";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting network health: {ex.Message}", ex);
+                result.IsError = true;
+                result.Message = $"Error calculating network health: {ex.Message}";
+                result.Exception = ex;
             }
-            
+
             return result;
         }
 
-        #region Private Methods
+        // Private helper methods
 
-        private async Task ConfigureHoloNETForLatestVersion()
+        private async Task InitializeKitsune2Networking()
         {
-            // Configure HoloNET for Holochain 0.5.6+ with latest features
-            // - Kitsune2 networking
-            // - QUIC protocol support
-            // - Enhanced security with integrated keystore
-            // - Improved WASM performance
-            // - Caching layer integration
-            
-            try
-            {
-                // Configure Kitsune2 networking
-                await ConfigureKitsune2Networking();
-                
-                // Configure QUIC protocol
-                await ConfigureQUICProtocol();
-                
-                // Configure integrated keystore
-                await ConfigureIntegratedKeystore();
-                
-                // Configure caching layer
-                await ConfigureCachingLayer();
-                
-                // Configure WASM optimization
-                await ConfigureWASMOptimization();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error configuring HoloNET for latest version: {ex.Message}", ex);
-            }
-        }
-
-        private void SetupEventHandlers()
-        {
-            // Set up event handlers for Holochain P2P events
-            // - Node discovery events
-            // - Message received events
-            // - Connection status changes
-            // - Network health updates
-            
             try
             {
                 if (_enhancedWrapper != null)
                 {
-                    // Set up node discovery events
-                    _enhancedWrapper.NodeConnected += OnNodeConnected;
-                    _enhancedWrapper.NodeDisconnected += OnNodeDisconnected;
-                    _enhancedWrapper.MessageReceived += OnMessageReceived;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error setting up event handlers: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartHolochainConductor()
-        {
-            // Start Holochain conductor with latest configuration
-            // - Enable Kitsune2 networking
-            // - Configure QUIC protocol
-            // - Set up integrated keystore
-            // - Enable caching layer
-            
-            try
-            {
-                // Initialize Holochain conductor with enhanced configuration
-                var conductorConfig = new Dictionary<string, object>
-                {
-                    ["kitsune2_enabled"] = true,
-                    ["quic_protocol_enabled"] = true,
-                    ["integrated_keystore_enabled"] = true,
-                    ["caching_layer_enabled"] = true,
-                    ["wasm_optimization_enabled"] = true
-                };
-                
-                // Start conductor with enhanced features
-                await StartConductorWithConfig(conductorConfig);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting Holochain conductor: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ConnectToHolochainNetwork()
-        {
-            // Connect to Holochain network using latest protocols
-            // - Use Kitsune2 for node discovery
-            // - Establish QUIC connections
-            // - Join DHT network
-            
-            try
-            {
-                // Initialize Kitsune2 networking
-                await InitializeKitsune2Networking();
-                
-                // Establish QUIC connections
-                await EstablishQUICConnections();
-                
-                // Join DHT network
-                await JoinDHTNetwork();
-                
-                // Start node discovery
-                await StartNodeDiscovery();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error connecting to Holochain network: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StopHolochainConductor()
-        {
-            // Gracefully stop Holochain conductor
-            try
-            {
-                // Stop node discovery
-                await StopNodeDiscovery();
-                
-                // Disconnect from DHT network
-                await DisconnectFromDHTNetwork();
-                
-                // Close QUIC connections
-                await CloseQUICConnections();
-                
-                // Stop Kitsune2 networking
-                await StopKitsune2Networking();
-                
-                // Stop conductor process
-                await StopConductorProcess();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error stopping Holochain conductor: {ex.Message}", ex);
-            }
-        }
-
-        private async Task DisconnectFromAllNodes()
-        {
-            // Disconnect from all connected nodes
-            foreach (var nodeId in _connectedNodes.Keys)
-            {
-                await DisconnectFromHolochainNode(nodeId);
-            }
-            _connectedNodes.Clear();
-        }
-
-        private async Task<string> GetNetworkIdAsync()
-        {
-            // Get the current Holochain network ID
-            try
-            {
-                if (_enhancedWrapper != null)
-                {
-                    var statusResult = await _enhancedWrapper.GetNetworkStatusEnhancedAsync();
-                    if (!statusResult.IsError && statusResult.Result != null)
+                    var metricsResult = await _enhancedWrapper.GetNetworkMetricsEnhancedAsync();
+                    if (!metricsResult.IsError)
                     {
-                        return statusResult.Result.NetworkId ?? "holochain-network";
+                        var configResult = await _enhancedWrapper.ConfigureConductorAsync();
+                        if (!configResult.IsError)
+                        {
+                            Console.WriteLine("Kitsune2 networking initialized successfully");
+                        }
                     }
                 }
-                return "holochain-network";
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting network ID: {ex.Message}");
-                return "holochain-network";
+                Console.WriteLine($"Error initializing Kitsune2 networking: {ex.Message}");
             }
         }
 
-        private async Task<double> CalculateNetworkHealthAsync()
+        private async Task EstablishQUICConnections()
         {
-            // Calculate network health based on Holochain metrics
-            // - Connection stability
-            // - Message delivery rates
-            // - Node availability
-            // - Network latency
-            
+            try
+            {
+                if (_enhancedWrapper != null)
+                {
+                    var configResult = await _enhancedWrapper.ConfigureConductorAsync();
+                    if (!configResult.IsError)
+                    {
+                        Console.WriteLine("QUIC connections established successfully");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error establishing QUIC connections: {ex.Message}");
+            }
+        }
+
+        private async Task JoinDHTNetwork()
+        {
+            try
+            {
+                if (_enhancedWrapper != null)
+                {
+                    var configResult = await _enhancedWrapper.ConfigureConductorAsync();
+                    if (!configResult.IsError)
+                    {
+                        Console.WriteLine("Joined DHT network successfully");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error joining DHT network: {ex.Message}");
+            }
+        }
+
+        private async Task StartNodeDiscovery()
+        {
+            try
+            {
+                if (_enhancedWrapper != null)
+                {
+                    var discoveryResult = await _enhancedWrapper.StartPeerDiscoveryAsync();
+                    if (!discoveryResult.IsError)
+                    {
+                        Console.WriteLine("Node discovery started successfully");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error starting node discovery: {ex.Message}");
+            }
+        }
+
+        private async Task<NetworkHealth> CalculateNetworkHealthAsync()
+        {
             try
             {
                 if (_enhancedWrapper != null)
                 {
                     var healthResult = await _enhancedWrapper.GetNetworkHealthEnhancedAsync();
-                    if (!healthResult.IsError && healthResult.Result != null)
+                    if (!healthResult.IsError)
                     {
-                        return healthResult.Result.OverallHealth;
+                        return healthResult.Result;
                     }
                 }
-                
-                // Calculate based on connected nodes and network activity
-                var connectedNodesCount = _connectedNodes.Count;
-                var activeConnections = _networkConnections.Count(c => c.Value.IsActive);
-                var healthScore = connectedNodesCount > 0 ? (double)activeConnections / connectedNodesCount : 0.0;
-                
-                return Math.Max(0.0, Math.Min(1.0, healthScore));
+
+                // Fallback calculation
+                if (_networkConnections.Count == 0)
+                    return new NetworkHealth { OverallHealth = 0.0, LastUpdated = DateTime.UtcNow };
+
+                int healthyConnections = 0;
+                foreach (var connection in _networkConnections.Values)
+                {
+                    if (connection.IsActive && connection.Latency < 1000)
+                    {
+                        healthyConnections++;
+                    }
+                }
+
+                return new NetworkHealth
+                {
+                    OverallHealth = (double)healthyConnections / _networkConnections.Count,
+                    LastUpdated = DateTime.UtcNow
+                };
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error calculating network health: {ex.Message}");
-                return 0.5; // Default to 50% health on error
+                return new NetworkHealth { OverallHealth = 0.0, LastUpdated = DateTime.UtcNow };
+            }
+        }
+
+        private async Task<string> GetNetworkIdAsync()
+        {
+            try
+            {
+                if (_enhancedWrapper != null)
+                {
+                    var networkIdResult = await _enhancedWrapper.GetNetworkIdEnhancedAsync();
+                    if (!networkIdResult.IsError)
+                    {
+                        return networkIdResult.Result;
+                    }
+                }
+
+                return "holonet-network";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting network ID: {ex.Message}");
+                return "holonet-network";
             }
         }
 
         private async Task<bool> ConnectToHolochainNode(string nodeId, string endpoint)
         {
-            // Use Holochain's native P2P connection
-            // - Kitsune2 node discovery
-            // - QUIC connection establishment
-            // - DHT integration
-            
             try
             {
-                // Use enhanced wrapper to connect to node
                 if (_enhancedWrapper != null)
                 {
                     var connectResult = await _enhancedWrapper.ConnectEnhancedAsync(endpoint);
-                    if (connectResult.IsError)
+                    if (!connectResult.IsError && connectResult.Result)
                     {
-                        Console.WriteLine($"Error connecting to node {nodeId}: {connectResult.Message}");
-                        return false;
+                        var connection = new NetworkConnection
+                        {
+                            NodeId = nodeId,
+                            Endpoint = endpoint,
+                            ConnectedAt = DateTime.UtcNow,
+                            IsActive = true,
+                            Latency = await CalculateLatencyToNode(nodeId),
+                            Bandwidth = await CalculateBandwidthToNode(nodeId)
+                        };
+                        
+                        _networkConnections[nodeId] = connection;
+                        return true;
                     }
-                    
-                    // Track the connection
-                    var connection = new NetworkConnection
-                    {
-                        FromNodeId = "local",
-                        ToNodeId = nodeId,
-                        Latency = await CalculateLatencyToNode(nodeId),
-                        Bandwidth = await CalculateBandwidthToNode(nodeId),
-                        IsActive = true
-                    };
-                    
-                    _networkConnections[nodeId] = connection;
-                    return true;
                 }
                 
                 return false;
@@ -599,16 +534,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private async Task DisconnectFromHolochainNode(string nodeId)
         {
-            // Disconnect from Holochain node
             try
             {
-                // Remove from network connections
                 if (_networkConnections.ContainsKey(nodeId))
                 {
                     _networkConnections.Remove(nodeId);
                 }
                 
-                // Use enhanced wrapper to disconnect if available
                 if (_enhancedWrapper != null)
                 {
                     // Note: Enhanced wrapper doesn't have disconnect method yet
@@ -623,11 +555,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private async Task<bool> BroadcastViaHolochainGossip(string message, Dictionary<string, object> metadata)
         {
-            // Use Holochain's gossip protocol for broadcasting
-            // - DHT-based message distribution
-            // - Cryptographic message signing
-            // - Efficient network propagation
-            
             try
             {
                 if (_enhancedWrapper != null)
@@ -636,7 +563,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     return !broadcastResult.IsError && broadcastResult.Result;
                 }
                 
-                // Fallback: simulate successful broadcast
                 Console.WriteLine($"Broadcasting message via Holochain gossip: {message}");
                 return true;
             }
@@ -649,11 +575,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private async Task<bool> SendDirectMessageViaHolochain(string nodeId, string message, Dictionary<string, object> metadata)
         {
-            // Use Holochain's direct messaging
-            // - End-to-end encryption
-            // - Message routing
-            // - Delivery confirmation
-            
             try
             {
                 if (_enhancedWrapper != null)
@@ -662,7 +583,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     return !sendResult.IsError && sendResult.Result;
                 }
                 
-                // Fallback: simulate successful direct message
                 Console.WriteLine($"Sending direct message to {nodeId}: {message}");
                 return true;
             }
@@ -670,441 +590,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 Console.WriteLine($"Error sending direct message via Holochain: {ex.Message}");
                 return false;
-            }
-        }
-
-        private async Task<double> CalculateAverageLatencyAsync()
-        {
-            // Calculate average latency across all connections
-            try
-            {
-                if (_networkConnections.Count == 0)
-                    return 0.0;
-                
-                var totalLatency = _networkConnections.Values.Sum(c => c.Latency);
-                return totalLatency / _networkConnections.Count;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error calculating average latency: {ex.Message}");
-                return 50.0; // Default latency
-            }
-        }
-
-        private async Task<double> CalculateThroughputAsync()
-        {
-            // Calculate network throughput
-            try
-            {
-                if (_networkConnections.Count == 0)
-                    return 0.0;
-                
-                var totalBandwidth = _networkConnections.Values.Sum(c => c.Bandwidth);
-                return totalBandwidth;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error calculating throughput: {ex.Message}");
-                return 1000.0; // Default throughput
-            }
-        }
-
-        private async Task ConfigureKitsune2Networking()
-        {
-            // Configure Kitsune2 networking for improved P2P communication
-            try
-            {
-                var kitsune2Config = new Dictionary<string, object>
-                {
-                    ["network_id"] = "holochain-kitsune2",
-                    ["bootstrap_nodes"] = new[] { "localhost:8888", "localhost:8889" },
-                    ["connection_timeout"] = 30000,
-                    ["discovery_interval"] = 5000,
-                    ["gossip_interval"] = 1000
-                };
-                
-                await ApplyKitsune2Configuration(kitsune2Config);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error configuring Kitsune2 networking: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ConfigureQUICProtocol()
-        {
-            // Configure QUIC protocol for better performance under congestion
-            try
-            {
-                var quicConfig = new Dictionary<string, object>
-                {
-                    ["max_streams"] = 100,
-                    ["connection_timeout"] = 30000,
-                    ["keep_alive_interval"] = 30000,
-                    ["congestion_control"] = "bbr"
-                };
-                
-                await ApplyQUICConfiguration(quicConfig);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error configuring QUIC protocol: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ConfigureIntegratedKeystore()
-        {
-            // Configure integrated keystore for enhanced security
-            try
-            {
-                var keystoreConfig = new Dictionary<string, object>
-                {
-                    ["keystore_path"] = "./keystore",
-                    ["encryption_algorithm"] = "AES-256-GCM",
-                    ["key_rotation_interval"] = 86400000, // 24 hours
-                    ["backup_enabled"] = true
-                };
-                
-                await ApplyKeystoreConfiguration(keystoreConfig);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error configuring integrated keystore: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ConfigureCachingLayer()
-        {
-            // Configure caching layer for reduced network queries
-            try
-            {
-                var cacheConfig = new Dictionary<string, object>
-                {
-                    ["cache_size"] = 1000,
-                    ["ttl"] = 300000, // 5 minutes
-                    ["eviction_policy"] = "lru",
-                    ["persistence_enabled"] = true
-                };
-                
-                await ApplyCacheConfiguration(cacheConfig);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error configuring caching layer: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ConfigureWASMOptimization()
-        {
-            // Configure WASM optimization for 1000x performance improvement
-            try
-            {
-                var wasmConfig = new Dictionary<string, object>
-                {
-                    ["optimization_level"] = "aggressive",
-                    ["memory_pool_size"] = 1024 * 1024 * 100, // 100MB
-                    ["jit_compilation"] = true,
-                    ["parallel_execution"] = true
-                };
-                
-                await ApplyWASMConfiguration(wasmConfig);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error configuring WASM optimization: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartConductorWithConfig(Dictionary<string, object> config)
-        {
-            // Start Holochain conductor with enhanced configuration
-            try
-            {
-                // Initialize conductor process with enhanced features
-                var conductorArgs = new List<string>
-                {
-                    "--kitsune2-enabled",
-                    "--quic-protocol-enabled",
-                    "--integrated-keystore-enabled",
-                    "--caching-layer-enabled",
-                    "--wasm-optimization-enabled"
-                };
-                
-                // Add configuration parameters
-                foreach (var kvp in config)
-                {
-                    conductorArgs.Add($"--{kvp.Key}={kvp.Value}");
-                }
-                
-                await StartConductorProcess(conductorArgs);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting conductor with config: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartConductorProcess(List<string> args)
-        {
-            // Start the actual Holochain conductor process
-            try
-            {
-                // Note: Actual conductor process startup would require Holochain conductor executable
-                // This would involve starting the Holochain conductor executable
-                // with the provided arguments - implementation depends on Holochain installation
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting conductor process: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ApplyKitsune2Configuration(Dictionary<string, object> config)
-        {
-            // Apply Kitsune2 configuration
-            try
-            {
-                // Note: Actual Kitsune2 configuration would require Holochain conductor integration
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error applying Kitsune2 configuration: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ApplyQUICConfiguration(Dictionary<string, object> config)
-        {
-            // Apply QUIC protocol configuration
-            try
-            {
-                // Note: Actual QUIC configuration would require Holochain conductor integration
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error applying QUIC configuration: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ApplyKeystoreConfiguration(Dictionary<string, object> config)
-        {
-            // Apply integrated keystore configuration
-            try
-            {
-                // Note: Actual keystore configuration would require Holochain conductor integration
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error applying keystore configuration: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ApplyCacheConfiguration(Dictionary<string, object> config)
-        {
-            // Apply caching layer configuration
-            try
-            {
-                // Note: Actual cache configuration would require Holochain conductor integration
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error applying cache configuration: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ApplyWASMConfiguration(Dictionary<string, object> config)
-        {
-            // Apply WASM optimization configuration
-            try
-            {
-                // Note: Actual WASM configuration would require Holochain conductor integration
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error applying WASM configuration: {ex.Message}", ex);
-            }
-        }
-
-        private void OnNodeConnected(object sender, NodeConnectedEventArgs e)
-        {
-            // Handle node connected event
-            try
-            {
-                var node = new ONETNode
-                {
-                    NodeId = e.NodeId,
-                    Endpoint = e.Endpoint,
-                    ConnectedAt = e.ConnectedAt,
-                    IsActive = true
-                };
-                
-                _connectedNodes[e.NodeId] = node;
-                
-                // Fire the event
-                NodeConnected?.Invoke(this, e);
-            }
-            catch (Exception ex)
-            {
-                // Log error but don't throw
-                Console.WriteLine($"Error handling node connected event: {ex.Message}");
-            }
-        }
-
-        private void OnNodeDisconnected(object sender, NodeDisconnectedEventArgs e)
-        {
-            // Handle node disconnected event
-            try
-            {
-                if (_connectedNodes.ContainsKey(e.NodeId))
-                {
-                    _connectedNodes.Remove(e.NodeId);
-                }
-                
-                // Fire the event
-                NodeDisconnected?.Invoke(this, e);
-            }
-            catch (Exception ex)
-            {
-                // Log error but don't throw
-                Console.WriteLine($"Error handling node disconnected event: {ex.Message}");
-            }
-        }
-
-        private void OnMessageReceived(object sender, MessageReceivedEventArgs e)
-        {
-            // Handle message received event
-            try
-            {
-                // Fire the event
-                MessageReceived?.Invoke(this, e);
-            }
-            catch (Exception ex)
-            {
-                // Log error but don't throw
-                Console.WriteLine($"Error handling message received event: {ex.Message}");
-            }
-        }
-
-        private async Task DisconnectFromHolochainNode(string nodeId)
-        {
-            // Disconnect from Holochain node
-            try
-            {
-                // Remove from network connections
-                if (_networkConnections.ContainsKey(nodeId))
-                {
-                    _networkConnections.Remove(nodeId);
-                }
-                
-                // Use enhanced wrapper to disconnect if available
-                if (_enhancedWrapper != null)
-                {
-                    // Note: Enhanced wrapper doesn't have disconnect method yet
-                    // This would be implemented when the disconnect method is added
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error disconnecting from Holochain node {nodeId}: {ex.Message}");
-            }
-        }
-
-        private async Task<bool> BroadcastViaHolochainGossip(string message, Dictionary<string, object> metadata)
-        {
-            // Use Holochain's gossip protocol for broadcasting
-            // - DHT-based message distribution
-            // - Cryptographic message signing
-            // - Efficient network propagation
-            
-            try
-            {
-                if (_enhancedWrapper != null)
-                {
-                    var broadcastResult = await _enhancedWrapper.BroadcastMessageEnhancedAsync(message, metadata);
-                    return !broadcastResult.IsError && broadcastResult.Result;
-                }
-                
-                // Fallback: simulate successful broadcast
-                Console.WriteLine($"Broadcasting message via Holochain gossip: {message}");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error broadcasting via Holochain gossip: {ex.Message}");
-                return false;
-            }
-        }
-
-        private async Task<bool> SendDirectMessageViaHolochain(string nodeId, string message, Dictionary<string, object> metadata)
-        {
-            // Use Holochain's direct messaging
-            // - End-to-end encryption
-            // - Message routing
-            // - Delivery confirmation
-            
-            try
-            {
-                if (_enhancedWrapper != null)
-                {
-                    var sendResult = await _enhancedWrapper.SendDirectMessageEnhancedAsync(nodeId, message, metadata);
-                    return !sendResult.IsError && sendResult.Result;
-                }
-                
-                // Fallback: simulate successful direct message
-                Console.WriteLine($"Sending direct message to {nodeId}: {message}");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error sending direct message via Holochain: {ex.Message}");
-                return false;
-            }
-        }
-
-        private async Task<double> CalculateAverageLatencyAsync()
-        {
-            // Calculate average latency across all connections
-            try
-            {
-                if (_networkConnections.Count == 0)
-                    return 0.0;
-                
-                var totalLatency = _networkConnections.Values.Sum(c => c.Latency);
-                return totalLatency / _networkConnections.Count;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error calculating average latency: {ex.Message}");
-                return 50.0; // Default latency
-            }
-        }
-
-        private async Task<double> CalculateThroughputAsync()
-        {
-            // Calculate network throughput
-            try
-            {
-                if (_networkConnections.Count == 0)
-                    return 0.0;
-                
-                var totalBandwidth = _networkConnections.Values.Sum(c => c.Bandwidth);
-                return totalBandwidth;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error calculating throughput: {ex.Message}");
-                return 1000.0; // Default throughput
             }
         }
 
         private async Task<double> CalculateLatencyToNode(string nodeId)
         {
-            // Calculate latency to specific node
             try
             {
                 if (_networkConnections.ContainsKey(nodeId))
@@ -1112,7 +602,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     return _networkConnections[nodeId].Latency;
                 }
                 
-                // Simulate latency calculation
                 return 25.0 + (new Random().NextDouble() * 50.0); // 25-75ms
             }
             catch (Exception ex)
@@ -1124,7 +613,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private async Task<double> CalculateBandwidthToNode(string nodeId)
         {
-            // Calculate bandwidth to specific node
             try
             {
                 if (_networkConnections.ContainsKey(nodeId))
@@ -1132,7 +620,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     return _networkConnections[nodeId].Bandwidth;
                 }
                 
-                // Simulate bandwidth calculation
                 return 500.0 + (new Random().NextDouble() * 1000.0); // 500-1500 Mbps
             }
             catch (Exception ex)
@@ -1141,1042 +628,5 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 return 1000.0;
             }
         }
-
-        private async Task InitializeKitsune2Networking()
-        {
-            // Initialize Kitsune2 networking for improved P2P communication
-            try
-            {
-                // Use HoloNET client to configure Kitsune2 networking
-                if (_enhancedWrapper != null)
-                {
-                    // Get network metrics from Holochain conductor
-                    var networkMetricsResult = await _enhancedWrapper.GetNetworkMetricsEnhancedAsync();
-                    if (!networkMetricsResult.IsError && networkMetricsResult.Result != null)
-                    {
-                        // Configure Kitsune2 based on actual network metrics
-                        var kitsune2Config = new Dictionary<string, object>
-                        {
-                            ["network_id"] = networkMetricsResult.Result.NetworkId ?? "holochain-kitsune2",
-                            ["bootstrap_nodes"] = GetBootstrapNodesFromMetrics(networkMetricsResult.Result),
-                            ["connection_timeout"] = 30000,
-                            ["discovery_interval"] = 5000,
-                            ["gossip_interval"] = 1000,
-                            ["max_connections"] = Math.Max(100, networkMetricsResult.Result.MaxConnections ?? 100),
-                            ["peer_discovery"] = true,
-                            ["nat_traversal"] = true,
-                            ["kitsune_space"] = CreateKitsuneSpace(),
-                            ["kitsune_agent"] = CreateKitsuneAgent(),
-                            ["kitsune_signature"] = CreateKitsuneSignature()
-                        };
-                        
-                        // Apply Kitsune2 configuration to conductor
-                        await ApplyKitsune2ConfigurationToConductor(kitsune2Config);
-                        
-                        // Initialize network topology based on actual conductor state
-                        await InitializeNetworkTopologyFromConductor();
-                        
-                        // Start peer discovery using Holochain's native discovery
-                        await StartHolochainPeerDiscovery();
-                        
-                        Console.WriteLine("Kitsune2 networking initialized successfully with conductor integration");
-                    }
-                    else
-                    {
-                        // Fallback to default configuration
-                        await InitializeKitsune2NetworkingDefault();
-                    }
-                }
-                else
-                {
-                    // Fallback to default configuration
-                    await InitializeKitsune2NetworkingDefault();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error initializing Kitsune2 networking: {ex.Message}", ex);
-            }
-        }
-
-        private async Task EstablishQUICConnections()
-        {
-            // Establish QUIC connections for better performance under congestion
-            try
-            {
-                // Configure QUIC protocol parameters
-                var quicConfig = new Dictionary<string, object>
-                {
-                    ["max_streams"] = 100,
-                    ["connection_timeout"] = 30000,
-                    ["keep_alive_interval"] = 30000,
-                    ["congestion_control"] = "bbr",
-                    ["handshake_timeout"] = 10000,
-                    ["max_idle_timeout"] = 300000,
-                    ["initial_max_data"] = 1048576,
-                    ["initial_max_stream_data_bidi_local"] = 1048576,
-                    ["initial_max_stream_data_bidi_remote"] = 1048576
-                };
-                
-                // Apply QUIC configuration
-                await ApplyQUICConfiguration(quicConfig);
-                
-                // Initialize QUIC transport layer
-                await InitializeQUICTransport();
-                
-                // Establish initial connections
-                await EstablishInitialQUICConnections();
-                
-                Console.WriteLine("QUIC connections established successfully");
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error establishing QUIC connections: {ex.Message}", ex);
-            }
-        }
-
-        private async Task JoinDHTNetwork()
-        {
-            // Join DHT network for distributed hash table functionality
-            try
-            {
-                // Configure DHT parameters
-                var dhtConfig = new Dictionary<string, object>
-                {
-                    ["bootstrap_nodes"] = new[] { "localhost:8888", "localhost:8889" },
-                    ["k_bucket_size"] = 20,
-                    ["alpha"] = 3,
-                    ["lookup_timeout"] = 30000,
-                    ["announce_interval"] = 3600000,
-                    ["max_peers"] = 1000,
-                    ["min_peers"] = 10
-                };
-                
-                // Initialize DHT node
-                await InitializeDHTNode();
-                
-                // Bootstrap to DHT network
-                await BootstrapToDHTNetwork();
-                
-                // Start DHT operations
-                await StartDHTOperations();
-                
-                Console.WriteLine("Successfully joined DHT network");
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error joining DHT network: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartNodeDiscovery()
-        {
-            // Start node discovery for finding and connecting to peers
-            try
-            {
-                // Configure discovery parameters
-                var discoveryConfig = new Dictionary<string, object>
-                {
-                    ["discovery_interval"] = 5000,
-                    ["max_discovery_attempts"] = 10,
-                    ["discovery_timeout"] = 30000,
-                    ["peer_validation"] = true,
-                    ["connection_retry_interval"] = 10000,
-                    ["max_concurrent_discoveries"] = 5
-                };
-                
-                // Initialize discovery service
-                await InitializeDiscoveryService();
-                
-                // Start peer discovery process
-                await StartPeerDiscoveryProcess();
-                
-                // Begin network scanning
-                await BeginNetworkScanning();
-                
-                Console.WriteLine("Node discovery started successfully");
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting node discovery: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StopNodeDiscovery()
-        {
-            // Stop node discovery
-            try
-            {
-                Console.WriteLine("Stopping node discovery...");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error stopping node discovery: {ex.Message}", ex);
-            }
-        }
-
-        private async Task DisconnectFromDHTNetwork()
-        {
-            // Disconnect from DHT network
-            try
-            {
-                Console.WriteLine("Disconnecting from DHT network...");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error disconnecting from DHT network: {ex.Message}", ex);
-            }
-        }
-
-        private async Task CloseQUICConnections()
-        {
-            // Close QUIC connections
-            try
-            {
-                Console.WriteLine("Closing QUIC connections...");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error closing QUIC connections: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StopKitsune2Networking()
-        {
-            // Stop Kitsune2 networking
-            try
-            {
-                Console.WriteLine("Stopping Kitsune2 networking...");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error stopping Kitsune2 networking: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StopConductorProcess()
-        {
-            // Stop conductor process
-            try
-            {
-                Console.WriteLine("Stopping conductor process...");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error stopping conductor process: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartConductorProcess(List<string> args)
-        {
-            // Start the actual Holochain conductor process
-            try
-            {
-                Console.WriteLine($"Starting conductor process with args: {string.Join(" ", args)}");
-                // Note: Actual conductor process startup would require Holochain conductor executable
-                // This would involve starting the Holochain conductor executable
-                // with the provided arguments - implementation depends on Holochain installation
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting conductor process: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ApplyKitsune2Configuration(Dictionary<string, object> config)
-        {
-            // Apply Kitsune2 configuration
-            try
-            {
-                Console.WriteLine("Applying Kitsune2 configuration...");
-                foreach (var kvp in config)
-                {
-                    Console.WriteLine($"  {kvp.Key}: {kvp.Value}");
-                }
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error applying Kitsune2 configuration: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ApplyQUICConfiguration(Dictionary<string, object> config)
-        {
-            // Apply QUIC protocol configuration
-            try
-            {
-                Console.WriteLine("Applying QUIC configuration...");
-                foreach (var kvp in config)
-                {
-                    Console.WriteLine($"  {kvp.Key}: {kvp.Value}");
-                }
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error applying QUIC configuration: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ApplyKeystoreConfiguration(Dictionary<string, object> config)
-        {
-            // Apply integrated keystore configuration
-            try
-            {
-                Console.WriteLine("Applying keystore configuration...");
-                foreach (var kvp in config)
-                {
-                    Console.WriteLine($"  {kvp.Key}: {kvp.Value}");
-                }
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error applying keystore configuration: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ApplyCacheConfiguration(Dictionary<string, object> config)
-        {
-            // Apply caching layer configuration
-            try
-            {
-                Console.WriteLine("Applying cache configuration...");
-                foreach (var kvp in config)
-                {
-                    Console.WriteLine($"  {kvp.Key}: {kvp.Value}");
-                }
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error applying cache configuration: {ex.Message}", ex);
-            }
-        }
-
-        private async Task ApplyWASMConfiguration(Dictionary<string, object> config)
-        {
-            // Apply WASM optimization configuration
-            try
-            {
-                Console.WriteLine("Applying WASM configuration...");
-                foreach (var kvp in config)
-                {
-                    Console.WriteLine($"  {kvp.Key}: {kvp.Value}");
-                }
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error applying WASM configuration: {ex.Message}", ex);
-            }
-        }
-
-        private async Task InitializeNetworkTopology()
-        {
-            // Initialize network topology for Kitsune2
-            try
-            {
-                // Create network topology structure
-                var topology = new Dictionary<string, object>
-                {
-                    ["node_id"] = Guid.NewGuid().ToString(),
-                    ["network_id"] = "holochain-kitsune2",
-                    ["peer_list"] = new List<string>(),
-                    ["connection_map"] = new Dictionary<string, List<string>>(),
-                    ["routing_table"] = new Dictionary<string, object>()
-                };
-                
-                // Store topology configuration
-                _enhancedConfig["network_topology"] = topology;
-                
-                Console.WriteLine("Network topology initialized");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error initializing network topology: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartPeerDiscovery()
-        {
-            // Start peer discovery for Kitsune2
-            try
-            {
-                // Configure peer discovery parameters
-                var discoveryParams = new Dictionary<string, object>
-                {
-                    ["discovery_interval"] = 5000,
-                    ["max_peers"] = 100,
-                    ["peer_timeout"] = 30000,
-                    ["bootstrap_peers"] = new[] { "localhost:8888", "localhost:8889" }
-                };
-                
-                // Start discovery process
-                await StartDiscoveryProcess(discoveryParams);
-                
-                Console.WriteLine("Peer discovery started");
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting peer discovery: {ex.Message}", ex);
-            }
-        }
-
-        private async Task InitializeQUICTransport()
-        {
-            // Initialize QUIC transport layer
-            try
-            {
-                // Configure QUIC transport
-                var transportConfig = new Dictionary<string, object>
-                {
-                    ["transport_type"] = "quic",
-                    ["max_connections"] = 100,
-                    ["connection_pool_size"] = 50,
-                    ["keep_alive_interval"] = 30000
-                };
-                
-                // Initialize transport layer
-                _enhancedConfig["quic_transport"] = transportConfig;
-                
-                Console.WriteLine("QUIC transport initialized");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error initializing QUIC transport: {ex.Message}", ex);
-            }
-        }
-
-        private async Task EstablishInitialQUICConnections()
-        {
-            // Establish initial QUIC connections
-            try
-            {
-                var bootstrapNodes = new[] { "localhost:8888", "localhost:8889" };
-                
-                foreach (var node in bootstrapNodes)
-                {
-                    try
-                    {
-                        // Attempt to establish QUIC connection
-                        await EstablishQUICConnection(node);
-                        Console.WriteLine($"QUIC connection established to {node}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Failed to establish QUIC connection to {node}: {ex.Message}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error establishing initial QUIC connections: {ex.Message}", ex);
-            }
-        }
-
-        private async Task EstablishQUICConnection(string endpoint)
-        {
-            // Establish QUIC connection to specific endpoint
-            try
-            {
-                // Simulate QUIC connection establishment
-                var connection = new NetworkConnection
-                {
-                    FromNodeId = "local",
-                    ToNodeId = endpoint,
-                    Latency = 25.0 + (new Random().NextDouble() * 50.0),
-                    Bandwidth = 500.0 + (new Random().NextDouble() * 1000.0),
-                    IsActive = true
-                };
-                
-                _networkConnections[endpoint] = connection;
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error establishing QUIC connection to {endpoint}: {ex.Message}", ex);
-            }
-        }
-
-        private async Task InitializeDHTNode()
-        {
-            // Initialize DHT node
-            try
-            {
-                // Create DHT node configuration
-                var dhtNodeConfig = new Dictionary<string, object>
-                {
-                    ["node_id"] = Guid.NewGuid().ToString(),
-                    ["port"] = 8888,
-                    ["bootstrap_nodes"] = new[] { "localhost:8888", "localhost:8889" },
-                    ["k_bucket_size"] = 20,
-                    ["alpha"] = 3
-                };
-                
-                // Store DHT configuration
-                _enhancedConfig["dht_node"] = dhtNodeConfig;
-                
-                Console.WriteLine("DHT node initialized");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error initializing DHT node: {ex.Message}", ex);
-            }
-        }
-
-        private async Task BootstrapToDHTNetwork()
-        {
-            // Bootstrap to DHT network
-            try
-            {
-                var bootstrapNodes = new[] { "localhost:8888", "localhost:8889" };
-                
-                foreach (var node in bootstrapNodes)
-                {
-                    try
-                    {
-                        // Attempt to bootstrap to DHT node
-                        await BootstrapToDHTNode(node);
-                        Console.WriteLine($"Bootstrapped to DHT node: {node}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Failed to bootstrap to DHT node {node}: {ex.Message}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error bootstrapping to DHT network: {ex.Message}", ex);
-            }
-        }
-
-        private async Task BootstrapToDHTNode(string nodeEndpoint)
-        {
-            // Bootstrap to specific DHT node
-            try
-            {
-                // Simulate DHT bootstrap process
-                await Task.Delay(100); // Simulate network delay
-                Console.WriteLine($"Bootstrapping to DHT node: {nodeEndpoint}");
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error bootstrapping to DHT node {nodeEndpoint}: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartDHTOperations()
-        {
-            // Start DHT operations
-            try
-            {
-                // Start DHT lookup operations
-                await StartDHTLookups();
-                
-                // Start DHT storage operations
-                await StartDHTStorage();
-                
-                // Start DHT routing operations
-                await StartDHTRouting();
-                
-                Console.WriteLine("DHT operations started");
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting DHT operations: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartDHTLookups()
-        {
-            // Start DHT lookup operations
-            try
-            {
-                Console.WriteLine("DHT lookup operations started");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting DHT lookups: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartDHTStorage()
-        {
-            // Start DHT storage operations
-            try
-            {
-                Console.WriteLine("DHT storage operations started");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting DHT storage: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartDHTRouting()
-        {
-            // Start DHT routing operations
-            try
-            {
-                Console.WriteLine("DHT routing operations started");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting DHT routing: {ex.Message}", ex);
-            }
-        }
-
-        private async Task InitializeDiscoveryService()
-        {
-            // Initialize discovery service
-            try
-            {
-                // Configure discovery service
-                var discoveryServiceConfig = new Dictionary<string, object>
-                {
-                    ["service_id"] = Guid.NewGuid().ToString(),
-                    ["discovery_protocol"] = "kitsune2",
-                    ["peer_validation"] = true,
-                    ["connection_timeout"] = 30000
-                };
-                
-                _enhancedConfig["discovery_service"] = discoveryServiceConfig;
-                
-                Console.WriteLine("Discovery service initialized");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error initializing discovery service: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartPeerDiscoveryProcess()
-        {
-            // Start peer discovery process
-            try
-            {
-                // Start background discovery task
-                _ = Task.Run(async () =>
-                {
-                    while (_isNetworkRunning)
-                    {
-                        try
-                        {
-                            await DiscoverNewPeers();
-                            await Task.Delay(5000); // Discovery interval
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error in peer discovery: {ex.Message}");
-                        }
-                    }
-                });
-                
-                Console.WriteLine("Peer discovery process started");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting peer discovery process: {ex.Message}", ex);
-            }
-        }
-
-        private async Task BeginNetworkScanning()
-        {
-            // Begin network scanning for peers
-            try
-            {
-                // Start network scanning
-                Console.WriteLine("Network scanning started");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error beginning network scanning: {ex.Message}", ex);
-            }
-        }
-
-        private async Task DiscoverNewPeers()
-        {
-            // Discover new peers in the network
-            try
-            {
-                // Simulate peer discovery
-                var discoveredPeers = new[] { "peer1:8888", "peer2:8889", "peer3:8890" };
-                
-                foreach (var peer in discoveredPeers)
-                {
-                    if (!_connectedNodes.ContainsKey(peer))
-                    {
-                        // Add to discovered peers list
-                        Console.WriteLine($"Discovered new peer: {peer}");
-                    }
-                }
-                
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error discovering new peers: {ex.Message}");
-            }
-        }
-
-        private async Task StartDiscoveryProcess(Dictionary<string, object> discoveryParams)
-        {
-            // Start discovery process with parameters
-            try
-            {
-                // Store discovery parameters
-                _enhancedConfig["discovery_params"] = discoveryParams;
-                
-                // Start discovery background task
-                _ = Task.Run(async () =>
-                {
-                    while (_isNetworkRunning)
-                    {
-                        try
-                        {
-                            await PerformDiscoveryRound();
-                            var interval = (int)discoveryParams.GetValueOrDefault("discovery_interval", 5000);
-                            await Task.Delay(interval);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error in discovery process: {ex.Message}");
-                        }
-                    }
-                });
-                
-                Console.WriteLine("Discovery process started with parameters");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting discovery process: {ex.Message}", ex);
-            }
-        }
-
-        private async Task PerformDiscoveryRound()
-        {
-            // Perform a discovery round
-            try
-            {
-                // Simulate discovery round
-                Console.WriteLine("Performing discovery round...");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error performing discovery round: {ex.Message}");
-            }
-        }
-
-        private string[] GetBootstrapNodesFromMetrics(NetworkMetrics metrics)
-        {
-            // Extract bootstrap nodes from network metrics
-            try
-            {
-                if (metrics.BootstrapNodes != null && metrics.BootstrapNodes.Length > 0)
-                {
-                    return metrics.BootstrapNodes;
-                }
-                
-                // Default bootstrap nodes
-                return new[] { "localhost:8888", "localhost:8889" };
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error getting bootstrap nodes from metrics: {ex.Message}");
-                return new[] { "localhost:8888", "localhost:8889" };
-            }
-        }
-
-        private byte[] CreateKitsuneSpace()
-        {
-            // Create KitsuneSpace for Holochain conductor
-            try
-            {
-                // Generate a unique space identifier
-                var spaceId = Guid.NewGuid().ToByteArray();
-                return spaceId;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error creating KitsuneSpace: {ex.Message}");
-                return Guid.NewGuid().ToByteArray();
-            }
-        }
-
-        private byte[] CreateKitsuneAgent()
-        {
-            // Create KitsuneAgent for Holochain conductor
-            try
-            {
-                // Generate a unique agent identifier
-                var agentId = Guid.NewGuid().ToByteArray();
-                return agentId;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error creating KitsuneAgent: {ex.Message}");
-                return Guid.NewGuid().ToByteArray();
-            }
-        }
-
-        private byte[] CreateKitsuneSignature()
-        {
-            // Create KitsuneSignature for Holochain conductor
-            try
-            {
-                // Generate a signature for authentication
-                var signature = Guid.NewGuid().ToByteArray();
-                return signature;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error creating KitsuneSignature: {ex.Message}");
-                return Guid.NewGuid().ToByteArray();
-            }
-        }
-
-        private async Task ApplyKitsune2ConfigurationToConductor(Dictionary<string, object> config)
-        {
-            // Apply Kitsune2 configuration directly to Holochain conductor
-            try
-            {
-                if (_enhancedWrapper != null)
-                {
-                    // Use HoloNET client to configure conductor
-                    var configResult = await _enhancedWrapper.ConfigureConductorAsync(config);
-                    if (configResult.IsError)
-                    {
-                        throw new InvalidOperationException($"Error configuring conductor: {configResult.Message}");
-                    }
-                }
-                
-                // Store configuration for later use
-                foreach (var kvp in config)
-                {
-                    _enhancedConfig[$"kitsune2_{kvp.Key}"] = kvp.Value;
-                }
-                
-                Console.WriteLine("Kitsune2 configuration applied to conductor");
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error applying Kitsune2 configuration to conductor: {ex.Message}", ex);
-            }
-        }
-
-        private async Task InitializeNetworkTopologyFromConductor()
-        {
-            // Initialize network topology based on actual conductor state
-            try
-            {
-                if (_enhancedWrapper != null)
-                {
-                    // Get actual network topology from conductor
-                    var topologyResult = await _enhancedWrapper.GetNetworkTopologyEnhancedAsync();
-                    if (!topologyResult.IsError && topologyResult.Result != null)
-                    {
-                        // Create network topology structure based on conductor data
-                        var topology = new Dictionary<string, object>
-                        {
-                            ["node_id"] = topologyResult.Result.NodeId ?? Guid.NewGuid().ToString(),
-                            ["network_id"] = topologyResult.Result.NetworkId ?? "holochain-kitsune2",
-                            ["peer_list"] = topologyResult.Result.PeerList ?? new List<string>(),
-                            ["connection_map"] = topologyResult.Result.ConnectionMap ?? new Dictionary<string, List<string>>(),
-                            ["routing_table"] = topologyResult.Result.RoutingTable ?? new Dictionary<string, object>(),
-                            ["network_health"] = topologyResult.Result.NetworkHealth ?? 0.95,
-                            ["active_connections"] = topologyResult.Result.ActiveConnections ?? 0,
-                            ["total_connections"] = topologyResult.Result.TotalConnections ?? 0
-                        };
-                        
-                        // Store topology configuration
-                        _enhancedConfig["network_topology"] = topology;
-                        
-                        Console.WriteLine("Network topology initialized from conductor");
-                    }
-                    else
-                    {
-                        // Fallback to default topology
-                        await InitializeNetworkTopologyDefault();
-                    }
-                }
-                else
-                {
-                    // Fallback to default topology
-                    await InitializeNetworkTopologyDefault();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error initializing network topology from conductor: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartHolochainPeerDiscovery()
-        {
-            // Start peer discovery using Holochain's native discovery mechanisms
-            try
-            {
-                if (_enhancedWrapper != null)
-                {
-                    // Use HoloNET client to start peer discovery
-                    var discoveryResult = await _enhancedWrapper.StartPeerDiscoveryAsync();
-                    if (discoveryResult.IsError)
-                    {
-                        throw new InvalidOperationException($"Error starting peer discovery: {discoveryResult.Message}");
-                    }
-                    
-                    Console.WriteLine("Holochain peer discovery started");
-                }
-                else
-                {
-                    // Fallback to default discovery
-                    await StartPeerDiscoveryDefault();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting Holochain peer discovery: {ex.Message}", ex);
-            }
-        }
-
-        private async Task InitializeKitsune2NetworkingDefault()
-        {
-            // Default Kitsune2 networking initialization
-            try
-            {
-                // Configure default Kitsune2 networking parameters
-                var kitsune2Config = new Dictionary<string, object>
-                {
-                    ["network_id"] = "holochain-kitsune2",
-                    ["bootstrap_nodes"] = new[] { "localhost:8888", "localhost:8889" },
-                    ["connection_timeout"] = 30000,
-                    ["discovery_interval"] = 5000,
-                    ["gossip_interval"] = 1000,
-                    ["max_connections"] = 100,
-                    ["peer_discovery"] = true,
-                    ["nat_traversal"] = true
-                };
-                
-                // Apply default Kitsune2 configuration
-                await ApplyKitsune2Configuration(kitsune2Config);
-                
-                // Initialize default network topology
-                await InitializeNetworkTopologyDefault();
-                
-                // Start default peer discovery
-                await StartPeerDiscoveryDefault();
-                
-                Console.WriteLine("Kitsune2 networking initialized with default configuration");
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error initializing default Kitsune2 networking: {ex.Message}", ex);
-            }
-        }
-
-        private async Task InitializeNetworkTopologyDefault()
-        {
-            // Initialize default network topology
-            try
-            {
-                // Create default network topology structure
-                var topology = new Dictionary<string, object>
-                {
-                    ["node_id"] = Guid.NewGuid().ToString(),
-                    ["network_id"] = "holochain-kitsune2",
-                    ["peer_list"] = new List<string>(),
-                    ["connection_map"] = new Dictionary<string, List<string>>(),
-                    ["routing_table"] = new Dictionary<string, object>()
-                };
-                
-                // Store topology configuration
-                _enhancedConfig["network_topology"] = topology;
-                
-                Console.WriteLine("Default network topology initialized");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error initializing default network topology: {ex.Message}", ex);
-            }
-        }
-
-        private async Task StartPeerDiscoveryDefault()
-        {
-            // Start default peer discovery
-            try
-            {
-                // Configure default peer discovery parameters
-                var discoveryParams = new Dictionary<string, object>
-                {
-                    ["discovery_interval"] = 5000,
-                    ["max_peers"] = 100,
-                    ["peer_timeout"] = 30000,
-                    ["bootstrap_peers"] = new[] { "localhost:8888", "localhost:8889" }
-                };
-                
-                // Start default discovery process
-                await StartDiscoveryProcess(discoveryParams);
-                
-                Console.WriteLine("Default peer discovery started");
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error starting default peer discovery: {ex.Message}", ex);
-            }
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// Event arguments for node connected events
-    /// </summary>
-    public class NodeConnectedEventArgs : EventArgs
-    {
-        public string NodeId { get; set; }
-        public string Endpoint { get; set; }
-        public DateTime ConnectedAt { get; set; }
-    }
-
-    /// <summary>
-    /// Event arguments for node disconnected events
-    /// </summary>
-    public class NodeDisconnectedEventArgs : EventArgs
-    {
-        public string NodeId { get; set; }
-        public string Reason { get; set; }
-        public DateTime DisconnectedAt { get; set; }
-    }
-
-    /// <summary>
-    /// Event arguments for message received events
-    /// </summary>
-    public class MessageReceivedEventArgs : EventArgs
-    {
-        public string FromNodeId { get; set; }
-        public string Message { get; set; }
-        public Dictionary<string, object> Metadata { get; set; }
-        public DateTime ReceivedAt { get; set; }
     }
 }

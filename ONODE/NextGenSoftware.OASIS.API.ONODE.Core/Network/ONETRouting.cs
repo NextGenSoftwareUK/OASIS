@@ -25,6 +25,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public ONETRouting(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
         }
+
+        public async Task InitializeAsync()
+        {
+            // Initialize routing system
+            await Task.CompletedTask;
+        }
+
+        public async Task StartAsync()
+        {
+            await StartRoutingAsync();
+        }
         private bool _isRoutingActive = false;
         private readonly object _routingLock = new object();
 
@@ -639,14 +650,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public bool IsValid { get; set; }
         public int Priority { get; set; }
         public double TotalCost { get; set; }
-    }
-
-    public class NetworkMetrics
-    {
-        public double Latency { get; set; }
-        public int Reliability { get; set; }
-        public int Throughput { get; set; }
-        public DateTime LastUpdated { get; set; }
     }
 
     public class RoutingStats
