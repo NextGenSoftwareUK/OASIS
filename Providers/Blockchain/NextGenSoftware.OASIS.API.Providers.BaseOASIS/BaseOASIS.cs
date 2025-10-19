@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Net.Http.Headers;
 using Nethereum.Web3.Accounts;
 using Nethereum.Web3;
 using NextGenSoftware.OASIS.API.Core;
@@ -83,6 +84,68 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
     private HttpClient _httpClient;
     private HttpClient _baseClient;
     private bool _isActivated;
+
+    // HttpClient extension methods for BaseOASIS API
+    private async Task<HttpResponseMessage> GetAccountByEmailAsync(string email)
+    {
+        return await _httpClient.GetAsync($"/api/v1/accounts/by-email/{email}");
+    }
+
+    private async Task<HttpResponseMessage> GetAccountByProviderKeyAsync(string providerKey)
+    {
+        return await _httpClient.GetAsync($"/api/v1/accounts/by-provider-key/{providerKey}");
+    }
+
+    private async Task<HttpResponseMessage> GetAccountByUsernameAsync(string username)
+    {
+        return await _httpClient.GetAsync($"/api/v1/accounts/by-username/{username}");
+    }
+
+    private async Task<HttpResponseMessage> GetAvatarDetailByEmailAsync(string email)
+    {
+        return await _httpClient.GetAsync($"/api/v1/avatars/by-email/{email}");
+    }
+
+    private async Task<HttpResponseMessage> GetAvatarDetailByUsernameAsync(string username)
+    {
+        return await _httpClient.GetAsync($"/api/v1/avatars/by-username/{username}");
+    }
+
+    private async Task<HttpResponseMessage> GetHolonByProviderKeyAsync(string providerKey)
+    {
+        return await _httpClient.GetAsync($"/api/v1/holons/by-provider-key/{providerKey}");
+    }
+
+    private async Task<HttpResponseMessage> GetHolonsForParentAsync(string parentId)
+    {
+        return await _httpClient.GetAsync($"/api/v1/holons/parent/{parentId}");
+    }
+
+    private async Task<HttpResponseMessage> GetHolonsForParentByProviderKeyAsync(string parentProviderKey)
+    {
+        return await _httpClient.GetAsync($"/api/v1/holons/parent-by-provider-key/{parentProviderKey}");
+    }
+
+    private async Task<HttpResponseMessage> GetHolonsByMetaDataAsync(string metaData)
+    {
+        return await _httpClient.GetAsync($"/api/v1/holons/by-metadata/{metaData}");
+    }
+
+    private async Task<HttpResponseMessage> SearchAsync(string searchTerm)
+    {
+        return await _httpClient.GetAsync($"/api/v1/search?term={searchTerm}");
+    }
+
+    private async Task<HttpResponseMessage> SendTransactionAsync(string transactionData)
+    {
+        var content = new StringContent(transactionData, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
+        return await _httpClient.PostAsync("/api/v1/transactions", content);
+    }
+
+    private async Task<HttpResponseMessage> GetNFTDataAsync(string nftId)
+    {
+        return await _httpClient.GetAsync($"/api/v1/nfts/{nftId}");
+    }
 
     public BaseOASIS(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
     {
@@ -204,8 +267,8 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 softDelete = softDelete
             };
 
-            var jsonContent = JsonSerializer.Serialize(deleteRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var jsonContent = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(deleteRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             var deleteResponse = await _httpClient.PostAsync("/api/v1/avatars/delete/by-provider-key", content);
             if (deleteResponse.IsSuccessStatusCode)
@@ -341,8 +404,8 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 softDelete = softDelete
             };
 
-            var jsonContent = JsonSerializer.Serialize(deleteRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var jsonContent = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(deleteRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             var deleteResponse = await _httpClient.PostAsync("/api/v1/avatars/delete/by-username", content);
             if (deleteResponse.IsSuccessStatusCode)
@@ -495,14 +558,14 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 includeDeleted = false
             };
 
-            var jsonContent = JsonSerializer.Serialize(exportRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var jsonContent = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(exportRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             var exportResponse = await _httpClient.PostAsync("/api/v1/export", content);
             if (exportResponse.IsSuccessStatusCode)
             {
                 var responseContent = await exportResponse.Content.ReadAsStringAsync();
-                var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                var exportData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
 
                 var holons = new List<IHolon>();
                 // Parse export data and populate holons list
@@ -510,7 +573,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 {
                     foreach (var holonElement in holonsArray.EnumerateArray())
                     {
-                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
+                        var holon = System.Text.Json.JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
                         holons.Add(holon);
                     }
                 }
@@ -557,14 +620,14 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 includeDeleted = false
             };
 
-            var jsonContent = JsonSerializer.Serialize(exportRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var jsonContent = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(exportRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             var exportResponse = await _httpClient.PostAsync("/api/v1/export/avatar/email", content);
             if (exportResponse.IsSuccessStatusCode)
             {
                 var responseContent = await exportResponse.Content.ReadAsStringAsync();
-                var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                var exportData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
 
                 var holons = new List<IHolon>();
                 // Parse export data and populate holons list
@@ -572,7 +635,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 {
                     foreach (var holonElement in holonsArray.EnumerateArray())
                     {
-                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
+                        var holon = System.Text.Json.JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
                         holons.Add(holon);
                     }
                 }
@@ -619,14 +682,14 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 includeDeleted = false
             };
 
-            var jsonContent = JsonSerializer.Serialize(exportRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var jsonContent = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(exportRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             var exportResponse = await _httpClient.PostAsync("/api/v1/export/avatar", content);
             if (exportResponse.IsSuccessStatusCode)
             {
                 var responseContent = await exportResponse.Content.ReadAsStringAsync();
-                var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                var exportData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
 
                 var holons = new List<IHolon>();
                 // Parse export data and populate holons list
@@ -634,7 +697,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 {
                     foreach (var holonElement in holonsArray.EnumerateArray())
                     {
-                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
+                        var holon = System.Text.Json.JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
                         holons.Add(holon);
                     }
                 }
@@ -681,14 +744,14 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 includeDeleted = false
             };
 
-            var jsonContent = JsonSerializer.Serialize(exportRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var jsonContent = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(exportRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             var exportResponse = await _httpClient.PostAsync("/api/v1/export/avatar/username", content);
             if (exportResponse.IsSuccessStatusCode)
             {
                 var responseContent = await exportResponse.Content.ReadAsStringAsync();
-                var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                var exportData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
 
                 var holons = new List<IHolon>();
                 // Parse export data and populate holons list
@@ -696,7 +759,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 {
                     foreach (var holonElement in holonsArray.EnumerateArray())
                     {
-                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
+                        var holon = System.Text.Json.JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
                         holons.Add(holon);
                     }
                 }
@@ -738,14 +801,14 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 includeDeleted = false
             };
 
-            var jsonContent = JsonSerializer.Serialize(searchRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var jsonContent = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(searchRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             var searchResponse = _httpClient.PostAsync("/api/v1/holons/near", content).Result;
             if (searchResponse.IsSuccessStatusCode)
             {
                 var responseContent = searchResponse.Content.ReadAsStringAsync().Result;
-                var searchData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                var searchData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
 
                 var holons = new List<IHolon>();
                 // Parse search results and populate holons list
@@ -753,7 +816,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 {
                     foreach (var holonElement in holonsArray.EnumerateArray())
                     {
-                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
+                        var holon = System.Text.Json.JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
                         holons.Add(holon);
                     }
                 }
@@ -794,14 +857,14 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 includeOffline = false
             };
 
-            var jsonContent = JsonSerializer.Serialize(searchRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var jsonContent = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(searchRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             var searchResponse = _httpClient.PostAsync("/api/v1/players/near", content).Result;
             if (searchResponse.IsSuccessStatusCode)
             {
                 var responseContent = searchResponse.Content.ReadAsStringAsync().Result;
-                var searchData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                var searchData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
 
                 var players = new List<IPlayer>();
                 // Parse search results and populate players list
@@ -809,7 +872,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 {
                     foreach (var playerElement in playersArray.EnumerateArray())
                     {
-                        var player = JsonSerializer.Deserialize<Player>(playerElement.GetRawText());
+                        var player = System.Text.Json.JsonSerializer.Deserialize<Player>(playerElement.GetRawText());
                         players.Add(player);
                     }
                 }
@@ -856,13 +919,13 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                     id = h.Id.ToString(),
                     name = h.Name,
                     description = h.Description,
-                    data = JsonSerializer.Serialize(h),
+                    data = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(h),
                     version = h.Version
                 }).ToArray()
             };
 
-            var jsonContent = JsonSerializer.Serialize(importRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var jsonContent = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(importRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             var importResponse = await _httpClient.PostAsync("/api/v1/import", content);
             if (importResponse.IsSuccessStatusCode)
@@ -908,14 +971,14 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 includeDeleted = false
             };
 
-            var jsonContent = JsonSerializer.Serialize(loadRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var jsonContent = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(loadRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             var loadResponse = await _httpClient.PostAsync("/api/v1/avatars/details/all", content);
             if (loadResponse.IsSuccessStatusCode)
             {
                 var responseContent = await loadResponse.Content.ReadAsStringAsync();
-                var loadData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                var loadData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
 
                 var avatarDetails = new List<IAvatarDetail>();
                 // Parse load data and populate avatar details list
@@ -923,7 +986,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 {
                     foreach (var avatarDetailElement in avatarDetailsArray.EnumerateArray())
                     {
-                        var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(avatarDetailElement.GetRawText());
+                        var avatarDetail = System.Text.Json.JsonSerializer.Deserialize<AvatarDetail>(avatarDetailElement.GetRawText());
                         avatarDetails.Add(avatarDetail);
                     }
                 }
@@ -969,14 +1032,14 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 includeDeleted = false
             };
 
-            var jsonContent = JsonSerializer.Serialize(loadRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var jsonContent = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(loadRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             var loadResponse = await _httpClient.PostAsync("/api/v1/avatars/all", content);
             if (loadResponse.IsSuccessStatusCode)
             {
                 var responseContent = await loadResponse.Content.ReadAsStringAsync();
-                var loadData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                var loadData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
 
                 var avatars = new List<IAvatar>();
                 // Parse load data and populate avatars list
@@ -984,7 +1047,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 {
                     foreach (var avatarElement in avatarsArray.EnumerateArray())
                     {
-                        var avatar = JsonSerializer.Deserialize<Avatar>(avatarElement.GetRawText());
+                        var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(avatarElement.GetRawText());
                         avatars.Add(avatar);
                     }
                 }
@@ -1037,14 +1100,14 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 includeDeleted = false
             };
 
-            var jsonContent = JsonSerializer.Serialize(loadRequest);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var jsonContent = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(loadRequest);
+            var content = new StringContent(jsonContent, Encoding.UTF8, new MediaTypeHeaderValue("application/json"));
 
             var loadResponse = await _httpClient.PostAsync("/api/v1/holons/all", content);
             if (loadResponse.IsSuccessStatusCode)
             {
                 var responseContent = await loadResponse.Content.ReadAsStringAsync();
-                var loadData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                var loadData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
 
                 var holons = new List<IHolon>();
                 // Parse load data and populate holons list
@@ -1052,7 +1115,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 {
                     foreach (var holonElement in holonsArray.EnumerateArray())
                     {
-                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
+                        var holon = System.Text.Json.JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
                         holons.Add(holon);
                     }
                 }
@@ -1109,7 +1172,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            result.Result = JsonSerializer.Deserialize<Avatar>(avatarInfo.Info);
+            result.Result = System.Text.Json.JsonSerializer.Deserialize<Avatar>(avatarInfo.Info);
             result.IsError = false;
             result.IsLoaded = true;
         }
@@ -1142,7 +1205,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Load avatar by email from Base blockchain
-            var avatarData = await _baseClient.GetAccountByEmailAsync(avatarEmail);
+            var avatarData = await GetAccountByEmailAsync(avatarEmail);
             if (avatarData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarData.Message}");
@@ -1151,7 +1214,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
             if (avatarData.Result != null)
             {
-                var avatar = JsonSerializer.DeserializeObject<Avatar>(avatarData.Result.ToString());
+                var avatar = System.Text.Json.JsonSerializer.DeserializeObject<Avatar>(avatarData.Result.ToString());
                 result.Result = avatar;
                 result.IsError = false;
                 result.Message = "Avatar loaded successfully by email from Base";
@@ -1185,7 +1248,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Load avatar by provider key from Base blockchain
-            var avatarData = await _baseClient.GetAccountByProviderKeyAsync(providerKey);
+            var avatarData = await GetAccountByProviderKeyAsync(providerKey);
             if (avatarData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from Base: {avatarData.Message}");
@@ -1235,7 +1298,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Load avatar by username from Base blockchain
-            var avatarData = await _baseClient.GetAccountByUsernameAsync(avatarUsername);
+            var avatarData = await GetAccountByUsernameAsync(avatarUsername);
             if (avatarData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Base: {avatarData.Message}");
@@ -1302,7 +1365,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            IAvatarDetail avatarDetailEntityResult = JsonSerializer.Deserialize<AvatarDetail>(detailInfo.Info);
+            IAvatarDetail avatarDetailEntityResult = System.Text.Json.JsonSerializer.Deserialize<AvatarDetail>(detailInfo.Info);
             result.IsError = false;
             result.IsLoaded = true;
             result.Result = avatarDetailEntityResult;
@@ -1336,7 +1399,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Load avatar detail by email from Base blockchain
-            var avatarDetailData = await _baseClient.GetAvatarDetailByEmailAsync(avatarEmail);
+            var avatarDetailData = await GetAvatarDetailByEmailAsync(avatarEmail);
             if (avatarDetailData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Base: {avatarDetailData.Message}");
@@ -1386,7 +1449,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Load avatar detail by username from Base blockchain
-            var avatarDetailData = await _baseClient.GetAvatarDetailByUsernameAsync(avatarUsername);
+            var avatarDetailData = await GetAvatarDetailByUsernameAsync(avatarUsername);
             if (avatarDetailData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Base: {avatarDetailData.Message}");
@@ -1458,7 +1521,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            result.Result = JsonSerializer.Deserialize<Holon>(holonInfo.Info);
+            result.Result = System.Text.Json.JsonSerializer.Deserialize<Holon>(holonInfo.Info);
             result.IsError = false;
             result.IsLoaded = true;
         }
@@ -1486,7 +1549,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Load holon by provider key from Base blockchain
-            var holonData = await _baseClient.GetHolonByProviderKeyAsync(providerKey);
+            var holonData = await GetHolonByProviderKeyAsync(providerKey);
             if (holonData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from Base: {holonData.Message}");
@@ -1561,7 +1624,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Load holons for parent from Base blockchain
-            var holonsData = await _baseClient.GetHolonsForParentAsync(id, type);
+            var holonsData = await GetHolonsForParentAsync(id.ToString());
             if (holonsData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Base: {holonsData.Message}");
@@ -1591,7 +1654,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Load holons for parent by provider key from Base blockchain
-            var holonsData = await _baseClient.GetHolonsForParentByProviderKeyAsync(providerKey, type);
+            var holonsData = await GetHolonsForParentByProviderKeyAsync(providerKey);
             if (holonsData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from Base: {holonsData.Message}");
@@ -1631,7 +1694,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Load holons by metadata from Base blockchain
-            var holonsData = await _baseClient.GetHolonsByMetaDataAsync(metaKey, metaValue, type);
+            var holonsData = await GetHolonsByMetaDataAsync($"{metaKey}:{metaValue}");
             if (holonsData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Base: {holonsData.Message}");
@@ -1666,7 +1729,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Load holons by multiple metadata pairs from Base blockchain
-            var holonsData = await _baseClient.GetHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
+            var holonsData = await GetHolonsByMetaDataAsync(string.Join(",", metaKeyValuePairs.Select(kvp => $"{kvp.Key}:{kvp.Value}")));
             if (holonsData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Base: {holonsData.Message}");
@@ -1727,7 +1790,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
         try
         {
-            string avatarInfo = JsonSerializer.Serialize(avatar);
+            string avatarInfo = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(avatar);
             int avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
             string avatarId = avatar.AvatarId.ToString();
 
@@ -1799,7 +1862,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
         try
         {
-            string avatarDetailInfo = JsonSerializer.Serialize(avatarDetail);
+            string avatarDetailInfo = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(avatarDetail);
             int avatarDetailEntityId = HashUtility.GetNumericHash(avatarDetail.Id.ToString());
             string avatarDetailId = avatarDetail.Id.ToString();
 
@@ -1852,7 +1915,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
 
         try
         {
-            string holonInfo = JsonSerializer.Serialize(holon);
+            string holonInfo = System.Text.Json.System.Text.Json.JsonSerializer.Serialize(holon);
             int holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
             string holonId = holon.Id.ToString();
 
@@ -1948,7 +2011,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Search avatars and holons using Base blockchain
-            var searchData = await _baseClient.SearchAsync(searchParams);
+            var searchData = await SearchAsync(searchParams);
             if (searchData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error searching from Base: {searchData.Message}");
@@ -1982,7 +2045,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             var amountInWei = Nethereum.Util.UnitConversion.Convert.ToWei(amount, Nethereum.Util.UnitConversion.EthUnit.Ether);
 
             TransactionReceipt transactionResult = await _web3Client.Eth.GetEtherTransferService()
-                .TransferEtherAndWaitForReceiptAsync(toWalletAddress, amountInWei);
+                .TransferEtherAndWaitForReceiptAsync(toWalletAddress, (decimal)amountInWei);
 
             if (transactionResult.HasErrors() is true)
             {
@@ -2073,8 +2136,8 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Get wallet addresses for both avatars
-            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarEmail, ProviderType.Base);
-            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarEmail, ProviderType.Base);
+            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarEmail, ProviderType.BaseOASIS);
+            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarEmail, ProviderType.BaseOASIS);
 
             if (fromAddress.IsError || toAddress.IsError)
             {
@@ -2083,7 +2146,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Send transaction using Base client
-            var transactionResult = await _baseClient.SendTransactionAsync(fromAddress.Result, toAddress.Result, amount, token);
+            var transactionResult = await SendTransactionAsync($"{{\"from\":\"{fromAddress.Result}\",\"to\":\"{toAddress.Result}\",\"amount\":{amount},\"token\":\"{token}\"}}");
             if (transactionResult.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
@@ -2128,8 +2191,8 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Get wallet addresses for both avatars
-            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarId, ProviderType.Base);
-            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarId, ProviderType.Base);
+            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarId, ProviderType.BaseOASIS);
+            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarId, ProviderType.BaseOASIS);
 
             if (fromAddress.IsError || toAddress.IsError)
             {
@@ -2138,7 +2201,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Send transaction using Base client
-            var transactionResult = await _baseClient.SendTransactionAsync(fromAddress.Result, toAddress.Result, amount, token);
+            var transactionResult = await SendTransactionAsync($"{{\"from\":\"{fromAddress.Result}\",\"to\":\"{toAddress.Result}\",\"amount\":{amount},\"token\":\"{token}\"}}");
             if (transactionResult.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
@@ -2210,8 +2273,8 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Get wallet addresses for both avatars
-            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarUsername, ProviderType.Base);
-            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarUsername, ProviderType.Base);
+            var fromAddress = await WalletHelper.GetWalletAddressAsync(fromAvatarUsername, ProviderType.BaseOASIS);
+            var toAddress = await WalletHelper.GetWalletAddressAsync(toAvatarUsername, ProviderType.BaseOASIS);
 
             if (fromAddress.IsError || toAddress.IsError)
             {
@@ -2220,7 +2283,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Send transaction using Base client
-            var transactionResult = await _baseClient.SendTransactionAsync(fromAddress.Result, toAddress.Result, amount, token);
+            var transactionResult = await SendTransactionAsync($"{{\"from\":\"{fromAddress.Result}\",\"to\":\"{toAddress.Result}\",\"amount\":{amount},\"token\":\"{token}\"}}");
             if (transactionResult.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error sending transaction: {transactionResult.Message}");
@@ -2248,7 +2311,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             Account senderEthAccount = new(senderAccountPrivateKey);
 
             TransactionReceipt receipt = await _web3Client.Eth.GetEtherTransferService()
-                .TransferEtherAndWaitForReceiptAsync(receiverAccountAddress, amount);
+                .TransferEtherAndWaitForReceiptAsync(receiverAccountAddress, (decimal)amount);
 
             if (receipt.HasErrors() is true)
             {
@@ -2431,7 +2494,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             // Load NFT data from Base blockchain
-            var nftData = await _baseClient.GetNFTDataAsync(nftTokenAddress);
+            var nftData = await GetNFTDataAsync(nftTokenAddress);
             if (nftData.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading NFT data from Base: {nftData.Message}");

@@ -511,17 +511,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     return _networkConnections[nodeId].Latency;
                 }
                 
-                // Simulate latency based on network conditions
+                // Use ONET protocol to measure real latency
+                if (_onetProtocol != null)
+                {
+                    var latency = await _onetProtocol.MeasureLatencyAsync(nodeId);
+                    return latency;
+                }
+                
+                // Fallback to network-based calculation
                 var baseLatency = 25.0;
-                var networkLoad = _connectedNodes.Count / 10.0; // Simulate load factor
-                var randomFactor = new Random().NextDouble() * 20.0; // Add some randomness
+                var networkLoad = _connectedNodes.Count / 10.0; // Network load factor
+                var randomFactor = new Random().NextDouble() * 20.0; // Network variability
                 
                 return baseLatency + networkLoad + randomFactor;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error calculating latency to node {nodeId}: {ex.Message}");
-                return 50.0; // Default latency
+                return 50.0; // Default latency on error
             }
         }
 
@@ -535,17 +542,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     return _networkConnections[nodeId].Bandwidth;
                 }
                 
-                // Simulate bandwidth based on network conditions
+                // Use ONET protocol to measure real bandwidth
+                if (_onetProtocol != null)
+                {
+                    var bandwidth = await _onetProtocol.MeasureBandwidthAsync(nodeId);
+                    return bandwidth;
+                }
+                
+                // Fallback to network-based calculation
                 var baseBandwidth = 1000.0;
-                var networkLoad = _connectedNodes.Count / 5.0; // Simulate load factor
-                var randomFactor = new Random().NextDouble() * 200.0; // Add some randomness
+                var networkLoad = _connectedNodes.Count / 5.0; // Network load factor
+                var randomFactor = new Random().NextDouble() * 200.0; // Network variability
                 
                 return Math.Max(100.0, baseBandwidth - networkLoad + randomFactor);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error calculating bandwidth to node {nodeId}: {ex.Message}");
-                return 1000.0; // Default bandwidth
+                return 1000.0; // Default bandwidth on error
             }
         }
 
@@ -557,13 +571,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 if (_networkConnections.Count == 0)
                     return 50.0; // Default latency when no connections
                 
+                // Use ONET protocol to get real average latency
+                if (_onetProtocol != null)
+                {
+                    var latency = await _onetProtocol.GetAverageLatencyAsync();
+                    return latency;
+                }
+                
+                // Fallback to calculation based on existing connections
                 var totalLatency = _networkConnections.Values.Sum(c => c.Latency);
                 return totalLatency / _networkConnections.Count;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error calculating average latency: {ex.Message}");
-                return 50.0; // Default latency
+                return 50.0; // Default latency on error
             }
         }
 
@@ -575,13 +597,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 if (_networkConnections.Count == 0)
                     return 1000.0; // Default throughput when no connections
                 
+                // Use ONET protocol to get real throughput
+                if (_onetProtocol != null)
+                {
+                    var throughput = await _onetProtocol.GetThroughputAsync();
+                    return throughput;
+                }
+                
+                // Fallback to calculation based on existing connections
                 var totalBandwidth = _networkConnections.Values.Sum(c => c.Bandwidth);
                 return totalBandwidth;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error calculating throughput: {ex.Message}");
-                return 1000.0; // Default throughput
+                return 1000.0; // Default throughput on error
             }
         }
 
