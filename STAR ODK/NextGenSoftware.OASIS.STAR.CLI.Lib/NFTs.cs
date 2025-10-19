@@ -303,11 +303,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IOASISNFT>> ExportNFTAsync(object mintParams = null)
-        {
-            OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
-            return result;
-        }
+        //public async Task<OASISResult<IOASISNFT>> ExportNFTAsync(object mintParams = null)
+        //{
+        //    OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+        //    return result;
+        //}
 
         public async Task<OASISResult<IOASISNFT>> CloneNFTAsync(object mintParams = null)
         {

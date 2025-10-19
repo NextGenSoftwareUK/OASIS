@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private OASISDNA? _oasisdna;
 
 
-        public ONETProtocol(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, Guid.NewGuid(), oasisdna)
+        public ONETProtocol(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _consensus = new ONETConsensus(storageProvider, oasisdna);
             _routing = new ONETRouting(storageProvider, oasisdna);
@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             InitializeAsync().Wait();
         }
 
-        private async Task InitializeAsync()
+        public async Task InitializeAsync()
         {
             try
             {
@@ -102,6 +102,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Start the ONET P2P network (alias for StartNetworkAsync)
+        /// </summary>
+        public async Task StartAsync()
+        {
+            await StartNetworkAsync();
         }
 
         /// <summary>

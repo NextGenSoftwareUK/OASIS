@@ -492,30 +492,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 // Load from the actual OASISDNA system
                 var oasisdna = await OASISDNAManager.LoadDNAAsync();
-                if (oasisdna == null)
-                {
-                    // Create default configuration if none exists
-                    oasisdna = new OASISDNA
-                    {
-                        OASIS = new OASIS
-                        {
-                            OASISAPIURL = "https://api.oasis.network",
-                            SettingsLookupHolonId = Guid.Empty,
-                            StatsCacheEnabled = false,
-                            StatsCacheTtlSeconds = 45,
-                            Logging = new LoggingSettings
-                            {
-                                LogToConsole = true,
-                                LogToFile = true,
-                                LogLevel = "Info"
-                            }
-                        }
-                    };
-                }
 
-                result.Result = oasisdna;
-                result.IsError = false;
-                result.Message = "OASISDNA configuration loaded successfully";
+                if (oasisdna != null && oasisdna.Result != null && !oasisdna.IsError)
+                {
+                    result.Result = oasisdna.Result;
+                    result.IsError = false;
+                    result.Message = "OASISDNA configuration loaded successfully";
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load OASISDNA configuration. Reason: {oasisdna.Message}");
             }
             catch (Exception ex)
             {

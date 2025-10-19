@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Holochain.HoloNET.Client;
@@ -14,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     public class HoloNETEnhancedWrapper
     {
         private readonly HoloNETClientBase _baseClient;
+        private readonly HoloNETClientBase _holoNETClient;
         private bool _isEnhanced = false;
         private bool _kitsune2Enabled = true;
         private bool _quicProtocolEnabled = true;
@@ -24,10 +26,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, object> _enhancedConfig = new Dictionary<string, object>();
         private readonly Dictionary<string, NetworkNode> _discoveredNodes = new Dictionary<string, NetworkNode>();
         private readonly Dictionary<string, NetworkConnection> _activeConnections = new Dictionary<string, NetworkConnection>();
+        private readonly List<NetworkConnection> _failedConnections = new List<NetworkConnection>();
 
         public HoloNETEnhancedWrapper(HoloNETClientBase baseClient)
         {
             _baseClient = baseClient ?? throw new ArgumentNullException(nameof(baseClient));
+            _holoNETClient = baseClient;
             InitializeEnhancedConfiguration();
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,6 +28,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             _securityConfig = new SecurityConfig();
             _encryptionProvider = new EncryptionProvider();
+        }
+
+        public async Task InitializeAsync()
+        {
+            await InitializeAsync(OASISDNA);
+        }
+
+        public async Task StartAsync()
+        {
+            // Start security system
+            await Task.CompletedTask;
         }
         private bool _isInitialized = false;
 
