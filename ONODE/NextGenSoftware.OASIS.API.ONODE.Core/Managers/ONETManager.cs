@@ -189,9 +189,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         /// <summary>
         /// Get connected nodes
         /// </summary>
-        public async Task<OASISResult<List<NetworkNode>>> GetConnectedNodesAsync()
+        public async Task<OASISResult<List<ONETNode>>> GetConnectedNodesAsync()
         {
-            var result = new OASISResult<List<NetworkNode>>();
+            var result = new OASISResult<List<ONETNode>>();
             
             try
             {
@@ -204,15 +204,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 var topology = topologyResult.Result;
-                var connectedNodes = topology.Nodes.Select(node => new NetworkNode
-                {
-                    Id = node.Id,
-                    Address = node.Address,
-                    ConnectedAt = node.ConnectedAt,
-                    Status = node.Status
-                }).ToList();
-
-                result.Result = connectedNodes;
+                result.Result = topology.Nodes;
                 result.IsError = false;
                 result.Message = "Connected nodes retrieved successfully";
             }
@@ -537,34 +529,5 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
     }
 
-    public class NetworkStatus
-    {
-        public bool IsRunning { get; set; }
-        public int ConnectedNodesCount { get; set; }
-        public string NetworkId { get; set; } = string.Empty;
-        public DateTime LastUpdated { get; set; }
-    }
 
-    public class NetworkNode
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public DateTime ConnectedAt { get; set; }
-        public string Status { get; set; } = string.Empty;
-    }
-
-    public class NetworkTopology
-    {
-        public List<NetworkNode> Nodes { get; set; } = new List<NetworkNode>();
-        public List<NetworkConnection> Connections { get; set; } = new List<NetworkConnection>();
-        public DateTime LastUpdated { get; set; }
-    }
-
-    public class NetworkConnection
-    {
-        public string FromNodeId { get; set; } = string.Empty;
-        public string ToNodeId { get; set; } = string.Empty;
-        public string ConnectionType { get; set; } = string.Empty;
-        public DateTime EstablishedAt { get; set; }
-    }
 }

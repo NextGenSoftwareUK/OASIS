@@ -41,6 +41,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             await Task.CompletedTask;
         }
 
+        // Events
+        public event EventHandler<SecurityAlertEventArgs> SecurityAlert;
+        public event EventHandler<AuthenticationFailedEventArgs> AuthenticationFailed;
+
         public async Task StopAsync()
         {
             try

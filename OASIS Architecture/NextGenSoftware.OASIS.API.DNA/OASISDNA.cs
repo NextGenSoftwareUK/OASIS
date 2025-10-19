@@ -36,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         
         public string OASISSystemAccountId { get; set; }
         public string OASISAPIURL { get; set; }
+        public string NetworkId { get; set; } = "onet-network";
         public Guid SettingsLookupHolonId { get; set; } = Guid.Empty;
         // Stats caching controls
         public bool StatsCacheEnabled { get; set; } = false;
