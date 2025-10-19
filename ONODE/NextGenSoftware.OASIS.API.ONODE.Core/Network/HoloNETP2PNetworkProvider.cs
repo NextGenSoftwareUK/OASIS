@@ -1,3 +1,7 @@
+/*
+// OBSOLETE FILE - Use HoloNETP2PProvider.cs instead
+// This file is commented out to avoid conflicts
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     /// <summary>
     /// HoloNET P2P Network Provider - Uses Holochain's native P2P capabilities
     /// Supports Holochain 0.5.6+ with Kitsune2, QUIC protocol, and enhanced security
+    /// OBSOLETE - Use HoloNETP2PProvider instead
     /// </summary>
     public class HoloNETP2PNetworkProvider : IP2PNetworkProvider
     {
@@ -38,7 +43,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 // Initialize enhanced HoloNET wrapper with latest Holochain 0.5.6+ features
-                _enhancedWrapper = new HoloNETEnhancedWrapper(new HoloNETClientBase());
+                // Use HoloNETClientV2 which is a concrete implementation
+                _enhancedWrapper = new HoloNETEnhancedWrapper(new HoloNETClientV2());
                 
                 // Initialize the enhanced wrapper
                 var initResult = await _enhancedWrapper.InitializeEnhancedAsync();
@@ -630,3 +636,4 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         }
     }
 }
+*/
