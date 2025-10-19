@@ -240,17 +240,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 if (networkMetrics is string metricsJson)
                 {
                     // Parse JSON to extract network metrics from Holochain conductor
-                    // This would use a JSON parser to extract metrics data from the network stats
-                    // The JSON structure would contain information about:
-                    // - Active connections
-                    // - Total connections
-                    // - Average latency
-                    // - Total throughput
-                    // - Network ID
-                    // - Timestamp
+                    var jsonObject = Newtonsoft.Json.Linq.JObject.Parse(metricsJson);
                     
-                    // For now, we'll return a default structure
-                    // In a real implementation, this would parse the actual JSON response
+                    return new NetworkMetrics
+                    {
+                        ActiveConnections = jsonObject["active_connections"]?.ToObject<int>() ?? 0,
+                        TotalConnections = jsonObject["total_connections"]?.ToObject<int>() ?? 0,
+                        AverageLatency = jsonObject["average_latency"]?.ToObject<double>() ?? 0.0,
+                        TotalThroughput = jsonObject["total_throughput"]?.ToObject<double>() ?? 0.0,
+                        NetworkId = jsonObject["network_id"]?.ToString() ?? "unknown",
+                        Timestamp = DateTime.UtcNow,
+                        Latency = jsonObject["latency"]?.ToObject<double>() ?? 0.0,
+                        Reliability = jsonObject["reliability"]?.ToObject<int>() ?? 0,
+                        Throughput = jsonObject["throughput"]?.ToObject<double>() ?? 0.0,
+                        LastUpdated = DateTime.UtcNow
+                    };
                 }
                 
                 return new NetworkMetrics
@@ -324,11 +328,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 if (networkStats is string statsJson)
                 {
                     // Parse JSON to extract network ID from Holochain conductor
-                    // This would use a JSON parser to extract the network ID from the stats
-                    // The JSON structure would contain information about the network ID
-                    // For now, we'll return a default value
-                    // In a real implementation, this would parse the actual JSON response
-                    // and extract the network ID from the appropriate field
+                    var jsonObject = Newtonsoft.Json.Linq.JObject.Parse(statsJson);
+                    
+                    // Extract network ID from the appropriate field in the JSON
+                    var networkId = jsonObject["network_id"]?.ToString() ?? 
+                                  jsonObject["networkId"]?.ToString() ?? 
+                                  jsonObject["id"]?.ToString() ?? 
+                                  "holochain-network";
+                    
+                    return networkId;
                 }
                 
                 return "holochain-network";
