@@ -13,6 +13,23 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
+    public class CacheEntry
+    {
+        public object Value { get; set; } = new object();
+        public DateTime ExpiresAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime LastAccessed { get; set; }
+        public int AccessCount { get; set; }
+    }
+
+    public class CacheStats
+    {
+        public double HitRate { get; set; }
+        public int TotalEntries { get; set; }
+        public int ExpiredEntries { get; set; }
+        public int MemoryUsage { get; set; }
+    }
+
     /// <summary>
     /// ONET API Gateway - The unified API that bridges Web2 and Web3
     /// Creates a single API interface that abstracts all of the internet (Web2 + Web3)
@@ -25,14 +42,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, APIEndpoint> _endpoints = new Dictionary<string, APIEndpoint>();
         private readonly APIRouter _router;
         private readonly APILoadBalancer _loadBalancer;
-        private readonly APICache _cache;
+        private readonly Dictionary<string, CacheEntry> _cache = new Dictionary<string, CacheEntry>();
         private int _requestCount = 0;
 
         public ONETAPIGateway(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _router = new APIRouter();
             _loadBalancer = new APILoadBalancer();
-            _cache = new APICache();
+            // Cache is initialized as Dictionary<string, CacheEntry>
         }
 
         public async Task StartAsync()
@@ -65,7 +82,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 await _loadBalancer.InitializeAsync();
                 
                 // Initialize cache
-                await _cache.InitializeAsync();
+                // Cache is already initialized as Dictionary<string, CacheEntry>
                 
                 _isInitialized = true;
                 
@@ -762,22 +779,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         }
     }
 
-    public class CacheEntry
-    {
-        public object Value { get; set; } = new object();
-        public DateTime ExpiresAt { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime LastAccessed { get; set; }
-        public int AccessCount { get; set; }
-    }
-
-    public class CacheStats
-    {
-        public double HitRate { get; set; }
-        public int TotalEntries { get; set; }
-        public int ExpiredEntries { get; set; }
-        public int MemoryUsage { get; set; }
-    }
     }
 
     // Missing methods for ONETAPIGateway - moved to main class
