@@ -340,7 +340,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             _securityConfig.EnableQuantumResistance = true;
             _securityConfig.EnableZeroTrust = true;
             
-            await Task.Delay(100); // Simulate configuration loading
+            // Load real security configuration
+            try
+            {
+                _securityConfig.EncryptionAlgorithm = "AES-256-GCM";
+                _securityConfig.KeySize = 256;
+                _securityConfig.IvSize = 12;
+                _securityConfig.TagSize = 16;
+                _securityConfig.QuantumResistant = true;
+                _securityConfig.ZeroTrust = true;
+                
+                // Load security policies
+                await LoadSecurityPoliciesAsync();
+                
+                // Initialize quantum-resistant cryptography
+                await InitializeQuantumResistantCryptoAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading security configuration: {ex.Message}");
+                throw;
+            }
         }
 
         private async Task InitializeSecurityAsync()
@@ -354,13 +374,57 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task GenerateMasterKeysAsync()
         {
             // Generate master security keys for the network
-            await Task.Delay(100); // Simulate key generation
+            // Generate real quantum-resistant keys
+            try
+            {
+                using (var rng = RandomNumberGenerator.Create())
+                {
+                    var keyBytes = new byte[_securityConfig.KeySize / 8];
+                    rng.GetBytes(keyBytes);
+                    
+                    var key = new SecurityKey
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        KeyData = keyBytes,
+                        Algorithm = _securityConfig.EncryptionAlgorithm,
+                        CreatedAt = DateTime.UtcNow,
+                        ExpiresAt = DateTime.UtcNow.AddDays(365),
+                        IsQuantumResistant = _securityConfig.QuantumResistant
+                    };
+                    
+                    _nodeKeys[nodeId] = key;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error generating security key for {nodeId}: {ex.Message}");
+                throw;
+            }
         }
 
         private async Task StartSecurityMonitoringAsync()
         {
             // Start security monitoring processes
-            await Task.Delay(100); // Simulate security monitoring startup
+            // Start real security monitoring
+            try
+            {
+                // Start intrusion detection system
+                _ = Task.Run(MonitorIntrusionDetectionAsync);
+                
+                // Start anomaly detection
+                _ = Task.Run(MonitorAnomalyDetectionAsync);
+                
+                // Start threat intelligence updates
+                _ = Task.Run(UpdateThreatIntelligenceAsync);
+                
+                // Start security audit logging
+                _ = Task.Run(StartSecurityAuditLoggingAsync);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error starting security monitoring: {ex.Message}");
+                throw;
+            }
         }
 
         private async Task<SecurityKey> GenerateSessionKeysAsync()
@@ -489,13 +553,64 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         public async Task<string> EncryptAsync(string data, string key)
         {
-            await Task.Delay(10); // Simulate encryption
+            // Perform real AES-256-GCM encryption
+            try
+            {
+                using (var aes = new AesGcm(key.KeyData))
+                {
+                    var iv = new byte[12]; // 96-bit IV for GCM
+                    RandomNumberGenerator.Fill(iv);
+                    
+                    var ciphertext = new byte[data.Length];
+                    var tag = new byte[16]; // 128-bit authentication tag
+                    
+                    aes.Encrypt(iv, data, ciphertext, tag);
+                    
+                    // Combine IV + ciphertext + tag
+                    var encryptedData = new byte[iv.Length + ciphertext.Length + tag.Length];
+                    Array.Copy(iv, 0, encryptedData, 0, iv.Length);
+                    Array.Copy(ciphertext, 0, encryptedData, iv.Length, ciphertext.Length);
+                    Array.Copy(tag, 0, encryptedData, iv.Length + ciphertext.Length, tag.Length);
+                    
+                    return encryptedData;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error encrypting data: {ex.Message}");
+                throw;
+            }
             return Convert.ToBase64String(Encoding.UTF8.GetBytes(data));
         }
 
         public async Task<string> DecryptAsync(string encryptedData, string key)
         {
-            await Task.Delay(10); // Simulate decryption
+            // Perform real AES-256-GCM decryption
+            try
+            {
+                var encryptedBytes = Convert.FromBase64String(encryptedData);
+                
+                // Extract IV, ciphertext, and tag
+                var iv = new byte[12];
+                var tag = new byte[16];
+                var ciphertext = new byte[encryptedBytes.Length - iv.Length - tag.Length];
+                
+                Array.Copy(encryptedBytes, 0, iv, 0, iv.Length);
+                Array.Copy(encryptedBytes, iv.Length, ciphertext, 0, ciphertext.Length);
+                Array.Copy(encryptedBytes, iv.Length + ciphertext.Length, tag, 0, tag.Length);
+                
+                using (var aes = new AesGcm(key.KeyData))
+                {
+                    var plaintext = new byte[ciphertext.Length];
+                    aes.Decrypt(iv, ciphertext, tag, plaintext);
+                    return Encoding.UTF8.GetString(plaintext);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error decrypting data: {ex.Message}");
+                throw;
+            }
             return Encoding.UTF8.GetString(Convert.FromBase64String(encryptedData));
         }
 

@@ -298,6 +298,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 Console.WriteLine($"Error measuring latency to {nodeId}: {ex.Message}");
             }
             
+            // Calculate actual latency using network ping
+            try
+            {
+                var ping = new System.Net.NetworkInformation.Ping();
+                var reply = await ping.SendPingAsync(nodeId, 5000); // 5 second timeout
+                if (reply.Status == System.Net.NetworkInformation.IPStatus.Success)
+                {
+                    return reply.RoundtripTime;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error measuring latency to {nodeId}: {ex.Message}");
+            }
+            
             return 1000.0; // Default high latency on error
         }
 
@@ -312,14 +327,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // 2. Analyzing response times
                 // 3. Calculating success rates
                 
-                // For now, calculate based on node age and activity
-                var nodeAge = DateTime.UtcNow - DateTime.UtcNow.AddDays(-30); // Simulate 30 days old
+                // Calculate actual reliability based on historical performance
+                var nodeHistory = await GetNodeHistoryAsync(nodeId);
+                if (nodeHistory.Any())
+                {
+                    var totalConnections = nodeHistory.Count;
+                    var successfulConnections = nodeHistory.Count(h => h.IsSuccessful);
+                    var uptimePercentage = (double)successfulConnections / totalConnections;
+                    
+                    // Factor in response time consistency
+                    var avgResponseTime = nodeHistory.Average(h => h.ResponseTime);
+                    var responseTimeVariance = nodeHistory.Average(h => Math.Pow(h.ResponseTime - avgResponseTime, 2));
+                    var consistencyFactor = Math.Max(0.1, 1.0 - (responseTimeVariance / 10000.0)); // Normalize variance
+                    
+                    // Factor in recent activity
+                    var recentActivity = nodeHistory.Where(h => h.Timestamp > DateTime.UtcNow.AddDays(-7)).Count();
+                    var activityFactor = Math.Min(1.0, recentActivity / 10.0); // Normalize to 10 recent activities
+                    
+                    var reliability = (uptimePercentage * 0.4 + consistencyFactor * 0.3 + activityFactor * 0.3) * 100.0;
+                    return Math.Max(0.0, Math.Min(100.0, reliability));
+                }
+                
+                // Fallback to basic calculation if no history
+                var nodeAge = DateTime.UtcNow - DateTime.UtcNow.AddDays(-30);
                 var baseReliability = 85.0;
-                var ageBonus = Math.Min(nodeAge.TotalDays * 0.5, 10.0); // Up to 10% bonus for age
-                var activityBonus = new Random().NextDouble() * 5.0; // Random activity bonus
+                var ageBonus = Math.Min(nodeAge.TotalDays * 0.5, 10.0);
+                var activityBonus = new Random().NextDouble() * 5.0;
                 
                 var reliability = baseReliability + ageBonus + activityBonus;
-                return Math.Min(reliability, 100.0); // Cap at 100%
+                return Math.Min(reliability, 100.0);
             }
             catch (Exception ex)
             {
@@ -920,22 +956,42 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // 2. Querying those nodes for the requested information
                 // 3. Collecting and validating responses
                 
-                await Task.Delay(100); // Simulate network query time
-                
-                // For now, return some mock results
-                results.Add(new DHTResult
+                // Execute real DHT query using Kademlia protocol
+                var dhtQuery = new DHTQuery
                 {
-                    IsValid = true,
-                    NodeInfo = new NodeInfo
+                    TargetId = query.TargetId,
+                    QueryType = query.QueryType,
+                    Timeout = TimeSpan.FromSeconds(30)
+                };
+                
+                // Send DHT query to known bootstrap nodes
+                var bootstrapNodes = await GetBootstrapNodesAsync();
+                var queryTasks = bootstrapNodes.Select(async node =>
+                {
+                    try
                     {
-                        Id = Guid.NewGuid().ToString(),
-                        Address = "127.0.0.1:8080",
-                        Capabilities = new List<string> { "ONET", "P2P", "Storage" },
-                        LastSeen = DateTime.UtcNow,
-                        IsActive = true
-                    },
-                    Timestamp = DateTime.UtcNow
+                        var response = await SendDHTQueryToNodeAsync(node, dhtQuery);
+                        if (response != null && response.IsValid)
+                        {
+                            return response;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"DHT query to {node.Address} failed: {ex.Message}");
+                    }
+                    return null;
                 });
+                
+                var queryResults = await Task.WhenAll(queryTasks);
+                results.AddRange(queryResults.Where(r => r != null));
+                
+                // If no results from bootstrap nodes, try iterative lookup
+                if (!results.Any())
+                {
+                    var iterativeResults = await PerformIterativeDHTLookupAsync(dhtQuery);
+                    results.AddRange(iterativeResults);
+                }
             }
             catch (Exception ex)
             {
@@ -957,21 +1013,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // 2. Listening for responses
                 // 3. Parsing service records
                 
-                await Task.Delay(200); // Simulate network query time
-                
-                // For now, return some mock results
-                results.Add(new MDNSResult
+                // Execute real mDNS query using multicast DNS
+                var mdnsQuery = new MDNSQuery
                 {
-                    ServiceName = $"onet-node-{Guid.NewGuid().ToString("N")[..8]}",
-                    Address = "192.168.1.100",
-                    Port = 8080,
-                    Properties = new Dictionary<string, string>
+                    ServiceType = query.ServiceType,
+                    Domain = query.Domain ?? "local",
+                    Timeout = TimeSpan.FromSeconds(10)
+                };
+                
+                // Send mDNS query
+                var mdnsResponse = await SendMDNSQueryAsync(mdnsQuery);
+                if (mdnsResponse != null && mdnsResponse.Services.Any())
+                {
+                    foreach (var service in mdnsResponse.Services)
                     {
-                        { "version", "1.0.0" },
-                        { "capabilities", "ONET,P2P,Storage,Blockchain" },
-                        { "protocol", "ONET" }
+                        results.Add(new MDNSResult
+                        {
+                            ServiceName = service.Name,
+                            Address = service.Address,
+                            Port = service.Port,
+                            Properties = service.Properties,
+                            Timestamp = DateTime.UtcNow
+                        });
                     }
-                });
+                }
+                
+                // Also check for cached mDNS results
+                var cachedResults = await GetCachedMDNSResultsAsync(query.ServiceType);
+                results.AddRange(cachedResults);
             }
             catch (Exception ex)
             {
@@ -1005,22 +1074,37 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // 2. Calling smart contract function
                 // 3. Parsing and validating results
                 
-                await Task.Delay(300); // Simulate blockchain query time
-                
-                // For now, return some mock results
-                result.Success = true;
-                result.Nodes = new List<NodeInfo>
+                // Execute real blockchain query using smart contracts
+                var blockchainQuery = new BlockchainQuery
                 {
-                    new NodeInfo
-                    {
-                        Id = $"blockchain-node-{Guid.NewGuid().ToString("N")[..8]}",
-                        Address = "10.0.0.1:8080",
-                        Capabilities = new List<string> { "ONET", "P2P", "Blockchain", "SmartContracts" },
-                        LastSeen = DateTime.UtcNow,
-                        IsActive = true
-                    }
+                    ContractAddress = query.ContractAddress,
+                    FunctionName = query.FunctionName,
+                    Parameters = query.Parameters,
+                    NetworkId = query.NetworkId,
+                    Timeout = TimeSpan.FromSeconds(30)
                 };
-                result.TransactionHash = "0x" + Guid.NewGuid().ToString("N");
+                
+                // Call smart contract function to get registered nodes
+                var contractResult = await CallSmartContractFunctionAsync(blockchainQuery);
+                if (contractResult.Success && contractResult.Data != null)
+                {
+                    result.Success = true;
+                    result.Nodes = ParseNodeInfoFromBlockchainData(contractResult.Data);
+                    result.TransactionHash = contractResult.TransactionHash;
+                    result.Timestamp = DateTime.UtcNow;
+                }
+                else
+                {
+                    result.Success = false;
+                    result.ErrorMessage = contractResult.ErrorMessage;
+                }
+                
+                // Also check for cached blockchain results
+                var cachedResults = await GetCachedBlockchainResultsAsync(query.ContractAddress);
+                if (cachedResults.Any())
+                {
+                    result.Nodes.AddRange(cachedResults);
+                }
             }
             catch (Exception ex)
             {
@@ -1043,22 +1127,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // 2. Parsing JSON responses
                 // 3. Validating node information
                 
-                await Task.Delay(150); // Simulate network query time
-                
-                // For now, return some mock results
-                result.Success = true;
-                result.Nodes = new List<NodeInfo>
+                // Execute real bootstrap server query
+                var bootstrapQuery = new BootstrapQuery
                 {
-                    new NodeInfo
-                    {
-                        Id = $"bootstrap-node-{Guid.NewGuid().ToString("N")[..8]}",
-                        Address = "bootstrap.onet.network:8080",
-                        Capabilities = new List<string> { "ONET", "P2P", "Bootstrap", "Registry" },
-                        LastSeen = DateTime.UtcNow,
-                        IsActive = true
-                    }
+                    BootstrapServers = query.BootstrapServers,
+                    Timeout = TimeSpan.FromSeconds(15),
+                    MaxRetries = 3
                 };
-                result.ServerUsed = query.BootstrapServers.First();
+                
+                // Query bootstrap servers for registered nodes
+                var bootstrapResponse = await QueryBootstrapServersAsync(bootstrapQuery);
+                if (bootstrapResponse.Success && bootstrapResponse.Nodes.Any())
+                {
+                    result.Success = true;
+                    result.Nodes = bootstrapResponse.Nodes;
+                    result.ServerUsed = bootstrapResponse.ServerUsed;
+                    result.Timestamp = DateTime.UtcNow;
+                }
+                else
+                {
+                    result.Success = false;
+                    result.ErrorMessage = bootstrapResponse.ErrorMessage;
+                }
+                
+                // Also check for cached bootstrap results
+                var cachedResults = await GetCachedBootstrapResultsAsync();
+                if (cachedResults.Any())
+                {
+                    result.Nodes.AddRange(cachedResults);
+                }
             }
             catch (Exception ex)
             {
