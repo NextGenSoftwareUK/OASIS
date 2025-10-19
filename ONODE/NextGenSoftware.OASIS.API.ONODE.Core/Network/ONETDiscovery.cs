@@ -29,6 +29,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public async Task InitializeAsync()
         {
             // Initialize discovery system
+            // Initialize node discovery system
             await Task.CompletedTask;
         }
 
@@ -570,6 +571,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public virtual async Task OnNodesDiscoveredAsync(List<DiscoveredNode> nodes)
         {
             await Task.Delay(1); // Override in implementations
+        }
+        private async Task InitializeDiscoverySystemAsync()
+        {
+            // Initialize discovery system components
+            await Task.CompletedTask;
         }
     }
 

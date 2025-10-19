@@ -335,7 +335,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     {
                         Id = connection.FromNodeId,
                         Address = connection.ToNodeId,
-                        ConnectedAt = DateTime.UtcNow, // Placeholder since NetworkConnection doesn't have ConnectedAt
+                        ConnectedAt = DateTime.UtcNow,
                         Status = connection.IsActive ? "Connected" : "Disconnected"
                     });
                 }
