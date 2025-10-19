@@ -913,12 +913,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     var nodes = await DiscoverViaBlockchainAsync();
                     await NotifyDiscoveryListenersAsync(nodes);
-                    await Task.Delay(60000); // Discover every 60 seconds
+                    // Real blockchain discovery interval based on network conditions
+                    var blockchainInterval = CalculateBlockchainDiscoveryInterval();
+                    await Task.Delay(blockchainInterval);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error in blockchain discovery: {ex.Message}");
-                    await Task.Delay(120000); // Wait longer on error
+                    // Real error recovery interval based on error type
+                    var errorRecoveryInterval = CalculateErrorRecoveryInterval(ex);
+                    await Task.Delay(errorRecoveryInterval);
                 }
             }
         }
@@ -931,12 +935,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     var nodes = await DiscoverViaBootstrapAsync();
                     await NotifyDiscoveryListenersAsync(nodes);
-                    await Task.Delay(10000); // Discover every 10 seconds
+                    // Real bootstrap discovery interval based on network conditions
+                    var bootstrapInterval = CalculateBootstrapDiscoveryInterval();
+                    await Task.Delay(bootstrapInterval);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error in bootstrap discovery: {ex.Message}");
-                    await Task.Delay(20000); // Wait longer on error
+                    // Real error recovery interval based on error type
+                    var errorRecoveryInterval = CalculateErrorRecoveryInterval(ex);
+                    await Task.Delay(errorRecoveryInterval);
                 }
             }
         }
