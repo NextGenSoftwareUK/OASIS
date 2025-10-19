@@ -122,18 +122,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // Parse real network stats from Holochain conductor
                 if (networkStats is string networkStatsJson)
                 {
-                    // Parse JSON to extract node information from Holochain conductor
-                    // This would use a JSON parser to extract node data from the network stats
-                    // The JSON structure would contain information about connected nodes, their IDs, endpoints, etc.
-                    
-                    // For now, we'll create a placeholder that shows the structure
-                    // In a real implementation, this would parse the actual JSON response
-                    // and extract node information like:
-                    // - Node IDs
-                    // - Endpoints/Addresses
-                    // - Connection status
-                    // - Latency information
-                    // - Bandwidth data
+                    try
+                    {
+                        // Parse JSON to extract node information from Holochain conductor
+                        var jsonObject = Newtonsoft.Json.Linq.JObject.Parse(networkStatsJson);
+                        
+                        // Extract nodes from the network stats JSON
+                        var nodesArray = jsonObject["nodes"] as Newtonsoft.Json.Linq.JArray;
+                        if (nodesArray != null)
+                        {
+                            foreach (var nodeJson in nodesArray)
+                            {
+                                var node = new ONETNode
+                                {
+                                    Id = nodeJson["node_id"]?.ToString() ?? "unknown",
+                                    Address = nodeJson["address"]?.ToString() ?? "unknown",
+                                    ConnectedAt = DateTime.UtcNow,
+                                    Status = nodeJson["is_active"]?.ToObject<bool>() == true ? "Connected" : "Disconnected",
+                                    Latency = nodeJson["latency"]?.ToObject<double>() ?? 0.0,
+                                    Reliability = nodeJson["reliability"]?.ToObject<int>() ?? 0
+                                };
+                                nodes.Add(node);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error parsing network stats JSON: {ex.Message}");
+                    }
                 }
                 
                 return nodes;

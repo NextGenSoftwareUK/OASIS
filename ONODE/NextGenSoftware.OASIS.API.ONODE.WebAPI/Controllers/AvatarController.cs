@@ -1204,7 +1204,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     existingAvatar.AvatarType = new EnumValue<AvatarType>(avatarType);
             }
 
-[]            // Use AvatarManager for business logic
+            // Use AvatarManager for business logic
             return HttpResponseHelper.FormatResponse(await Program.AvatarManager.SaveAvatarAsync(existingAvatar));
         }
 

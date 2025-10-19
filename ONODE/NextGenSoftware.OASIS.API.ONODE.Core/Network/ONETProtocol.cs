@@ -191,7 +191,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 foreach (var node in _connectedNodes.Values)
                 {
                     // In real implementation, this would send via the network
-                    Console.WriteLine($"Broadcasting to {node.NodeId}: {message}");
+                    Console.WriteLine($"Broadcasting to {node.Id}: {message}");
                 }
                 
                 result.Result = true;
@@ -405,8 +405,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     Nodes = new List<ONETNode>(_connectedNodes.Values),
                     Bridges = new List<ONETBridge>(_networkBridges.Values),
-                    NetworkHealth = (await CalculateNetworkHealthAsync()).Result,
-                    ConsensusStatus = await _consensus.GetConsensusStatusAsync(),
+                    NetworkHealth = await CalculateNetworkHealthAsync(),
+                    ConsensusStatus = (await _consensus.GetConsensusStatsAsync()).Result?.ConsensusState ?? "Unknown",
                     LastUpdated = DateTime.UtcNow
                 };
 
@@ -547,13 +547,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 // Load from the actual OASISDNA system
-                var oasisdna = await OASISDNAManager.LoadDNAAsync();
+                var oasisdnaResult = await OASISDNAManager.LoadDNAAsync();
+                var oasisdna = oasisdnaResult?.Result;
                 if (oasisdna == null)
                 {
                     // Create default configuration
                     oasisdna = new OASISDNA
                     {
-                        OASIS = new OASIS
+                        OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
                         {
                             OASISAPIURL = "https://api.oasis.network",
                             SettingsLookupHolonId = Guid.Empty,

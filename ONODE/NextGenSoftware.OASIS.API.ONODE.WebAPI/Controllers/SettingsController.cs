@@ -215,7 +215,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 }
 
                 // Update contact information
-                if (settings.ContainsKey("address") && settings["address"] != null)
+                /* 
                 {
                     avatar.Address = settings["address"].ToString();
                     hasChanges = true;
@@ -274,6 +274,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     avatar.UmaJson = settings["umaJson"].ToString();
                     hasChanges = true;
                 }
+                */
 
                 if (hasChanges)
                 {

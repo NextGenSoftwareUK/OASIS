@@ -284,7 +284,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 // Load OASISDNA configuration
                 var oasisdna = await OASISDNAManager.LoadDNAAsync();
-                if (oasisdna?.OASIS != null)
+                if (oasisdna?.Result?.OASIS != null)
                 {
                     // Configure consensus based on OASISDNA settings
                     _currentState = ConsensusState.Active;

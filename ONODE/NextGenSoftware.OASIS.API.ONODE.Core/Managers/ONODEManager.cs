@@ -473,8 +473,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
-                // In a real implementation, this would save to storage
-                // For now, just simulate success
+                // Save using the actual OASISDNA system
+                var saveResult = await OASISDNAManager.SaveDNAAsync();
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error saving OASISDNA: {saveResult.Message}");
+                    return result;
+                }
 
                 result.Result = true;
                 result.IsError = false;
