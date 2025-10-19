@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly HoloNETClientBase _holoNETClient;
         private readonly Dictionary<string, NetworkConnection> _networkConnections;
         private readonly List<NetworkConnection> _failedConnections;
+        private readonly ONETProtocol _onetProtocol;
         private bool _isInitialized = false;
 
         public HoloNETP2PProvider(IHoloNETClientBase holoNETClient, IOASISStorageProvider storageProvider, OASISDNA oasisdna = null)
@@ -27,6 +28,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             _holoNETClient = (HoloNETClientBase)holoNETClient ?? throw new ArgumentNullException(nameof(holoNETClient));
             _networkConnections = new Dictionary<string, NetworkConnection>();
             _failedConnections = new List<NetworkConnection>();
+            _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
             SetupEventHandlers();
             ConfigureEnhancedFeatures();
         }
@@ -95,25 +97,71 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         public async Task<OASISResult<bool>> SendMessageAsync(string recipientNodeId, string message)
         {
-            Console.WriteLine($"Simulating sending direct message to {recipientNodeId}: {message}");
-            await Task.CompletedTask;
-            return new OASISResult<bool>(true) { Result = true };
+            try
+            {
+                // Use HoloNET client to send direct message
+                if (_holoNETClient != null && _holoNETClient.State == WebSocketState.Open)
+                {
+                    // Create ONET message for routing
+                    var onetMessage = new ONETMessage
+                    {
+                        TargetNodeId = recipientNodeId,
+                        Content = message,
+                        MessageType = "DIRECT_MESSAGE",
+                        SourceNodeId = "local"
+                    };
+                    
+                    // Route through ONET protocol
+                    var routeResult = await _onetProtocol.SendMessageAsync(onetMessage);
+                    return new OASISResult<bool>(!routeResult.IsError) { Result = !routeResult.IsError };
+                }
+                else
+                {
+                    return new OASISResult<bool>(false) { Result = false, Message = "HoloNET client not connected" };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<bool>(false) { Result = false, Message = $"Error sending message: {ex.Message}", Exception = ex };
+            }
         }
 
         public async Task<OASISResult<bool>> BroadcastMessageAsync(string message)
         {
-            Console.WriteLine($"Simulating broadcasting message: {message}");
-            await Task.CompletedTask;
-            return new OASISResult<bool>(true) { Result = true };
+            try
+            {
+                // Use HoloNET client to broadcast message
+                if (_holoNETClient != null && _holoNETClient.State == WebSocketState.Open)
+                {
+                    // Create ONET message for broadcasting
+                    var onetMessage = new ONETMessage
+                    {
+                        TargetNodeId = "broadcast",
+                        Content = message,
+                        MessageType = "BROADCAST",
+                        SourceNodeId = "local"
+                    };
+                    
+                    // Route through ONET protocol
+                    var routeResult = await _onetProtocol.SendMessageAsync(onetMessage);
+                    return new OASISResult<bool>(!routeResult.IsError) { Result = !routeResult.IsError };
+                }
+                else
+                {
+                    return new OASISResult<bool>(false) { Result = false, Message = "HoloNET client not connected" };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new OASISResult<bool>(false) { Result = false, Message = $"Error broadcasting message: {ex.Message}", Exception = ex };
+            }
         }
 
         public async Task<OASISResult<NetworkHealth>> GetNetworkStatsAsync()
         {
             try
             {
-                Console.WriteLine("Simulating GetNetworkStatsAsync...");
-                await Task.CompletedTask;
-
+                // Get real network health from HoloNET client
                 var health = await CalculateNetworkHealthAsync();
                 return new OASISResult<NetworkHealth>(health)
                 {

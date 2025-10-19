@@ -586,31 +586,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
-        private async Task SimulateGossipBroadcast(string message, Dictionary<string, object> metadata)
+        private async Task PerformGossipBroadcast(string message, Dictionary<string, object> metadata)
         {
-            // Simulate gossip broadcast for fallback
+            // Perform real gossip broadcast through Holochain network
             try
             {
-                Console.WriteLine($"Simulating gossip broadcast: {message}");
-                await Task.Delay(100); // Simulate network delay
+                if (_holoNETClient != null && _holoNETClient.IsConnected)
+                {
+                    // Use HoloNET client to perform gossip broadcast
+                    // This would use the actual Holochain gossip protocol
+                    await _holoNETClient.SendGossipMessageAsync(message, metadata);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error simulating gossip broadcast: {ex.Message}");
+                Console.WriteLine($"Error performing gossip broadcast: {ex.Message}");
             }
         }
 
-        private async Task SimulateDirectMessage(string nodeId, string message, Dictionary<string, object> metadata)
+        private async Task PerformDirectMessage(string nodeId, string message, Dictionary<string, object> metadata)
         {
-            // Simulate direct message for fallback
+            // Perform real direct message through Holochain network
             try
             {
-                Console.WriteLine($"Simulating direct message to {nodeId}: {message}");
-                await Task.Delay(50); // Simulate network delay
+                if (_holoNETClient != null && _holoNETClient.IsConnected)
+                {
+                    // Use HoloNET client to send direct message
+                    await _holoNETClient.SendDirectMessageAsync(nodeId, message, metadata);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error simulating direct message: {ex.Message}");
+                Console.WriteLine($"Error performing direct message: {ex.Message}");
             }
         }
 

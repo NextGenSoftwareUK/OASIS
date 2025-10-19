@@ -101,7 +101,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var routingStrategy = await DetermineOptimalRoutingStrategyAsync(service, endpoint, networkType, providerType);
                 
                 // Route through appropriate integration layer
-                OASISResult<T> apiResult;
+                OASISResult<T> apiResult = new OASISResult<T>();
                 switch (routingStrategy.IntegrationLayer)
                 {
                     case "WEB4":
@@ -111,7 +111,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                         apiResult = await _hyperDriveIntegration.RouteRequestAsync<T>(CreateRequest(service, endpoint, parameters), LoadBalancingStrategy.Auto);
                         break;
                     case "Provider":
-                        apiResult = await _providerIntegration.RouteThroughProviderAsync<T>(routingStrategy.ProviderType, CreateRequest(service, endpoint, parameters));
+                        if (Enum.TryParse<ProviderType>(routingStrategy.ProviderType, out var parsedProviderType))
+                        {
+                            apiResult = await _providerIntegration.RouteThroughProviderAsync<T>(parsedProviderType, CreateRequest(service, endpoint, parameters));
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref apiResult, $"Invalid provider type: {routingStrategy.ProviderType}");
+                        }
                         break;
                     case "ONET":
                         apiResult = await RouteThroughONETAsync<T>(service, endpoint, parameters);
@@ -548,7 +555,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                                 result = await _hyperDriveIntegration.RouteRequestAsync<T>(request, LoadBalancingStrategy.Auto);
                                 break;
                             case "Provider":
-                                result = await _providerIntegration.RouteThroughProviderAsync<T>(strategy.ProviderType, request);
+                                if (Enum.TryParse<ProviderType>(strategy.ProviderType, out var parsedProviderType2))
+                                {
+                                    result = await _providerIntegration.RouteThroughProviderAsync<T>(parsedProviderType2, request);
+                                }
+                                else
+                                {
+                                    OASISErrorHandling.HandleError(ref result, $"Invalid provider type: {strategy.ProviderType}");
+                                }
                                 break;
                             case "ONET":
                                 result = await RouteThroughONETAsync<T>(service, endpoint, parameters);
