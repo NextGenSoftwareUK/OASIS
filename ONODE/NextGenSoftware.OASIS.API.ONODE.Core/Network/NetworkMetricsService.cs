@@ -318,10 +318,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             var maxLatency = 1000.0; // 1 second
             
             if (metrics.AverageLatency <= optimalLatency)
-                return 1.0;
+                return await CalculateMaximumHealthScoreAsync();
             
             var latencyRatio = Math.Min(metrics.AverageLatency / maxLatency, 1.0);
-            return 1.0 - latencyRatio;
+            return await CalculateLatencyBasedHealthScoreAsync(latencyRatio);
         }
 
         private double CalculateThroughputHealth(NetworkMetrics metrics)
@@ -332,7 +332,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             var maxThroughput = 10000.0; // 10 Mbps
             
             if (metrics.TotalThroughput >= maxThroughput)
-                return 1.0;
+                return await CalculateMaximumHealthScoreAsync();
             
             if (metrics.TotalThroughput <= minThroughput)
                 return 0.0;
