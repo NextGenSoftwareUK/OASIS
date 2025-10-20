@@ -1,20 +1,23 @@
-﻿using NextGenSoftware.CLI.Engine;
-using NextGenSoftware.OASIS.Common;
+﻿using Newtonsoft.Json;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.STAR.DNA;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
-using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Network;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 using ThirdParty.Json.LitJson;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
@@ -192,7 +195,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (starHolon.STARNETDNA != null && starHolon.STARNETDNA.MetaData != null && starHolon.STARNETDNA.MetaData.ContainsKey("NFT") && starHolon.STARNETDNA.MetaData["NFT"] != null)
             {
-                IOASISNFT nft = starHolon.STARNETDNA.MetaData["NFT"] as IOASISGeoSpatialNFT;
+                IOASISNFT nft = starHolon.STARNETDNA.MetaData["NFT"] as IOASISNFT;
 
                 if (nft == null)
                     nft = JsonConvert.DeserializeObject<OASISNFT>(starHolon.STARNETDNA.MetaData["NFT"].ToString());
@@ -376,13 +379,74 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             ListWeb4NFTs(await NFTCommon.NFTManager.SearchNFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType: providerType));
         }
 
-        private async Task<OASISResult<IOASISNFT>> FindWeb4NFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string STARNETHolonUIName = "Default", ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOASISNFTCollection>> CreateNFTCollectionAsync(ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISNFTCollection> result = new OASISResult<IOASISNFTCollection>();
+            CreateOASISNFTCollectionRequest request = new CreateOASISNFTCollectionRequest();
+
+            request.Title = CLIEngine.GetValidInput("Please enter a title for the NFT Collection: ");
+            request.Description = CLIEngine.GetValidInput("Please enter a description for the NFT Collection: ");
+            request.CreatedBy = STAR.BeamedInAvatar.Id;
+
+            OASISResult<ImageAndThumbnail> imageAndThumbnailResult = NFTCommon.ProcessImageAndThumbnail("NFT Collection");
+
+            if (imageAndThumbnailResult != null && imageAndThumbnailResult.Result != null && !imageAndThumbnailResult.IsError)
+            {
+                request.Image = imageAndThumbnailResult.Result.Image;
+                request.ImageUrl = imageAndThumbnailResult.Result.ImageUrl;
+                request.Thumbnail = imageAndThumbnailResult.Result.Thumbnail;
+                request.ThumbnailUrl = imageAndThumbnailResult.Result.ThumbnailUrl;
+            }
+            else
+            {
+                string msg = imageAndThumbnailResult != null ? imageAndThumbnailResult.Message : "";
+                OASISErrorHandling.HandleError(ref result, $"Error Occured Processing Image and Thumbnail for NFT Collection: {msg}");
+                return result;
+            }
+
+            request.MetaData = request.MetaData = NFTCommon.AddMetaData("NFT Collection");
+
+            if (CLIEngine.GetConfirmation("Do you wish to add any NFTs to this collection now? (You can always add more later)."))
+            {
+                request.OASISNFTs = new List<IOASISNFT>();
+                OASISResult<IOASISNFT> nftResult = null;
+
+                do
+                {
+                    if (CLIEngine.GetConfirmation("Does the NFT already exist? (If you select 'N' you will be taken through the minting process to create a new NFT to add to the collection)."))
+                        nftResult = await FindWeb4NFTAsync("use", providerType: providerType);
+                    else
+                        nftResult = await MintNFTAsync();
+
+                    if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
+                        request.OASISNFTs.Add(nftResult.Result);
+                    else
+                    {
+                        string msg = nftResult != null ? nftResult.Message : "";
+                        OASISErrorHandling.HandleError(ref result, $"Error Occured Finding NFT to add to Collection: {msg}");
+                        return result;
+                    }
+
+                } while (CLIEngine.GetConfirmation("Do you wish to add another NFT to this collection?"));
+            }
+
+            result = await NFTCommon.NFTManager.CreateOASISNFTCollectionAsync(request);
+
+            if (result != null && result.Result != null && !result.IsError)
+                CLIEngine.ShowSuccessMessage("OASIS NFT Collection Successfully Created.");
+            else
+            {
+                string msg = result != null ? result.Message : "";
+                CLIEngine.ShowErrorMessage($"Error Occured Creating NFT Collection: {msg}");
+            }
+
+            return result;
+        }
+
+        private async Task<OASISResult<IOASISNFT>> FindWeb4NFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "NFT", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
             Guid id = Guid.Empty;
-
-            if (STARNETHolonUIName == "Default")
-                STARNETHolonUIName = STARNETManager.STARNETHolonUIName;
 
             if (idOrName == Guid.Empty.ToString())
                 idOrName = "";
@@ -394,10 +458,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     bool cont = true;
                     OASISResult<IEnumerable<IOASISNFT>> starHolonsResult = null;
 
-                    if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the {STARNETHolonUIName} you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
+                    if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the {UIName} you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
                     {
                         Console.WriteLine("");
-                        CLIEngine.ShowWorkingMessage($"Loading {STARNETHolonUIName}'s...");
+                        CLIEngine.ShowWorkingMessage($"Loading {UIName}'s...");
 
                         if (showOnlyForCurrentAvatar)
                             starHolonsResult = await NFTCommon.NFTManager.LoadAllNFTsForAvatarAsync(STAR.BeamedInAvatar.AvatarId, providerType);
@@ -413,7 +477,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         Console.WriteLine("");
 
                     if (cont)
-                        idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the {STARNETHolonUIName} you wish to {operationName}?");
+                        idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the {UIName} you wish to {operationName}?");
                     else
                     {
                         idOrName = "nonefound";
@@ -429,18 +493,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (Guid.TryParse(idOrName, out id))
                 {
-                    CLIEngine.ShowWorkingMessage($"Loading {STARNETHolonUIName}...");
+                    CLIEngine.ShowWorkingMessage($"Loading {UIName}...");
                     result = await NFTCommon.NFTManager.LoadNftAsync(id, providerType);
 
                     if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.MintedByAvatarId != STAR.BeamedInAvatar.AvatarId)
                     {
-                        CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this {STARNETHolonUIName}. It was minted by another avatar.");
+                        CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this {UIName}. It was minted by another avatar.");
                         result.Result = default;
                     }
                 }
                 else
                 {
-                    CLIEngine.ShowWorkingMessage($"Searching {STARNETHolonUIName}s...");
+                    CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
                     OASISResult<IEnumerable<IOASISNFT>> searchResults = await NFTCommon.NFTManager.SearchNFTsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
@@ -455,7 +519,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                                 do
                                 {
-                                    int number = CLIEngine.GetValidInputForInt($"What is the number of the {STARNETHolonUIName} you wish to {operationName}?");
+                                    int number = CLIEngine.GetValidInputForInt($"What is the number of the {UIName} you wish to {operationName}?");
 
                                     if (number > 0 && number <= searchResults.Result.Count())
                                         result.Result = searchResults.Result.ElementAt(number - 1);
@@ -475,7 +539,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         else
                         {
                             idOrName = "";
-                            CLIEngine.ShowWarningMessage($"No {STARNETHolonUIName} Found!");
+                            CLIEngine.ShowWarningMessage($"No {UIName} Found!");
                         }
                     }
                     else
@@ -490,7 +554,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (result.Result != null && operationName != "view")
                 {
-                    if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {STARNETHolonUIName}?"))
+                    if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {UIName}?"))
                     {
 
                     }
@@ -500,7 +564,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         result.Result = default;
                         idOrName = "";
 
-                        if (!CLIEngine.GetConfirmation($"Do you wish to search for another {STARNETHolonUIName}?"))
+                        if (!CLIEngine.GetConfirmation($"Do you wish to search for another {UIName}?"))
                         {
                             idOrName = "exit";
                             break;
