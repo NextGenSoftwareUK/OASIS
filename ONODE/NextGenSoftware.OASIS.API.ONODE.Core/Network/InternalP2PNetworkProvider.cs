@@ -630,7 +630,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error calculating throughput: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating throughput: {ex.Message}", ex);
                 return 1000.0; // Default throughput on error
             }
         }
@@ -655,7 +655,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling ONET node connected event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling ONET node connected event: {ex.Message}", ex);
             }
         }
 
@@ -674,7 +674,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling ONET node disconnected event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling ONET node disconnected event: {ex.Message}", ex);
             }
         }
 
@@ -688,7 +688,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling ONET message received event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling ONET message received event: {ex.Message}", ex);
             }
         }
 
@@ -701,7 +701,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling consensus reached event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling consensus reached event: {ex.Message}", ex);
             }
         }
 
@@ -714,7 +714,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling consensus failed event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling consensus failed event: {ex.Message}", ex);
             }
         }
 
@@ -727,7 +727,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling route updated event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling route updated event: {ex.Message}", ex);
             }
         }
 
@@ -740,7 +740,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling route failed event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling route failed event: {ex.Message}", ex);
             }
         }
 
@@ -753,7 +753,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling security alert event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling security alert event: {ex.Message}", ex);
             }
         }
 
@@ -766,7 +766,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling authentication failed event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling authentication failed event: {ex.Message}", ex);
             }
         }
 
@@ -779,7 +779,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling node discovered event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling node discovered event: {ex.Message}", ex);
             }
         }
 
@@ -792,7 +792,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling node lost event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling node lost event: {ex.Message}", ex);
             }
         }
 
