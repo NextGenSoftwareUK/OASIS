@@ -1775,31 +1775,160 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        //private IHolon CreateOASISNFTCollectionMetaDataHolon(IOASISNFTCollection oasisNftCollection)
-        //{
-        //    IHolon holon = new Holon();
-        //    holon.Id = oasisNftCollection.Id;
-        //    holon.Name = $"OASIS NFT Collection with title {oasisNftCollection.Title}";
-        //    holon.Description = oasisNftCollection.Description;
-        //    holon.HolonType = HolonType.NFTCollection;
-        //    holon.MetaData = new Dictionary<string, object>()
-        //    {
-        //        { "OASISNFTCOLLECTION.ID", oasisNftCollection.Id },
-        //        { "OASISNFTCOLLECTION.Title", oasisNftCollection.Title },
-        //        { "OASISNFTCOLLECTION.Description", oasisNftCollection.Description  },
-        //        { "OASISNFTCOLLECTION.CreatedOn", oasisNftCollection.CreatedOn  },
-        //        { "OASISNFTCOLLECTION.CreatedBy", oasisNftCollection.CreatedBy  },
-        //        { "OASISNFTCOLLECTION.ImageUrl", oasisNftCollection.ImageUrl  },
-        //        { "OASISNFTCOLLECTION.Image", oasisNftCollection.Image  },
-        //        { "OASISNFTCOLLECTION.ThumbnailUrl", oasisNftCollection.ThumbnailUrl  },
-        //        { "OASISNFTCOLLECTION.Thumbnail", oasisNftCollection.Thumbnail  },
-        //        { "OASISNFTCOLLECTION.OASISNFTIds", oasisNftCollection.OASISNFTIds  },
-        //        { "OASISNFTCOLLECTION.Tags", oasisNftCollection.Tags },
-        //        { "OASISNFTCOLLECTION.MetaData", oasisNftCollection.MetaData }
-        //    };
+        public async Task<OASISResult<IOASISNFTCollection>> AddOASISNFTToCollectionAsync(Guid collectionId, Guid OASISNFTId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISNFTCollection> result = new();
+            string errorMessage = "Error occured in AddOASISNFTToCollectionAsync in NFTManager. Reason:";
 
-        //    return holon;
-        //}
+            try
+            {
+                OASISResult<OASISNFTCollection> holonResult = await Data.LoadHolonAsync<OASISNFTCollection>(collectionId, providerType: providerType);
+
+                if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
+                {
+                    holonResult.Result.OASISNFTIds.Add(OASISNFTId.ToString());
+
+                    OASISResult<OASISNFTCollection> saveResult = await Data.SaveHolonAsync<OASISNFTCollection>(holonResult.Result);
+
+                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                    {
+                        result.Result = saveResult.Result;
+                        result.Message = "OASIS NFT Added To Collection Successfully.";
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured adding OASIS NFT to collection. Reason: {saveResult?.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading OASIS NFT Collection. Reason: {holonResult?.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+        public async Task<OASISResult<IOASISNFTCollection>> AddOASISNFTToCollectionAsync(Guid collectionId, IOASISNFT OASISNFT, ProviderType providerType = ProviderType.Default)
+        {
+            return await AddOASISNFTToCollectionAsync(collectionId, OASISNFT.Id, providerType);
+        }
+
+        public async Task<OASISResult<IOASISNFTCollection>> RemoveOASISNFTFromCollectionAsync(Guid collectionId, Guid OASISNFTId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISNFTCollection> result = new();
+            string errorMessage = "Error occured in RemoveOASISNFTFromCollectionAsync in NFTManager. Reason:";
+
+            try
+            {
+                OASISResult<OASISNFTCollection> holonResult = await Data.LoadHolonAsync<OASISNFTCollection>(collectionId, providerType: providerType);
+
+                if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
+                {
+                    holonResult.Result.OASISNFTIds.Remove(OASISNFTId.ToString());
+
+                    OASISResult<OASISNFTCollection> saveResult = await Data.SaveHolonAsync<OASISNFTCollection>(holonResult.Result);
+
+                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                    {
+                        result.Result = saveResult.Result;
+                        result.Message = "OASIS NFT Removed From Collection Successfully.";
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured removing OASIS NFT from collection. Reason: {saveResult?.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading OASIS NFT Collection. Reason: {holonResult?.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISNFTCollection>> RemoveOASISNFTFromCollectionAsync(Guid collectionId, IOASISNFT OASISNFT, ProviderType providerType = ProviderType.Default)
+        {
+            return await RemoveOASISNFTFromCollectionAsync(collectionId, OASISNFT.Id, providerType);
+        }
+
+        public async Task<OASISResult<IOASISGeoNFTCollection>> AddOASISGeoNFTToCollectionAsync(Guid collectionId, Guid OASISGeoNFTId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISGeoNFTCollection> result = new();
+            string errorMessage = "Error occured in AddOASISGeoNFTToCollectionAsync in NFTManager. Reason:";
+
+            try
+            {
+                OASISResult<OASISGeoNFTCollection> holonResult = await Data.LoadHolonAsync<OASISGeoNFTCollection>(collectionId, providerType: providerType);
+
+                if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
+                {
+                    holonResult.Result.OASISGeoNFTIds.Add(OASISGeoNFTId.ToString());
+
+                    OASISResult<OASISGeoNFTCollection> saveResult = await Data.SaveHolonAsync<OASISGeoNFTCollection>(holonResult.Result);
+
+                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                    {
+                        result.Result = saveResult.Result;
+                        result.Message = "OASIS GeoNFT Added To Collection Successfully.";
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured adding OASIS GeoNFT to collection. Reason: {saveResult?.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading OASIS GeoNFT Collection. Reason: {holonResult?.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISGeoNFTCollection>> AddOASISGeoNFTToCollectionAsync(Guid collectionId, IOASISGeoSpatialNFT OASISGeoNFT, ProviderType providerType = ProviderType.Default)
+        {
+            return await AddOASISGeoNFTToCollectionAsync(collectionId, OASISNFT.Id, providerType);
+        }
+
+        public async Task<OASISResult<IOASISGeoNFTCollection>> RemoveOASISGeoNFTFromCollectionAsync(Guid collectionId, Guid OASISGeoNFTId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISGeoNFTCollection> result = new();
+            string errorMessage = "Error occured in RemoveOASISGeoNFTFromCollectionAsync in NFTManager. Reason:";
+
+            try
+            {
+                OASISResult<OASISGeoNFTCollection> holonResult = await Data.LoadHolonAsync<OASISGeoNFTCollection>(collectionId, providerType: providerType);
+
+                if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
+                {
+                    holonResult.Result.OASISGeoNFTIds.Remove(OASISGeoNFTId.ToString());
+
+                    OASISResult<OASISGeoNFTCollection> saveResult = await Data.SaveHolonAsync<OASISGeoNFTCollection>(holonResult.Result);
+
+                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                    {
+                        result.Result = saveResult.Result;
+                        result.Message = "OASIS GeoNFT Removed From Collection Successfully.";
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured removing OASIS GeoNFT from collection. Reason: {saveResult?.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading OASIS GeoNFT Collection. Reason: {holonResult?.Message}");
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISGeoNFTCollection>> RemoveOASISGeoNFTFromCollectionAsync(Guid collectionId, IOASISGeoSpatialNFT OASISGeoNFT, ProviderType providerType = ProviderType.Default)
+        {
+            return await RemoveOASISGeoNFTFromCollectionAsync(collectionId, OASISGeoNFT.Id, providerType);
+        }
 
         public async Task<OASISResult<bool>> DeleteOASISNFTCollectionAsync(Guid avatarId, Guid id, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
@@ -1930,80 +2059,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             return result;
         }
-
-        //public async Task<OASISResult<IOASISNFTCollection>> GetOASISNFTCollectionAsync(Guid id, ProviderType providerType = ProviderType.Default)
-        //{
-        //    OASISResult<IOASISNFTCollection> result = new();
-        //    string errorMessage = "Error occured in GetOASISNFTCollectionAsync in NFTManager. Reason:";
-
-        //    try
-        //    {
-        //        OASISResult<IHolon> holonRes = await Data.LoadHolonAsync(id, true, true, 0, true, false, HolonType.NFTCollection, 0, providerType: providerType);
-        //        if (holonRes != null && !holonRes.IsError && holonRes.Result != null)
-        //        {
-        //            var h = holonRes.Result;
-        //            IOASISNFTCollection coll = new OASISNFTCollection()
-        //            {
-        //                Id = h.Id,
-        //                Title = h.MetaData.ContainsKey("OASISNFTCOLLECTION.Title") ? h.MetaData["OASISNFTCOLLECTION.Title"]?.ToString() : null,
-        //                Description = h.MetaData.ContainsKey("OASISNFTCOLLECTION.Description") ? h.MetaData["OASISNFTCOLLECTION.Description"]?.ToString() : null,
-        //                ImageUrl = h.MetaData.ContainsKey("OASISNFTCOLLECTION.ImageUrl") ? h.MetaData["OASISNFTCOLLECTION.ImageUrl"]?.ToString() : null,
-        //                ThumbnailUrl = h.MetaData.ContainsKey("OASISNFTCOLLECTION.ThumbnailUrl") ? h.MetaData["OASISNFTCOLLECTION.ThumbnailUrl"]?.ToString() : null,
-        //                MetaData = h.MetaData
-        //            };
-
-        //            if (h.MetaData.ContainsKey("OASISNFTCOLLECTION.OASISNFTIds") && h.MetaData["OASISNFTCOLLECTION.OASISNFTIds"] is IEnumerable<string> ids)
-        //                coll.OASISNFTIds = ids.ToList();
-
-        //            result.Result = coll;
-        //        }
-        //        else
-        //            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading collection. Reason: {holonRes?.Message}");
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
-        //    }
-
-        //    return result;
-        //}
-
-        //public async Task<OASISResult<IOASISGeoNFTCollection>> GetOASISGeoNFTCollectionAsync(Guid id, ProviderType providerType = ProviderType.Default)
-        //{
-        //    OASISResult<IOASISGeoNFTCollection> result = new();
-        //    string errorMessage = "Error occured in GetOASISGeoNFTCollectionAsync in NFTManager. Reason:";
-
-        //    try
-        //    {
-        //        OASISResult<IHolon> holonRes = await Data.LoadHolonAsync(id, true, true, 0, true, false, HolonType.GeoNFTCollection, 0, providerType: providerType);
-        //        if (holonRes != null && !holonRes.IsError && holonRes.Result != null)
-        //        {
-        //            var h = holonRes.Result;
-        //            IOASISGeoNFTCollection coll = new OASISGeoNFTCollection()
-        //            {
-        //                Id = h.Id,
-        //                Title = h.MetaData.ContainsKey("OASISGEONFTCOLLECTION.Title") ? h.MetaData["OASISGEONFTCOLLECTION.Title"]?.ToString() : null,
-        //                Description = h.MetaData.ContainsKey("OASISGEONFTCOLLECTION.Description") ? h.MetaData["OASISGEONFTCOLLECTION.Description"]?.ToString() : null,
-        //                ImageUrl = h.MetaData.ContainsKey("OASISGEONFTCOLLECTION.ImageUrl") ? h.MetaData["OASISGEONFTCOLLECTION.ImageUrl"]?.ToString() : null,
-        //                ThumbnailUrl = h.MetaData.ContainsKey("OASISGEONFTCOLLECTION.ThumbnailUrl") ? h.MetaData["OASISGEONFTCOLLECTION.ThumbnailUrl"]?.ToString() : null,
-        //                MetaData = h.MetaData
-        //            };
-
-        //            if (h.MetaData.ContainsKey("OASISGEONFTCOLLECTION.OASISGeoNFTIds") && h.MetaData["OASISGEONFTCOLLECTION.OASISGeoNFTIds"] is IEnumerable<string> ids)
-        //                coll.OASISGeoNFTIds = ids.ToList();
-
-        //            result.Result = coll;
-        //        }
-        //        else
-        //            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading collection. Reason: {holonRes?.Message}");
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Unknown error occured: {e.Message}", e);
-        //    }
-
-        //    return result;
-        //}
 
 
         //TODO: Implement batch minting!
