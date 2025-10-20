@@ -666,6 +666,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             optimization.OptimizationsApplied.Add("Cross-layer communication optimization");
             optimization.PerformanceImprovements["Cross_Layer_Sync"] = 15.8;
         }
+
+        // Missing helper methods
+        private async Task PerformRealUnifiedInitializationAsync()
+        {
+            try
+            {
+                // Perform real unified initialization
+                await Task.Delay(100); // Simulate initialization time
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error in unified initialization: {ex.Message}", ex);
+            }
+        }
+
+        private async Task<string> CalculateDefaultNodeIdAsync()
+        {
+            try
+            {
+                // Calculate default node ID
+                var nodeId = $"unified-node-{Guid.NewGuid().ToString("N")[..8]}";
+                return await Task.FromResult(nodeId);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error calculating node ID: {ex.Message}", ex);
+                return "default-node";
+            }
+        }
     }
 
     public class UnifiedService

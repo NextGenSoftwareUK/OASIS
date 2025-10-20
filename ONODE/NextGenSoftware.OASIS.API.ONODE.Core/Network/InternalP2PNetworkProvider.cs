@@ -797,6 +797,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         }
 
         #endregion
+
+        // Helper methods for calculations
+        private static async Task<double> CalculateMinimumNetworkHealthAsync()
+        {
+            // Return minimum network health when no connections
+            return await Task.FromResult(0.1); // 10% minimum health
+        }
+
+        private static async Task<double> CalculateDefaultHealthOnErrorAsync()
+        {
+            // Return default health on error
+            return await Task.FromResult(0.5); // 50% default health on error
+        }
     }
 
     /// <summary>

@@ -683,7 +683,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (Guid.TryParse(idOrName, out id))
                 {
                     CLIEngine.ShowWorkingMessage($"Loading {UIName}...");
-                    result = await NFTCommon.NFTManager.LoadGeoNftAsync(id, providerType);
+                    result = await NFTCommon.NFTManager.LoadOASISGeoNFTCollectionAsync(id, providerType: providerType);
 
                     if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.MintedByAvatarId != STAR.BeamedInAvatar.AvatarId)
                     {
@@ -694,13 +694,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IOASISGeoSpatialNFT>> searchResults = await NFTCommon.NFTManager.SearchGeoNFTsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IOASISGeoNFTCollection>> searchResults = await NFTCommon.NFTManager.SearchGeoNFTCollectionAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
                         if (searchResults.Result.Count() > 1)
                         {
-                            ListWeb4GeoNFTs(searchResults);
+                            ListWeb4GeoNFTCollections(searchResults);
 
                             if (CLIEngine.GetConfirmation("Are any of these correct?"))
                             {
@@ -732,11 +732,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         }
                     }
                     else
-                        CLIEngine.ShowErrorMessage($"An error occured calling STARNETManager.SearchsAsync. Reason: {searchResults.Message}");
+                        CLIEngine.ShowErrorMessage($"An error occured calling FindWeb4GeoNFTCollectionAsync. Reason: {searchResults.Message}");
                 }
 
                 if (result.Result != null)
-                    ShowGeoNFT(result.Result, DEFAULT_FIELD_LENGTH);
+                    ShowGeoNFTCollection(result.Result, DEFAULT_FIELD_LENGTH);
 
                 if (idOrName == "exit")
                     break;
