@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -56,23 +57,64 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public event EventDelegates.HolonRemoved OnHolonRemoved;
         public event EventDelegates.HolonsLoaded OnChildrenLoaded;
         public event EventDelegates.HolonsError OnChildrenLoadError;
-        public IHolon Original { get; set; }
+        
 
       
 
-        //TODO: Finish converting all properties so are same as above...
-        public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).        
-        public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
-        public string CustomKey { get; set; } //A custom key that can be used to load the holon by (other than Id or ProviderKey).
-        public bool IsNewHolon { get; set; } //TODO: Want to remove this ASAP!
-        public bool IsSaving { get; set; }
+        //TODO: TEMP MOVED TO HOLONBASE TILL REFACTOR CODEBASE.
+        //public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).        
+        //public Dictionary<ProviderType, Dictionary<string, string>> ProviderMetaData { get; set; } = new Dictionary<ProviderType, Dictionary<string, string>>(); // Key/Value pair meta data can be stored here, which is unique for that provider.
+        //public string CustomKey { get; set; } //A custom key that can be used to load the holon by (other than Id or ProviderKey).
+        //public bool IsNewHolon { get; set; } //TODO: Want to remove this ASAP!
+        //public bool IsSaving { get; set; }
 
-        public Guid PreviousVersionId { get; set; }
-        public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>();
+        //public Guid PreviousVersionId { get; set; }
+        //public Dictionary<ProviderType, string> PreviousVersionProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>();
 
-        public EnumValue<ProviderType> CreatedProviderType { get; set; } // The primary provider that this holon was originally saved with (it can then be auto-replicated to other providers to give maximum redundancy/speed via auto-load balancing etc).
-        public EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }
-        public EnumValue<OASISType> CreatedOASISType { get; set; }
+        //public EnumValue<ProviderType> CreatedProviderType { get; set; } // The primary provider that this holon was originally saved with (it can then be auto-replicated to other providers to give maximum redundancy/speed via auto-load balancing etc).
+        //public EnumValue<ProviderType> InstanceSavedOnProviderType { get; set; }
+        //public EnumValue<OASISType> CreatedOASISType { get; set; }
+
+
+        //FROM CELESTIALHOLON - TODO: NEED TO REFFACTOR CODEBASE LATER TO USE ICELESTIALHOLON INSTEAD OF IHolon WHERE APPROPRIATE.
+        public IList<INode> Nodes { get; set; }
+        public Guid ParentOmniverseId { get; set; } //The Omniverse this Holon belongs to.
+        public IOmiverse ParentOmniverse { get; set; } //The Omniverse this Holon belongs to.
+        public Guid ParentMultiverseId { get; set; } //The Multiverse this Holon belongs to.
+        public IMultiverse ParentMultiverse { get; set; } //The Multiverse this Holon belongs to.
+        public Guid ParentUniverseId { get; set; } //The Universe this Holon belongs to.
+        public IUniverse ParentUniverse { get; set; } //The Universe this Holon belongs to.
+        public Guid ParentDimensionId { get; set; } //The Dimension this Holon belongs to.
+        public IDimension ParentDimension { get; set; } //The Dimension this Holon belongs to.
+        public DimensionLevel DimensionLevel { get; set; } //The dimension this Holon belongs to (a holon can have a different version of itself in each dimension (asscended/evolved versions of itself).
+        public SubDimensionLevel SubDimensionLevel { get; set; } //The sub-dimension/plane this Holon belongs to.
+        public Guid ParentGalaxyClusterId { get; set; } //The GalaxyCluster this Holon belongs to.
+        public IGalaxyCluster ParentGalaxyCluster { get; set; } //The GalaxyCluster this Holon belongs to.
+        public Guid ParentGalaxyId { get; set; } //The Galaxy this Holon belongs to.
+        public IGalaxy ParentGalaxy { get; set; } //The Galaxy this Holon belongs to.
+        public Guid ParentSolarSystemId { get; set; } //The SolarSystem this Holon belongs to.
+        public ISolarSystem ParentSolarSystem { get; set; } //The SolarSystem this Holon belongs to.
+        public Guid ParentGreatGrandSuperStarId { get; set; } //The GreatGrandSuperStar this Holon belongs to.
+        public IGreatGrandSuperStar ParentGreatGrandSuperStar { get; set; } //The GreatGrandSuperStar this Holon belongs to.
+        public Guid ParentGrandSuperStarId { get; set; } //The GrandSuperStar this Holon belongs to.
+        public IGrandSuperStar ParentGrandSuperStar { get; set; } //The GrandSuperStar this Holon belongs to.
+        public Guid ParentSuperStarId { get; set; } //The SuperStar this Holon belongs to.
+        public ISuperStar ParentSuperStar { get; set; } //The SuperStar this Holon belongs to.
+        public Guid ParentStarId { get; set; } //The Star this Holon belongs to.
+        public IStar ParentStar { get; set; } //The Star this Holon belongs to.
+        public Guid ParentPlanetId { get; set; } //The Planet this Holon belongs to.
+        public IPlanet ParentPlanet { get; set; } //The Planet this Holon belongs to.
+        public Guid ParentMoonId { get; set; } //The Moon this Holon belongs to.
+        public IMoon ParentMoon { get; set; } //The Moon this Holon belongs to.
+        public Guid ParentCelestialSpaceId { get; set; } // The CelestialSpace Id this holon belongs to (this could be a Solar System, Galaxy, Universe, etc). 
+        public ICelestialSpace ParentCelestialSpace { get; set; } // The CelestialSpace this holon belongs to (this could be a Solar System, Galaxy, Universe, etc). 
+        public Guid ParentCelestialBodyId { get; set; } // The CelestialBody Id this holon belongs to (this could be a moon, planet, star, etc). 
+        public ICelestialBody ParentCelestialBody { get; set; } // The CelestialBody  this holon belongs to (this could be a moon, planet, star, etc). 
+        public Guid ParentZomeId { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
+        public IZome ParentZome { get; set; } // The zome this holon belongs to. Zomes are like re-usable modules that other OApp's can be composed of. Zomes contain collections of nested holons (data objects). Holons can be infinite depth.
+
+
+
 
         public virtual bool HasHolonChanged(bool checkChildren = true)
         {

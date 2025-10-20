@@ -14,7 +14,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 {
     // Lightweight version of the AvatarDetail object used for SSO. If people need the extended Avatar info they can load the AvatarDetail object.
     // If people need to add/subreact karma from the Avatar then they need to use the AvatarDetail object, same with if they need to query their KarmaAkasicRecords (karma audit).
-    public class Avatar : HolonBase, IAvatar
+    //public class Avatar : HolonBase, IAvatar
+    public class Avatar : SemanticHolon, IAvatar
     {
         public Avatar()
         {

@@ -99,10 +99,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public Guid ParentHolonId { get; set; }
         public Guid VersionId { get; set; }
         public GlobalHolonData GlobalHolonData { get; set; }
-        Guid IHolonBase.CreatedByAvatarId { get; set; }
-        Guid IHolonBase.DeletedByAvatarId { get; set; }
-        Guid IHolonBase.Id { get; set; }
-        Guid IHolonBase.ModifiedByAvatarId { get; set; }
+        Guid IAuditBase.CreatedByAvatarId { get; set; }
+        Guid IAuditBase.DeletedByAvatarId { get; set; }
+        //Guid IAuditBase.Id { get; set; }
+        Guid IAuditBase.ModifiedByAvatarId { get; set; }
 
         //For some unknown reason MongoDB insists on having these properties from the IOAPPDNA interface here so it can deserilaize the OAPPDNAJSON key on the MetaData property! 
         //TODO: Want to find a way to remove this and force MongoDB not to try and map the JSON into properties, want it to just treat it as a normal string! ;-)
@@ -132,6 +132,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public string STARODKVersion { get; set; }
         public string OASISVersion { get; set; }
         public string COSMICVersion { get; set; }
+        Guid IHolonBase.Id { get => CreatedByAvatar.Id; set => CreatedByAvatar.Id = value; }
 
         public event EventDelegates.HolonsLoaded OnChildrenLoaded;
         public event EventDelegates.HolonsError OnChildrenLoadError;
