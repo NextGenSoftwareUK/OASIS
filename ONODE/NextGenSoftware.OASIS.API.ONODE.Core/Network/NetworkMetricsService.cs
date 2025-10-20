@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         /// <summary>
         /// Calculate real network health from Holochain conductor metrics
         /// </summary>
-        public double CalculateHealthFromMetrics(object networkMetrics)
+        public async Task<double> CalculateHealthFromMetricsAsync(object networkMetrics)
         {
             try
             {
@@ -83,9 +83,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     var healthScore = (latencyScore * 0.3 + bandwidthScore * 0.3 + uptimeScore * 0.4);
                     return Math.Max(0.0, Math.Min(1.0, healthScore));
                 }
-                catch (Exception ex)
+                catch (Exception innerEx)
                 {
-                    Console.WriteLine($"Error calculating network health: {ex.Message}");
+                    Console.WriteLine($"Error calculating network health: {innerEx.Message}");
                 }
                 
                 return 0.5; // Default health on error

@@ -237,7 +237,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error querying bootstrap servers: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error querying bootstrap servers: {ex.Message}", ex);
             }
             
             return nodes;
@@ -256,7 +256,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 using (var client = new System.Net.Sockets.TcpClient())
                 {
                     var connectTask = client.ConnectAsync(address, port);
-                    var timeoutTask = Task.Delay(5000); // 5 second timeout
+                    var timeoutTask = Task.Delay(CalculateConnectionTimeout()); // Dynamic timeout based on network conditions
                     
                     var completedTask = await Task.WhenAny(connectTask, timeoutTask);
                     
@@ -290,7 +290,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 using (var client = new System.Net.Sockets.TcpClient())
                 {
                     var connectTask = client.ConnectAsync(address, port);
-                    var timeoutTask = Task.Delay(10000); // 10 second timeout
+                    var timeoutTask = Task.Delay(CalculateLatencyTimeout()); // Dynamic timeout based on network conditions
                     
                     var completedTask = await Task.WhenAny(connectTask, timeoutTask);
                     
@@ -303,7 +303,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error measuring latency to {nodeId}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error measuring latency to {nodeId}: {ex.Message}", ex);
             }
             
             // Calculate actual latency using network ping
@@ -318,7 +318,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error measuring latency to {nodeId}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error measuring latency to {nodeId}: {ex.Message}", ex);
             }
             
             // Calculate actual latency based on network conditions
@@ -369,7 +369,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating reliability for {nodeId}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating reliability for {nodeId}: {ex.Message}", ex);
             }
             
             return 50; // Default low reliability on error
@@ -384,11 +384,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 // Stop discovery operations
-                Console.WriteLine("ONET Discovery stopped successfully");
+                LoggingManager.Log("ONET Discovery stopped successfully", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error stopping ONET Discovery: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error stopping ONET Discovery: {ex.Message}", ex);
             }
         }
         private readonly object _discoveryLock = new object();
@@ -708,7 +708,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             catch (Exception ex)
             {
                 // Log error but continue with empty list
-                Console.WriteLine($"Error in DHT discovery: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error in DHT discovery: {ex.Message}", ex);
             }
 
             return nodes;
@@ -743,7 +743,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             catch (Exception ex)
             {
                 // Log error but continue with empty list
-                Console.WriteLine($"Error in mDNS discovery: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error in mDNS discovery: {ex.Message}", ex);
             }
 
             return nodes;
@@ -778,7 +778,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             catch (Exception ex)
             {
                 // Log error but continue with empty list
-                Console.WriteLine($"Error in blockchain discovery: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error in blockchain discovery: {ex.Message}", ex);
             }
 
             return nodes;
@@ -813,7 +813,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             catch (Exception ex)
             {
                 // Log error but continue with empty list
-                Console.WriteLine($"Error in bootstrap discovery: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error in bootstrap discovery: {ex.Message}", ex);
             }
 
             return nodes;
@@ -871,14 +871,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     await NotifyDiscoveryListenersAsync(nodes);
                     // Real DHT discovery interval based on network conditions
                     var discoveryInterval = CalculateDiscoveryInterval();
-                    await Task.Delay(discoveryInterval);
+                    await Task.Delay(CalculateDiscoveryInterval());
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in DHT discovery: {ex.Message}");
+                    OASISErrorHandling.HandleError($"Error in DHT discovery: {ex.Message}", ex);
                     // Real error recovery interval based on error type
                     var errorRecoveryInterval = CalculateErrorRecoveryInterval(ex);
-                    await Task.Delay(errorRecoveryInterval);
+                    await Task.Delay(CalculateErrorRecoveryInterval(ex));
                 }
             }
         }
@@ -893,14 +893,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     await NotifyDiscoveryListenersAsync(nodes);
                     // Real mDNS discovery interval based on network conditions
                     var mDNSInterval = CalculateMDNSDiscoveryInterval();
-                    await Task.Delay(mDNSInterval);
+                    await Task.Delay(CalculateMDNSDiscoveryInterval());
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in mDNS discovery: {ex.Message}");
+                    OASISErrorHandling.HandleError($"Error in mDNS discovery: {ex.Message}", ex);
                     // Real error recovery interval based on error type
                     var errorRecoveryInterval = CalculateErrorRecoveryInterval(ex);
-                    await Task.Delay(errorRecoveryInterval);
+                    await Task.Delay(CalculateErrorRecoveryInterval(ex));
                 }
             }
         }
@@ -919,10 +919,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in blockchain discovery: {ex.Message}");
+                    OASISErrorHandling.HandleError($"Error in blockchain discovery: {ex.Message}", ex);
                     // Real error recovery interval based on error type
                     var errorRecoveryInterval = CalculateErrorRecoveryInterval(ex);
-                    await Task.Delay(errorRecoveryInterval);
+                    await Task.Delay(CalculateErrorRecoveryInterval(ex));
                 }
             }
         }
@@ -941,10 +941,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in bootstrap discovery: {ex.Message}");
+                    OASISErrorHandling.HandleError($"Error in bootstrap discovery: {ex.Message}", ex);
                     // Real error recovery interval based on error type
                     var errorRecoveryInterval = CalculateErrorRecoveryInterval(ex);
-                    await Task.Delay(errorRecoveryInterval);
+                    await Task.Delay(CalculateErrorRecoveryInterval(ex));
                 }
             }
         }
@@ -959,7 +959,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error notifying discovery listener: {ex.Message}");
+                    OASISErrorHandling.HandleError($"Error notifying discovery listener: {ex.Message}");
                 }
             }
         }
@@ -1009,7 +1009,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"DHT query to {node.Address} failed: {ex.Message}");
+                        OASISErrorHandling.HandleError($"DHT query to {node.Address} failed: {ex.Message}");
                     }
                     return null;
                 });
@@ -1026,7 +1026,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error executing DHT query: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error executing DHT query: {ex.Message}");
             }
             
             return results;
@@ -1075,7 +1075,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error executing mDNS query: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error executing mDNS query: {ex.Message}");
             }
             
             return results;
@@ -1139,7 +1139,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error executing blockchain query: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error executing blockchain query: {ex.Message}");
                 result.Success = false;
             }
             
@@ -1190,7 +1190,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error executing bootstrap query: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error executing bootstrap query: {ex.Message}");
                 result.Success = false;
             }
             
@@ -1312,7 +1312,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error querying bootstrap: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error querying bootstrap: {ex.Message}");
             }
             
             return nodes;
@@ -1330,7 +1330,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error testing connectivity to {address}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error testing connectivity to {address}: {ex.Message}");
                 return false;
             }
         }
@@ -1347,7 +1347,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error measuring latency to {address}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error measuring latency to {address}: {ex.Message}");
                 return 100.0; // Default high latency on error
             }
         }
@@ -1364,7 +1364,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating reliability for {nodeId}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating reliability for {nodeId}: {ex.Message}", ex);
                 return 50; // Default low reliability on error
             }
         }
@@ -1491,7 +1491,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting bootstrap nodes: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting bootstrap nodes: {ex.Message}");
                 return new List<ONETNode>();
             }
         }
@@ -1523,7 +1523,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending DHT query to {node.Address}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error sending DHT query to {node.Address}: {ex.Message}");
             }
             
             return new DHTResponse { IsValid = false };
@@ -1560,7 +1560,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending mDNS query: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error sending mDNS query: {ex.Message}");
             }
             
             return new MDNSResponse { Services = new List<MDNSService>() };
@@ -1592,7 +1592,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calling smart contract: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calling smart contract: {ex.Message}");
             }
             
             return new BlockchainResponse { Success = false, ErrorMessage = "Contract call failed" };
@@ -1621,7 +1621,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error querying bootstrap server {server}: {ex.Message}");
+                        OASISErrorHandling.HandleError($"Error querying bootstrap server {server}: {ex.Message}");
                     }
                 }
                 
@@ -1629,7 +1629,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error querying bootstrap servers: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error querying bootstrap servers: {ex.Message}");
                 return new BootstrapResponse { Success = false, ErrorMessage = ex.Message };
             }
         }
@@ -1645,7 +1645,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting node history for {nodeId}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting node history for {nodeId}: {ex.Message}");
                 return new List<NodeHistory>();
             }
         }
@@ -1680,7 +1680,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error parsing blockchain data: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error parsing blockchain data: {ex.Message}");
                 return new List<NodeInfo>();
             }
         }
@@ -1696,7 +1696,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting cached mDNS results: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting cached mDNS results: {ex.Message}");
                 return new List<NodeInfo>();
             }
         }
@@ -1712,7 +1712,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting cached blockchain results: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting cached blockchain results: {ex.Message}");
                 return new List<NodeInfo>();
             }
         }
@@ -1728,7 +1728,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting cached bootstrap results: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting cached bootstrap results: {ex.Message}");
                 return new List<NodeInfo>();
             }
         }
@@ -1747,7 +1747,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading bootstrap configuration: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error loading bootstrap configuration: {ex.Message}");
                 return new List<BootstrapConfig>();
             }
         }
