@@ -1,11 +1,12 @@
-﻿using NextGenSoftware.Utilities;
-using NextGenSoftware.CLI.Engine;
-using NextGenSoftware.OASIS.Common;
+﻿using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -301,23 +302,62 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             } while (!validStandard);
 
 
-            if (CLIEngine.GetConfirmation("Do you wish to add any metadata to this NFT?"))
+            request.MetaData = AddMetaData("NFT");
+            return request;
+        }
+
+        public OASISResult<ImageAndThumbnail> ProcessImageAndThumbnail(string itemName)
+        {
+            OASISResult<ImageAndThumbnail> result = new OASISResult<ImageAndThumbnail>(new ImageAndThumbnail());
+
+            if (CLIEngine.GetConfirmation($"Do you want to upload a local image on your device to represent the {itemName} or input a URI to an online image? (Press Y for local or N for online)"))
             {
-                request.MetaData = new Dictionary<string, object>();
-                request.MetaData = AddMetaDataToNFT(request.MetaData);
+                Console.WriteLine("");
+                string localImagePath = CLIEngine.GetValidFile($"What is the full path to the local image you want to represent the {itemName}?");
+                result.Result.Image = File.ReadAllBytes(localImagePath);
+            }
+            else
+            {
+                Console.WriteLine("");
+                result.Result.ImageUrl = CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT?").Result.AbsoluteUri;
+            }
+
+
+            if (CLIEngine.GetConfirmation($"Do you want to upload a local image on your device to represent the {itemName} Thumbnail or input a URI to an online image? (Press Y for local or N for online)"))
+            {
+                Console.WriteLine("");
+                string localImagePath = CLIEngine.GetValidFile($"What is the full path to the local image you want to represent the {itemName} Thumbnail?");
+                result.Result.Thumbnail = File.ReadAllBytes(localImagePath);
+            }
+            else
+            {
+                Console.WriteLine("");
+                result.Result.ThumbnailUrl = CLIEngine.GetValidURIAsync($"What is the URI to the image you want to represent the {itemName} Thumbnail?").Result.AbsoluteUri;
+            }
+
+            return result;
+        }
+
+        public Dictionary<string, object> AddMetaData(string itemName)
+        {
+            Dictionary<string, object> metaData = new Dictionary<string, object>();
+
+            if (CLIEngine.GetConfirmation($"Do you wish to add any metadata to this {itemName}?"))
+            {
+                metaData = AddMetaDataToNFT(metaData);
                 bool metaDataDone = false;
 
                 do
                 {
                     if (CLIEngine.GetConfirmation("Do you wish to add more metadata?"))
-                        request.MetaData = AddMetaDataToNFT(request.MetaData);
+                        metaData = AddMetaDataToNFT(metaData);
                     else
                         metaDataDone = true;
                 }
                 while (!metaDataDone);
             }
 
-            return request;
+            return metaData;
         }
     }
 }
