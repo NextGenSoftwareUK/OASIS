@@ -376,14 +376,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                         var configResult = await _enhancedWrapper.ConfigureConductorAsync();
                         if (!configResult.IsError)
                         {
-                            Console.WriteLine("Kitsune2 networking initialized successfully");
+                            LoggingManager.Log("Kitsune2 networking initialized successfully", Logging.LogType.Info);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error initializing Kitsune2 networking: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error initializing Kitsune2 networking: {ex.Message}", ex);
             }
         }
 
@@ -396,13 +396,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     var configResult = await _enhancedWrapper.ConfigureConductorAsync();
                     if (!configResult.IsError)
                     {
-                        Console.WriteLine("QUIC connections established successfully");
+                        LoggingManager.Log("QUIC connections established successfully", Logging.LogType.Info);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error establishing QUIC connections: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error establishing QUIC connections: {ex.Message}", ex);
             }
         }
 
@@ -415,13 +415,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     var configResult = await _enhancedWrapper.ConfigureConductorAsync();
                     if (!configResult.IsError)
                     {
-                        Console.WriteLine("Joined DHT network successfully");
+                        LoggingManager.Log("Joined DHT network successfully", Logging.LogType.Info);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error joining DHT network: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error joining DHT network: {ex.Message}", ex);
             }
         }
 
@@ -434,13 +434,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     var discoveryResult = await _enhancedWrapper.StartPeerDiscoveryAsync();
                     if (!discoveryResult.IsError)
                     {
-                        Console.WriteLine("Node discovery started successfully");
+                        LoggingManager.Log("Node discovery started successfully", Logging.LogType.Info);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error starting node discovery: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error starting node discovery: {ex.Message}", ex);
             }
         }
 
@@ -478,7 +478,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating network health: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating network health: {ex.Message}", ex);
                 return new NetworkHealth { OverallHealth = 0.0, LastUpdated = DateTime.UtcNow };
             }
         }
@@ -500,7 +500,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting network ID: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting network ID: {ex.Message}", ex);
                 return "holonet-network";
             }
         }
@@ -533,7 +533,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error connecting to Holochain node {nodeId}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error connecting to Holochain node {nodeId}: {ex.Message}", ex);
                 return false;
             }
         }
@@ -555,7 +555,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error disconnecting from Holochain node {nodeId}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error disconnecting from Holochain node {nodeId}: {ex.Message}", ex);
             }
         }
 
@@ -569,12 +569,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     return !broadcastResult.IsError && broadcastResult.Result;
                 }
                 
-                Console.WriteLine($"Broadcasting message via Holochain gossip: {message}");
+                LoggingManager.Log($"Broadcasting message via Holochain gossip: {message}", Logging.LogType.Info);
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error broadcasting via Holochain gossip: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error broadcasting via Holochain gossip: {ex.Message}", ex);
                 return false;
             }
         }
@@ -589,12 +589,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     return !sendResult.IsError && sendResult.Result;
                 }
                 
-                Console.WriteLine($"Sending direct message to {nodeId}: {message}");
+                LoggingManager.Log($"Sending direct message to {nodeId}: {message}", Logging.LogType.Info);
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending direct message via Holochain: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error sending direct message via Holochain: {ex.Message}", ex);
                 return false;
             }
         }
@@ -612,7 +612,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating latency to node {nodeId}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating latency to node {nodeId}: {ex.Message}", ex);
                 return 50.0;
             }
         }
@@ -630,7 +630,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating bandwidth to node {nodeId}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating bandwidth to node {nodeId}: {ex.Message}", ex);
                 return 1000.0;
             }
         }
