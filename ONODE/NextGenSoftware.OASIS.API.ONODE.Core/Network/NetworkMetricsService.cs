@@ -85,7 +85,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
                 catch (Exception innerEx)
                 {
-                    OASISErrorHandling.HandleError($"Error calculating network health: {innerEx.Message}");
+                    OASISErrorHandling.HandleError($"Error calculating network health: {innerEx.Message}", innerEx);
                 }
                 
                 return await CalculateDefaultHealthOnErrorAsync(); // Calculated default health on error
@@ -122,7 +122,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error calculating health from connections: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating health from connections: {ex.Message}", ex);
                 return await CalculateDefaultHealthOnErrorAsync();
             }
         }
@@ -168,7 +168,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     }
                     catch (Exception ex)
                     {
-                        OASISErrorHandling.HandleError($"Error parsing network stats JSON: {ex.Message}");
+                        OASISErrorHandling.HandleError($"Error parsing network stats JSON: {ex.Message}", ex);
                     }
                 }
                 
@@ -176,7 +176,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error parsing network stats to nodes: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error parsing network stats to nodes: {ex.Message}", ex);
                 return new List<ONETNode>();
             }
         }
@@ -196,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error calculating average latency: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating average latency: {ex.Message}", ex);
                 return 0.0;
             }
         }
@@ -215,7 +215,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error calculating total throughput: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating total throughput: {ex.Message}", ex);
                 return 0.0;
             }
         }
@@ -245,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error getting network ID: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting network ID: {ex.Message}", ex);
                 return "unknown-network";
             }
         }
@@ -289,7 +289,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error parsing network metrics: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error parsing network metrics: {ex.Message}", ex);
                 return new NetworkMetrics
                 {
                     ActiveConnections = 0,
@@ -363,7 +363,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error extracting network ID from stats: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error extracting network ID from stats: {ex.Message}", ex);
                 return "holochain-network";
             }
         }

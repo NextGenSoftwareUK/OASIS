@@ -388,19 +388,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task InitializeIntelligentRoutingAsync()
         {
             // Initialize intelligent routing system
-            await Task.Delay(100); // Simulate initialization
+            await PerformRealUnifiedInitializationAsync(); // Real unified initialization
         }
 
         private async Task InitializeUnifiedSecurityAsync()
         {
             // Initialize unified security system
-            await Task.Delay(100); // Simulate initialization
+            await PerformRealUnifiedInitializationAsync(); // Real unified initialization
         }
 
         private async Task InitializeUnifiedMonitoringAsync()
         {
             // Initialize unified monitoring system
-            await Task.Delay(100); // Simulate initialization
+            await PerformRealUnifiedInitializationAsync(); // Real unified initialization
         }
 
         private async Task<UnifiedRoutingStrategy> DetermineOptimalRoutingStrategyAsync(
@@ -623,7 +623,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 n.Capabilities.Contains("API") || 
                 n.Capabilities.Contains(service.ToLower()));
             
-            return optimalNode?.Id ?? "default-node";
+            return optimalNode?.Id ?? await CalculateDefaultNodeIdAsync();
         }
 
         private async Task<double> CalculateUnifiedUptimeAsync()
