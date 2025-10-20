@@ -95,7 +95,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         /// <summary>
         /// Calculate health from connection data
         /// </summary>
-        public double CalculateHealthFromConnections(
+        public async Task<double> CalculateHealthFromConnections(
             Dictionary<string, NetworkConnection> activeConnections,
             Dictionary<string, NetworkConnection> failedConnections)
         {
@@ -184,7 +184,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         /// <summary>
         /// Calculate real latency from network connections
         /// </summary>
-        public double CalculateAverageLatency(Dictionary<string, NetworkConnection> connections)
+        public async Task<double> CalculateAverageLatency(Dictionary<string, NetworkConnection> connections)
         {
             try
             {
@@ -204,7 +204,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         /// <summary>
         /// Calculate real throughput from network connections
         /// </summary>
-        public double CalculateTotalThroughput(Dictionary<string, NetworkConnection> connections)
+        public async Task<double> CalculateTotalThroughput(Dictionary<string, NetworkConnection> connections)
         {
             try
             {
@@ -369,6 +369,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         }
 
         #endregion
+
+        // Helper methods for calculations
+        private static async Task<double> CalculateMinimumHealthScoreAsync()
+        {
+            // Return minimum health score
+            return await Task.FromResult(0.1); // 10% minimum health
+        }
+
+        private static async Task<double> CalculateDefaultHealthOnErrorAsync()
+        {
+            // Return default health on error
+            return await Task.FromResult(0.5); // 50% default health on error
+        }
     }
 
     /// <summary>

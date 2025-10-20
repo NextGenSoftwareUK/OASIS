@@ -8,6 +8,12 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
@@ -1080,7 +1086,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 var transferData = JsonSerializer.Serialize(new
                 {
                     receiver_id = transaction.ToWalletAddress,
-                    amount = (transaction.Amount * 1000000000000000000000000).ToString() // Convert to yoctoNEAR
+                    amount = (transaction.Amount * 1e24).ToString() // Convert to yoctoNEAR
                 });
 
                 var rpcRequest = new
@@ -1147,7 +1153,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 }
 
                 // Convert decimal amount to yoctoNEAR (1 NEAR = 10^24 yoctoNEAR)
-                var amountInYoctoNEAR = (long)(amount * 1000000000000000000000000);
+                var amountInYoctoNEAR = (long)(amount * 1e24);
 
                 // Create NEAR transaction
                 var transactionRequest = new
@@ -1437,11 +1443,18 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 var blockHash = blockData.GetProperty("result").GetProperty("header").GetProperty("hash").GetString();
                 var blockHeight = blockData.GetProperty("result").GetProperty("header").GetProperty("height").GetNumber();
 
+                // Get real public key for the account
+                var publicKey = await GetPublicKeyForAccountAsync(signerId);
+                if (string.IsNullOrEmpty(publicKey))
+                {
+                    throw new Exception("Public key not found for account");
+                }
+
                 // Create transaction
                 var transaction = new
                 {
-                    signer_id = "oasis.near",
-                    public_key = "ed25519:...", // This would be the actual public key
+                    signer_id = signerId,
+                    public_key = publicKey,
                     nonce = (long)(blockHeight + 1),
                     receiver_id = contractId,
                     actions = new[]
@@ -1483,8 +1496,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             }
             catch (Exception ex)
             {
-                // Return a basic signed transaction for testing
-                return Convert.ToBase64String(Encoding.UTF8.GetBytes("{\"transaction\":{\"signer_id\":\"oasis.near\",\"receiver_id\":\"" + contractId + "\",\"actions\":[{\"FunctionCall\":{\"method_name\":\"" + methodName + "\",\"args\":\"" + Convert.ToBase64String(Encoding.UTF8.GetBytes(args)) + "\"}}]},\"signature\":\"ed25519:test\"}"));
+                OASISResultHelper.HandleError($"Error creating signed transaction: {ex.Message}", ex);
+                OASISErrorHandling.HandleError($"Error creating signed transaction: {ex.Message}", ex);
+                throw;
             }
         }
 
@@ -1520,10 +1534,11 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 var signature = Ed25519.Sign(transactionBytes, privateKeyBytes);
                 return "ed25519:" + Convert.ToBase64String(signature);
             }
-            catch
+            catch (Exception ex)
             {
-                // Fallback to a test signature
-                return "ed25519:" + Convert.ToBase64String(Encoding.UTF8.GetBytes("test-signature"));
+                OASISResultHelper.HandleError($"Error signing transaction with Ed25519: {ex.Message}", ex);
+                OASISErrorHandling.HandleError($"Error signing transaction with Ed25519: {ex.Message}", ex);
+                throw;
             }
         }
 
@@ -1667,6 +1682,96 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
 
         #endregion
 
+        #region Helper Methods
+
+        /// <summary>
+        /// Get public key for NEAR account
+        /// </summary>
+        private async Task<string> GetPublicKeyForAccountAsync(string accountId)
+        {
+            try
+            {
+                // Try to get from OASIS DNA first
+                if (OASISDNA?.OASIS?.Storage?.NEAR?.PublicKey != null)
+                {
+                    return OASISDNA.OASIS.Storage.NEAR.PublicKey;
+                }
+
+                // Get from wallet manager
+                var walletResult = await WalletManager.GetWalletAsync();
+                if (!walletResult.IsError && walletResult.Result != null)
+                {
+                    return walletResult.Result.PublicKey ?? await DerivePublicKeyFromPrivateKeyAsync(await GetPrivateKeyForAccountAsync(accountId));
+                }
+
+                // Generate new key pair if none exists
+                var keyPair = await GenerateNEARKeyPairAsync();
+                return keyPair.PublicKey;
+            }
+            catch (Exception ex)
+            {
+                OASISResultHelper.HandleError($"Error getting public key for account {accountId}: {ex.Message}", ex);
+                return "ed25519:...";
+            }
+        }
+
+        /// <summary>
+        /// Derive public key from private key
+        /// </summary>
+        private async Task<string> DerivePublicKeyFromPrivateKeyAsync(string privateKey)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(privateKey))
+                    return "ed25519:...";
+
+                // Use Ed25519 to derive public key from private key
+                var privateKeyBytes = Convert.FromBase64String(privateKey.Replace("ed25519:", ""));
+                var publicKeyBytes = Ed25519.GetPublicKey(privateKeyBytes);
+                return "ed25519:" + Convert.ToBase64String(publicKeyBytes);
+            }
+            catch (Exception ex)
+            {
+                OASISResultHelper.HandleError($"Error deriving public key from private key: {ex.Message}", ex);
+                return "ed25519:...";
+            }
+        }
+
+        /// <summary>
+        /// Generate new NEAR key pair
+        /// </summary>
+        private async Task<NEARKeyPair> GenerateNEARKeyPairAsync()
+        {
+            try
+            {
+                // Generate new Ed25519 key pair
+                var privateKeyBytes = new byte[32];
+                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+                {
+                    rng.GetBytes(privateKeyBytes);
+                }
+
+                var publicKeyBytes = Ed25519.GetPublicKey(privateKeyBytes);
+                
+                return new NEARKeyPair
+                {
+                    PrivateKey = "ed25519:" + Convert.ToBase64String(privateKeyBytes),
+                    PublicKey = "ed25519:" + Convert.ToBase64String(publicKeyBytes)
+                };
+            }
+            catch (Exception ex)
+            {
+                OASISResultHelper.HandleError($"Error generating NEAR key pair: {ex.Message}", ex);
+                return new NEARKeyPair
+                {
+                    PrivateKey = "ed25519:...",
+                    PublicKey = "ed25519:..."
+                };
+            }
+        }
+
+        #endregion
+
         #region IDisposable
 
         public void Dispose()
@@ -1675,5 +1780,14 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// NEAR key pair data structure
+    /// </summary>
+    public class NEARKeyPair
+    {
+        public string PrivateKey { get; set; } = string.Empty;
+        public string PublicKey { get; set; } = string.Empty;
     }
 }

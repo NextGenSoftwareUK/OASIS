@@ -8,7 +8,7 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
-    public interface IAvatar : IHolonBase
+    public interface IAvatar : ISemanticHolon //: IHolonBase
     {
         Dictionary<ProviderType, List<IProviderWallet>> ProviderWallets { get; set; }
        // Dictionary<ProviderType, string> ProviderPrivateKey { get; set; } //TODO: Want to replace this with ProviderWallets above ASAP...
