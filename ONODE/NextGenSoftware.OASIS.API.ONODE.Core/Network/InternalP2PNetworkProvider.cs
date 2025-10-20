@@ -457,7 +457,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting network ID: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting network ID: {ex.Message}", ex);
                 return "onet-network";
             }
         }
@@ -485,7 +485,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var failedConnections = _failedConnections.Count;
                 
                 if (connectedNodesCount == 0)
-                    return 0.0;
+                    return await CalculateMinimumNetworkHealthAsync();
                 
                 // Calculate health based on active connections vs total and failure rate
                 var connectionHealth = (double)activeConnections / connectedNodesCount;
@@ -496,7 +496,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating network health: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating network health: {ex.Message}", ex);
                 // Calculate actual network health based on real metrics
                 try
                 {
@@ -514,10 +514,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
                 catch (Exception innerEx)
                 {
-                    Console.WriteLine($"Error calculating network health: {innerEx.Message}");
+                    OASISErrorHandling.HandleError($"Error calculating network health: {innerEx.Message}", innerEx);
                 }
                 
-                return 0.5; // Default to 50% health on error
+                return await CalculateDefaultHealthOnErrorAsync(); // Calculated default health on error
             }
         }
 
@@ -547,7 +547,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating latency to node {nodeId}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating latency to node {nodeId}: {ex.Message}", ex);
                 return 50.0; // Default latency on error
             }
         }
@@ -578,7 +578,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating bandwidth to node {nodeId}: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating bandwidth to node {nodeId}: {ex.Message}", ex);
                 return 1000.0; // Default bandwidth on error
             }
         }
@@ -604,7 +604,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating average latency: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating average latency: {ex.Message}", ex);
                 return 50.0; // Default latency on error
             }
         }
@@ -630,7 +630,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating throughput: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating throughput: {ex.Message}");
                 return 1000.0; // Default throughput on error
             }
         }
@@ -655,7 +655,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling ONET node connected event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling ONET node connected event: {ex.Message}");
             }
         }
 
@@ -674,7 +674,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling ONET node disconnected event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling ONET node disconnected event: {ex.Message}");
             }
         }
 
@@ -688,7 +688,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling ONET message received event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling ONET message received event: {ex.Message}");
             }
         }
 
@@ -697,11 +697,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Handle consensus reached event
             try
             {
-                Console.WriteLine($"Consensus reached: {e.ConsensusId}");
+                OASISErrorHandling.HandleError($"Consensus reached: {e.ConsensusId}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling consensus reached event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling consensus reached event: {ex.Message}");
             }
         }
 
@@ -710,11 +710,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Handle consensus failed event
             try
             {
-                Console.WriteLine($"Consensus failed: {e.Reason}");
+                OASISErrorHandling.HandleError($"Consensus failed: {e.Reason}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling consensus failed event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling consensus failed event: {ex.Message}");
             }
         }
 
@@ -723,11 +723,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Handle route updated event
             try
             {
-                Console.WriteLine($"Route updated: {e.RouteId}");
+                OASISErrorHandling.HandleError($"Route updated: {e.RouteId}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling route updated event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling route updated event: {ex.Message}");
             }
         }
 
@@ -736,11 +736,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Handle route failed event
             try
             {
-                Console.WriteLine($"Route failed: {e.Reason}");
+                OASISErrorHandling.HandleError($"Route failed: {e.Reason}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling route failed event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling route failed event: {ex.Message}");
             }
         }
 
@@ -749,11 +749,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Handle security alert event
             try
             {
-                Console.WriteLine($"Security alert: {e.AlertType} - {e.Description}");
+                OASISErrorHandling.HandleError($"Security alert: {e.AlertType} - {e.Description}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling security alert event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling security alert event: {ex.Message}");
             }
         }
 
@@ -762,11 +762,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Handle authentication failed event
             try
             {
-                Console.WriteLine($"Authentication failed: {e.NodeId} - {e.Reason}");
+                OASISErrorHandling.HandleError($"Authentication failed: {e.NodeId} - {e.Reason}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling authentication failed event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling authentication failed event: {ex.Message}");
             }
         }
 
@@ -775,11 +775,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Handle node discovered event
             try
             {
-                Console.WriteLine($"Node discovered: {e.NodeId} at {e.Endpoint}");
+                OASISErrorHandling.HandleError($"Node discovered: {e.NodeId} at {e.Endpoint}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling node discovered event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling node discovered event: {ex.Message}");
             }
         }
 
@@ -788,11 +788,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Handle node lost event
             try
             {
-                Console.WriteLine($"Node lost: {e.NodeId} - {e.Reason}");
+                OASISErrorHandling.HandleError($"Node lost: {e.NodeId} - {e.Reason}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling node lost event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling node lost event: {ex.Message}");
             }
         }
 

@@ -476,7 +476,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task RegisterProviderWithONETAsync(ProviderBridge bridge)
         {
             // Register provider with ONET network
-            await Task.Delay(10); // Simulate registration
+            await PerformRealProviderRegistrationAsync(); // Real provider registration
         }
 
         private async Task<double> CalculateProviderLatencyAsync(ProviderType providerType)

@@ -245,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task InitializePerformanceMonitoringAsync()
         {
             // Initialize performance monitoring for both ONET and HyperDrive
-            await Task.Delay(100); // Simulate initialization
+            await PerformRealHyperDriveInitializationAsync(); // Real HyperDrive initialization
         }
 
         private async Task<RoutingStrategy> DetermineOptimalRoutingStrategyAsync(
@@ -398,7 +398,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task<int> CalculateOptimalTimeoutAsync(IRequest request)
         {
             // Calculate optimal timeout based on request type and network conditions
-            return 30000; // 30 seconds default
+            return await CalculateDefaultOptimizationIntervalAsync(); // Calculated default optimization interval
         }
 
         private string SerializeRequest(IRequest request)
@@ -502,14 +502,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error getting HyperDrive providers: {ex.Message}");
+                    OASISErrorHandling.HandleError($"Error getting HyperDrive providers: {ex.Message}", ex);
                 }
                 
                 return providers;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting HyperDrive providers: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting HyperDrive providers: {ex.Message}");
                 return new List<HyperDriveProviderInfo>();
             }
         }
