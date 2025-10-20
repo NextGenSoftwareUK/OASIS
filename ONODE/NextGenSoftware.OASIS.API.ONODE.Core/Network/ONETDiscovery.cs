@@ -1348,7 +1348,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError($"Error measuring latency to {address}: {ex.Message}");
-                return 100.0; // Default high latency on error
+                return await CalculateDefaultLatencyAsync(); // Calculated default latency on error
             }
         }
 

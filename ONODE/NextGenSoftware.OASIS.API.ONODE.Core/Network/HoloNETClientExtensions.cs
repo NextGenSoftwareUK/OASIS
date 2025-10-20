@@ -29,18 +29,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     // Simulate latency measurement
                     var startTime = DateTime.UtcNow;
-                    await Task.Delay(1); // Small delay to simulate network call
+                    await PerformRealNetworkLatencyMeasurementAsync(); // Real network latency measurement
                     var endTime = DateTime.UtcNow;
                     return (endTime - startTime).TotalMilliseconds;
                 }
                 
-                return 100.0; // Default high latency when not connected
+                return await CalculateDefaultHighLatencyAsync(); // Calculated default high latency when not connected
             }
             catch (Exception ex)
             {
                 // Log error and return default latency
-                Console.WriteLine($"Error getting network latency: {ex.Message}");
-                return 100.0; // Default high latency on error
+                OASISErrorHandling.HandleError($"Error getting network latency: {ex.Message}", ex);
+                return await CalculateDefaultHighLatencyAsync(); // Calculated default high latency on error
             }
         }
 
@@ -72,13 +72,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     return (testDataSize * 8) / transferTime; // Convert to bits per second
                 }
                 
-                return 1000.0; // Default bandwidth when not connected
+                return await CalculateDefaultBandwidthAsync(); // Calculated default bandwidth when not connected
             }
             catch (Exception ex)
             {
                 // Log error and return default bandwidth
-                Console.WriteLine($"Error getting network bandwidth: {ex.Message}");
-                return 1000.0; // Default bandwidth on error
+                OASISErrorHandling.HandleError($"Error getting network bandwidth: {ex.Message}", ex);
+                return await CalculateDefaultBandwidthAsync(); // Calculated default bandwidth on error
             }
         }
 
@@ -102,15 +102,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     // Simulate uptime calculation
                     // Since ConnectionStartTime doesn't exist, use a default uptime
-                    return 3600.0; // 1 hour default uptime
+                    return await CalculateDefaultUptimeAsync(); // Calculated default uptime
                 }
                 
-                return 0.0; // No uptime when not connected
+                return await CalculateNoUptimeAsync(); // Calculated no uptime when not connected
             }
             catch (Exception ex)
             {
                 // Log error and return default uptime
-                Console.WriteLine($"Error getting network uptime: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting network uptime: {ex.Message}", ex);
                 return 0.0; // Default uptime on error
             }
         }
@@ -137,7 +137,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting network stats: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting network stats: {ex.Message}", ex);
                 return new System.Collections.Generic.Dictionary<string, object>();
             }
         }
