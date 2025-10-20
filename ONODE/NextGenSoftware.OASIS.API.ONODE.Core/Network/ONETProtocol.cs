@@ -693,7 +693,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 OASISErrorHandling.HandleError(ref result, $"Error measuring bandwidth to {nodeId}: {ex.Message}", ex);
             }
             
-            return 10.0; // Default low bandwidth on error
+            return await CalculateDefaultBandwidthAsync(); // Calculated default bandwidth on error
         }
 
         public async Task<double> GetAverageLatencyAsync()
@@ -728,7 +728,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 OASISErrorHandling.HandleError(ref result, $"Error calculating average latency: {ex.Message}", ex);
             }
             
-            return 100.0; // Default high average latency on error
+            return await CalculateDefaultAverageLatencyAsync(); // Calculated default average latency on error
         }
 
         public async Task<double> GetThroughputAsync()
@@ -770,7 +770,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 OASISErrorHandling.HandleError(ref result, $"Error calculating throughput: {ex.Message}", ex);
             }
             
-            return 10.0; // Default low throughput on error
+            return await CalculateDefaultThroughputAsync(); // Calculated default throughput on error
         }
     }
 

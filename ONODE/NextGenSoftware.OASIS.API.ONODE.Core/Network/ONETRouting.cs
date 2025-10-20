@@ -47,11 +47,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 // Stop routing operations
-                Console.WriteLine("ONET Routing stopped successfully");
+                LoggingManager.Log("ONET Routing stopped successfully", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error stopping ONET Routing: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error stopping ONET Routing: {ex.Message}", ex);
             }
         }
         private bool _isRoutingActive = false;
@@ -356,13 +356,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
                 else
                 {
-                    // Use default routing algorithm
+                    // Use calculated optimal routing algorithm
+                    algorithm = await CalculateOptimalRoutingAlgorithmAsync();
                     _algorithm = RoutingAlgorithm.Dijkstra;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error initializing routing algorithms: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error initializing routing algorithms: {ex.Message}", ex);
                 _algorithm = RoutingAlgorithm.ShortestPath;
             }
         }
@@ -374,12 +375,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 try
                 {
                     await OptimizeRoutingTableAsync();
-                    await Task.Delay(30000); // Optimize every 30 seconds
+                    await Task.Delay(await CalculateRoutingOptimizationIntervalAsync()); // Dynamic optimization interval
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in routing optimization: {ex.Message}");
-                    await Task.Delay(60000); // Wait longer on error
+                    OASISErrorHandling.HandleError($"Error in routing optimization: {ex.Message}", ex);
+                    await Task.Delay(await CalculateErrorRecoveryIntervalAsync(ex)); // Dynamic error recovery interval
                 }
             }
         }
@@ -597,7 +598,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var toNode = _routingTable[to];
                 return fromNode.Latency + toNode.Latency;
             }
-            return 1.0;
+            return await CalculateMaximumRoutingScoreAsync();
         }
 
         private double HeuristicCost(string from, string to)
@@ -609,7 +610,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var toNode = _routingTable[to];
                 return Math.Abs(fromNode.Latency - toNode.Latency);
             }
-            return 0.0;
+            return await CalculateMinimumRoutingScoreAsync();
         }
 
         private Dictionary<string, object> ExtractRouteFeatures(string targetNodeId, int priority)
@@ -641,7 +642,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private double CalculateNetworkHealth()
         {
             // Calculate network health
-            if (_routingTable.Count == 0) return 0.0;
+            if (_routingTable.Count == 0) return await CalculateMinimumRoutingScoreAsync();
             
             var avgLatency = _routingTable.Values.Average(n => n.Latency);
             var avgReliability = _routingTable.Values.Average(n => n.Reliability);
