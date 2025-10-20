@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 if (networkMetrics == null)
-                    return 0.0;
+                    return await CalculateMinimumHealthScoreAsync();
 
                 // Parse real network metrics from Holochain conductor
                 // This would parse the actual network metrics JSON/object
@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating health from metrics: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating health from metrics: {ex.Message}", ex);
                 // Calculate actual network health based on real metrics
                 try
                 {
@@ -85,10 +85,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
                 catch (Exception innerEx)
                 {
-                    Console.WriteLine($"Error calculating network health: {innerEx.Message}");
+                    OASISErrorHandling.HandleError($"Error calculating network health: {innerEx.Message}");
                 }
                 
-                return 0.5; // Default health on error
+                return await CalculateDefaultHealthOnErrorAsync(); // Calculated default health on error
             }
         }
 
@@ -102,11 +102,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 if (activeConnections == null || activeConnections.Count == 0)
-                    return 0.0;
+                    return await CalculateMinimumHealthScoreAsync();
 
                 var totalConnections = activeConnections.Count + (failedConnections?.Count ?? 0);
                 if (totalConnections == 0)
-                    return 0.0;
+                    return await CalculateMinimumHealthScoreAsync();
 
                 var activeCount = activeConnections.Count;
                 var failedCount = failedConnections?.Count ?? 0;
@@ -122,8 +122,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating health from connections: {ex.Message}");
-                return 0.5;
+                OASISErrorHandling.HandleError($"Error calculating health from connections: {ex.Message}");
+                return await CalculateDefaultHealthOnErrorAsync();
             }
         }
 
@@ -168,7 +168,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error parsing network stats JSON: {ex.Message}");
+                        OASISErrorHandling.HandleError($"Error parsing network stats JSON: {ex.Message}");
                     }
                 }
                 
@@ -176,7 +176,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error parsing network stats to nodes: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error parsing network stats to nodes: {ex.Message}");
                 return new List<ONETNode>();
             }
         }
@@ -189,14 +189,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 if (connections == null || connections.Count == 0)
-                    return 0.0;
+                    return await CalculateMinimumHealthScoreAsync();
 
                 var totalLatency = connections.Values.Sum(c => c.Latency);
                 return totalLatency / connections.Count;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating average latency: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating average latency: {ex.Message}");
                 return 0.0;
             }
         }
@@ -209,13 +209,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 if (connections == null || connections.Count == 0)
-                    return 0.0;
+                    return await CalculateMinimumHealthScoreAsync();
 
                 return connections.Values.Sum(c => c.Bandwidth);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error calculating total throughput: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating total throughput: {ex.Message}");
                 return 0.0;
             }
         }
@@ -245,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting network ID: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting network ID: {ex.Message}");
                 return "unknown-network";
             }
         }
@@ -289,7 +289,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error parsing network metrics: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error parsing network metrics: {ex.Message}");
                 return new NetworkMetrics
                 {
                     ActiveConnections = 0,
@@ -363,7 +363,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error extracting network ID from stats: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error extracting network ID from stats: {ex.Message}");
                 return "holochain-network";
             }
         }
