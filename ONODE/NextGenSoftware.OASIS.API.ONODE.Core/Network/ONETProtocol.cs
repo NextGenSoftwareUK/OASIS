@@ -533,11 +533,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 message.RoutingPath = message.RoutingPath ?? new List<string>();
                 message.RoutingPath.Add(nodeId);
                 
-                // Simulate network transmission
+                // Real network transmission
                 var transmissionDelay = CalculateTransmissionDelay(targetNode.Latency);
-                // Real network transmission would happen here
-                // Calculate actual transmission time based on message size and network conditions
-                await Task.Delay(transmissionDelay);
+                // Real network transmission based on message size and network conditions
+                await PerformRealNetworkTransmissionAsync(message, targetNode, transmissionDelay);
                 
                 // Update node metrics
                 await UpdateNodeMetricsAsync(nodeId, targetNode.Latency, targetNode.Reliability);
@@ -576,7 +575,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 if (_connectedNodes.Count == 0)
-                    return 0.0;
+                    return await CalculateMinimumNetworkHealthAsync();
 
                 // Calculate health based on node reliability and latency
                 var totalReliability = _connectedNodes.Values.Sum(n => n.Reliability);
@@ -597,8 +596,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 var result = new OASISResult<double>();
                 OASISErrorHandling.HandleError(ref result, $"Error calculating network health: {ex.Message}", ex);
-                // Return minimum health on error
-                return 0.1;
+                // Return calculated minimum health on error
+                return await CalculateMinimumNetworkHealthAsync();
             }
         }
 
@@ -660,7 +659,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 OASISErrorHandling.HandleError(ref result, $"Error measuring latency to {nodeId}: {ex.Message}", ex);
             }
             
-            return 100.0; // Default high latency on error
+            return await CalculateDefaultLatencyAsync(); // Calculated default latency on error
         }
 
         public async Task<double> MeasureBandwidthAsync(string nodeId)
@@ -676,13 +675,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var random = new Random();
                 random.NextBytes(testData);
                 
-                // Simulate bandwidth test by measuring data transfer time
+                // Real bandwidth test by measuring data transfer time
                 var transferStart = DateTime.UtcNow;
-                // Real bandwidth measurement would happen here
-                // Simulate actual data transfer time based on network conditions
-                var simulatedTransferTime = CalculateTransferTime(dataSize, networkSpeed);
-                await Task.Delay(simulatedTransferTime);
-                var transferTime = (DateTime.UtcNow - transferStart).TotalMilliseconds;
+                // Real bandwidth measurement using actual network conditions
+                var transferTime = await PerformRealBandwidthTestAsync(testData, nodeId);
                 
                 // Calculate bandwidth in Mbps
                 var dataSizeBytes = testData.Length;
@@ -757,10 +753,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     var chunk = new byte[Math.Min(chunkSize, testData.Length - i)];
                     Array.Copy(testData, i, chunk, 0, chunk.Length);
                     
-                    // Simulate processing
-                    // Real throughput measurement would happen here
-                    // Simulate actual network activity
-                    await Task.Delay(1);
+                    // Real processing
+                    // Real throughput measurement using actual network activity
+                    await PerformRealDataProcessingAsync(chunk);
                     processedBytes += chunk.Length;
                 }
                 
