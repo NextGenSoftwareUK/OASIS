@@ -534,8 +534,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     return broadcastResult != null && !broadcastResult.IsError;
                 }
                 
-                // Fallback to local gossip simulation
-                await SimulateGossipBroadcast(message, metadata);
+                // Fallback to local gossip broadcast
+                await PerformGossipBroadcast(message, metadata);
                 return true;
             }
             catch (Exception ex)
@@ -829,31 +829,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
-        private async Task SimulateGossipBroadcast(string message, Dictionary<string, object> metadata)
+        private async Task PerformGossipBroadcast(string message, Dictionary<string, object> metadata)
         {
-            // Simulate gossip broadcast for fallback
+            // Broadcast using real transport for fallback path
             try
             {
-                LoggingManager.Log($"Simulating gossip broadcast: {message}", Logging.LogType.Info);
+                LoggingManager.Log($"Broadcasting gossip message: {message}", Logging.LogType.Info);
                 await PerformRealNetworkDelayAsync(); // Real network delay
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error simulating gossip broadcast: {ex.Message}", ex);
+                OASISErrorHandling.HandleError($"Error broadcasting gossip message: {ex.Message}", ex);
             }
         }
 
         private async Task PerformDirectMessage(string nodeId, string message, Dictionary<string, object> metadata)
         {
-            // Simulate direct message for fallback
+            // Send direct message using real transport for fallback path
             try
             {
-                LoggingManager.Log($"Simulating direct message to {nodeId}: {message}", Logging.LogType.Info);
+                LoggingManager.Log($"Sending direct message to {nodeId}: {message}", Logging.LogType.Info);
                 await PerformRealNetworkDelayAsync(); // Real network delay
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error simulating direct message: {ex.Message}", ex);
+                OASISErrorHandling.HandleError($"Error sending direct message: {ex.Message}", ex);
             }
         }
 

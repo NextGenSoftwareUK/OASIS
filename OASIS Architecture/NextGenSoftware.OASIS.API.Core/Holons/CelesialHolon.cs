@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
-    public class CelesialHolon : Holon, ICelestialHolon, INotifyPropertyChanged
+    public class CelesialHolon : Holon, NextGenSoftware.OASIS.API.Core.Interfaces.ICelestialHolon, INotifyPropertyChanged
     {
         public CelesialHolon(Guid id) : base(id) 
         {

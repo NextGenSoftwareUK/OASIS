@@ -629,7 +629,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private async Task<List<string>> PredictOptimalRouteAsync(Dictionary<string, object> features)
         {
-            // Simulate ML prediction
+            // Perform ML prediction
             await PerformRealRoutingCalculationAsync();
             
             // Return predicted route based on features

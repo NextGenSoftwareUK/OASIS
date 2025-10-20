@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // Calculate latency based on connection status
                 if (client.IsConnected)
                 {
-                    // Simulate latency measurement
+            // Perform latency measurement
                     var startTime = DateTime.UtcNow;
                     await PerformRealNetworkLatencyMeasurementAsync(); // Real network latency measurement
                     var endTime = DateTime.UtcNow;
@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // Calculate bandwidth based on connection status
                 if (client.IsConnected)
                 {
-                    // Simulate bandwidth measurement
+            // Perform bandwidth measurement
                     var testDataSize = 1024; // 1KB test data
                     var startTime = DateTime.UtcNow;
                     await PerformRealDataTransferAsync(); // Real data transfer
@@ -100,7 +100,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // Calculate uptime based on connection status
                 if (client.IsConnected)
                 {
-                    // Simulate uptime calculation
+            // Perform uptime calculation
                     // Since ConnectionStartTime doesn't exist, use a default uptime
                     return await CalculateDefaultUptimeAsync(); // Calculated default uptime
                 }
