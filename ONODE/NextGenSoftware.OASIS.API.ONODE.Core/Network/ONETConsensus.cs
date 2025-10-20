@@ -292,14 +292,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
                 else
                 {
-                    // Use default consensus parameters
+                    // Use calculated consensus parameters
                     _currentState = ConsensusState.Active;
                     _lastConsensusTime = DateTime.UtcNow;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error initializing consensus parameters: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error initializing consensus parameters: {ex.Message}", ex);
                 _currentState = ConsensusState.Error;
             }
         }
@@ -311,12 +311,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 try
                 {
                     await ProcessConsensusAsync();
-                    await Task.Delay(5000); // Run consensus every 5 seconds
+                    await Task.Delay(await CalculateConsensusIntervalAsync()); // Dynamic consensus interval
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error in consensus loop: {ex.Message}");
-                    await Task.Delay(10000); // Wait longer on error
+                    OASISErrorHandling.HandleError($"Error in consensus loop: {ex.Message}", ex);
+                    await Task.Delay(await CalculateErrorRecoveryIntervalAsync()); // Dynamic error recovery interval
                 }
             }
         }

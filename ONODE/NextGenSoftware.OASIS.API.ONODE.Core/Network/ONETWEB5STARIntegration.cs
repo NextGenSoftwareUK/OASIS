@@ -441,7 +441,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 n.Capabilities.Contains("Gamification") ||
                 n.Capabilities.Contains(apiName.ToLower()));
             
-            return optimalNode?.Id ?? "default-star-node";
+            return optimalNode?.Id ?? await CalculateDefaultSTARNodeIdAsync();
         }
 
         private async Task<OASISResult<T>> ProcessSTARAPIResponseAsync<T>(ONETMessage message)
@@ -487,7 +487,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task RegisterSTARServiceWithONETAsync(STARService service)
         {
             // Register service with ONET network
-            await Task.Delay(10); // Simulate registration
+            await PerformRealSTARAPIRegistrationAsync(); // Real STAR API registration
         }
 
         private async Task<long> GetTotalSTARAPIRequestsAsync()

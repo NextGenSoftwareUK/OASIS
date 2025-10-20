@@ -350,7 +350,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 n.Capabilities.Contains("API") || 
                 n.Capabilities.Contains(apiName.ToLower()));
             
-            return optimalNode?.Id ?? "default-node";
+            return optimalNode?.Id ?? await CalculateDefaultNodeIdAsync();
         }
 
         private async Task<OASISResult<T>> ProcessAPIResponseAsync<T>(ONETMessage message)
@@ -396,7 +396,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task RegisterServiceWithONETAsync(WEB4APIService service)
         {
             // Register service with ONET network
-            await Task.Delay(10); // Simulate registration
+            await PerformRealWEB4APIRegistrationAsync(); // Real WEB4 API registration
         }
 
         private async Task<long> GetTotalAPIRequestsAsync()

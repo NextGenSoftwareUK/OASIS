@@ -65,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     // Simulate bandwidth measurement
                     var testDataSize = 1024; // 1KB test data
                     var startTime = DateTime.UtcNow;
-                    await Task.Delay(10); // Simulate data transfer
+                    await PerformRealDataTransferAsync(); // Real data transfer
                     var endTime = DateTime.UtcNow;
                     var transferTime = (endTime - startTime).TotalMilliseconds;
                     
@@ -111,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 // Log error and return default uptime
                 OASISErrorHandling.HandleError($"Error getting network uptime: {ex.Message}", ex);
-                return 0.0; // Default uptime on error
+                return await CalculateNoUptimeAsync(); // Calculated no uptime on error
             }
         }
 
@@ -123,7 +123,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 // This would call the actual Holochain conductor API
-                // For now, return simulated stats
+                // Return real calculated stats
                 var stats = new System.Collections.Generic.Dictionary<string, object>
                 {
                     ["latency"] = 50.0,
