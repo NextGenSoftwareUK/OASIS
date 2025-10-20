@@ -330,7 +330,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             // Calculate unified network health combining ONET and HyperDrive metrics
             var onetHealth = onetTopology?.NetworkHealth ?? 0;
-            var hyperDriveHealth = 95.0; // Simulate HyperDrive health
+            var hyperDriveHealth = CalculateHyperDriveHealth(hyperDriveTopology);
             
             return (onetHealth + hyperDriveHealth) / 2;
         }
@@ -348,7 +348,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     FromNodeId = node.Id,
                     ToNodeId = "hyperdrive",
                     Latency = node.Latency,
-                    Bandwidth = 1000.0, // Default bandwidth
+                    Bandwidth = CalculateLinkBandwidth(node),
                     IsActive = node.Status == "Connected"
                 });
             }

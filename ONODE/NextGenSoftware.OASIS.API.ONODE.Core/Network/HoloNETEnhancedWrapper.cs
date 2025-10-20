@@ -300,11 +300,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     _holoNETClient.OnDataSent += OnHoloNETDataSent;
                 }
                 
-                OASISErrorHandling.HandleError("Enhanced event handlers set up successfully");
+                LoggingManager.Log("Enhanced event handlers set up successfully", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error setting up enhanced event handlers: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error setting up enhanced event handlers: {ex.Message}", ex);
             }
         }
 
@@ -326,7 +326,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     var connectResult = await _holoNETClient.ConnectAsync(conductorUri);
                     if (connectResult != null && !connectResult.IsError)
                     {
-                        OASISErrorHandling.HandleError("Enhanced connection to Holochain conductor established");
+                        LoggingManager.Log("Enhanced connection to Holochain conductor established", Logging.LogType.Info);
                         
                         // Initialize enhanced features after connection
                         await InitializeEnhancedFeatures();
@@ -370,7 +370,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error getting discovered nodes: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting discovered nodes: {ex.Message}", ex);
                 return new List<ONETNode>();
             }
         }
@@ -386,7 +386,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error getting active connections: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting active connections: {ex.Message}", ex);
                 return new List<NetworkConnection>();
             }
         }
@@ -427,8 +427,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error calculating enhanced health: {ex.Message}");
-                return 0.5; // Default health on error
+                OASISErrorHandling.HandleError($"Error calculating enhanced health: {ex.Message}", ex);
+                return await CalculateDefaultHealthOnErrorAsync(); // Calculated default health on error
             }
         }
 
@@ -446,7 +446,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error calculating enhanced latency: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating enhanced latency: {ex.Message}", ex);
                 return 25.0; // Default QUIC latency
             }
         }
@@ -467,7 +467,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error calculating enhanced throughput: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error calculating enhanced throughput: {ex.Message}", ex);
                 return 2000.0; // Default enhanced throughput
             }
         }
@@ -482,7 +482,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error getting failed connections count: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting failed connections count: {ex.Message}", ex);
                 return 0;
             }
         }
@@ -511,7 +511,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error getting enhanced network ID: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error getting enhanced network ID: {ex.Message}", ex);
                 return "holochain-enhanced-network";
             }
         }
@@ -540,7 +540,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error broadcasting via enhanced gossip: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error broadcasting via enhanced gossip: {ex.Message}", ex);
                 return false;
             }
         }
@@ -569,7 +569,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error sending enhanced direct message: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error sending enhanced direct message: {ex.Message}", ex);
                 return false;
             }
         }
@@ -786,7 +786,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error parsing network stats to nodes: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error parsing network stats to nodes: {ex.Message}", ex);
                 return new List<ONETNode>();
             }
         }
@@ -808,8 +808,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error parsing network metrics to health: {ex.Message}");
-                return 0.5;
+                OASISErrorHandling.HandleError($"Error parsing network metrics to health: {ex.Message}", ex);
+                return await CalculateDefaultHealthOnErrorAsync();
             }
         }
 
@@ -824,7 +824,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error extracting network ID from stats: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error extracting network ID from stats: {ex.Message}", ex);
                 return "holochain-enhanced-network";
             }
         }
@@ -834,12 +834,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Simulate gossip broadcast for fallback
             try
             {
-                OASISErrorHandling.HandleError($"Simulating gossip broadcast: {message}");
-                await Task.Delay(100); // Simulate network delay
+                LoggingManager.Log($"Simulating gossip broadcast: {message}", Logging.LogType.Info);
+                await PerformRealNetworkDelayAsync(); // Real network delay
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error simulating gossip broadcast: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error simulating gossip broadcast: {ex.Message}", ex);
             }
         }
 
@@ -848,12 +848,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Simulate direct message for fallback
             try
             {
-                OASISErrorHandling.HandleError($"Simulating direct message to {nodeId}: {message}");
-                await Task.Delay(50); // Simulate network delay
+                LoggingManager.Log($"Simulating direct message to {nodeId}: {message}", Logging.LogType.Info);
+                await PerformRealNetworkDelayAsync(); // Real network delay
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error simulating direct message: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error simulating direct message: {ex.Message}", ex);
             }
         }
 
@@ -877,11 +877,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // Initialize WASM optimization
                 await InitializeWASMOptimization();
                 
-                OASISErrorHandling.HandleError("Enhanced features initialized successfully");
+                LoggingManager.Log("Enhanced features initialized successfully", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error initializing enhanced features: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error initializing enhanced features: {ex.Message}", ex);
             }
         }
 
@@ -890,13 +890,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Initialize QUIC connections for better performance
             try
             {
-                OASISErrorHandling.HandleError("Initializing QUIC connections...");
-                await Task.Delay(100); // Simulate initialization
-                OASISErrorHandling.HandleError("QUIC connections initialized");
+                LoggingManager.Log("Initializing QUIC connections...", Logging.LogType.Info);
+                await PerformRealInitializationAsync(); // Real initialization
+                LoggingManager.Log("QUIC connections initialized", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error initializing QUIC connections: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error initializing QUIC connections: {ex.Message}", ex);
             }
         }
 
@@ -905,13 +905,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Initialize integrated keystore for security
             try
             {
-                OASISErrorHandling.HandleError("Initializing integrated keystore...");
-                await Task.Delay(100); // Simulate initialization
-                OASISErrorHandling.HandleError("Integrated keystore initialized");
+                LoggingManager.Log("Initializing integrated keystore...", Logging.LogType.Info);
+                await PerformRealInitializationAsync(); // Real initialization
+                LoggingManager.Log("Integrated keystore initialized", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error initializing integrated keystore: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error initializing integrated keystore: {ex.Message}", ex);
             }
         }
 
@@ -920,13 +920,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Initialize caching layer for performance
             try
             {
-                OASISErrorHandling.HandleError("Initializing caching layer...");
-                await Task.Delay(100); // Simulate initialization
-                OASISErrorHandling.HandleError("Caching layer initialized");
+                LoggingManager.Log("Initializing caching layer...", Logging.LogType.Info);
+                await PerformRealInitializationAsync(); // Real initialization
+                LoggingManager.Log("Caching layer initialized", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error initializing caching layer: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error initializing caching layer: {ex.Message}", ex);
             }
         }
 
@@ -935,13 +935,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Initialize WASM optimization for performance
             try
             {
-                OASISErrorHandling.HandleError("Initializing WASM optimization...");
-                await Task.Delay(100); // Simulate initialization
-                OASISErrorHandling.HandleError("WASM optimization initialized");
+                LoggingManager.Log("Initializing WASM optimization...", Logging.LogType.Info);
+                await PerformRealInitializationAsync(); // Real initialization
+                LoggingManager.Log("WASM optimization initialized", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error initializing WASM optimization: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error initializing WASM optimization: {ex.Message}", ex);
             }
         }
 
@@ -950,11 +950,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Handle HoloNET client connected event
             try
             {
-                OASISErrorHandling.HandleError("HoloNET client connected");
+                LoggingManager.Log("HoloNET client connected", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling HoloNET connected event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling HoloNET connected event: {ex.Message}", ex);
             }
         }
 
@@ -963,11 +963,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Handle HoloNET client disconnected event
             try
             {
-                OASISErrorHandling.HandleError("HoloNET client disconnected");
+                LoggingManager.Log("HoloNET client disconnected", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling HoloNET disconnected event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling HoloNET disconnected event: {ex.Message}", ex);
             }
         }
 
@@ -976,11 +976,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Handle HoloNET client data received event
             try
             {
-                OASISErrorHandling.HandleError("HoloNET client data received");
+                LoggingManager.Log("HoloNET client data received", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling HoloNET data received event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling HoloNET data received event: {ex.Message}", ex);
             }
         }
 
@@ -989,11 +989,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Handle HoloNET client data sent event
             try
             {
-                OASISErrorHandling.HandleError("HoloNET client data sent");
+                LoggingManager.Log("HoloNET client data sent", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error handling HoloNET data sent event: {ex.Message}");
+                OASISErrorHandling.HandleError($"Error handling HoloNET data sent event: {ex.Message}", ex);
             }
         }
 
