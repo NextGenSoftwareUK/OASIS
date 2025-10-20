@@ -4,38 +4,20 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
-    public class SemanticHolon : Holon, ISemanticHolon
+    public abstract class SemanticHolon : HolonBase, ISemanticHolon
     {
-        private IHolon _parent = null;
-        private List<IHolon> _children = null;
-        public Guid ParentId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public Guid ParentHolonId { get; set; }
+        public IHolon ParentHolon { get; set; }
+        public string ChildIdListCache { get; set; } //This will store the list of id's for the direct childen of this holon.
+        public string AllChildIdListCache { get; set; } //This will store the list of id's for the ALL the childen of this holon (including all sub-childen).
 
-        public List<IHolon> Children
+        public IList<IHolon> Children { get; set; } = new List<IHolon>();
+
+        public virtual IReadOnlyCollection<IHolon> AllChildren
         {
             get
             {
-                if (_children == null)
-                {
-                    _children = new List<IHolon>();
-                    //TODO: Get Holon Children from graph here.
-                }
-
-                return _children;
-            }
-        }
-
-        public IHolon Parent
-        {
-            get
-            {
-                if (_parent == null)
-                {
-                    //TODO: Get parent holon from graph here.
-                }
-
-                return _parent;
+                return Children.AsReadOnly();
             }
         }
     }

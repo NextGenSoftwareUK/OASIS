@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Requests
         Dictionary<string, object> MetaData { get; set; }
         Guid ModifiedBy { get; set; }
         List<string> OASISGeoNFTIds { get; set; }
-        List<IOASISGeoNFTCollection> OASISGeoNFTs { get; set; }
+        List<IOASISGeoSpatialNFT> OASISGeoNFTs { get; set; }
         List<string> Tags { get; set; }
         byte[] Thumbnail { get; set; }
         string ThumbnailUrl { get; set; }
