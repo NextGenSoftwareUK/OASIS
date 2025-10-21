@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     {
         private readonly Dictionary<string, SecurityKey> _nodeKeys = new Dictionary<string, SecurityKey>();
         private readonly Dictionary<string, SecuritySession> _activeSessions = new Dictionary<string, SecuritySession>();
-        private readonly SecurityConfig _securityConfig;
+        private SecurityConfig _securityConfig;
         private readonly EncryptionProvider _encryptionProvider;
         private SecurityKey _masterKey;
         private Dictionary<string, object> _securityPolicies = new Dictionary<string, object>();
@@ -612,6 +612,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 OASISErrorHandling.HandleError(ref result, $"Error generating quantum-resistant keys: {ex.Message}", ex);
             }
         }
+
+
+        // Missing helper method
+        private async Task<bool> CalculateDefaultVerificationResultAsync()
+        {
+            try
+            {
+                // Calculate default verification result
+                return await Task.FromResult(false); // Default to false for security
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error calculating verification result: {ex.Message}", ex);
+                return false;
+            }
+        }
+
     }
 
     public class SecurityKey
@@ -1005,20 +1022,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             await Task.Delay(200); // 200ms simulated quantum key generation
         }
 
-        // Missing helper method
-        private async Task<bool> CalculateDefaultVerificationResultAsync()
-        {
-            try
-            {
-                // Calculate default verification result
-                return await Task.FromResult(false); // Default to false for security
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error calculating verification result: {ex.Message}", ex);
-                return false;
-            }
-        }
     }
 
     public class KeyPair
