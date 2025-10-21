@@ -1986,6 +1986,5 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 OASISErrorHandling.HandleError($"Error in reliability calculation: {ex.Message}", ex);
             }
         }
-
     }
 }
