@@ -59,6 +59,98 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 OASISErrorHandling.HandleError($"Error stopping ONET Security: {ex.Message}", ex);
             }
         }
+
+        private async Task InitializeQuantumResistantCryptoAsync()
+        {
+            // Initialize quantum-resistant cryptographic algorithms
+            try
+            {
+                // Initialize quantum-resistant algorithms
+                await InitializePostQuantumAlgorithmsAsync();
+                
+                // Generate quantum-resistant keys
+                await GenerateQuantumResistantKeysAsync();
+            }
+            catch (Exception ex)
+            {
+                var result = new OASISResult<bool>();
+                OASISErrorHandling.HandleError(ref result, $"Error initializing quantum-resistant crypto: {ex.Message}", ex);
+                throw;
+            }
+        }
+
+
+        private async Task MonitorIntrusionDetectionAsync()
+        {
+            // Monitor for intrusion attempts
+            await Task.CompletedTask;
+        }
+
+        private async Task MonitorAnomalyDetectionAsync()
+        {
+            // Monitor for anomalous behavior
+            await Task.CompletedTask;
+        }
+
+        private async Task UpdateThreatIntelligenceAsync()
+        {
+            // Update threat intelligence feeds
+            await Task.CompletedTask;
+        }
+
+        private async Task StartSecurityAuditLoggingAsync()
+        {
+            // Start security audit logging
+            await Task.CompletedTask;
+        }
+
+        private async Task InitializePostQuantumAlgorithmsAsync()
+        {
+            // Initialize post-quantum cryptographic algorithms
+            try
+            {
+                // Initialize NIST-approved post-quantum algorithms
+                // This would integrate with actual post-quantum libraries
+                LoggingManager.Log("Initializing post-quantum cryptographic algorithms", Logging.LogType.Info);
+            }
+            catch (Exception ex)
+            {
+                var result = new OASISResult<bool>();
+                OASISErrorHandling.HandleError(ref result, $"Error initializing post-quantum algorithms: {ex.Message}", ex);
+            }
+        }
+
+        private async Task GenerateQuantumResistantKeysAsync()
+        {
+            // Generate quantum-resistant keys
+            try
+            {
+                // Generate keys using post-quantum algorithms
+                using (var rng = RandomNumberGenerator.Create())
+                {
+                    var keyBytes = new byte[64]; // Larger key size for post-quantum
+                    rng.GetBytes(keyBytes);
+                    
+                    var quantumKey = new SecurityKey
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        KeyData = keyBytes,
+                        Algorithm = "Post-Quantum",
+                        CreatedAt = DateTime.UtcNow,
+                        ExpiresAt = DateTime.UtcNow.AddDays(365),
+                        IsQuantumResistant = true
+                    };
+                    
+                    _masterKey = quantumKey;
+                }
+            }
+            catch (Exception ex)
+            {
+                var result = new OASISResult<bool>();
+                OASISErrorHandling.HandleError(ref result, $"Error generating quantum-resistant keys: {ex.Message}", ex);
+            }
+        }
+
         private bool _isInitialized = false;
 
         public async Task<OASISResult<bool>> InitializeAsync(OASISDNA? oasisdna)
@@ -566,53 +658,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
-        private async Task InitializePostQuantumAlgorithmsAsync()
-        {
-            // Initialize post-quantum cryptographic algorithms
-            try
-            {
-                // Initialize NIST-approved post-quantum algorithms
-                // This would integrate with actual post-quantum libraries
-                LoggingManager.Log("Initializing post-quantum cryptographic algorithms", Logging.LogType.Info);
-            }
-            catch (Exception ex)
-            {
-                var result = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref result, $"Error initializing post-quantum algorithms: {ex.Message}", ex);
-            }
-        }
-
-        private async Task GenerateQuantumResistantKeysAsync()
-        {
-            // Generate quantum-resistant keys
-            try
-            {
-                // Generate keys using post-quantum algorithms
-                using (var rng = RandomNumberGenerator.Create())
-                {
-                    var keyBytes = new byte[64]; // Larger key size for post-quantum
-                    rng.GetBytes(keyBytes);
-                    
-                    var quantumKey = new SecurityKey
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        KeyData = keyBytes,
-                        Algorithm = "Post-Quantum",
-                        CreatedAt = DateTime.UtcNow,
-                        ExpiresAt = DateTime.UtcNow.AddDays(365),
-                        IsQuantumResistant = true
-                    };
-                    
-                    _masterKey = quantumKey;
-                }
-            }
-            catch (Exception ex)
-            {
-                var result = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref result, $"Error generating quantum-resistant keys: {ex.Message}", ex);
-            }
-        }
-
 
         // Missing helper method
         private async Task<bool> CalculateDefaultVerificationResultAsync()
@@ -834,46 +879,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError($"Error verifying signature: {ex.Message}", ex);
-                return await CalculateDefaultVerificationResultAsync();
+                return false;
             }
         }
 
-        private async Task LoadSecurityPoliciesAsync()
-        {
-            // Load security policies from configuration
-            try
-            {
-                // Load real security policies from OASIS DNA
-                var policies = await LoadSecurityPoliciesFromDNAAsync();
-                _securityPolicies = policies;
-                
-                // Apply security policies
-                await ApplySecurityPoliciesAsync();
-            }
-            catch (Exception ex)
-            {
-                var result = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref result, $"Error loading security policies: {ex.Message}", ex);
-            }
-        }
-
-        private async Task InitializeQuantumResistantCryptoAsync()
-        {
-            // Initialize quantum-resistant cryptographic algorithms
-            try
-            {
-                // Initialize quantum-resistant algorithms
-                await InitializePostQuantumAlgorithmsAsync();
-                
-                // Generate quantum-resistant keys
-                await GenerateQuantumResistantKeysAsync();
-            }
-            catch (Exception ex)
-            {
-                var result = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref result, $"Error initializing quantum-resistant crypto: {ex.Message}", ex);
-            }
-        }
 
         private async Task MonitorIntrusionDetectionAsync()
         {
@@ -899,109 +908,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             await Task.CompletedTask;
         }
 
-        private async Task<Dictionary<string, object>> LoadSecurityPoliciesFromDNAAsync()
-        {
-            // Load security policies from OASIS DNA
-            var policies = new Dictionary<string, object>();
-            
-            try
-            {
-                // Load from OASIS DNA configuration
-                if (this.OASISDNA?.OASIS?.Security != null)
-                {
-                    policies["encryption_algorithm"] = this.OASISDNA.OASIS.Security.EncryptionAlgorithm ?? "AES-256-GCM";
-                    policies["key_size"] = this.OASISDNA.OASIS.Security.KeySize ?? 256;
-                    policies["quantum_resistant"] = this.OASISDNA.OASIS.Security.EnableQuantumResistance ?? true;
-                    policies["zero_trust"] = this.OASISDNA.OASIS.Security.EnableZeroTrust ?? true;
-                }
-            }
-            catch (Exception ex)
-            {
-                var result = new OASISResult<Dictionary<string, object>>();
-                OASISErrorHandling.HandleError(ref result, $"Error loading security policies from DNA: {ex.Message}", ex);
-            }
-            
-            return policies;
-        }
 
-        private async Task ApplySecurityPoliciesAsync()
-        {
-            // Apply loaded security policies
-            try
-            {
-                if (_securityPolicies.ContainsKey("encryption_algorithm"))
-                {
-                    _securityConfig.EncryptionAlgorithm = _securityPolicies["encryption_algorithm"].ToString();
-                }
-                
-                if (_securityPolicies.ContainsKey("key_size"))
-                {
-                    _securityConfig.KeySize = Convert.ToInt32(_securityPolicies["key_size"]);
-                }
-                
-                if (_securityPolicies.ContainsKey("quantum_resistant"))
-                {
-                    _securityConfig.QuantumResistant = Convert.ToBoolean(_securityPolicies["quantum_resistant"]);
-                }
-                
-                if (_securityPolicies.ContainsKey("zero_trust"))
-                {
-                    _securityConfig.ZeroTrust = Convert.ToBoolean(_securityPolicies["zero_trust"]);
-                }
-            }
-            catch (Exception ex)
-            {
-                var result = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref result, $"Error applying security policies: {ex.Message}", ex);
-            }
-        }
 
-        private async Task InitializePostQuantumAlgorithmsAsync()
-        {
-            // Initialize post-quantum cryptographic algorithms
-            try
-            {
-                // Initialize NIST-approved post-quantum algorithms
-                // This would integrate with actual post-quantum libraries
-                LoggingManager.Log("Initializing post-quantum cryptographic algorithms", Logging.LogType.Info);
-            }
-            catch (Exception ex)
-            {
-                var result = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref result, $"Error initializing post-quantum algorithms: {ex.Message}", ex);
-            }
-        }
 
-        private async Task GenerateQuantumResistantKeysAsync()
-        {
-            // Generate quantum-resistant keys
-            try
-            {
-                // Generate keys using post-quantum algorithms
-                using (var rng = RandomNumberGenerator.Create())
-                {
-                    var keyBytes = new byte[64]; // Larger key size for post-quantum
-                    rng.GetBytes(keyBytes);
-                    
-                    var quantumKey = new SecurityKey
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        KeyData = keyBytes,
-                        Algorithm = "Post-Quantum",
-                        CreatedAt = DateTime.UtcNow,
-                        ExpiresAt = DateTime.UtcNow.AddDays(365),
-                        IsQuantumResistant = true
-                    };
-                    
-                    _masterKey = quantumKey;
-                }
-            }
-            catch (Exception ex)
-            {
-                var result = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref result, $"Error generating quantum-resistant keys: {ex.Message}", ex);
-            }
-        }
 
         // Helper methods for calculations
         private static async Task PerformRealSecurityInitializationAsync()
