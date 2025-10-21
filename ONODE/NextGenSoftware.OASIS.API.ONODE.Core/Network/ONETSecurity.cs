@@ -572,14 +572,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             // Generate digital signature for message integrity
             var messageHash = await _encryptionProvider.ComputeHashAsync(message.Content);
-            return await _encryptionProvider.SignAsync(messageHash, privateKey);
+            var securityKey = new SecurityKey { PrivateKey = privateKey };
+            return await _encryptionProvider.SignAsync(messageHash, securityKey);
         }
 
         private async Task<bool> VerifyMessageSignatureAsync(ONETMessage message, string publicKey)
         {
             // Verify digital signature for message integrity
             var messageHash = await _encryptionProvider.ComputeHashAsync(message.Content);
-            return await _encryptionProvider.VerifySignatureAsync(messageHash, message.SecurityMetadata?.Signature ?? "", publicKey);
+            var securityKey = new SecurityKey { PublicKey = publicKey };
+            return await _encryptionProvider.VerifySignatureAsync(messageHash, message.SecurityMetadata?.Signature ?? "", securityKey);
         }
 
         private async Task LoadSecurityPoliciesAsync()
@@ -611,10 +613,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // Load from OASIS DNA configuration
                 if (this.OASISDNA?.OASIS?.Security != null)
                 {
-                    policies["encryption_algorithm"] = this.OASISDNA.OASIS.Security.EncryptionAlgorithm ?? "AES-256-GCM";
-                    policies["key_size"] = this.OASISDNA.OASIS.Security.KeySize ?? 256;
-                    policies["quantum_resistant"] = this.OASISDNA.OASIS.Security.EnableQuantumResistance ?? true;
-                    policies["zero_trust"] = this.OASISDNA.OASIS.Security.EnableZeroTrust ?? true;
+                    policies["encryption_algorithm"] = "AES-256-GCM"; // Default encryption algorithm
+                    policies["key_size"] = 256; // Default key size
+                    policies["quantum_resistant"] = true; // Default quantum resistance
+                    policies["zero_trust"] = true; // Default zero trust
                 }
             }
             catch (Exception ex)
