@@ -195,7 +195,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 foreach (var node in _connectedNodes.Values)
                 {
                     // In real implementation, this would send via the network
-                    LoggingManager.Log($"Broadcasting message to node {node.Id}: {message.Content}", Logging.LogType.Debug);
+                    LoggingManager.Log($"Broadcasting message to node {node.Id}: {message}", Logging.LogType.Debug);
                 }
                 
                 result.Result = true;
