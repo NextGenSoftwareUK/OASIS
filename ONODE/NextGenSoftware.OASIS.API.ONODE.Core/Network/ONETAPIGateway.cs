@@ -965,7 +965,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 var result = new OASISResult<APIEndpoint>();
                 OASISErrorHandling.HandleError(ref result, $"Error selecting bridge: {ex.Message}", ex);
-                return await CalculateDefaultEndpointAsync();
+                return new APIEndpoint
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = "Default OASIS Endpoint",
+                    Url = "https://api.oasis.com",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
             }
         }
 
