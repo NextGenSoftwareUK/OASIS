@@ -328,9 +328,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Calculate maximum health score
-                await Task.Delay(10);
-                return 1.0; // Maximum health
+                // Calculate maximum health score based on real system metrics
+                var systemMetrics = await GetSystemMetricsAsync();
+                
+                // Calculate health based on multiple factors
+                var cpuHealth = Math.Max(0.0, 1.0 - (systemMetrics.CpuUsage / 100.0));
+                var memoryHealth = Math.Max(0.0, 1.0 - (systemMetrics.MemoryUsage / 100.0));
+                var networkHealth = Math.Max(0.0, 1.0 - (systemMetrics.NetworkLatency / 1000.0));
+                var diskHealth = Math.Max(0.0, 1.0 - (systemMetrics.DiskUsage / 100.0));
+                
+                // Weighted average of all health factors
+                var maxHealth = (cpuHealth * 0.3) + (memoryHealth * 0.3) + (networkHealth * 0.2) + (diskHealth * 0.2);
+                
+                LoggingManager.Log($"Maximum health score calculated: {maxHealth:F3} (CPU: {cpuHealth:F3}, Memory: {memoryHealth:F3}, Network: {networkHealth:F3}, Disk: {diskHealth:F3})", Logging.LogType.Debug);
+                return Math.Max(0.0, Math.Min(1.0, maxHealth));
             }
             catch (Exception ex)
             {
@@ -343,9 +354,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Calculate health score based on latency ratio
-                await Task.Delay(10);
-                return Math.Max(0.0, 1.0 - latencyRatio);
+                // Calculate health score based on real latency analysis
+                var networkMetrics = await GetNetworkMetricsAsync();
+                
+                // Analyze latency patterns and trends
+                var avgLatency = networkMetrics.AverageLatency;
+                var maxLatency = networkMetrics.MaxLatency;
+                var latencyVariance = networkMetrics.LatencyVariance;
+                
+                // Calculate health based on latency characteristics
+                var baseHealth = Math.Max(0.0, 1.0 - latencyRatio);
+                
+                // Adjust for latency stability (lower variance = better health)
+                var stabilityFactor = Math.Max(0.5, 1.0 - (latencyVariance / 100.0));
+                
+                // Adjust for latency consistency (consistent low latency = better health)
+                var consistencyFactor = avgLatency < 50 ? 1.0 : Math.Max(0.3, 1.0 - ((avgLatency - 50) / 200.0));
+                
+                var adjustedHealth = baseHealth * stabilityFactor * consistencyFactor;
+                
+                LoggingManager.Log($"Latency-based health calculated: {adjustedHealth:F3} (Ratio: {latencyRatio:F3}, Stability: {stabilityFactor:F3}, Consistency: {consistencyFactor:F3})", Logging.LogType.Debug);
+                return Math.Max(0.0, Math.Min(1.0, adjustedHealth));
             }
             catch (Exception ex)
             {
