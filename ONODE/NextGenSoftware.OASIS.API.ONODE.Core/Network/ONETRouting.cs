@@ -492,7 +492,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // Update distances to neighbors
                 foreach (var neighbor in GetNeighbors(currentNode))
                 {
-                    var alt = distances[currentNode] + GetEdgeWeight(currentNode, neighbor);
+                    var alt = distances[currentNode] + await GetEdgeWeight(currentNode, neighbor);
                     if (alt < distances[neighbor])
                     {
                         distances[neighbor] = alt;

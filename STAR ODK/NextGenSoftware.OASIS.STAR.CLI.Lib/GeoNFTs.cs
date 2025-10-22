@@ -385,6 +385,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         return result;
                     }
 
+                    ShowGeoNFTCollectionNFTs(request.OASISGeoNFTs);
+
                 } while (CLIEngine.GetConfirmation("Do you wish to add another GeoNFT to this collection?"));
             }
 
@@ -410,6 +412,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (collectionResult != null && collectionResult.Result != null && !collectionResult.IsError)
             {
+               //request.OASISGeoNFTs.AddRange(collectionResult.Result.OASISGeoNFTs);
+
                 if (CLIEngine.GetConfirmation("Do you wish to edit the Title?"))
                     request.Title = CLIEngine.GetValidInput("Please enter the new title for the GeoNFT Collection: ");
 
@@ -440,29 +444,31 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 request.MetaData = request.MetaData = NFTCommon.AddMetaData("GeoNFT Collection");
 
-                if (CLIEngine.GetConfirmation("Do you wish to add more GeoNFT's to this collection now? (You can always add more later)."))
-                {
-                    request.OASISGeoNFTs = new List<IOASISGeoSpatialNFT>();
-                    OASISResult<IOASISGeoSpatialNFT> nftResult = null;
+                //if (CLIEngine.GetConfirmation("Do you wish to add more GeoNFT's to this collection now? (You can always add more later)."))
+                //{
+                //    request.OASISGeoNFTs = new List<IOASISGeoSpatialNFT>();
+                //    OASISResult<IOASISGeoSpatialNFT> nftResult = null;
 
-                    do
-                    {
-                        if (CLIEngine.GetConfirmation("Does the GeoNFT already exist? (If you select 'N' you will be taken through the minting process to create a new GeoNFT to add to the collection)."))
-                            nftResult = await FindWeb4GeoNFTAsync("use", providerType: providerType);
-                        else
-                            nftResult = await MintGeoNFTAsync();
+                //    do
+                //    {
+                //        if (CLIEngine.GetConfirmation("Does the GeoNFT already exist? (If you select 'N' you will be taken through the minting process to create a new GeoNFT to add to the collection)."))
+                //            nftResult = await FindWeb4GeoNFTAsync("use", providerType: providerType);
+                //        else
+                //            nftResult = await MintGeoNFTAsync();
 
-                        if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
-                            request.OASISGeoNFTs.Add(nftResult.Result);
-                        else
-                        {
-                            string msg = nftResult != null ? nftResult.Message : "";
-                            OASISErrorHandling.HandleError(ref result, $"Error Occured Finding GeoNFT to add to Collection: {msg}");
-                            return result;
-                        }
+                //        if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
+                //            request.OASISGeoNFTs.Add(nftResult.Result);
+                //        else
+                //        {
+                //            string msg = nftResult != null ? nftResult.Message : "";
+                //            OASISErrorHandling.HandleError(ref result, $"Error Occured Finding GeoNFT to add to Collection: {msg}");
+                //            return result;
+                //        }
 
-                    } while (CLIEngine.GetConfirmation("Do you wish to add another GeoNFT to this collection?"));
-                }
+                //        ShowGeoNFTCollectionNFTs(collectionResult.Result);
+
+                //    } while (CLIEngine.GetConfirmation("Do you wish to add another GeoNFT to this collection?"));
+                //}
 
                 result = await NFTCommon.NFTManager.UpdateOASISGeoNFTCollectionAsync(request);
 
@@ -481,6 +487,105 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IOASISGeoNFTCollection>>> ShowAllGeoNFTCollections(ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOASISGeoNFTCollection>> result = new OASISResult<IEnumerable<IOASISGeoNFTCollection>>();
+            result = ListWeb4GeoNFTCollections(await NFTCommon.NFTManager.LoadAllGeoNFTCollectionsAsync(providerType));
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IOASISGeoNFTCollection>>> ShowGeoNFTCollectionsForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IEnumerable<IOASISGeoNFTCollection>> result = new OASISResult<IEnumerable<IOASISGeoNFTCollection>>();
+            result = ListWeb4GeoNFTCollections(await NFTCommon.NFTManager.LoadGeoNFTCollectionsForAvatarAsync(avatarId, providerType));
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISGeoNFTCollection>> AddGeoNFTToCollectionAsync(string collectionIdOrName, string nftIdOrName)
+        {
+            OASISResult<IOASISGeoNFTCollection> result = new OASISResult<IOASISGeoNFTCollection>();
+            OASISResult<IOASISGeoNFTCollection> collection = await FindWeb4GeoNFTCollectionAsync("add to", collectionIdOrName, true);
+
+            if (collection == null || collection.Result == null || collection.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured finding GeoNFT Collection to add to. Reason: {collection.Message}");
+                return result;
+            }
+
+            OASISResult<IOASISGeoSpatialNFT> geoNft = await FindWeb4GeoNFTAsync("add", nftIdOrName, true);
+
+            if (geoNft == null || geoNft.Result == null || geoNft.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured finding GeoNFT. Reason: {geoNft.Message}");
+                return result;
+            }
+
+            result = await NFTCommon.NFTManager.AddOASISGeoNFTToCollectionAsync(collection.Result.Id, geoNft.Result.Id);
+
+            if (result != null && result.Result != null && !result.IsError)
+                CLIEngine.ShowSuccessMessage("OASIS GeoNFT Successfully Added to Collection.");
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured adding GeoNFT to collection. Reason: {result.Message}");
+            
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISGeoNFTCollection>> RemoveGeoNFTFromCollectionAsync(string collectionIdOrName, string nftIdOrName)
+        {
+            OASISResult<IOASISGeoNFTCollection> result = new OASISResult<IOASISGeoNFTCollection>();
+            OASISResult<IOASISGeoNFTCollection> collection = await FindWeb4GeoNFTCollectionAsync("remove from", collectionIdOrName, true);
+
+            if (collection == null || collection.Result == null || collection.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured finding GeoNFT Collection to remove from. Reason: {collection.Message}");
+                return result;
+            }
+
+            OASISResult<IOASISGeoSpatialNFT> geoNft = await FindWeb4GeoNFTAsync("add", nftIdOrName, true);
+
+            if (geoNft == null || geoNft.Result == null || geoNft.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured finding GeoNFT. Reason: {geoNft.Message}");
+                return result;
+            }
+
+            result = await NFTCommon.NFTManager.RemoveOASISGeoNFTFromCollectionAsync(collection.Result.Id, geoNft.Result.Id);
+
+            if (result != null && result.Result != null && !result.IsError)
+                CLIEngine.ShowSuccessMessage("OASIS GeoNFT Successfully Removed From Collection.");
+            else
+                OASISErrorHandling.HandleError(ref result, $"Error occured removing GeoNFT from collection. Reason: {result.Message}");
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISGeoNFTCollection>> DeleteGeoNFTCollectionAsync(string collectionIdOrName, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISGeoNFTCollection> collection = await FindWeb4GeoNFTCollectionAsync("delete", collectionIdOrName, true);
+
+            if (collection == null || collection.Result == null || collection.IsError)
+            {
+                OASISErrorHandling.HandleError(ref collection, $"Error occured finding GeoNFT Collection to delete. Reason: {collection.Message}");
+                return collection;
+            }
+
+            OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteOASISGeoNFTCollectionAsync(STAR.BeamedInAvatar.Id, collection.Result.Id, providerType: providerType);
+
+            if (deleteResult != null && deleteResult.Result && !deleteResult.IsError)
+            {
+                CLIEngine.ShowSuccessMessage("OASIS GeoNFT Collection Successfully Deleted.");
+                return collection;
+            }
+            else
+            {
+                string msg = deleteResult != null ? deleteResult.Message : "";
+                OASISErrorHandling.HandleError(ref collection, $"Error occured deleting GeoNFT Collection. Reason: {msg}");
+                return collection;
+            }
+
+            return collection;
         }
 
         private async Task<OASISResult<IOASISGeoSpatialNFT>> FindWeb4GeoNFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "WEB4 GeoNFT", ProviderType providerType = ProviderType.Default)
@@ -685,16 +790,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     CLIEngine.ShowWorkingMessage($"Loading {UIName}...");
                     result = await NFTCommon.NFTManager.LoadOASISGeoNFTCollectionAsync(id, providerType: providerType);
 
-                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.MintedByAvatarId != STAR.BeamedInAvatar.AvatarId)
+                    if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.CreatedByAvatarId != STAR.BeamedInAvatar.AvatarId)
                     {
-                        CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this {UIName}. It was minted by another avatar.");
+                        CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this {UIName}. It was created by another avatar.");
                         result.Result = default;
                     }
                 }
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IOASISGeoNFTCollection>> searchResults = await NFTCommon.NFTManager.SearchGeoNFTCollectionAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IOASISGeoNFTCollection>> searchResults = await NFTCommon.NFTManager.SearchGeoNFTCollectionsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -736,7 +841,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
 
                 if (result.Result != null)
-                    ShowGeoNFTCollection(result.Result, DEFAULT_FIELD_LENGTH);
+                    ShowGeoNFTCollection(result.Result);
 
                 if (idOrName == "exit")
                     break;
@@ -841,51 +946,52 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return geoNFTs;
         }
 
-        private void ShowGeoNFT(IOASISGeoNFTCollection collection, int displayFieldLength)
+        private void ShowGeoNFT(IOASISGeoSpatialNFT geoNFT, int displayFieldLength)
         {
             Console.WriteLine("");
-            DisplayProperty("GEO-NFT COLLECTION DETAILS", "", displayFieldLength, false);
+            DisplayProperty("GEO-NFT DETAILS", "", displayFieldLength, false);
             Console.WriteLine("");
-            DisplayProperty("Id", collection.Id.ToString(), displayFieldLength);
-            DisplayProperty("Title", collection.Name, displayFieldLength);
-            DisplayProperty("Description", collection.Description, displayFieldLength);
-            //DisplayProperty("Price", collection.Price.ToString(), displayFieldLength);
-            //DisplayProperty("Discount", collection.Discount.ToString(), displayFieldLength);
-            DisplayProperty("OASIS MintWallet Address", collection.OASISMintWalletAddress, displayFieldLength);
-            DisplayProperty("Mint Transaction Hash", collection.MintTransactionHash, displayFieldLength);
-            DisplayProperty("NFT Token Address", collection.NFTTokenAddress, displayFieldLength);
-            DisplayProperty("Minted By Avatar Id", collection.MintedByAvatarId.ToString(), displayFieldLength);
-            DisplayProperty("Minted On", collection.MintedOn.ToString(), displayFieldLength);
-            DisplayProperty("OnChain Provider", collection.OnChainProvider.Name, displayFieldLength);
-            DisplayProperty("OffChain Provider", collection.OffChainProvider.Name, displayFieldLength);
-            DisplayProperty("Store NFT Meta Data OnChain", collection.StoreNFTMetaDataOnChain.ToString(), displayFieldLength);
-            DisplayProperty("NFT OffChain Meta Type", collection.NFTOffChainMetaType.Name, displayFieldLength);
-            DisplayProperty("NFT Standard Type", collection.NFTStandardType.Name, displayFieldLength);
-            DisplayProperty("Symbol", collection.Symbol, displayFieldLength);
-            DisplayProperty("Image", collection.Image != null ? "Yes" : "None", displayFieldLength);
-            DisplayProperty("Image Url", collection.ImageUrl, displayFieldLength);
-            DisplayProperty("Thumbnail", collection.Thumbnail != null ? "Yes" : "None", displayFieldLength);
-            DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(collection.ThumbnailUrl) ? collection.ThumbnailUrl : "None", displayFieldLength);
-            DisplayProperty("JSON MetaData URL", collection.JSONMetaDataURL, displayFieldLength);
-            DisplayProperty("JSON MetaData URL Holon Id", collection.JSONMetaDataURLHolonId != Guid.Empty ? collection.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
-            DisplayProperty("Seller Fee Basis Points", collection.SellerFeeBasisPoints.ToString(), displayFieldLength);
-            DisplayProperty("Update Authority", collection.UpdateAuthority, displayFieldLength);
-            DisplayProperty("Send To Address After Minting", collection.SendToAddressAfterMinting, displayFieldLength);
-            DisplayProperty("Send To Avatar After Minting Id", collection.SendToAvatarAfterMintingId != Guid.Empty ? collection.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
-            DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(collection.SendToAvatarAfterMintingUsername) ? collection.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
-            DisplayProperty("Send NFT Transaction Hash", collection.SendNFTTransactionHash, displayFieldLength);
-            DisplayProperty("Lat/Long", $"{collection.Lat}/{collection.Long}", displayFieldLength);
-            DisplayProperty("Perm Spawn", collection.PermSpawn.ToString(), displayFieldLength);
+            DisplayProperty("Geo-NFT Id", geoNFT.Id.ToString(), displayFieldLength);
+            DisplayProperty("NFT Id", geoNFT.OriginalOASISNFTId.ToString(), displayFieldLength);
+            DisplayProperty("Title", geoNFT.Title, displayFieldLength);
+            DisplayProperty("Description", geoNFT.Description, displayFieldLength);
+            DisplayProperty("Price", geoNFT.Price.ToString(), displayFieldLength);
+            DisplayProperty("Discount", geoNFT.Discount.ToString(), displayFieldLength);
+            DisplayProperty("OASIS MintWallet Address", geoNFT.OASISMintWalletAddress, displayFieldLength);
+            DisplayProperty("Mint Transaction Hash", geoNFT.MintTransactionHash, displayFieldLength);
+            DisplayProperty("NFT Token Address", geoNFT.NFTTokenAddress, displayFieldLength);
+            DisplayProperty("Minted By Avatar Id", geoNFT.MintedByAvatarId.ToString(), displayFieldLength);
+            DisplayProperty("Minted On", geoNFT.MintedOn.ToString(), displayFieldLength);
+            DisplayProperty("OnChain Provider", geoNFT.OnChainProvider.Name, displayFieldLength);
+            DisplayProperty("OffChain Provider", geoNFT.OffChainProvider.Name, displayFieldLength);
+            DisplayProperty("Store NFT Meta Data OnChain", geoNFT.StoreNFTMetaDataOnChain.ToString(), displayFieldLength);
+            DisplayProperty("NFT OffChain Meta Type", geoNFT.NFTOffChainMetaType.Name, displayFieldLength);
+            DisplayProperty("NFT Standard Type", geoNFT.NFTStandardType.Name, displayFieldLength);
+            DisplayProperty("Symbol", geoNFT.Symbol, displayFieldLength);
+            DisplayProperty("Image", geoNFT.Image != null ? "Yes" : "None", displayFieldLength);
+            DisplayProperty("Image Url", geoNFT.ImageUrl, displayFieldLength);
+            DisplayProperty("Thumbnail", geoNFT.Thumbnail != null ? "Yes" : "None", displayFieldLength);
+            DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(geoNFT.ThumbnailUrl) ? geoNFT.ThumbnailUrl : "None", displayFieldLength);
+            DisplayProperty("JSON MetaData URL", geoNFT.JSONMetaDataURL, displayFieldLength);
+            DisplayProperty("JSON MetaData URL Holon Id", geoNFT.JSONMetaDataURLHolonId != Guid.Empty ? geoNFT.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
+            DisplayProperty("Seller Fee Basis Points", geoNFT.SellerFeeBasisPoints.ToString(), displayFieldLength);
+            DisplayProperty("Update Authority", geoNFT.UpdateAuthority, displayFieldLength);
+            DisplayProperty("Send To Address After Minting", geoNFT.SendToAddressAfterMinting, displayFieldLength);
+            DisplayProperty("Send To Avatar After Minting Id", geoNFT.SendToAvatarAfterMintingId != Guid.Empty ? geoNFT.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
+            DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(geoNFT.SendToAvatarAfterMintingUsername) ? geoNFT.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
+            DisplayProperty("Send NFT Transaction Hash", geoNFT.SendNFTTransactionHash, displayFieldLength);
+            DisplayProperty("Lat/Long", $"{geoNFT.Lat}/{geoNFT.Long}", displayFieldLength);
+            DisplayProperty("Perm Spawn", geoNFT.PermSpawn.ToString(), displayFieldLength);
 
-            if (!collection.PermSpawn)
+            if (!geoNFT.PermSpawn)
             {
-                DisplayProperty("Allow Other Players To Also Collect", collection.AllowOtherPlayersToAlsoCollect.ToString(), displayFieldLength);
+                DisplayProperty("Allow Other Players To Also Collect", geoNFT.AllowOtherPlayersToAlsoCollect.ToString(), displayFieldLength);
 
-                if (collection.AllowOtherPlayersToAlsoCollect)
+                if (geoNFT.AllowOtherPlayersToAlsoCollect)
                 {
-                    DisplayProperty("Global Spawn Quantity", collection.GlobalSpawnQuantity.ToString(), displayFieldLength);
-                    DisplayProperty("Player Spawn Quantity", collection.PlayerSpawnQuantity.ToString(), displayFieldLength);
-                    DisplayProperty("Respawn Duration In Seconds", collection.RespawnDurationInSeconds.ToString(), displayFieldLength);
+                    DisplayProperty("Global Spawn Quantity", geoNFT.GlobalSpawnQuantity.ToString(), displayFieldLength);
+                    DisplayProperty("Player Spawn Quantity", geoNFT.PlayerSpawnQuantity.ToString(), displayFieldLength);
+                    DisplayProperty("Respawn Duration In Seconds", geoNFT.RespawnDurationInSeconds.ToString(), displayFieldLength);
                 }
                 else
                 {
@@ -902,20 +1008,64 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 DisplayProperty("Respawn Duration In Seconds", "N/A", displayFieldLength);
             }
 
-            DisplayProperty("2D Sprite", collection.Nft2DSprite != null ? "Yes" : "None", displayFieldLength);
-            DisplayProperty("2D Sprite URL", !string.IsNullOrEmpty(collection.Nft2DSpriteURI) ? collection.Nft2DSpriteURI : "None", displayFieldLength);
-            DisplayProperty("3D Object", collection.Nft2DSprite != null ? "Yes" : "None", displayFieldLength);
-            DisplayProperty("3D Object URL", !string.IsNullOrEmpty(collection.Nft3DObjectURI) ? collection.Nft3DObjectURI : "None", displayFieldLength);
+            DisplayProperty("2D Sprite", geoNFT.Nft2DSprite != null ? "Yes" : "None", displayFieldLength);
+            DisplayProperty("2D Sprite URL", !string.IsNullOrEmpty(geoNFT.Nft2DSpriteURI) ? geoNFT.Nft2DSpriteURI : "None", displayFieldLength);
+            DisplayProperty("3D Object", geoNFT.Nft2DSprite != null ? "Yes" : "None", displayFieldLength);
+            DisplayProperty("3D Object URL", !string.IsNullOrEmpty(geoNFT.Nft3DObjectURI) ? geoNFT.Nft3DObjectURI : "None", displayFieldLength);
 
-            if (collection.MetaData != null)
+            ShowMetaData(geoNFT.MetaData);
+        }
+
+        private void ShowGeoNFTCollection(IOASISGeoNFTCollection collection, bool showDetailed = true, int displayFieldLength = DEFAULT_FIELD_LENGTH)
+        {
+            Console.WriteLine("");
+            DisplayProperty("GEO-NFT COLLECTION DETAILS", "", displayFieldLength, false);
+            Console.WriteLine("");
+            DisplayProperty("Id", collection.Id.ToString(), displayFieldLength);
+            DisplayProperty("Title", collection.Name, displayFieldLength);
+            DisplayProperty("Description", collection.Description, displayFieldLength);
+            //DisplayProperty("Price", collection.Price.ToString(), displayFieldLength);
+            //DisplayProperty("Discount", collection.Discount.ToString(), displayFieldLength);
+            DisplayProperty("Created By Avatar Id", collection.CreatedByAvatarId.ToString(), displayFieldLength);
+            DisplayProperty("Created On", collection.CreatedDate.ToString(), displayFieldLength);
+            DisplayProperty("Modified By Avatar Id", collection.CreatedByAvatarId.ToString(), displayFieldLength);
+            DisplayProperty("Modified On", collection.CreatedDate.ToString(), displayFieldLength);
+            DisplayProperty("Image", collection.Image != null ? "Yes" : "None", displayFieldLength);
+            DisplayProperty("Image Url", collection.ImageUrl, displayFieldLength);
+            DisplayProperty("Thumbnail", collection.Thumbnail != null ? "Yes" : "None", displayFieldLength);
+            DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(collection.ThumbnailUrl) ? collection.ThumbnailUrl : "None", displayFieldLength);
+            ShowMetaData(collection.MetaData);
+            ShowGeoNFTCollectionNFTs(collection.OASISGeoNFTs, showDetailed, 20);
+        }
+
+        private void ShowGeoNFTCollectionNFTs(IEnumerable<IOASISGeoSpatialNFT> geoNFTs, bool showDetailed = false, int defaultFieldLength = 20)
+        {
+            CLIEngine.ShowMessage($"{geoNFTs.Count()} Geo-NFT's in this collection:");
+
+            if (showDetailed)
             {
-                CLIEngine.ShowMessage($"MetaData:");
-
-                foreach (string key in collection.MetaData.Keys)
-                    CLIEngine.ShowMessage($"          {key} = {collection.MetaData[key]}", false);
+                foreach (IOASISGeoSpatialNFT geoNFT in geoNFTs)
+                {
+                    if (geoNFT != null)
+                    {
+                        Console.WriteLine("");
+                        DisplayProperty("Geo-NFT Id", geoNFT.Id.ToString(), DEFAULT_FIELD_LENGTH);
+                        DisplayProperty("Title", geoNFT.Title, DEFAULT_FIELD_LENGTH);
+                        DisplayProperty("Description", geoNFT.Description, DEFAULT_FIELD_LENGTH);
+                        DisplayProperty("Lat/Long", $"{geoNFT.Lat}/{geoNFT.Long}", DEFAULT_FIELD_LENGTH);
+                    }
+                }
             }
             else
-                CLIEngine.ShowMessage($"MetaData: None");
+            {
+                CLIEngine.ShowMessage(string.Concat("Id".PadRight(defaultFieldLength), " | Title".PadRight(defaultFieldLength), " | Lat/Long"));
+                
+                foreach (IOASISGeoSpatialNFT geoNFT in geoNFTs)
+                {
+                    if (geoNFT != null)
+                        Console.WriteLine(string.Concat(geoNFT.Id.ToString().PadRight(defaultFieldLength), " | ", geoNFT.Title.PadRight(defaultFieldLength), " | ", $"{geoNFT.Lat}/{geoNFT.Long}".PadRight(defaultFieldLength)));
+                }
+            }
         }
 
         private async Task<IPlaceGeoSpatialNFTRequest> GenerateGeoNFTRequestAsync(bool isExistingNFT)

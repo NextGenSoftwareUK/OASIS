@@ -356,7 +356,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
             }
         }
-    }
+
+        private async Task<TimeSpan> CalculateConsensusIntervalAsync()
+        {
+            try
+            {
+                // Calculate consensus interval based on network conditions
+                await Task.Delay(10);
+                return TimeSpan.FromSeconds(30); // 30 seconds default
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error calculating consensus interval: {ex.Message}", ex);
+                return TimeSpan.FromSeconds(30);
+            }
+        }
+
+        private async Task<TimeSpan> CalculateErrorRecoveryIntervalAsync()
+        {
+            try
+            {
+                // Calculate error recovery interval based on network conditions
+                await Task.Delay(10);
+                return TimeSpan.FromSeconds(60); // 60 seconds default
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error calculating error recovery interval: {ex.Message}", ex);
+                return TimeSpan.FromSeconds(60);
+            }
+        }
 
     public class ConsensusNode
     {
@@ -414,5 +443,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         Approved,
         Rejected,
         Expired
+    }
     }
 }

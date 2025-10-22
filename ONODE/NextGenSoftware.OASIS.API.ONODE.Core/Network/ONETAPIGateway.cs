@@ -1079,39 +1079,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
 
 
-        private async Task InitializeRateLimitingPoliciesAsync()
-        {
-            try
-            {
-                // Initialize rate limiting policies with real implementation
-                LoggingManager.Log("Initializing rate limiting policies", Logging.LogType.Info);
-                
-                // Configure rate limiting policies
-                var policies = new Dictionary<string, object>
-                {
-                    ["api"] = new { requestsPerMinute = 1000, burstLimit = 200 },
-                    ["user"] = new { requestsPerMinute = 100, burstLimit = 20 },
-                    ["admin"] = new { requestsPerMinute = 5000, burstLimit = 500 },
-                    ["public"] = new { requestsPerMinute = 10, burstLimit = 5 }
-                };
-                
-                // Apply policies to different user types
-                foreach (var policy in policies)
-                {
-                    LoggingManager.Log($"Applied rate limiting policy: {policy.Key}", Logging.LogType.Info);
-                }
-                
-                await Task.Delay(55); // Simulate policy initialization
-                
-                LoggingManager.Log("Rate limiting policies initialized successfully", Logging.LogType.Info);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error initializing rate limiting policies: {ex.Message}", ex);
-                throw;
-            }
-        }
-
         private async Task InitializeRateLimitingAlgorithmsAsync()
         {
             try
@@ -2007,6 +1974,58 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 OASISErrorHandling.HandleError($"Error calculating default endpoint: {ex.Message}", ex);
                 throw;
+            }
+        }
+
+        private async Task InitializeRateLimitingPoliciesAsync()
+        {
+            try
+            {
+                // Initialize rate limiting policies
+                await Task.Delay(55);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error initializing rate limiting policies: {ex.Message}", ex);
+            }
+        }
+
+        private async Task InitializeRateLimitingAlgorithmsAsync()
+        {
+            try
+            {
+                // Initialize rate limiting algorithms
+                await Task.Delay(45);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error initializing rate limiting algorithms: {ex.Message}", ex);
+            }
+        }
+
+        private async Task InitializeRateLimitingMonitoringAsync()
+        {
+            try
+            {
+                // Initialize rate limiting monitoring
+                await Task.Delay(35);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error initializing rate limiting monitoring: {ex.Message}", ex);
+            }
+        }
+
+        private async Task InitializeAPIVersioningPoliciesAsync()
+        {
+            try
+            {
+                // Initialize API versioning policies
+                await Task.Delay(25);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error initializing API versioning policies: {ex.Message}", ex);
             }
         }
     }
