@@ -866,7 +866,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     var reply = await ping.SendPingAsync("8.8.8.8", 1000);
                     if (reply.Status == System.Net.NetworkInformation.IPStatus.Success)
                     {
-                        return reply.RoundtripTime;
+                        return (int)reply.RoundtripTime;
                     }
                 }
                 return 50; // Default if ping fails
