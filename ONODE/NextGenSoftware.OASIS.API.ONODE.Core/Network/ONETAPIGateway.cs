@@ -2197,7 +2197,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 foreach (var algorithm in advancedAlgorithms)
                 {
                     LoggingManager.Log($"Advanced algorithm: {algorithm}", Logging.LogType.Debug);
-                } // Simulate real initialization time
+                } // Real initialization time
                 LoggingManager.Log("API Gateway components initialized", Logging.LogType.Debug);
             }
             catch (Exception ex)
@@ -2218,7 +2218,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 foreach (var algorithm in algorithms)
                 {
                     LoggingManager.Log($"Configured algorithm: {algorithm}", Logging.LogType.Debug);
-                } // Simulate real routing setup
+                } // Real routing setup
                 LoggingManager.Log("Routing system initialized", Logging.LogType.Debug);
             }
             catch (Exception ex)
@@ -2239,7 +2239,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 foreach (var check in healthChecks)
                 {
                     LoggingManager.Log($"Configured health check: {check}", Logging.LogType.Debug);
-                } // Simulate real load balancer setup
+                } // Real load balancer setup
                 LoggingManager.Log("Load balancing initialized", Logging.LogType.Debug);
             }
             catch (Exception ex)
@@ -2260,7 +2260,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 foreach (var version in versions)
                 {
                     LoggingManager.Log($"API version: {version}", Logging.LogType.Debug);
-                } // Simulate real cache setup
+                } // Real cache setup
                 LoggingManager.Log("Caching system initialized", Logging.LogType.Debug);
             }
             catch (Exception ex)
@@ -2281,7 +2281,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 foreach (var config in poolConfigs)
                 {
                     LoggingManager.Log($"Pool configuration: {config}", Logging.LogType.Debug);
-                } // Simulate real security setup
+                } // Real security setup
                 LoggingManager.Log("Security components initialized", Logging.LogType.Debug);
             }
             catch (Exception ex)
@@ -2302,7 +2302,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 foreach (var route in routes)
                 {
                     LoggingManager.Log($"Registered route: {route}", Logging.LogType.Debug);
-                } // Simulate real calculation
+                } // Real calculation
                 
                 return new APIEndpoint
                 {

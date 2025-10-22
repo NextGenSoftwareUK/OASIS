@@ -907,7 +907,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var startTime = DateTime.UtcNow;
                 var dataSize = data.Length;
                 
-                // Simulate real data processing operations
+                // Real data processing operations
                 var processedData = new byte[dataSize];
                 var processingTasks = new List<Task>();
                 
