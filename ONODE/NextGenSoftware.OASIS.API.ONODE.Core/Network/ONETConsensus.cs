@@ -361,9 +361,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Calculate consensus interval based on network conditions
-                await Task.Delay(10);
-                return TimeSpan.FromSeconds(30); // 30 seconds default
+                // Calculate consensus interval based on real network conditions
+                var networkHealth = await CalculateNetworkHealthAsync();
+                var nodeCount = _consensusNodes.Count;
+                var avgLatency = _consensusNodes.Values.Average(n => n.Latency);
+                
+                // Base interval calculation
+                var baseInterval = 30.0; // 30 seconds base
+                
+                // Adjust based on network health (healthier = faster consensus)
+                var healthFactor = Math.Max(0.5, Math.Min(2.0, 1.0 / networkHealth));
+                
+                // Adjust based on node count (more nodes = longer consensus)
+                var nodeFactor = Math.Max(0.8, Math.Min(1.5, 1.0 + (nodeCount - 5) * 0.1));
+                
+                // Adjust based on latency (higher latency = longer consensus)
+                var latencyFactor = Math.Max(0.9, Math.Min(1.3, 1.0 + (avgLatency - 100) / 1000.0));
+                
+                var calculatedInterval = baseInterval * healthFactor * nodeFactor * latencyFactor;
+                var consensusInterval = TimeSpan.FromSeconds(Math.Max(10, Math.Min(300, calculatedInterval)));
+                
+                LoggingManager.Log($"Consensus interval calculated: {consensusInterval.TotalSeconds:F1}s (Health: {networkHealth:F2}, Nodes: {nodeCount}, Latency: {avgLatency:F1}ms)", Logging.LogType.Debug);
+                return consensusInterval;
             }
             catch (Exception ex)
             {
@@ -376,14 +395,64 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Calculate error recovery interval based on network conditions
-                await Task.Delay(10);
-                return TimeSpan.FromSeconds(60); // 60 seconds default
+                // Calculate error recovery interval based on real network conditions
+                var networkHealth = await CalculateNetworkHealthAsync();
+                var errorCount = _consensusNodes.Values.Count(n => n.Reliability < 50);
+                var avgLatency = _consensusNodes.Values.Average(n => n.Latency);
+                
+                // Base recovery interval
+                var baseInterval = 60.0; // 60 seconds base
+                
+                // Adjust based on network health (unhealthier = longer recovery)
+                var healthFactor = Math.Max(0.7, Math.Min(2.5, 2.0 - networkHealth));
+                
+                // Adjust based on error count (more errors = longer recovery)
+                var errorFactor = Math.Max(1.0, Math.Min(2.0, 1.0 + errorCount * 0.2));
+                
+                // Adjust based on latency (higher latency = longer recovery)
+                var latencyFactor = Math.Max(1.0, Math.Min(1.5, 1.0 + (avgLatency - 100) / 500.0));
+                
+                var calculatedInterval = baseInterval * healthFactor * errorFactor * latencyFactor;
+                var recoveryInterval = TimeSpan.FromSeconds(Math.Max(30, Math.Min(600, calculatedInterval)));
+                
+                LoggingManager.Log($"Error recovery interval calculated: {recoveryInterval.TotalSeconds:F1}s (Health: {networkHealth:F2}, Errors: {errorCount}, Latency: {avgLatency:F1}ms)", Logging.LogType.Debug);
+                return recoveryInterval;
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError($"Error calculating error recovery interval: {ex.Message}", ex);
                 return TimeSpan.FromSeconds(60);
+            }
+        }
+        
+        private async Task<double> CalculateNetworkHealthAsync()
+        {
+            try
+            {
+                // Calculate network health based on consensus node conditions
+                if (_consensusNodes.Count == 0) return 0.1; // Very low health if no nodes
+                
+                var activeNodes = _consensusNodes.Values.Count(n => n.IsActive);
+                var totalNodes = _consensusNodes.Count;
+                var connectionRatio = (double)activeNodes / totalNodes;
+                
+                // Factor in average latency and reliability
+                var avgLatency = _consensusNodes.Values.Average(n => n.Latency);
+                var avgReliability = _consensusNodes.Values.Average(n => n.Reliability);
+                
+                // Health calculation: 40% connection ratio + 30% latency factor + 30% reliability factor
+                var latencyFactor = avgLatency < 100 ? 1.0 : Math.Max(0.3, 1.0 - (avgLatency - 100) / 500.0);
+                var reliabilityFactor = avgReliability / 100.0;
+                
+                var healthScore = (connectionRatio * 0.4) + (latencyFactor * 0.3) + (reliabilityFactor * 0.3);
+                
+                LoggingManager.Log($"Consensus network health calculated: {healthScore:F2} (Active: {activeNodes}/{totalNodes}, Latency: {avgLatency:F1}ms, Reliability: {avgReliability:F1}%)", Logging.LogType.Debug);
+                return Math.Max(0.0, Math.Min(1.0, healthScore)); // Clamp between 0-1
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error calculating network health: {ex.Message}", ex);
+                return 0.1; // Very low health on error
             }
         }
 
@@ -395,6 +464,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public double Reputation { get; set; }
         public DateTime JoinedAt { get; set; }
         public bool IsActive { get; set; }
+        public double Latency { get; set; }
+        public int Reliability { get; set; }
     }
 
     public class ConsensusProposal
