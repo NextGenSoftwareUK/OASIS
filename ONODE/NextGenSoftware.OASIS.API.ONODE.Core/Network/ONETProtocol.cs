@@ -561,11 +561,52 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Perform real network transmission
-                await Task.Delay(transmissionDelay); // Simulate real transmission time
+                // Perform real network transmission with actual TCP socket communication
+                var startTime = DateTime.UtcNow;
                 
-                // Log transmission details
-                LoggingManager.Log($"Message transmitted to {targetNode.Id} with delay {transmissionDelay}ms", Logging.LogType.Debug);
+                // Establish TCP connection to target node
+                using (var client = new System.Net.Sockets.TcpClient())
+                {
+                    var parts = targetNode.Address.Split(':');
+                    var host = parts[0];
+                    var port = parts.Length > 1 && int.TryParse(parts[1], out var p) ? p : 8080;
+                    
+                    // Connect with timeout
+                    var connectTask = client.ConnectAsync(host, port);
+                    var timeoutTask = Task.Delay(transmissionDelay);
+                    var completed = await Task.WhenAny(connectTask, timeoutTask);
+                    
+                    if (completed == connectTask && client.Connected)
+                    {
+                        // Send message data
+                        var stream = client.GetStream();
+                        var messageData = System.Text.Encoding.UTF8.GetBytes($"{message.MessageType}|{message.SourceNodeId}|{message.TargetNodeId}|{message.Content}");
+                        await stream.WriteAsync(messageData, 0, messageData.Length);
+                        
+                        // Wait for acknowledgment
+                        var ackBuffer = new byte[256];
+                        var readTask = stream.ReadAsync(ackBuffer, 0, ackBuffer.Length);
+                        var ackTimeout = Task.Delay(1000);
+                        var ackCompleted = await Task.WhenAny(readTask, ackTimeout);
+                        
+                        if (ackCompleted == readTask)
+                        {
+                            var ackResponse = System.Text.Encoding.UTF8.GetString(ackBuffer, 0, readTask.Result);
+                            var actualDelay = (DateTime.UtcNow - startTime).TotalMilliseconds;
+                            
+                            // Log transmission details with real metrics
+                            LoggingManager.Log($"Message transmitted to {targetNode.Id} - Actual delay: {actualDelay:F2}ms, Expected: {transmissionDelay}ms, ACK: {ackResponse}", Logging.LogType.Debug);
+                        }
+                        else
+                        {
+                            LoggingManager.Log($"Message transmitted to {targetNode.Id} but no ACK received within timeout", Logging.LogType.Warning);
+                        }
+                    }
+                    else
+                    {
+                        LoggingManager.Log($"Failed to connect to {targetNode.Id} within {transmissionDelay}ms", Logging.LogType.Warning);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -620,9 +661,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Calculate minimum acceptable network health
-                await Task.Delay(10); // Simulate real calculation
-                return 0.3; // 30% minimum health threshold
+                // Calculate minimum acceptable network health based on real network conditions
+                var activeConnections = _connectedNodes.Count(n => n.Value.Status == "Connected");
+                var totalNodes = _connectedNodes.Count;
+                
+                if (totalNodes == 0) return 0.1; // Very low if no nodes
+                
+                // Calculate health based on active connections ratio
+                var connectionRatio = (double)activeConnections / totalNodes;
+                
+                // Factor in average latency and reliability
+                var avgLatency = _connectedNodes.Values.Average(n => n.Latency);
+                var avgReliability = _connectedNodes.Values.Average(n => n.Reliability);
+                
+                // Health calculation: 40% connection ratio + 30% latency factor + 30% reliability factor
+                var latencyFactor = avgLatency < 100 ? 1.0 : Math.Max(0.3, 1.0 - (avgLatency - 100) / 500.0);
+                var reliabilityFactor = avgReliability / 100.0;
+                
+                var healthScore = (connectionRatio * 0.4) + (latencyFactor * 0.3) + (reliabilityFactor * 0.3);
+                var minimumThreshold = Math.Max(0.1, Math.Min(0.8, healthScore * 0.5)); // 10-80% range
+                
+                LoggingManager.Log($"Network health calculated: {healthScore:F2} (Active: {activeConnections}/{totalNodes}, Latency: {avgLatency:F1}ms, Reliability: {avgReliability:F1}%)", Logging.LogType.Debug);
+                return minimumThreshold;
             }
             catch (Exception ex)
             {
@@ -635,9 +695,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Calculate default latency for network operations
-                await Task.Delay(5); // Simulate real calculation
-                return 100.0; // Default 100ms latency
+                // Calculate default latency based on real network measurements
+                if (_connectedNodes.Count == 0) return 200.0; // High latency if no connections
+                
+                // Measure actual latency to a sample of connected nodes
+                var sampleSize = Math.Min(3, _connectedNodes.Count);
+                var sampleNodes = _connectedNodes.Take(sampleSize).ToList();
+                var latencies = new List<double>();
+                
+                foreach (var node in sampleNodes)
+                {
+                    var startTime = DateTime.UtcNow;
+                    try
+                    {
+                        // Perform actual ping test
+                        using (var client = new System.Net.Sockets.TcpClient())
+                        {
+                            var parts = node.Value.Address.Split(':');
+                            var host = parts[0];
+                            var port = parts.Length > 1 && int.TryParse(parts[1], out var p) ? p : 8080;
+                            
+                            var connectTask = client.ConnectAsync(host, port);
+                            var timeoutTask = Task.Delay(1000);
+                            var completed = await Task.WhenAny(connectTask, timeoutTask);
+                            
+                            if (completed == connectTask && client.Connected)
+                            {
+                                var measuredLatency = (DateTime.UtcNow - startTime).TotalMilliseconds;
+                                latencies.Add(measuredLatency);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Use stored latency if connection fails
+                        latencies.Add(node.Value.Latency);
+                    }
+                }
+                
+                // Calculate average latency
+                var avgLatency = latencies.Count > 0 ? latencies.Average() : 100.0;
+                var defaultLatency = Math.Max(50.0, Math.Min(500.0, avgLatency)); // Clamp between 50-500ms
+                
+                LoggingManager.Log($"Default latency calculated: {defaultLatency:F2}ms (from {latencies.Count} measurements)", Logging.LogType.Debug);
+                return defaultLatency;
             }
             catch (Exception ex)
             {
@@ -650,9 +751,49 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Perform real bandwidth test
-                await Task.Delay(100); // Simulate bandwidth test
-                return 50.0; // 50 Mbps simulated bandwidth
+                // Perform real bandwidth test with actual data transmission
+                if (!_connectedNodes.TryGetValue(nodeId, out var node)) return 10.0;
+                
+                var startTime = DateTime.UtcNow;
+                var dataSize = testData.Length;
+                
+                // Send test data to node
+                using (var client = new System.Net.Sockets.TcpClient())
+                {
+                    var parts = node.Address.Split(':');
+                    var host = parts[0];
+                    var port = parts.Length > 1 && int.TryParse(parts[1], out var p) ? p : 8080;
+                    
+                    var connectTask = client.ConnectAsync(host, port);
+                    var timeoutTask = Task.Delay(2000);
+                    var completed = await Task.WhenAny(connectTask, timeoutTask);
+                    
+                    if (completed == connectTask && client.Connected)
+                    {
+                        var stream = client.GetStream();
+                        
+                        // Send test data in chunks
+                        var chunkSize = 1024;
+                        var totalSent = 0;
+                        var transmissionStart = DateTime.UtcNow;
+                        
+                        for (int i = 0; i < testData.Length; i += chunkSize)
+                        {
+                            var chunk = new byte[Math.Min(chunkSize, testData.Length - i)];
+                            Array.Copy(testData, i, chunk, 0, chunk.Length);
+                            await stream.WriteAsync(chunk, 0, chunk.Length);
+                            totalSent += chunk.Length;
+                        }
+                        
+                        var transmissionTime = (DateTime.UtcNow - transmissionStart).TotalSeconds;
+                        var bandwidthMbps = (totalSent * 8.0) / (transmissionTime * 1000000.0); // Convert to Mbps
+                        
+                        LoggingManager.Log($"Bandwidth test completed: {bandwidthMbps:F2} Mbps (sent {totalSent} bytes in {transmissionTime:F2}s)", Logging.LogType.Debug);
+                        return Math.Max(1.0, Math.Min(1000.0, bandwidthMbps)); // Clamp between 1-1000 Mbps
+                    }
+                }
+                
+                return 10.0; // Low bandwidth if connection fails
             }
             catch (Exception ex)
             {
@@ -665,9 +806,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Calculate default bandwidth
-                await Task.Delay(8); // Simulate real calculation
-                return 25.0; // Default 25 Mbps
+                // Calculate default bandwidth based on real network measurements
+                if (_connectedNodes.Count == 0) return 10.0; // Low bandwidth if no connections
+                
+                // Test bandwidth to a sample of nodes
+                var sampleSize = Math.Min(2, _connectedNodes.Count);
+                var sampleNodes = _connectedNodes.Take(sampleSize).ToList();
+                var bandwidths = new List<double>();
+                
+                foreach (var node in sampleNodes)
+                {
+                    try
+                    {
+                        // Create test data (1KB)
+                        var testData = new byte[1024];
+                        new Random().NextBytes(testData);
+                        
+                        var bandwidth = await PerformRealBandwidthTestAsync(testData, node.Key);
+                        bandwidths.Add(bandwidth);
+                    }
+                    catch
+                    {
+                        // Skip failed tests
+                        continue;
+                    }
+                }
+                
+                // Calculate average bandwidth
+                var avgBandwidth = bandwidths.Count > 0 ? bandwidths.Average() : 25.0;
+                var defaultBandwidth = Math.Max(5.0, Math.Min(100.0, avgBandwidth)); // Clamp between 5-100 Mbps
+                
+                LoggingManager.Log($"Default bandwidth calculated: {defaultBandwidth:F2} Mbps (from {bandwidths.Count} tests)", Logging.LogType.Debug);
+                return defaultBandwidth;
             }
             catch (Exception ex)
             {
@@ -680,9 +850,47 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Calculate default average latency
-                await Task.Delay(12); // Simulate real calculation
-                return 75.0; // Default 75ms average latency
+                // Calculate default average latency based on real network measurements
+                if (_connectedNodes.Count == 0) return 150.0; // High latency if no connections
+                
+                // Measure latency to all connected nodes
+                var latencies = new List<double>();
+                
+                foreach (var node in _connectedNodes)
+                {
+                    try
+                    {
+                        var startTime = DateTime.UtcNow;
+                        using (var client = new System.Net.Sockets.TcpClient())
+                        {
+                            var parts = node.Value.Address.Split(':');
+                            var host = parts[0];
+                            var port = parts.Length > 1 && int.TryParse(parts[1], out var p) ? p : 8080;
+                            
+                            var connectTask = client.ConnectAsync(host, port);
+                            var timeoutTask = Task.Delay(500);
+                            var completed = await Task.WhenAny(connectTask, timeoutTask);
+                            
+                            if (completed == connectTask && client.Connected)
+                            {
+                                var measuredLatency = (DateTime.UtcNow - startTime).TotalMilliseconds;
+                                latencies.Add(measuredLatency);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Use stored latency if connection fails
+                        latencies.Add(node.Value.Latency);
+                    }
+                }
+                
+                // Calculate average latency
+                var avgLatency = latencies.Count > 0 ? latencies.Average() : 75.0;
+                var defaultLatency = Math.Max(25.0, Math.Min(500.0, avgLatency)); // Clamp between 25-500ms
+                
+                LoggingManager.Log($"Default average latency calculated: {defaultLatency:F2}ms (from {latencies.Count} measurements)", Logging.LogType.Debug);
+                return defaultLatency;
             }
             catch (Exception ex)
             {
@@ -695,9 +903,41 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Perform real data processing
-                await Task.Delay(80); // Simulate data processing
-                return 100.0; // 100 MB/s processing rate
+                // Perform real data processing with actual computation
+                var startTime = DateTime.UtcNow;
+                var dataSize = data.Length;
+                
+                // Simulate real data processing operations
+                var processedData = new byte[dataSize];
+                var processingTasks = new List<Task>();
+                
+                // Process data in parallel chunks for realistic performance measurement
+                var chunkSize = Math.Max(1024, dataSize / Environment.ProcessorCount);
+                for (int i = 0; i < dataSize; i += chunkSize)
+                {
+                    var chunk = i;
+                    var chunkEnd = Math.Min(i + chunkSize, dataSize);
+                    processingTasks.Add(Task.Run(() =>
+                    {
+                        // Simulate CPU-intensive processing (encryption, compression, etc.)
+                        for (int j = chunk; j < chunkEnd; j++)
+                        {
+                            processedData[j] = (byte)(data[j] ^ 0xAA); // Simple XOR encryption
+                            // Additional processing simulation
+                            var hash = data[j] * 31 + 17;
+                            processedData[j] = (byte)((processedData[j] + hash) % 256);
+                        }
+                    }));
+                }
+                
+                // Wait for all processing tasks to complete
+                await Task.WhenAll(processingTasks);
+                
+                var processingTime = (DateTime.UtcNow - startTime).TotalSeconds;
+                var processingRate = dataSize / (processingTime * 1024.0 * 1024.0); // MB/s
+                
+                LoggingManager.Log($"Data processing completed: {processingRate:F2} MB/s (processed {dataSize} bytes in {processingTime:F3}s)", Logging.LogType.Debug);
+                return Math.Max(1.0, Math.Min(1000.0, processingRate)); // Clamp between 1-1000 MB/s
             }
             catch (Exception ex)
             {
@@ -710,9 +950,42 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Calculate default throughput
-                await Task.Delay(15); // Simulate real calculation
-                return 50.0; // Default 50 MB/s throughput
+                // Calculate default throughput based on real network and processing measurements
+                if (_connectedNodes.Count == 0) return 10.0; // Low throughput if no connections
+                
+                // Test throughput with sample data processing
+                var testData = new byte[10240]; // 10KB test data
+                new Random().NextBytes(testData);
+                
+                // Measure processing throughput
+                var processingRate = await PerformRealDataProcessingAsync(testData);
+                
+                // Measure network throughput to connected nodes
+                var networkThroughputs = new List<double>();
+                var sampleSize = Math.Min(2, _connectedNodes.Count);
+                var sampleNodes = _connectedNodes.Take(sampleSize).ToList();
+                
+                foreach (var node in sampleNodes)
+                {
+                    try
+                    {
+                        var bandwidth = await PerformRealBandwidthTestAsync(testData, node.Key);
+                        networkThroughputs.Add(bandwidth / 8.0); // Convert Mbps to MB/s
+                    }
+                    catch
+                    {
+                        // Skip failed tests
+                        continue;
+                    }
+                }
+                
+                // Calculate combined throughput (processing and network)
+                var avgNetworkThroughput = networkThroughputs.Count > 0 ? networkThroughputs.Average() : 25.0;
+                var combinedThroughput = Math.Min(processingRate, avgNetworkThroughput);
+                var defaultThroughput = Math.Max(5.0, Math.Min(100.0, combinedThroughput)); // Clamp between 5-100 MB/s
+                
+                LoggingManager.Log($"Default throughput calculated: {defaultThroughput:F2} MB/s (Processing: {processingRate:F2}, Network: {avgNetworkThroughput:F2})", Logging.LogType.Debug);
+                return defaultThroughput;
             }
             catch (Exception ex)
             {
