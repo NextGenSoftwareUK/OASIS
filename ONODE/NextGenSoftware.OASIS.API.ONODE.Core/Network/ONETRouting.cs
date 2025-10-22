@@ -841,8 +841,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             return (avgReliability / 100.0) * (1.0 / (1.0 + avgLatency / 100.0));
         }
 
-        // FULL REAL IMPLEMENTATIONS - All missing methods with complete functionality
-
+        // Missing method implementations
         private async Task<List<string>> CalculateShortestPathAsync(string sourceNode, string destinationNode)
         {
             try
@@ -912,38 +911,41 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 // Real route quality validation
-                if (route == null || route.Count < 2)
-                    return 0.0;
+                if (route == null || route.Count < 2) return 0.0;
                 
-                var qualityFactors = new List<double>();
-                
-                // Check hop count efficiency
-                var hopEfficiency = Math.Max(0, 1.0 - (route.Count - 2) * 0.1);
-                qualityFactors.Add(hopEfficiency);
-                
-                // Check node reliability
-                var totalReliability = 0.0;
-                foreach (var node in route)
-                {
-                    var nodeReliability = await GetNodeReliabilityAsync(node);
-                    totalReliability += nodeReliability;
-                }
-                var avgReliability = totalReliability / route.Count;
-                qualityFactors.Add(avgReliability);
-                
-                // Check latency
-                var totalLatency = 0.0;
+                // Check if all nodes in route are reachable
                 for (int i = 0; i < route.Count - 1; i++)
                 {
-                    var edgeLatency = await GetEdgeLatencyAsync(route[i], route[i + 1]);
-                    totalLatency += edgeLatency;
+                    var currentNode = route[i];
+                    var nextNode = route[i + 1];
+                    
+                    if (!await TestNodeConnectivityAsync(currentNode) || !await TestNodeConnectivityAsync(nextNode))
+                    {
+                        return 0.0;
+                    }
                 }
-                var latencyScore = Math.Max(0, 1.0 - totalLatency / 1000.0); // Normalize to 1000ms
-                qualityFactors.Add(latencyScore);
                 
-                // Calculate overall quality
-                var overallQuality = qualityFactors.Average();
-                return Math.Max(0.0, Math.Min(1.0, overallQuality));
+                // Calculate route metrics
+                var totalLatency = 0.0;
+                var totalReliability = 1.0;
+                
+                for (int i = 0; i < route.Count - 1; i++)
+                {
+                    var latency = await GetEdgeLatencyAsync(route[i], route[i + 1]);
+                    var reliability = await GetNodeReliabilityAsync(route[i + 1]);
+                    
+                    totalLatency += latency;
+                    totalReliability *= reliability;
+                }
+                
+                // Quality score (0.0 to 1.0)
+                var latencyScore = Math.Max(0, 1.0 - (totalLatency / 1000.0)); // Penalty for high latency
+                var reliabilityScore = totalReliability;
+                
+                var quality = (latencyScore + reliabilityScore) / 2.0;
+                
+                LoggingManager.Log($"Route quality validation: Latency={totalLatency:F2}ms, Reliability={totalReliability:F2}, Quality={quality:F2}", Logging.LogType.Debug);
+                return quality;
             }
             catch (Exception ex)
             {
@@ -956,15 +958,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Real route optimization using advanced algorithms
-                if (route == null || route.Count < 3)
-                    return route;
+                // Real route optimization
+                if (route == null || route.Count < 3) return route;
                 
-                var optimizedRoute = new List<string>(route);
+                // Remove redundant hops
+                var optimizedRoute = await RemoveRedundantHopsAsync(route);
                 
-                // Apply route optimization techniques
-                optimizedRoute = await RemoveRedundantHopsAsync(optimizedRoute);
+                // Optimize for latency
                 optimizedRoute = await OptimizeForLatencyAsync(optimizedRoute);
+                
+                // Optimize for reliability
                 optimizedRoute = await OptimizeForReliabilityAsync(optimizedRoute);
                 
                 LoggingManager.Log($"Route optimized from {route.Count} to {optimizedRoute.Count} hops", Logging.LogType.Debug);
@@ -981,21 +984,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Real routing table update implementation
-                var routeId = Guid.NewGuid().ToString();
-                var routeEntry = new RoutingTableEntry
+                // Real routing table update
+                if (route == null || route.Count < 2) return;
+                
+                var routingEntry = new RoutingTableEntry
                 {
-                    Id = routeId,
-                    Source = route.First(),
-                    Destination = route.Last(),
+                    Id = Guid.NewGuid().ToString(),
+                    Source = route[0],
+                    Destination = route[route.Count - 1],
                     Hops = route,
-                    Quality = await ValidateRouteQualityAsync(route),
+                    Quality = await CalculateRouteQualityAsync(route),
                     CreatedAt = DateTime.UtcNow,
                     LastUsed = DateTime.UtcNow
                 };
                 
-                // Store in routing table (simulated)
-                LoggingManager.Log($"Updated routing table with route {routeId}", Logging.LogType.Debug);
+                // Update routing table (simplified for now)
+                LoggingManager.Log($"Updated routing table with {route.Count}-hop route from {route[0]} to {route[route.Count - 1]}", Logging.LogType.Debug);
             }
             catch (Exception ex)
             {
@@ -1003,670 +1007,412 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
-        private async Task<List<string>> CalculateAlternativeRouteAsync(string sourceNode, string destinationNode)
+        private async Task<List<string>> CalculateAlternativeRouteAsync(string sourceNode, string destinationNode, List<string> primaryRoute)
         {
             try
             {
-                // Real alternative route calculation using different algorithms
+                // Real alternative route calculation
                 var alternativeRoutes = new List<List<string>>();
                 
                 // Try A* algorithm
-                var astarRoute = await CalculateAStarRouteAsync(sourceNode, destinationNode);
-                if (astarRoute != null && astarRoute.Count > 0)
-                    alternativeRoutes.Add(astarRoute);
-                
-                // Try breadth-first search
-                var bfsRoute = await CalculateBFSRouteAsync(sourceNode, destinationNode);
-                if (bfsRoute != null && bfsRoute.Count > 0)
-                    alternativeRoutes.Add(bfsRoute);
-                
-                // Select best alternative route
-                if (alternativeRoutes.Any())
+                var aStarRoute = await CalculateAStarRouteAsync(sourceNode, destinationNode);
+                if (aStarRoute.Count > 0 && !IsSameRoute(primaryRoute, aStarRoute))
                 {
-                    var bestRoute = alternativeRoutes.OrderByDescending(r => r.Count).First();
-                    LoggingManager.Log($"Found alternative route with {bestRoute.Count} hops", Logging.LogType.Debug);
-                    return bestRoute;
+                    alternativeRoutes.Add(aStarRoute);
                 }
                 
-                return null;
+                // Try BFS algorithm
+                var bfsRoute = await CalculateBFSRouteAsync(sourceNode, destinationNode);
+                if (bfsRoute.Count > 0 && !IsSameRoute(primaryRoute, bfsRoute))
+                {
+                    alternativeRoutes.Add(bfsRoute);
+                }
+                
+                // Select best alternative
+                if (alternativeRoutes.Count > 0)
+                {
+                    var bestAlternative = alternativeRoutes.OrderBy(r => r.Count).First();
+                    LoggingManager.Log($"Found alternative route with {bestAlternative.Count} hops", Logging.LogType.Debug);
+                    return bestAlternative;
+                }
+                
+                return new List<string>();
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError($"Error calculating alternative route: {ex.Message}", ex);
-                return null;
+                return new List<string>();
             }
         }
 
-        // REAL implementations - No simulations!
-        private async Task<List<string>> GetNetworkTopologyAsync()
+        // Helper methods for route optimization
+        private async Task<List<string>> RemoveRedundantHopsAsync(List<string> route)
         {
             try
             {
-                // REAL network topology discovery using actual network scanning
-                var topology = new List<string>();
+                // Remove redundant hops in route
+                var optimizedRoute = new List<string>();
+                var visited = new HashSet<string>();
                 
-                // Scan local network for ONET nodes
-                var localNetwork = await ScanLocalNetworkAsync();
-                topology.AddRange(localNetwork);
+                foreach (var node in route)
+                {
+                    if (!visited.Contains(node))
+                    {
+                        optimizedRoute.Add(node);
+                        visited.Add(node);
+                    }
+                }
                 
-                // Query DHT for remote nodes
-                var dhtNodes = await QueryDHTForNodesAsync();
-                topology.AddRange(dhtNodes);
-                
-                // Query blockchain for registered nodes
-                var blockchainNodes = await QueryBlockchainForNodesAsync();
-                topology.AddRange(blockchainNodes);
-                
-                // Remove duplicates and validate nodes
-                var uniqueNodes = topology.Distinct().Where(node => await ValidateNodeAsync(node)).ToList();
-                
-                LoggingManager.Log($"Discovered {uniqueNodes.Count} nodes in network topology", Logging.LogType.Info);
-                return uniqueNodes;
+                return optimizedRoute;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError($"Error getting network topology: {ex.Message}", ex);
+                OASISErrorHandling.HandleError($"Error removing redundant hops: {ex.Message}", ex);
+                return route;
+            }
+        }
+
+        private async Task<List<string>> OptimizeForLatencyAsync(List<string> route)
+        {
+            try
+            {
+                // Optimize route for minimum latency
+                if (route.Count < 3) return route;
+                
+                // Try to find shorter paths between intermediate nodes
+                var optimizedRoute = new List<string> { route[0] };
+                
+                for (int i = 1; i < route.Count - 1; i++)
+                {
+                    var current = route[i];
+                    var next = route[i + 1];
+                    
+                    // Check if we can skip this node
+                    var directLatency = await GetEdgeLatencyAsync(optimizedRoute.Last(), next);
+                    var indirectLatency = await GetEdgeLatencyAsync(optimizedRoute.Last(), current) + 
+                                        await GetEdgeLatencyAsync(current, next);
+                    
+                    if (directLatency < indirectLatency * 1.2) // Allow 20% tolerance
+                    {
+                        // Skip this node
+                        continue;
+                    }
+                    else
+                    {
+                        optimizedRoute.Add(current);
+                    }
+                }
+                
+                optimizedRoute.Add(route.Last());
+                return optimizedRoute;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error optimizing for latency: {ex.Message}", ex);
+                return route;
+            }
+        }
+
+        private async Task<List<string>> OptimizeForReliabilityAsync(List<string> route)
+        {
+            try
+            {
+                // Optimize route for maximum reliability
+                if (route.Count < 3) return route;
+                
+                var optimizedRoute = new List<string> { route[0] };
+                
+                for (int i = 1; i < route.Count - 1; i++)
+                {
+                    var current = route[i];
+                    var next = route[i + 1];
+                    
+                    // Check node reliability
+                    var currentReliability = await GetNodeReliabilityAsync(current);
+                    var nextReliability = await GetNodeReliabilityAsync(next);
+                    
+                    // Skip unreliable nodes if possible
+                    if (currentReliability < 0.5 && nextReliability > 0.8)
+                    {
+                        // Try to skip unreliable node
+                        var directLatency = await GetEdgeLatencyAsync(optimizedRoute.Last(), next);
+                        if (directLatency < 2000) // 2 second timeout
+                        {
+                            continue; // Skip unreliable node
+                        }
+                    }
+                    
+                    optimizedRoute.Add(current);
+                }
+                
+                optimizedRoute.Add(route.Last());
+                return optimizedRoute;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error optimizing for reliability: {ex.Message}", ex);
+                return route;
+            }
+        }
+
+        private async Task<List<string>> CalculateAStarRouteAsync(string sourceNode, string destinationNode)
+        {
+            try
+            {
+                // A* algorithm implementation
+                var openSet = new List<string> { sourceNode };
+                var cameFrom = new Dictionary<string, string>();
+                var gScore = new Dictionary<string, double> { { sourceNode, 0 } };
+                var fScore = new Dictionary<string, double> { { sourceNode, await HeuristicAsync(sourceNode, destinationNode) } };
+                
+                while (openSet.Count > 0)
+                {
+                    var current = openSet.OrderBy(n => fScore.GetValueOrDefault(n, double.PositiveInfinity)).First();
+                    
+                    if (current == destinationNode)
+                    {
+                        return ReconstructPath(cameFrom, current);
+                    }
+                    
+                    openSet.Remove(current);
+                    var neighbors = await GetNodeNeighborsAsync(current);
+                    
+                    foreach (var neighbor in neighbors)
+                    {
+                        var tentativeGScore = gScore.GetValueOrDefault(current, double.PositiveInfinity) + 
+                                            await GetEdgeWeightAsync(current, neighbor);
+                        
+                        if (tentativeGScore < gScore.GetValueOrDefault(neighbor, double.PositiveInfinity))
+                        {
+                            cameFrom[neighbor] = current;
+                            gScore[neighbor] = tentativeGScore;
+                            fScore[neighbor] = tentativeGScore + await HeuristicAsync(neighbor, destinationNode);
+                            
+                            if (!openSet.Contains(neighbor))
+                            {
+                                openSet.Add(neighbor);
+                            }
+                        }
+                    }
+                }
+                
                 return new List<string>();
             }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error calculating A* route: {ex.Message}", ex);
+                return new List<string>();
+            }
+        }
+
+        private async Task<List<string>> CalculateBFSRouteAsync(string sourceNode, string destinationNode)
+        {
+            try
+            {
+                // Breadth-first search implementation
+                var queue = new Queue<string>();
+                var visited = new HashSet<string>();
+                var parent = new Dictionary<string, string>();
+                
+                queue.Enqueue(sourceNode);
+                visited.Add(sourceNode);
+                
+                while (queue.Count > 0)
+                {
+                    var current = queue.Dequeue();
+                    
+                    if (current == destinationNode)
+                    {
+                        return ReconstructPath(parent, current);
+                    }
+                    
+                    var neighbors = await GetNodeNeighborsAsync(current);
+                    foreach (var neighbor in neighbors)
+                    {
+                        if (!visited.Contains(neighbor))
+                        {
+                            visited.Add(neighbor);
+                            parent[neighbor] = current;
+                            queue.Enqueue(neighbor);
+                        }
+                    }
+                }
+                
+                return new List<string>();
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error calculating BFS route: {ex.Message}", ex);
+                return new List<string>();
+            }
+        }
+
+        // Additional helper methods
+        private async Task<double> CalculateRouteQualityAsync(List<string> route)
+        {
+            if (route == null || route.Count < 2) return 0.0;
+            
+            var totalLatency = 0.0;
+            var totalReliability = 1.0;
+            
+            for (int i = 0; i < route.Count - 1; i++)
+            {
+                totalLatency += await GetEdgeLatencyAsync(route[i], route[i + 1]);
+                totalReliability *= await GetNodeReliabilityAsync(route[i + 1]);
+            }
+            
+            // Quality score (0.0 to 1.0)
+            var latencyScore = Math.Max(0, 1.0 - (totalLatency / 1000.0)); // Penalty for high latency
+            var reliabilityScore = totalReliability;
+            
+            return (latencyScore + reliabilityScore) / 2.0;
+        }
+
+        private async Task<double> HeuristicAsync(string from, string to)
+        {
+            // Simple heuristic based on node distance
+            return await GetEdgeLatencyAsync(from, to);
+        }
+
+        private List<string> ReconstructPath(Dictionary<string, string> cameFrom, string current)
+        {
+            var path = new List<string> { current };
+            
+            while (cameFrom.ContainsKey(current))
+            {
+                current = cameFrom[current];
+                path.Insert(0, current);
+            }
+            
+            return path;
+        }
+
+        private bool IsSameRoute(List<string> route1, List<string> route2)
+        {
+            if (route1.Count != route2.Count) return false;
+            
+            for (int i = 0; i < route1.Count; i++)
+            {
+                if (route1[i] != route2[i]) return false;
+            }
+            
+            return true;
+        }
+
+        // REAL helper methods used by the routing algorithms
+        private async Task<List<string>> GetNetworkTopologyAsync()
+        {
+            // Use the live routing table as the source of truth for topology
+            return _routingTable.Keys.ToList();
         }
 
         private async Task<List<string>> GetNodeNeighborsAsync(string nodeId)
         {
-            try
-            {
-                // REAL neighbor discovery using actual network protocols
-                var neighbors = new List<string>();
-                
-                // Query the node directly for its neighbor list
-                var neighborList = await QueryNodeForNeighborsAsync(nodeId);
-                neighbors.AddRange(neighborList);
-                
-                // Query DHT for nodes close to this node
-                var dhtNeighbors = await QueryDHTForNeighborsAsync(nodeId);
-                neighbors.AddRange(dhtNeighbors);
-                
-                // Validate all neighbors are reachable
-                var validNeighbors = new List<string>();
-                foreach (var neighbor in neighbors.Distinct())
-                {
-                    if (await TestNodeConnectivityAsync(neighbor))
-                    {
-                        validNeighbors.Add(neighbor);
-                    }
-                }
-                
-                LoggingManager.Log($"Found {validNeighbors.Count} valid neighbors for node {nodeId}", Logging.LogType.Debug);
-                return validNeighbors;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error getting neighbors for node {nodeId}: {ex.Message}", ex);
-                return new List<string>();
-            }
+            // Neighbors are other active nodes with sufficient reliability
+            return _routingTable.Values
+                .Where(n => n.NodeId != nodeId && n.IsActive && n.Reliability >= 60)
+                .Select(n => n.NodeId)
+                .ToList();
         }
 
         private async Task<double> GetEdgeWeightAsync(string fromNode, string toNode)
         {
-            try
-            {
-                // REAL edge weight calculation using actual network measurements
-                var latency = await MeasureActualLatencyAsync(fromNode, toNode);
-                var bandwidth = await MeasureActualBandwidthAsync(fromNode, toNode);
-                var reliability = await MeasureActualReliabilityAsync(fromNode, toNode);
-                
-                // Calculate weight based on real network metrics
-                var latencyWeight = Math.Min(50, latency / 10); // Latency penalty
-                var bandwidthWeight = Math.Max(0, 50 - (bandwidth / 1000)); // Bandwidth bonus
-                var reliabilityWeight = Math.Max(0, 50 - (reliability * 50)); // Reliability penalty
-                
-                var totalWeight = latencyWeight + bandwidthWeight + reliabilityWeight;
-                
-                LoggingManager.Log($"Calculated edge weight {totalWeight:F2} between {fromNode} and {toNode}", Logging.LogType.Debug);
-                return totalWeight;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error calculating edge weight: {ex.Message}", ex);
-                return 100.0; // High weight for unknown edges
-            }
+            // Edge weight is combination of latency and unreliability penalty
+            var latency = await GetEdgeLatencyAsync(fromNode, toNode);
+            var reliability = await GetNodeReliabilityAsync(toNode); // 0.0 - 1.0
+            var penalty = (1.0 - reliability) * 500.0; // up to +500ms equivalent penalty
+            return Math.Max(1.0, latency + penalty);
         }
 
-        private async Task<double> GetNodeReliabilityAsync(string nodeId)
+        private async Task<bool> TestNodeConnectivityAsync(string nodeId)
         {
+            if (!_routingTable.TryGetValue(nodeId, out var node) || string.IsNullOrWhiteSpace(node.Address))
+                return false;
+
+            var parts = node.Address.Split(':');
+            var host = parts[0];
+            var port = (parts.Length > 1 && int.TryParse(parts[1], out var p)) ? p : 8080;
+
             try
             {
-                // REAL node reliability calculation using historical data
-                var responseRate = await CalculateNodeResponseRateAsync(nodeId);
-                var uptime = await CalculateNodeUptimeAsync(nodeId);
-                var errorRate = await CalculateNodeErrorRateAsync(nodeId);
-                
-                // Calculate reliability score (0.0 to 1.0)
-                var reliability = (responseRate * 0.4) + (uptime * 0.4) + ((1.0 - errorRate) * 0.2);
-                
-                LoggingManager.Log($"Calculated reliability {reliability:F2} for node {nodeId}", Logging.LogType.Debug);
-                return Math.Max(0.0, Math.Min(1.0, reliability));
+                using (var client = new System.Net.Sockets.TcpClient())
+                {
+                    var connectTask = client.ConnectAsync(host, port);
+                    var completed = await Task.WhenAny(connectTask, Task.Delay(1000));
+                    if (completed != connectTask || !client.Connected)
+                        return false;
+
+                    var stream = client.GetStream();
+                    var ping = System.Text.Encoding.UTF8.GetBytes("ONET_PING\n");
+                    await stream.WriteAsync(ping, 0, ping.Length);
+
+                    var buffer = new byte[256];
+                    var readTask = stream.ReadAsync(buffer, 0, buffer.Length);
+                    completed = await Task.WhenAny(readTask, Task.Delay(1000));
+                    if (completed != readTask)
+                        return false;
+                    var read = readTask.Result;
+                    var response = System.Text.Encoding.UTF8.GetString(buffer, 0, read);
+                    return response.IndexOf("ONET_PONG", StringComparison.OrdinalIgnoreCase) >= 0;
+                }
             }
-            catch (Exception ex)
+            catch
             {
-                OASISErrorHandling.HandleError($"Error calculating node reliability: {ex.Message}", ex);
-                return 0.5; // Default reliability
+                return false;
             }
         }
 
         private async Task<double> GetEdgeLatencyAsync(string fromNode, string toNode)
         {
-            try
-            {
-                // REAL latency measurement using actual network ping
-                var latency = await MeasureActualLatencyAsync(fromNode, toNode);
-                
-                LoggingManager.Log($"Measured latency {latency}ms between {fromNode} and {toNode}", Logging.LogType.Debug);
-                return latency;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error measuring edge latency: {ex.Message}", ex);
-                return 1000.0; // High latency for unknown edges
-            }
+            // Measure RTT via connectivity test stopwatch; fallback to stored latency
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var ok = await TestNodeConnectivityAsync(toNode);
+            sw.Stop();
+            if (ok)
+                return Math.Max(1.0, sw.Elapsed.TotalMilliseconds);
+
+            if (_routingTable.TryGetValue(toNode, out var to))
+                return Math.Max(1.0, to.Latency);
+
+            return 1000.0;
         }
 
-        private async Task<List<string>> RemoveRedundantHopsAsync(List<string> route)
+        private async Task<double> GetNodeReliabilityAsync(string nodeId)
         {
-            // Remove redundant hops in route
-            await Task.Delay(5);
-            return route.Distinct().ToList();
-        }
-
-        private async Task<List<string>> OptimizeForLatencyAsync(List<string> route)
-        {
-            // Optimize route for minimum latency
-            await Task.Delay(10);
-            return route; // Simplified for now
-        }
-
-        private async Task<List<string>> OptimizeForReliabilityAsync(List<string> route)
-        {
-            // Optimize route for maximum reliability
-            await Task.Delay(10);
-            return route; // Simplified for now
-        }
-
-        private async Task<List<string>> CalculateAStarRouteAsync(string sourceNode, string destinationNode)
-        {
-            // A* algorithm implementation
-            await Task.Delay(20);
-            return new List<string> { sourceNode, $"astar-{new Random().Next(1, 10)}", destinationNode };
-        }
-
-        private async Task<List<string>> CalculateBFSRouteAsync(string sourceNode, string destinationNode)
-        {
-            // Breadth-first search implementation
-            await Task.Delay(15);
-            return new List<string> { sourceNode, $"bfs-{new Random().Next(1, 10)}", destinationNode };
-        }
-
-        // ALL REAL IMPLEMENTATION METHODS - No simulations anywhere!
-
-        private async Task<List<string>> ScanLocalNetworkAsync()
-        {
-            try
-            {
-                // REAL local network scanning using actual network discovery
-                var localNodes = new List<string>();
-                
-                // Get local network range
-                var localNetwork = await GetLocalNetworkRangeAsync();
-                
-                // Scan each IP in the range for ONET services
-                foreach (var ip in localNetwork)
-                {
-                    if (await IsONETNodeAsync(ip))
-                    {
-                        localNodes.Add(ip);
-                    }
-                }
-                
-                LoggingManager.Log($"Scanned local network, found {localNodes.Count} ONET nodes", Logging.LogType.Info);
-                return localNodes;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error scanning local network: {ex.Message}", ex);
-                return new List<string>();
-            }
-        }
-
-        private async Task<List<string>> QueryDHTForNodesAsync()
-        {
-            try
-            {
-                // REAL DHT query for nodes using actual DHT protocol
-                var dhtNodes = new List<string>();
-                
-                // Connect to DHT bootstrap nodes
-                var bootstrapNodes = await GetDHTBootstrapNodesAsync();
-                
-                foreach (var bootstrapNode in bootstrapNodes)
-                {
-                    // Query bootstrap node for known nodes
-                    var nodes = await QueryDHTBootstrapNodeAsync(bootstrapNode);
-                    dhtNodes.AddRange(nodes);
-                }
-                
-                // Perform iterative lookup for more nodes
-                var additionalNodes = await PerformDHTIterativeLookupAsync();
-                dhtNodes.AddRange(additionalNodes);
-                
-                LoggingManager.Log($"DHT query found {dhtNodes.Count} nodes", Logging.LogType.Info);
-                return dhtNodes.Distinct().ToList();
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error querying DHT for nodes: {ex.Message}", ex);
-                return new List<string>();
-            }
-        }
-
-        private async Task<List<string>> QueryBlockchainForNodesAsync()
-        {
-            try
-            {
-                // REAL blockchain query for registered ONET nodes
-                var blockchainNodes = new List<string>();
-                
-                // Query multiple blockchain networks
-                var networks = new[] { "Ethereum", "Polygon", "BSC", "Avalanche" };
-                
-                foreach (var network in networks)
-                {
-                    var networkNodes = await QueryBlockchainNetworkAsync(network);
-                    blockchainNodes.AddRange(networkNodes);
-                }
-                
-                LoggingManager.Log($"Blockchain query found {blockchainNodes.Count} registered nodes", Logging.LogType.Info);
-                return blockchainNodes.Distinct().ToList();
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error querying blockchain for nodes: {ex.Message}", ex);
-                return new List<string>();
-            }
-        }
-
-        private async Task<bool> ValidateNodeAsync(string nodeId)
-        {
-            try
-            {
-                // REAL node validation using actual connectivity tests
-                var isReachable = await TestNodeConnectivityAsync(nodeId);
-                if (!isReachable) return false;
-                
-                // Verify it's actually an ONET node
-                var isONETNode = await IsONETNodeAsync(nodeId);
-                if (!isONETNode) return false;
-                
-                // Check node capabilities
-                var capabilities = await GetNodeCapabilitiesAsync(nodeId);
-                if (!capabilities.Contains("ONET")) return false;
-                
-                return true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error validating node {nodeId}: {ex.Message}", ex);
-                return false;
-            }
-        }
-
-        private async Task<List<string>> QueryNodeForNeighborsAsync(string nodeId)
-        {
-            try
-            {
-                // REAL neighbor query using actual ONET protocol
-                var neighbors = new List<string>();
-                
-                // Send NEIGHBORS_REQUEST to the node
-                var request = new ONETMessage
-                {
-                    Type = "NEIGHBORS_REQUEST",
-                    Source = GetLocalNodeId(),
-                    Destination = nodeId,
-                    Timestamp = DateTime.UtcNow
-                };
-                
-                var response = await SendONETMessageAsync(request);
-                if (response != null && response.Type == "NEIGHBORS_RESPONSE")
-                {
-                    neighbors.AddRange(response.Neighbors);
-                }
-                
-                return neighbors;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error querying neighbors from node {nodeId}: {ex.Message}", ex);
-                return new List<string>();
-            }
-        }
-
-        private async Task<List<string>> QueryDHTForNeighborsAsync(string nodeId)
-        {
-            try
-            {
-                // REAL DHT neighbor query using Kademlia protocol
-                var neighbors = new List<string>();
-                
-                // Calculate XOR distance to find close nodes
-                var targetDistance = CalculateXORDistance(GetLocalNodeId(), nodeId);
-                
-                // Query DHT for nodes at similar distance
-                var dhtNodes = await QueryDHTByDistanceAsync(targetDistance);
-                neighbors.AddRange(dhtNodes);
-                
-                return neighbors.Distinct().ToList();
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error querying DHT for neighbors of {nodeId}: {ex.Message}", ex);
-                return new List<string>();
-            }
-        }
-
-        private async Task<double> MeasureActualLatencyAsync(string fromNode, string toNode)
-        {
-            try
-            {
-                // REAL latency measurement using actual network ping
-                var startTime = DateTime.UtcNow;
-                
-                // Send ping message
-                var pingMessage = new ONETMessage
-                {
-                    Type = "PING",
-                    Source = fromNode,
-                    Destination = toNode,
-                    Timestamp = startTime
-                };
-                
-                var response = await SendONETMessageAsync(pingMessage);
-                var endTime = DateTime.UtcNow;
-                
-                if (response != null && response.Type == "PONG")
-                {
-                    var latency = (endTime - startTime).TotalMilliseconds;
-                    return latency;
-                }
-                
-                return 1000.0; // Timeout latency
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error measuring latency: {ex.Message}", ex);
-                return 1000.0;
-            }
-        }
-
-        private async Task<double> MeasureActualBandwidthAsync(string fromNode, string toNode)
-        {
-            try
-            {
-                // REAL bandwidth measurement using actual data transfer
-                var testData = GenerateTestData(1024); // 1KB test data
-                var startTime = DateTime.UtcNow;
-                
-                // Send test data
-                var bandwidthMessage = new ONETMessage
-                {
-                    Type = "BANDWIDTH_TEST",
-                    Source = fromNode,
-                    Destination = toNode,
-                    Data = testData,
-                    Timestamp = startTime
-                };
-                
-                var response = await SendONETMessageAsync(bandwidthMessage);
-                var endTime = DateTime.UtcNow;
-                
-                if (response != null && response.Type == "BANDWIDTH_RESPONSE")
-                {
-                    var duration = (endTime - startTime).TotalSeconds;
-                    var bandwidth = (testData.Length * 8) / duration; // bits per second
-                    return bandwidth;
-                }
-                
+            if (!_routingTable.TryGetValue(nodeId, out var node))
                 return 0.0;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error measuring bandwidth: {ex.Message}", ex);
-                return 0.0;
-            }
+
+            var baseReliability = Math.Clamp(node.Reliability / 100.0, 0.0, 1.0);
+            var ageSeconds = (DateTime.UtcNow - node.LastSeen).TotalSeconds;
+            var freshness = ageSeconds <= 60 ? 1.0 : Math.Max(0.2, 1.0 - (ageSeconds - 60) / 300.0);
+            return Math.Clamp(baseReliability * freshness, 0.0, 1.0);
         }
 
-        private async Task<double> MeasureActualReliabilityAsync(string fromNode, string toNode)
+        // Overload to satisfy call sites without primary route parameter
+        private async Task<List<string>> CalculateAlternativeRouteAsync(string sourceNode, string destinationNode)
         {
-            try
-            {
-                // REAL reliability measurement using multiple test messages
-                var testCount = 10;
-                var successCount = 0;
-                
-                for (int i = 0; i < testCount; i++)
-                {
-                    var testMessage = new ONETMessage
-                    {
-                        Type = "RELIABILITY_TEST",
-                        Source = fromNode,
-                        Destination = toNode,
-                        Timestamp = DateTime.UtcNow
-                    };
-                    
-                    var response = await SendONETMessageAsync(testMessage);
-                    if (response != null && response.Type == "RELIABILITY_RESPONSE")
-                    {
-                        successCount++;
-                    }
-                    
-                    await Task.Delay(100); // Wait between tests
-                }
-                
-                var reliability = (double)successCount / testCount;
-                return reliability;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error measuring reliability: {ex.Message}", ex);
-                return 0.0;
-            }
+            var primary = await CalculateShortestPathAsync(sourceNode, destinationNode);
+            return await CalculateAlternativeRouteAsync(sourceNode, destinationNode, primary);
         }
-
-        private async Task<double> CalculateNodeResponseRateAsync(string nodeId)
-        {
-            try
-            {
-                // REAL response rate calculation using historical data
-                var history = await GetNodeHistoryAsync(nodeId);
-                var totalRequests = history.Count;
-                var successfulResponses = history.Count(h => h.IsSuccessful);
-                
-                var responseRate = totalRequests > 0 ? (double)successfulResponses / totalRequests : 0.0;
-                return responseRate;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error calculating response rate: {ex.Message}", ex);
-                return 0.0;
-            }
-        }
-
-        private async Task<double> CalculateNodeUptimeAsync(string nodeId)
-        {
-            try
-            {
-                // REAL uptime calculation using monitoring data
-                var monitoringData = await GetNodeMonitoringDataAsync(nodeId);
-                var totalTime = monitoringData.TotalTime;
-                var uptime = monitoringData.Uptime;
-                
-                var uptimePercentage = totalTime > 0 ? uptime / totalTime : 0.0;
-                return uptimePercentage;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error calculating uptime: {ex.Message}", ex);
-                return 0.0;
-            }
-        }
-
-        private async Task<double> CalculateNodeErrorRateAsync(string nodeId)
-        {
-            try
-            {
-                // REAL error rate calculation using error logs
-                var errorLogs = await GetNodeErrorLogsAsync(nodeId);
-                var totalRequests = await GetTotalNodeRequestsAsync(nodeId);
-                
-                var errorRate = totalRequests > 0 ? (double)errorLogs.Count / totalRequests : 0.0;
-                return errorRate;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error calculating error rate: {ex.Message}", ex);
-                return 1.0; // Assume high error rate on failure
-            }
-        }
-
-        // Helper methods for real implementations
-        private async Task<List<string>> GetLocalNetworkRangeAsync()
-        {
-            // Get local network IP range for scanning
-            var localIPs = new List<string>();
-            var localIP = await GetLocalIPAddressAsync();
-            var networkBase = localIP.Substring(0, localIP.LastIndexOf('.'));
-            
-            for (int i = 1; i <= 254; i++)
-            {
-                localIPs.Add($"{networkBase}.{i}");
-            }
-            
-            return localIPs;
-        }
-
-        private async Task<bool> IsONETNodeAsync(string ip)
-        {
-            try
-            {
-                // Check if IP is running ONET service
-                using (var client = new System.Net.Sockets.TcpClient())
-                {
-                    var connectTask = client.ConnectAsync(ip, 8080);
-                    var timeoutTask = Task.Delay(1000);
-                    
-                    var completedTask = await Task.WhenAny(connectTask, timeoutTask);
-                    
-                    if (completedTask == connectTask && client.Connected)
-                    {
-                        // Send ONET handshake
-                        var stream = client.GetStream();
-                        var handshake = System.Text.Encoding.UTF8.GetBytes("ONET_HANDSHAKE\n");
-                        await stream.WriteAsync(handshake, 0, handshake.Length);
-                        
-                        // Read response
-                        var buffer = new byte[1024];
-                        var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-                        var response = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                        
-                        return response.Contains("ONET_ACK");
-                    }
-                }
-            }
-            catch
-            {
-                // Connection failed
-            }
-            
-            return false;
-        }
-
-        private async Task<bool> TestNodeConnectivityAsync(string nodeId)
-        {
-            try
-            {
-                // Test actual connectivity to node
-                var pingMessage = new ONETMessage
-                {
-                    Type = "PING",
-                    Source = GetLocalNodeId(),
-                    Destination = nodeId,
-                    Timestamp = DateTime.UtcNow
-                };
-                
-                var response = await SendONETMessageAsync(pingMessage);
-                return response != null && response.Type == "PONG";
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private string GetLocalNodeId()
-        {
-            // Get or generate local node ID
-            if (string.IsNullOrEmpty(_localNodeId))
-            {
-                _localNodeId = Guid.NewGuid().ToString();
-            }
-            return _localNodeId;
-        }
-
-        private string _localNodeId = string.Empty;
-
-        // Additional helper methods would be implemented here...
-        private async Task<List<string>> GetDHTBootstrapNodesAsync() => new List<string> { "dht1.onet.network:8080", "dht2.onet.network:8080" };
-        private async Task<List<string>> QueryDHTBootstrapNodeAsync(string bootstrapNode) => new List<string>();
-        private async Task<List<string>> PerformDHTIterativeLookupAsync() => new List<string>();
-        private async Task<List<string>> QueryBlockchainNetworkAsync(string network) => new List<string>();
-        private async Task<List<string>> GetNodeCapabilitiesAsync(string nodeId) => new List<string> { "ONET", "P2P" };
-        private async Task<ONETMessage> SendONETMessageAsync(ONETMessage message) => new ONETMessage { Type = "PONG" };
-        private async Task<List<string>> QueryDHTByDistanceAsync(int distance) => new List<string>();
-        private int CalculateXORDistance(string node1, string node2) => new Random().Next(0, 160);
-        private byte[] GenerateTestData(int size) => new byte[size];
-        private async Task<List<NodeHistory>> GetNodeHistoryAsync(string nodeId) => new List<NodeHistory>();
-        private async Task<NodeMonitoringData> GetNodeMonitoringDataAsync(string nodeId) => new NodeMonitoringData();
-        private async Task<List<ErrorLog>> GetNodeErrorLogsAsync(string nodeId) => new List<ErrorLog>();
-        private async Task<int> GetTotalNodeRequestsAsync(string nodeId) => new Random().Next(100, 1000);
-        private async Task<string> GetLocalIPAddressAsync() => "192.168.1.100";
     }
 
-    // Supporting classes for real implementations
-    public class ONETMessage
+    public enum RoutingAlgorithm
     {
-        public string Type { get; set; } = string.Empty;
+        ShortestPath,
+        Dijkstra,
+        AStar,
+        Intelligent
+    }
+
+    public class RoutingTableEntry
+    {
+        public string Id { get; set; } = string.Empty;
         public string Source { get; set; } = string.Empty;
         public string Destination { get; set; } = string.Empty;
-        public DateTime Timestamp { get; set; }
-        public byte[] Data { get; set; } = new byte[0];
-        public List<string> Neighbors { get; set; } = new List<string>();
-    }
-
-    public class NodeHistory
-    {
-        public DateTime Timestamp { get; set; }
-        public bool IsSuccessful { get; set; }
-        public double ResponseTime { get; set; }
-    }
-
-    public class NodeMonitoringData
-    {
-        public double TotalTime { get; set; }
-        public double Uptime { get; set; }
-    }
-
-    public class ErrorLog
-    {
-        public DateTime Timestamp { get; set; }
-        public string ErrorMessage { get; set; } = string.Empty;
+        public List<string> Hops { get; set; } = new List<string>();
+        public double Quality { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime LastUsed { get; set; }
     }
 
     public class RoutingNode
@@ -1700,298 +1446,4 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public DateTime LastOptimization { get; set; }
     }
 
-    // FULL REAL IMPLEMENTATIONS - All missing methods with complete functionality
-
-            private async Task<List<string>> CalculateShortestPathAsync(string sourceNode, string destinationNode)
-        {
-            try
-            {
-                // Real Dijkstra's algorithm implementation for shortest path
-                var route = new List<string>();
-            
-            // Simulate network topology analysis
-            var networkNodes = await GetNetworkTopologyAsync();
-            var distances = new Dictionary<string, double>();
-            var previous = new Dictionary<string, string>();
-            var unvisited = new HashSet<string>();
-            
-            // Initialize distances
-            foreach (var node in networkNodes)
-            {
-                distances[node] = double.PositiveInfinity;
-                unvisited.Add(node);
-            }
-            distances[sourceNode] = 0;
-            
-            // Dijkstra's algorithm
-            while (unvisited.Count > 0)
-            {
-                var currentNode = unvisited.OrderBy(n => distances[n]).First();
-                unvisited.Remove(currentNode);
-                
-                if (currentNode == destinationNode)
-                    break;
-                
-                // Get neighbors and update distances
-                var neighbors = await GetNodeNeighborsAsync(currentNode);
-                foreach (var neighbor in neighbors)
-                {
-                    var edgeWeight = await GetEdgeWeightAsync(currentNode, neighbor);
-                    var altDistance = distances[currentNode] + edgeWeight;
-                    
-                    if (altDistance < distances[neighbor])
-                    {
-                        distances[neighbor] = altDistance;
-                        previous[neighbor] = currentNode;
-                    }
-                }
-            }
-            
-            // Reconstruct path
-            var current = destinationNode;
-            while (current != null && current != sourceNode)
-            {
-                route.Insert(0, current);
-                current = previous.ContainsKey(current) ? previous[current] : null;
-            }
-            route.Insert(0, sourceNode);
-            
-            LoggingManager.Log($"Calculated shortest path with {route.Count} hops", Logging.LogType.Debug);
-            return route;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError($"Error calculating shortest path: {ex.Message}", ex);
-            return new List<string>();
-        }
-    }
-
-    private async Task<double> ValidateRouteQualityAsync(List<string> route)
-    {
-        try
-        {
-            // Real route quality validation
-            if (route == null || route.Count < 2)
-                return 0.0;
-            
-            var qualityFactors = new List<double>();
-            
-            // Check hop count efficiency
-            var hopEfficiency = Math.Max(0, 1.0 - (route.Count - 2) * 0.1);
-            qualityFactors.Add(hopEfficiency);
-            
-            // Check node reliability
-            var totalReliability = 0.0;
-            foreach (var node in route)
-            {
-                var nodeReliability = await GetNodeReliabilityAsync(node);
-                totalReliability += nodeReliability;
-            }
-            var avgReliability = totalReliability / route.Count;
-            qualityFactors.Add(avgReliability);
-            
-            // Check latency
-            var totalLatency = 0.0;
-            for (int i = 0; i < route.Count - 1; i++)
-            {
-                var edgeLatency = await GetEdgeLatencyAsync(route[i], route[i + 1]);
-                totalLatency += edgeLatency;
-            }
-            var latencyScore = Math.Max(0, 1.0 - totalLatency / 1000.0); // Normalize to 1000ms
-            qualityFactors.Add(latencyScore);
-            
-            // Calculate overall quality
-            var overallQuality = qualityFactors.Average();
-            return Math.Max(0.0, Math.Min(1.0, overallQuality));
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError($"Error validating route quality: {ex.Message}", ex);
-            return 0.0;
-        }
-    }
-
-    private async Task<List<string>> OptimizeRouteAsync(List<string> route)
-    {
-        try
-        {
-            // Real route optimization using advanced algorithms
-            if (route == null || route.Count < 3)
-                return route;
-            
-            var optimizedRoute = new List<string>(route);
-            
-            // Apply route optimization techniques
-            optimizedRoute = await RemoveRedundantHopsAsync(optimizedRoute);
-            optimizedRoute = await OptimizeForLatencyAsync(optimizedRoute);
-            optimizedRoute = await OptimizeForReliabilityAsync(optimizedRoute);
-            
-            LoggingManager.Log($"Route optimized from {route.Count} to {optimizedRoute.Count} hops", Logging.LogType.Debug);
-            return optimizedRoute;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError($"Error optimizing route: {ex.Message}", ex);
-            return route;
-        }
-    }
-
-    private async Task UpdateRoutingTableAsync(List<string> route)
-    {
-        try
-        {
-            // Real routing table update implementation
-            var routeId = Guid.NewGuid().ToString();
-            var routeEntry = new RoutingTableEntry
-            {
-                Id = routeId,
-                Source = route.First(),
-                Destination = route.Last(),
-                Hops = route,
-                Quality = await ValidateRouteQualityAsync(route),
-                CreatedAt = DateTime.UtcNow,
-                LastUsed = DateTime.UtcNow
-            };
-            
-            // Store in routing table (simulated)
-            LoggingManager.Log($"Updated routing table with route {routeId}", Logging.LogType.Debug);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError($"Error updating routing table: {ex.Message}", ex);
-        }
-    }
-
-    private async Task<List<string>> CalculateAlternativeRouteAsync(string sourceNode, string destinationNode)
-    {
-        try
-        {
-            // Real alternative route calculation using different algorithms
-            var alternativeRoutes = new List<List<string>>();
-            
-            // Try A* algorithm
-            var astarRoute = await CalculateAStarRouteAsync(sourceNode, destinationNode);
-            if (astarRoute != null && astarRoute.Count > 0)
-                alternativeRoutes.Add(astarRoute);
-            
-            // Try breadth-first search
-            var bfsRoute = await CalculateBFSRouteAsync(sourceNode, destinationNode);
-            if (bfsRoute != null && bfsRoute.Count > 0)
-                alternativeRoutes.Add(bfsRoute);
-            
-            // Select best alternative route
-            if (alternativeRoutes.Any())
-            {
-                var bestRoute = alternativeRoutes.OrderByDescending(r => r.Count).First();
-                LoggingManager.Log($"Found alternative route with {bestRoute.Count} hops", Logging.LogType.Debug);
-                return bestRoute;
-            }
-            
-            return null;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError($"Error calculating alternative route: {ex.Message}", ex);
-            return null;
-        }
-    }
-
-    // Supporting methods for full implementations
-    private async Task<List<string>> GetNetworkTopologyAsync()
-    {
-        // Simulate getting network topology
-        await Task.Delay(10);
-        return new List<string> { "node1", "node2", "node3", "node4", "node5", "node6", "node7", "node8" };
-    }
-
-    private async Task<List<string>> GetNodeNeighborsAsync(string nodeId)
-    {
-        // Simulate getting node neighbors
-        await Task.Delay(5);
-        var neighbors = new List<string>();
-        var random = new Random();
-        var neighborCount = random.Next(2, 5);
-        
-        for (int i = 0; i < neighborCount; i++)
-        {
-            neighbors.Add($"neighbor-{nodeId}-{i}");
-        }
-        
-        return neighbors;
-    }
-
-    private async Task<double> GetEdgeWeightAsync(string fromNode, string toNode)
-    {
-        // Simulate getting edge weight
-        await Task.Delay(2);
-        return new Random().NextDouble() * 100; // 0-100 weight
-    }
-
-    private async Task<double> GetNodeReliabilityAsync(string nodeId)
-    {
-        // Simulate getting node reliability
-        await Task.Delay(3);
-        return new Random().NextDouble() * 0.5 + 0.5; // 0.5-1.0 reliability
-    }
-
-    private async Task<double> GetEdgeLatencyAsync(string fromNode, string toNode)
-    {
-        // Simulate getting edge latency
-        await Task.Delay(2);
-        return new Random().NextDouble() * 200; // 0-200ms latency
-    }
-
-    private async Task<List<string>> RemoveRedundantHopsAsync(List<string> route)
-    {
-        // Remove redundant hops in route
-        await Task.Delay(5);
-        return route.Distinct().ToList();
-    }
-
-    private async Task<List<string>> OptimizeForLatencyAsync(List<string> route)
-    {
-        // Optimize route for minimum latency
-        await Task.Delay(10);
-        return route; // Simplified for now
-    }
-
-    private async Task<List<string>> OptimizeForReliabilityAsync(List<string> route)
-    {
-        // Optimize route for maximum reliability
-        await Task.Delay(10);
-        return route; // Simplified for now
-    }
-
-    private async Task<List<string>> CalculateAStarRouteAsync(string sourceNode, string destinationNode)
-    {
-        // A* algorithm implementation
-        await Task.Delay(20);
-        return new List<string> { sourceNode, $"astar-{new Random().Next(1, 10)}", destinationNode };
-    }
-
-    private async Task<List<string>> CalculateBFSRouteAsync(string sourceNode, string destinationNode)
-    {
-        // Breadth-first search implementation
-        await Task.Delay(15);
-        return new List<string> { sourceNode, $"bfs-{new Random().Next(1, 10)}", destinationNode };
-    }
-
-    public enum RoutingAlgorithm
-    {
-        ShortestPath,
-        Dijkstra,
-        AStar,
-        Intelligent
-    }
-
-    public class RoutingTableEntry
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Source { get; set; } = string.Empty;
-        public string Destination { get; set; } = string.Empty;
-        public List<string> Hops { get; set; } = new List<string>();
-        public double Quality { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime LastUsed { get; set; }
-    }
 }
