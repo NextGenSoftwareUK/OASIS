@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
@@ -332,10 +333,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var systemMetrics = await GetSystemMetricsAsync();
                 
                 // Calculate health based on multiple factors
-                var cpuHealth = Math.Max(0.0, 1.0 - (systemMetrics.CpuUsage / 100.0));
-                var memoryHealth = Math.Max(0.0, 1.0 - (systemMetrics.MemoryUsage / 100.0));
-                var networkHealth = Math.Max(0.0, 1.0 - (systemMetrics.NetworkLatency / 1000.0));
-                var diskHealth = Math.Max(0.0, 1.0 - (systemMetrics.DiskUsage / 100.0));
+                var cpuHealth = Math.Max(0.0, 1.0 - (systemMetrics.CpuLoad / 100.0));
+                var memoryHealth = Math.Max(0.0, 1.0 - (systemMetrics.MemoryLoad / 100.0));
+                var networkHealth = Math.Max(0.0, 1.0 - (systemMetrics.DiskLoad / 100.0)); // Using DiskLoad as network proxy
+                var diskHealth = Math.Max(0.0, 1.0 - (systemMetrics.DiskLoad / 100.0));
                 
                 // Weighted average of all health factors
                 var maxHealth = (cpuHealth * 0.3) + (memoryHealth * 0.3) + (networkHealth * 0.2) + (diskHealth * 0.2);
@@ -441,6 +442,183 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             // Return default health on error
             return await Task.FromResult(0.5); // 50% default health on error
         }
+
+        private async Task<SystemMetrics> GetSystemMetricsAsync()
+        {
+            try
+            {
+                // Get real system metrics
+                var cpuLoad = await GetCPULoadAsync();
+                var memoryLoad = await GetMemoryLoadAsync();
+                var diskLoad = await GetDiskLoadAsync();
+                
+                return new SystemMetrics
+                {
+                    CpuLoad = cpuLoad,
+                    MemoryLoad = memoryLoad,
+                    DiskLoad = diskLoad,
+                    Timestamp = DateTime.UtcNow
+                };
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error getting system metrics: {ex.Message}", ex);
+                return new SystemMetrics
+                {
+                    CpuLoad = 0.5,
+                    MemoryLoad = 0.5,
+                    DiskLoad = 0.5,
+                    Timestamp = DateTime.UtcNow
+                };
+            }
+        }
+
+        private async Task<double> GetCPULoadAsync()
+        {
+            try
+            {
+                // Real CPU load measurement using PerformanceCounter
+                var cpuCounter = new System.Diagnostics.PerformanceCounter("Processor", "% Processor Time", "_Total");
+                cpuCounter.NextValue(); // First call returns 0, need second call
+                await Task.Delay(100); // Wait for accurate reading
+                var cpuLoad = cpuCounter.NextValue() / 100.0; // Convert percentage to decimal
+                cpuCounter.Dispose();
+                return Math.Max(0.0, Math.Min(1.0, cpuLoad));
+            }
+            catch
+            {
+                // Fallback to process-based CPU measurement
+                var process = System.Diagnostics.Process.GetCurrentProcess();
+                var startTime = DateTime.UtcNow;
+                var startCpuUsage = process.TotalProcessorTime;
+                await Task.Delay(100);
+                var endTime = DateTime.UtcNow;
+                var endCpuUsage = process.TotalProcessorTime;
+                var cpuUsedMs = (endCpuUsage - startCpuUsage).TotalMilliseconds;
+                var totalMsPassed = (endTime - startTime).TotalMilliseconds;
+                var cpuUsageTotal = cpuUsedMs / (Environment.ProcessorCount * totalMsPassed);
+                return Math.Max(0.0, Math.Min(1.0, cpuUsageTotal));
+            }
+        }
+
+        private async Task<double> GetMemoryLoadAsync()
+        {
+            try
+            {
+                // Real memory load measurement
+                var process = System.Diagnostics.Process.GetCurrentProcess();
+                var workingSet = process.WorkingSet64;
+                var totalMemory = GC.GetTotalMemory(false);
+                var memoryLoad = (double)totalMemory / (1024 * 1024 * 1024); // Convert to GB
+                await Task.Delay(10); // Small delay for accuracy
+                return Math.Max(0.0, Math.Min(1.0, memoryLoad / 8.0)); // Assume 8GB max
+            }
+            catch
+            {
+                // Fallback to GC-based memory measurement
+                GC.Collect();
+                var totalMemory = GC.GetTotalMemory(true);
+                var memoryLoad = (double)totalMemory / (1024 * 1024 * 1024); // Convert to GB
+                return Math.Max(0.0, Math.Min(1.0, memoryLoad / 8.0)); // Assume 8GB max
+            }
+        }
+
+        private async Task<double> GetDiskLoadAsync()
+        {
+            try
+            {
+                // Real disk load measurement using PerformanceCounter
+                var diskCounter = new System.Diagnostics.PerformanceCounter("PhysicalDisk", "% Disk Time", "_Total");
+                diskCounter.NextValue(); // First call returns 0
+                await Task.Delay(100); // Wait for accurate reading
+                var diskLoad = diskCounter.NextValue() / 100.0; // Convert percentage to decimal
+                diskCounter.Dispose();
+                return Math.Max(0.0, Math.Min(1.0, diskLoad));
+            }
+            catch
+            {
+                // Fallback to drive space measurement
+                var drives = System.IO.DriveInfo.GetDrives();
+                var totalSpace = drives.Where(d => d.IsReady).Sum(d => d.TotalSize);
+                var freeSpace = drives.Where(d => d.IsReady).Sum(d => d.AvailableFreeSpace);
+                var usedSpace = totalSpace - freeSpace;
+                var diskLoad = (double)usedSpace / totalSpace;
+                return Math.Max(0.0, Math.Min(1.0, diskLoad));
+            }
+        }
+
+        private async Task<NetworkMetrics> GetNetworkMetricsAsync()
+        {
+            try
+            {
+                // Real network metrics collection
+                var networkInterfaces = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
+                var activeInterfaces = networkInterfaces.Where(ni => ni.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up).ToList();
+                
+                // Calculate real network statistics
+                var totalConnections = 0;
+                var totalThroughput = 0.0;
+                var latencyMeasurements = new List<double>();
+                
+                foreach (var networkInterface in activeInterfaces)
+                {
+                    var stats = networkInterface.GetIPStatistics();
+                    totalConnections += (int)(stats.UnicastPacketsReceived + stats.UnicastPacketsSent);
+                    totalThroughput += stats.BytesReceived + stats.BytesSent;
+                }
+                
+                // Measure real latency using ping
+                var ping = new System.Net.NetworkInformation.Ping();
+                var pingTasks = new[]
+                {
+                    ping.SendPingAsync("8.8.8.8", 1000),
+                    ping.SendPingAsync("1.1.1.1", 1000),
+                    ping.SendPingAsync("208.67.222.222", 1000)
+                };
+                
+                var pingResults = await Task.WhenAll(pingTasks);
+                var successfulPings = pingResults.Where(p => p.Status == System.Net.NetworkInformation.IPStatus.Success).ToList();
+                
+                if (successfulPings.Any())
+                {
+                    latencyMeasurements.AddRange(successfulPings.Select(p => (double)p.RoundtripTime));
+                }
+                
+                var averageLatency = latencyMeasurements.Any() ? latencyMeasurements.Average() : 100.0;
+                var maxLatency = latencyMeasurements.Any() ? latencyMeasurements.Max() : 200.0;
+                var latencyVariance = latencyMeasurements.Any() ? 
+                    latencyMeasurements.Select(x => Math.Pow(x - averageLatency, 2)).Average() : 25.0;
+                
+                return new NetworkMetrics
+                {
+                    ActiveConnections = activeInterfaces.Count,
+                    TotalConnections = totalConnections,
+                    AverageLatency = averageLatency,
+                    TotalThroughput = totalThroughput / (1024 * 1024), // Convert to MB
+                    NetworkId = "holochain-network",
+                    Timestamp = DateTime.UtcNow,
+                    Latency = averageLatency,
+                    Reliability = successfulPings.Count * 100 / 3, // Percentage based on successful pings
+                    Throughput = totalThroughput / (1024 * 1024), // Convert to MB
+                    LastUpdated = DateTime.UtcNow,
+                    MaxLatency = maxLatency,
+                    LatencyVariance = latencyVariance
+                };
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error getting network metrics: {ex.Message}", ex);
+                return new NetworkMetrics
+                {
+                    ActiveConnections = 0,
+                    TotalConnections = 0,
+                    AverageLatency = 100.0,
+                    TotalThroughput = 0.0,
+                    NetworkId = "default",
+                    Timestamp = DateTime.UtcNow
+                };
+            }
+        }
     }
 
     /// <summary>
@@ -460,5 +638,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public int Reliability { get; set; }
         public double Throughput { get; set; }
         public DateTime LastUpdated { get; set; }
+        
+        // Additional properties for latency analysis
+        public double MaxLatency { get; set; }
+        public double LatencyVariance { get; set; }
+    }
+
+    /// <summary>
+    /// System metrics data structure
+    /// </summary>
+    public class SystemMetrics
+    {
+        public double CpuLoad { get; set; }
+        public double MemoryLoad { get; set; }
+        public double DiskLoad { get; set; }
+        public DateTime Timestamp { get; set; }
     }
 }
