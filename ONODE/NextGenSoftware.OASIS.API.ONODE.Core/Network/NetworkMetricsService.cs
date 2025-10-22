@@ -640,13 +640,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         
         // Additional properties for node-specific metrics
         public double Latency { get; set; }
-        public int Reliability { get; set; }
+        public double Reliability { get; set; }
         public double Throughput { get; set; }
         public DateTime LastUpdated { get; set; }
         
         // Additional properties for latency analysis
         public double MaxLatency { get; set; }
         public double LatencyVariance { get; set; }
+        
+        // Additional properties for network analysis
+        public double Stability { get; set; }
+        public double TrafficLoad { get; set; }
+        public double Health { get; set; }
+        public double Capacity { get; set; }
     }
 
     /// <summary>
