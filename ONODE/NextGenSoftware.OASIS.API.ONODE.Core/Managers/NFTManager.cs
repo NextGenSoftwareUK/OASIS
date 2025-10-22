@@ -9,6 +9,7 @@ using Ipfs;
 using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
@@ -1461,6 +1462,46 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
+        public async Task<OASISResult<IEnumerable<IOASISNFTCollection>>> SearchNFTCollectionsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        {
+            string errorMessage = "Error occured in SearchNFTCollectionsAsync in NFTManager. Reason:";
+            OASISResult<IEnumerable<IOASISNFTCollection>> result = new OASISResult<IEnumerable<IOASISNFTCollection>>();
+            OASISResult<IEnumerable<OASISNFTCollection>> collectionResults = await Data.SearchHolonsAsync<OASISNFTCollection>(searchTerm, avatarId, searchOnlyForCurrentAvatar, HolonType.NFTCollection, true, true, 0, true, false, HolonType.All, 0, providerType);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(collectionResults, result);
+            result.Result = collectionResults.Result;
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IOASISNFTCollection>> SearchNFTCollections(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        {
+            string errorMessage = "Error occured in SearchNFTCollections in NFTManager. Reason:";
+            OASISResult<IEnumerable<IOASISNFTCollection>> result = new OASISResult<IEnumerable<IOASISNFTCollection>>();
+            OASISResult<IEnumerable<OASISNFTCollection>> collectionResults = Data.SearchHolons<OASISNFTCollection>(searchTerm, avatarId, searchOnlyForCurrentAvatar, HolonType.NFTCollection, true, true, 0, true, false, HolonType.All, 0, providerType);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(collectionResults, result);
+            result.Result = collectionResults.Result;
+            return result;
+        }
+
+        public async Task<OASISResult<IEnumerable<IOASISGeoNFTCollection>>> SearchGeoNFTCollectionsAsync(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        {
+            string errorMessage = "Error occured in SearchGeoNFTCollectionsAsync in NFTManager. Reason:";
+            OASISResult<IEnumerable<IOASISGeoNFTCollection>> result = new OASISResult<IEnumerable<IOASISGeoNFTCollection>>();
+            OASISResult<IEnumerable<OASISGeoNFTCollection>> collectionResults = await Data.SearchHolonsAsync<OASISGeoNFTCollection>(searchTerm, avatarId, searchOnlyForCurrentAvatar, HolonType.GeoNFTCollection, true, true, 0, true, false, HolonType.All, 0, providerType);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(collectionResults, result);
+            result.Result = collectionResults.Result;
+            return result;
+        }
+
+        public OASISResult<IEnumerable<IOASISGeoNFTCollection>> SearchGeoNFTCollections(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
+        {
+            string errorMessage = "Error occured in SearchGeoNFTCollections in NFTManager. Reason:";
+            OASISResult<IEnumerable<IOASISGeoNFTCollection>> result = new OASISResult<IEnumerable<IOASISGeoNFTCollection>>();
+            OASISResult<IEnumerable<OASISGeoNFTCollection>> collectionResults = Data.SearchHolons<OASISGeoNFTCollection>(searchTerm, avatarId, searchOnlyForCurrentAvatar, HolonType.GeoNFTCollection, true, true, 0, true, false, HolonType.All, 0, providerType);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(collectionResults, result);
+            result.Result = collectionResults.Result;
+            return result;
+        }
+
         public OASISResult<IOASISNFTProvider> GetNFTProvider(ProviderType providerType, string errorMessage = "")
         {
             OASISResult<IOASISNFTProvider> result = new OASISResult<IOASISNFTProvider>();
@@ -1733,7 +1774,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     holonResult.Result.ThumbnailUrl = !string.IsNullOrEmpty(request.ThumbnailUrl) ? request.ThumbnailUrl : holonResult.Result.ThumbnailUrl;
                     holonResult.Result.Thumbnail = request.Thumbnail != null ? request.Thumbnail : holonResult.Result.Thumbnail;
                     holonResult.Result.MetaData = request.MetaData != null ? request.MetaData : holonResult.Result.MetaData;
-                    holonResult.Result.OASISGeoNFTIds = request.OASISGeoNFTIds ?? holonResult.Result.OASISGeoNFTIds;
+                    // holonResult.Result.OASISGeoNFTIds = request.OASISGeoNFTIds ?? holonResult.Result.OASISGeoNFTIds;
                     holonResult.Result.Tags = request.Tags ?? holonResult.Result.Tags;
 
                     OASISResult<OASISGeoNFTCollection> saveResult = await Data.SaveHolonAsync<OASISGeoNFTCollection>(holonResult.Result);

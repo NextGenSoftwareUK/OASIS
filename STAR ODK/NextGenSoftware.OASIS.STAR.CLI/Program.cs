@@ -2627,7 +2627,51 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplayCommand("light wiz", "", "Start the Light Wizard.");
                 DisplayCommand("light transmute", "{hAppDNA} {geneisFolder}", "Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
                 DisplayCommand("bang", "", "Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
+                DisplayCommand("wiz", "", "Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
+                DisplayCommand("flare", "", "Build a OAPP for the given {id} or {name}.");
+                DisplayCommand("shine", "", "Launch & activate a OAPP for the given {id} or {name} by shining the 's light upon it...");
+                DisplayCommand("twinkle", "", "Activate a published OAPP for the given {id} or {name} within the STARNET store.");
+                DisplayCommand("dim", "", "Deactivate a published OAPP for the given {id} or {name} within the STARNET store.");
+                DisplayCommand("seed", "", "Deploy/Publish a OAPP for the given {id} or {name} to the STARNET Store.");
+                DisplayCommand("unseed", "", "Undeploy/Unpublish a OAPP for the given {id} or {name} from the STARNET Store.");
+                DisplayCommand("reseed", "", "Redeploy/Republish a OAPP for the given {id} or {name} to the STARNET Store.");
+                DisplayCommand("dust", "", "Delete a OAPP for the given {id} or {name} (this will also remove it from STARNET if it has already been published).");
+                DisplayCommand("radiate", "", "Highlight the OAPP for the given {id} or {name} in the STARNET Store. *Admin/Wizards Only*");
+                //TODO: Finish converting the commands below into the new format above...
 
+                DisplaySTARNETHolonCommands("oapp");
+                DisplaySTARNETHolonCommands("oapp template");
+                DisplaySTARNETHolonCommands("runtime");
+                DisplaySTARNETHolonCommands("lib");
+                DisplaySTARNETHolonCommands("celestialspace");
+                DisplaySTARNETHolonCommands("celestialbody");
+                DisplaySTARNETHolonCommands("zome");
+                DisplaySTARNETHolonCommands("holon");
+                DisplaySTARNETHolonCommands("chapter");
+                DisplaySTARNETHolonCommands("mission");
+                DisplaySTARNETHolonCommands("quest");
+                DisplayCommand("nft mint", "{id/name}", "Mints a WEB4 OASIS NFT for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS NFT.");
+                DisplayCommand("nft burn", "{id/name}", "Burn's a nft for the given {id} or {name}.");
+                DisplayCommand("nft send", "{id/name}", "Send a NFT for the given {id} or {name} to another wallet cross-chain.");
+                DisplayCommand("nft import", "{id/name} [web3]", "Imports a WEB4 OASIS NFT JSON file. If [web3] param is given it will either import a WEB3 NFT JSON MetaData file and mint a WEB3 NFT and then wrap in a WEB4 OASIS NFT or use an existing WEB3 NFT Token Address to be wrapped in a WEB4 OASIS NFT.");
+                DisplayCommand("nft export", "{id/name}", "Exports a WEB4 OASIS NFT as a JSON file as well as a WEB3 JSON MetaData file.");
+                //DisplayCommand("nft clone", "", "Clones a WEB4 OASIS NFT.");
+                DisplayCommand("nft convert", "{id/name}", "Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 Metadata.");
+                DisplaySTARNETHolonCommands("nft");
+                DisplaySTARNETHolonCommands("nft collection");
+                DisplayCommand("geonft mint", "{id/name}", "Mints a OASIS GEO-NFT and places in Our World for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS Geo-NFT.");
+                DisplayCommand("geonft burn", "{id/name}", "Burn's a GEO-NFT for the given {id} or {name}.");
+                DisplayCommand("geonft place", "{id/name}", "Places an existing OASIS NFT for the given {id} or {name} in Our World for the currently beamed in avatar.");
+                DisplayCommand("geonft send", "{id/name}", "Send a GEO-NFT for the given {id} or {name} to another wallet cross-chain.");
+                DisplayCommand("geonft import", "{id/name}", "Imports a WEB4 OASIS GEO-NFT JSON file.");
+                DisplayCommand("geonft export", "{id/name}", "Exports a WEB4 OASIS GEO-NFT as a JSON file as well as a WEB3 JSON MetaData file.");
+                //DisplayCommand("geonft clone", "", "Clones a WEB4 OASIS GEO-NFT.");
+                //DisplayCommand("geonft convert", "", "Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 GEO-NFT Metadata.");
+                DisplaySTARNETHolonCommands("geonft");
+                DisplaySTARNETHolonCommands("geonft collection");
+                DisplaySTARNETHolonCommands("geohotspot");
+                DisplaySTARNETHolonCommands("inventoryitem");
+                DisplaySTARNETHolonCommands("plugin");
 
 
                 Console.WriteLine("    light                                         {OAPPName} {OAPPDesc} {OAPPType}          Creates a new OAPP (Zomes/Holons/Star/Planet/Moon) at the given genesis folder location, from the given OAPP DNA.");
@@ -2945,6 +2989,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    quest list                                    [allVersions] [forAllAvatars] [detailed]  List all quests that have been created.");
                 Console.WriteLine("    quest search                                  [allVersions] [forAllAvatars]             Search all quests that have been created.");
                 Console.WriteLine("    nft mint                                                                                Mints a WEB4 OASIS NFT for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS NFT.");
+                Console.WriteLine("    nft create                                                                              Creates a WEB5 STAR NFT by wrapping a WEB4 OASIS NFT.");
                 Console.WriteLine("    nft update                                    {id/name}                                 Updates a nft for the given {id} or {name}.");
                 Console.WriteLine("    nft burn                                      {id/name}                                 Burn's a nft for the given {id} or {name}.");
                 Console.WriteLine("    nft send                                      {id/name}                                 Send a NFT for the given {id} or {name} to another wallet cross-chain.");
@@ -2954,9 +2999,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    nft convert                                                                             Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 Metadata.");
                 Console.WriteLine("    nft publish                                   {id/name}                                 Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.");
                 Console.WriteLine("    nft unpublish                                 {id/name}                                 Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    nft show                                      {id/name} [detailed]                      Shows the NFT for the given {id} or {name}.");
-                Console.WriteLine("    nft list                                      [allVersions] [forAllAvatars] [detailed]  Shows the NFT's that belong to the currently beamed in avatar.");
-                Console.WriteLine("    nft search                                    [allVersions] [forAllAvatars]             Search for NFT's that match certain criteria and belong to the currently beamed in avatar.");
+                Console.WriteLine("    nft show                                      {id/name} [detailed] [web4]               Shows the NFT for the given {id} or {name}.");
+                Console.WriteLine("    nft list                                      [allVersions] [forAllAvatars] [detailed] [web4]  Shows the NFT's that belong to the currently beamed in avatar.");
+                Console.WriteLine("    nft search                                    [allVersions] [forAllAvatars] [web4]      Search for NFT's that match certain criteria and belong to the currently beamed in avatar.");
+                Console.WriteLine("    nft collection create                                                                   Mints a WEB4 OASIS NFT for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS NFT.");
+                Console.WriteLine("    nft collection update                         {id/name}                                 Updates a nft for the given {id} or {name}.");
+                Console.WriteLine("    nft collection delete                         {id/name}                                 Updates a nft for the given {id} or {name}.");
+                Console.WriteLine("    nft collection publish                        {id/name}                                 Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.");
+                Console.WriteLine("    nft collection unpublish                      {id/name}                                 Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.");
+                Console.WriteLine("    nft collection show                           {id/name} [detailed] [web4]               Shows the NFT for the given {id} or {name}.");
+                Console.WriteLine("    nft collection list                           [allVersions] [forAllAvatars] [detailed] [web4] Shows the NFT's that belong to the currently beamed in avatar.");
+                Console.WriteLine("    nft collection search                         [allVersions] [forAllAvatars] [web4]     Search for NFT's that match certain criteria and belong to the currently beamed in avatar.");
                 Console.WriteLine("    geonft mint                                                                             Mints a OASIS Geo-NFT and places in Our World/AR World for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS Geo-NFT.");
                 Console.WriteLine("    geonft update                                 {id/name}                                 Updates a geo-nft for the given {id} or {name}.");
                 Console.WriteLine("    geonft burn                                   {id/name}                                 Burn's a geo-nft for the given {id} or {name}.");
@@ -3112,27 +3165,49 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    keys                    Manage keys.");
                 Console.WriteLine("    wallet                  Manage wallets.");
                 Console.WriteLine("    search                  Search the OASIS.");
-                //Console.WriteLine("    oapp                    Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates & OAPP's.");
-                Console.WriteLine("    oapp                    Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP's.");
-                Console.WriteLine("    oapp template           Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates.");
-                Console.WriteLine("    happ                    Create, edit, delete, publish, unpublish, install, uninstall, list & show hApp's.");
-                Console.WriteLine("    runtime                 Create, edit, delete, publish, unpublish, install, uninstall, list & show runtime's.");
-                Console.WriteLine("    lib                     Create, edit, delete, publish, unpublish, install, uninstall, list & show libraries.");
-                Console.WriteLine("    celestialspace          Create, edit, delete, publish, unpublish, list & show celestial space's.");
-                Console.WriteLine("    celestialbody           Create, edit, delete, publish, unpublish, list & show celestial bodies's.");
-                Console.WriteLine("    celestialbody metadata  Create, edit, delete, publish, unpublish, list & show celestial body metadata.");
-                Console.WriteLine("    zome                    Create, edit, delete, publish, unpublish, list & show zome's.");
-                Console.WriteLine("    zome metadata           Create, edit, delete, publish, unpublish, list & show zome metadata.");
-                Console.WriteLine("    holon                   Create, edit, delete, publish, unpublish, list & show holon's.");
-                Console.WriteLine("    holon metadata          Create, edit, delete, publish, unpublish, list & show holon metadata.");
-                Console.WriteLine("    chapter                 Create, edit, delete, publish, unpublish, list & show chapter's.");
-                Console.WriteLine("    mission                 Create, edit, delete, publish, unpublish, list & show mission's.");
-                Console.WriteLine("    quest                   Create, edit, delete, publish, unpublish, list & show quest's.");
-                Console.WriteLine("    nft                     Mint, send, edit, burn, publish, unpublish, list & show nft's.");
-                Console.WriteLine("    geonft                  Mint, place, edit, burn, publish, unpublish, list & show geo-nft's.");
-                Console.WriteLine("    geohotspot              Create, edit, delete, publish, unpublish, list & show geo-hotspot's.");
-                Console.WriteLine("    inventoryitem           Create, edit, delete, publish, unpublish, list & show inventory item's.");
-                Console.WriteLine("    plugin                  Create, edit, delete, publish, unpublish, list & show plugin item's.");
+
+                DisplaySTARNETHolonCommandSummaries("oapp");
+                DisplaySTARNETHolonCommandSummaries("oapp template");
+                DisplaySTARNETHolonCommandSummaries("runtime");
+                DisplaySTARNETHolonCommandSummaries("lib");
+                DisplaySTARNETHolonCommandSummaries("celestialspace");
+                DisplaySTARNETHolonCommandSummaries("celestialbody");
+                DisplaySTARNETHolonCommandSummaries("zome");
+                DisplaySTARNETHolonCommandSummaries("holon");
+                DisplaySTARNETHolonCommandSummaries("chapter");
+                DisplaySTARNETHolonCommandSummaries("mission");
+                DisplaySTARNETHolonCommandSummaries("quest");
+                DisplaySTARNETHolonCommandSummaries("nft");
+                DisplaySTARNETHolonCommandSummaries("nft collection");
+                DisplaySTARNETHolonCommandSummaries("geonft");
+                DisplaySTARNETHolonCommandSummaries("geonft collection");
+                DisplaySTARNETHolonCommandSummaries("geohotspot");
+                DisplaySTARNETHolonCommandSummaries("inventoryitem");
+                DisplaySTARNETHolonCommandSummaries("plugin");
+
+
+                //Console.WriteLine("    oapp                    Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP's.");
+                //Console.WriteLine("    oapp template           Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates.");
+                //Console.WriteLine("    happ                    Create, edit, delete, publish, unpublish, install, uninstall, list & show hApp's.");
+                //Console.WriteLine("    runtime                 Create, edit, delete, publish, unpublish, install, uninstall, list & show runtime's.");
+                //Console.WriteLine("    lib                     Create, edit, delete, publish, unpublish, install, uninstall, list & show libraries.");
+                //Console.WriteLine("    celestialspace          Create, edit, delete, publish, unpublish, list & show celestial space's.");
+                //Console.WriteLine("    celestialbody           Create, edit, delete, publish, unpublish, list & show celestial bodies's.");
+                //Console.WriteLine("    celestialbody metadata  Create, edit, delete, publish, unpublish, list & show celestial body metadata.");
+                //Console.WriteLine("    zome                    Create, edit, delete, publish, unpublish, list & show zome's.");
+                //Console.WriteLine("    zome metadata           Create, edit, delete, publish, unpublish, list & show zome metadata.");
+                //Console.WriteLine("    holon                   Create, edit, delete, publish, unpublish, list & show holon's.");
+                //Console.WriteLine("    holon metadata          Create, edit, delete, publish, unpublish, list & show holon metadata.");
+                //Console.WriteLine("    chapter                 Create, edit, delete, publish, unpublish, list & show chapter's.");
+                //Console.WriteLine("    mission                 Create, edit, delete, publish, unpublish, list & show mission's.");
+                //Console.WriteLine("    quest                   Create, edit, delete, publish, unpublish, list & show quest's.");
+                //Console.WriteLine("    nft                     Mint, send, edit, burn, publish, unpublish, list & show nft's.");
+                //Console.WriteLine("    nft collection          Work with nft collections.");
+                //Console.WriteLine("    geonft                  Mint, place, edit, burn, publish, unpublish, list & show geo-nft's.");
+                //Console.WriteLine("    geonft collection       Work with geo-nft collections.");
+                //Console.WriteLine("    geohotspot              Create, edit, delete, publish, unpublish, list & show geo-hotspot's.");
+                //Console.WriteLine("    inventoryitem           Create, edit, delete, publish, unpublish, list & show inventory item's.");
+                //Console.WriteLine("    plugin                  Create, edit, delete, publish, unpublish, list & show plugin item's.");
                 Console.WriteLine("    seeds                   Access the SEEDS API.");
                 Console.WriteLine("    data                    Access the Data API.");
                 Console.WriteLine("    map                     Access the Map API.");
@@ -3376,6 +3451,37 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static void DisplayCommand(string command, string args, string desc, int indent = 4, int commandColSize = 48, int argsColSize = 42)
         {
             Console.WriteLine(string.Concat("".PadRight(indent), command.PadRight(commandColSize), args.PadRight(argsColSize), desc));
+        }
+
+        private static void DisplaySTARNETHolonCommands(string holonType)
+        {
+            DisplayCommand(string.Concat(holonType, " create"), "", $"Create a new {holonType}.");
+            DisplayCommand(string.Concat(holonType, " update"), "{id/name}", string.Concat("Updates an existing ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " clone"), "{id/name}", string.Concat("Clones an existing ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " adddependency"), "{id/name}", string.Concat("Adds a dependency to an existing ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " removedependency"), "{id/name}", string.Concat("Removes a dependency from an existing ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " delete"), "{id/name}", string.Concat("Deletes a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " publish"), "{id/name}", string.Concat("Publishes a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " unpublish"), "{id/name}", string.Concat("Unpublishes a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " republish"), "{id/name}", string.Concat("Republish a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " activate"), "{id/name}", string.Concat("Activate a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " deactivate"), "{id/name}", string.Concat("Deactivate a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " download"), "{id/name}", string.Concat("Download a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " install"), "{id/name}", string.Concat("Install/Download a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " uninstall"), "{id/name}", string.Concat("Uninstall a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " reinstall"), "{id/name}", string.Concat("Reinstall a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " show"), "{id/name} [detailed]", string.Concat("Shows a  ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " list"), "[allVersions] [forAllAvatars] [detailed]", string.Concat("List all  ", holonType, " (contains zomes and holons) that have been generated."));
+            DisplayCommand(string.Concat(holonType, " list installed"), "", string.Concat("List all ", holonType, "'s installed for the currently beamed in avatar."));
+            DisplayCommand(string.Concat(holonType, " list uninstalled"), "", string.Concat("List all ", holonType, "'s uninstalled for the currently beamed in avatar (and allow re-install)."));
+            DisplayCommand(string.Concat(holonType, " list unpublished"), "", string.Concat("List all ", holonType, "'s unpublished for the currently beamed in avatar (and allow republish)."));
+            DisplayCommand(string.Concat(holonType, " list deactivated"), "", string.Concat("List all ", holonType, "'s deactivated for the currently beamed in avatar (and allow reactivate)."));
+            DisplayCommand(string.Concat(holonType, " search"), "[allVersions] [forAllAvatars]", string.Concat("Searches the ", holonType, "'s for the given search criteria."));
+        }
+
+        private static void DisplaySTARNETHolonCommandSummaries(string holonType)
+        {
+            DisplayCommand(holonType, "", $" Create, edit, clone delete, publish, unpublish, install, uninstall, list & show {holonType}'s.");
         }
     }
 }

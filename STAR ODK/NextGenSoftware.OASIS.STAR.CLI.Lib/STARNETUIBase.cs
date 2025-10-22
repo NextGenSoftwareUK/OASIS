@@ -3432,6 +3432,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
+        protected void ShowMetaData(Dictionary<string, object> metaData)
+        {
+            if (metaData != null)
+            {
+                CLIEngine.ShowMessage($"MetaData:");
+
+                foreach (string key in metaData.Keys)
+                    CLIEngine.ShowMessage($"          {key} = {metaData[key]}", false);
+            }
+            else
+                CLIEngine.ShowMessage($"MetaData: None");
+        }
+
         private OASISResult<T3> Install(T1 starHolon, string downloadPath, string installPath, InstallMode installMode, string fullPathToPublishedFile = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T3> result = new OASISResult<T3>();
