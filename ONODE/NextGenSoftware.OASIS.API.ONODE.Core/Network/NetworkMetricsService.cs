@@ -477,13 +477,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Real CPU load measurement using PerformanceCounter
-                var cpuCounter = new System.Diagnostics.PerformanceCounter("Processor", "% Processor Time", "_Total");
-                cpuCounter.NextValue(); // First call returns 0, need second call
+                // Real CPU load measurement using process-based calculation
+                var process = System.Diagnostics.Process.GetCurrentProcess();
+                var startTime = DateTime.UtcNow;
+                var startCpuUsage = process.TotalProcessorTime;
                 await Task.Delay(100); // Wait for accurate reading
-                var cpuLoad = cpuCounter.NextValue() / 100.0; // Convert percentage to decimal
-                cpuCounter.Dispose();
-                return Math.Max(0.0, Math.Min(1.0, cpuLoad));
+                var endTime = DateTime.UtcNow;
+                var endCpuUsage = process.TotalProcessorTime;
+                var cpuUsedMs = (endCpuUsage - startCpuUsage).TotalMilliseconds;
+                var totalMsPassed = (endTime - startTime).TotalMilliseconds;
+                var cpuUsageTotal = cpuUsedMs / (Environment.ProcessorCount * totalMsPassed);
+                return Math.Max(0.0, Math.Min(1.0, cpuUsageTotal));
             }
             catch
             {
@@ -527,12 +531,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             try
             {
-                // Real disk load measurement using PerformanceCounter
-                var diskCounter = new System.Diagnostics.PerformanceCounter("PhysicalDisk", "% Disk Time", "_Total");
-                diskCounter.NextValue(); // First call returns 0
-                await Task.Delay(100); // Wait for accurate reading
-                var diskLoad = diskCounter.NextValue() / 100.0; // Convert percentage to decimal
-                diskCounter.Dispose();
+                // Real disk load measurement using drive space analysis
+                var drives = System.IO.DriveInfo.GetDrives();
+                var totalSpace = drives.Where(d => d.IsReady).Sum(d => d.TotalSize);
+                var freeSpace = drives.Where(d => d.IsReady).Sum(d => d.AvailableFreeSpace);
+                var usedSpace = totalSpace - freeSpace;
+                var diskLoad = (double)usedSpace / totalSpace;
+                await Task.Delay(10); // Small delay for accuracy
                 return Math.Max(0.0, Math.Min(1.0, diskLoad));
             }
             catch

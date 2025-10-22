@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.Logging;
 using System.Net.WebSockets;
 
@@ -204,7 +205,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private static async Task PerformRealDataTransferAsync()
         {
             // Perform real data transfer with actual network operations
-            LoggingManager.Log("Starting real data transfer", Logging.LogType.Debug);
+            Console.WriteLine("Starting real data transfer");
             
             var transferTasks = new List<Task<double>>();
             
@@ -236,7 +237,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                                 var transferTime = (DateTime.UtcNow - startTime).TotalSeconds;
                                 var throughput = testData.Length / (transferTime * 1024.0); // KB/s
                                 
-                                LoggingManager.Log($"Data transfer {i} throughput: {throughput:F2} KB/s", Logging.LogType.Debug);
+                                Console.WriteLine($"Data transfer {i} throughput: {throughput:F2} KB/s");
                                 return throughput;
                             }
                         }
@@ -253,7 +254,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             var throughputs = await Task.WhenAll(transferTasks);
             var avgThroughput = throughputs.Average();
             
-            LoggingManager.Log($"Real data transfer completed: {avgThroughput:F2} KB/s average", Logging.LogType.Debug);
+            Console.WriteLine($"Real data transfer completed: {avgThroughput:F2} KB/s average");
         }
 
         private static async Task<double> CalculateDefaultBandwidthAsync()
