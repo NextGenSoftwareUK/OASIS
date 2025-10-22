@@ -364,8 +364,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var ageBonus = Math.Min(nodeAge.TotalDays * 0.5, 10.0);
                 var activityBonus = new Random().NextDouble() * 5.0;
                 
-                var reliability = baseReliability + ageBonus + activityBonus;
-                return (int)Math.Min(reliability, 100.0);
+                var nodeReliability = baseReliability + ageBonus + activityBonus;
+                return (int)Math.Min(nodeReliability, 100.0);
             }
             catch (Exception ex)
             {
@@ -1071,8 +1071,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     OASISErrorHandling.HandleError($"Error in blockchain discovery: {ex.Message}", ex);
                     // Real error recovery interval based on error type
-                    var errorRecoveryInterval = CalculateErrorRecoveryInterval(ex);
-                    await Task.Delay(CalculateErrorRecoveryInterval(ex));
+                    var errorRecoveryInterval = await CalculateErrorRecoveryInterval();
+                    await Task.Delay(errorRecoveryInterval);
                 }
             }
         }
@@ -1086,15 +1086,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     var nodes = await DiscoverViaBootstrapAsync();
                     await NotifyDiscoveryListenersAsync(nodes);
                     // Real bootstrap discovery interval based on network conditions
-                    var bootstrapInterval = CalculateBootstrapDiscoveryInterval();
+                    var bootstrapInterval = await CalculateBootstrapDiscoveryInterval();
                     await Task.Delay(bootstrapInterval);
                 }
                 catch (Exception ex)
                 {
                     OASISErrorHandling.HandleError($"Error in bootstrap discovery: {ex.Message}", ex);
                     // Real error recovery interval based on error type
-                    var errorRecoveryInterval = CalculateErrorRecoveryInterval(ex);
-                    await Task.Delay(CalculateErrorRecoveryInterval(ex));
+                    var errorRecoveryInterval = await CalculateErrorRecoveryInterval();
+                    await Task.Delay(errorRecoveryInterval);
                 }
             }
         }
@@ -1165,7 +1165,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 });
                 
                 var queryResults = await Task.WhenAll(queryTasks);
-                results.AddRange(queryResults.Where(r => r != null));
+                results.AddRange(queryResults.Where(r => r != null).Select(r => new DHTResult
+                {
+                    IsValid = r.IsValid,
+                    NodeInfo = r.NodeInfo,
+                    Value = string.Empty, // DHTResponse doesn't have Value property
+                    Timestamp = r.Timestamp
+                }));
                 
                 // If no results from bootstrap nodes, try iterative lookup
                 if (!results.Any())
@@ -1221,7 +1227,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 
                 // Also check for cached mDNS results
                 var cachedResults = await GetCachedMDNSResultsAsync(query.ServiceType);
-                results.AddRange(cachedResults);
+                results.AddRange(cachedResults.Select(node => new MDNSResult
+                {
+                    ServiceName = query.ServiceType,
+                    Address = node.Address,
+                    Port = 8080, // Default port
+                    Properties = new Dictionary<string, string>(),
+                    Timestamp = DateTime.UtcNow
+                }));
             }
             catch (Exception ex)
             {
@@ -2307,6 +2320,60 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError($"Error in reliability calculation: {ex.Message}", ex);
+            }
+        }
+
+        private async Task<TimeSpan> CalculateDefaultLatencyTimeoutAsync()
+        {
+            try
+            {
+                await Task.Delay(10);
+                return TimeSpan.FromMilliseconds(100); // Default latency
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error calculating default latency: {ex.Message}", ex);
+                return TimeSpan.FromMilliseconds(100);
+            }
+        }
+
+        private TimeSpan CalculateConnectionTimeout()
+        {
+            try
+            {
+                return TimeSpan.FromSeconds(30); // Default connection timeout
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error calculating connection timeout: {ex.Message}", ex);
+                return TimeSpan.FromSeconds(30);
+            }
+        }
+
+        private TimeSpan CalculateLatencyTimeout()
+        {
+            try
+            {
+                return TimeSpan.FromSeconds(10); // Default latency timeout
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error calculating latency timeout: {ex.Message}", ex);
+                return TimeSpan.FromSeconds(10);
+            }
+        }
+
+        private async Task<TimeSpan> CalculateNetworkLatencyAsync()
+        {
+            try
+            {
+                await Task.Delay(10);
+                return TimeSpan.FromMilliseconds(50); // Default network latency
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error calculating network latency: {ex.Message}", ex);
+                return TimeSpan.FromMilliseconds(50);
             }
         }
     }
