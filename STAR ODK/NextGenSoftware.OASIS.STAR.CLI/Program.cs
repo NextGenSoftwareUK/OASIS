@@ -686,7 +686,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "nft":
-                                    await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.EditAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, STARCLI.NFTs.MintNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.CloneNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ListAllWeb4NFTsAsync, STARCLI.NFTs.ListAllWeb4NFTForAvatarsAsync, STARCLI.NFTs.ShowWeb4NFTAsync, STARCLI.NFTs.SearchWeb4NFTAsync, providerType: providerType);
+                                    {
+                                       if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "collection")
+                                            await ShowSubCommandAsync<OAPPTemplate>(inputArgs, "nft collection", "nft collection's", STARCLI.OAPPTemplates.CreateAsync, STARCLI.OAPPTemplates.EditAsync, STARCLI.OAPPTemplates.DeleteAsync, STARCLI.OAPPTemplates.DownloadAndInstallAsync, STARCLI.OAPPTemplates.UninstallAsync, STARCLI.OAPPTemplates.PublishAsync, STARCLI.OAPPTemplates.UnpublishAsync, STARCLI.OAPPTemplates.RepublishAsync, STARCLI.OAPPTemplates.ActivateAsync, STARCLI.OAPPTemplates.DeactivateAsync, STARCLI.OAPPTemplates.ShowAsync, STARCLI.OAPPTemplates.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllAsync, STARCLI.OAPPTemplates.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.SearchAsync, STARCLI.OAPPTemplates.AddDependencyAsync, STARCLI.OAPPTemplates.RemoveDependencyAsync, providerType: providerType);
+                                       else
+                                            await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.EditAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, STARCLI.NFTs.MintNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.CloneNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ListAllWeb4NFTsAsync, STARCLI.NFTs.ListAllWeb4NFTForAvatarsAsync, STARCLI.NFTs.ShowWeb4NFTAsync, STARCLI.NFTs.SearchWeb4NFTAsync, providerType: providerType);
+
+                                        //if (inputArgs.Length > 1)
+                                        //{
+                                        //    switch (inputArgs[1].ToLower())
+                                        //    {
+                                        //        case "collection":
+                                        //            await ShowSubCommandAsync<OAPPTemplate>(inputArgs, "nft collection", "nft collection's", STARCLI.OAPPTemplates.CreateAsync, STARCLI.OAPPTemplates.EditAsync, STARCLI.OAPPTemplates.DeleteAsync, STARCLI.OAPPTemplates.DownloadAndInstallAsync, STARCLI.OAPPTemplates.UninstallAsync, STARCLI.OAPPTemplates.PublishAsync, STARCLI.OAPPTemplates.UnpublishAsync, STARCLI.OAPPTemplates.RepublishAsync, STARCLI.OAPPTemplates.ActivateAsync, STARCLI.OAPPTemplates.DeactivateAsync, STARCLI.OAPPTemplates.ShowAsync, STARCLI.OAPPTemplates.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllAsync, STARCLI.OAPPTemplates.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.SearchAsync, STARCLI.OAPPTemplates.AddDependencyAsync, STARCLI.OAPPTemplates.RemoveDependencyAsync, providerType: providerType);
+                                        //            break;
+
+                                        //        default:
+                                        //            await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.EditAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, STARCLI.NFTs.MintNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.CloneNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ListAllWeb4NFTsAsync, STARCLI.NFTs.ListAllWeb4NFTForAvatarsAsync, STARCLI.NFTs.ShowWeb4NFTAsync, STARCLI.NFTs.SearchWeb4NFTAsync, providerType: providerType);
+                                        //            break;
+                                        //    }
+                                        //}
+                                        //else
+                                        //    await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.EditAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, STARCLI.NFTs.MintNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.CloneNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ListAllWeb4NFTsAsync, STARCLI.NFTs.ListAllWeb4NFTForAvatarsAsync, STARCLI.NFTs.ShowWeb4NFTAsync, STARCLI.NFTs.SearchWeb4NFTAsync, providerType: providerType);
+                                    }
                                     break;
 
                                 case "geonft":
@@ -862,6 +883,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<bool, bool, int, ProviderType, Task> listWeb4NFTsForBeamedInAvatarPredicate = null,
             Func<string, ProviderType, Task> showWeb4NFTPredicate = null,
             Func<string, bool, ProviderType, Task> searchWeb4NFTPredicate = null,
+            Func<string, ProviderType, Task> createWeb4NFTCollectionPredicate = null,
+            Func<string, bool, ProviderType, Task> updateWeb4NFTCollectionPredicate = null,
+            Func<string, string, ProviderType, Task> addWeb4NFTToCollectionPredicate = null,
+            Func<string, string, ProviderType, Task> removeWeb4NFTFromCollectionPredicate = null,
+            Func<string, bool, ProviderType, Task> deleteWeb4NFTCollectionPredicate = null,
+            Func<bool, bool, int, ProviderType, Task> listAllWeb4NFTCollectionsPredicate = null,
+            Func<bool, bool, int, ProviderType, Task> listWeb4NFTCollectionsForBeamedInAvatarPredicate = null,
+            Func<string, ProviderType, Task> showWeb4NFTCollectionPredicate = null,
+            Func<string, bool, ProviderType, Task> searchWeb4NFTCollectionPredicate = null,
             bool showCreate = true,
             bool showUpdate = true,
             bool showDelete = true,
@@ -880,13 +910,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
             string id = "";
 
-            if ((inputArgs.Length > 1 && inputArgs[1] != "template" && inputArgs[1] != "metadata") || (inputArgs.Length > 2 && (inputArgs[1] == "template" || inputArgs[1] == "metadata")))
+            //if ((inputArgs.Length > 1 && inputArgs[1] != "template" && inputArgs[1] != "metadata") || (inputArgs.Length > 2 && (inputArgs[1] == "template" || inputArgs[1] == "metadata")))
+            if ((inputArgs.Length > 1 && inputArgs[1] != "template" && inputArgs[1] != "metadata" && inputArgs[1] != "collection") || (inputArgs.Length > 2 && (inputArgs[1] == "template" || inputArgs[1] == "metadata" || inputArgs[1] == "collection")))
             { 
-                if (inputArgs[1] != "template" && inputArgs[1] != "metadata" && inputArgs.Length > 2)
+                if (inputArgs[1] != "template" && inputArgs[1] != "metadata" && inputArgs[1] != "collection" && inputArgs.Length > 2)
                     id = inputArgs[2];
 
-                if ((inputArgs[1] == "template" || inputArgs[1] == "metadata") && inputArgs.Length > 3)
+                if ((inputArgs[1] == "template" || inputArgs[1] == "metadata" || inputArgs[1] == "collection") && inputArgs.Length > 3)
                     id = inputArgs[3];
+
 
                 if (inputArgs.Length > 1 && !string.IsNullOrEmpty(inputArgs[1]))
                     subCommandParam = inputArgs[1].ToLower();
@@ -900,7 +932,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 if (inputArgs.Length > 4 && !string.IsNullOrEmpty(inputArgs[4]))
                     subCommandParam4 = inputArgs[4].ToLower();
 
-                if (inputArgs[1] == "template" || inputArgs[1] == "metadata")
+                if (inputArgs[1] == "template" || inputArgs[1] == "metadata" || inputArgs[1] == "collection")
                 {
                     if (inputArgs.Length > 2 && !string.IsNullOrEmpty(inputArgs[2]))
                         subCommandParam = inputArgs[2].ToLower();
@@ -1195,6 +1227,24 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             
                             else
                                 CLIEngine.ShowWarningMessage("This sub-command is only supported for the command 'geonft' or 'nft'.");
+                        }
+                        break;
+
+                    case "add":
+                        {
+                            if (addWeb4NFTToCollectionPredicate != null)
+                                await addWeb4NFTToCollectionPredicate(id, subCommandParam2, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "remove":
+                        {
+                            if (removeWeb4NFTFromCollectionPredicate != null)
+                                await removeWeb4NFTFromCollectionPredicate(id, subCommandParam2, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
                         }
                         break;
 
@@ -2639,7 +2689,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplayCommand("radiate", "", "Highlight the OAPP for the given {id} or {name} in the STARNET Store. *Admin/Wizards Only*");
                 //TODO: Finish converting the commands below into the new format above...
 
-                DisplaySTARNETHolonCommands("oapp");
+                DisplaySTARNETHolonCommands("oapp", createDesc: "Shortcut to the light sub-command.", publishDesc: "Shortcut to the seed sub-command.", unpublishDesc: "Shortcut to the un-seed sub-command.", republishDesc: "Shortcut to the re-seed sub-command.");
                 DisplaySTARNETHolonCommands("oapp template");
                 DisplaySTARNETHolonCommands("runtime");
                 DisplaySTARNETHolonCommands("lib");
@@ -2658,16 +2708,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 //DisplayCommand("nft clone", "", "Clones a WEB4 OASIS NFT.");
                 DisplayCommand("nft convert", "{id/name}", "Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 Metadata.");
                 DisplaySTARNETHolonCommands("nft");
+                DisplayCommand("nft collection add", "{colid/colname} {nftid/nftname}", "Adds a nft to the nft collection.");
+                DisplayCommand("nft collection remove", "{colid/colname} {nftid/nftname}", "Remove's a nft from the nft collection.");
                 DisplaySTARNETHolonCommands("nft collection");
-                DisplayCommand("geonft mint", "{id/name}", "Mints a OASIS GEO-NFT and places in Our World for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS Geo-NFT.");
-                DisplayCommand("geonft burn", "{id/name}", "Burn's a GEO-NFT for the given {id} or {name}.");
+                DisplayCommand("geonft mint", "{id/name}", "Mints a OASIS GeoNFT and places in Our World for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS GeoNFT.");
+                DisplayCommand("geonft burn", "{id/name}", "Burn's a GeoNFT for the given {id} or {name}.");
                 DisplayCommand("geonft place", "{id/name}", "Places an existing OASIS NFT for the given {id} or {name} in Our World for the currently beamed in avatar.");
-                DisplayCommand("geonft send", "{id/name}", "Send a GEO-NFT for the given {id} or {name} to another wallet cross-chain.");
-                DisplayCommand("geonft import", "{id/name}", "Imports a WEB4 OASIS GEO-NFT JSON file.");
-                DisplayCommand("geonft export", "{id/name}", "Exports a WEB4 OASIS GEO-NFT as a JSON file as well as a WEB3 JSON MetaData file.");
+                DisplayCommand("geonft send", "{id/name}", "Send a GeoNFT for the given {id} or {name} to another wallet cross-chain.");
+                DisplayCommand("geonft import", "{id/name}", "Imports a WEB4 OASIS GeoNFT JSON file.");
+                DisplayCommand("geonft export", "{id/name}", "Exports a WEB4 OASIS GeoNFT as a JSON file as well as a WEB3 JSON MetaData file.");
                 //DisplayCommand("geonft clone", "", "Clones a WEB4 OASIS GEO-NFT.");
                 //DisplayCommand("geonft convert", "", "Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 GEO-NFT Metadata.");
                 DisplaySTARNETHolonCommands("geonft");
+                DisplayCommand("geonft collection add", "{colid/colname} {nftid/nftname}", "Adds a geo-nft to the geo-nft collection.");
+                DisplayCommand("geonft collection remove", "{colid/colname} {nftid/nftname}", "Remove's a geo-nft from the geo-nft collection.");
                 DisplaySTARNETHolonCommands("geonft collection");
                 DisplaySTARNETHolonCommands("geohotspot");
                 DisplaySTARNETHolonCommands("inventoryitem");
@@ -3453,30 +3507,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.WriteLine(string.Concat("".PadRight(indent), command.PadRight(commandColSize), args.PadRight(argsColSize), desc));
         }
 
-        private static void DisplaySTARNETHolonCommands(string holonType)
+        private static void DisplaySTARNETHolonCommands(string holonType, string createDesc = "", string updateDesc = "", string cloneDesc = "", string addDependencyDesc = "", string removeDependencyDesc = "", string deleteDesc = "", string publishDesc = "", string unpublishDesc = "", string republishDesc = "", string activateDesc = "", string deactivateDesc = "", string downloadDesc = "", string installDesc = "", string uninstallDesc = "", string reinstallDesc = "", string showDesc = "", string listDesc = "", string listInstalledDesc = "", string listUninstalledDesc = "", string listUnpublished = "", string listDeactivated = "", string searchDesc = "")
         {
-            DisplayCommand(string.Concat(holonType, " create"), "", $"Create a new {holonType}.");
-            DisplayCommand(string.Concat(holonType, " update"), "{id/name}", string.Concat("Updates an existing ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " clone"), "{id/name}", string.Concat("Clones an existing ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " adddependency"), "{id/name}", string.Concat("Adds a dependency to an existing ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " removedependency"), "{id/name}", string.Concat("Removes a dependency from an existing ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " delete"), "{id/name}", string.Concat("Deletes a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " publish"), "{id/name}", string.Concat("Publishes a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " unpublish"), "{id/name}", string.Concat("Unpublishes a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " republish"), "{id/name}", string.Concat("Republish a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " activate"), "{id/name}", string.Concat("Activate a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " deactivate"), "{id/name}", string.Concat("Deactivate a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " download"), "{id/name}", string.Concat("Download a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " install"), "{id/name}", string.Concat("Install/Download a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " uninstall"), "{id/name}", string.Concat("Uninstall a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " reinstall"), "{id/name}", string.Concat("Reinstall a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " show"), "{id/name} [detailed]", string.Concat("Shows a  ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " list"), "[allVersions] [forAllAvatars] [detailed]", string.Concat("List all  ", holonType, " (contains zomes and holons) that have been generated."));
-            DisplayCommand(string.Concat(holonType, " list installed"), "", string.Concat("List all ", holonType, "'s installed for the currently beamed in avatar."));
-            DisplayCommand(string.Concat(holonType, " list uninstalled"), "", string.Concat("List all ", holonType, "'s uninstalled for the currently beamed in avatar (and allow re-install)."));
-            DisplayCommand(string.Concat(holonType, " list unpublished"), "", string.Concat("List all ", holonType, "'s unpublished for the currently beamed in avatar (and allow republish)."));
-            DisplayCommand(string.Concat(holonType, " list deactivated"), "", string.Concat("List all ", holonType, "'s deactivated for the currently beamed in avatar (and allow reactivate)."));
-            DisplayCommand(string.Concat(holonType, " search"), "[allVersions] [forAllAvatars]", string.Concat("Searches the ", holonType, "'s for the given search criteria."));
+            DisplayCommand(string.Concat(holonType, " create"), "", !string.IsNullOrEmpty(createDesc) ? createDesc : $"Create a new {holonType}.");
+            DisplayCommand(string.Concat(holonType, " update"), "{id/name}", !string.IsNullOrEmpty(updateDesc) ? updateDesc : string.Concat("Updates an existing ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " clone"), "{id/name}", !string.IsNullOrEmpty(cloneDesc) ? cloneDesc : string.Concat("Clones an existing ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " adddependency"), "{id/name}", !string.IsNullOrEmpty(addDependencyDesc) ? addDependencyDesc : string.Concat("Adds a dependency to an existing ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " removedependency"), "{id/name}", !string.IsNullOrEmpty(removeDependencyDesc) ? removeDependencyDesc : string.Concat("Removes a dependency from an existing ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " delete"), "{id/name}", !string.IsNullOrEmpty(deleteDesc) ? deleteDesc : string.Concat("Deletes a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " publish"), "{id/name}", !string.IsNullOrEmpty(publishDesc) ? publishDesc : string.Concat("Publishes a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " unpublish"), "{id/name}", !string.IsNullOrEmpty(unpublishDesc) ? unpublishDesc : string.Concat("Unpublishes a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " republish"), "{id/name}", !string.IsNullOrEmpty(republishDesc) ? republishDesc : string.Concat("Republish a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " activate"), "{id/name}", !string.IsNullOrEmpty(activateDesc) ? activateDesc : string.Concat("Activate a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " deactivate"), "{id/name}", !string.IsNullOrEmpty(deactivateDesc) ? deactivateDesc : string.Concat("Deactivate a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " download"), "{id/name}", !string.IsNullOrEmpty(downloadDesc) ? downloadDesc : string.Concat("Download a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " install"), "{id/name}", !string.IsNullOrEmpty(installDesc) ? installDesc : string.Concat("Install/Download a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " uninstall"), "{id/name}", !string.IsNullOrEmpty(uninstallDesc) ? uninstallDesc : string.Concat("Uninstall a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " reinstall"), "{id/name}", !string.IsNullOrEmpty(reinstallDesc) ? reinstallDesc : string.Concat("Reinstall a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " show"), "{id/name} [detailed]", !string.IsNullOrEmpty(showDesc) ? showDesc : string.Concat("Shows a  ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " list"), "[allVersions] [forAllAvatars] [detailed]", !string.IsNullOrEmpty(listDesc) ? listDesc : string.Concat("List all  ", holonType, " (contains zomes and holons) that have been generated."));
+            DisplayCommand(string.Concat(holonType, " list installed"), "", !string.IsNullOrEmpty(listInstalledDesc) ? listInstalledDesc : string.Concat("List all ", holonType, "'s installed for the currently beamed in avatar."));
+            DisplayCommand(string.Concat(holonType, " list uninstalled"), "", !string.IsNullOrEmpty(listUninstalledDesc) ? listUninstalledDesc : string.Concat("List all ", holonType, "'s uninstalled for the currently beamed in avatar (and allow re-install)."));
+            DisplayCommand(string.Concat(holonType, " list unpublished"), "", !string.IsNullOrEmpty(listUnpublished) ? listUnpublished : string.Concat("List all ", holonType, "'s unpublished for the currently beamed in avatar (and allow republish)."));
+            DisplayCommand(string.Concat(holonType, " list deactivated"), "", !string.IsNullOrEmpty(listDeactivated) ? listDeactivated : string.Concat("List all ", holonType, "'s deactivated for the currently beamed in avatar (and allow reactivate)."));
+            DisplayCommand(string.Concat(holonType, " search"), "[allVersions] [forAllAvatars]", !string.IsNullOrEmpty(searchDesc) ? searchDesc : string.Concat("Searches the ", holonType, "'s for the given search criteria."));
         }
 
         private static void DisplaySTARNETHolonCommandSummaries(string holonType)

@@ -379,7 +379,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             ListWeb4NFTs(await NFTCommon.NFTManager.SearchNFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType: providerType));
         }
 
-        public async Task<OASISResult<IOASISNFTCollection>> CreateNFTCollectionAsync(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOASISNFTCollection>> CreateWeb4NFTCollectionAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOASISNFTCollection> result = new OASISResult<IOASISNFTCollection>();
             CreateOASISNFTCollectionRequest request = new CreateOASISNFTCollectionRequest();
@@ -445,7 +445,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IOASISNFTCollection>> UpdateNFTCollectionAsync(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOASISNFTCollection>> UpdateWeb4NFTCollectionAsync(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOASISNFTCollection> result = new OASISResult<IOASISNFTCollection>();
             UpdateOASISNFTCollectionRequest request = new UpdateOASISNFTCollectionRequest();
@@ -529,21 +529,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IOASISNFTCollection>>> ShowAllNFTCollections(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IOASISNFTCollection>>> ListAllWeb4NFTCollections(ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOASISNFTCollection>> result = new OASISResult<IEnumerable<IOASISNFTCollection>>();
             result = ListWeb4NFTCollections(await NFTCommon.NFTManager.LoadAllNFTCollectionsAsync(providerType));
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IOASISNFTCollection>>> ShowNFTCollectionsForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IOASISNFTCollection>>> ListWeb4NFTCollectionsForAvatar(Guid avatarId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOASISNFTCollection>> result = new OASISResult<IEnumerable<IOASISNFTCollection>>();
             result = ListWeb4NFTCollections(await NFTCommon.NFTManager.LoadNFTCollectionsForAvatarAsync(avatarId, providerType));
             return result;
         }
 
-        public async Task<OASISResult<IOASISNFTCollection>> AddNFTToCollectionAsync(string collectionIdOrName, string nftIdOrName)
+        public async Task<OASISResult<IOASISNFTCollection>> AddWeb4NFTToCollectionAsync(string collectionIdOrName, string nftIdOrName)
         {
             OASISResult<IOASISNFTCollection> result = new OASISResult<IOASISNFTCollection>();
             OASISResult<IOASISNFTCollection> collection = await FindWeb4NFTCollectionAsync("add to", collectionIdOrName, true);
@@ -572,7 +572,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IOASISNFTCollection>> RemoveNFTFromCollectionAsync(string collectionIdOrName, string nftIdOrName)
+        public async Task<OASISResult<IOASISNFTCollection>> RemoveWeb4NFTFromCollectionAsync(string collectionIdOrName, string nftIdOrName)
         {
             OASISResult<IOASISNFTCollection> result = new OASISResult<IOASISNFTCollection>();
             OASISResult<IOASISNFTCollection> collection = await FindWeb4NFTCollectionAsync("remove from", collectionIdOrName, true);
@@ -601,7 +601,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IOASISNFTCollection>> DeleteNFTCollectionAsync(string collectionIdOrName, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IOASISNFTCollection>> DeleteWeb4NFTCollectionAsync(string collectionIdOrName, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOASISNFTCollection> collection = await FindWeb4NFTCollectionAsync("delete", collectionIdOrName, true);
 
@@ -626,6 +626,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             return collection;
+        }
+
+        public virtual async Task<OASISResult<IOASISNFTCollection>> ShowWeb4NFTCollectionAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISNFTCollection> result = new OASISResult<IOASISNFTCollection>();
+
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Loading WEB4 NFT Collection's...");
+
+            result = await FindWeb4NFTCollectionAsync("view", idOrName, true, providerType: providerType);
+
+            if (result != null && result.Result != null && !result.IsError)
+                ShowNFTCollection(result.Result);
+            else
+                OASISErrorHandling.HandleError(ref result, "No WEB4 NFT Collection Found For That Id or Name!");
+
+            return result;
+        }
+
+        public virtual async Task SearchWeb4NFTCollectionAsync(string searchTerm = "", bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
+        {
+            if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
+                searchTerm = CLIEngine.GetValidInput($"What is the name of the WEB4 NFT Collection you wish to search for?");
+
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Searching WEB4 NFT Collection's...");
+            ListWeb4NFTCollections(await NFTCommon.NFTManager.SearchNFTCollectionsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType: providerType));
         }
 
         private async Task<OASISResult<IOASISNFT>> FindWeb4NFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "NFT", ProviderType providerType = ProviderType.Default)
