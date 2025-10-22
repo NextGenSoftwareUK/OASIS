@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.Logging;
 using System.Net.WebSockets;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
@@ -148,7 +151,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private static async Task PerformRealNetworkLatencyMeasurementAsync()
         {
             // Perform real network latency measurement with actual network operations
-            LoggingManager.Log("Starting real network latency measurement", Logging.LogType.Debug);
+            Console.WriteLine("Starting real network latency measurement");
             
             var measurementTasks = new List<Task<double>>();
             
@@ -172,7 +175,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                             if (completed == connectTask && client.Connected)
                             {
                                 var latency = (DateTime.UtcNow - startTime).TotalMilliseconds;
-                                LoggingManager.Log($"Network endpoint {endpoint} latency: {latency:F2}ms", Logging.LogType.Debug);
+                                Console.WriteLine($"Network endpoint {endpoint} latency: {latency:F2}ms");
                                 return latency;
                             }
                         }
@@ -189,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             var latencies = await Task.WhenAll(measurementTasks);
             var avgLatency = latencies.Average();
             
-            LoggingManager.Log($"Real network latency measurement completed: {avgLatency:F2}ms average", Logging.LogType.Debug);
+            Console.WriteLine($"Real network latency measurement completed: {avgLatency:F2}ms average");
         }
 
         private static async Task<double> CalculateDefaultHighLatencyAsync()
