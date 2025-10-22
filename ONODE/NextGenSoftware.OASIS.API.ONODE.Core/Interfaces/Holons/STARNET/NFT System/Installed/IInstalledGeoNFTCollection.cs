@@ -1,7 +1,7 @@
 ﻿using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
+namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons
 {
     public interface IInstalledGeoNFTCollection : ISTARNETHolon
     {
