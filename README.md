@@ -97,17 +97,195 @@ OASIS supports 50+ providers across multiple categories, providing universal com
 
 ## 🔑 Core WEB4 APIs (from existing oasisweb4.com)
 
-- **AVATAR**: Centralized user data and identity across the internet
-- **KARMA**: Track positive actions and build digital reputation
-- **DATA**: Move/share data seamlessly between Web2 and Web3
-- **WALLET**: High-security cross-chain wallet with fiat integration
-- **NFT**: Cross-chain NFTs with geo-caching for AR/gaming
-- **KEYS**: Secure key storage and backup
-- **ONET**: Revolutionary decentralized networking with intelligent discovery, routing, and consensus
-- **SEARCH**: Universal search across all OASIS data
-- **STATS**: Comprehensive statistics and analytics
-- **HOLOCHAIN**: Holochain integration for distributed applications
-- **IPFS**: InterPlanetary File System for decentralized storage
+### **Authentication & Identity**
+- **AVATAR**: Complete user management system with 80+ endpoints
+  - Registration, authentication, password management
+  - Avatar CRUD operations, portraits, sessions
+  - Provider-specific authentication flows
+  - Session management and security
+
+### **Reputation & Social**
+- **KARMA**: Digital reputation system with 20+ endpoints
+  - Karma weighting and voting systems
+  - Akashic records and statistics
+  - Positive/negative karma management
+  - Historical tracking and analytics
+
+### **Data Management**
+- **DATA**: Comprehensive data operations with 30+ endpoints
+  - Holon CRUD operations with advanced parameters
+  - File upload/download with provider support
+  - Data storage with auto-replication and failover
+  - Cross-provider data synchronization
+
+### **Financial Services**
+- **WALLET**: Complete wallet management with 25+ endpoints
+  - Multi-chain wallet support
+  - Portfolio management and analytics
+  - Transfer operations and transaction history
+  - Import/export functionality
+
+### **Security & Keys**
+- **KEYS**: Cryptographic key management with 40+ endpoints
+  - Key generation and linking
+  - Provider-specific key operations
+  - WiFi and signature operations
+  - Complete key lifecycle management
+
+### **Network & Discovery**
+- **ONET**: Decentralized network with 10+ endpoints
+  - Network status and topology
+  - Node connection and management
+  - Broadcasting and statistics
+- **ONODE**: Node management with 12+ endpoints
+  - Node configuration and monitoring
+  - Peer management and metrics
+  - System control and logging
+
+### **Content & Media**
+- **FILES**: File management with 6+ endpoints
+  - Upload, download, and metadata management
+  - File sharing and organization
+- **NFT**: NFT operations with 20+ endpoints
+  - Cross-chain NFT management
+  - Creation, trading, and analytics
+
+### **Communication**
+- **CHAT**: Real-time communication with 3+ endpoints
+  - Session management and messaging
+  - Message history and persistence
+- **MESSAGING**: Advanced messaging with 6+ endpoints
+  - Avatar-to-avatar messaging
+  - Conversation management
+  - Notification system
+
+### **Gamification**
+- **COMPETITION**: Gaming system with 9+ endpoints
+  - Leaderboards and tournaments
+  - League management and rankings
+  - Statistics and analytics
+- **GIFTS**: Gift system with 6+ endpoints
+  - Gift sending and receiving
+  - History and statistics
+
+### **Location & Mapping**
+- **MAP**: Advanced mapping with 15+ endpoints
+  - Route creation and navigation
+  - 3D object placement
+  - Location services and analytics
+
+### **Provider Management**
+- **PROVIDER**: Provider system with 25+ endpoints
+  - Provider registration and configuration
+  - Auto-replication and failover settings
+  - Provider monitoring and management
+
+### **Search & Analytics**
+- **SEARCH**: Universal search with 2+ endpoints
+  - Cross-provider search capabilities
+- **STATS**: Analytics with 8+ endpoints
+  - Comprehensive statistics and reporting
+  - Performance metrics and insights
+
+### **Blockchain Integration**
+- **EOSIO**: EOSIO integration with 9+ endpoints
+- **HOLOCHAIN**: Holochain integration with 7+ endpoints
+- **TELOS**: Telos integration with 9+ endpoints
+- **SEEDS**: Seeds integration with 15+ endpoints
+- **SOLANA**: Solana integration with 2+ endpoints
+
+### **System Management**
+- **SETTINGS**: Configuration with 12+ endpoints
+- **SUBSCRIPTION**: Billing with 8+ endpoints
+- **VIDEO**: Video calling with 3+ endpoints
+- **EGGS**: Egg system with 3+ endpoints
+
+## ⭐ Core WEB5 STAR APIs (from STAR ODK)
+
+### **Metaverse Development**
+- **MISSIONS**: Complete mission system with 27+ endpoints
+  - Mission CRUD operations and lifecycle management
+  - Publishing, versioning, and distribution
+  - Leaderboards, rewards, and analytics
+  - Clone and template functionality
+
+### **Virtual Worlds**
+- **CELESTIALBODIES**: 3D world objects with 25+ endpoints
+  - Space object creation and management
+  - Type-based filtering and organization
+  - Publishing and version control
+- **CELESTIALSPACES**: Virtual environments with 25+ endpoints
+  - Space hierarchy and management
+  - Parent-child relationships
+  - Advanced space operations
+
+### **Content Management**
+- **HOLONS**: Core content objects with 25+ endpoints
+  - Hierarchical content management
+  - Metadata and status tracking
+  - Advanced search and filtering
+- **CHAPTERS**: Content organization with 20+ endpoints
+  - Content structure and navigation
+  - Publishing and distribution
+
+### **Asset Management**
+- **NFTs**: NFT system with 25+ endpoints
+  - Cross-chain NFT operations
+  - Publishing and trading
+  - Version control and management
+- **INVENTORYITEMS**: Item management with 25+ endpoints
+  - Avatar inventory systems
+  - Item tracking and analytics
+
+### **Development Tools**
+- **TEMPLATES**: Template system with 25+ endpoints
+  - Pre-built component library
+  - Template sharing and distribution
+  - Version control and management
+- **LIBRARIES**: Code libraries with 25+ endpoints
+  - Shared code repositories
+  - Category-based organization
+  - Publishing and collaboration
+- **RUNTIMES**: Runtime management with 25+ endpoints
+  - Runtime lifecycle control
+  - Status monitoring and management
+  - Start/stop operations
+- **PLUGINS**: Plugin system with 25+ endpoints
+  - Plugin installation and management
+  - Type-based organization
+  - Lifecycle control
+
+### **Gamification**
+- **QUESTS**: Quest system with 25+ endpoints
+  - Quest creation and management
+  - Completion tracking and rewards
+  - Leaderboards and statistics
+- **EGGS**: Discovery system with 8+ endpoints
+  - Egg discovery and hatching
+  - Quest integration
+  - Statistics and leaderboards
+
+### **Location Services**
+- **GEOHOTSPOTS**: Location-based features with 25+ endpoints
+  - Hotspot creation and management
+  - Nearby location services
+  - Publishing and distribution
+- **GEONFTS**: Location-based NFTs with 25+ endpoints
+  - Geo-tagged NFT creation
+  - Location-based trading
+  - Avatar-specific collections
+
+### **Social Features**
+- **PARKS**: Social spaces with 25+ endpoints
+  - Virtual park creation
+  - Type-based organization
+  - Social interaction features
+
+### **System Management**
+- **STAR**: Core system with 4+ endpoints
+  - System status and control
+  - Ignition and shutdown
+  - Beam-in operations
 
 ## 🏆 Grants & Case Studies (from existing oasisweb4.com)
 

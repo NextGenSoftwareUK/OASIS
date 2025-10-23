@@ -52,28 +52,62 @@ PUT    /api/settings                 # Update system settings
 
 ### **Avatar Controller**
 ```http
-# Avatar Management
-GET    /api/avatar/load-all-avatars                    # Get all avatars
-GET    /api/avatar/get-avatar/{id}                     # Get avatar by ID
-POST   /api/avatar/register-avatar                     # Register new avatar
-PUT    /api/avatar/update-avatar/{id}                  # Update avatar
-DELETE /api/avatar/delete-avatar/{id}                  # Delete avatar
-POST   /api/avatar/authenticate-avatar                 # Authenticate avatar
-POST   /api/avatar/logout-avatar                       # Logout avatar
-GET    /api/avatar/load-avatar-by-username/{username}  # Get avatar by username
-GET    /api/avatar/load-avatar-by-email/{email}        # Get avatar by email
-POST   /api/avatar/refresh-token                      # Refresh authentication token
-GET    /api/avatar/avatar-details/{id}                 # Get detailed avatar info
-POST   /api/avatar/link-provider-key                   # Link provider key to avatar
-POST   /api/avatar/unlink-provider-key                 # Unlink provider key from avatar
+# Avatar Registration & Authentication
+POST   /api/avatar/register                            # Register new avatar
+POST   /api/avatar/register/{providerType}/{setGlobally} # Register with specific provider
+GET    /api/avatar/verify-email                        # Verify email (GET)
+POST   /api/avatar/verify-email                        # Verify email (POST)
+GET    /api/avatar/verify-email/{providerType}/{setGlobally} # Verify with provider
+POST   /api/avatar/verify-email/{providerType}/{setGlobally} # Verify with provider (POST)
+POST   /api/avatar/authenticate                        # Authenticate avatar
+POST   /api/avatar/authenticate/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{AutoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings} # Advanced authentication
+POST   /api/avatar/authenticate-token/{JWTToken}        # Authenticate with JWT token
+POST   /api/avatar/authenticate-token/{JWTToken}/{providerType}/{setGlobally} # Authenticate JWT with provider
+POST   /api/avatar/refresh-token                       # Refresh authentication token
+POST   /api/avatar/refresh-token/{providerType}/{setGlobally} # Refresh token with provider
+POST   /api/avatar/revoke-token                        # Revoke authentication token
+POST   /api/avatar/revoke-token/{providerType}/{setGlobally} # Revoke token with provider
 
-# Avatar Social Features
-GET    /api/avatar/friends/{avatarId}                  # Get avatar friends
-POST   /api/avatar/add-friend                          # Add friend
-POST   /api/avatar/remove-friend                       # Remove friend
-GET    /api/avatar/followers/{avatarId}                 # Get avatar followers
-POST   /api/avatar/follow                              # Follow avatar
-POST   /api/avatar/unfollow                            # Unfollow avatar
+# Password Management
+POST   /api/avatar/forgot-password                     # Request password reset
+POST   /api/avatar/forgot-password/{providerType}/{setGlobally} # Forgot password with provider
+POST   /api/avatar/validate-reset-token                # Validate password reset token
+POST   /api/avatar/validate-reset-token/{providerType}/{setGlobally} # Validate reset token with provider
+POST   /api/avatar/reset-password                      # Reset password
+POST   /api/avatar/reset-password/{providerType}/{setGlobally} # Reset password with provider
+
+# Avatar CRUD Operations
+POST   /api/avatar/create/{model}                      # Create avatar
+POST   /api/avatar/create/{model}/{providerType}/{setGlobally} # Create avatar with provider
+GET    /api/avatar/get-terms                           # Get terms and conditions
+
+# Avatar Portraits
+GET    /api/avatar/get-avatar-portrait/{id}            # Get avatar portrait by ID
+GET    /api/avatar/get-avatar-portrait/{id}/{providerType}/{setGlobally} # Get portrait with provider
+GET    /api/avatar/get-avatar-portrait-by-username/{username} # Get portrait by username
+GET    /api/avatar/get-avatar-portrait-by-username/{username}/{providerType}/{setGlobally} # Get portrait by username with provider
+GET    /api/avatar/get-avatar-portrait-by-email/{email} # Get portrait by email
+GET    /api/avatar/get-avatar-portrait-by-email/{email}/{providerType}/{setGlobally} # Get portrait by email with provider
+POST   /api/avatar/upload-avatar-portrait              # Upload avatar portrait
+POST   /api/avatar/upload-avatar-portrait/{providerType}/{setGlobally} # Upload portrait with provider
+
+# Avatar Details & Information
+GET    /api/avatar/get-avatar-detail-by-id/{id}        # Get avatar details by ID
+GET    /api/avatar/get-avatar-detail-by-id/{id}/{providerType}/{setGlobally} # Get details with provider
+GET    /api/avatar/get-avatar-detail-by-email/{email} # Get avatar details by email
+GET    /api/avatar/get-avatar-detail-by-email/{email}/{providerType}/{setGlobally} # Get details by email with provider
+GET    /api/avatar/get-avatar-detail-by-username/{username} # Get avatar details by username
+GET    /api/avatar/get-avatar-detail-by-username/{username}/{providerType}/{setGlobally} # Get details by username with provider
+GET    /api/avatar/get-all-avatar-details              # Get all avatar details
+GET    /api/avatar/get-all-avatar-details/{providerType}/{setGlobally} # Get all details with provider
+GET    /api/avatar/get-all-avatars                     # Get all avatars
+GET    /api/avatar/get-all-avatars/{providerType}/{setGlobally} # Get all avatars with provider
+
+# Avatar Names & Grouping
+GET    /api/avatar/get-all-avatar-names/{includeUsernames}/{includeIds} # Get all avatar names
+GET    /api/avatar/get-all-avatar-names/{includeUsernames}/{includeIds}/{providerType}/{setGlobally} # Get names with provider
+GET    /api/avatar/get-all-avatar-names-grouped-by-name/{includeUsernames}/{includeIds} # Get grouped names
+GET    /api/avatar/get-all-avatar-names-grouped-by-name/{includeUsernames}/{includeIds}/{providerType}/{setGlobally} # Get grouped names with provider
 ```
 GET    /api/avatar/provider-keys/{id}                 # Get avatar provider keys
 POST   /api/avatar/update-avatar-detail               # Update avatar details
