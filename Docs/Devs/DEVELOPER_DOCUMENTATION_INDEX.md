@@ -32,6 +32,13 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
   - Legacy (v1): Auto-Replication, Auto-Failover
   - OASIS HyperDrive 2 (v2): Adds Auto-Load Balancing, Intelligent Selection (latency-first), Predictive Failover, Enhanced Replication Rules (provider/data-type/schedule/cost/permissions), Advanced Analytics, Subscription-aware quotas & alerts, Mode switch with v2→v1 fallback
   - Docs: [README HyperDrive section](../../README.md), [HyperDrive Whitepaper](../OASIS_HYPERDRIVE_WHITEPAPER.md)
+- **ONET (OASIS Network)**: Revolutionary decentralized networking layer with intelligent discovery, routing, consensus, and security
+  - Multi-Protocol Discovery: DHT (Kademlia), mDNS, blockchain, and bootstrap discovery
+  - Intelligent Routing: Dijkstra, A*, BFS algorithms with adaptive load balancing
+  - Distributed Consensus: Dynamic consensus intervals based on network health
+  - Advanced Security: End-to-end encryption, quantum key generation, authentication
+  - Real-Time Monitoring: Network metrics, system health, performance optimization
+  - Docs: [ONET Documentation](../ONET_DOCUMENTATION.md)
 - **OASIS COSMIC ORM**: Universal data abstraction layer for all Web2/Web3 providers
 - **OASIS NFT System**: Revolutionary NFT system with cross-chain support
 - **OASIS Universal Wallet System**: Unified digital asset management across 50+ blockchain networks
