@@ -64,6 +64,51 @@ GET /api/hyperdrive/connections
 GET /api/hyperdrive/best-provider?strategy=Auto|RoundRobin|WeightedRoundRobin|LeastConnections|Geographic|CostBased|Performance
 ```
 
+#### **Status & Health**
+```http
+GET /api/hyperdrive/status
+```
+
+#### **Analytics & AI**
+```http
+GET /api/hyperdrive/ai/recommendations
+GET /api/hyperdrive/analytics/predictive/{providerType}?forecastDays=7
+GET /api/hyperdrive/analytics/report?providerType={providerType}&timeRange=Last24Hours
+GET /api/hyperdrive/dashboard
+POST /api/hyperdrive/analytics/record
+POST /api/hyperdrive/ai/record-performance
+```
+
+#### **Failover Management**
+```http
+GET /api/hyperdrive/failover/predictions
+POST /api/hyperdrive/failover/record-failure
+POST /api/hyperdrive/failover/preventive
+POST /api/hyperdrive/failover/triggers
+PUT /api/hyperdrive/failover/triggers/{id}
+DELETE /api/hyperdrive/failover/triggers/{id}
+GET /api/hyperdrive/failover/provider-rules
+PUT /api/hyperdrive/failover/provider-rules
+GET /api/hyperdrive/failover/escalation-rules
+PUT /api/hyperdrive/failover/escalation-rules
+```
+
+#### **Cost Management**
+```http
+GET /api/hyperdrive/costs/current
+GET /api/hyperdrive/costs/history?timeRange=Last30Days
+GET /api/hyperdrive/costs/projections
+PUT /api/hyperdrive/costs/limits
+GET /api/hyperdrive/analytics/cost-optimization
+```
+
+#### **Recommendations**
+```http
+GET /api/hyperdrive/recommendations/smart
+GET /api/hyperdrive/recommendations/security
+GET /api/hyperdrive/analytics/performance-optimization
+```
+
 #### **Replication**
 ```http
 GET /api/hyperdrive/replication/rules
@@ -128,9 +173,38 @@ GET /api/core/stats
 
 ### **Avatar API**
 
+#### **Authentication & Registration**
+```http
+POST /api/avatar/register
+POST /api/avatar/register/{providerType}/{setGlobally}
+GET /api/avatar/verify-email
+GET /api/avatar/verify-email/{providerType}/{setGlobally}
+POST /api/avatar/verify-email
+POST /api/avatar/verify-email/{providerType}/{setGlobally}
+POST /api/avatar/authenticate
+POST /api/avatar/authenticate/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{AutoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}
+POST /api/avatar/authenticate-token/{JWTToken}
+POST /api/avatar/authenticate-token/{JWTToken}/{providerType}/{setGlobally}
+POST /api/avatar/refresh-token
+POST /api/avatar/refresh-token/{providerType}/{setGlobally}
+POST /api/avatar/revoke-token
+POST /api/avatar/revoke-token/{providerType}/{setGlobally}
+```
+
+#### **Password Management**
+```http
+POST /api/avatar/forgot-password
+POST /api/avatar/forgot-password/{providerType}/{setGlobally}
+POST /api/avatar/validate-reset-token
+POST /api/avatar/validate-reset-token/{providerType}/{setGlobally}
+POST /api/avatar/reset-password
+POST /api/avatar/reset-password/{providerType}/{setGlobally}
+```
+
 #### **Get All Avatars**
 ```http
-GET /avatar/load-all-avatars
+GET /api/avatar/get-all-avatars
+GET /api/avatar/get-all-avatars/{providerType}/{setGlobally}
 ```
 
 **Response:**
@@ -159,7 +233,8 @@ GET /avatar/load-all-avatars
 
 #### **Get Avatar by ID**
 ```http
-GET /avatar/get-avatar/{id}
+GET /api/avatar/get-avatar-detail-by-id/{id:guid}
+GET /api/avatar/get-avatar-detail-by-id/{id:guid}/{providerType}/{setGlobally}
 ```
 
 **Parameters:**
@@ -194,7 +269,12 @@ GET /avatar/get-avatar/{id}
 
 #### **Create Avatar**
 ```http
-POST /avatar/save-avatar
+POST /api/avatar/register
+POST /api/avatar/register/{providerType}/{setGlobally}
+POST /api/avatar/create/{model}
+POST /api/avatar/create/{model}/{providerType}/{setGlobally}
+POST /api/avatar/save-avatar
+POST /api/avatar/save-avatar/{providerType}/{setGlobally}
 ```
 
 **Request Body:**
@@ -228,7 +308,8 @@ POST /avatar/save-avatar
 
 #### **Update Avatar**
 ```http
-PUT /avatar/update-avatar
+POST /api/avatar/update-avatar
+POST /api/avatar/update-avatar/{providerType}/{setGlobally}
 ```
 
 **Request Body:**
@@ -245,7 +326,12 @@ PUT /avatar/update-avatar
 
 #### **Delete Avatar**
 ```http
-DELETE /avatar/delete-avatar/{id}
+POST /api/avatar/delete-avatar/{id}
+POST /api/avatar/delete-avatar/{id}/{providerType}/{setGlobally}
+POST /api/avatar/soft-delete-avatar/{id}
+POST /api/avatar/soft-delete-avatar/{id}/{providerType}/{setGlobally}
+POST /api/avatar/undelete-avatar/{id}
+POST /api/avatar/undelete-avatar/{id}/{providerType}/{setGlobally}
 ```
 
 **Parameters:**
@@ -255,11 +341,619 @@ DELETE /avatar/delete-avatar/{id}
 
 #### **Get Karma for Avatar**
 ```http
-GET /karma/get-karma-for-avatar/{id}
+GET /api/karma/get-karma-for-avatar/{avatarId}
+GET /api/karma/get-karma-for-avatar/{avatarId}/{providerType}/{setGlobally}
+```
+
+#### **Get Karma Akashic Records**
+```http
+GET /api/karma/get-karma-akashic-records-for-avatar/{avatarId}
+GET /api/karma/get-karma-akashic-records-for-avatar/{avatarId}/{providerType}/{setGlobally}
+```
+
+#### **Karma Weighting**
+```http
+GET /api/karma/get-positive-karma-weighting/{karmaType}
+GET /api/karma/get-positive-karma-weighting/{karmaType}/{providerType}/{setGlobally}
+GET /api/karma/get-negative-karma-weighting/{karmaType}
+GET /api/karma/get-negative-karma-weighting/{karmaType}/{providerType}/{setGlobally}
+```
+
+#### **Vote for Karma Weighting**
+```http
+POST /api/karma/vote-for-positive-karma-weighting/{karmaType}/{weighting}
+POST /api/karma/vote-for-positive-karma-weighting/{karmaType}/{weighting}/{providerType}/{setGlobally}
+POST /api/karma/vote-for-negative-karma-weighting/{karmaType}/{weighting}
+POST /api/karma/vote-for-negative-karma-weighting/{karmaType}/{weighting}/{providerType}/{setGlobally}
+```
+
+#### **Set Karma Weighting**
+```http
+POST /api/karma/set-positive-karma-weighting/{karmaType}/{weighting}
+POST /api/karma/set-positive-karma-weighting/{karmaType}/{weighting}/{providerType}/{setGlobally}
+POST /api/karma/set-negative-karma-weighting/{karmaType}/{weighting}
+POST /api/karma/set-negative-karma-weighting/{karmaType}/{weighting}/{providerType}/{setGlobally}
+```
+
+#### **Add/Remove Karma**
+```http
+POST /api/karma/add-karma-to-avatar/{avatarId}
+POST /api/karma/add-karma-to-avatar/{avatarId}/{providerType}/{setGlobally}
+POST /api/karma/remove-karma-from-avatar/{avatarId}
+POST /api/karma/remove-karma-from-avatar/{avatarId}/{providerType}/{setGlobally}
+```
+
+#### **Karma Statistics & History**
+```http
+GET /api/karma/get-karma-stats/{avatarId}
+GET /api/karma/get-karma-stats/{avatarId}/{providerType}/{setGlobally}
+GET /api/karma/get-karma-history/{avatarId}?limit=50&offset=0
+GET /api/karma/get-karma-history/{avatarId}/{providerType}/{setGlobally}?limit=50&offset=0
 ```
 
 **Parameters:**
-- `id` (string, required): Avatar UUID
+- `avatarId` (string, required): Avatar UUID
+
+### **Data API**
+
+#### **Holon Operations**
+```http
+POST /api/data/load-holon
+GET /api/data/load-holon/{id}
+GET /api/data/load-holon/{id}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}
+GET /api/data/load-holon/{id}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}
+GET /api/data/load-holon/{id}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}
+```
+
+#### **Load All Holons**
+```http
+POST /api/data/load-all-holons
+GET /api/data/load-all-holons/{holonType}
+GET /api/data/load-all-holons/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}
+GET /api/data/load-all-holons/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}
+GET /api/data/load-all-holons/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}
+```
+
+#### **Load Holons for Parent**
+```http
+POST /api/data/load-holons-for-parent
+GET /api/data/load-holons-for-parent/{id}/{holonType}
+GET /api/data/load-holons-for-parent/{id}/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}
+GET /api/data/load-holons-for-parent/{id}/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}
+GET /api/data/load-holons-for-parent/{id}/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}
+```
+
+#### **Save Holon**
+```http
+POST /api/data/save-holon
+POST /api/data/save-holon/{holon}
+POST /api/data/save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}
+POST /api/data/save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{providerType}/{setGlobally}
+POST /api/data/save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{AutoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}
+POST /api/data/save-holon-off-chain
+```
+
+#### **Delete Holon**
+```http
+DELETE /api/data/delete-holon
+DELETE /api/data/delete-holon/{id}
+DELETE /api/data/delete-holon/{id}/{softDelete}
+DELETE /api/data/delete-holon/{id}/{softDelete}/{providerType}/{setGlobally}
+DELETE /api/data/delete-holon/{id}/{softDelete}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}
+```
+
+#### **File Operations**
+```http
+POST /api/data/save-file
+GET /api/data/save-file/{data}
+GET /api/data/save-file/{data}/{providerType}/{setGlobally}
+GET /api/data/save-file/{data}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}
+POST /api/data/load-file
+GET /api/data/load-file/{id}
+GET /api/data/load-file/{id}/{providerType}/{setGlobally}
+GET /api/data/load-file/{id}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}
+```
+
+#### **Data Operations**
+```http
+POST /api/data/save-data
+GET /api/data/save-data/{key}/{value}
+GET /api/data/save-data/{key}/{value}/{providerType}/{setGlobally}
+GET /api/data/save-data/{key}/{value}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}
+POST /api/data/load-data
+GET /api/data/load-data/{key}/{value}
+GET /api/data/load-data/{key}/{value}/{providerType}/{setGlobally}
+GET /api/data/load-data/{key}/{value}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}
+```
+
+### **Wallet API**
+
+#### **Wallet Management**
+```http
+GET /api/wallet/avatar/{id}/wallets
+GET /api/wallet/avatar/username/{username}/wallets
+GET /api/wallet/avatar/email/{email}/wallets
+POST /api/wallet/avatar/{id}/wallets
+POST /api/wallet/avatar/username/{username}/wallets
+POST /api/wallet/avatar/email/{email}/wallets
+```
+
+#### **Default Wallet**
+```http
+GET /api/wallet/avatar/{id}/default-wallet
+GET /api/wallet/avatar/username/{username}/default-wallet
+GET /api/wallet/avatar/email/{email}/default-wallet
+POST /api/wallet/avatar/{id}/default-wallet/{walletId}
+POST /api/wallet/avatar/username/{username}/default-wallet/{walletId}
+POST /api/wallet/avatar/email/{email}/default-wallet/{walletId}
+```
+
+#### **Import Operations**
+```http
+POST /api/wallet/avatar/{avatarId}/import/private-key
+POST /api/wallet/avatar/username/{username}/import/private-key
+POST /api/wallet/avatar/email/{email}/import/private-key
+POST /api/wallet/avatar/{avatarId}/import/public-key
+POST /api/wallet/avatar/username/{username}/import/public-key
+POST /api/wallet/avatar/email/{email}/import/public-key
+```
+
+#### **Wallet Operations**
+```http
+GET /api/wallet/find-wallet
+GET /api/wallet/avatar/{avatarId}/portfolio/value
+GET /api/wallet/avatar/{avatarId}/wallets/chain/{chain}
+POST /api/wallet/transfer
+GET /api/wallet/avatar/{avatarId}/wallet/{walletId}/analytics
+GET /api/wallet/supported-chains
+GET /api/wallet/avatar/{avatarId}/wallet/{walletId}/tokens
+```
+
+### **Keys API**
+
+#### **Key Management**
+```http
+POST /api/keys/clear_cache
+POST /api/keys/link_provider_public_key_to_avatar_by_id
+POST /api/keys/link_provider_public_key_to_avatar_by_username
+POST /api/keys/link_provider_public_key_to_avatar_by_email
+POST /api/keys/link_provider_private_key_to_avatar_by_id
+POST /api/keys/link_provider_private_key_to_avatar_by_username
+POST /api/keys/link_provider_private_key_to_avatar_by_email
+```
+
+#### **Key Generation**
+```http
+POST /api/keys/generate_keypair_and_link_provider_keys_to_avatar_by_id
+POST /api/keys/generate_keypair_and_link_provider_keys_to_avatar_by_username
+POST /api/keys/generate_keypair_and_link_provider_keys_to_avatar_by_email
+POST /api/keys/generate_keypair_for_provider/{providerType}
+POST /api/keys/generate_keypair/{keyPrefix}
+```
+
+#### **Key Retrieval**
+```http
+GET /api/keys/get_provider_unique_storage_key_for_avatar_by_id
+GET /api/keys/get_provider_unique_storage_key_for_avatar_by_username
+GET /api/keys/get_provider_unique_storage_key_for_avatar_by_email
+GET /api/keys/get_provider_private_key_for_avatar_by_id
+GET /api/keys/get_provider_private_key_for_avatar_by_username
+GET /api/keys/get_provider_public_keys_for_avatar_by_id
+GET /api/keys/get_provider_public_keys_for_avatar_by_username
+GET /api/keys/get_provider_public_keys_for_avatar_by_email
+```
+
+#### **Key Operations**
+```http
+GET /api/keys/get_all_provider_public_keys_for_avatar_by_id/{id}
+GET /api/keys/get_all_provider_public_keys_for_avatar_by_username/{username}
+GET /api/keys/get_all_provider_private_keys_for_avatar_by_id/{id}
+GET /api/keys/get_all_provider_private_keys_for_avatar_by_username/{username}
+GET /api/keys/get_all_provider_unique_storage_keys_for_avatar_by_id/{id}
+GET /api/keys/get_all_provider_unique_storage_keys_for_avatar_by_username/{username}
+GET /api/keys/get_all_provider_unique_storage_keys_for_avatar_by_email/{email}
+```
+
+#### **Key Lookup**
+```http
+GET /api/keys/get_avatar_id_for_provider_unique_storage_key/{providerKey}
+GET /api/keys/get_avatar_username_for_provider_unique_storage_key/{providerKey}
+GET /api/keys/get_avatar_email_for_provider_unique_storage_key/{providerKey}
+GET /api/keys/get_avatar_for_provider_unique_storage_key/{providerKey}
+GET /api/keys/get_avatar_id_for_provider_public_key/{providerKey}
+GET /api/keys/get_avatar_username_for_provider_public_key/{providerKey}
+GET /api/keys/get_avatar_email_for_provider_public_key/{providerKey}
+GET /api/keys/get_avatar_for_provider_public_key/{providerKey}
+GET /api/keys/get_avatar_id_for_provider_private_key/{providerKey}
+GET /api/keys/get_avatar_username_for_provider_private_key/{providerKey}
+GET /api/keys/get_avatar_for_provider_private_key/{providerKey}
+```
+
+#### **WiFi Operations**
+```http
+POST /api/keys/get_private_wifi/{source}
+POST /api/keys/get_public_wifi
+POST /api/keys/decode_private_wif/{data}
+POST /api/keys/base58_check_decode/{data}
+POST /api/keys/encode_signature/{source}
+```
+
+#### **Key CRUD**
+```http
+GET /api/keys/all
+POST /api/keys/create
+PUT /api/keys/{keyId}
+DELETE /api/keys/{keyId}
+GET /api/keys/stats
+```
+
+### **Files API**
+
+#### **File Management**
+```http
+GET /api/files/get-all-files-stored-for-current-logged-in-avatar
+POST /api/files/upload-file
+GET /api/files/download-file/{fileId}
+DELETE /api/files/delete-file/{fileId}
+GET /api/files/file-metadata/{fileId}
+PUT /api/files/update-file-metadata/{fileId}
+```
+
+### **Chat API**
+
+#### **Chat Operations**
+```http
+POST /api/chat/start-new-chat-session
+POST /api/chat/send-message/{sessionId}
+GET /api/chat/history/{sessionId}
+```
+
+### **Competition API**
+
+#### **Competition Management**
+```http
+GET /api/competition/leaderboard/{competitionType}/{seasonType}
+GET /api/competition/my-rank/{competitionType}/{seasonType}
+GET /api/competition/rank/{avatarId}/{competitionType}/{seasonType}
+GET /api/competition/leagues/{competitionType}/{seasonType}
+GET /api/competition/my-league/{competitionType}/{seasonType}
+GET /api/competition/league/{avatarId}/{competitionType}/{seasonType}
+GET /api/competition/tournaments
+POST /api/competition/tournaments/{tournamentId}/join
+GET /api/competition/stats/{competitionType}/{seasonType}
+```
+
+### **Gifts API**
+
+#### **Gift Management**
+```http
+GET /api/gifts/my-gifts
+POST /api/gifts/send-gift/{toAvatarId}
+POST /api/gifts/receive-gift/{giftId}
+POST /api/gifts/open-gift/{giftId}
+GET /api/gifts/history
+GET /api/gifts/stats
+```
+
+### **Map API**
+
+#### **Map Operations**
+```http
+POST /api/map/CreateAndDrawRouteOnMapBetweenHolons/{holonDNA}
+POST /api/map/CreateAndDrawRouteOnMapBeweenPoints/{points}
+POST /api/map/Draw2DSpriteOnHUD/{sprite}/{x}/{y}
+POST /api/map/Draw2DSpriteOnMap/{sprite}/{x}/{y}
+POST /api/map/Draw3DObjectOnMap/{obj}/{x}/{y}
+POST /api/map/HighlightBuildingOnMap/{building}
+POST /api/map/PamMapDown/{value}
+POST /api/map/PamMapLeft/{value}
+POST /api/map/PamMapRight/{value}
+POST /api/map/PamMapUp/{value}
+POST /api/map/SelectBuildingOnMap/{building}
+POST /api/map/SelectHolonOnMap/{holon}
+POST /api/map/SelectQuestOnMap/{quest}
+POST /api/map/ZoomMapIn/{value}
+POST /api/map/ZoomMapOut/{value}
+POST /api/map/ZoomToHolonOnMap/{holon}
+POST /api/map/ZoomToQuestOnMap/{quest}
+GET /api/map/nearby
+POST /api/map/visit/{locationId}
+GET /api/map/visit-history
+GET /api/map/search-locations
+GET /api/map/stats
+```
+
+### **Messaging API**
+
+#### **Messaging Operations**
+```http
+POST /api/messaging/send-message-to-avatar/{toAvatarId}
+GET /api/messaging/messages
+GET /api/messaging/conversation/{otherAvatarId}
+POST /api/messaging/mark-messages-read
+GET /api/messaging/notifications
+POST /api/messaging/mark-notifications-read
+```
+
+### **NFT API**
+
+#### **NFT Operations**
+```http
+GET /api/nft
+POST /api/nft
+```
+
+### **OAPP API**
+
+#### **OAPP Management**
+```http
+GET /api/oapp
+POST /api/oapp
+```
+
+### **OLand API**
+
+#### **OLand Operations**
+```http
+GET /api/oland
+POST /api/oland
+```
+
+### **ONET API**
+
+#### **ONET Network Management**
+```http
+GET /api/onet/oasisdna
+PUT /api/onet/oasisdna
+GET /api/onet/network/status
+GET /api/onet/network/nodes
+POST /api/onet/network/connect
+POST /api/onet/network/disconnect
+GET /api/onet/network/stats
+POST /api/onet/network/start
+POST /api/onet/network/stop
+GET /api/onet/network/topology
+POST /api/onet/network/broadcast
+```
+
+### **ONODE API**
+
+#### **ONODE Management**
+```http
+GET /api/onode/oasisdna
+PUT /api/onode/oasisdna
+GET /api/onode/status
+GET /api/onode/info
+POST /api/onode/start
+POST /api/onode/stop
+POST /api/onode/restart
+GET /api/onode/metrics
+GET /api/onode/logs
+PUT /api/onode/config
+GET /api/onode/config
+GET /api/onode/peers
+GET /api/onode/stats
+```
+
+### **Provider API**
+
+#### **Provider Management**
+```http
+GET /api/provider/get-current-storage-provider
+GET /api/provider/get-current-storage-provider-type
+GET /api/provider/get-all-registered-providers
+GET /api/provider/get-all-registered-provider-types
+GET /api/provider/get-all-registered-providers-for-category/{category}
+GET /api/provider/get-all-registered-storage-providers
+GET /api/provider/get-all-registered-network-providers
+GET /api/provider/get-all-registered-renderer-providers
+GET /api/provider/get-registered-provider/{providerType}
+GET /api/provider/is-provider-registered/{providerType}
+GET /api/provider/get-providers-that-are-auto-replicating
+GET /api/provider/get-providers-that-have-auto-fail-over-enabled
+GET /api/provider/get-providers-that-have-auto-load-balance-enabled
+```
+
+#### **Provider Registration**
+```http
+POST /api/provider/register-provider/{provider}
+POST /api/provider/register-provider-type/{providerType}
+POST /api/provider/register-providers/{providers}
+POST /api/provider/register-provider-types/{providerTypes}
+POST /api/provider/unregister-provider/{provider}
+POST /api/provider/unregister-provider-type/{providerType}
+POST /api/provider/unregister-provider-types/{providerTypes}
+POST /api/provider/unregister-providers/{providers}
+```
+
+#### **Provider Configuration**
+```http
+POST /api/provider/set-and-activate-current-storage-provider/{providerType}/{setGlobally}
+POST /api/provider/activate-provider/{providerType}
+POST /api/provider/deactivate-provider/{providerType}
+POST /api/provider/set-auto-replicate-for-all-providers/{autoReplicate}
+POST /api/provider/set-auto-replicate-for-list-of-providers/{autoReplicate}/{providerTypes}
+POST /api/provider/set-auto-fail-over-for-all-providers/{addToFailOverList}
+POST /api/provider/set-auto-fail-over-for-list-of-providers/{addToFailOverList}/{providerTypes}
+POST /api/provider/set-auto-load-balance-for-all-providers/{addToLoadBalanceList}
+POST /api/provider/set-auto-load-balance-for-list-of-providers/{addToLoadBalanceList}/{providerTypes}
+POST /api/provider/set-provider-config/{providerType}/{connectionString}
+```
+
+### **Search API**
+
+#### **Search Operations**
+```http
+GET /api/search/{searchParams}
+GET /api/search/{searchParams}/{providerType}/{setGlobally}
+```
+
+### **Seeds API**
+
+#### **Seeds Operations**
+```http
+GET /api/seeds/get-all-organisations
+POST /api/seeds/pay-with-seeds-using-telos-account
+POST /api/seeds/pay-with-seeds-using-avatar
+POST /api/seeds/reward-with-seeds-using-telos-account
+POST /api/seeds/reward-with-seeds-using-avatar
+POST /api/seeds/donate-with-seeds-using-telos-account
+POST /api/seeds/donate-with-seeds-using-avatar
+POST /api/seeds/send-invite-to-join-seeds-using-telos-account
+POST /api/seeds/send-invite-to-join-seeds-using-avatar
+POST /api/seeds/accept-invite-to-join-seeds-using-telos-account
+POST /api/seeds/accept-invite-to-join-seeds-using-avatar
+```
+
+#### **Seeds Account Management**
+```http
+GET /api/seeds/get-telos-account-names-for-avatar
+GET /api/seeds/get-telos-account-private-key-for-avatar
+GET /api/seeds/get-telos-account
+GET /api/seeds/get-telos-account-for-avatar
+GET /api/seeds/get-avatar-id-for-telos-account-name
+GET /api/seeds/get-avatar-for-telos-account-name
+GET /api/seeds/get-balance-for-telos-account
+GET /api/seeds/get-balance-for-avatar
+GET /api/seeds/generate-seeds-passport-signin-qrcode
+GET /api/seeds/generate-seeds-passport-signin-qrcode-for-avatar
+```
+
+### **Settings API**
+
+#### **Settings Management**
+```http
+GET /api/settings/get-all-settings-for-current-logged-in-avatar
+GET /api/settings/hyperdrive-settings
+PUT /api/settings/hyperdrive-settings
+GET /api/settings/system-settings
+PUT /api/settings/system-settings
+GET /api/settings/subscription-settings
+PUT /api/settings/subscription-settings
+PUT /api/settings/update-settings
+GET /api/settings/notification-preferences
+PUT /api/settings/notification-preferences
+GET /api/settings/privacy-settings
+PUT /api/settings/privacy-settings
+GET /api/settings/version
+GET /api/settings/system-config
+```
+
+### **Share API**
+
+#### **Share Operations**
+```http
+GET /api/share/share-holon/{holonId}/{avatarId}
+GET /api/share/share-holon/{holonId}/{avatarIds}
+```
+
+### **Social API**
+
+#### **Social Operations**
+```http
+GET /api/social/social-feed
+POST /api/social/register-social-provider
+POST /api/social/share-holon
+GET /api/social/registered-providers
+```
+
+### **Solana API**
+
+#### **Solana Operations**
+```http
+POST /api/solana
+```
+
+### **Stats API**
+
+#### **Statistics**
+```http
+GET /api/stats/get-stats-for-current-logged-in-avatar
+GET /api/stats/karma-stats/{avatarId}
+GET /api/stats/karma-history/{avatarId}
+GET /api/stats/gift-stats/{avatarId}
+GET /api/stats/chat-stats/{avatarId}
+GET /api/stats/key-stats/{avatarId}
+GET /api/stats/leaderboard-stats/{avatarId}
+GET /api/stats/system-stats
+```
+
+### **Subscription API**
+
+#### **Subscription Management**
+```http
+GET /api/subscription/plans
+POST /api/subscription/checkout/session
+POST /api/subscription/webhooks/stripe
+GET /api/subscription/subscriptions/me
+GET /api/subscription/orders/me
+POST /api/subscription/toggle-pay-as-you-go
+GET /api/subscription/usage
+POST /api/subscription/update-hyperdrive-config
+GET /api/subscription/hyperdrive-usage
+POST /api/subscription/check-hyperdrive-quota
+```
+
+### **Telos API**
+
+#### **Telos Operations**
+```http
+GET /api/telos/get-telos-account-names-for-avatar
+GET /api/telos/get-telos-accoun-private-key-for-avatar
+GET /api/telos/get-telos-account
+GET /api/telos/get-telos-account-for-avatar
+GET /api/telos/get-avatar-id-for-telos-account-name
+GET /api/telos/get-avatar-for-telos-account-name
+GET /api/telos/get-balance-for-telos-account
+GET /api/telos/get-balance-for-avatar
+POST /api/telos/{avatarId}/{telosAccountName}
+```
+
+### **Video API**
+
+#### **Video Operations**
+```http
+POST /api/video/start-video-call
+POST /api/video/join-call/{callId}
+POST /api/video/end-call/{callId}
+```
+
+### **EOSIO API**
+
+#### **EOSIO Operations**
+```http
+GET /api/eosio/get-eosio-account-name-for-avatar
+GET /api/eosio/get-eosio-account-private-key-for-avatar
+GET /api/eosio/get-eosio-account
+GET /api/eosio/get-eosio-account-for-avatar
+GET /api/eosio/get-avatar-id-for-eosio-account-name
+GET /api/eosio/get-avatar-for-eosio-account-name
+GET /api/eosio/get-balance-for-eosio-account
+GET /api/eosio/get-balance-for-avatar
+POST /api/eosio/{avatarId}/{eosioAccountName}
+```
+
+### **Holochain API**
+
+#### **Holochain Operations**
+```http
+GET /api/holochain/get-holochain-agentids-for-avatar
+GET /api/holochain/get-holochain-agent-private-keys-for-avatar
+GET /api/holochain/get-avatar-id-for-holochain-agentid
+GET /api/holochain/get-avatar-for-holochain-agentid
+GET /api/holochain/get-holo-fuel-balance-for-agentId
+GET /api/holochain/get-holo-fuel-balance-for-avatar
+POST /api/holochain/{avatarId}/{holochainAgentId}
+```
+
+### **Eggs API**
+
+#### **Egg Operations**
+```http
+GET /api/eggs/get-all-eggs
+GET /api/eggs/get-current-egg-quests
+GET /api/eggs/get-current-egg-quest-leader-board
+```
 
 **Response:**
 ```json
