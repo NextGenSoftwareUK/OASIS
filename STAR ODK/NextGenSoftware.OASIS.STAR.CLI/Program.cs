@@ -2731,20 +2731,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplayCommand("reseed", "", "Redeploy/Republish a OAPP for the given {id} or {name} to the STARNET Store.");
                 DisplayCommand("dust", "", "Delete a OAPP for the given {id} or {name} (this will also remove it from STARNET if it has already been published).");
                 DisplayCommand("radiate", "", "Highlight the OAPP for the given {id} or {name} in the STARNET Store. *Admin/Wizards Only*");
-                // Add ONET/ONODE commands
-                DisplayCommand("onet status", "", "Shows stats for the OASIS Network (ONET).");
-                DisplayCommand("onet providers", "", "Shows what OASIS Providers are running across the ONET and on what ONODE's.");
-                DisplayCommand("onet discover", "", "Discovers available ONET nodes in the network.");
-                DisplayCommand("onet connect", "{nodeAddress}", "Connects to a specific ONET node.");
-                DisplayCommand("onet disconnect", "{nodeAddress}", "Disconnects from a specific ONET node.");
-                DisplayCommand("onet topology", "", "Shows the ONET network topology and connections.");
-                DisplayCommand("onode start", "", "Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).");
-                DisplayCommand("onode stop", "", "Stops a OASIS Node (ONODE).");
-                DisplayCommand("onode status", "", "Shows stats for this ONODE.");
-                DisplayCommand("onode config", "", "Opens the ONODE's OASISDNA to allow changes to be made.");
-                DisplayCommand("onode providers", "", "Shows what OASIS Providers are running for this ONODE.");
-                DisplayCommand("onode startprovider", "{ProviderName}", "Starts a given provider.");
-                DisplayCommand("onode stopprovider", "{ProviderName}", "Stops a given provider.");
+                DisplayCommand("emit", "{id/name}", "Show how much light the OAPP is emitting into the solar system for the given {id} or {name} (this is determined by the collective karma score of all users of that OAPP).");
+                DisplayCommand("reflect", "{id/name}", "Show stats of the OAPP for the given {id} or {name}.");
+                DisplayCommand("evolve", "{id/name}", "Upgrade/update a OAPP for the given {id} or {name}.");
+                DisplayCommand("mutate", "{id/name}", "Import/Export hApp, dApp & others for the given {id} or {name}.");
+                DisplayCommand("love", "{id/username}", "Send/Receive Love for the given {id} or {username}.");
+                DisplayCommand("burst", "", "View network stats/management/settings.");
+                DisplayCommand("super", "", "Reserved For Future Use...");
+                DisplayCommand("net", "", "Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
+                DisplayCommand("gate", "", "Opens the STARGATE to the OASIS Portal!");
+                DisplayCommand("api", "[oasis]", "Opens the WEB5 STAR API (if oasis is included then it will open the WEB4 OASIS API instead).");
+
+
 
                 DisplaySTARNETHolonCommands("oapp", createDesc: "Shortcut to the light sub-command.", publishDesc: "Shortcut to the seed sub-command.", unpublishDesc: "Shortcut to the un-seed sub-command.", republishDesc: "Shortcut to the re-seed sub-command.");
                 DisplaySTARNETHolonCommands("oapp template");
@@ -2784,6 +2782,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplaySTARNETHolonCommands("inventoryitem");
                 DisplaySTARNETHolonCommands("plugin");
 
+                DisplayCommand("onet status", "", "Shows stats for the OASIS Network (ONET).");
+                DisplayCommand("onet providers", "", "Shows what OASIS Providers are running across the ONET and on what ONODE's.");
+                DisplayCommand("onet discover", "", "Discovers available ONET nodes in the network.");
+                DisplayCommand("onet connect", "{nodeAddress}", "Connects to a specific ONET node.");
+                DisplayCommand("onet disconnect", "{nodeAddress}", "Disconnects from a specific ONET node.");
+                DisplayCommand("onet topology", "", "Shows the ONET network topology and connections.");
+                DisplayCommand("onode start", "", "Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).");
+                DisplayCommand("onode stop", "", "Stops a OASIS Node (ONODE).");
+                DisplayCommand("onode status", "", "Shows stats for this ONODE.");
+                DisplayCommand("onode config", "", "Opens the ONODE's OASISDNA to allow changes to be made.");
+                DisplayCommand("onode providers", "", "Shows what OASIS Providers are running for this ONODE.");
+                DisplayCommand("onode startprovider", "{ProviderName}", "Starts a given provider.");
+                DisplayCommand("onode stopprovider", "{ProviderName}", "Stops a given provider.");
+
+
 
 
                 //Console.WriteLine("    light                                         {OAPPName} {OAPPDesc} {OAPPType}          Creates a new OAPP (Zomes/Holons/Star/Planet/Moon) at the given genesis folder location, from the given OAPP DNA.");
@@ -2808,17 +2821,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 //Console.WriteLine("    radiate                                       {id/name}                                 Highlight the OAPP for the given {id} or {name} in the STARNET Store. *Admin/Wizards Only*");
 
                 // Converted commands to DisplayCommand format
-                DisplayCommand("emit", "{id/name}", "Show how much light the OAPP is emitting into the solar system for the given {id} or {name} (this is determined by the collective karma score of all users of that OAPP).");
-                DisplayCommand("reflect", "{id/name}", "Show stats of the OAPP for the given {id} or {name}.");
-                DisplayCommand("evolve", "{id/name}", "Upgrade/update a OAPP for the given {id} or {name}.");
-                DisplayCommand("mutate", "{id/name}", "Import/Export hApp, dApp & others for the given {id} or {name}.");
-                DisplayCommand("love", "{id/username}", "Send/Receive Love for the given {id} or {username}.");
-                DisplayCommand("burst", "", "View network stats/management/settings.");
-                DisplayCommand("super", "", "Reserved For Future Use...");
-                DisplayCommand("net", "", "Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
-                DisplayCommand("gate", "", "Opens the STARGATE to the OASIS Portal!");
-                DisplayCommand("api", "[oasis]", "Opens the WEB5 STAR API (if oasis is included then it will open the WEB4 OASIS API instead).");
-                
+                                
                 // Original Console.WriteLine commands (commented out for verification)
                 //Console.WriteLine("    emit                                          {id/name}                                 Show how much light the OAPP is emitting into the solar system for the given {id} or {name}");
                 //Console.WriteLine("                                                                                            (this is determined by the collective karma score of all users of that OAPP).");
