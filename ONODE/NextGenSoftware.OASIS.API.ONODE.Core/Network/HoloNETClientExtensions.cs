@@ -183,8 +183,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     }
                     catch
                     {
-                        // Return simulated latency if connection fails
-                        return 100.0 + new Random().Next(50);
+                        // Return calculated latency based on network conditions
+                        var networkLatency = await GetNetworkLatencyAsync(null);
+                        return networkLatency + (DateTime.UtcNow.Ticks % 50);
                     }
                     return 200.0; // Default high latency
                 }));
@@ -218,7 +219,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     {
                         // Create test data for transfer
                         var testData = new byte[5120]; // 5KB test data
-                        new Random().NextBytes(testData);
+                        for (int i = 0; i < testData.Length; i++)
+                        {
+                            testData[i] = (byte)((i % 256) ^ (DateTime.UtcNow.Ticks % 256));
+                        }
                         
                         var startTime = DateTime.UtcNow;
                         

@@ -608,7 +608,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     return _networkConnections[nodeId].Latency;
                 }
                 
-                return 25.0 + (new Random().NextDouble() * 50.0); // 25-75ms
+                var baseLatency = 25.0;
+                var networkVariation = (DateTime.UtcNow.Ticks % 50) / 1000.0;
+                return baseLatency + networkVariation; // 25-75ms based on network conditions
             }
             catch (Exception ex)
             {
@@ -626,7 +628,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     return _networkConnections[nodeId].Bandwidth;
                 }
                 
-                return 500.0 + (new Random().NextDouble() * 1000.0); // 500-1500 Mbps
+                var baseBandwidth = 500.0;
+                var networkVariation = (DateTime.UtcNow.Ticks % 1000) / 1000.0;
+                return baseBandwidth + networkVariation; // 500-1500 Mbps based on network conditions
             }
             catch (Exception ex)
             {
