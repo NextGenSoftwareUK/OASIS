@@ -44,14 +44,14 @@ public class MyService
 ```
 
 ### **Interface Examples:**
-- Use `ICelestialBody` not `CelestialBody`
-- Use `IHolon` not `Holon`
-- Use `IZome` not `Zome`
-- Use `IQuest` not `Quest`
-- Use `IChapter` not `Chapter`
-- Use `IPark` not `Park`
-- Use `IGeoHotSpot` not `GeoHotSpot`
-- Use `ISTARGeoNFT` not `STARGeoNFT`
+- Use `ICelestialBody` not `CelestialBody` ✅ (exists)
+- Use `IHolon` not `Holon` ✅ (exists)
+- Use `IZome` not `Zome` ✅ (exists)
+- Use `IQuest` not `Quest` ✅ (exists)
+- Use `IAvatar` not `Avatar` ✅ (exists)
+- Use `IOASISNFTCollection` not `OASISNFTCollection` ✅ (exists)
+- Use `ISemanticHolon` not `SemanticHolon` ✅ (exists)
+- Use `IHolonBase` not `HolonBase` ✅ (exists)
 
 ---
 
@@ -61,7 +61,7 @@ public class MyService
 
 #### 1. **Unit Tests**
 ```csharp
-[Test]
+[TestMethod]
 public void MyMethod_WithValidInput_ShouldReturnExpectedResult()
 {
     // Arrange
@@ -77,7 +77,7 @@ public void MyMethod_WithValidInput_ShouldReturnExpectedResult()
 
 #### 2. **Integration Tests**
 ```csharp
-[Test]
+[TestMethod]
 public async Task API_Endpoint_ShouldReturnCorrectResponse()
 {
     // Arrange
@@ -87,7 +87,7 @@ public async Task API_Endpoint_ShouldReturnCorrectResponse()
     var response = await client.GetAsync("/api/endpoint");
     
     // Assert
-    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 }
 ```
 
