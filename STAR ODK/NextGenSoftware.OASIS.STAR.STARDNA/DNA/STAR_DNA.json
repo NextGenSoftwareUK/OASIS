@@ -110,6 +110,18 @@
     "DefaultGeoNFTsDownloadedPath": "GeoNFTs\\Downloaded",
     "DefaultGeoNFTsInstalledPath": "GeoNFTs\\Installed",
 
+    //NFT Collections are collections of OASIS NFTs that can be used to represent unique items, assets or collectibles in the Omniverse/OASIS/Our World.
+    "DefaultNFTCollectionsSourcePath": "NFTCollections\\Source",
+    "DefaultNFTCollectiovsPublishedPath": "NFTCollections\\Published",
+    "DefaultNFTCollectiosDownloadedPath": "NFTCollections\\Downloaded",
+    "DefaultNFTCollectiosInstalledPath": "NFTCollections\\Installed",
+
+    //GeoNFT Collections are collections of GeoNFTs that can be used to represent unique geographical locations or assets in the Omniverse/OASIS/Our World. (GeoNFTs can be created from OASIS NFT Collections).
+    "DefaultGeoNFTCollectiosSourcePath": "GeoNFTCollections\\Source",
+    "DefaultGeoNFTCollectiosPublishedPath": "GeoNFTCollections\\Published",
+    "DefaultGeoNFTCollectiosDownloadedPath": "GeoNFTCollections\\Downloaded",
+    "DefaultGeoNFTCollectiosInstalledPath": "GeoNFTCollections\\Installed",
+
     //GeoHotSpots are special geolocations within Our World/Omniverse that can be triggered when you arrive at the location, when you activate AR mode or interact with a virtual object at that location.
     "DefaultGeoHotSpotsSourcePath": "GeoHotSpots\\Source",
     "DefaultGeoHotSpotsPublishedPath": "GeoHotSpots\\Published",
