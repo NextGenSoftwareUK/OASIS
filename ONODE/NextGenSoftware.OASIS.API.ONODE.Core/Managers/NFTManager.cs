@@ -23,6 +23,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
@@ -2199,7 +2200,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<List<INFTTransactionRespone>>> MintNFTBatchAsync(List<IMintNFTTransactionRequest> requests, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             var result = new OASISResult<List<INFTTransactionRespone>>();
-            
+            string errorMessage = "Error occured in MintNFTBatchAsync in NFTManager. Reason:";
+
             try
             {
                 if (requests == null || !requests.Any())
@@ -2224,17 +2226,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         try
                         {
-                            var mintResult = await MintNFTAsync(request, responseFormatType);
+                            OASISResult<IOASISNFT> mintResult = await MintNFTAsync(request, responseFormatType);
                             if (mintResult.IsError)
                             {
                                 Interlocked.Increment(ref failedMints);
-                                return new NFTTransactionRespone
-                                {
-                                    IsError = true,
-                                    Message = mintResult.Message,
-                                    TransactionHash = string.Empty,
-                                    NFTTokenAddress = string.Empty
-                                };
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling MintNFTAsync. Reason: {mintResult.Message}", true);
+                                
+                                //return new NFTTransactionRespone
+                                //{
+                                //    IsError = true,
+                                //    Message = mintResult.Message,
+                                //    TransactionHash = string.Empty,
+                                //    NFTTokenAddress = string.Empty
+                                //};
                             }
                             else
                             {
@@ -2245,13 +2249,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         catch (Exception ex)
                         {
                             Interlocked.Increment(ref failedMints);
-                            return new NFTTransactionRespone
-                            {
-                                IsError = true,
-                                Message = $"Error minting NFT: {ex.Message}",
-                                TransactionHash = string.Empty,
-                                NFTTokenAddress = string.Empty
-                            };
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling MintNFTAsync. Reason: {ex}", true);
+
+                            //return new NFTTransactionRespone
+                            //{
+                            //    IsError = true,
+                            //    Message = $"Error minting NFT: {ex.Message}",
+                            //    TransactionHash = string.Empty,
+                            //    NFTTokenAddress = string.Empty
+                            //};
                         }
                     });
                     
