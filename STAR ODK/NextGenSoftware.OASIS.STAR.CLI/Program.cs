@@ -2390,43 +2390,49 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 {
                     case "start":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await StartONODEAsync();
                         }
                         break;
 
                     case "stop":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await StopONODEAsync();
                         }
                         break;
 
                     case "status":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await ShowONODEStatusAsync();
                         }
                         break;
 
                     case "config":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await OpenONODEConfigAsync();
                         }
                         break;
 
                     case "providers":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await ShowONODEProvidersAsync();
                         }
                         break;
 
                     case "startprovider":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            if (inputArgs.Length > 2)
+                                await StartONODEProviderAsync(inputArgs[2]);
+                            else
+                                CLIEngine.ShowErrorMessage("Please specify provider name: startprovider {ProviderName}");
                         }
                         break;
 
                     case "stopprovider":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            if (inputArgs.Length > 2)
+                                await StopONODEProviderAsync(inputArgs[2]);
+                            else
+                                CLIEngine.ShowErrorMessage("Please specify provider name: stopprovider {ProviderName}");
                         }
                         break;
 
@@ -2507,13 +2513,43 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 {
                     case "status":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await ShowONETStatusAsync();
                         }
                         break;
 
                     case "providers":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await ShowONETProvidersAsync();
+                        }
+                        break;
+
+                    case "discover":
+                        {
+                            await DiscoverONETNodesAsync();
+                        }
+                        break;
+
+                    case "connect":
+                        {
+                            if (inputArgs.Length > 2)
+                                await ConnectToONETNodeAsync(inputArgs[2]);
+                            else
+                                CLIEngine.ShowErrorMessage("Please specify node address: connect {NodeAddress}");
+                        }
+                        break;
+
+                    case "disconnect":
+                        {
+                            if (inputArgs.Length > 2)
+                                await DisconnectFromONETNodeAsync(inputArgs[2]);
+                            else
+                                CLIEngine.ShowErrorMessage("Please specify node address: disconnect {NodeAddress}");
+                        }
+                        break;
+
+                    case "topology":
+                        {
+                            await ShowONETTopologyAsync();
                         }
                         break;
 
@@ -2527,8 +2563,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"ONET SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    status     Shows stats for the OASIS Network (ONET).", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    providers  Shows what OASIS Providers are running across the ONET and on what ONODE's.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    status      Shows stats for the OASIS Network (ONET).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    providers   Shows what OASIS Providers are running across the ONET and on what ONODE's.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    discover    Discovers available ONET nodes in the network.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    connect     Connects to a specific ONET node.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    disconnect  Disconnects from a specific ONET node.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    topology    Shows the ONET network topology and connections.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -3537,5 +3577,433 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         {
             DisplayCommand(holonType, "", $" Create, edit, clone delete, publish, unpublish, install, uninstall, list & show {holonType}'s.");
         }
+
+        #region ONET/ONODE CLI Implementation
+
+        private static ONETManager? _onetManager;
+        private static ONETProtocol? _onetProtocol;
+        private static ONETDiscovery? _onetDiscovery;
+
+        private static async Task InitializeONETAsync()
+        {
+            try
+            {
+                if (_onetManager == null)
+                {
+                    CLIEngine.ShowWorkingMessage("Initializing ONET Manager...");
+                    _onetManager = new ONETManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    _onetProtocol = new ONETProtocol(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    _onetDiscovery = new ONETDiscovery(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    await _onetDiscovery.InitializeAsync();
+                    CLIEngine.ShowSuccessMessage("ONET Manager initialized successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error initializing ONET: {ex.Message}");
+            }
+        }
+
+        #region ONODE Commands
+
+        private static async Task StartONODEAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Starting ONODE...");
+                
+                var result = await _onetManager!.StartNetworkAsync();
+                if (result.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to start ONODE: {result.Message}");
+                }
+                else
+                {
+                    CLIEngine.ShowSuccessMessage($"ONODE started successfully. Node ID: {result.Result}");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error starting ONODE: {ex.Message}");
+            }
+        }
+
+        private static async Task StopONODEAsync()
+        {
+            try
+            {
+                if (_onetManager == null)
+                {
+                    CLIEngine.ShowErrorMessage("ONODE is not running");
+                    return;
+                }
+
+                CLIEngine.ShowWorkingMessage("Stopping ONODE...");
+                var result = await _onetManager.StopNetworkAsync();
+                if (result.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to stop ONODE: {result.Message}");
+                }
+                else
+                {
+                    CLIEngine.ShowSuccessMessage("ONODE stopped successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error stopping ONODE: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowONODEStatusAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Getting ONODE status...");
+
+                var statusResult = await _onetManager!.GetNetworkStatusAsync();
+                if (statusResult.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to get ONODE status: {statusResult.Message}");
+                    return;
+                }
+
+                var status = statusResult.Result;
+                Console.WriteLine();
+                CLIEngine.ShowMessage("=== ONODE STATUS ===", ConsoleColor.Green);
+                CLIEngine.ShowMessage($"Node ID: {status.NodeId}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Status: {status.Status}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Connected Nodes: {status.ConnectedNodesCount}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Network Health: {status.NetworkHealth:P1}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Uptime: {status.Uptime}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Last Activity: {status.LastActivity}", ConsoleColor.White);
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error getting ONODE status: {ex.Message}");
+            }
+        }
+
+        private static async Task OpenONODEConfigAsync()
+        {
+            try
+            {
+                CLIEngine.ShowWorkingMessage("Opening ONODE configuration...");
+                
+                var configPath = Path.Combine(Environment.CurrentDirectory, "OASISDNA.json");
+                if (File.Exists(configPath))
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = configPath,
+                        UseShellExecute = true
+                    });
+                    CLIEngine.ShowSuccessMessage("ONODE configuration opened in default editor");
+                }
+                else
+                {
+                    CLIEngine.ShowErrorMessage("OASISDNA.json configuration file not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error opening ONODE configuration: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowONODEProvidersAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Getting ONODE providers...");
+
+                var providersResult = await _onetManager!.GetActiveProvidersAsync();
+                if (providersResult.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to get ONODE providers: {providersResult.Message}");
+                    return;
+                }
+
+                var providers = providersResult.Result;
+                Console.WriteLine();
+                CLIEngine.ShowMessage("=== ONODE PROVIDERS ===", ConsoleColor.Green);
+                
+                if (providers.Any())
+                {
+                    foreach (var provider in providers)
+                    {
+                        CLIEngine.ShowMessage($"• {provider.ProviderType} - {provider.Status} (Health: {provider.HealthScore:P1})", ConsoleColor.White);
+                    }
+                }
+                else
+                {
+                    CLIEngine.ShowMessage("No active providers found", ConsoleColor.Yellow);
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error getting ONODE providers: {ex.Message}");
+            }
+        }
+
+        private static async Task StartONODEProviderAsync(string providerName)
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage($"Starting provider: {providerName}...");
+
+                if (Enum.TryParse<ProviderType>(providerName, true, out var providerType))
+                {
+                    var result = await _onetManager!.StartProviderAsync(providerType);
+                    if (result.IsError)
+                    {
+                        CLIEngine.ShowErrorMessage($"Failed to start provider {providerName}: {result.Message}");
+                    }
+                    else
+                    {
+                        CLIEngine.ShowSuccessMessage($"Provider {providerName} started successfully");
+                    }
+                }
+                else
+                {
+                    CLIEngine.ShowErrorMessage($"Unknown provider type: {providerName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error starting provider {providerName}: {ex.Message}");
+            }
+        }
+
+        private static async Task StopONODEProviderAsync(string providerName)
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage($"Stopping provider: {providerName}...");
+
+                if (Enum.TryParse<ProviderType>(providerName, true, out var providerType))
+                {
+                    var result = await _onetManager!.StopProviderAsync(providerType);
+                    if (result.IsError)
+                    {
+                        CLIEngine.ShowErrorMessage($"Failed to stop provider {providerName}: {result.Message}");
+                    }
+                    else
+                    {
+                        CLIEngine.ShowSuccessMessage($"Provider {providerName} stopped successfully");
+                    }
+                }
+                else
+                {
+                    CLIEngine.ShowErrorMessage($"Unknown provider type: {providerName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error stopping provider {providerName}: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region ONET Commands
+
+        private static async Task ShowONETStatusAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Getting ONET network status...");
+
+                var statusResult = await _onetManager!.GetNetworkStatusAsync();
+                if (statusResult.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to get ONET status: {statusResult.Message}");
+                    return;
+                }
+
+                var status = statusResult.Result;
+                Console.WriteLine();
+                CLIEngine.ShowMessage("=== ONET NETWORK STATUS ===", ConsoleColor.Green);
+                CLIEngine.ShowMessage($"Network Status: {status.Status}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Total Nodes: {status.ConnectedNodesCount}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Network Health: {status.NetworkHealth:P1}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Network Latency: {status.NetworkLatency}ms", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Network Throughput: {status.NetworkThroughput} MB/s", ConsoleColor.White);
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error getting ONET status: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowONETProvidersAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Getting ONET network providers...");
+
+                var providersResult = await _onetManager!.GetActiveProvidersAsync();
+                if (providersResult.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to get ONET providers: {providersResult.Message}");
+                    return;
+                }
+
+                var providers = providersResult.Result;
+                Console.WriteLine();
+                CLIEngine.ShowMessage("=== ONET NETWORK PROVIDERS ===", ConsoleColor.Green);
+                
+                if (providers.Any())
+                {
+                    foreach (var provider in providers)
+                    {
+                        CLIEngine.ShowMessage($"• {provider.ProviderType} - {provider.Status} (Health: {provider.HealthScore:P1})", ConsoleColor.White);
+                        CLIEngine.ShowMessage($"  Endpoint: {provider.Endpoint}", ConsoleColor.Gray);
+                        CLIEngine.ShowMessage($"  Last Activity: {provider.LastActivity}", ConsoleColor.Gray);
+                    }
+                }
+                else
+                {
+                    CLIEngine.ShowMessage("No active providers found in ONET network", ConsoleColor.Yellow);
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error getting ONET providers: {ex.Message}");
+            }
+        }
+
+        private static async Task DiscoverONETNodesAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Discovering ONET nodes...");
+
+                var discoveryResult = await _onetDiscovery!.DiscoverAvailableNodesAsync();
+                if (discoveryResult.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to discover nodes: {discoveryResult.Message}");
+                    return;
+                }
+
+                var nodes = discoveryResult.Result;
+                Console.WriteLine();
+                CLIEngine.ShowMessage("=== DISCOVERED ONET NODES ===", ConsoleColor.Green);
+                
+                if (nodes.Any())
+                {
+                    foreach (var node in nodes)
+                    {
+                        CLIEngine.ShowMessage($"• {node.Id} - {node.Address}", ConsoleColor.White);
+                        CLIEngine.ShowMessage($"  Status: {node.Status} | Latency: {node.Latency}ms | Reliability: {node.Reliability}%", ConsoleColor.Gray);
+                        CLIEngine.ShowMessage($"  Capabilities: {string.Join(", ", node.Capabilities)}", ConsoleColor.Gray);
+                    }
+                }
+                else
+                {
+                    CLIEngine.ShowMessage("No ONET nodes discovered", ConsoleColor.Yellow);
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error discovering ONET nodes: {ex.Message}");
+            }
+        }
+
+        private static async Task ConnectToONETNodeAsync(string nodeAddress)
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage($"Connecting to ONET node: {nodeAddress}...");
+
+                var result = await _onetManager!.ConnectToNodeAsync(nodeAddress);
+                if (result.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to connect to node {nodeAddress}: {result.Message}");
+                }
+                else
+                {
+                    CLIEngine.ShowSuccessMessage($"Successfully connected to ONET node: {nodeAddress}");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error connecting to ONET node {nodeAddress}: {ex.Message}");
+            }
+        }
+
+        private static async Task DisconnectFromONETNodeAsync(string nodeAddress)
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage($"Disconnecting from ONET node: {nodeAddress}...");
+
+                var result = await _onetManager!.DisconnectFromNodeAsync(nodeAddress);
+                if (result.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to disconnect from node {nodeAddress}: {result.Message}");
+                }
+                else
+                {
+                    CLIEngine.ShowSuccessMessage($"Successfully disconnected from ONET node: {nodeAddress}");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error disconnecting from ONET node {nodeAddress}: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowONETTopologyAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Getting ONET network topology...");
+
+                var topologyResult = await _onetManager!.GetNetworkTopologyAsync();
+                if (topologyResult.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to get network topology: {topologyResult.Message}");
+                    return;
+                }
+
+                var topology = topologyResult.Result;
+                Console.WriteLine();
+                CLIEngine.ShowMessage("=== ONET NETWORK TOPOLOGY ===", ConsoleColor.Green);
+                CLIEngine.ShowMessage($"Total Nodes: {topology.TotalNodes}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Connected Nodes: {topology.ConnectedNodes}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Network Diameter: {topology.NetworkDiameter}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Average Latency: {topology.AverageLatency}ms", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Network Efficiency: {topology.NetworkEfficiency:P1}", ConsoleColor.White);
+                
+                if (topology.NodeConnections.Any())
+                {
+                    CLIEngine.ShowMessage("\nNode Connections:", ConsoleColor.Yellow);
+                    foreach (var connection in topology.NodeConnections)
+                    {
+                        CLIEngine.ShowMessage($"• {connection.SourceNode} ↔ {connection.TargetNode} (Latency: {connection.Latency}ms)", ConsoleColor.Gray);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error getting ONET topology: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #endregion
     }
 }

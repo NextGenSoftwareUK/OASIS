@@ -2193,7 +2193,88 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
 
-        //TODO: Implement batch minting!
+        /// <summary>
+        /// Mint multiple NFTs in a single batch operation for improved efficiency
+        /// </summary>
+        public async Task<OASISResult<List<INFTTransactionRespone>>> MintNFTBatchAsync(List<IMintNFTTransactionRequest> requests, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
+        {
+            var result = new OASISResult<List<INFTTransactionRespone>>();
+            
+            try
+            {
+                if (requests == null || !requests.Any())
+                {
+                    OASISErrorHandling.HandleError(ref result, "No NFT mint requests provided");
+                    return result;
+                }
+
+                CLIEngine.ShowWorkingMessage($"Starting batch minting of {requests.Count} NFTs...");
+                
+                var batchResults = new List<INFTTransactionRespone>();
+                var successfulMints = 0;
+                var failedMints = 0;
+                
+                // Process NFTs in parallel batches for optimal performance
+                var batchSize = Math.Min(10, requests.Count); // Process up to 10 NFTs concurrently
+                var batches = requests.Chunk(batchSize);
+                
+                foreach (var batch in batches)
+                {
+                    var batchTasks = batch.Select(async request =>
+                    {
+                        try
+                        {
+                            var mintResult = await MintNFTAsync(request, responseFormatType);
+                            if (mintResult.IsError)
+                            {
+                                Interlocked.Increment(ref failedMints);
+                                return new NFTTransactionRespone
+                                {
+                                    IsError = true,
+                                    Message = mintResult.Message,
+                                    TransactionHash = string.Empty,
+                                    NFTTokenAddress = string.Empty
+                                };
+                            }
+                            else
+                            {
+                                Interlocked.Increment(ref successfulMints);
+                                return mintResult.Result;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Interlocked.Increment(ref failedMints);
+                            return new NFTTransactionRespone
+                            {
+                                IsError = true,
+                                Message = $"Error minting NFT: {ex.Message}",
+                                TransactionHash = string.Empty,
+                                NFTTokenAddress = string.Empty
+                            };
+                        }
+                    });
+                    
+                    var batchResults = await Task.WhenAll(batchTasks);
+                    batchResults.AddRange(batchResults);
+                    
+                    // Brief pause between batches to prevent overwhelming the network
+                    await Task.Delay(100);
+                }
+                
+                result.Result = batchResults;
+                result.IsError = false;
+                result.Message = $"Batch minting completed: {successfulMints} successful, {failedMints} failed";
+                
+                CLIEngine.ShowSuccessMessage($"Batch minting completed: {successfulMints} successful, {failedMints} failed");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error during batch minting: {ex.Message}", ex);
+            }
+            
+            return result;
+        }
         private async Task<OASISResult<INFTTransactionRespone>> MintNFTInternalAsync(IMintNFTTransactionRequest request, NFTStandardType NFTStandardType, EnumValue<ProviderType> metaDataProviderType, OASISResult<IOASISNFTProvider> nftProviderResult, OASISResult<INFTTransactionRespone> result, string errorMessage, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText)
         {
             OASISResult<IHolon> jsonSaveResult = null;
