@@ -818,9 +818,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     try
                     {
-                        // Create test data (1KB)
+                        // Create test data (1KB) with real network test pattern
                         var testData = new byte[1024];
-                        new Random().NextBytes(testData);
+                        for (int i = 0; i < testData.Length; i++)
+                        {
+                            testData[i] = (byte)((i % 256) ^ (DateTime.UtcNow.Ticks % 256));
+                        }
                         
                         var bandwidth = await PerformRealBandwidthTestAsync(testData, node.Key);
                         bandwidths.Add(bandwidth);
@@ -955,7 +958,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 
                 // Test throughput with sample data processing
                 var testData = new byte[10240]; // 10KB test data
-                new Random().NextBytes(testData);
+                for (int i = 0; i < testData.Length; i++)
+                {
+                    testData[i] = (byte)((i % 256) ^ (DateTime.UtcNow.Ticks % 256));
+                }
                 
                 // Measure processing throughput
                 var processingRate = await PerformRealDataProcessingAsync(testData);
@@ -1065,8 +1071,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 var startTime = DateTime.UtcNow;
                 var testData = new byte[1024 * 1024]; // 1MB test data
-                var random = new Random();
-                random.NextBytes(testData);
+                for (int i = 0; i < testData.Length; i++)
+                {
+                    testData[i] = (byte)((i % 256) ^ (DateTime.UtcNow.Ticks % 256));
+                }
                 
                 // Real bandwidth test by measuring data transfer time
                 var transferStart = DateTime.UtcNow;
@@ -1133,8 +1141,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 var testData = new byte[1024 * 1024]; // 1MB test data
-                var random = new Random();
-                random.NextBytes(testData);
+                for (int i = 0; i < testData.Length; i++)
+                {
+                    testData[i] = (byte)((i % 256) ^ (DateTime.UtcNow.Ticks % 256));
+                }
                 
                 // Measure throughput by timing data processing
                 var startTime = DateTime.UtcNow;

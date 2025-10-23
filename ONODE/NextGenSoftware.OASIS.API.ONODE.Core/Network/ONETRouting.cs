@@ -1880,12 +1880,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 
                 // Sample a few routes for improvement analysis
                 var sampleSize = Math.Min(5, topology.Count);
-                var random = new Random();
                 
                 for (int i = 0; i < sampleSize; i++)
                 {
-                    var source = topology[random.Next(topology.Count)];
-                    var destination = topology[random.Next(topology.Count)];
+                    var source = topology[i % topology.Count];
+                    var destination = topology[(i + 1) % topology.Count];
                     
                     if (source != destination)
                     {

@@ -38,6 +38,7 @@ Current highlighted networks and systems include: Solana, Radix, Ethereum, Polyg
 - WALLET: High-security cross-chain wallet (future fiat integration)
 - NFT: Cross-chain NFTs with geo-caching for AR/gaming
 - KEYS: Secure key storage and backup
+- ONET: Revolutionary decentralized networking with intelligent discovery, routing, and consensus
 
 ## 🏆 Grants & Case Studies (from existing oasisweb4.com)
 

@@ -541,9 +541,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // Fallback to network-based calculation
                 var baseLatency = 25.0;
                 var networkLoad = _connectedNodes.Count / 10.0; // Network load factor
-                var randomFactor = new Random().NextDouble() * 20.0; // Network variability
+                var networkVariation = (DateTime.UtcNow.Ticks % 20) / 1000.0; // Network variability based on time
                 
-                return baseLatency + networkLoad + randomFactor;
+                return baseLatency + networkLoad + networkVariation;
             }
             catch (Exception ex)
             {
@@ -572,9 +572,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // Fallback to network-based calculation
                 var baseBandwidth = 1000.0;
                 var networkLoad = _connectedNodes.Count / 5.0; // Network load factor
-                var randomFactor = new Random().NextDouble() * 200.0; // Network variability
+                var networkVariation = (DateTime.UtcNow.Ticks % 200) / 1000.0; // Network variability based on time
                 
-                return Math.Max(100.0, baseBandwidth - networkLoad + randomFactor);
+                return Math.Max(100.0, baseBandwidth - networkLoad + networkVariation);
             }
             catch (Exception ex)
             {
