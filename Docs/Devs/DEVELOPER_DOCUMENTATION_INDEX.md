@@ -10,6 +10,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[OASIS Architecture Overview](../OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture
 - **[OASIS Architecture Diagrams](./OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual system diagrams
 - **[Combined API Overview](./API%20Documentation/COMBINED_API_OVERVIEW.md)** - WEB4 + WEB5 integration
+- **[Current Implementation Status](../CURRENT_IMPLEMENTATION_STATUS.md)** - Complete implementation status across all components
 
 ### **Core Managers & Systems**
 - **[OASIS Managers Complete Guide](./OASIS-Managers-Complete-Guide.md)** - Core managers (AvatarManager, WalletManager, KeyManager)
@@ -24,8 +25,14 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **STAR CLI**: Command-line interface for developers
 - **OAPP Builder**: Drag-and-drop application builder
 - **DNA System**: STARNETHolon dependency management
- - **Core WEB4 APIs** (from oasisweb4.com): AVATAR, KARMA, DATA, WALLET, NFT, KEYS
- - **ProviderManagement Refactor**: Registry, Selector, Switcher, Configurator, Facade, with `ProviderManagerNew` facade and legacy `ProviderManager` marked [Obsolete]
+- **Core WEB4 APIs** (from oasisweb4.com): AVATAR, KARMA, DATA, WALLET, NFT, KEYS, SEARCH, STATS, HOLOCHAIN, IPFS
+- **ProviderManagement Refactor**: Registry, Selector, Switcher, Configurator, Facade, with `ProviderManagerNew` facade and legacy `ProviderManager` marked [Obsolete]
+- **Blockchain Providers**: Bitcoin, Ethereum, Solana, Polygon, Arbitrum, Avalanche, BNB Chain, Cardano, NEAR, Polkadot, Cosmos, Fantom, Optimism, Rootstock, TRON, Telos, Sui, Aptos, Elrond, Hashgraph, EOSIO, BlockStack, ChainLink, Moralis, Web3Core
+- **Cloud Providers**: AWS, Azure, Google Cloud, Azure Cosmos DB
+- **Storage Providers**: MongoDB, Neo4j, Neo4j Aura, SQLite, Local File
+- **Network Providers**: Holochain, IPFS, ActivityPub, Scuttlebutt, SOLID, ThreeFold, Pinata
+- **Map Providers**: Mapbox, WRLD3D, GO Map
+- **Specialized Providers**: Cargo, ONION Protocol, Orion Protocol, PLAN, SEEDS, Apollo Server, ARC Membrane
 
 ### **Revolutionary Systems**
 - **OASIS HyperDrive**: 100% uptime auto-failover system with intelligent routing
