@@ -19,24 +19,15 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         //public string OASISRunVersion { get; set; }
         public OASISDNA OASISDNA { get; set; } 
 
+        //TODO: Convert below to work how Avatars does.
         public HolonManager Data { get; set; } //TODO: FIX TOMORROW!
         //public HolonManager HolonicGraph { get; set; }
         public KeyManager Keys { get; set; }  //TODO: FIX TOMORROW!
         public WalletManager Wallets { get; set; }  //TODO: FIX TOMORROW!
-        //public NFTManager NFTs { get; set; }
-        //public GeoHotSpotManager GeoHotSpots { get; set; }
         public OASISProviders Providers { get; private set; }  //TODO: FIX TOMORROW!
         public SearchManager Search { get; set; }  //TODO: FIX TOMORROW!
-        //public MapManager Map { get; set; }
-        //public MissionManager Missions { get; set; }
-        //public InventoryItemManager Inventory { get; set; }
-        //public ChapterManager Chapters { get; set; }
-        //public QuestManager Quests { get; set; }
-        //public ParkManager Parks { get; set; }
-        //public OLandManager OLAND { get; set; }
-        //public OAPPManager OAPPs { get; set; }
-        //public OAPPTemplateManager OAPPTemplates { get; set; }
-        //public RuntimeManager Runtimes { get; set; }
+
+        
 
         public AvatarManager Avatars
         {
@@ -85,6 +76,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 return _nfts;
             }
         }
+
+        //Add any other missing Managers here that are used in the WEB OASIS API Web API...
 
         public OASISResult<bool> BootOASIS(OASISDNA OASISDNA, string userName = "", string password = "", bool startApolloServer = true)
         {

@@ -1,30 +1,30 @@
-# Missions API
+# Quests API
 
 ## 📋 **Table of Contents**
 
 - [Overview](#overview)
-- [Mission Management](#mission-management)
-- [Mission Operations](#mission-operations)
-- [Mission Analytics](#mission-analytics)
-- [Mission Security](#mission-security)
+- [Quest Management](#quest-management)
+- [Quest Operations](#quest-operations)
+- [Quest Analytics](#quest-analytics)
+- [Quest Security](#quest-security)
 - [Error Responses](#error-responses)
 
 ## Overview
 
-The Missions API provides comprehensive mission management services for the STAR ecosystem. It handles mission creation, assignment, completion, and analytics with support for multiple mission types, real-time updates, and advanced security features.
+The Quests API provides comprehensive quest management services for the STAR ecosystem. It handles quest creation, assignment, completion, and analytics with support for multiple quest types, real-time updates, and advanced security features.
 
-## Mission Management
+## Quest Management
 
-### Get All Missions
+### Get All Quests
 ```http
-GET /api/missions
+GET /api/quests
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Query Parameters:**
 - `limit` (int, optional): Number of results (default: 50)
 - `offset` (int, optional): Number to skip (default: 0)
-- `type` (string, optional): Filter by type (Quest, Challenge, Task, Achievement)
+- `type` (string, optional): Filter by type (Main, Side, Daily, Weekly, Event)
 - `status` (string, optional): Filter by status (Active, Inactive, Completed, Failed)
 - `difficulty` (string, optional): Filter by difficulty (Easy, Medium, Hard, Expert)
 - `sortBy` (string, optional): Sort field (name, createdAt, difficulty, rewards)
@@ -36,12 +36,12 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "missions": [
+      "quests": [
         {
-          "id": "mission_123",
+          "id": "quest_123",
           "name": "STAR Explorer",
           "description": "Explore the STAR platform and complete your first tasks",
-          "type": "Quest",
+          "type": "Main",
           "status": "Active",
           "difficulty": "Easy",
           "creator": {
@@ -93,21 +93,21 @@ Authorization: Bearer YOUR_TOKEN
       "limit": 50,
       "offset": 0
     },
-    "message": "Missions retrieved successfully"
+    "message": "Quests retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Get Mission by ID
+### Get Quest by ID
 ```http
-GET /api/missions/{missionId}
+GET /api/quests/{questId}
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Parameters:**
-- `missionId` (string): Mission UUID
+- `questId` (string): Quest UUID
 
 **Response:**
 ```json
@@ -115,10 +115,10 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "id": "mission_123",
+      "id": "quest_123",
       "name": "STAR Explorer",
       "description": "Explore the STAR platform and complete your first tasks",
-      "type": "Quest",
+      "type": "Main",
       "status": "Active",
       "difficulty": "Easy",
       "creator": {
@@ -176,16 +176,16 @@ Authorization: Bearer YOUR_TOKEN
       "createdAt": "2024-01-20T14:30:00Z",
       "lastModified": "2024-01-20T14:30:00Z"
     },
-    "message": "Mission retrieved successfully"
+    "message": "Quest retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Create Mission
+### Create Quest
 ```http
-POST /api/missions
+POST /api/quests
 Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN
 ```
@@ -195,7 +195,7 @@ Authorization: Bearer YOUR_TOKEN
 {
   "name": "STAR Master",
   "description": "Master the STAR platform and become an expert user",
-  "type": "Challenge",
+  "type": "Main",
   "difficulty": "Hard",
   "objectives": [
     {
@@ -220,7 +220,7 @@ Authorization: Bearer YOUR_TOKEN
   },
   "requirements": {
     "level": 10,
-    "prerequisites": ["mission_123"],
+    "prerequisites": ["quest_123"],
     "timeLimit": 30,
     "maxParticipants": 100
   },
@@ -238,10 +238,10 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "id": "mission_124",
+      "id": "quest_124",
       "name": "STAR Master",
       "description": "Master the STAR platform and become an expert user",
-      "type": "Challenge",
+      "type": "Main",
       "status": "Active",
       "difficulty": "Hard",
       "creator": {
@@ -278,7 +278,7 @@ Authorization: Bearer YOUR_TOKEN
       },
       "requirements": {
         "level": 10,
-        "prerequisites": ["mission_123"],
+        "prerequisites": ["quest_123"],
         "timeLimit": 30,
         "maxParticipants": 100
       },
@@ -301,22 +301,22 @@ Authorization: Bearer YOUR_TOKEN
       "createdAt": "2024-01-20T14:30:00Z",
       "lastModified": "2024-01-20T14:30:00Z"
     },
-    "message": "Mission created successfully"
+    "message": "Quest created successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Update Mission
+### Update Quest
 ```http
-PUT /api/missions/{missionId}
+PUT /api/quests/{questId}
 Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Parameters:**
-- `missionId` (string): Mission UUID
+- `questId` (string): Quest UUID
 
 **Request Body:**
 ```json
@@ -351,25 +351,25 @@ Authorization: Bearer YOUR_TOKEN
 }
 ```
 
-### Delete Mission
+### Delete Quest
 ```http
-DELETE /api/missions/{missionId}
+DELETE /api/quests/{questId}
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Parameters:**
-- `missionId` (string): Mission UUID
+- `questId` (string): Quest UUID
 
-## Mission Operations
+## Quest Operations
 
-### Start Mission
+### Start Quest
 ```http
-POST /api/missions/{missionId}/start
+POST /api/quests/{questId}/start
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Parameters:**
-- `missionId` (string): Mission UUID
+- `questId` (string): Quest UUID
 
 **Response:**
 ```json
@@ -377,7 +377,7 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "missionId": "mission_123",
+      "questId": "quest_123",
       "participant": {
         "id": "user_456",
         "username": "jane_smith",
@@ -392,21 +392,21 @@ Authorization: Bearer YOUR_TOKEN
         "percentage": 0.0
       }
     },
-    "message": "Mission started successfully"
+    "message": "Quest started successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Complete Mission
+### Complete Quest
 ```http
-POST /api/missions/{missionId}/complete
+POST /api/quests/{questId}/complete
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Parameters:**
-- `missionId` (string): Mission UUID
+- `questId` (string): Quest UUID
 
 **Response:**
 ```json
@@ -414,7 +414,7 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "missionId": "mission_123",
+      "questId": "quest_123",
       "participant": {
         "id": "user_456",
         "username": "jane_smith",
@@ -438,21 +438,21 @@ Authorization: Bearer YOUR_TOKEN
         "percentage": 100.0
       }
     },
-    "message": "Mission completed successfully"
+    "message": "Quest completed successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Get Mission Progress
+### Get Quest Progress
 ```http
-GET /api/missions/{missionId}/progress
+GET /api/quests/{questId}/progress
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Parameters:**
-- `missionId` (string): Mission UUID
+- `questId` (string): Quest UUID
 
 **Response:**
 ```json
@@ -460,7 +460,7 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "missionId": "mission_123",
+      "questId": "quest_123",
       "participant": {
         "id": "user_456",
         "username": "jane_smith",
@@ -492,21 +492,21 @@ Authorization: Bearer YOUR_TOKEN
       ],
       "timeRemaining": 6.5
     },
-    "message": "Mission progress retrieved successfully"
+    "message": "Quest progress retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Get Mission Participants
+### Get Quest Participants
 ```http
-GET /api/missions/{missionId}/participants
+GET /api/quests/{questId}/participants
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Parameters:**
-- `missionId` (string): Mission UUID
+- `questId` (string): Quest UUID
 
 **Query Parameters:**
 - `status` (string, optional): Filter by status (Active, Completed, Failed)
@@ -519,7 +519,7 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "missionId": "mission_123",
+      "questId": "quest_123",
       "participants": [
         {
           "id": "user_456",
@@ -553,21 +553,21 @@ Authorization: Bearer YOUR_TOKEN
       "completedCount": 1,
       "failedCount": 0
     },
-    "message": "Mission participants retrieved successfully"
+    "message": "Quest participants retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Get Mission Leaderboard
+### Get Quest Leaderboard
 ```http
-GET /api/missions/{missionId}/leaderboard
+GET /api/quests/{questId}/leaderboard
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Parameters:**
-- `missionId` (string): Mission UUID
+- `questId` (string): Quest UUID
 
 **Query Parameters:**
 - `limit` (int, optional): Number of results (default: 10)
@@ -580,7 +580,7 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "missionId": "mission_123",
+      "questId": "quest_123",
       "leaderboard": [
         {
           "rank": 1,
@@ -620,24 +620,24 @@ Authorization: Bearer YOUR_TOKEN
       "totalCount": 2,
       "lastUpdated": "2024-01-20T14:30:00Z"
     },
-    "message": "Mission leaderboard retrieved successfully"
+    "message": "Quest leaderboard retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-## Mission Analytics
+## Quest Analytics
 
-### Get Mission Statistics
+### Get Quest Statistics
 ```http
-GET /api/missions/stats
+GET /api/quests/stats
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Query Parameters:**
 - `timeframe` (string, optional): Timeframe (hour, day, week, month)
-- `type` (string, optional): Filter by mission type
+- `type` (string, optional): Filter by quest type
 
 **Response:**
 ```json
@@ -647,17 +647,17 @@ Authorization: Bearer YOUR_TOKEN
     "data": {
       "timeframe": "day",
       "statistics": {
-        "missions": {
+        "quests": {
           "total": 1000,
           "active": 800,
           "completed": 150,
           "failed": 50
         },
         "byType": {
-          "Quest": 500,
-          "Challenge": 300,
-          "Task": 150,
-          "Achievement": 50
+          "Main": 500,
+          "Side": 300,
+          "Daily": 150,
+          "Weekly": 50
         },
         "byDifficulty": {
           "Easy": 400,
@@ -679,22 +679,22 @@ Authorization: Bearer YOUR_TOKEN
         }
       },
       "trends": {
-        "missions": "increasing",
+        "quests": "increasing",
         "participants": "increasing",
         "performance": "stable"
       },
       "lastUpdated": "2024-01-20T14:30:00Z"
     },
-    "message": "Mission statistics retrieved successfully"
+    "message": "Quest statistics retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Get Mission Performance
+### Get Quest Performance
 ```http
-GET /api/missions/performance
+GET /api/quests/performance
 Authorization: Bearer YOUR_TOKEN
 ```
 
@@ -713,7 +713,7 @@ Authorization: Bearer YOUR_TOKEN
         "peakScore": 100.0
       },
       "metrics": {
-        "missionsPerHour": 50,
+        "questsPerHour": 50,
         "averageLatency": 2.0,
         "p95Latency": 5.0,
         "p99Latency": 10.0,
@@ -727,22 +727,22 @@ Authorization: Bearer YOUR_TOKEN
         "retention": "stable"
       },
       "breakdown": {
-        "Quest": {
+        "Main": {
           "completionRate": 0.80,
           "averageTime": 2.5,
           "satisfaction": 0.90
         },
-        "Challenge": {
+        "Side": {
           "completionRate": 0.70,
           "averageTime": 5.0,
           "satisfaction": 0.85
         },
-        "Task": {
+        "Daily": {
           "completionRate": 0.75,
           "averageTime": 1.0,
           "satisfaction": 0.88
         },
-        "Achievement": {
+        "Weekly": {
           "completionRate": 0.60,
           "averageTime": 10.0,
           "satisfaction": 0.95
@@ -750,16 +750,16 @@ Authorization: Bearer YOUR_TOKEN
       },
       "lastUpdated": "2024-01-20T14:30:00Z"
     },
-    "message": "Mission performance retrieved successfully"
+    "message": "Quest performance retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Get Mission Health
+### Get Quest Health
 ```http
-GET /api/missions/health
+GET /api/quests/health
 Authorization: Bearer YOUR_TOKEN
 ```
 
@@ -822,23 +822,23 @@ Authorization: Bearer YOUR_TOKEN
       "alerts": [],
       "lastUpdated": "2024-01-20T14:30:00Z"
     },
-    "message": "Mission health retrieved successfully"
+    "message": "Quest health retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-## Mission Security
+## Quest Security
 
-### Get Mission Security
+### Get Quest Security
 ```http
-GET /api/missions/{missionId}/security
+GET /api/quests/{questId}/security
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Parameters:**
-- `missionId` (string): Mission UUID
+- `questId` (string): Quest UUID
 
 **Response:**
 ```json
@@ -846,7 +846,7 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "missionId": "mission_123",
+      "questId": "quest_123",
       "security": {
         "encryption": "AES-256",
         "authentication": "JWT",
@@ -873,22 +873,22 @@ Authorization: Bearer YOUR_TOKEN
       },
       "lastUpdated": "2024-01-20T14:30:00Z"
     },
-    "message": "Mission security retrieved successfully"
+    "message": "Quest security retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Update Mission Security
+### Update Quest Security
 ```http
-PUT /api/missions/{missionId}/security
+PUT /api/quests/{questId}/security
 Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Parameters:**
-- `missionId` (string): Mission UUID
+- `questId` (string): Quest UUID
 
 **Request Body:**
 ```json
@@ -903,33 +903,33 @@ Authorization: Bearer YOUR_TOKEN
 
 ## Error Responses
 
-### Mission Not Found
+### Quest Not Found
 ```json
 {
   "result": null,
   "isError": true,
-  "message": "Mission not found",
-  "exception": "Mission with ID mission_123 not found"
+  "message": "Quest not found",
+  "exception": "Quest with ID quest_123 not found"
 }
 ```
 
-### Mission Already Started
+### Quest Already Started
 ```json
 {
   "result": null,
   "isError": true,
-  "message": "Mission already started",
-  "exception": "Mission has already been started by this user"
+  "message": "Quest already started",
+  "exception": "Quest has already been started by this user"
 }
 ```
 
-### Mission Expired
+### Quest Expired
 ```json
 {
   "result": null,
   "isError": true,
-  "message": "Mission expired",
-  "exception": "Mission has expired and cannot be started"
+  "message": "Quest expired",
+  "exception": "Quest has expired and cannot be started"
 }
 ```
 
@@ -939,7 +939,7 @@ Authorization: Bearer YOUR_TOKEN
   "result": null,
   "isError": true,
   "message": "Insufficient requirements",
-  "exception": "User does not meet the mission requirements"
+  "exception": "User does not meet the quest requirements"
 }
 ```
 
@@ -957,4 +957,4 @@ Authorization: Bearer YOUR_TOKEN
 
 ## Navigation
 
-**← Previous:** [Avatar API](Avatar-API.md) | **Next:** [Quests API](Quests-API.md) →
+**← Previous:** [Missions API](Missions-API.md) | **Next:** [Competition API](Competition-API.md) →

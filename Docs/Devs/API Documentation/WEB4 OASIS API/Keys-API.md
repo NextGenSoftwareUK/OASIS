@@ -4,556 +4,31 @@
 
 - [Overview](#overview)
 - [Key Management](#key-management)
-- [Key Generation](#key-generation)
-- [Key Retrieval](#key-retrieval)
 - [Key Operations](#key-operations)
-- [Key Lookup](#key-lookup)
-- [WiFi Operations](#wifi-operations)
-- [Key CRUD](#key-crud)
+- [Key Security](#key-security)
+- [Key Analytics](#key-analytics)
 - [Error Responses](#error-responses)
 
 ## Overview
 
-The Keys API provides comprehensive cryptographic key management, generation, and storage across all supported providers. It handles key linking, retrieval, and advanced cryptographic operations with secure backup and recovery mechanisms.
+The Keys API provides comprehensive cryptographic key management services for the OASIS ecosystem. It handles key generation, storage, rotation, and security with support for multiple key types, encryption algorithms, and advanced security features.
 
 ## Key Management
 
-### Clear Cache
-```http
-POST /api/keys/clear_cache
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Response:**
-```json
-{
-  "result": {
-    "success": true,
-    "data": {
-      "clearedAt": "2024-01-20T14:30:00Z",
-      "itemsCleared": 150,
-      "cacheSize": "2.5MB"
-    },
-    "message": "Cache cleared successfully"
-  },
-  "isError": false,
-  "message": "Success"
-}
-```
-
-### Link Provider Public Key to Avatar by ID
-```http
-POST /api/keys/link_provider_public_key_to_avatar_by_id
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Request Body:**
-```json
-{
-  "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-  "providerType": "Ethereum",
-  "publicKey": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-  "keyName": "Main Ethereum Key"
-}
-```
-
-**Response:**
-```json
-{
-  "result": {
-    "success": true,
-    "data": {
-      "keyId": "key_123",
-      "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-      "providerType": "Ethereum",
-      "publicKey": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-      "linkedAt": "2024-01-20T14:30:00Z",
-      "isActive": true
-    },
-    "message": "Public key linked successfully"
-  },
-  "isError": false,
-  "message": "Success"
-}
-```
-
-### Link Provider Public Key to Avatar by Username
-```http
-POST /api/keys/link_provider_public_key_to_avatar_by_username
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Request Body:**
-```json
-{
-  "username": "john_doe",
-  "providerType": "Solana",
-  "publicKey": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
-  "keyName": "Main Solana Key"
-}
-```
-
-### Link Provider Public Key to Avatar by Email
-```http
-POST /api/keys/link_provider_public_key_to_avatar_by_email
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Link Provider Private Key to Avatar by ID
-```http
-POST /api/keys/link_provider_private_key_to_avatar_by_id
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Request Body:**
-```json
-{
-  "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-  "providerType": "Ethereum",
-  "privateKey": "encrypted_private_key_here",
-  "keyName": "Main Ethereum Private Key",
-  "encrypted": true
-}
-```
-
-### Link Provider Private Key to Avatar by Username
-```http
-POST /api/keys/link_provider_private_key_to_avatar_by_username
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Link Provider Private Key to Avatar by Email
-```http
-POST /api/keys/link_provider_private_key_to_avatar_by_email
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-## Key Generation
-
-### Generate Keypair and Link Provider Keys to Avatar by ID
-```http
-POST /api/keys/generate_keypair_and_link_provider_keys_to_avatar_by_id
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Request Body:**
-```json
-{
-  "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-  "providerType": "Ethereum",
-  "keyName": "Generated Ethereum Key",
-  "backupPhrase": true,
-  "encryptPrivateKey": true
-}
-```
-
-**Response:**
-```json
-{
-  "result": {
-    "success": true,
-    "data": {
-      "keyId": "key_124",
-      "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-      "providerType": "Ethereum",
-      "publicKey": "0x8ba1f109551bD432803012645Hac136c",
-      "privateKey": "encrypted_private_key_here",
-      "backupPhrase": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
-      "generatedAt": "2024-01-20T14:30:00Z",
-      "isActive": true
-    },
-    "message": "Keypair generated and linked successfully"
-  },
-  "isError": false,
-  "message": "Success"
-}
-```
-
-### Generate Keypair and Link Provider Keys to Avatar by Username
-```http
-POST /api/keys/generate_keypair_and_link_provider_keys_to_avatar_by_username
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Generate Keypair and Link Provider Keys to Avatar by Email
-```http
-POST /api/keys/generate_keypair_and_link_provider_keys_to_avatar_by_email
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Generate Keypair for Provider
-```http
-POST /api/keys/generate_keypair_for_provider/{providerType}
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Parameters:**
-- `providerType` (string): Provider type (e.g., "Ethereum", "Solana", "Bitcoin")
-
-**Request Body:**
-```json
-{
-  "keyName": "New Provider Key",
-  "backupPhrase": true,
-  "encryptPrivateKey": true
-}
-```
-
-### Generate Keypair with Prefix
-```http
-POST /api/keys/generate_keypair/{keyPrefix}
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Parameters:**
-- `keyPrefix` (string): Key prefix for identification
-
-## Key Retrieval
-
-### Get Provider Unique Storage Key for Avatar by ID
-```http
-GET /api/keys/get_provider_unique_storage_key_for_avatar_by_id
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Query Parameters:**
-- `avatarId` (string): Avatar UUID
-- `providerType` (string, optional): Provider type
-
-**Response:**
-```json
-{
-  "result": {
-    "success": true,
-    "data": {
-      "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-      "providerType": "Ethereum",
-      "uniqueStorageKey": "eth_storage_key_123",
-      "createdAt": "2024-01-15T10:30:00Z",
-      "lastUsed": "2024-01-20T14:30:00Z"
-    },
-    "message": "Storage key retrieved successfully"
-  },
-  "isError": false,
-  "message": "Success"
-}
-```
-
-### Get Provider Unique Storage Key for Avatar by Username
-```http
-GET /api/keys/get_provider_unique_storage_key_for_avatar_by_username
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Provider Unique Storage Key for Avatar by Email
-```http
-GET /api/keys/get_provider_unique_storage_key_for_avatar_by_email
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Provider Private Key for Avatar by ID
-```http
-GET /api/keys/get_provider_private_key_for_avatar_by_id
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Response:**
-```json
-{
-  "result": {
-    "success": true,
-    "data": {
-      "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-      "providerType": "Ethereum",
-      "privateKey": "encrypted_private_key_here",
-      "isEncrypted": true,
-      "retrievedAt": "2024-01-20T14:30:00Z"
-    },
-    "message": "Private key retrieved successfully"
-  },
-  "isError": false,
-  "message": "Success"
-}
-```
-
-### Get Provider Private Key for Avatar by Username
-```http
-GET /api/keys/get_provider_private_key_for_avatar_by_username
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Provider Public Keys for Avatar by ID
-```http
-GET /api/keys/get_provider_public_keys_for_avatar_by_id
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Response:**
-```json
-{
-  "result": {
-    "success": true,
-    "data": {
-      "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-      "publicKeys": [
-        {
-          "keyId": "key_123",
-          "providerType": "Ethereum",
-          "publicKey": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-          "keyName": "Main Ethereum Key",
-          "createdAt": "2024-01-15T10:30:00Z",
-          "isActive": true
-        },
-        {
-          "keyId": "key_124",
-          "providerType": "Solana",
-          "publicKey": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
-          "keyName": "Main Solana Key",
-          "createdAt": "2024-01-16T10:30:00Z",
-          "isActive": true
-        }
-      ],
-      "totalKeys": 2
-    },
-    "message": "Public keys retrieved successfully"
-  },
-  "isError": false,
-  "message": "Success"
-}
-```
-
-### Get Provider Public Keys for Avatar by Username
-```http
-GET /api/keys/get_provider_public_keys_for_avatar_by_username
-Authorization: Bearer YOUR_TOKEN
-```
-
-## Key Operations
-
-### Get All Provider Public Keys for Avatar by ID
-```http
-GET /api/keys/get_all_provider_public_keys_for_avatar_by_id/{id}
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Parameters:**
-- `id` (string): Avatar UUID
-
-### Get All Provider Public Keys for Avatar by Username
-```http
-GET /api/keys/get_all_provider_public_keys_for_avatar_by_username/{username}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get All Provider Private Keys for Avatar by ID
-```http
-GET /api/keys/get_all_provider_private_keys_for_avatar_by_id/{id}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get All Provider Private Keys for Avatar by Username
-```http
-GET /api/keys/get_all_provider_private_keys_for_avatar_by_username/{username}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get All Provider Unique Storage Keys for Avatar by ID
-```http
-GET /api/keys/get_all_provider_unique_storage_keys_for_avatar_by_id/{id}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get All Provider Unique Storage Keys for Avatar by Username
-```http
-GET /api/keys/get_all_provider_unique_storage_keys_for_avatar_by_username/{username}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get All Provider Unique Storage Keys for Avatar by Email
-```http
-GET /api/keys/get_all_provider_unique_storage_keys_for_avatar_by_email/{email}
-Authorization: Bearer YOUR_TOKEN
-```
-
-## Key Lookup
-
-### Get Avatar ID for Provider Unique Storage Key
-```http
-GET /api/keys/get_avatar_id_for_provider_unique_storage_key/{providerKey}
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Parameters:**
-- `providerKey` (string): Provider unique storage key
-
-**Response:**
-```json
-{
-  "result": {
-    "success": true,
-    "data": {
-      "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-      "providerKey": "eth_storage_key_123",
-      "providerType": "Ethereum",
-      "createdAt": "2024-01-15T10:30:00Z"
-    },
-    "message": "Avatar ID retrieved successfully"
-  },
-  "isError": false,
-  "message": "Success"
-}
-```
-
-### Get Avatar Username for Provider Unique Storage Key
-```http
-GET /api/keys/get_avatar_username_for_provider_unique_storage_key/{providerKey}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Avatar Email for Provider Unique Storage Key
-```http
-GET /api/keys/get_avatar_email_for_provider_unique_storage_key/{providerKey}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Avatar for Provider Unique Storage Key
-```http
-GET /api/keys/get_avatar_for_provider_unique_storage_key/{providerKey}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Avatar ID for Provider Public Key
-```http
-GET /api/keys/get_avatar_id_for_provider_public_key/{providerKey}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Avatar Username for Provider Public Key
-```http
-GET /api/keys/get_avatar_username_for_provider_public_key/{providerKey}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Avatar Email for Provider Public Key
-```http
-GET /api/keys/get_avatar_email_for_provider_public_key/{providerKey}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Avatar for Provider Public Key
-```http
-GET /api/keys/get_avatar_for_provider_public_key/{providerKey}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Avatar ID for Provider Private Key
-```http
-GET /api/keys/get_avatar_id_for_provider_private_key/{providerKey}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Avatar Username for Provider Private Key
-```http
-GET /api/keys/get_avatar_username_for_provider_private_key/{providerKey}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Avatar for Provider Private Key
-```http
-GET /api/keys/get_avatar_for_provider_private_key/{providerKey}
-Authorization: Bearer YOUR_TOKEN
-```
-
-## WiFi Operations
-
-### Get Private WiFi
-```http
-POST /api/keys/get_private_wifi/{source}
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Parameters:**
-- `source` (string): Source identifier
-
-**Request Body:**
-```json
-{
-  "password": "wifi_password",
-  "encrypt": true
-}
-```
-
-**Response:**
-```json
-{
-  "result": {
-    "success": true,
-    "data": {
-      "privateKey": "encrypted_wifi_private_key",
-      "source": "wifi_source_123",
-      "encrypted": true,
-      "generatedAt": "2024-01-20T14:30:00Z"
-    },
-    "message": "Private WiFi key generated successfully"
-  },
-  "isError": false,
-  "message": "Success"
-}
-```
-
-### Get Public WiFi
-```http
-POST /api/keys/get_public_wifi
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Decode Private WiFi
-```http
-POST /api/keys/decode_private_wif/{data}
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Base58 Check Decode
-```http
-POST /api/keys/base58_check_decode/{data}
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Encode Signature
-```http
-POST /api/keys/encode_signature/{source}
-Content-Type: application/json
-Authorization: Bearer YOUR_TOKEN
-```
-
-## Key CRUD
-
 ### Get All Keys
 ```http
-GET /api/keys/all
+GET /api/keys
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Query Parameters:**
 - `limit` (int, optional): Number of results (default: 50)
 - `offset` (int, optional): Number to skip (default: 0)
-- `providerType` (string, optional): Filter by provider type
-- `avatarId` (string, optional): Filter by avatar ID
+- `type` (string, optional): Filter by key type (RSA, AES, ECDSA, Ed25519)
+- `status` (string, optional): Filter by status (Active, Inactive, Expired, Revoked)
+- `owner` (string, optional): Filter by owner ID
+- `sortBy` (string, optional): Sort field (name, createdAt, expiresAt)
+- `sortOrder` (string, optional): Sort order (asc/desc, default: desc)
 
 **Response:**
 ```json
@@ -564,12 +39,32 @@ Authorization: Bearer YOUR_TOKEN
       "keys": [
         {
           "id": "key_123",
-          "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-          "providerType": "Ethereum",
-          "publicKey": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-          "keyName": "Main Ethereum Key",
-          "createdAt": "2024-01-15T10:30:00Z",
-          "isActive": true
+          "name": "Main Encryption Key",
+          "type": "RSA",
+          "status": "Active",
+          "owner": {
+            "id": "user_123",
+            "username": "john_doe"
+          },
+          "algorithm": "RSA-2048",
+          "keySize": 2048,
+          "publicKey": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\n-----END PUBLIC KEY-----",
+          "fingerprint": "SHA256:abc123def456ghi789",
+          "expiresAt": "2025-01-20T14:30:00Z",
+          "metadata": {
+            "description": "Primary encryption key for user data",
+            "tags": ["encryption", "primary"],
+            "rotation": "automatic",
+            "backup": true
+          },
+          "permissions": {
+            "encrypt": true,
+            "decrypt": true,
+            "sign": true,
+            "verify": true
+          },
+          "createdAt": "2024-01-20T14:30:00Z",
+          "lastUsed": "2024-01-20T14:30:00Z"
         }
       ],
       "totalCount": 1,
@@ -583,9 +78,69 @@ Authorization: Bearer YOUR_TOKEN
 }
 ```
 
+### Get Key by ID
+```http
+GET /api/keys/{keyId}
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Parameters:**
+- `keyId` (string): Key UUID
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "id": "key_123",
+      "name": "Main Encryption Key",
+      "type": "RSA",
+      "status": "Active",
+      "owner": {
+        "id": "user_123",
+        "username": "john_doe"
+      },
+      "algorithm": "RSA-2048",
+      "keySize": 2048,
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\n-----END PUBLIC KEY-----",
+      "fingerprint": "SHA256:abc123def456ghi789",
+      "expiresAt": "2025-01-20T14:30:00Z",
+      "metadata": {
+        "description": "Primary encryption key for user data",
+        "tags": ["encryption", "primary"],
+        "rotation": "automatic",
+        "backup": true
+      },
+      "permissions": {
+        "encrypt": true,
+        "decrypt": true,
+        "sign": true,
+        "verify": true
+      },
+      "security": {
+        "encryption": "AES-256",
+        "storage": "HSM",
+        "access": "restricted"
+      },
+      "analytics": {
+        "usageCount": 150,
+        "lastUsed": "2024-01-20T14:30:00Z",
+        "successRate": 0.99
+      },
+      "createdAt": "2024-01-20T14:30:00Z",
+      "lastUsed": "2024-01-20T14:30:00Z"
+    },
+    "message": "Key retrieved successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
 ### Create Key
 ```http
-POST /api/keys/create
+POST /api/keys
 Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN
 ```
@@ -593,11 +148,79 @@ Authorization: Bearer YOUR_TOKEN
 **Request Body:**
 ```json
 {
-  "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-  "providerType": "Bitcoin",
-  "publicKey": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-  "privateKey": "encrypted_private_key",
-  "keyName": "Main Bitcoin Key"
+  "name": "New Encryption Key",
+  "type": "RSA",
+  "algorithm": "RSA-2048",
+  "keySize": 2048,
+  "metadata": {
+    "description": "New encryption key for secure communications",
+    "tags": ["encryption", "communications"],
+    "rotation": "manual",
+    "backup": true
+  },
+  "permissions": {
+    "encrypt": true,
+    "decrypt": true,
+    "sign": true,
+    "verify": true
+  },
+  "security": {
+    "encryption": "AES-256",
+    "storage": "HSM",
+    "access": "restricted"
+  },
+  "expiresAt": "2025-01-20T14:30:00Z"
+}
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "id": "key_124",
+      "name": "New Encryption Key",
+      "type": "RSA",
+      "status": "Active",
+      "owner": {
+        "id": "user_123",
+        "username": "john_doe"
+      },
+      "algorithm": "RSA-2048",
+      "keySize": 2048,
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\n-----END PUBLIC KEY-----",
+      "fingerprint": "SHA256:def456ghi789jkl012",
+      "expiresAt": "2025-01-20T14:30:00Z",
+      "metadata": {
+        "description": "New encryption key for secure communications",
+        "tags": ["encryption", "communications"],
+        "rotation": "manual",
+        "backup": true
+      },
+      "permissions": {
+        "encrypt": true,
+        "decrypt": true,
+        "sign": true,
+        "verify": true
+      },
+      "security": {
+        "encryption": "AES-256",
+        "storage": "HSM",
+        "access": "restricted"
+      },
+      "analytics": {
+        "usageCount": 0,
+        "lastUsed": null,
+        "successRate": 1.0
+      },
+      "createdAt": "2024-01-20T14:30:00Z",
+      "lastUsed": null
+    },
+    "message": "Key created successfully"
+  },
+  "isError": false,
+  "message": "Success"
 }
 ```
 
@@ -614,8 +237,19 @@ Authorization: Bearer YOUR_TOKEN
 **Request Body:**
 ```json
 {
-  "keyName": "Updated Bitcoin Key",
-  "isActive": true
+  "name": "Updated Encryption Key",
+  "metadata": {
+    "description": "Updated encryption key for secure communications",
+    "tags": ["encryption", "communications", "updated"],
+    "rotation": "automatic",
+    "backup": true
+  },
+  "permissions": {
+    "encrypt": true,
+    "decrypt": true,
+    "sign": true,
+    "verify": true
+  }
 }
 ```
 
@@ -628,9 +262,458 @@ Authorization: Bearer YOUR_TOKEN
 **Parameters:**
 - `keyId` (string): Key UUID
 
-### Get Key Stats
+## Key Operations
+
+### Encrypt Data
+```http
+POST /api/keys/{keyId}/encrypt
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Parameters:**
+- `keyId` (string): Key UUID
+
+**Request Body:**
+```json
+{
+  "data": "Hello, World!",
+  "encoding": "utf-8",
+  "algorithm": "RSA-OAEP",
+  "padding": "PKCS1"
+}
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "keyId": "key_123",
+      "originalData": "Hello, World!",
+      "encryptedData": "base64_encoded_encrypted_data",
+      "algorithm": "RSA-OAEP",
+      "padding": "PKCS1",
+      "encoding": "utf-8",
+      "encryptedAt": "2024-01-20T14:30:00Z"
+    },
+    "message": "Data encrypted successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+### Decrypt Data
+```http
+POST /api/keys/{keyId}/decrypt
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Parameters:**
+- `keyId` (string): Key UUID
+
+**Request Body:**
+```json
+{
+  "encryptedData": "base64_encoded_encrypted_data",
+  "algorithm": "RSA-OAEP",
+  "padding": "PKCS1",
+  "encoding": "utf-8"
+}
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "keyId": "key_123",
+      "encryptedData": "base64_encoded_encrypted_data",
+      "decryptedData": "Hello, World!",
+      "algorithm": "RSA-OAEP",
+      "padding": "PKCS1",
+      "encoding": "utf-8",
+      "decryptedAt": "2024-01-20T14:30:00Z"
+    },
+    "message": "Data decrypted successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+### Sign Data
+```http
+POST /api/keys/{keyId}/sign
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Parameters:**
+- `keyId` (string): Key UUID
+
+**Request Body:**
+```json
+{
+  "data": "Hello, World!",
+  "algorithm": "RSA-PSS",
+  "hash": "SHA-256",
+  "encoding": "utf-8"
+}
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "keyId": "key_123",
+      "originalData": "Hello, World!",
+      "signature": "base64_encoded_signature",
+      "algorithm": "RSA-PSS",
+      "hash": "SHA-256",
+      "encoding": "utf-8",
+      "signedAt": "2024-01-20T14:30:00Z"
+    },
+    "message": "Data signed successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+### Verify Signature
+```http
+POST /api/keys/{keyId}/verify
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Parameters:**
+- `keyId` (string): Key UUID
+
+**Request Body:**
+```json
+{
+  "data": "Hello, World!",
+  "signature": "base64_encoded_signature",
+  "algorithm": "RSA-PSS",
+  "hash": "SHA-256",
+  "encoding": "utf-8"
+}
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "keyId": "key_123",
+      "data": "Hello, World!",
+      "signature": "base64_encoded_signature",
+      "algorithm": "RSA-PSS",
+      "hash": "SHA-256",
+      "encoding": "utf-8",
+      "valid": true,
+      "verifiedAt": "2024-01-20T14:30:00Z"
+    },
+    "message": "Signature verified successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+### Generate Key Pair
+```http
+POST /api/keys/generate
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Request Body:**
+```json
+{
+  "name": "Generated Key Pair",
+  "type": "RSA",
+  "algorithm": "RSA-2048",
+  "keySize": 2048,
+  "metadata": {
+    "description": "Auto-generated key pair",
+    "tags": ["generated", "auto"],
+    "rotation": "automatic",
+    "backup": true
+  },
+  "permissions": {
+    "encrypt": true,
+    "decrypt": true,
+    "sign": true,
+    "verify": true
+  },
+  "security": {
+    "encryption": "AES-256",
+    "storage": "HSM",
+    "access": "restricted"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "id": "key_125",
+      "name": "Generated Key Pair",
+      "type": "RSA",
+      "status": "Active",
+      "owner": {
+        "id": "user_123",
+        "username": "john_doe"
+      },
+      "algorithm": "RSA-2048",
+      "keySize": 2048,
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\n-----END PUBLIC KEY-----",
+      "privateKey": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC...\n-----END PRIVATE KEY-----",
+      "fingerprint": "SHA256:ghi789jkl012mno345",
+      "expiresAt": "2025-01-20T14:30:00Z",
+      "metadata": {
+        "description": "Auto-generated key pair",
+        "tags": ["generated", "auto"],
+        "rotation": "automatic",
+        "backup": true
+      },
+      "permissions": {
+        "encrypt": true,
+        "decrypt": true,
+        "sign": true,
+        "verify": true
+      },
+      "security": {
+        "encryption": "AES-256",
+        "storage": "HSM",
+        "access": "restricted"
+      },
+      "analytics": {
+        "usageCount": 0,
+        "lastUsed": null,
+        "successRate": 1.0
+      },
+      "createdAt": "2024-01-20T14:30:00Z",
+      "lastUsed": null
+    },
+    "message": "Key pair generated successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+## Key Security
+
+### Rotate Key
+```http
+POST /api/keys/{keyId}/rotate
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Parameters:**
+- `keyId` (string): Key UUID
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "keyId": "key_123",
+      "oldKey": {
+        "id": "key_123",
+        "status": "Inactive",
+        "rotatedAt": "2024-01-20T14:30:00Z"
+      },
+      "newKey": {
+        "id": "key_126",
+        "status": "Active",
+        "createdAt": "2024-01-20T14:30:00Z"
+      },
+      "rotationReason": "Scheduled rotation",
+      "rotatedAt": "2024-01-20T14:30:00Z"
+    },
+    "message": "Key rotated successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+### Revoke Key
+```http
+POST /api/keys/{keyId}/revoke
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Parameters:**
+- `keyId` (string): Key UUID
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "keyId": "key_123",
+      "status": "Revoked",
+      "revokedAt": "2024-01-20T14:30:00Z",
+      "reason": "Security breach detected"
+    },
+    "message": "Key revoked successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+### Get Key Security
+```http
+GET /api/keys/{keyId}/security
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Parameters:**
+- `keyId` (string): Key UUID
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "keyId": "key_123",
+      "security": {
+        "encryption": "AES-256",
+        "storage": "HSM",
+        "access": "restricted",
+        "backup": true,
+        "rotation": "automatic"
+      },
+      "access": {
+        "lastAccessed": "2024-01-20T14:30:00Z",
+        "accessCount": 150,
+        "failedAttempts": 0,
+        "locked": false
+      },
+      "compliance": {
+        "fips140": true,
+        "commonCriteria": true,
+        "sox": true,
+        "pci": true
+      },
+      "audit": {
+        "lastAudit": "2024-01-20T14:30:00Z",
+        "auditCount": 5,
+        "complianceScore": 0.98
+      },
+      "lastUpdated": "2024-01-20T14:30:00Z"
+    },
+    "message": "Key security retrieved successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+### Update Key Security
+```http
+PUT /api/keys/{keyId}/security
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Parameters:**
+- `keyId` (string): Key UUID
+
+**Request Body:**
+```json
+{
+  "encryption": "AES-256",
+  "storage": "HSM",
+  "access": "restricted",
+  "backup": true,
+  "rotation": "automatic"
+}
+```
+
+## Key Analytics
+
+### Get Key Statistics
 ```http
 GET /api/keys/stats
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Query Parameters:**
+- `timeframe` (string, optional): Timeframe (hour, day, week, month)
+- `type` (string, optional): Filter by key type
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "timeframe": "day",
+      "statistics": {
+        "keys": {
+          "total": 1000,
+          "active": 800,
+          "inactive": 150,
+          "expired": 30,
+          "revoked": 20
+        },
+        "byType": {
+          "RSA": 500,
+          "AES": 300,
+          "ECDSA": 150,
+          "Ed25519": 50
+        },
+        "operations": {
+          "encrypt": 5000,
+          "decrypt": 4500,
+          "sign": 2000,
+          "verify": 1800
+        },
+        "performance": {
+          "averageEncryptTime": 0.1,
+          "averageDecryptTime": 0.2,
+          "averageSignTime": 0.15,
+          "averageVerifyTime": 0.25
+        }
+      },
+      "trends": {
+        "keys": "increasing",
+        "operations": "increasing",
+        "performance": "stable"
+      },
+      "lastUpdated": "2024-01-20T14:30:00Z"
+    },
+    "message": "Key statistics retrieved successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+### Get Key Performance
+```http
+GET /api/keys/performance
 Authorization: Bearer YOUR_TOKEN
 ```
 
@@ -640,21 +723,125 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "totalKeys": 1250,
-      "activeKeys": 1200,
-      "inactiveKeys": 50,
-      "keysByProvider": {
-        "Ethereum": 500,
-        "Solana": 300,
-        "Bitcoin": 200,
-        "Polygon": 150,
-        "Other": 100
+      "performance": {
+        "averageEncryptTime": 0.1,
+        "peakEncryptTime": 0.5,
+        "averageDecryptTime": 0.2,
+        "peakDecryptTime": 1.0,
+        "averageSignTime": 0.15,
+        "peakSignTime": 0.8,
+        "averageVerifyTime": 0.25,
+        "peakVerifyTime": 1.2
       },
-      "keysByAvatar": 850,
-      "averageKeysPerAvatar": 1.47,
+      "metrics": {
+        "operationsPerSecond": 1000,
+        "averageLatency": 0.2,
+        "p95Latency": 0.5,
+        "p99Latency": 1.0,
+        "errorRate": 0.001,
+        "successRate": 0.999
+      },
+      "trends": {
+        "encryptTime": "stable",
+        "decryptTime": "stable",
+        "signTime": "stable",
+        "verifyTime": "stable"
+      },
+      "breakdown": {
+        "RSA": {
+          "averageEncryptTime": 0.1,
+          "averageDecryptTime": 0.2,
+          "averageSignTime": 0.15,
+          "averageVerifyTime": 0.25
+        },
+        "AES": {
+          "averageEncryptTime": 0.05,
+          "averageDecryptTime": 0.05,
+          "averageSignTime": 0.0,
+          "averageVerifyTime": 0.0
+        },
+        "ECDSA": {
+          "averageEncryptTime": 0.0,
+          "averageDecryptTime": 0.0,
+          "averageSignTime": 0.1,
+          "averageVerifyTime": 0.2
+        }
+      },
       "lastUpdated": "2024-01-20T14:30:00Z"
     },
-    "message": "Key statistics retrieved successfully"
+    "message": "Key performance retrieved successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+### Get Key Health
+```http
+GET /api/keys/health
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "status": "Healthy",
+      "overallHealth": 0.98,
+      "components": {
+        "generation": {
+          "status": "Healthy",
+          "health": 0.99,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        },
+        "storage": {
+          "status": "Healthy",
+          "health": 0.98,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        },
+        "operations": {
+          "status": "Healthy",
+          "health": 0.97,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        },
+        "security": {
+          "status": "Healthy",
+          "health": 0.96,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        }
+      },
+      "checks": [
+        {
+          "name": "Key Generation Test",
+          "status": "Pass",
+          "responseTime": 0.1,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        },
+        {
+          "name": "Key Storage Test",
+          "status": "Pass",
+          "responseTime": 0.05,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        },
+        {
+          "name": "Key Operations Test",
+          "status": "Pass",
+          "responseTime": 0.2,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        },
+        {
+          "name": "Key Security Test",
+          "status": "Pass",
+          "responseTime": 0.15,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        }
+      ],
+      "alerts": [],
+      "lastUpdated": "2024-01-20T14:30:00Z"
+    },
+    "message": "Key health retrieved successfully"
   },
   "isError": false,
   "message": "Success"
@@ -673,13 +860,33 @@ Authorization: Bearer YOUR_TOKEN
 }
 ```
 
-### Invalid Key Format
+### Invalid Key Type
 ```json
 {
   "result": null,
   "isError": true,
-  "message": "Invalid key format",
-  "exception": "Invalid Ethereum public key format"
+  "message": "Invalid key type",
+  "exception": "Key type 'InvalidType' is not supported"
+}
+```
+
+### Key Expired
+```json
+{
+  "result": null,
+  "isError": true,
+  "message": "Key expired",
+  "exception": "Key has expired and cannot be used"
+}
+```
+
+### Key Revoked
+```json
+{
+  "result": null,
+  "isError": true,
+  "message": "Key revoked",
+  "exception": "Key has been revoked and cannot be used"
 }
 ```
 
@@ -688,18 +895,8 @@ Authorization: Bearer YOUR_TOKEN
 {
   "result": null,
   "isError": true,
-  "message": "Encryption failed",
-  "exception": "Failed to encrypt private key"
-}
-```
-
-### Avatar Not Found
-```json
-{
-  "result": null,
-  "isError": true,
-  "message": "Avatar not found",
-  "exception": "Avatar with ID 123 not found"
+  "message": "Encryption error",
+  "exception": "Failed to encrypt data with the specified key"
 }
 ```
 
@@ -707,4 +904,4 @@ Authorization: Bearer YOUR_TOKEN
 
 ## Navigation
 
-**← Previous:** [Avatar API](Avatar-API.md) | **Next:** [Karma API](Karma-API.md) →
+**← Previous:** [Files API](Files-API.md) | **Next:** [Competition API](Competition-API.md) →

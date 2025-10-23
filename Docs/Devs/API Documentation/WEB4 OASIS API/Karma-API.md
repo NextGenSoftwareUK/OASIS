@@ -4,71 +4,30 @@
 
 - [Overview](#overview)
 - [Karma Management](#karma-management)
-- [Karma History](#karma-history)
-- [Karma Statistics](#karma-statistics)
-- [Karma Transactions](#karma-transactions)
-- [Karma Events](#karma-events)
-- [Karma Leaderboard](#karma-leaderboard)
+- [Karma Operations](#karma-operations)
+- [Karma Analytics](#karma-analytics)
+- [Karma Security](#karma-security)
 - [Error Responses](#error-responses)
 
 ## Overview
 
-The Karma API provides comprehensive digital reputation management, tracking positive actions, and maintaining karma scores across all supported providers. It handles karma transactions, history tracking, and reputation analytics.
+The Karma API provides comprehensive karma management services for the OASIS ecosystem. It handles karma earning, spending, tracking, and analytics with support for multiple karma types, real-time updates, and advanced security features.
 
 ## Karma Management
 
-### Get Karma Balance
+### Get All Karma
 ```http
-GET /api/karma/balance/{avatarId}
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Parameters:**
-- `avatarId` (string): Avatar UUID
-
-**Response:**
-```json
-{
-  "result": {
-    "success": true,
-    "data": {
-      "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-      "karmaBalance": 1250,
-      "karmaLevel": "Expert",
-      "reputation": 4.8,
-      "totalEarned": 1500,
-      "totalSpent": 250,
-      "lastUpdated": "2024-01-20T14:30:00Z"
-    },
-    "message": "Karma balance retrieved successfully"
-  },
-  "isError": false,
-  "message": "Success"
-}
-```
-
-### Get Karma Balance by Username
-```http
-GET /api/karma/balance/username/{username}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Karma Balance by Email
-```http
-GET /api/karma/balance/email/{email}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get All Karma Balances
-```http
-GET /api/karma/balance/all
+GET /api/karma
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Query Parameters:**
 - `limit` (int, optional): Number of results (default: 50)
 - `offset` (int, optional): Number to skip (default: 0)
-- `sortBy` (string, optional): Sort field (karma, reputation, lastUpdated)
+- `type` (string, optional): Filter by type (Earned, Spent, Transferred, Bonus)
+- `status` (string, optional): Filter by status (Active, Pending, Expired, Cancelled)
+- `category` (string, optional): Filter by category (Gaming, Social, Learning, Contribution)
+- `sortBy` (string, optional): Sort field (amount, createdAt, expiresAt)
 - `sortOrder` (string, optional): Sort order (asc/desc, default: desc)
 
 **Response:**
@@ -77,41 +36,53 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "balances": [
+      "karma": [
         {
-          "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-          "username": "john_doe",
-          "karmaBalance": 1250,
-          "karmaLevel": "Expert",
-          "reputation": 4.8,
-          "lastUpdated": "2024-01-20T14:30:00Z"
+          "id": "karma_123",
+          "type": "Earned",
+          "amount": 100,
+          "category": "Gaming",
+          "status": "Active",
+          "user": {
+            "id": "user_123",
+            "username": "john_doe",
+            "avatar": "https://example.com/avatars/john.jpg"
+          },
+          "source": {
+            "type": "Achievement",
+            "name": "First Victory",
+            "description": "Won your first game"
+          },
+          "metadata": {
+            "gameId": "game_123",
+            "achievementId": "ach_123",
+            "difficulty": "Easy",
+            "multiplier": 1.0
+          },
+          "expiresAt": "2025-01-20T14:30:00Z",
+          "createdAt": "2024-01-20T14:30:00Z",
+          "lastModified": "2024-01-20T14:30:00Z"
         }
       ],
       "totalCount": 1,
       "limit": 50,
       "offset": 0
     },
-    "message": "Karma balances retrieved successfully"
+    "message": "Karma retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-## Karma History
-
-### Get Karma History
+### Get Karma by ID
 ```http
-GET /api/karma/history/{avatarId}
+GET /api/karma/{karmaId}
 Authorization: Bearer YOUR_TOKEN
 ```
 
-**Query Parameters:**
-- `limit` (int, optional): Number of results (default: 50)
-- `offset` (int, optional): Number to skip (default: 0)
-- `startDate` (string, optional): Start date (ISO 8601)
-- `endDate` (string, optional): End date (ISO 8601)
-- `transactionType` (string, optional): Transaction type (earned, spent, transferred)
+**Parameters:**
+- `karmaId` (string): Karma UUID
 
 **Response:**
 ```json
@@ -119,142 +90,51 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-      "history": [
-        {
-          "transactionId": "karma_tx_123",
-          "type": "earned",
-          "amount": 50,
-          "description": "Helped another user",
-          "source": "Community Help",
-          "timestamp": "2024-01-20T14:30:00Z",
-          "balanceAfter": 1250
-        },
-        {
-          "transactionId": "karma_tx_124",
-          "type": "spent",
-          "amount": 25,
-          "description": "Premium feature unlock",
-          "source": "Feature Purchase",
-          "timestamp": "2024-01-19T10:15:00Z",
-          "balanceAfter": 1200
-        }
-      ],
-      "totalCount": 2,
-      "limit": 50,
-      "offset": 0
-    },
-    "message": "Karma history retrieved successfully"
-  },
-  "isError": false,
-  "message": "Success"
-}
-```
-
-### Get Karma History by Username
-```http
-GET /api/karma/history/username/{username}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Karma History by Email
-```http
-GET /api/karma/history/email/{email}
-Authorization: Bearer YOUR_TOKEN
-```
-
-## Karma Statistics
-
-### Get Karma Stats
-```http
-GET /api/karma/stats/{avatarId}
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Response:**
-```json
-{
-  "result": {
-    "success": true,
-    "data": {
-      "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-      "currentBalance": 1250,
-      "totalEarned": 1500,
-      "totalSpent": 250,
-      "averageEarnedPerDay": 5.2,
-      "averageSpentPerDay": 0.8,
-      "highestBalance": 1500,
-      "lowestBalance": 200,
-      "totalTransactions": 45,
-      "earnedTransactions": 30,
-      "spentTransactions": 15,
-      "reputation": 4.8,
-      "karmaLevel": "Expert",
-      "rank": 15,
-      "percentile": 95.5,
-      "lastUpdated": "2024-01-20T14:30:00Z"
-    },
-    "message": "Karma statistics retrieved successfully"
-  },
-  "isError": false,
-  "message": "Success"
-}
-```
-
-### Get Karma Stats by Username
-```http
-GET /api/karma/stats/username/{username}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Karma Stats by Email
-```http
-GET /api/karma/stats/email/{email}
-Authorization: Bearer YOUR_TOKEN
-```
-
-### Get Global Karma Stats
-```http
-GET /api/karma/stats/global
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Response:**
-```json
-{
-  "result": {
-    "success": true,
-    "data": {
-      "totalUsers": 10000,
-      "totalKarma": 5000000,
-      "averageKarmaPerUser": 500,
-      "topKarmaUser": {
-        "avatarId": "top_user_id",
-        "username": "karma_king",
-        "karmaBalance": 5000
+      "id": "karma_123",
+      "type": "Earned",
+      "amount": 100,
+      "category": "Gaming",
+      "status": "Active",
+      "user": {
+        "id": "user_123",
+        "username": "john_doe",
+        "avatar": "https://example.com/avatars/john.jpg"
       },
-      "karmaDistribution": {
-        "0-100": 2000,
-        "101-500": 4000,
-        "501-1000": 2500,
-        "1001-2000": 1000,
-        "2000+": 500
+      "source": {
+        "type": "Achievement",
+        "name": "First Victory",
+        "description": "Won your first game"
       },
-      "averageReputation": 3.8,
-      "lastUpdated": "2024-01-20T14:30:00Z"
+      "metadata": {
+        "gameId": "game_123",
+        "achievementId": "ach_123",
+        "difficulty": "Easy",
+        "multiplier": 1.0
+      },
+      "security": {
+        "encryption": "AES-256",
+        "authentication": "JWT",
+        "authorization": "RBAC"
+      },
+      "analytics": {
+        "views": 5,
+        "shares": 0,
+        "lastAccessed": "2024-01-20T14:30:00Z"
+      },
+      "expiresAt": "2025-01-20T14:30:00Z",
+      "createdAt": "2024-01-20T14:30:00Z",
+      "lastModified": "2024-01-20T14:30:00Z"
     },
-    "message": "Global karma statistics retrieved successfully"
+    "message": "Karma retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-## Karma Transactions
-
-### Add Karma
+### Create Karma
 ```http
-POST /api/karma/add
+POST /api/karma
 Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN
 ```
@@ -262,11 +142,25 @@ Authorization: Bearer YOUR_TOKEN
 **Request Body:**
 ```json
 {
-  "avatarId": "123e4567-e89b-12d3-a456-426614174000",
+  "type": "Earned",
   "amount": 50,
-  "description": "Helped another user with technical issue",
-  "source": "Community Help",
-  "category": "Technical Support"
+  "category": "Social",
+  "user": {
+    "id": "user_456",
+    "username": "jane_smith"
+  },
+  "source": {
+    "type": "Contribution",
+    "name": "Helpful Comment",
+    "description": "Provided helpful feedback to another user"
+  },
+  "metadata": {
+    "postId": "post_123",
+    "commentId": "comment_123",
+    "helpfulness": "High",
+    "multiplier": 1.5
+  },
+  "expiresAt": "2025-01-20T14:30:00Z"
 }
 ```
 
@@ -276,25 +170,85 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "transactionId": "karma_tx_125",
-      "avatarId": "123e4567-e89b-12d3-a456-426614174000",
+      "id": "karma_124",
+      "type": "Earned",
       "amount": 50,
-      "newBalance": 1300,
-      "description": "Helped another user with technical issue",
-      "source": "Community Help",
-      "category": "Technical Support",
-      "timestamp": "2024-01-20T15:00:00Z"
+      "category": "Social",
+      "status": "Active",
+      "user": {
+        "id": "user_456",
+        "username": "jane_smith",
+        "avatar": "https://example.com/avatars/jane.jpg"
+      },
+      "source": {
+        "type": "Contribution",
+        "name": "Helpful Comment",
+        "description": "Provided helpful feedback to another user"
+      },
+      "metadata": {
+        "postId": "post_123",
+        "commentId": "comment_123",
+        "helpfulness": "High",
+        "multiplier": 1.5
+      },
+      "security": {
+        "encryption": "AES-256",
+        "authentication": "JWT",
+        "authorization": "RBAC"
+      },
+      "analytics": {
+        "views": 0,
+        "shares": 0,
+        "lastAccessed": null
+      },
+      "expiresAt": "2025-01-20T14:30:00Z",
+      "createdAt": "2024-01-20T14:30:00Z",
+      "lastModified": "2024-01-20T14:30:00Z"
     },
-    "message": "Karma added successfully"
+    "message": "Karma created successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Subtract Karma
+### Update Karma
 ```http
-POST /api/karma/subtract
+PUT /api/karma/{karmaId}
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Parameters:**
+- `karmaId` (string): Karma UUID
+
+**Request Body:**
+```json
+{
+  "amount": 75,
+  "metadata": {
+    "postId": "post_123",
+    "commentId": "comment_123",
+    "helpfulness": "Very High",
+    "multiplier": 2.0
+  }
+}
+```
+
+### Delete Karma
+```http
+DELETE /api/karma/{karmaId}
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Parameters:**
+- `karmaId` (string): Karma UUID
+
+## Karma Operations
+
+### Earn Karma
+```http
+POST /api/karma/earn
 Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN
 ```
@@ -302,11 +256,117 @@ Authorization: Bearer YOUR_TOKEN
 **Request Body:**
 ```json
 {
-  "avatarId": "123e4567-e89b-12d3-a456-426614174000",
   "amount": 25,
-  "description": "Premium feature unlock",
-  "source": "Feature Purchase",
-  "category": "Premium Features"
+  "category": "Learning",
+  "source": {
+    "type": "Course Completion",
+    "name": "OASIS Basics",
+    "description": "Completed the OASIS basics course"
+  },
+  "metadata": {
+    "courseId": "course_123",
+    "completionTime": 120,
+    "difficulty": "Beginner",
+    "multiplier": 1.0
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "karmaId": "karma_125",
+      "type": "Earned",
+      "amount": 25,
+      "category": "Learning",
+      "status": "Active",
+      "user": {
+        "id": "user_123",
+        "username": "john_doe",
+        "avatar": "https://example.com/avatars/john.jpg"
+      },
+      "source": {
+        "type": "Course Completion",
+        "name": "OASIS Basics",
+        "description": "Completed the OASIS basics course"
+      },
+      "metadata": {
+        "courseId": "course_123",
+        "completionTime": 120,
+        "difficulty": "Beginner",
+        "multiplier": 1.0
+      },
+      "totalKarma": 125,
+      "earnedAt": "2024-01-20T14:30:00Z"
+    },
+    "message": "Karma earned successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+### Spend Karma
+```http
+POST /api/karma/spend
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Request Body:**
+```json
+{
+  "amount": 50,
+  "category": "Reward",
+  "source": {
+    "type": "Purchase",
+    "name": "Premium Feature",
+    "description": "Unlocked premium feature"
+  },
+  "metadata": {
+    "featureId": "feature_123",
+    "featureName": "Advanced Analytics",
+    "duration": 30
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "karmaId": "karma_126",
+      "type": "Spent",
+      "amount": 50,
+      "category": "Reward",
+      "status": "Active",
+      "user": {
+        "id": "user_123",
+        "username": "john_doe",
+        "avatar": "https://example.com/avatars/john.jpg"
+      },
+      "source": {
+        "type": "Purchase",
+        "name": "Premium Feature",
+        "description": "Unlocked premium feature"
+      },
+      "metadata": {
+        "featureId": "feature_123",
+        "featureName": "Advanced Analytics",
+        "duration": 30
+      },
+      "totalKarma": 75,
+      "spentAt": "2024-01-20T14:30:00Z"
+    },
+    "message": "Karma spent successfully"
+  },
+  "isError": false,
+  "message": "Success"
 }
 ```
 
@@ -320,11 +380,20 @@ Authorization: Bearer YOUR_TOKEN
 **Request Body:**
 ```json
 {
-  "fromAvatarId": "123e4567-e89b-12d3-a456-426614174000",
-  "toAvatarId": "987fcdeb-51a2-43d1-b456-426614174000",
-  "amount": 100,
-  "description": "Gift to friend",
-  "source": "Direct Transfer"
+  "amount": 25,
+  "recipient": {
+    "id": "user_456",
+    "username": "jane_smith"
+  },
+  "source": {
+    "type": "Gift",
+    "name": "Karma Gift",
+    "description": "Gifted karma to another user"
+  },
+  "metadata": {
+    "reason": "Thank you for your help",
+    "message": "Thanks for the great advice!"
+  }
 }
 ```
 
@@ -334,15 +403,32 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "transactionId": "karma_tx_126",
-      "fromAvatarId": "123e4567-e89b-12d3-a456-426614174000",
-      "toAvatarId": "987fcdeb-51a2-43d1-b456-426614174000",
-      "amount": 100,
-      "fromNewBalance": 1200,
-      "toNewBalance": 600,
-      "description": "Gift to friend",
-      "source": "Direct Transfer",
-      "timestamp": "2024-01-20T15:30:00Z"
+      "karmaId": "karma_127",
+      "type": "Transferred",
+      "amount": 25,
+      "category": "Gift",
+      "status": "Active",
+      "user": {
+        "id": "user_123",
+        "username": "john_doe",
+        "avatar": "https://example.com/avatars/john.jpg"
+      },
+      "recipient": {
+        "id": "user_456",
+        "username": "jane_smith",
+        "avatar": "https://example.com/avatars/jane.jpg"
+      },
+      "source": {
+        "type": "Gift",
+        "name": "Karma Gift",
+        "description": "Gifted karma to another user"
+      },
+      "metadata": {
+        "reason": "Thank you for your help",
+        "message": "Thanks for the great advice!"
+      },
+      "totalKarma": 50,
+      "transferredAt": "2024-01-20T14:30:00Z"
     },
     "message": "Karma transferred successfully"
   },
@@ -351,18 +437,61 @@ Authorization: Bearer YOUR_TOKEN
 }
 ```
 
-## Karma Events
-
-### Get Karma Events
+### Get Karma Balance
 ```http
-GET /api/karma/events/{avatarId}
+GET /api/karma/balance
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "user": {
+        "id": "user_123",
+        "username": "john_doe",
+        "avatar": "https://example.com/avatars/john.jpg"
+      },
+      "balance": {
+        "total": 1000,
+        "available": 950,
+        "locked": 50,
+        "pending": 0
+      },
+      "breakdown": {
+        "Gaming": 400,
+        "Social": 300,
+        "Learning": 200,
+        "Contribution": 100
+      },
+      "recent": {
+        "earned": 100,
+        "spent": 50,
+        "transferred": 25,
+        "received": 75
+      },
+      "lastUpdated": "2024-01-20T14:30:00Z"
+    },
+    "message": "Karma balance retrieved successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+### Get Karma History
+```http
+GET /api/karma/history
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Query Parameters:**
 - `limit` (int, optional): Number of results (default: 50)
 - `offset` (int, optional): Number to skip (default: 0)
-- `eventType` (string, optional): Event type filter
+- `type` (string, optional): Filter by type (Earned, Spent, Transferred, Bonus)
+- `category` (string, optional): Filter by category
 - `startDate` (string, optional): Start date (ISO 8601)
 - `endDate` (string, optional): End date (ISO 8601)
 
@@ -372,66 +501,67 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-      "events": [
+      "history": [
         {
-          "eventId": "event_123",
-          "type": "karma_milestone",
-          "title": "Reached Expert Level",
-          "description": "Congratulations! You've reached Expert karma level",
-          "karmaAmount": 1000,
-          "timestamp": "2024-01-20T14:30:00Z",
-          "isRead": false
+          "id": "karma_123",
+          "type": "Earned",
+          "amount": 100,
+          "category": "Gaming",
+          "source": {
+            "type": "Achievement",
+            "name": "First Victory",
+            "description": "Won your first game"
+          },
+          "metadata": {
+            "gameId": "game_123",
+            "achievementId": "ach_123",
+            "difficulty": "Easy",
+            "multiplier": 1.0
+          },
+          "balance": 1000,
+          "createdAt": "2024-01-20T14:30:00Z"
         },
         {
-          "eventId": "event_124",
-          "type": "karma_achievement",
-          "title": "Helpful Helper",
-          "description": "Helped 10 users in a single day",
-          "karmaAmount": 50,
-          "timestamp": "2024-01-19T18:00:00Z",
-          "isRead": true
+          "id": "karma_124",
+          "type": "Spent",
+          "amount": 50,
+          "category": "Reward",
+          "source": {
+            "type": "Purchase",
+            "name": "Premium Feature",
+            "description": "Unlocked premium feature"
+          },
+          "metadata": {
+            "featureId": "feature_123",
+            "featureName": "Advanced Analytics",
+            "duration": 30
+          },
+          "balance": 950,
+          "createdAt": "2024-01-20T14:25:00Z"
         }
       ],
       "totalCount": 2,
-      "unreadCount": 1,
       "limit": 50,
       "offset": 0
     },
-    "message": "Karma events retrieved successfully"
+    "message": "Karma history retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Mark Event as Read
+## Karma Analytics
+
+### Get Karma Statistics
 ```http
-POST /api/karma/events/{eventId}/read
-Authorization: Bearer YOUR_TOKEN
-```
-
-**Parameters:**
-- `eventId` (string): Event UUID
-
-### Mark All Events as Read
-```http
-POST /api/karma/events/mark-all-read
-Authorization: Bearer YOUR_TOKEN
-```
-
-## Karma Leaderboard
-
-### Get Karma Leaderboard
-```http
-GET /api/karma/leaderboard
+GET /api/karma/stats
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Query Parameters:**
-- `limit` (int, optional): Number of results (default: 100)
-- `timeframe` (string, optional): Timeframe (daily, weekly, monthly, alltime)
-- `category` (string, optional): Category filter
+- `timeframe` (string, optional): Timeframe (hour, day, week, month)
+- `category` (string, optional): Filter by category
 
 **Response:**
 ```json
@@ -439,51 +569,198 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "leaderboard": [
-        {
-          "rank": 1,
-          "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-          "username": "karma_king",
-          "karmaBalance": 5000,
-          "karmaLevel": "Legend",
-          "reputation": 5.0,
-          "avatar": "https://example.com/avatar1.jpg"
+      "timeframe": "day",
+      "statistics": {
+        "karma": {
+          "total": 10000,
+          "earned": 8000,
+          "spent": 5000,
+          "transferred": 1000,
+          "received": 2000
         },
-        {
-          "rank": 2,
-          "avatarId": "987fcdeb-51a2-43d1-b456-426614174000",
-          "username": "helpful_helper",
-          "karmaBalance": 4500,
-          "karmaLevel": "Expert",
-          "reputation": 4.9,
-          "avatar": "https://example.com/avatar2.jpg"
+        "byCategory": {
+          "Gaming": 4000,
+          "Social": 3000,
+          "Learning": 2000,
+          "Contribution": 1000
+        },
+        "byType": {
+          "Earned": 8000,
+          "Spent": 5000,
+          "Transferred": 1000,
+          "Bonus": 500
+        },
+        "performance": {
+          "averageEarned": 50,
+          "averageSpent": 25,
+          "averageTransferred": 10,
+          "retentionRate": 0.85
         }
-      ],
-      "totalCount": 2,
-      "timeframe": "alltime",
+      },
+      "trends": {
+        "karma": "increasing",
+        "earned": "increasing",
+        "spent": "stable",
+        "transferred": "increasing"
+      },
       "lastUpdated": "2024-01-20T14:30:00Z"
     },
-    "message": "Karma leaderboard retrieved successfully"
+    "message": "Karma statistics retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
-### Get Karma Leaderboard by Category
+### Get Karma Performance
 ```http
-GET /api/karma/leaderboard/category/{category}
+GET /api/karma/performance
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "performance": {
+        "averageEarned": 50,
+        "peakEarned": 200,
+        "averageSpent": 25,
+        "peakSpent": 100,
+        "averageTransferred": 10,
+        "peakTransferred": 50,
+        "retentionRate": 0.85,
+        "engagementRate": 0.75
+      },
+      "metrics": {
+        "transactionsPerHour": 100,
+        "averageLatency": 1.0,
+        "p95Latency": 2.0,
+        "p99Latency": 5.0,
+        "errorRate": 0.001,
+        "successRate": 0.999
+      },
+      "trends": {
+        "earned": "increasing",
+        "spent": "stable",
+        "transferred": "increasing",
+        "retention": "stable"
+      },
+      "breakdown": {
+        "Gaming": {
+          "averageEarned": 60,
+          "averageSpent": 30,
+          "retentionRate": 0.90
+        },
+        "Social": {
+          "averageEarned": 40,
+          "averageSpent": 20,
+          "retentionRate": 0.80
+        },
+        "Learning": {
+          "averageEarned": 50,
+          "averageSpent": 25,
+          "retentionRate": 0.85
+        },
+        "Contribution": {
+          "averageEarned": 30,
+          "averageSpent": 15,
+          "retentionRate": 0.75
+        }
+      },
+      "lastUpdated": "2024-01-20T14:30:00Z"
+    },
+    "message": "Karma performance retrieved successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+### Get Karma Health
+```http
+GET /api/karma/health
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "data": {
+      "status": "Healthy",
+      "overallHealth": 0.95,
+      "components": {
+        "earning": {
+          "status": "Healthy",
+          "health": 0.98,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        },
+        "spending": {
+          "status": "Healthy",
+          "health": 0.95,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        },
+        "transfer": {
+          "status": "Healthy",
+          "health": 0.92,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        },
+        "analytics": {
+          "status": "Healthy",
+          "health": 0.97,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        }
+      },
+      "checks": [
+        {
+          "name": "Earning Test",
+          "status": "Pass",
+          "responseTime": 0.5,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        },
+        {
+          "name": "Spending Test",
+          "status": "Pass",
+          "responseTime": 0.8,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        },
+        {
+          "name": "Transfer Test",
+          "status": "Pass",
+          "responseTime": 1.0,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        },
+        {
+          "name": "Analytics Test",
+          "status": "Pass",
+          "responseTime": 1.2,
+          "lastCheck": "2024-01-20T14:30:00Z"
+        }
+      ],
+      "alerts": [],
+      "lastUpdated": "2024-01-20T14:30:00Z"
+    },
+    "message": "Karma health retrieved successfully"
+  },
+  "isError": false,
+  "message": "Success"
+}
+```
+
+## Karma Security
+
+### Get Karma Security
+```http
+GET /api/karma/{karmaId}/security
 Authorization: Bearer YOUR_TOKEN
 ```
 
 **Parameters:**
-- `category` (string): Category (technical, community, creative, etc.)
-
-### Get User Rank
-```http
-GET /api/karma/rank/{avatarId}
-Authorization: Bearer YOUR_TOKEN
-```
+- `karmaId` (string): Karma UUID
 
 **Response:**
 ```json
@@ -491,61 +768,110 @@ Authorization: Bearer YOUR_TOKEN
   "result": {
     "success": true,
     "data": {
-      "avatarId": "123e4567-e89b-12d3-a456-426614174000",
-      "rank": 15,
-      "percentile": 95.5,
-      "karmaBalance": 1250,
-      "karmaLevel": "Expert",
-      "reputation": 4.8,
-      "totalUsers": 10000,
+      "karmaId": "karma_123",
+      "security": {
+        "encryption": "AES-256",
+        "authentication": "JWT",
+        "authorization": "RBAC",
+        "auditLogging": true,
+        "antiFraud": true
+      },
+      "access": {
+        "lastAccessed": "2024-01-20T14:30:00Z",
+        "accessCount": 10,
+        "failedAttempts": 0,
+        "locked": false
+      },
+      "compliance": {
+        "gdpr": true,
+        "ccpa": true,
+        "sox": true,
+        "pci": true
+      },
+      "audit": {
+        "lastAudit": "2024-01-20T14:30:00Z",
+        "auditCount": 5,
+        "complianceScore": 0.98
+      },
       "lastUpdated": "2024-01-20T14:30:00Z"
     },
-    "message": "User rank retrieved successfully"
+    "message": "Karma security retrieved successfully"
   },
   "isError": false,
   "message": "Success"
 }
 ```
 
+### Update Karma Security
+```http
+PUT /api/karma/{karmaId}/security
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN
+```
+
+**Parameters:**
+- `karmaId` (string): Karma UUID
+
+**Request Body:**
+```json
+{
+  "encryption": "AES-256",
+  "authentication": "JWT",
+  "authorization": "RBAC",
+  "auditLogging": true,
+  "antiFraud": true
+}
+```
+
 ## Error Responses
+
+### Karma Not Found
+```json
+{
+  "result": null,
+  "isError": true,
+  "message": "Karma not found",
+  "exception": "Karma with ID karma_123 not found"
+}
+```
 
 ### Insufficient Karma
 ```json
 {
   "result": null,
   "isError": true,
-  "message": "Insufficient karma balance",
-  "exception": "Avatar has 100 karma but needs 250 for this action"
+  "message": "Insufficient karma",
+  "exception": "Not enough karma to complete this action"
 }
 ```
 
-### Invalid Karma Amount
+### Karma Expired
 ```json
 {
   "result": null,
   "isError": true,
-  "message": "Invalid karma amount",
+  "message": "Karma expired",
+  "exception": "Karma has expired and cannot be used"
+}
+```
+
+### Invalid Amount
+```json
+{
+  "result": null,
+  "isError": true,
+  "message": "Invalid amount",
   "exception": "Karma amount must be positive"
 }
 ```
 
-### Avatar Not Found
+### Permission Denied
 ```json
 {
   "result": null,
   "isError": true,
-  "message": "Avatar not found",
-  "exception": "Avatar with ID 123 not found"
-}
-```
-
-### Transfer Error
-```json
-{
-  "result": null,
-  "isError": true,
-  "message": "Karma transfer failed",
-  "exception": "Cannot transfer karma to the same avatar"
+  "message": "Permission denied",
+  "exception": "Insufficient permissions to perform this action"
 }
 ```
 
@@ -553,4 +879,4 @@ Authorization: Bearer YOUR_TOKEN
 
 ## Navigation
 
-**← Previous:** [Keys API](Keys-API.md) | **Next:** [Data API](Data-API.md) →
+**← Previous:** [Gifts API](Gifts-API.md) | **Next:** [Data API](Data-API.md) →
