@@ -30,16 +30,29 @@ Authorization: Avatar YOUR_AVATAR_ID
 
 ## 📚 **Complete API Endpoints**
 
-### **Core Controller**
+### **Core Controllers**
 ```http
-GET    /api/core/status              # Get OASIS status
-GET    /api/core/config             # Get OASIS configuration
-GET    /api/core/providers          # Get provider information
-GET    /api/core/stats              # Get OASIS statistics
+# ONODE Controller
+GET    /api/onode/status              # Get ONODE status
+GET    /api/onode/config             # Get ONODE configuration
+GET    /api/onode/providers          # Get provider information
+GET    /api/onode/stats              # Get ONODE statistics
+
+# ONET Controller  
+GET    /api/onet/status              # Get ONET network status
+GET    /api/onet/topology            # Get network topology
+GET    /api/onet/nodes               # Get connected nodes
+POST   /api/onet/connect             # Connect to ONET node
+POST   /api/onet/disconnect          # Disconnect from ONET node
+
+# Settings Controller
+GET    /api/settings                 # Get system settings
+PUT    /api/settings                 # Update system settings
 ```
 
 ### **Avatar Controller**
 ```http
+# Avatar Management
 GET    /api/avatar/load-all-avatars                    # Get all avatars
 GET    /api/avatar/get-avatar/{id}                     # Get avatar by ID
 POST   /api/avatar/register-avatar                     # Register new avatar
@@ -53,6 +66,15 @@ POST   /api/avatar/refresh-token                      # Refresh authentication t
 GET    /api/avatar/avatar-details/{id}                 # Get detailed avatar info
 POST   /api/avatar/link-provider-key                   # Link provider key to avatar
 POST   /api/avatar/unlink-provider-key                 # Unlink provider key from avatar
+
+# Avatar Social Features
+GET    /api/avatar/friends/{avatarId}                  # Get avatar friends
+POST   /api/avatar/add-friend                          # Add friend
+POST   /api/avatar/remove-friend                       # Remove friend
+GET    /api/avatar/followers/{avatarId}                 # Get avatar followers
+POST   /api/avatar/follow                              # Follow avatar
+POST   /api/avatar/unfollow                            # Unfollow avatar
+```
 GET    /api/avatar/provider-keys/{id}                 # Get avatar provider keys
 POST   /api/avatar/update-avatar-detail               # Update avatar details
 POST   /api/avatar/update-avatar-email                 # Update avatar email
@@ -273,6 +295,183 @@ POST   /api/holochain/store                           # Store Holochain data
 GET    /api/holochain/entries                         # Get entries
 POST   /api/holochain/create-entry                    # Create entry
 POST   /api/holochain/update-entry                    # Update entry
+```
+
+### **ONODE Controller**
+```http
+GET    /api/onode/status                              # Get ONODE status
+GET    /api/onode/config                              # Get ONODE configuration
+GET    /api/onode/providers                           # Get provider information
+GET    /api/onode/stats                               # Get ONODE statistics
+```
+
+### **ONET Controller**
+```http
+GET    /api/onet/status                               # Get ONET network status
+GET    /api/onet/topology                             # Get network topology
+GET    /api/onet/nodes                                # Get connected nodes
+POST   /api/onet/connect                              # Connect to ONET node
+POST   /api/onet/disconnect                           # Disconnect from ONET node
+```
+
+### **Settings Controller**
+```http
+GET    /api/settings                                  # Get system settings
+PUT    /api/settings                                  # Update system settings
+```
+
+### **Map Controller**
+```http
+GET    /api/map/load-map/{mapId}                      # Load map
+POST   /api/map/save-map                              # Save map
+GET    /api/map/search-maps                           # Search maps
+POST   /api/map/update-map                            # Update map
+DELETE /api/map/delete-map/{mapId}                    # Delete map
+```
+
+### **Chat Controller**
+```http
+GET    /api/chat/conversations/{avatarId}             # Get conversations
+POST   /api/chat/send-message                         # Send message
+GET    /api/chat/messages/{conversationId}            # Get messages
+POST   /api/chat/create-conversation                 # Create conversation
+```
+
+### **Messaging Controller**
+```http
+GET    /api/messaging/inbox/{avatarId}                # Get inbox
+POST   /api/messaging/send-message                    # Send message
+GET    /api/messaging/sent/{avatarId}                 # Get sent messages
+POST   /api/messaging/mark-read                       # Mark message as read
+```
+
+### **Social Controller**
+```http
+GET    /api/social/friends/{avatarId}                 # Get friends
+POST   /api/social/add-friend                         # Add friend
+POST   /api/social/remove-friend                      # Remove friend
+GET    /api/social/followers/{avatarId}                # Get followers
+POST   /api/social/follow                             # Follow user
+POST   /api/social/unfollow                           # Unfollow user
+GET    /api/social/feed/{avatarId}                    # Get social feed
+```
+
+### **Files Controller**
+```http
+POST   /api/files/upload                              # Upload file
+GET    /api/files/download/{fileId}                   # Download file
+GET    /api/files/list/{avatarId}                     # List user files
+DELETE /api/files/delete/{fileId}                     # Delete file
+POST   /api/files/share                               # Share file
+```
+
+### **Keys Controller**
+```http
+GET    /api/keys/load-all-keys/{avatarId}             # Get all keys for avatar
+POST   /api/keys/generate-key                         # Generate new key
+POST   /api/keys/import-key                           # Import key
+POST   /api/keys/export-key                           # Export key
+DELETE /api/keys/delete-key/{keyId}                   # Delete key
+POST   /api/keys/backup-keys                          # Backup keys
+POST   /api/keys/restore-keys                         # Restore keys
+```
+
+### **Provider Controller**
+```http
+GET    /api/provider/active-providers                 # Get active providers
+GET    /api/provider/available-providers              # Get available providers
+POST   /api/provider/switch-provider                  # Switch provider
+GET    /api/provider/provider-stats                   # Get provider statistics
+POST   /api/provider/test-connection                  # Test provider connection
+```
+
+### **HyperDrive Controller**
+```http
+GET    /api/hyperdrive/status                         # Get HyperDrive status
+GET    /api/hyperdrive/mode                           # Get HyperDrive mode
+PUT    /api/hyperdrive/mode                           # Set HyperDrive mode
+GET    /api/hyperdrive/providers                      # Get HyperDrive providers
+POST   /api/hyperdrive/optimize                       # Optimize HyperDrive
+GET    /api/hyperdrive/analytics                      # Get HyperDrive analytics
+```
+
+### **Subscription Controller**
+```http
+GET    /api/subscription/plans                        # Get subscription plans
+POST   /api/subscription/subscribe                  # Subscribe to plan
+GET    /api/subscription/status/{avatarId}             # Get subscription status
+POST   /api/subscription/cancel                       # Cancel subscription
+POST   /api/subscription/upgrade                      # Upgrade subscription
+```
+
+### **OLand Controller**
+```http
+GET    /api/oland/get-oland-price                     # Get OLand price
+POST   /api/oland/purchase-oland                      # Purchase OLand
+GET    /api/oland/load-all-olands                      # Get all OLand
+GET    /api/oland/load-oland/{olandId}                 # Get specific OLand
+POST   /api/oland/delete-oland/{olandId}               # Delete OLand
+POST   /api/oland/save-oland                           # Save OLand
+POST   /api/oland/update-oland                         # Update OLand
+```
+
+### **Competition Controller**
+```http
+GET    /api/competition/leaderboard                   # Get competition leaderboard
+POST   /api/competition/join                          # Join competition
+GET    /api/competition/status/{competitionId}        # Get competition status
+POST   /api/competition/submit-score                  # Submit score
+```
+
+### **Gifts Controller**
+```http
+GET    /api/gifts/sent/{avatarId}                     # Get sent gifts
+GET    /api/gifts/received/{avatarId}                 # Get received gifts
+POST   /api/gifts/send-gift                           # Send gift
+POST   /api/gifts/accept-gift                         # Accept gift
+```
+
+### **Eggs Controller**
+```http
+GET    /api/eggs/load-eggs/{avatarId}                 # Get avatar eggs
+POST   /api/eggs/hatch-egg                            # Hatch egg
+POST   /api/eggs/feed-egg                             # Feed egg
+GET    /api/eggs/egg-stats/{eggId}                    # Get egg statistics
+```
+
+### **Seeds Controller**
+```http
+GET    /api/seeds/load-seeds/{avatarId}               # Get avatar seeds
+POST   /api/seeds/plant-seed                          # Plant seed
+POST   /api/seeds/water-seed                          # Water seed
+GET    /api/seeds/seed-growth/{seedId}                # Get seed growth status
+```
+
+### **Share Controller**
+```http
+POST   /api/share/share-content                       # Share content
+GET    /api/share/shared-content/{avatarId}           # Get shared content
+POST   /api/share/like-content                        # Like content
+POST   /api/share/comment-content                     # Comment on content
+```
+
+### **EOSIO Controller**
+```http
+GET    /api/eosio/account                             # Get EOSIO account
+POST   /api/eosio/transaction                         # Send EOSIO transaction
+GET    /api/eosio/balance                             # Get EOSIO balance
+```
+
+### **Data Controller**
+```http
+GET    /api/data/load-data/{id}                       # Load data by ID
+POST   /api/data/save-data                            # Save data
+PUT    /api/data/update-data/{id}                     # Update data
+DELETE /api/data/delete-data/{id}                     # Delete data
+GET    /api/data/search-data                          # Search data
+POST   /api/data/upload-data                          # Upload data
+GET    /api/data/download-data/{id}                   # Download data
+POST   /api/data/share-data                           # Share data
 ```
 
 ### **EOSIO Controller**

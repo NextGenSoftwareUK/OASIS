@@ -706,14 +706,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 
                 // Group by avatar and calculate scores
                 var avatarScores = completedQuests
-                    .GroupBy(q => q.CompletedByAvatarId)
+                    .GroupBy(q => q.CompletedBy)
                     .Select(g => new
                     {
                         AvatarId = g.Key,
-                        TotalScore = g.Sum(q => q.Score),
-                        CompletionTime = g.Average(q => (q.CompletedDate - q.StartDate).TotalMinutes),
+                        TotalScore = g.Sum(q => q.RewardXP),
+                        CompletionTime = g.Average(q => (q.CompletedOn - q.StartedOn).TotalMinutes),
                         QuestCount = g.Count(),
-                        LastCompleted = g.Max(q => q.CompletedDate)
+                        LastCompleted = g.Max(q => q.CompletedOn)
                     })
                     .OrderByDescending(x => x.TotalScore)
                     .ThenBy(x => x.CompletionTime)
@@ -732,7 +732,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         Rank = rank++,
                         AvatarId = avatarScore.AvatarId,
                         AvatarName = avatarName,
-                        Score = avatarScore.TotalScore,
+                        Score = (int)avatarScore.TotalScore,
                         CompletedAt = avatarScore.LastCompleted
                     });
                 }
@@ -1144,10 +1144,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     TotalCompletions = completedQuests.Count,
                     AverageCompletionTime = completedQuests.Any() ? 
-                        completedQuests.Average(q => (q.CompletedDate - q.StartDate).TotalMinutes) : 0,
-                    UniqueCompleters = completedQuests.Select(q => q.CompletedByAvatarId).Distinct().Count(),
+                        completedQuests.Average(q => (q.CompletedOn - q.StartedOn).TotalMinutes) : 0,
+                    UniqueCompleters = completedQuests.Select(q => q.CompletedBy).Distinct().Count(),
                     LastCompleted = completedQuests.Any() ? 
-                        completedQuests.Max(q => q.CompletedDate) : DateTime.MinValue
+                        completedQuests.Max(q => q.CompletedOn) : DateTime.MinValue
                 };
                 
                 result.Result = stats;
