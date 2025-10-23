@@ -1338,6 +1338,8 @@ Sophisticated tokenomics with:
 
 ### 🔧 **Developer Documentation**
 - **[API Documentation](./Docs/Devs/API%20Documentation/)** - Complete API reference for WEB4 OASIS and WEB5 STAR APIs
+- **[WEB4 OASIS API](./Docs/Devs/API%20Documentation/WEB4%20OASIS%20API/README.md)** - Core data aggregation layer APIs
+- **[WEB5 STAR API](./Docs/Devs/API%20Documentation/WEB5%20STAR%20API/README.md)** - Gamification and metaverse APIs
 - **[STAR CLI Documentation](./Docs/Devs/STAR_CLI_DOCUMENTATION.md)** - Complete CLI reference for developers
 - **[DNA System Guide](./Docs/Devs/DNA_SYSTEM_GUIDE.md)** - STARNETHolon dependency management
 - **[Tutorials](./Docs/Devs/TUTORIALS/)** - Step-by-step tutorials and guides
@@ -1346,12 +1348,13 @@ Sophisticated tokenomics with:
 - **[Contributing Guide](./Docs/Devs/CONTRIBUTING.md)** - How to contribute to the project
 - **[Quick Start Guide](./Docs/Devs/OASIS_Quick_Start_Guide.md)** - Getting started with OASIS development
 
-### STAR Web API Documentation
-- **[WEB5 STAR API Documentation](./Docs/Devs/API%20Documentation/WEB5_STAR_API_Documentation.md)** - Complete STAR API documentation
-- **[STAR API Complete Endpoints Reference](./Docs/Devs/API%20Documentation/STAR_API_Complete_Endpoints_Reference.md)** - All STAR API endpoints
-- **[STAR Metadata System Documentation](./Docs/Devs/API%20Documentation/STAR_Metadata_System_Documentation.md)** - Metadata system guide
-- **[STAR OAPP Builder Documentation](./Docs/Devs/API%20Documentation/STAR_OAPP_Builder_Documentation.md)** - OAPP Builder guide
-- **[Combined API Overview](./Docs/Devs/API%20Documentation/COMBINED_API_OVERVIEW.md)** - WEB4 + WEB5 integration guide
+### 📚 **API Documentation**
+- **[WEB4 OASIS API](./Docs/Devs/API%20Documentation/WEB4%20OASIS%20API/README.md)** - Core infrastructure APIs (500+ endpoints)
+- **[WEB5 STAR API](./Docs/Devs/API%20Documentation/WEB5%20STAR%20API/README.md)** - Gamification and metaverse APIs (200+ endpoints)
+- **[Avatar API](./Docs/Devs/API%20Documentation/WEB4%20OASIS%20API/Avatar-API.md)** - User management (80+ endpoints)
+- **[Missions API](./Docs/Devs/API%20Documentation/WEB5%20STAR%20API/Missions-API.md)** - Quest system (15+ endpoints)
+- **[Data API](./Docs/Devs/API%20Documentation/WEB4%20OASIS%20API/Data-API.md)** - Universal data operations (30+ endpoints)
+- **[NFT API](./Docs/Devs/API%20Documentation/WEB4%20OASIS%20API/NFT-API.md)** - Cross-chain NFTs (20+ endpoints)
 
 ### Testing & Quality
 - **[Test Coverage Summary](./Docs/Devs/TEST-COVERAGE-SUMMARY.md)** - Testing coverage and quality metrics
