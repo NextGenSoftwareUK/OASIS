@@ -13,8 +13,14 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 {
@@ -377,9 +383,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAllAvatarsAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            var response = new OASISResult<IAvatar>();
+            var response = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
                 if (!_isActivated)
@@ -414,7 +420,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     if (rpcResponse.TryGetProperty("result", out var result))
                     {
                         var avatarsData = JsonSerializer.Deserialize<Avatar[]>(result.GetString());
-                        response.Result = avatarsData?.FirstOrDefault();
+                        response.Result = avatarsData?.Cast<IAvatar>();
                         response.IsError = false;
                         response.Message = "Avatars loaded from Polkadot successfully";
                     }
@@ -436,14 +442,14 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return response;
         }
 
-        public override OASISResult<IAvatar> LoadAllAvatars(int version = 0)
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
             return LoadAllAvatarsAsync(version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            var response = new OASISResult<IAvatar>();
+            var response = new OASISResult<IAvatarDetail>();
             try
             {
                 if (!_isActivated)
@@ -478,7 +484,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     if (rpcResponse.TryGetProperty("result", out var result))
                     {
                         var avatarData = JsonSerializer.Deserialize<AvatarDetail>(result.GetString());
-                        response.Result = avatarData as IAvatar;
+                        response.Result = avatarData as IAvatarDetail;
                         response.IsError = false;
                         response.Message = "Avatar detail loaded from Polkadot successfully";
                     }
@@ -500,7 +506,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return response;
         }
 
-        public override OASISResult<IAvatar> LoadAvatarDetail(Guid id, int version = 0)
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
             return LoadAvatarDetailAsync(id, version).Result;
         }
@@ -639,9 +645,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         #region IOASISNET Implementation
 
-        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var response = new OASISResult<IEnumerable<IPlayer>>();
+            var response = new OASISResult<IEnumerable<IAvatar>>();
 
             try
             {
@@ -675,7 +681,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return response;
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType holonType)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
 
@@ -688,7 +694,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 }
 
                 // Get holons near me from Polkadot blockchain
-                var queryUrl = $"/api/v1/accounts/holons?type={Type}";
+                var queryUrl = $"/api/v1/accounts/holons?type={holonType}";
 
                 var httpResponse = _httpClient.GetAsync(queryUrl).Result;
                 if (httpResponse.IsSuccessStatusCode)
@@ -708,6 +714,130 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from Polkadot: {ex.Message}");
             }
 
+            return response;
+        }
+
+        #endregion
+
+        #region IOASISNFT Implementation
+
+        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transaction)
+        {
+            var response = new OASISResult<INFTTransactionRespone>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SendNFT is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SendNFT: {ex.Message}");
+            }
+            return response;
+        }
+
+        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transaction)
+        {
+            var response = new OASISResult<INFTTransactionRespone>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SendNFTAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SendNFTAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transaction)
+        {
+            var response = new OASISResult<INFTTransactionRespone>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "MintNFT is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in MintNFT: {ex.Message}");
+            }
+            return response;
+        }
+
+        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transaction)
+        {
+            var response = new OASISResult<INFTTransactionRespone>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "MintNFTAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in MintNFTAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        {
+            var response = new OASISResult<IOASISNFT>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadOnChainNFTData is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadOnChainNFTData: {ex.Message}");
+            }
+            return response;
+        }
+
+        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        {
+            var response = new OASISResult<IOASISNFT>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadOnChainNFTDataAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadOnChainNFTDataAsync: {ex.Message}");
+            }
             return response;
         }
 
@@ -1015,7 +1145,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                     var responseContent = await submitResponse.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    result.Result = new TransactionRespone
+                    result.Result = new PolkadotTransactionResponse
                     {
                         TransactionResult = responseData.GetProperty("result").GetString(),
                         MemoText = memoText
@@ -1047,6 +1177,874 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         }
 
         #endregion
+
+        #region Missing Abstract Methods
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAll is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAll: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool continueOnError = true, int maxChildren = 50, bool recurseChildren = true, bool loadDetail = true, int maxDepth = 0)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolon is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolon: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool continueOnError = true, int maxChildren = 50, bool recurseChildren = true, bool loadDetail = true, int maxDepth = 0)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool continueOnError = true, int maxChildren = 50, bool recurseChildren = true, bool loadDetail = true, int maxDepth = 0)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolon is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolon: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool continueOnError = true, int maxChildren = 50, bool recurseChildren = true, bool loadDetail = true, int maxDepth = 0)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParent is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsForParent: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParentAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsForParentAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParent is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsForParent: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParentAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsForParentAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaData is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsByMetaData: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaDataAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsByMetaDataAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAllHolons is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllHolons: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAllHolonsAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllHolonsAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SaveHolon is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolon: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SaveHolonAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SaveHolons is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolons: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SaveHolonsAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonsAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteHolon is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteHolon: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteHolonAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteHolonAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteHolon is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteHolon: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteHolonAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteHolonAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var response = new OASISResult<ISearchResults>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "Search is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in Search: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var response = new OASISResult<ISearchResults>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SearchAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SearchAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarById is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarById: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByIdAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarByIdAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string username, int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByUsername is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarByUsername: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByUsernameAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarByUsernameAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByEmail is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarByEmail: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByEmailAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarByEmailAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "Import is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in Import: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ImportAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ImportAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        #region Missing Abstract Methods
+
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SaveAvatarDetailAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveAvatarDetailAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaData, string value, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaDataAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsByMetaDataAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByEmail is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarByEmail: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailByUsernameAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarDetailByUsernameAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
+        {
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailByEmailAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarDetailByEmailAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAllAvatarDetailsAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllAvatarDetailsAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
+        {
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaData, string value, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            return LoadHolonsByMetaDataAsync(metaData, value, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByEmailAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarByEmailAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar)
+        {
+            return SaveAvatarDetailAsync(avatar).Result;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Polkadot provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByUsernameAsync is not supported by Polkadot provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarByUsernameAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
+        }
+
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
+        {
+            return LoadAllAvatarDetailsAsync(version).Result;
+        }
+
+        #endregion
+        #endregion
+    }
+
+    public class PolkadotTransactionResponse : ITransactionRespone
+    {
+        public string TransactionResult { get; set; }
+        public string MemoText { get; set; }
     }
 }
 
