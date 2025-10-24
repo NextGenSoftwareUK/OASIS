@@ -14,18 +14,32 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         private AvatarManager _avatar = null;
         private NFTManager _nfts = null;
         private OLandManager _olands = null;
-
-        public bool IsOASISBooted { get; set; }
-        //public string OASISRunVersion { get; set; }
-        public OASISDNA OASISDNA { get; set; } 
-
         private HolonManager _data = null;
         private KeyManager _keys = null;
         private WalletManager _wallets = null;
         private OASISProviders _providers = null;
-        private SearchManager _search = null;  
+        private SearchManager _search = null;
+        private ONODEManager _onode = null;
+        private ONETManager _onet = null;
+        private SettingsManager _settings = null;
+        private KarmaManager _karma = null;
+        private MapManager _map = null;
+        private ChatManager _chat = null;
+        private MessagingManager _messaging = null;
+        private CompetitionManager _competition = null;
+        private GiftsManager _gifts = null;
+        private FilesManager _files = null;
+        private SocialManager _social = null;
+        private VideoManager _video = null;
+        //private ShareManager _share = null;
+        private SeedsManager _seeds = null;
+        //private TelosManager _telos = null;
+        private StatsManager _stats = null;
+        private ProviderManager _provider = null;
 
-        
+        public bool IsOASISBooted { get; set; }
+        //public string OASISRunVersion { get; set; }
+        public OASISDNA OASISDNA { get; set; } 
 
         public AvatarManager Avatars
         {
@@ -155,24 +169,6 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             }
         }
 
-        private ONODEManager _onode = null;
-        private ONETManager _onet = null;
-        private SettingsManager _settings = null;
-        private KarmaManager _karma = null;
-        private MapManager _map = null;
-        private ChatManager _chat = null;
-        private MessagingManager _messaging = null;
-        private CompetitionManager _competition = null;
-        private GiftsManager _gifts = null;
-        private FilesManager _files = null;
-        private SocialManager _social = null;
-        private VideoManager _video = null;
-        private ShareManager _share = null;
-        private SeedsManager _seeds = null;
-        private TelosManager _telos = null;
-        private StatsManager _stats = null;
-        private ProviderManager _provider = null;
-
         public ONODEManager ONODE
         {
             get
@@ -212,7 +208,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 if (_settings == null)
                 {
                     if (IsOASISBooted)
-                        _settings = new SettingsManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        //_settings = new SettingsManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        _settings = SettingsManager.Instance;
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Settings property!");
                 }
@@ -244,7 +241,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 if (_map == null)
                 {
                     if (IsOASISBooted)
-                        _map = new MapManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        _map = new MapManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Map property!");
                 }
@@ -365,21 +362,21 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             }
         }
 
-        public ShareManager Share
-        {
-            get
-            {
-                if (_share == null)
-                {
-                    if (IsOASISBooted)
-                        _share = new ShareManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-                    else
-                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Share property!");
-                }
+        //public ShareManager Share
+        //{
+        //    get
+        //    {
+        //        if (_share == null)
+        //        {
+        //            if (IsOASISBooted)
+        //                _share = new ShareManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //            else
+        //                throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Share property!");
+        //        }
 
-                return _share;
-            }
-        }
+        //        return _share;
+        //    }
+        //}
 
         public SeedsManager Seeds
         {
@@ -388,7 +385,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 if (_seeds == null)
                 {
                     if (IsOASISBooted)
-                        _seeds = new SeedsManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        _seeds = new SeedsManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.Id, OASISBootLoader.OASISBootLoader.OASISDNA);
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Seeds property!");
                 }
@@ -397,21 +394,21 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             }
         }
 
-        public TelosManager Telos
-        {
-            get
-            {
-                if (_telos == null)
-                {
-                    if (IsOASISBooted)
-                        _telos = new TelosManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-                    else
-                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Telos property!");
-                }
+        //public TelosManager Telos
+        //{
+        //    get
+        //    {
+        //        if (_telos == null)
+        //        {
+        //            if (IsOASISBooted)
+        //                _telos = new TelosManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+        //            else
+        //                throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Telos property!");
+        //        }
 
-                return _telos;
-            }
-        }
+        //        return _telos;
+        //    }
+        //}
 
         public StatsManager Stats
         {
@@ -420,7 +417,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 if (_stats == null)
                 {
                     if (IsOASISBooted)
-                        _stats = new StatsManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        //_stats = new StatsManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                        _stats = StatsManager.Instance;
                     else
                         throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Stats property!");
                 }
