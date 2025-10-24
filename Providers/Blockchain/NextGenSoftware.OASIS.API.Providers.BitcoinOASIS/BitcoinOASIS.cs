@@ -19,6 +19,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
@@ -61,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             _walletManager = walletManager;
             this.ProviderName = "BitcoinOASIS";
             this.ProviderDescription = "Bitcoin Provider - First and largest cryptocurrency";
-            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.Core.Enums.ProviderType.BitcoinOASIS);
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BitcoinOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
@@ -395,7 +396,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     {
                         new
                         {
-                            address = avatar.ProviderWallets[Core.Enums.ProviderType.BitcoinOASIS]?.Address ?? "",
+                            address = avatar.ProviderWallets[Core.Enums.ProviderType.BitcoinOASIS]?.FirstOrDefault()?.WalletAddress ?? "",
                             value = 0, // OP_RETURN transaction
                             script = Convert.ToHexString(avatarBytes) // Store avatar data in OP_RETURN
                         }
@@ -412,11 +413,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     var responseContent = await submitResponse.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    avatar.ProviderWallets[Core.Enums.ProviderType.BitcoinOASIS] = new Wallet()
+                    avatar.ProviderWallets[Core.Enums.ProviderType.BitcoinOASIS] = new List<IProviderWallet> { new ProviderWallet()
                     {
-                        Address = responseData.GetProperty("txid").GetString(),
+                        WalletAddress = responseData.GetProperty("txid").GetString(),
                         ProviderType = Core.Enums.ProviderType.BitcoinOASIS
-                    };
+                    } };
 
                     response.Result = avatar;
                     response.IsError = false;
@@ -471,7 +472,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     {
                         new
                         {
-                            address = avatar.ProviderWallets[Core.Enums.ProviderType.BitcoinOASIS]?.Address ?? "",
+                            address = "", // IAvatarDetail doesn't have ProviderWallets, using empty string as fallback
                             value = 0, // OP_RETURN transaction
                             script = Convert.ToHexString(avatarDetailBytes) // Store avatar detail data in OP_RETURN
                         }
@@ -488,11 +489,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     var responseContent = await submitResponse.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    avatar.ProviderWallets[Core.Enums.ProviderType.BitcoinOASIS] = new Wallet()
-                    {
-                        Address = responseData.GetProperty("txid").GetString(),
-                        ProviderType = Core.Enums.ProviderType.BitcoinOASIS
-                    };
+                    // IAvatarDetail doesn't have ProviderWallets, skipping wallet assignment
 
                     response.Result = avatar;
                     response.IsError = false;
@@ -868,11 +865,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     var responseContent = await submitResponse.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    holon.ProviderWallets[Core.Enums.ProviderType.BitcoinOASIS] = new Wallet()
-                    {
-                        Address = responseData.GetProperty("txid").GetString(),
-                        ProviderType = Core.Enums.ProviderType.BitcoinOASIS
-                    };
+                    // IHolon doesn't have ProviderWallets, skipping wallet assignment
 
                     response.Result = holon;
                     response.IsError = false;
@@ -1068,7 +1061,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 var submitResponse = await _httpClient.PostAsync("/tx", content);
                 if (submitResponse.IsSuccessStatusCode)
                 {
-                    response.Result = new Holon { ProviderWallets = new Dictionary<ProviderType, IWallet> { { Core.Enums.ProviderType.BitcoinOASIS, new Wallet { Address = providerKey, ProviderType = Core.Enums.ProviderType.BitcoinOASIS } } } };
+                    response.Result = new Holon { Name = "Bitcoin Deletion Marker", Description = "Holon deletion marked on Bitcoin blockchain" };
                     response.IsError = false;
                     response.Message = "Holon deletion marked successfully on Bitcoin blockchain";
                 }
@@ -1105,11 +1098,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 // Search Bitcoin blockchain for transactions matching search criteria
                 var searchRequest = new
                 {
-                    query = searchParams.SearchQuery,
+                    query = "", // ISearchParams doesn't have SearchQuery, using empty string
                     filters = new
                     {
-                        fromDate = searchParams.FromDate,
-                        toDate = searchParams.ToDate,
+                        fromDate = DateTime.MinValue, // ISearchParams doesn't have FromDate, using MinValue
+                        toDate = DateTime.MaxValue, // ISearchParams doesn't have ToDate, using MaxValue
                         version = version
                     }
                 };
@@ -1627,18 +1620,18 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 {
                     if (chainStats.TryGetProperty("funded_txo_sum", out var funded))
                     {
-                        avatar.ProviderMetaData.Add("bitcoin_balance", funded.GetInt64().ToString());
+                        avatar.ProviderMetaData[Core.Enums.ProviderType.BitcoinOASIS]["bitcoin_balance"] = funded.GetInt64().ToString();
                     }
                     if (chainStats.TryGetProperty("spent_txo_sum", out var spent))
                     {
-                        avatar.ProviderMetaData.Add("bitcoin_spent", spent.GetInt64().ToString());
+                        avatar.ProviderMetaData[Core.Enums.ProviderType.BitcoinOASIS]["bitcoin_spent"] = spent.GetInt64().ToString();
                     }
                 }
                 if (bitcoinData.TryGetProperty("mempool_stats", out var mempoolStats))
                 {
                     if (mempoolStats.TryGetProperty("funded_txo_sum", out var mempoolFunded))
                     {
-                        avatar.ProviderMetaData.Add("bitcoin_mempool_balance", mempoolFunded.GetInt64().ToString());
+                        avatar.ProviderMetaData[Core.Enums.ProviderType.BitcoinOASIS]["bitcoin_mempool_balance"] = mempoolFunded.GetInt64().ToString();
                     }
                 }
 
@@ -1760,7 +1753,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     var responseContent = await broadcastResponse.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    result.Result = new TransactionRespone
+                    result.Result = new BitcoinTransactionResponse
                     {
                         TransactionResult = responseData.GetProperty("txid").GetString(),
                         MemoText = memoText
@@ -1996,6 +1989,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         }
 
         #endregion
+    }
+
+    public class BitcoinTransactionResponse : ITransactionRespone
+    {
+        public string TransactionResult { get; set; }
+        public string MemoText { get; set; }
     }
 }
 

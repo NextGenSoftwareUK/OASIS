@@ -218,12 +218,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = httpResponse.Content.ReadAsStringAsync().Result;
-                    // Parse Fantom JSON and create Player collection
-                    var players = ParseFantomToPlayers(content);
-                    if (players != null)
+                    // Parse Fantom JSON and create Avatar collection
+                    var avatars = ParseFantomToAvatars(content);
+                    if (avatars != null)
                     {
-                        response.Result = players;
-                        response.Message = "Players loaded from Fantom successfully";
+                        response.Result = avatars;
+                        response.Message = "Avatars loaded from Fantom successfully";
                     }
                     else
                     {
@@ -257,7 +257,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                 }
 
                 // Get holons near me from Fantom blockchain
-                var queryUrl = $"/api/v1/accounts/holons?type={Type}";
+                var queryUrl = $"/api/v1/accounts/holons?type={holonType}";
 
                 var httpResponse = _httpClient.GetAsync(queryUrl).Result;
                 if (httpResponse.IsSuccessStatusCode)
@@ -354,6 +354,26 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                 });
 
                 return holons;
+            }
+            catch (Exception)
+            {
+                // Return null if parsing fails
+                return null;
+            }
+        }
+
+        private IEnumerable<IAvatar> ParseFantomToAvatars(string fantomJson)
+        {
+            try
+            {
+                // Deserialize the complete Avatar collection to preserve all properties
+                var avatars = JsonSerializer.Deserialize<IEnumerable<Avatar>>(fantomJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+
+                return avatars;
             }
             catch (Exception)
             {
@@ -798,27 +818,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             return response;
         }
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string username, bool softDelete = true)
-        {
-            var response = new OASISResult<bool>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarAsync is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarAsync: {ex.Message}");
-            }
-            return response;
-        }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode = MetaKeyValuePairMatchMode.All, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -838,7 +839,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             return response;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -894,6 +895,953 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             {
                 response.Exception = ex;
                 OASISErrorHandling.HandleError(ref response, $"Error in LoadAllAvatarDetailsAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        // Additional missing abstract methods
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByEmailAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarByEmailAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByUsernameAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarByUsernameAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByEmail is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarByEmail: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByUsername is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarByUsername: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatar is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatar: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteAvatarAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarByUsername is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByUsername: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarByUsernameAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByUsernameAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+
+        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
+        {
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarByProviderKey is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByProviderKey: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        {
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarByProviderKeyAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByProviderKeyAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAllAvatars is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllAvatars: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAllAvatarsAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllAvatarsAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetail is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarDetail: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarDetailAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        // Holon-related methods
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolon is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolon: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolon is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolon: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParent is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsForParent: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParentAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsForParentAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParent is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsForParent: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsForParentAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsForParentAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaData is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsByMetaData: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaDataAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsByMetaDataAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadHolonsByMetaDataAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadHolonsByMetaDataAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "LoadAllHolons is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllHolons: {ex.Message}");
+            }
+            return response;
+        }
+
+        // Save/Delete Holon methods
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SaveHolon is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolon: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SaveHolonAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SaveHolons is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolons: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SaveHolonsAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonsAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteHolon is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteHolon: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteHolonAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteHolonAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteHolon is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteHolon: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "DeleteHolonAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in DeleteHolonAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        // Search methods
+        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var response = new OASISResult<ISearchResults>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "Search is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in Search: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var response = new OASISResult<ISearchResults>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "SearchAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in SearchAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        // Export methods
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAll is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAll: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarById is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarById: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByIdAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarByIdAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string username, int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByUsername is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarByUsername: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByUsernameAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarByUsernameAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByEmail is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarByEmail: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int maxChildDepth = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ExportAllDataForAvatarByEmailAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllDataForAvatarByEmailAsync: {ex.Message}");
+            }
+            return response;
+        }
+
+        // Import methods
+        public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "Import is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in Import: {ex.Message}");
+            }
+            return response;
+        }
+
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            var response = new OASISResult<bool>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
+                    return response;
+                }
+                OASISErrorHandling.HandleError(ref response, "ImportAsync is not supported by Fantom provider");
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error in ImportAsync: {ex.Message}");
             }
             return response;
         }
