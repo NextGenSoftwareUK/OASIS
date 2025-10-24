@@ -1,5 +1,6 @@
 ﻿using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
@@ -359,5 +360,229 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             return metaData;
         }
+
+        //public async Task<OASISResult<IOASISNFT>> FindWeb4NFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "NFT", ProviderType providerType = ProviderType.Default, int displayFieldLength = 40)
+        //{
+        //    OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+        //    Guid id = Guid.Empty;
+
+        //    if (idOrName == Guid.Empty.ToString())
+        //        idOrName = "";
+
+        //    do
+        //    {
+        //        if (string.IsNullOrEmpty(idOrName))
+        //        {
+        //            bool cont = true;
+        //            OASISResult<IEnumerable<IOASISNFT>> starHolonsResult = null;
+
+        //            if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the {UIName} you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
+        //            {
+        //                Console.WriteLine("");
+        //                CLIEngine.ShowWorkingMessage($"Loading {UIName}'s...");
+
+        //                if (showOnlyForCurrentAvatar)
+        //                    starHolonsResult = await NFTManager.LoadAllNFTsForAvatarAsync(STAR.BeamedInAvatar.AvatarId, providerType);
+        //                else
+        //                    starHolonsResult = await NFTManager.LoadAllNFTsAsync(providerType);
+
+        //                ListWeb4NFTs(starHolonsResult, displayFieldLength);
+
+        //                if (!(starHolonsResult != null && starHolonsResult.Result != null && !starHolonsResult.IsError && starHolonsResult.Result.Count() > 0))
+        //                    cont = false;
+        //            }
+        //            else
+        //                Console.WriteLine("");
+
+        //            if (cont)
+        //                idOrName = CLIEngine.GetValidInput($"What is the GUID/ID or Name of the {UIName} you wish to {operationName}?");
+        //            else
+        //            {
+        //                idOrName = "nonefound";
+        //                break;
+        //            }
+
+        //            if (idOrName == "exit")
+        //                break;
+        //        }
+
+        //        if (addSpace)
+        //            Console.WriteLine("");
+
+        //        if (Guid.TryParse(idOrName, out id))
+        //        {
+        //            CLIEngine.ShowWorkingMessage($"Loading {UIName}...");
+        //            result = await NFTManager.LoadNftAsync(id, providerType);
+
+        //            if (result != null && result.Result != null && !result.IsError && showOnlyForCurrentAvatar && result.Result.MintedByAvatarId != STAR.BeamedInAvatar.AvatarId)
+        //            {
+        //                CLIEngine.ShowErrorMessage($"You do not have permission to {operationName} this {UIName}. It was minted by another avatar.");
+        //                result.Result = default;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
+        //            OASISResult<IEnumerable<IOASISNFT>> searchResults = await NFTManager.SearchNFTsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+
+        //            if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
+        //            {
+        //                if (searchResults.Result.Count() > 1)
+        //                {
+        //                    ListWeb4NFTs(searchResults, displayFieldLength);
+
+        //                    if (CLIEngine.GetConfirmation("Are any of these correct?"))
+        //                    {
+        //                        Console.WriteLine("");
+
+        //                        do
+        //                        {
+        //                            int number = CLIEngine.GetValidInputForInt($"What is the number of the {UIName} you wish to {operationName}?");
+
+        //                            if (number > 0 && number <= searchResults.Result.Count())
+        //                                result.Result = searchResults.Result.ElementAt(number - 1);
+        //                            else
+        //                                CLIEngine.ShowErrorMessage("Invalid number entered. Please try again.");
+
+        //                        } while (result.Result == null || result.IsError);
+        //                    }
+        //                    else
+        //                    {
+        //                        Console.WriteLine("");
+        //                        idOrName = "";
+        //                    }
+        //                }
+        //                else if (searchResults.Result.Count() == 1)
+        //                    result.Result = searchResults.Result.FirstOrDefault();
+        //                else
+        //                {
+        //                    idOrName = "";
+        //                    CLIEngine.ShowWarningMessage($"No {UIName} Found!");
+        //                }
+        //            }
+        //            else
+        //                CLIEngine.ShowErrorMessage($"An error occured calling STARNETManager.SearchsAsync. Reason: {searchResults.Message}");
+        //        }
+
+        //        if (result.Result != null)
+        //            ShowNFT(result.Result, displayFieldLength);
+
+        //        if (idOrName == "exit")
+        //            break;
+
+        //        if (result.Result != null && operationName != "view")
+        //        {
+        //            if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {UIName}?"))
+        //            {
+
+        //            }
+        //            else
+        //            {
+        //                Console.WriteLine("");
+        //                result.Result = default;
+        //                idOrName = "";
+
+        //                if (!CLIEngine.GetConfirmation($"Do you wish to search for another {UIName}?"))
+        //                {
+        //                    idOrName = "exit";
+        //                    break;
+        //                }
+        //            }
+
+        //            Console.WriteLine("");
+        //        }
+
+        //        idOrName = "";
+        //    }
+        //    while (result.Result == null || result.IsError);
+
+        //    if (idOrName == "exit")
+        //    {
+        //        result.IsError = true;
+        //        result.Message = "User Exited";
+        //    }
+        //    else if (idOrName == "nonefound")
+        //    {
+        //        result.IsError = true;
+        //        result.Message = "None Found";
+        //    }
+
+        //    return result;
+        //}
+
+        //public OASISResult<IEnumerable<IOASISNFT>> ListWeb4NFTs(OASISResult<IEnumerable<IOASISNFT>> nfts, int displayFieldLength)
+        //{
+        //    if (nfts != null)
+        //    {
+        //        if (!nfts.IsError)
+        //        {
+        //            if (nfts.Result != null && nfts.Result.Count() > 0)
+        //            {
+        //                Console.WriteLine();
+
+        //                if (nfts.Result.Count() == 1)
+        //                    CLIEngine.ShowMessage($"{nfts.Result.Count()} WEB4 NFT Found:");
+        //                else
+        //                    CLIEngine.ShowMessage($"{nfts.Result.Count()} WEB4 NFT's Found:");
+
+        //                foreach (IOASISNFT nft in nfts.Result)
+        //                    ShowNFT(nft, displayFieldLength);
+        //            }
+        //            else
+        //                CLIEngine.ShowWarningMessage($"No WEB4 NFT's Found.");
+        //        }
+        //        else
+        //            CLIEngine.ShowErrorMessage($"Error occured loading WEB4 NFT's. Reason: {nfts.Message}");
+        //    }
+        //    else
+        //        CLIEngine.ShowErrorMessage($"Unknown error occured loading WEB4 NFT's.");
+
+        //    return nfts;
+        //}
+
+        //public void ShowNFT(IOASISNFT nft, int displayFieldLength)
+        //{
+        //    Console.WriteLine("");
+        //    DisplayProperty("NFT DETAILS", "", displayFieldLength, false);
+        //    Console.WriteLine("");
+        //    DisplayProperty("NFT Id", nft.Id.ToString(), displayFieldLength);
+        //    DisplayProperty("Title", nft.Title, displayFieldLength);
+        //    DisplayProperty("Description", nft.Description, displayFieldLength);
+        //    DisplayProperty("Price", nft.Price.ToString(), displayFieldLength);
+        //    DisplayProperty("Discount", nft.Discount.ToString(), displayFieldLength);
+        //    DisplayProperty("OASIS MintWallet Address", nft.OASISMintWalletAddress, displayFieldLength);
+        //    DisplayProperty("Mint Transaction Hash", nft.MintTransactionHash, displayFieldLength);
+        //    DisplayProperty("NFT Token Address", nft.NFTTokenAddress, displayFieldLength);
+        //    DisplayProperty("Minted By Avatar Id", nft.MintedByAvatarId.ToString(), displayFieldLength);
+        //    DisplayProperty("Minted On", nft.MintedOn.ToString(), displayFieldLength);
+        //    DisplayProperty("OnChain Provider", nft.OnChainProvider.Name, displayFieldLength);
+        //    DisplayProperty("OffChain Provider", nft.OffChainProvider.Name, displayFieldLength);
+        //    DisplayProperty("Store NFT Meta Data OnChain", nft.StoreNFTMetaDataOnChain.ToString(), displayFieldLength);
+        //    DisplayProperty("NFT OffChain Meta Type", nft.NFTOffChainMetaType.Name, displayFieldLength);
+        //    DisplayProperty("NFT Standard Type", nft.NFTStandardType.Name, displayFieldLength);
+        //    DisplayProperty("Symbol", nft.Symbol, displayFieldLength);
+        //    DisplayProperty("Image", nft.Image != null ? "Yes" : "None", displayFieldLength);
+        //    DisplayProperty("Image Url", nft.ImageUrl, displayFieldLength);
+        //    DisplayProperty("Thumbnail", nft.Thumbnail != null ? "Yes" : "None", displayFieldLength);
+        //    DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(nft.ThumbnailUrl) ? nft.ThumbnailUrl : "None", displayFieldLength);
+        //    DisplayProperty("JSON MetaData URL", nft.JSONMetaDataURL, displayFieldLength);
+        //    DisplayProperty("JSON MetaData URL Holon Id", nft.JSONMetaDataURLHolonId != Guid.Empty ? nft.JSONMetaDataURLHolonId.ToString() : "None", displayFieldLength);
+        //    DisplayProperty("Seller Fee Basis Points", nft.SellerFeeBasisPoints.ToString(), displayFieldLength);
+        //    DisplayProperty("Update Authority", nft.UpdateAuthority, displayFieldLength);
+        //    DisplayProperty("Send To Address After Minting", nft.SendToAddressAfterMinting, displayFieldLength);
+        //    DisplayProperty("Send To Avatar After Minting Id", nft.SendToAvatarAfterMintingId != Guid.Empty ? nft.SendToAvatarAfterMintingId.ToString() : "None", displayFieldLength);
+        //    DisplayProperty("Send To Avatar After Minting Username", !string.IsNullOrEmpty(nft.SendToAvatarAfterMintingUsername) ? nft.SendToAvatarAfterMintingUsername : "None", displayFieldLength);
+        //    DisplayProperty("Send NFT Transaction Hash", nft.SendNFTTransactionHash, displayFieldLength);
+
+        //    if (nft.MetaData != null)
+        //    {
+        //        CLIEngine.ShowMessage($"MetaData:");
+
+        //        foreach (string key in nft.MetaData.Keys)
+        //            CLIEngine.ShowMessage($"          {key} = {nft.MetaData[key]}", false);
+        //    }
+        //    else
+        //        CLIEngine.ShowMessage($"MetaData: None");
+        //}
     }
 }
