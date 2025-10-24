@@ -19,13 +19,11 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         //public string OASISRunVersion { get; set; }
         public OASISDNA OASISDNA { get; set; } 
 
-        //TODO: Convert below to work how Avatars does.
-        public HolonManager Data { get; set; } //TODO: FIX TOMORROW!
-        //public HolonManager HolonicGraph { get; set; }
-        public KeyManager Keys { get; set; }  //TODO: FIX TOMORROW!
-        public WalletManager Wallets { get; set; }  //TODO: FIX TOMORROW!
-        public OASISProviders Providers { get; private set; }  //TODO: FIX TOMORROW!
-        public SearchManager Search { get; set; }  //TODO: FIX TOMORROW!
+        private HolonManager _data = null;
+        private KeyManager _keys = null;
+        private WalletManager _wallets = null;
+        private OASISProviders _providers = null;
+        private SearchManager _search = null;  
 
         
 
@@ -77,7 +75,375 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             }
         }
 
-        //Add any other missing Managers here that are used in the WEB OASIS API Web API...
+        public HolonManager Data
+        {
+            get
+            {
+                if (_data == null)
+                {
+                    if (IsOASISBooted)
+                        _data = new HolonManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Data property!");
+                }
+
+                return _data;
+            }
+        }
+
+        public KeyManager Keys
+        {
+            get
+            {
+                if (_keys == null)
+                {
+                    if (IsOASISBooted)
+                        _keys = new KeyManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Keys property!");
+                }
+
+                return _keys;
+            }
+        }
+
+        public WalletManager Wallets
+        {
+            get
+            {
+                if (_wallets == null)
+                {
+                    if (IsOASISBooted)
+                        _wallets = new WalletManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Wallets property!");
+                }
+
+                return _wallets;
+            }
+        }
+
+        public OASISProviders Providers
+        {
+            get
+            {
+                if (_providers == null)
+                {
+                    if (IsOASISBooted)
+                        _providers = new OASISProviders(OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Providers property!");
+                }
+
+                return _providers;
+            }
+        }
+
+        public SearchManager Search
+        {
+            get
+            {
+                if (_search == null)
+                {
+                    if (IsOASISBooted)
+                        _search = new SearchManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Search property!");
+                }
+
+                return _search;
+            }
+        }
+
+        private ONODEManager _onode = null;
+        private ONETManager _onet = null;
+        private SettingsManager _settings = null;
+        private KarmaManager _karma = null;
+        private MapManager _map = null;
+        private ChatManager _chat = null;
+        private MessagingManager _messaging = null;
+        private CompetitionManager _competition = null;
+        private GiftsManager _gifts = null;
+        private FilesManager _files = null;
+        private SocialManager _social = null;
+        private VideoManager _video = null;
+        private ShareManager _share = null;
+        private SeedsManager _seeds = null;
+        private TelosManager _telos = null;
+        private StatsManager _stats = null;
+        private ProviderManager _provider = null;
+
+        public ONODEManager ONODE
+        {
+            get
+            {
+                if (_onode == null)
+                {
+                    if (IsOASISBooted)
+                        _onode = new ONODEManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the ONODE property!");
+                }
+
+                return _onode;
+            }
+        }
+
+        public ONETManager ONET
+        {
+            get
+            {
+                if (_onet == null)
+                {
+                    if (IsOASISBooted)
+                        _onet = new ONETManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the ONET property!");
+                }
+
+                return _onet;
+            }
+        }
+
+        public SettingsManager Settings
+        {
+            get
+            {
+                if (_settings == null)
+                {
+                    if (IsOASISBooted)
+                        _settings = new SettingsManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Settings property!");
+                }
+
+                return _settings;
+            }
+        }
+
+        public KarmaManager Karma
+        {
+            get
+            {
+                if (_karma == null)
+                {
+                    if (IsOASISBooted)
+                        _karma = new KarmaManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Karma property!");
+                }
+
+                return _karma;
+            }
+        }
+
+        public MapManager Map
+        {
+            get
+            {
+                if (_map == null)
+                {
+                    if (IsOASISBooted)
+                        _map = new MapManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Map property!");
+                }
+
+                return _map;
+            }
+        }
+
+        public ChatManager Chat
+        {
+            get
+            {
+                if (_chat == null)
+                {
+                    if (IsOASISBooted)
+                        _chat = new ChatManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Chat property!");
+                }
+
+                return _chat;
+            }
+        }
+
+        public MessagingManager Messaging
+        {
+            get
+            {
+                if (_messaging == null)
+                {
+                    if (IsOASISBooted)
+                        _messaging = new MessagingManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Messaging property!");
+                }
+
+                return _messaging;
+            }
+        }
+
+        public CompetitionManager Competition
+        {
+            get
+            {
+                if (_competition == null)
+                {
+                    if (IsOASISBooted)
+                        _competition = new CompetitionManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Competition property!");
+                }
+
+                return _competition;
+            }
+        }
+
+        public GiftsManager Gifts
+        {
+            get
+            {
+                if (_gifts == null)
+                {
+                    if (IsOASISBooted)
+                        _gifts = new GiftsManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Gifts property!");
+                }
+
+                return _gifts;
+            }
+        }
+
+        public FilesManager Files
+        {
+            get
+            {
+                if (_files == null)
+                {
+                    if (IsOASISBooted)
+                        _files = new FilesManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Files property!");
+                }
+
+                return _files;
+            }
+        }
+
+        public SocialManager Social
+        {
+            get
+            {
+                if (_social == null)
+                {
+                    if (IsOASISBooted)
+                        _social = new SocialManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Social property!");
+                }
+
+                return _social;
+            }
+        }
+
+        public VideoManager Video
+        {
+            get
+            {
+                if (_video == null)
+                {
+                    if (IsOASISBooted)
+                        _video = new VideoManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Video property!");
+                }
+
+                return _video;
+            }
+        }
+
+        public ShareManager Share
+        {
+            get
+            {
+                if (_share == null)
+                {
+                    if (IsOASISBooted)
+                        _share = new ShareManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Share property!");
+                }
+
+                return _share;
+            }
+        }
+
+        public SeedsManager Seeds
+        {
+            get
+            {
+                if (_seeds == null)
+                {
+                    if (IsOASISBooted)
+                        _seeds = new SeedsManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Seeds property!");
+                }
+
+                return _seeds;
+            }
+        }
+
+        public TelosManager Telos
+        {
+            get
+            {
+                if (_telos == null)
+                {
+                    if (IsOASISBooted)
+                        _telos = new TelosManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Telos property!");
+                }
+
+                return _telos;
+            }
+        }
+
+        public StatsManager Stats
+        {
+            get
+            {
+                if (_stats == null)
+                {
+                    if (IsOASISBooted)
+                        _stats = new StatsManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Stats property!");
+                }
+
+                return _stats;
+            }
+        }
+
+        public ProviderManager Provider
+        {
+            get
+            {
+                if (_provider == null)
+                {
+                    if (IsOASISBooted)
+                        _provider = ProviderManager.Instance;
+                    else
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Provider property!");
+                }
+
+                return _provider;
+            }
+        }
 
         public OASISResult<bool> BootOASIS(OASISDNA OASISDNA, string userName = "", string password = "", bool startApolloServer = true)
         {
@@ -184,17 +550,12 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
 
         private void InitOASIS(string userName = "", string password = "", bool startApolloServer = true)
         {
-            //OASISVersion = OASISBootLoader.OASISBootLoader.OASISVersion;
+            // Set OASIS DNA and boot status
             OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
-            //Avatar = new AvatarManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-            Data = new HolonManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-            Keys = new KeyManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-            Wallets = new WalletManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-            Search = new SearchManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-            Providers = new OASISProviders(OASISBootLoader.OASISBootLoader.OASISDNA);
-
-            // Set IsOASISBooted to true before accessing Avatars property
             IsOASISBooted = true;
+
+            // All managers are now lazily initialized when accessed
+            // This provides better performance and memory usage
 
             // Avatar authentication is not required for STAR ignition
             // OASIS is now booted and ready to use
