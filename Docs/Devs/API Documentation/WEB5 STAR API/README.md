@@ -13,9 +13,6 @@ Welcome to the WEB5 STAR API documentation. This API provides advanced functiona
 - [Quests API](Quests-API.md) - Quest and challenge system (`/api/quests`)
 - [Competition API](Competition-API.md) - Competition and leaderboards (`/api/competition`)
 
-### Communication APIs (Currently Disabled)
-- [Chat API](Chat-API.md) - Real-time chat system (`/api/chat`) - *Currently commented out*
-- [Messaging API](Messaging-API.md) - Direct messaging (`/api/messaging`) - *Currently commented out*
 
 ### Game APIs
 - [Eggs API](Eggs-API.md) - Egg collection and hatching (`/api/eggs`)
