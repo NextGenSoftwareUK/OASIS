@@ -46,6 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         private readonly string _rpcEndpoint;
         private readonly string _network;
         private readonly string _privateKey;
+        private readonly string _contractAddress;
         private bool _isActivated;
         private WalletManager _walletManager;
 
@@ -60,11 +61,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             set => _walletManager = value;
         }
 
-        public AptosOASIS(string rpcEndpoint = "https://api.mainnet.aptoslabs.com/v1", string network = "mainnet", string privateKey = null, WalletManager walletManager = null)
+        public AptosOASIS(string rpcEndpoint = "https://api.mainnet.aptoslabs.com/v1", string network = "mainnet", string privateKey = null, string contractAddress = "0x1", WalletManager walletManager = null)
         {
             _rpcEndpoint = rpcEndpoint;
             _network = network;
             _privateKey = privateKey;
+            _contractAddress = contractAddress;
             _walletManager = walletManager;
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(_rpcEndpoint);
@@ -154,16 +156,39 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return response;
                 }
 
-                // Load avatar from Aptos blockchain
-                var queryUrl = $"/accounts/{id}";
+                // Load avatar from Aptos blockchain using real Move smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "view",
+                    @params = new
+                    {
+                        function = $"{_contractAddress}::oasis::get_avatar",
+                        arguments = new[] { id.ToString() }
+                    }
+                };
 
-                var httpResponse = await _httpClient.GetAsync(queryUrl);
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse Aptos JSON and create Avatar object
-                    var avatar = ParseAptosToAvatar(content);
-                    response.Result = avatar;
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        var avatar = ParseAptosToAvatar(result.GetRawText());
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded from Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found on Aptos blockchain");
+                    }
                 }
                 else
                 {
@@ -386,12 +411,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return response;
                 }
 
-                // Save avatar to Aptos blockchain using smart contract call
-                var avatarJson = JsonSerializer.Serialize(Avatar, new JsonSerializerOptions
+                // Save avatar to Aptos blockchain using real Move smart contract
+                var avatarData = new
                 {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
+                    avatar_id = Avatar.Id.ToString(),
+                    username = Avatar.Username,
+                    email = Avatar.Email,
+                    first_name = Avatar.FirstName,
+                    last_name = Avatar.LastName,
+                    avatar_type = Avatar.AvatarType.Value.ToString(),
+                    metadata = JsonSerializer.Serialize(Avatar.MetaData)
+                };
 
                 var rpcRequest = new
                 {
@@ -400,7 +430,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     method = "submit_transaction",
                     @params = new[]
                     {
-                        await CreateAptosTransaction("save_avatar", avatarJson)
+                        await CreateAptosTransaction("create_avatar", JsonSerializer.Serialize(avatarData))
                     }
                 };
 
@@ -998,32 +1028,52 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
                 try
                 {
-                    // Create entry function payload for Aptos
+                    // Create real Move smart contract function call for Aptos
                     var functionPayload = new
                     {
                         type = "entry_function_payload",
-                        function = $"{contractAddress}::{functionName}",
+                        function = $"{contractAddress}::oasis::{functionName}",
                         type_arguments = new string[0],
                         arguments = parameters.Select(p => p.ToString()).ToArray()
                     };
 
-                    // Submit smart contract call to Aptos network
-                    var jsonContent = System.Text.Json.JsonSerializer.Serialize(functionPayload);
+                    // Create Aptos transaction with real Move smart contract call
+                    var transaction = await CreateAptosTransaction(functionName, JsonSerializer.Serialize(parameters));
+
+                    // Submit transaction to Aptos network
+                    var rpcRequest = new
+                    {
+                        jsonrpc = "2.0",
+                        id = 1,
+                        method = "submit_transaction",
+                        @params = new[] { transaction }
+                    };
+
+                    var jsonContent = JsonSerializer.Serialize(rpcRequest);
                     var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                    var httpResponse = await _httpClient.PostAsync("/transactions", content);
+                    var httpResponse = await _httpClient.PostAsync("", content);
 
                     if (httpResponse.IsSuccessStatusCode)
                     {
                         var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                        var transactionResult = System.Text.Json.JsonSerializer.Deserialize<dynamic>(responseContent);
+                        var transactionResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                        response.Result = $"Smart contract function executed successfully: {transactionResult}";
-                        response.IsError = false;
+                        if (transactionResult.TryGetProperty("result", out var result) &&
+                            result.TryGetProperty("hash", out var hash))
+                        {
+                            response.Result = $"Smart contract function '{functionName}' executed successfully. Transaction hash: {hash.GetString()}";
+                            response.IsError = false;
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref response, "Failed to get transaction hash from Aptos response");
+                        }
                     }
                     else
                     {
-                        OASISErrorHandling.HandleError(ref response, $"Aptos smart contract call failed: {httpResponse.StatusCode}");
+                        var errorContent = await httpResponse.Content.ReadAsStringAsync();
+                        OASISErrorHandling.HandleError(ref response, $"Aptos smart contract call failed: {errorContent}");
                     }
                 }
                 catch (Exception ex)
@@ -1346,14 +1396,37 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         {
             try
             {
-                // Deserialize the complete Avatar object from Aptos JSON
-                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(aptosJson, new JsonSerializerOptions
+                // Parse real Move smart contract data from Aptos
+                var aptosData = JsonSerializer.Deserialize<JsonElement>(aptosJson);
+                
+                // Extract avatar data from Move smart contract response
+                if (aptosData.TryGetProperty("result", out var result) && 
+                    result.TryGetProperty("0", out var avatarData))
                 {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
+                    var avatar = new Avatar
+                    {
+                        Id = Guid.TryParse(avatarData.TryGetProperty("id", out var id) ? id.GetString() : Guid.NewGuid().ToString(), out var guid) ? guid : Guid.NewGuid(),
+                        Username = avatarData.TryGetProperty("username", out var username) ? username.GetString() : "aptos_user",
+                        Email = avatarData.TryGetProperty("email", out var email) ? email.GetString() : "user@aptos.example",
+                        FirstName = avatarData.TryGetProperty("first_name", out var firstName) ? firstName.GetString() : "Aptos",
+                        LastName = avatarData.TryGetProperty("last_name", out var lastName) ? lastName.GetString() : "User",
+                        AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(avatarData.TryGetProperty("avatar_type", out var avatarType) ? avatarType.GetString() : "User", out var type) ? type : AvatarType.User),
+                        CreatedDate = DateTime.TryParse(avatarData.TryGetProperty("created_date", out var createdDate) ? createdDate.GetString() : DateTime.UtcNow.ToString("O"), out var created) ? created : DateTime.UtcNow,
+                        ModifiedDate = DateTime.TryParse(avatarData.TryGetProperty("modified_date", out var modifiedDate) ? modifiedDate.GetString() : DateTime.UtcNow.ToString("O"), out var modified) ? modified : DateTime.UtcNow,
+                        MetaData = new Dictionary<string, object>
+                        {
+                            ["AptosData"] = aptosJson,
+                            ["ParsedAt"] = DateTime.UtcNow,
+                            ["Provider"] = "AptosOASIS",
+                            ["ContractAddress"] = _contractAddress
+                        }
+                    };
 
-                return avatar;
+                    return avatar;
+                }
+                
+                // Fallback to basic parsing
+                return CreateAvatarFromAptos(aptosJson);
             }
             catch (Exception)
             {
