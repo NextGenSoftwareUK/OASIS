@@ -21,6 +21,11 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Text.Json.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
+using Nethereum.Contracts;
+using Nethereum.Hex.HexTypes;
+using System.Numerics;
 
 namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 {
@@ -39,8 +44,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         private readonly string _rpcEndpoint;
         private readonly string _chainId;
         private readonly string _privateKey;
+        private readonly string _contractAddress;
         private bool _isActivated;
         private WalletManager _walletManager;
+        private Web3 _web3Client;
+        private Account _account;
+        private Contract _contract;
 
         public WalletManager WalletManager
         {
@@ -59,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         /// <param name="rpcEndpoint">Fantom RPC endpoint URL</param>
         /// <param name="chainId">Fantom chain ID (250 for mainnet, 4002 for testnet)</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public FantomOASIS(string rpcEndpoint = "https://rpc.ftm.tools", string chainId = "250", string privateKey = "")
+        public FantomOASIS(string rpcEndpoint = "https://rpc.ftm.tools", string chainId = "250", string privateKey = "", string contractAddress = "0x0000000000000000000000000000000000000000")
         {
             this.ProviderName = "FantomOASIS";
             this.ProviderDescription = "Fantom Provider - High-performance EVM-compatible blockchain";
@@ -69,6 +78,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
             _privateKey = privateKey;
+            _contractAddress = contractAddress;
             _httpClient = new HttpClient
             {
                 BaseAddress = new Uri(_rpcEndpoint)
@@ -90,13 +100,32 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return response;
                 }
 
+                // Initialize Web3 client for Fantom
+                if (!string.IsNullOrEmpty(_privateKey))
+                {
+                    _account = new Account(_privateKey, BigInteger.Parse(_chainId));
+                    _web3Client = new Web3(_account, _rpcEndpoint);
+                }
+                else
+                {
+                    _web3Client = new Web3(_rpcEndpoint);
+                }
+
                 // Test connection to Fantom RPC endpoint
                 var testResponse = await _httpClient.GetAsync("/");
                 if (testResponse.IsSuccessStatusCode)
                 {
+                    // Initialize smart contract if address is provided
+                    if (!string.IsNullOrEmpty(_contractAddress) && _contractAddress != "0x0000000000000000000000000000000000000000")
+                    {
+                        // Load contract ABI and initialize contract
+                        var contractAbi = GetFantomContractABI();
+                        _contract = _web3Client.Eth.GetContract(contractAbi, _contractAddress);
+                    }
+
                     _isActivated = true;
                     response.Result = true;
-                    response.Message = "Fantom provider activated successfully";
+                    response.Message = "Fantom provider activated successfully with Web3 integration";
                 }
                 else
                 {
@@ -628,12 +657,70 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "SaveAvatarAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                // Real Fantom implementation: Save avatar to smart contract
+                var avatarData = new
+                {
+                    avatarId = avatar.Id.ToString(),
+                    username = avatar.Username,
+                    email = avatar.Email,
+                    firstName = avatar.FirstName,
+                    lastName = avatar.LastName,
+                    avatarType = avatar.AvatarType.Value.ToString(),
+                    metadata = JsonSerializer.Serialize(avatar.MetaData)
+                };
+
+                // Call smart contract function to create/update avatar
+                var createAvatarFunction = _contract.GetFunction("createAvatar");
+                var gasEstimate = await createAvatarFunction.EstimateGasAsync(
+                    avatarData.avatarId,
+                    avatarData.username,
+                    avatarData.email,
+                    avatarData.firstName,
+                    avatarData.lastName,
+                    avatarData.avatarType,
+                    avatarData.metadata
+                );
+
+                var transactionReceipt = await createAvatarFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    gasEstimate,
+                    null,
+                    null,
+                    avatarData.avatarId,
+                    avatarData.username,
+                    avatarData.email,
+                    avatarData.firstName,
+                    avatarData.lastName,
+                    avatarData.avatarType,
+                    avatarData.metadata
+                );
+
+                if (transactionReceipt.Status.Value == 1)
+                {
+                    response.Result = avatar;
+                    response.IsError = false;
+                    response.Message = $"Avatar saved to Fantom successfully. Transaction hash: {transactionReceipt.TransactionHash}";
+                    
+                    // Store transaction hash in avatar metadata
+                    avatar.ProviderMetaData[Core.Enums.ProviderType.FantomOASIS]["transactionHash"] = transactionReceipt.TransactionHash;
+                    avatar.ProviderMetaData[Core.Enums.ProviderType.FantomOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, "Transaction failed on Fantom");
+                }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveAvatarAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar to Fantom: {ex.Message}");
             }
             return response;
         }
@@ -1853,6 +1940,80 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         public void Dispose()
         {
             _httpClient?.Dispose();
+        }
+
+        #endregion
+
+        #region Smart Contract Methods
+
+        /// <summary>
+        /// Get Fantom smart contract ABI for OASIS operations
+        /// </summary>
+        private string GetFantomContractABI()
+        {
+            return @"[
+                {
+                    ""inputs"": [
+                        {""internalType"": ""string"", ""name"": ""avatarId"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""username"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""email"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""firstName"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""lastName"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""avatarType"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""metadata"", ""type"": ""string""}
+                    ],
+                    ""name"": ""createAvatar"",
+                    ""outputs"": [
+                        {""internalType"": ""bool"", ""name"": """", ""type"": ""bool""}
+                    ],
+                    ""stateMutability"": ""nonpayable"",
+                    ""type"": ""function""
+                },
+                {
+                    ""inputs"": [
+                        {""internalType"": ""string"", ""name"": ""avatarId"", ""type"": ""string""}
+                    ],
+                    ""name"": ""getAvatar"",
+                    ""outputs"": [
+                        {""internalType"": ""string"", ""name"": ""username"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""email"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""firstName"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""lastName"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""avatarType"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""metadata"", ""type"": ""string""}
+                    ],
+                    ""stateMutability"": ""view"",
+                    ""type"": ""function""
+                },
+                {
+                    ""inputs"": [
+                        {""internalType"": ""string"", ""name"": ""avatarId"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""username"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""email"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""firstName"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""lastName"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""avatarType"", ""type"": ""string""},
+                        {""internalType"": ""string"", ""name"": ""metadata"", ""type"": ""string""}
+                    ],
+                    ""name"": ""updateAvatar"",
+                    ""outputs"": [
+                        {""internalType"": ""bool"", ""name"": """", ""type"": ""bool""}
+                    ],
+                    ""stateMutability"": ""nonpayable"",
+                    ""type"": ""function""
+                },
+                {
+                    ""inputs"": [
+                        {""internalType"": ""string"", ""name"": ""avatarId"", ""type"": ""string""}
+                    ],
+                    ""name"": ""deleteAvatar"",
+                    ""outputs"": [
+                        {""internalType"": ""bool"", ""name"": """", ""type"": ""bool""}
+                    ],
+                    ""stateMutability"": ""nonpayable"",
+                    ""type"": ""function""
+                }
+            ]";
         }
 
         #endregion
