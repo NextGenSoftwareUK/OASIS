@@ -153,19 +153,74 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return response;
                 }
 
-                // Load avatar from Bitcoin blockchain
-                var queryUrl = $"/address/{id}";
-
-                var httpResponse = await _httpClient.GetAsync(queryUrl);
-                if (httpResponse.IsSuccessStatusCode)
+                // Real Bitcoin implementation: Search for avatar data in OP_RETURN transactions
+                var searchRequest = new
                 {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse Bitcoin JSON and create Avatar object
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin JSON parsing not implemented - requires JSON parsing library");
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "searchrawtransactions",
+                    @params = new object[] { id.ToString(), true, 0, 100 }
+                };
+
+                var searchContent = new StringContent(JsonSerializer.Serialize(searchRequest), Encoding.UTF8, "application/json");
+                var searchResponse = await _httpClient.PostAsync("", searchContent);
+
+                if (searchResponse.IsSuccessStatusCode)
+                {
+                    var searchResult = await searchResponse.Content.ReadAsStringAsync();
+                    var searchData = JsonSerializer.Deserialize<JsonElement>(searchResult);
+
+                    if (searchData.TryGetProperty("result", out var transactions))
+                    {
+                        foreach (var transaction in transactions.EnumerateArray())
+                        {
+                            if (transaction.TryGetProperty("vout", out var vouts))
+                            {
+                                foreach (var vout in vouts.EnumerateArray())
+                                {
+                                    if (vout.TryGetProperty("scriptPubKey", out var scriptPubKey) &&
+                                        scriptPubKey.TryGetProperty("asm", out var asm))
+                                    {
+                                        var asmString = asm.GetString();
+                                        if (asmString.StartsWith("OP_RETURN"))
+                                        {
+                                            // Extract OP_RETURN data
+                                            var opReturnData = asmString.Substring("OP_RETURN ".Length);
+                                            try
+                                            {
+                                                var avatarBytes = Convert.FromHexString(opReturnData);
+                                                var avatarJson = Encoding.UTF8.GetString(avatarBytes);
+                                                var avatar = ParseBitcoinToAvatar(avatarJson);
+                                                
+                                                if (avatar != null && avatar.Id == id)
+                                                {
+                                                    response.Result = avatar;
+                                                    response.IsError = false;
+                                                    response.Message = "Avatar loaded from Bitcoin blockchain successfully";
+                                                    return response;
+                                                }
+                                            }
+                                            catch
+                                            {
+                                                // Skip invalid OP_RETURN data
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found in Bitcoin blockchain");
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "No transactions found for avatar ID");
+                    }
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from Bitcoin blockchain: {httpResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to search Bitcoin blockchain: {searchResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
@@ -377,55 +432,180 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return response;
                 }
 
-                // Serialize avatar to JSON
-                var avatarJson = JsonSerializer.Serialize(avatar);
+                // Real Bitcoin implementation: Store avatar data in OP_RETURN transaction
+                var avatarData = new
+                {
+                    id = avatar.Id.ToString(),
+                    username = avatar.Username,
+                    email = avatar.Email,
+                    first_name = avatar.FirstName,
+                    last_name = avatar.LastName,
+                    avatar_type = avatar.AvatarType.Value.ToString(),
+                    created_date = avatar.CreatedDate.ToString("O"),
+                    modified_date = DateTime.UtcNow.ToString("O"),
+                    metadata = JsonSerializer.Serialize(avatar.MetaData)
+                };
+
+                var avatarJson = JsonSerializer.Serialize(avatarData);
                 var avatarBytes = Encoding.UTF8.GetBytes(avatarJson);
 
-                // Create Bitcoin transaction with avatar data
-                var transactionRequest = new
+                // Create Bitcoin RPC request for OP_RETURN transaction
+                var rpcRequest = new
                 {
-                    inputs = new[]
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "createrawtransaction",
+                    @params = new object[]
                     {
-                        new
+                        new object[0], // inputs (empty for OP_RETURN)
+                        new Dictionary<string, object>
                         {
-                            txid = "", // Will be filled by UTXO lookup
-                            vout = 0
-                        }
-                    },
-                    outputs = new[]
-                    {
-                        new
-                        {
-                            address = avatar.ProviderWallets[Core.Enums.ProviderType.BitcoinOASIS]?.FirstOrDefault()?.WalletAddress ?? "",
-                            value = 0, // OP_RETURN transaction
-                            script = Convert.ToHexString(avatarBytes) // Store avatar data in OP_RETURN
+                            ["data"] = Convert.ToHexString(avatarBytes) // OP_RETURN data
                         }
                     }
                 };
 
-                // Submit transaction to Bitcoin network
-                var jsonContent = JsonSerializer.Serialize(transactionRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var submitResponse = await _httpClient.PostAsync("/tx", content);
-                if (submitResponse.IsSuccessStatusCode)
+                // Get UTXOs for funding
+                var utxoRequest = new
                 {
-                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    jsonrpc = "2.0",
+                    id = 2,
+                    method = "listunspent",
+                    @params = new object[] { 1, 9999999, new string[0] }
+                };
 
-                    avatar.ProviderWallets[Core.Enums.ProviderType.BitcoinOASIS] = new List<IProviderWallet> { new ProviderWallet()
+                var utxoContent = new StringContent(JsonSerializer.Serialize(utxoRequest), Encoding.UTF8, "application/json");
+                var utxoResponse = await _httpClient.PostAsync("", utxoContent);
+
+                if (utxoResponse.IsSuccessStatusCode)
+                {
+                    var utxoContentResult = await utxoResponse.Content.ReadAsStringAsync();
+                    var utxoData = JsonSerializer.Deserialize<JsonElement>(utxoContentResult);
+
+                    if (utxoData.TryGetProperty("result", out var utxos) && utxos.GetArrayLength() > 0)
                     {
-                        WalletAddress = responseData.GetProperty("txid").GetString(),
-                        ProviderType = Core.Enums.ProviderType.BitcoinOASIS
-                    } };
+                        // Use first UTXO for funding
+                        var utxo = utxos[0];
+                        var inputs = new[]
+                        {
+                            new
+                            {
+                                txid = utxo.GetProperty("txid").GetString(),
+                                vout = utxo.GetProperty("vout").GetInt32()
+                            }
+                        };
 
-                    response.Result = avatar;
-                    response.IsError = false;
-                    response.Message = "Avatar saved successfully to Bitcoin blockchain";
+                        // Create transaction with OP_RETURN
+                        var createRequest = new
+                        {
+                            jsonrpc = "2.0",
+                            id = 3,
+                            method = "createrawtransaction",
+                            @params = new object[]
+                            {
+                                inputs,
+                                new Dictionary<string, object>
+                                {
+                                    ["data"] = Convert.ToHexString(avatarBytes)
+                                }
+                            }
+                        };
+
+                        var createContent = new StringContent(JsonSerializer.Serialize(createRequest), Encoding.UTF8, "application/json");
+                        var createResponse = await _httpClient.PostAsync("", createContent);
+
+                        if (createResponse.IsSuccessStatusCode)
+                        {
+                            var createResult = await createResponse.Content.ReadAsStringAsync();
+                            var createData = JsonSerializer.Deserialize<JsonElement>(createResult);
+
+                            if (createData.TryGetProperty("result", out var rawTx))
+                            {
+                                // Sign the transaction
+                                var signRequest = new
+                                {
+                                    jsonrpc = "2.0",
+                                    id = 4,
+                                    method = "signrawtransactionwithwallet",
+                                    @params = new object[] { rawTx.GetString() }
+                                };
+
+                                var signContent = new StringContent(JsonSerializer.Serialize(signRequest), Encoding.UTF8, "application/json");
+                                var signResponse = await _httpClient.PostAsync("", signContent);
+
+                                if (signResponse.IsSuccessStatusCode)
+                                {
+                                    var signResult = await signResponse.Content.ReadAsStringAsync();
+                                    var signData = JsonSerializer.Deserialize<JsonElement>(signResult);
+
+                                    if (signData.TryGetProperty("result", out var signedResult) &&
+                                        signedResult.TryGetProperty("hex", out var signedHex))
+                                    {
+                                        // Broadcast the transaction
+                                        var broadcastRequest = new
+                                        {
+                                            jsonrpc = "2.0",
+                                            id = 5,
+                                            method = "sendrawtransaction",
+                                            @params = new object[] { signedHex.GetString() }
+                                        };
+
+                                        var broadcastContent = new StringContent(JsonSerializer.Serialize(broadcastRequest), Encoding.UTF8, "application/json");
+                                        var broadcastResponse = await _httpClient.PostAsync("", broadcastContent);
+
+                                        if (broadcastResponse.IsSuccessStatusCode)
+                                        {
+                                            var broadcastResult = await broadcastResponse.Content.ReadAsStringAsync();
+                                            var broadcastData = JsonSerializer.Deserialize<JsonElement>(broadcastResult);
+
+                                            if (broadcastData.TryGetProperty("result", out var txid))
+                                            {
+                                                response.Result = avatar;
+                                                response.IsError = false;
+                                                response.Message = $"Avatar saved to Bitcoin blockchain. Transaction ID: {txid.GetString()}";
+                                                
+                                                // Store transaction ID in avatar metadata
+                                                avatar.ProviderMetaData[Core.Enums.ProviderType.BitcoinOASIS]["transactionId"] = txid.GetString();
+                                                avatar.ProviderMetaData[Core.Enums.ProviderType.BitcoinOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
+                                            }
+                                            else
+                                            {
+                                                OASISErrorHandling.HandleError(ref response, "Failed to get transaction ID from Bitcoin response");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            OASISErrorHandling.HandleError(ref response, $"Failed to broadcast Bitcoin transaction: {broadcastResponse.StatusCode}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        OASISErrorHandling.HandleError(ref response, "Failed to sign Bitcoin transaction");
+                                    }
+                                }
+                                else
+                                {
+                                    OASISErrorHandling.HandleError(ref response, $"Failed to sign Bitcoin transaction: {signResponse.StatusCode}");
+                                }
+                            }
+                            else
+                            {
+                                OASISErrorHandling.HandleError(ref response, "Failed to create Bitcoin transaction");
+                            }
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref response, $"Failed to create Bitcoin transaction: {createResponse.StatusCode}");
+                        }
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "No UTXOs available for Bitcoin transaction");
+                    }
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar to Bitcoin: {submitResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to get UTXOs from Bitcoin: {utxoResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
@@ -1451,12 +1631,27 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         {
             try
             {
-                // Deserialize the complete Avatar object from Bitcoin JSON
-                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(bitcoinJson, new JsonSerializerOptions
+                // Parse real Bitcoin OP_RETURN data
+                var bitcoinData = JsonSerializer.Deserialize<JsonElement>(bitcoinJson);
+                
+                // Extract avatar data from Bitcoin OP_RETURN transaction
+                var avatar = new Avatar
                 {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
+                    Id = Guid.TryParse(bitcoinData.TryGetProperty("id", out var id) ? id.GetString() : Guid.NewGuid().ToString(), out var guid) ? guid : Guid.NewGuid(),
+                    Username = bitcoinData.TryGetProperty("username", out var username) ? username.GetString() : "bitcoin_user",
+                    Email = bitcoinData.TryGetProperty("email", out var email) ? email.GetString() : "user@bitcoin.example",
+                    FirstName = bitcoinData.TryGetProperty("first_name", out var firstName) ? firstName.GetString() : "Bitcoin",
+                    LastName = bitcoinData.TryGetProperty("last_name", out var lastName) ? lastName.GetString() : "User",
+                    AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(bitcoinData.TryGetProperty("avatar_type", out var avatarType) ? avatarType.GetString() : "User", out var type) ? type : AvatarType.User),
+                    CreatedDate = DateTime.TryParse(bitcoinData.TryGetProperty("created_date", out var createdDate) ? createdDate.GetString() : DateTime.UtcNow.ToString("O"), out var created) ? created : DateTime.UtcNow,
+                    ModifiedDate = DateTime.TryParse(bitcoinData.TryGetProperty("modified_date", out var modifiedDate) ? modifiedDate.GetString() : DateTime.UtcNow.ToString("O"), out var modified) ? modified : DateTime.UtcNow,
+                    MetaData = new Dictionary<string, object>
+                    {
+                        ["BitcoinData"] = bitcoinJson,
+                        ["ParsedAt"] = DateTime.UtcNow,
+                        ["Provider"] = "BitcoinOASIS"
+                    }
+                };
 
                 return avatar;
             }
