@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Text.Json.Serialization;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
@@ -452,22 +453,86 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
             var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Load holon by provider key using smart contract
+                var loadRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "eth_call",
+                    @params = new object[]
+                    {
+                        new
+                        {
+                            to = _contractAddress,
+                            data = "0x" + GetFunctionSelector("getHolonByProviderKey") + EncodeParameter(providerKey)
+                        },
+                        "latest"
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(loadRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultData) && resultData.GetString() != "0x")
+                    {
+                        var holon = ParseBNBChainToHolon(resultData.GetString());
+                        if (holon != null)
+                        {
+                            result.Result = holon;
+                            result.IsError = false;
+                            result.Message = $"Holon {providerKey} loaded from BNB Chain successfully";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, "Holon not found with that provider key");
+                        }
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Holon not found with that provider key");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from BNB Chain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
-            var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolon is not supported by BNB Chain provider");
-            return result;
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, continueOnErrorRecursive, version).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAll is not supported by BNB Chain provider");
-            return result;
+            return ExportAllAsync(version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -553,7 +618,72 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaData, string value, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaDataAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Load holons by metadata key-value using smart contract
+                var metadataPair = new { key = metaData, value = value };
+                var metadataJson = JsonSerializer.Serialize(metadataPair);
+                var loadRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "eth_call",
+                    @params = new object[]
+                    {
+                        new
+                        {
+                            to = _contractAddress,
+                            data = "0x" + GetFunctionSelector("getHolonsByMetaDataKeyValue") + EncodeParameter(metadataJson)
+                        },
+                        "latest"
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(loadRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultData) && resultData.GetString() != "0x")
+                    {
+                        var holons = ParseBNBChainToHolons(resultData.GetString());
+                        result.Result = holons;
+                        result.IsError = false;
+                        result.Message = $"Loaded {holons.Count()} holons by metadata {metaData}={value} from BNB Chain successfully";
+                    }
+                    else
+                    {
+                        result.Result = new List<IHolon>();
+                        result.IsError = false;
+                        result.Message = "No holons found with matching metadata on BNB Chain";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holons by metadata from BNB Chain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
@@ -720,46 +850,26 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                 }
 
                 // Real BNB Chain implementation: Delete avatar by email using smart contract
-                var deleteRequest = new
+                var deleteFunction = _contract.GetFunction("deleteAvatarByEmail");
+                var gasEstimate = await deleteFunction.EstimateGasAsync(email);
+
+                var transactionReceipt = await deleteFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    gasEstimate,
+                    null,
+                    null,
+                    email
+                );
+
+                if (transactionReceipt.Status.Value == 1)
                 {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "eth_sendTransaction",
-                    @params = new object[]
-                    {
-                        new
-                        {
-                            from = _account?.Address ?? "0x0000000000000000000000000000000000000000",
-                            to = _contractAddress,
-                            data = "0x" + GetFunctionSelector("deleteAvatarByEmail") + EncodeParameter(email),
-                            gas = "0x" + (500000).ToString("x")
-                        }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(deleteRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    if (rpcResponse.TryGetProperty("result", out var resultData) && !string.IsNullOrEmpty(resultData.GetString()))
-                    {
-                        result.Result = true;
-                        result.IsError = false;
-                        result.Message = $"Avatar with email {email} deleted from BNB Chain successfully. Transaction: {resultData.GetString()}";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to delete avatar from BNB Chain");
-                    }
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Avatar with email {email} deleted from BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar from BNB Chain: {httpResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref result, "Transaction failed on BNB Chain");
                 }
             }
             catch (Exception ex)
@@ -782,57 +892,273 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "DeleteHolon is not supported by BNB Chain provider");
-            return result;
+            return DeleteHolonAsync(id).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarById is not supported by BNB Chain provider");
-            return result;
+            return ExportAllDataForAvatarByIdAsync(id, version).Result;
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatar is not supported by BNB Chain provider");
-            return result;
+            return DeleteAvatarAsync(id, softDelete).Result;
         }
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
             var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "DeleteHolonAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // First load the holon to return it
+                var loadResult = await LoadHolonAsync(providerKey);
+                if (loadResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon {providerKey}: {loadResult.Message}");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Delete holon by provider key using smart contract
+                var deleteFunction = _contract.GetFunction("deleteHolonByProviderKey");
+                var gasEstimate = await deleteFunction.EstimateGasAsync(providerKey);
+
+                var transactionReceipt = await deleteFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    gasEstimate,
+                    null,
+                    null,
+                    providerKey
+                );
+
+                if (transactionReceipt.Status.Value == 1)
+                {
+                    result.Result = loadResult.Result;
+                    result.IsError = false;
+                    result.Message = $"Holon {providerKey} deleted from BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Transaction failed on BNB Chain");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Export all data using smart contract
+                var exportRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "eth_call",
+                    @params = new object[]
+                    {
+                        new
+                        {
+                            to = _contractAddress,
+                            data = "0x" + GetFunctionSelector("exportAllData")
+                        },
+                        "latest"
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(exportRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultData) && resultData.GetString() != "0x")
+                    {
+                        var holons = ParseBNBChainToHolons(resultData.GetString());
+                        result.Result = holons;
+                        result.IsError = false;
+                        result.Message = $"Exported {holons.Count()} holons from BNB Chain successfully";
+                    }
+                    else
+                    {
+                        result.Result = new List<IHolon>();
+                        result.IsError = false;
+                        result.Message = "No data found on BNB Chain";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to export data from BNB Chain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error exporting data from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatar is not supported by BNB Chain provider");
-            return result;
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParentAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Load holons for parent by provider key using smart contract
+                var loadRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "eth_call",
+                    @params = new object[]
+                    {
+                        new
+                        {
+                            to = _contractAddress,
+                            data = "0x" + GetFunctionSelector("getHolonsForParentByProviderKey") + EncodeParameter(providerKey)
+                        },
+                        "latest"
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(loadRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultData) && resultData.GetString() != "0x")
+                    {
+                        var holons = ParseBNBChainToHolons(resultData.GetString());
+                        result.Result = holons;
+                        result.IsError = false;
+                        result.Message = $"Loaded {holons.Count()} holons for parent {providerKey} from BNB Chain successfully";
+                    }
+                    else
+                    {
+                        result.Result = new List<IHolon>();
+                        result.IsError = false;
+                        result.Message = "No holons found for parent on BNB Chain";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holons for parent from BNB Chain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
             var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "DeleteHolonAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // First load the holon to return it
+                var loadResult = await LoadHolonAsync(id);
+                if (loadResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon {id}: {loadResult.Message}");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Delete holon using smart contract
+                var deleteFunction = _contract.GetFunction("deleteHolon");
+                var gasEstimate = await deleteFunction.EstimateGasAsync(id.ToString());
+
+                var transactionReceipt = await deleteFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    gasEstimate,
+                    null,
+                    null,
+                    id.ToString()
+                );
+
+                if (transactionReceipt.Status.Value == 1)
+                {
+                    result.Result = loadResult.Result;
+                    result.IsError = false;
+                    result.Message = $"Holon {id} deleted from BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Transaction failed on BNB Chain");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
@@ -854,46 +1180,26 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
                 }
 
                 // Real BNB Chain implementation: Delete avatar by username using smart contract
-                var deleteRequest = new
+                var deleteFunction = _contract.GetFunction("deleteAvatarByUsername");
+                var gasEstimate = await deleteFunction.EstimateGasAsync(username);
+
+                var transactionReceipt = await deleteFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    gasEstimate,
+                    null,
+                    null,
+                    username
+                );
+
+                if (transactionReceipt.Status.Value == 1)
                 {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "eth_sendTransaction",
-                    @params = new object[]
-                    {
-                        new
-                        {
-                            from = _account?.Address ?? "0x0000000000000000000000000000000000000000",
-                            to = _contractAddress,
-                            data = "0x" + GetFunctionSelector("deleteAvatarByUsername") + EncodeParameter(username),
-                            gas = "0x" + (500000).ToString("x")
-                        }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(deleteRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    if (rpcResponse.TryGetProperty("result", out var resultData) && !string.IsNullOrEmpty(resultData.GetString()))
-                    {
-                        result.Result = true;
-                        result.IsError = false;
-                        result.Message = $"Avatar with username {username} deleted from BNB Chain successfully. Transaction: {resultData.GetString()}";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to delete avatar from BNB Chain");
-                    }
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Avatar with username {username} deleted from BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar from BNB Chain: {httpResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref result, "Transaction failed on BNB Chain");
                 }
             }
             catch (Exception ex)
@@ -912,22 +1218,82 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode = MetaKeyValuePairMatchMode.All, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaDataAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Load holons by metadata using smart contract
+                var metadataJson = JsonSerializer.Serialize(metaData);
+                var loadRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "eth_call",
+                    @params = new object[]
+                    {
+                        new
+                        {
+                            to = _contractAddress,
+                            data = "0x" + GetFunctionSelector("getHolonsByMetaData") + EncodeParameter(metadataJson)
+                        },
+                        "latest"
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(loadRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultData) && resultData.GetString() != "0x")
+                    {
+                        var holons = ParseBNBChainToHolons(resultData.GetString());
+                        result.Result = holons;
+                        result.IsError = false;
+                        result.Message = $"Loaded {holons.Count()} holons by metadata from BNB Chain successfully";
+                    }
+                    else
+                    {
+                        result.Result = new List<IHolon>();
+                        result.IsError = false;
+                        result.Message = "No holons found with matching metadata on BNB Chain";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holons by metadata from BNB Chain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode = MetaKeyValuePairMatchMode.All, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaData is not supported by BNB Chain provider");
-            return result;
+            return LoadHolonsByMetaDataAsync(metaData, matchMode, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, continueOnErrorRecursive, version).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string username, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByUsername is not supported by BNB Chain provider");
-            return result;
+            return ExportAllDataForAvatarByUsernameAsync(username, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
@@ -1158,22 +1524,123 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "ImportAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Import holons using smart contract
+                var importData = JsonSerializer.Serialize(holons);
+                var importRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "eth_sendTransaction",
+                    @params = new object[]
+                    {
+                        new
+                        {
+                            from = _account.Address,
+                            to = _contractAddress,
+                            data = "0x" + GetFunctionSelector("importHolons") + EncodeParameter(importData),
+                            gas = "0x" + (500000).ToString("x")
+                        }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(importRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultData) && !string.IsNullOrEmpty(resultData.GetString()))
+                    {
+                        result.Result = true;
+                        result.IsError = false;
+                        result.Message = $"Imported {holons.Count()} holons to BNB Chain successfully. Transaction: {resultData.GetString()}";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to import holons to BNB Chain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to import holons to BNB Chain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error importing holons to BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Delete avatar by provider key using smart contract
+                var deleteFunction = _contract.GetFunction("deleteAvatarByProviderKey");
+                var gasEstimate = await deleteFunction.EstimateGasAsync(providerKey);
+
+                var transactionReceipt = await deleteFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    gasEstimate,
+                    null,
+                    null,
+                    providerKey
+                );
+
+                if (transactionReceipt.Status.Value == 1)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = $"Avatar {providerKey} deleted from BNB Chain successfully. Transaction hash: {transactionReceipt.TransactionHash}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Transaction failed on BNB Chain");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true)
         {
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByEmail is not supported by BNB Chain provider");
-            return result;
+            return DeleteAvatarByEmailAsync(email, softDelete).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true)
@@ -1336,7 +1803,70 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByEmailAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Export all data for avatar by email using smart contract
+                var exportRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "eth_call",
+                    @params = new object[]
+                    {
+                        new
+                        {
+                            to = _contractAddress,
+                            data = "0x" + GetFunctionSelector("exportAllDataForAvatarByEmail") + EncodeParameter(email)
+                        },
+                        "latest"
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(exportRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultData) && resultData.GetString() != "0x")
+                    {
+                        var holons = ParseBNBChainToHolons(resultData.GetString());
+                        result.Result = holons;
+                        result.IsError = false;
+                        result.Message = $"Exported {holons.Count()} holons for avatar {email} from BNB Chain successfully";
+                    }
+                    else
+                    {
+                        result.Result = new List<IHolon>();
+                        result.IsError = false;
+                        result.Message = "No data found for avatar on BNB Chain";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to export data for avatar from BNB Chain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
@@ -1348,15 +1878,76 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid parentId, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParentAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Load holons for parent using smart contract
+                var loadRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "eth_call",
+                    @params = new object[]
+                    {
+                        new
+                        {
+                            to = _contractAddress,
+                            data = "0x" + GetFunctionSelector("getHolonsForParent") + EncodeParameter(parentId.ToString())
+                        },
+                        "latest"
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(loadRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultData) && resultData.GetString() != "0x")
+                    {
+                        var holons = ParseBNBChainToHolons(resultData.GetString());
+                        result.Result = holons;
+                        result.IsError = false;
+                        result.Message = $"Loaded {holons.Count()} holons for parent {parentId} from BNB Chain successfully";
+                    }
+                    else
+                    {
+                        result.Result = new List<IHolon>();
+                        result.IsError = false;
+                        result.Message = "No holons found for parent on BNB Chain";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holons for parent from BNB Chain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true)
         {
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "DeleteAvatarByUsername is not supported by BNB Chain provider");
-            return result;
+            return DeleteAvatarByUsernameAsync(username, softDelete).Result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
@@ -1436,9 +2027,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid parentId, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent is not supported by BNB Chain provider");
-            return result;
+            return LoadHolonsForParentAsync(parentId, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, continueOnErrorRecursive, version).Result;
         }
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true)
@@ -1816,23 +2405,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            var result = new OASISResult<ISearchResults>();
-            OASISErrorHandling.HandleError(ref result, "Search is not supported by BNB Chain provider");
-            return result;
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "Import is not supported by BNB Chain provider");
-            return result;
+            return ImportAsync(holons).Result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsForParent is not supported by BNB Chain provider");
-            return result;
+            return LoadHolonsForParentAsync(providerKey, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, continueOnErrorRecursive, version).Result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string email, int version = 0)
@@ -1843,7 +2426,92 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             var result = new OASISResult<ISearchResults>();
-            OASISErrorHandling.HandleError(ref result, "SearchAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Search using smart contract
+                var searchData = new
+                {
+                    avatarId = searchParams.AvatarId.ToString(),
+                    searchOnlyForCurrentAvatar = searchParams.SearchOnlyForCurrentAvatar,
+                    searchGroups = JsonSerializer.Serialize(searchParams.SearchGroups ?? new List<ISearchGroupBase>())
+                };
+
+                var searchJson = JsonSerializer.Serialize(searchData);
+                var searchRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "eth_call",
+                    @params = new object[]
+                    {
+                        new
+                        {
+                            to = _contractAddress,
+                            data = "0x" + GetFunctionSelector("search") + EncodeParameter(searchJson)
+                        },
+                        "latest"
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(searchRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultData) && resultData.GetString() != "0x")
+                    {
+                        var holons = ParseBNBChainToHolons(resultData.GetString());
+                        var searchResults = new SearchResults
+                        {
+                            SearchResultHolons = holons.ToList(),
+                            NumberOfResults = holons.Count(),
+                            NumberOfDuplicates = 0
+                        };
+                        
+                        result.Result = searchResults;
+                        result.IsError = false;
+                        result.Message = $"Search completed successfully. Found {holons.Count()} results";
+                    }
+                    else
+                    {
+                        var emptyResults = new SearchResults
+                        {
+                            SearchResultHolons = new List<IHolon>(),
+                            NumberOfResults = 0,
+                            NumberOfDuplicates = 0
+                        };
+                        
+                        result.Result = emptyResults;
+                        result.IsError = false;
+                        result.Message = "No results found";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to search on BNB Chain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error searching on BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
@@ -1924,16 +2592,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaData, string value, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "LoadHolonsByMetaData is not supported by BNB Chain provider");
-            return result;
+            return LoadHolonsByMetaDataAsync(metaData, value, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, continueOnErrorRecursive, version).Result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            var result = new OASISResult<IHolon>();
-            OASISErrorHandling.HandleError(ref result, "DeleteHolon is not supported by BNB Chain provider");
-            return result;
+            return DeleteHolonAsync(providerKey).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
@@ -2185,7 +2849,70 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByUsernameAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Export all data for avatar by username using smart contract
+                var exportRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "eth_call",
+                    @params = new object[]
+                    {
+                        new
+                        {
+                            to = _contractAddress,
+                            data = "0x" + GetFunctionSelector("exportAllDataForAvatarByUsername") + EncodeParameter(username)
+                        },
+                        "latest"
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(exportRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultData) && resultData.GetString() != "0x")
+                    {
+                        var holons = ParseBNBChainToHolons(resultData.GetString());
+                        result.Result = holons;
+                        result.IsError = false;
+                        result.Message = $"Exported {holons.Count()} holons for avatar {username} from BNB Chain successfully";
+                    }
+                    else
+                    {
+                        result.Result = new List<IHolon>();
+                        result.IsError = false;
+                        result.Message = "No data found for avatar on BNB Chain";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to export data for avatar from BNB Chain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
@@ -2196,58 +2923,395 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByEmail is not supported by BNB Chain provider");
-            return result;
+            return ExportAllDataForAvatarByEmailAsync(email, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "ExportAllDataForAvatarByIdAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Export all data for avatar by ID using smart contract
+                var exportRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "eth_call",
+                    @params = new object[]
+                    {
+                        new
+                        {
+                            to = _contractAddress,
+                            data = "0x" + GetFunctionSelector("exportAllDataForAvatarById") + EncodeParameter(id.ToString())
+                        },
+                        "latest"
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(exportRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultData) && resultData.GetString() != "0x")
+                    {
+                        var holons = ParseBNBChainToHolons(resultData.GetString());
+                        result.Result = holons;
+                        result.IsError = false;
+                        result.Message = $"Exported {holons.Count()} holons for avatar {id} from BNB Chain successfully";
+                    }
+                    else
+                    {
+                        result.Result = new List<IHolon>();
+                        result.IsError = false;
+                        result.Message = "No data found for avatar on BNB Chain";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to export data for avatar from BNB Chain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
         // NFT Provider interface methods
         public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest request)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
-            OASISErrorHandling.HandleError(ref result, "SendNFT is not supported by BNB Chain provider");
-            return result;
+            return SendNFTAsync(request).Result;
         }
 
         public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest request)
         {
             var result = new OASISResult<INFTTransactionRespone>();
-            OASISErrorHandling.HandleError(ref result, "SendNFTAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Send NFT using smart contract
+                var nftData = new
+                {
+                    fromAddress = request.FromWalletAddress,
+                    toAddress = request.ToWalletAddress,
+                    nftTokenId = request.TokenId.ToString(),
+                    amount = request.Amount,
+                    metadata = JsonSerializer.Serialize(new Dictionary<string, object>())
+                };
+
+                var sendNFTFunction = _contract.GetFunction("sendNFT");
+                var gasEstimate = await sendNFTFunction.EstimateGasAsync(
+                    nftData.fromAddress,
+                    nftData.toAddress,
+                    nftData.nftTokenId,
+                    nftData.amount,
+                    nftData.metadata
+                );
+
+                var transactionReceipt = await sendNFTFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    gasEstimate,
+                    null,
+                    null,
+                    nftData.fromAddress,
+                    nftData.toAddress,
+                    nftData.nftTokenId,
+                    nftData.amount,
+                    nftData.metadata
+                );
+
+                if (transactionReceipt.Status.Value == 1)
+                {
+                    var nftResponse = new BNBChainTransactionResponse
+                    {
+                        TransactionResult = transactionReceipt.TransactionHash,
+                        MemoText = $"NFT sent successfully from {nftData.fromAddress} to {nftData.toAddress}"
+                    };
+                    
+                    result.Result = (INFTTransactionRespone)nftResponse;
+                    result.IsError = false;
+                    result.Message = $"NFT sent successfully. Transaction hash: {transactionReceipt.TransactionHash}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Transaction failed on BNB Chain");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error sending NFT on BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
         public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest request)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
-            OASISErrorHandling.HandleError(ref result, "MintNFT is not supported by BNB Chain provider");
-            return result;
+            return MintNFTAsync(request).Result;
         }
 
         public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest request)
         {
             var result = new OASISResult<INFTTransactionRespone>();
-            OASISErrorHandling.HandleError(ref result, "MintNFTAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Mint NFT using smart contract
+                var nftData = new
+                {
+                    mintedByAvatarId = request.MintedByAvatarId.ToString(),
+                    title = request.Title,
+                    description = request.Description,
+                    imageUrl = request.ImageUrl,
+                    thumbnailUrl = request.ThumbnailUrl,
+                    price = request.Price,
+                    discount = request.Discount,
+                    memoText = request.MemoText,
+                    numberToMint = request.NumberToMint,
+                    storeNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
+                    metadata = JsonSerializer.Serialize(request.MetaData ?? new Dictionary<string, object>()),
+                    tags = JsonSerializer.Serialize(request.Tags ?? new List<string>()),
+                    offChainProvider = request.OffChainProvider?.Value.ToString() ?? "None",
+                    onChainProvider = request.OnChainProvider?.Value.ToString() ?? "None",
+                    nftStandardType = request.NFTStandardType?.Value.ToString() ?? "ERC721",
+                    nftOffChainMetaType = request.NFTOffChainMetaType?.Value.ToString() ?? "JSON",
+                    symbol = request.Symbol,
+                    jsonMetaDataURL = request.JSONMetaDataURL,
+                    jsonMetaData = request.JSONMetaData,
+                    waitTillNFTMinted = request.WaitTillNFTMinted,
+                    waitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                    attemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                    sendToAddressAfterMinting = request.SendToAddressAfterMinting,
+                    sendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId.ToString(),
+                    sendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                    sendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
+                    waitTillNFTSent = request.WaitTillNFTSent,
+                    waitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
+                    attemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds
+                };
+
+                var mintNFTFunction = _contract.GetFunction("mintNFT");
+                var gasEstimate = await mintNFTFunction.EstimateGasAsync(
+                    nftData.mintedByAvatarId,
+                    nftData.title,
+                    nftData.description,
+                    nftData.imageUrl,
+                    nftData.thumbnailUrl,
+                    nftData.price,
+                    nftData.discount,
+                    nftData.memoText,
+                    nftData.numberToMint,
+                    nftData.storeNFTMetaDataOnChain,
+                    nftData.metadata,
+                    nftData.tags,
+                    nftData.offChainProvider,
+                    nftData.onChainProvider,
+                    nftData.nftStandardType,
+                    nftData.nftOffChainMetaType,
+                    nftData.symbol,
+                    nftData.jsonMetaDataURL,
+                    nftData.jsonMetaData,
+                    nftData.waitTillNFTMinted,
+                    nftData.waitForNFTToMintInSeconds,
+                    nftData.attemptToMintEveryXSeconds,
+                    nftData.sendToAddressAfterMinting,
+                    nftData.sendToAvatarAfterMintingId,
+                    nftData.sendToAvatarAfterMintingUsername,
+                    nftData.sendToAvatarAfterMintingEmail,
+                    nftData.waitTillNFTSent,
+                    nftData.waitForNFTToSendInSeconds,
+                    nftData.attemptToSendEveryXSeconds
+                );
+
+                var transactionReceipt = await mintNFTFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    gasEstimate,
+                    null,
+                    null,
+                    nftData.mintedByAvatarId,
+                    nftData.title,
+                    nftData.description,
+                    nftData.imageUrl,
+                    nftData.thumbnailUrl,
+                    nftData.price,
+                    nftData.discount,
+                    nftData.memoText,
+                    nftData.numberToMint,
+                    nftData.storeNFTMetaDataOnChain,
+                    nftData.metadata,
+                    nftData.tags,
+                    nftData.offChainProvider,
+                    nftData.onChainProvider,
+                    nftData.nftStandardType,
+                    nftData.nftOffChainMetaType,
+                    nftData.symbol,
+                    nftData.jsonMetaDataURL,
+                    nftData.jsonMetaData,
+                    nftData.waitTillNFTMinted,
+                    nftData.waitForNFTToMintInSeconds,
+                    nftData.attemptToMintEveryXSeconds,
+                    nftData.sendToAddressAfterMinting,
+                    nftData.sendToAvatarAfterMintingId,
+                    nftData.sendToAvatarAfterMintingUsername,
+                    nftData.sendToAvatarAfterMintingEmail,
+                    nftData.waitTillNFTSent,
+                    nftData.waitForNFTToSendInSeconds,
+                    nftData.attemptToSendEveryXSeconds
+                );
+
+                if (transactionReceipt.Status.Value == 1)
+                {
+                    var nftResponse = new BNBChainTransactionResponse
+                    {
+                        TransactionResult = transactionReceipt.TransactionHash,
+                        MemoText = $"NFT minted successfully: {nftData.title}"
+                    };
+                    
+                    result.Result = (INFTTransactionRespone)nftResponse;
+                    result.IsError = false;
+                    result.Message = $"NFT minted successfully. Transaction hash: {transactionReceipt.TransactionHash}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Transaction failed on BNB Chain");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error minting NFT on BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
         public OASISResult<IOASISNFT> LoadOnChainNFTData(string hash)
         {
-            var result = new OASISResult<IOASISNFT>();
-            OASISErrorHandling.HandleError(ref result, "LoadOnChainNFTData is not supported by BNB Chain provider");
-            return result;
+            return LoadOnChainNFTDataAsync(hash).Result;
         }
 
         public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string hash)
         {
             var result = new OASISResult<IOASISNFT>();
-            OASISErrorHandling.HandleError(ref result, "LoadOnChainNFTDataAsync is not supported by BNB Chain provider");
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "BNB Chain provider is not activated");
+                    return result;
+                }
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Smart contract not initialized");
+                    return result;
+                }
+
+                // Real BNB Chain implementation: Load NFT data using smart contract
+                var loadRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "eth_call",
+                    @params = new object[]
+                    {
+                        new
+                        {
+                            to = _contractAddress,
+                            data = "0x" + GetFunctionSelector("getNFTData") + EncodeParameter(hash)
+                        },
+                        "latest"
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(loadRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                    if (rpcResponse.TryGetProperty("result", out var resultData) && resultData.GetString() != "0x")
+                    {
+                        // Parse NFT data from blockchain response
+                        var nftData = JsonSerializer.Deserialize<JsonElement>(resultData.GetString());
+                        var nft = new OASISNFT
+                        {
+                            Id = Guid.NewGuid(),
+                            Title = nftData.TryGetProperty("name", out var name) ? name.GetString() : "BNB NFT",
+                            Description = nftData.TryGetProperty("description", out var description) ? description.GetString() : "NFT from BNB Chain",
+                            ImageUrl = nftData.TryGetProperty("image", out var image) ? image.GetString() : "",
+                            NFTTokenAddress = nftData.TryGetProperty("tokenId", out var tokenId) ? tokenId.GetString() : hash,
+                            OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.BNBChainOASIS),
+                            MetaData = new Dictionary<string, object>
+                            {
+                                ["BNBChainData"] = resultData.GetString(),
+                                ["ParsedAt"] = DateTime.UtcNow,
+                                ["Provider"] = "BNBChainOASIS"
+                            }
+                        };
+                        
+                        result.Result = nft;
+                        result.IsError = false;
+                        result.Message = $"NFT data loaded from BNB Chain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "NFT not found on BNB Chain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load NFT data from BNB Chain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading NFT data from BNB Chain: {ex.Message}");
+            }
             return result;
         }
 
