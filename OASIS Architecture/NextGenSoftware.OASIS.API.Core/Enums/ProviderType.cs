@@ -33,6 +33,7 @@
         OptimismOASIS,
         BNBChainOASIS,
         FantomOASIS,
+        MoralisOASIS, //Web3 API
         IPFSOASIS, //IPFS
         PinataOASIS,
         HoloOASIS, //Holochain
