@@ -1,0 +1,45 @@
+# Use the official .NET 9 runtime as base image
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+
+# Use the .NET 9 SDK for building
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Copy project files
+COPY ["NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj", "NextGenSoftware.OASIS.STAR.WebAPI/"]
+COPY ["NextGenSoftware.OASIS.STAR.STARDNA/NextGenSoftware.OASIS.STAR.DNA.csproj", "NextGenSoftware.OASIS.STAR.STARDNA/"]
+COPY ["../../ONODE/NextGenSoftware.OASIS.API.ONODE.Core/NextGenSoftware.OASIS.API.ONODE.Core.csproj", "../../ONODE/NextGenSoftware.OASIS.API.ONODE.Core/"]
+COPY ["../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj", "../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/"]
+COPY ["../../Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj", "../../Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint/"]
+
+# Restore dependencies
+RUN dotnet restore "NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj"
+
+# Copy all source code
+COPY . .
+
+# Build the application
+WORKDIR "/src/NextGenSoftware.OASIS.STAR.WebAPI"
+RUN dotnet build "NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/build
+
+# Publish the application
+FROM build AS publish
+RUN dotnet publish "NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Final stage
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+# Set environment variables
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_URLS=http://+:8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/api/health || exit 1
+
+ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.STAR.WebAPI.dll"]

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Net.Http;
 using Newtonsoft.Json;
 using EOSNewYork.EOSCore.ActionArgs;
 using EOSNewYork.EOSCore.Response.API;
@@ -21,6 +22,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Events;
+using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 {
@@ -558,7 +560,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             try
             {
                 // Deserialize the complete Avatar object from SEEDS JSON
-                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(seedsJson, new JsonSerializerOptions
+                var avatar = System.Text.Json.System.Text.Json.JsonSerializer.Deserialize<Avatar>(seedsJson, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
                     DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
@@ -636,7 +638,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                     modified = avatar.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
                 };
 
-                return System.Text.Json.JsonSerializer.Serialize(seedsData, new JsonSerializerOptions
+                return System.Text.Json.System.Text.Json.JsonSerializer.Serialize(seedsData, new JsonSerializerOptions
                 {
                     WriteIndented = true,
                     DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
@@ -645,7 +647,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             catch (Exception)
             {
                 // Fallback to basic JSON serialization
-                return System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
+                return System.Text.Json.System.Text.Json.JsonSerializer.Serialize(avatar, new JsonSerializerOptions
                 {
                     WriteIndented = true,
                     DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
@@ -671,7 +673,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                     modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
                 };
 
-                return System.Text.Json.JsonSerializer.Serialize(seedsData, new JsonSerializerOptions
+                return System.Text.Json.System.Text.Json.JsonSerializer.Serialize(seedsData, new JsonSerializerOptions
                 {
                     WriteIndented = true,
                     DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
@@ -680,7 +682,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             catch (Exception)
             {
                 // Fallback to basic JSON serialization
-                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
+                return System.Text.Json.System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
                 {
                     WriteIndented = true,
                     DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
@@ -729,14 +731,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                     }
                 };
 
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await TelosOASIS.HttpClient.PostAsync(ENDPOINT_TEST, content);
+                var httpResponse = await _httpClient.PostAsync(ENDPOINT_TEST, content);
 
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
                     
                     if (rpcResponse.TryGetProperty("result", out var result) &&
                         result.TryGetProperty("rows", out var rows) &&
@@ -816,14 +818,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                     }
                 };
 
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await TelosOASIS.HttpClient.PostAsync(ENDPOINT_TEST, content);
+                var httpResponse = await _httpClient.PostAsync(ENDPOINT_TEST, content);
 
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
                     
                     if (rpcResponse.TryGetProperty("result", out var result) &&
                         result.TryGetProperty("rows", out var rows) &&
@@ -943,7 +945,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                         signatures = new string[0], // Will be signed by wallet
                         compression = 0,
                         packed_context_free_data = "",
-                        packed_trx = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+                        packed_trx = Convert.ToBase64String(Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(new
                         {
                             expiration = DateTimeOffset.UtcNow.AddMinutes(10).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                             ref_block_num = 0,
@@ -999,14 +1001,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                     }
                 };
 
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await TelosOASIS.HttpClient.PostAsync(ENDPOINT_TEST, content);
+                var httpResponse = await _httpClient.PostAsync(ENDPOINT_TEST, content);
 
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
                     
                     if (rpcResponse.TryGetProperty("result", out var result))
                     {
@@ -1382,9 +1384,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                     LastName = seedsData.TryGetProperty("last_name", out var lastName) ? lastName.GetString() : "User",
                     Title = seedsData.TryGetProperty("title", out var title) ? title.GetString() : "",
                     Password = seedsData.TryGetProperty("password", out var password) ? password.GetString() : "",
-                    AvatarType = seedsData.TryGetProperty("avatar_type", out var avatarType) ? avatarType.GetInt32() : 0,
+                    AvatarType = new EnumValue<AvatarType>((AvatarType)(seedsData.TryGetProperty("avatar_type", out var avatarType) ? avatarType.GetInt32() : 0)),
                     AcceptTerms = seedsData.TryGetProperty("accept_terms", out var acceptTerms) ? acceptTerms.GetBoolean() : true,
-                    IsVerified = seedsData.TryGetProperty("is_verified", out var isVerified) ? isVerified.GetBoolean() : false,
                     JwtToken = seedsData.TryGetProperty("jwt_token", out var jwtToken) ? jwtToken.GetString() : "",
                     PasswordReset = seedsData.TryGetProperty("password_reset", out var passwordReset) ? passwordReset.GetInt64() : 0,
                     RefreshToken = seedsData.TryGetProperty("refresh_token", out var refreshToken) ? refreshToken.GetString() : "",
@@ -1392,11 +1393,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                     ResetTokenExpires = seedsData.TryGetProperty("reset_token_expires", out var resetTokenExpires) ? resetTokenExpires.GetInt64() : 0,
                     VerificationToken = seedsData.TryGetProperty("verification_token", out var verificationToken) ? verificationToken.GetString() : "",
                     Verified = seedsData.TryGetProperty("verified", out var verified) ? verified.GetInt64() : 0,
-                    LastBeamedIn = seedsData.TryGetProperty("last_beamed_in", out var lastBeamedIn) ? lastBeamedIn.GetInt64() : 0,
-                    LastBeamedOut = seedsData.TryGetProperty("last_beamed_out", out var lastBeamedOut) ? lastBeamedOut.GetInt64() : 0,
+                    LastBeamedIn = seedsData.TryGetProperty("last_beamed_in", out var lastBeamedIn) ? DateTimeOffset.FromUnixTimeSeconds(lastBeamedIn.GetInt64()) : (DateTime?)null,
+                    LastBeamedOut = seedsData.TryGetProperty("last_beamed_out", out var lastBeamedOut) ? DateTimeOffset.FromUnixTimeSeconds(lastBeamedOut.GetInt64()) : (DateTime?)null,
                     IsBeamedIn = seedsData.TryGetProperty("is_beamed_in", out var isBeamedIn) ? isBeamedIn.GetBoolean() : false,
-                    CreatedDate = seedsData.TryGetProperty("created_date", out var createdDate) ? createdDate.GetInt64() : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                    ModifiedDate = seedsData.TryGetProperty("modified_date", out var modifiedDate) ? modifiedDate.GetInt64() : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    CreatedDate = seedsData.TryGetProperty("created_date", out var createdDate) ? DateTimeOffset.FromUnixTimeSeconds(createdDate.GetInt64()).DateTime : DateTime.UtcNow,
+                    ModifiedDate = seedsData.TryGetProperty("modified_date", out var modifiedDate) ? DateTimeOffset.FromUnixTimeSeconds(modifiedDate.GetInt64()).DateTime : DateTime.UtcNow,
                     Description = seedsData.TryGetProperty("description", out var description) ? description.GetString() : "SEEDS Avatar",
                     IsActive = seedsData.TryGetProperty("is_active", out var isActive) ? isActive.GetBoolean() : true
                 };
