@@ -2567,8 +2567,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            var content = await nftData.Content.ReadAsStringAsync();
-            // TODO: Parse content to IOASISNFT
+            var content = await nftData.Content.ReadAsStringAsync();            // TODO: Parse content to IOASISNFT
             result.Result = null;
             result.IsError = false;
             result.Message = "NFT data loaded successfully from Base";

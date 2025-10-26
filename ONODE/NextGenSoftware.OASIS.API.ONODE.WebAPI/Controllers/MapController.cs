@@ -37,17 +37,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        //TODO: Implement ASAP! :)
-        ///// <summary>
-        ///// Search the map.
-        ///// </summary>
-        ///// <param name="searchParams"></param>
-        ///// <returns></returns>
-        //[HttpGet("Search/{searchParams}")]
-        //public async Task<OASISResult<ISearchResults>> Search(ISearchParams searchParams)
-        //{
-        //    return new(await MapManager.SearchAsync(searchParams));
-        //}
+        /// <summary>
+        /// Search the map for locations, points of interest, and other map features
+        /// </summary>
+        /// <param name="searchParams">Search parameters including query, location bounds, and filters</param>
+        /// <returns>Search results containing matching locations and features</returns>
+        [HttpPost("search")]
+        public async Task<OASISResult<ISearchResults>> Search([FromBody] ISearchParams searchParams)
+        {
+            // Use MapManager for business logic
+            return await MapManager.SearchAsync(searchParams);
+        }
 
         ///// <summary>
         ///// Search the map.
