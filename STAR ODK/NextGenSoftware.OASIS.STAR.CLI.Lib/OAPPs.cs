@@ -1428,7 +1428,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         private async Task<OASISResult<CoronalEjection>> CreateOAPPComponentsOnSTARNETAsync(OASISResult<CoronalEjection> lightResult, string OAPPSourcePath, string errorMessage, ProviderType providerType = ProviderType.Default)
         {
-            if (CLIEngine.GetConfirmation("Would you like to upload the generated OAPP Components (CelestialBody, Zomes & Holons) DNA to STARNET so you or others (if you choose to make it public) can re-use for other OAPP's?"))
+            if (CLIEngine.GetConfirmation("Would you like to upload the generated OAPP Components (CelestialBody, Zomes & Holons) to STARNET so you or others (if you choose to make it public) can re-use for other OAPP's?"))
             {
                 Console.WriteLine("");
                 if (CLIEngine.GetConfirmation("Would you like to upload the CelestialBody generated to STARNET?"))

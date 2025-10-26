@@ -118,7 +118,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 //}
             }
 
-            if (string.IsNullOrEmpty(web3JSONMetaDataFile))
+            //if (string.IsNullOrEmpty(web3JSONMetaDataFile))
+            if (string.IsNullOrEmpty(web3JSONMetaDataFile) && request.NFTOffChainMetaType.Value != NFTOffChainMetaType.ExternalJSONURL)
             {
                 if (CLIEngine.GetConfirmation("Do you wish to import the JSON meta data now? (Press Y to import or N to generate new meta data)"))
                     web3JSONMetaDataFile = CLIEngine.GetValidFile("Please enter the full path to the JSON MetaData file you wish to import: ");
