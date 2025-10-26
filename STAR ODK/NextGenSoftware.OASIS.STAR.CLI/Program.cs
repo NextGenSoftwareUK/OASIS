@@ -3678,7 +3678,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             //CLIEngine.ShowErrorMessage(string.Concat(" Star Core Error Occurred. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
-        private static void DisplayCommand(string command, string args, string desc, int indent = 4, int commandColSize = 48, int argsColSize = 42)
+        private static void DisplayCommand(string command, string args, string desc, int indent = 4, int commandColSize = 48, int argsColSize = 52)
         {
             Console.WriteLine(string.Concat("".PadRight(indent), command.PadRight(commandColSize), args.PadRight(argsColSize), desc));
         }

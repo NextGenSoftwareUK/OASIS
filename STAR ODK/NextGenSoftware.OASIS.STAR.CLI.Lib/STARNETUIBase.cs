@@ -2254,32 +2254,72 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             string tip = "";
 
+            //if (!showDetailed)
+            //    tip = "(use show/list detailed to view)";
+
+            Console.WriteLine("");
+            DisplayProperty("DEPENDENCIES", "", displayFieldLength, false);
+            Console.WriteLine("");
+            DisplayDependencyType("OAPPs", starHolon.STARNETDNA.Dependencies.OAPPs, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Runtimes", starHolon.STARNETDNA.Dependencies.Runtimes, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Libs", starHolon.STARNETDNA.Dependencies.Libraries, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Templates", starHolon.STARNETDNA.Dependencies.Templates, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Holons", starHolon.STARNETDNA.Dependencies.Holons, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Zomes", starHolon.STARNETDNA.Dependencies.Zomes, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("CelestialSpaces", starHolon.STARNETDNA.Dependencies.CelestialSpaces, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("CelestialBodies", starHolon.STARNETDNA.Dependencies.CelestialBodies, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("CelestialBodiesMetaDataDNA", starHolon.STARNETDNA.Dependencies.CelestialBodiesMetaDataDNA, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("ZomesMetaDataDNA", starHolon.STARNETDNA.Dependencies.ZomesMetaDataDNA, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("HolonsMetaDataDNA", starHolon.STARNETDNA.Dependencies.HolonsMetaDataDNA, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("NFTs", starHolon.STARNETDNA.Dependencies.NFTs, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("NFTCollections", starHolon.STARNETDNA.Dependencies.NFTCollections, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("GeoNFTs", starHolon.STARNETDNA.Dependencies.GeoNFTs, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("GeoNFTCollections", starHolon.STARNETDNA.Dependencies.GeoNFTCollections, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("GeoHotSpots", starHolon.STARNETDNA.Dependencies.GeoHotSpots, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Chapters", starHolon.STARNETDNA.Dependencies.Chapters, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Missions", starHolon.STARNETDNA.Dependencies.Missions, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("Quests", starHolon.STARNETDNA.Dependencies.Quests, tip, showDetailed, displayFieldLength);
+            DisplayDependencyType("InventoryItems", starHolon.STARNETDNA.Dependencies.InventoryItems, tip, showDetailed, displayFieldLength);
+
+            //DisplayDependencyType("OAPPS", starHolon.STARNETDNA.Dependencies.OAPPs, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("RUNTIMES", starHolon.STARNETDNA.Dependencies.Runtimes, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("LIBS", starHolon.STARNETDNA.Dependencies.Libraries, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("TEMPLATES", starHolon.STARNETDNA.Dependencies.Templates, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("HOLONS", starHolon.STARNETDNA.Dependencies.Holons, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("ZOMES", starHolon.STARNETDNA.Dependencies.Zomes, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("CELESTIALSPACES", starHolon.STARNETDNA.Dependencies.CelestialSpaces, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("CELESTIALBODIES", starHolon.STARNETDNA.Dependencies.CelestialBodies, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("CELESTIALBODYMETADATA", starHolon.STARNETDNA.Dependencies.CelestialBodiesMetaDataDNA, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("ZOMESMETADATA", starHolon.STARNETDNA.Dependencies.ZomesMetaDataDNA, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("HOLONSMETADATA", starHolon.STARNETDNA.Dependencies.HolonsMetaDataDNA, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("NFTS", starHolon.STARNETDNA.Dependencies.NFTs, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("NFTCOLLECTIONS", starHolon.STARNETDNA.Dependencies.NFTCollections, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("GEONFTS", starHolon.STARNETDNA.Dependencies.GeoNFTs, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("GEONFTCOLLECTIONS", starHolon.STARNETDNA.Dependencies.GeoNFTCollections, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("GEOHOTSPOTS", starHolon.STARNETDNA.Dependencies.GeoHotSpots, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("CHAPTERS", starHolon.STARNETDNA.Dependencies.Chapters, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("MISSIONS", starHolon.STARNETDNA.Dependencies.Missions, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("QUESTS", starHolon.STARNETDNA.Dependencies.Quests, tip, showDetailed, displayFieldLength);
+            //DisplayDependencyType("INVENTORYITEMS", starHolon.STARNETDNA.Dependencies.InventoryItems, tip, showDetailed, displayFieldLength);
+
             if (!showDetailed)
-                tip = "(use show/list detailed to view)";
+            {
+                Console.WriteLine("");
+                DisplayProperty("Use 'show/list detailed' command to view dependency details.", "", displayFieldLength, false);
+            }
+        }
 
-            Console.WriteLine("");
-            DisplayProperty("RUNTIMES", "", displayFieldLength, false);
+        private void DisplayDependencyType(string dependencyType, List<STARNETDependency> dependencies, string tip, bool showDetailed, int displayFieldLength)
+        {
+            if (showDetailed)
+                Console.WriteLine("");
+            
+            DisplayProperty(string.Concat(dependencyType, " (", dependencies.Count, ")"), "", displayFieldLength, false);
 
             if (showDetailed)
-                ShowDependenices(starHolon.STARNETDNA.Dependencies.Runtimes, displayFieldLength);
+                ShowDependenices(dependencies, displayFieldLength);
 
-            CLIEngine.ShowMessage(string.Concat($"{starHolon.STARNETDNA.Dependencies.Runtimes.Count} Found.", starHolon.STARNETDNA.Dependencies.Runtimes.Count > 0 ? tip : ""), false);
-
-            Console.WriteLine("");
-            DisplayProperty("LIBS", "", displayFieldLength, false);
-
-            if (showDetailed)
-                ShowDependenices(starHolon.STARNETDNA.Dependencies.Libraries, displayFieldLength);
-
-            CLIEngine.ShowMessage(string.Concat($"{starHolon.STARNETDNA.Dependencies.Libraries.Count} Found.", starHolon.STARNETDNA.Dependencies.Libraries.Count > 0 ? tip : ""), false);
-
-            Console.WriteLine("");
-            DisplayProperty("TEMPLATES", "", displayFieldLength, false);
-
-            if (showDetailed)
-                ShowDependenices(starHolon.STARNETDNA.Dependencies.Templates, displayFieldLength);
-
-            CLIEngine.ShowMessage(string.Concat($"{starHolon.STARNETDNA.Dependencies.Templates.Count} Found.", starHolon.STARNETDNA.Dependencies.Templates.Count > 0 ? tip : ""), false);
+            //CLIEngine.ShowMessage(string.Concat($"{dependencies.Count} Found.", dependencies.Count > 0 ? tip : ""), false);
         }
 
         //protected void ShowHolonMetaTagMappings(Dictionary<string, (string, string)> metaHolonTagMappings, bool showDetailedInfo, int displayFieldLength = DEFAULT_FIELD_LENGTH)
