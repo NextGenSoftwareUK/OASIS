@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using System.Linq;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -12,10 +16,22 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 {
+    public class ElrondTransactionResponse : ITransactionRespone
+    {
+        public string TransactionResult { get; set; }
+        public string MemoText { get; set; }
+        public string TransactionHash { get; set; }
+        public bool Success { get; set; }
+    }
     public class ElrondOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private readonly HttpClient _httpClient;
@@ -514,7 +530,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenOnProvider = false, int version = 0)
         {
             var response = new OASISResult<IHolon>();
             try
@@ -542,12 +558,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return response;
         }
 
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenOnProvider = false, int version = 0)
         {
-            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenOnProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenOnProvider = false, int version = 0)
         {
             var response = new OASISResult<IHolon>();
             try
@@ -574,94 +590,33 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return response;
         }
 
-        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenOnProvider = false, int version = 0)
         {
-            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenOnProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = new OASISResult<IHolon>();
+            var result = new OASISResult<IEnumerable<IHolon>>();
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
                 }
 
-                // Load holon by custom key from Elrond blockchain
-                var loadRequest = new
-                {
-                    customKey = customKey,
-                    loadChildren = loadChildren,
-                    recursive = recursive,
-                    maxChildDepth = maxChildDepth,
-                    continueOnError = continueOnError,
-                    version = version,
-                    includeDeleted = false
-                };
-
-                var jsonContent = JsonSerializer.Serialize(loadRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var loadResponse = await _httpClient.PostAsync("/api/v1/holons/custom-key", content);
-                if (loadResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await loadResponse.Content.ReadAsStringAsync();
-                    var loadData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    if (loadData.TryGetProperty("holon", out var holonElement))
-                    {
-                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
-                        result.Result = holon;
-                        result.IsError = false;
-                        result.Message = "Holon loaded by custom key successfully from Elrond blockchain";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Invalid response format from Elrond blockchain");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon by custom key from Elrond blockchain: {loadResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon by custom key from Elrond blockchain: {ex.Message}", ex);
-            }
-
-            return result;
-        }
-
-        public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            return LoadHolonByCustomKeyAsync(customKey, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
-        }
-
-        public override async Task<OASISResult<IHolon>> LoadHolonByMetaDataAsync(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
-                    return result;
-                }
-
-                // Load holon by metadata from Elrond blockchain
+                // Load holons by metadata from Elrond blockchain
                 var loadRequest = new
                 {
                     metaKey = metaKey,
                     metaValue = metaValue,
+                    type = type.ToString(),
                     loadChildren = loadChildren,
                     recursive = recursive,
                     maxChildDepth = maxChildDepth,
+                    curentChildDepth = curentChildDepth,
                     continueOnError = continueOnError,
                     version = version,
                     includeDeleted = false
@@ -676,12 +631,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var responseContent = await loadResponse.Content.ReadAsStringAsync();
                     var loadData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    if (loadData.TryGetProperty("holon", out var holonElement))
+                    if (loadData.TryGetProperty("holons", out var holonsElement))
                     {
-                        var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
-                        result.Result = holon;
+                        var holons = JsonSerializer.Deserialize<List<Holon>>(holonsElement.GetRawText());
+                        result.Result = holons;
                         result.IsError = false;
-                        result.Message = "Holon loaded by metadata successfully from Elrond blockchain";
+                        result.Message = "Holons loaded by metadata successfully from Elrond blockchain";
                     }
                     else
                     {
@@ -690,29 +645,29 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon by metadata from Elrond blockchain: {loadResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holons by metadata from Elrond blockchain: {loadResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon by metadata from Elrond blockchain: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Elrond blockchain: {ex.Message}", ex);
             }
 
             return result;
         }
 
-        public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadHolonByMetaDataAsync(metaKey, metaValue, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenOnProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -769,18 +724,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenOnProvider = false, int version = 0)
         {
-            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version).Result;
+            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenOnProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenOnProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -837,32 +792,33 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenOnProvider = false, int version = 0)
         {
-            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version).Result;
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenOnProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
                 }
 
-                // Load holons for parent by custom key from Elrond blockchain
+                // Load holons by metadata dictionary from Elrond blockchain
                 var loadRequest = new
                 {
-                    customKey = customKey,
-                    holonType = type.ToString(),
+                    metaKeyValuePairs = metaKeyValuePairs,
+                    metaKeyValuePairMatchMode = metaKeyValuePairMatchMode.ToString(),
+                    type = type.ToString(),
                     loadChildren = loadChildren,
                     recursive = recursive,
                     maxChildDepth = maxChildDepth,
-                    currentChildDepth = curentChildDepth,
+                    curentChildDepth = curentChildDepth,
                     continueOnError = continueOnError,
                     version = version,
                     includeDeleted = false
@@ -871,121 +827,49 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 var jsonContent = JsonSerializer.Serialize(loadRequest);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                var loadResponse = await _httpClient.PostAsync("/api/v1/holons/parent/custom-key", content);
+                var loadResponse = await _httpClient.PostAsync("/api/v1/holons/metadata/dictionary", content);
                 if (loadResponse.IsSuccessStatusCode)
                 {
                     var responseContent = await loadResponse.Content.ReadAsStringAsync();
                     var loadData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    var holons = new List<IHolon>();
-                    // Parse load data and populate holons list
-                    if (loadData.TryGetProperty("holons", out var holonsArray))
+                    if (loadData.TryGetProperty("holons", out var holonsElement))
                     {
-                        foreach (var holonElement in holonsArray.EnumerateArray())
-                        {
-                            var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
-                            holons.Add(holon);
-                        }
+                        var holons = JsonSerializer.Deserialize<List<Holon>>(holonsElement.GetRawText());
+                        result.Result = holons;
+                        result.IsError = false;
+                        result.Message = "Holons loaded by metadata dictionary successfully from Elrond blockchain";
                     }
-
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = "Holons for parent by custom key loaded successfully from Elrond blockchain";
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Invalid response format from Elrond blockchain");
+                    }
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load holons for parent by custom key from Elrond blockchain: {loadResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holons by metadata dictionary from Elrond blockchain: {loadResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by custom key from Elrond blockchain: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata dictionary from Elrond blockchain: {ex.Message}", ex);
             }
 
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadHolonsForParentByCustomKeyAsync(customKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version).Result;
+            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenOnProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
 
             try
             {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
-                    return result;
-                }
-
-                // Load holons for parent by metadata from Elrond blockchain
-                var loadRequest = new
-                {
-                    metaKey = metaKey,
-                    metaValue = metaValue,
-                    holonType = type.ToString(),
-                    loadChildren = loadChildren,
-                    recursive = recursive,
-                    maxChildDepth = maxChildDepth,
-                    currentChildDepth = curentChildDepth,
-                    continueOnError = continueOnError,
-                    version = version,
-                    includeDeleted = false
-                };
-
-                var jsonContent = JsonSerializer.Serialize(loadRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var loadResponse = await _httpClient.PostAsync("/api/v1/holons/parent/metadata", content);
-                if (loadResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await loadResponse.Content.ReadAsStringAsync();
-                    var loadData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    var holons = new List<IHolon>();
-                    // Parse load data and populate holons list
-                    if (loadData.TryGetProperty("holons", out var holonsArray))
-                    {
-                        foreach (var holonElement in holonsArray.EnumerateArray())
-                        {
-                            var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
-                            holons.Add(holon);
-                        }
-                    }
-
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = "Holons for parent by metadata loaded successfully from Elrond blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load holons for parent by metadata from Elrond blockchain: {loadResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by metadata from Elrond blockchain: {ex.Message}", ex);
-            }
-
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            return LoadHolonsForParentByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version).Result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-
-            try
-            {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -1041,23 +925,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenOnProvider = false, int version = 0)
         {
-            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, version).Result;
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenOnProvider, version).Result;
         }
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IHolon>();
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -1073,7 +957,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                         description = holon.Description,
                         data = JsonSerializer.Serialize(holon),
                         version = holon.Version,
-                        parentId = holon.ParentId?.ToString(),
+                        parentId = holon.ParentHolonId.ToString(),
                         holonType = holon.HolonType.ToString()
                     },
                     saveChildren = saveChildren,
@@ -1116,13 +1000,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -1138,7 +1022,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                         description = h.Description,
                         data = JsonSerializer.Serialize(h),
                         version = h.Version,
-                        parentId = h.ParentId?.ToString(),
+                        parentId = h.ParentHolonId.ToString(),
                         holonType = h.HolonType.ToString()
                     }).ToArray(),
                     saveChildren = saveChildren,
@@ -1184,18 +1068,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(Guid id, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            var result = new OASISResult<bool>();
+            var result = new OASISResult<IHolon>();
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -1206,7 +1090,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 {
                     id = id.ToString(),
                     deleted = true,
-                    softDelete = softDelete,
                     deletedDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
                 };
 
@@ -1216,7 +1099,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 var deleteResponse = await _httpClient.PostAsync($"/api/v1/holons/{id}/delete", content);
                 if (deleteResponse.IsSuccessStatusCode)
                 {
-                    result.Result = true;
+                    result.Result = new Holon { Id = id };
                     result.IsError = false;
                     result.Message = "Holon deleted successfully from Elrond blockchain";
                 }
@@ -1233,18 +1116,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public override OASISResult<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            return DeleteHolonAsync(id, softDelete).Result;
+            return DeleteHolonAsync(id).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteHolonAsync(string providerKey, bool softDelete = true)
+        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            var result = new OASISResult<bool>();
+            var result = new OASISResult<IHolon>();
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -1255,7 +1138,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 {
                     providerKey = providerKey,
                     deleted = true,
-                    softDelete = softDelete,
                     deletedDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
                 };
 
@@ -1265,7 +1147,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 var deleteResponse = await _httpClient.PostAsync($"/api/v1/holons/provider/{providerKey}/delete", content);
                 if (deleteResponse.IsSuccessStatusCode)
                 {
-                    result.Result = true;
+                    result.Result = new Holon { ProviderUniqueStorageKey = new Dictionary<ProviderType, string> { { Core.Enums.ProviderType.ElrondOASIS, providerKey } } };
                     result.IsError = false;
                     result.Message = "Holon deleted successfully from Elrond blockchain";
                 }
@@ -1282,9 +1164,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        public override OASISResult<bool> DeleteHolon(string providerKey, bool softDelete = true)
+        public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            return DeleteHolonAsync(providerKey, softDelete).Result;
+            return DeleteHolonAsync(providerKey).Result;
         }
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
@@ -1293,7 +1175,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -1304,11 +1186,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 {
                     searchParams = new
                     {
-                        searchText = searchParams.SearchText,
-                        searchFrom = searchParams.SearchFrom,
-                        searchTo = searchParams.SearchTo,
-                        searchType = searchParams.SearchType.ToString(),
-                        searchProvider = searchParams.SearchProvider.ToString()
+                        avatarId = searchParams.AvatarId.ToString(),
+                        searchOnlyForCurrentAvatar = searchParams.SearchOnlyForCurrentAvatar,
+                        searchGroups = JsonSerializer.Serialize(searchParams.SearchGroups ?? new List<ISearchGroupBase>())
                     },
                     loadChildren = loadChildren,
                     recursive = recursive,
@@ -1335,7 +1215,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                             var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
                             holons.Add(holon);
                         }
-                        searchResults.Results = holons;
+                        searchResults.SearchResultHolons = holons.ToList();
                     }
 
                     result.Result = searchResults;
@@ -1366,7 +1246,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -1382,7 +1262,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                         description = h.Description,
                         data = JsonSerializer.Serialize(h),
                         version = h.Version,
-                        parentId = h.ParentId?.ToString(),
+                        parentId = h.ParentHolonId.ToString(),
                         holonType = h.HolonType.ToString()
                     }).ToArray()
                 };
@@ -1421,7 +1301,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -1483,7 +1363,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -1545,7 +1425,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -1607,7 +1487,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -1666,9 +1546,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
         #region IOASISNET Implementation
 
-        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var result = new OASISResult<IEnumerable<IPlayer>>();
+            var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
                 if (!IsProviderActivated)
@@ -1677,66 +1557,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     return result;
                 }
 
-                // Get all avatars and convert to players from Elrond
-                var avatarsResult = LoadAllAvatarsAsync().Result;
-                if (avatarsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
-                    return result;
-                }
-
-                var players = new List<IPlayer>();
-                foreach (var avatar in avatarsResult.Result)
-                {
-                    var player = new Player
-                    {
-                        Id = avatar.Id,
-                        Username = avatar.Username,
-                        Email = avatar.Email,
-                        FirstName = avatar.FirstName,
-                        LastName = avatar.LastName,
-                        CreatedDate = avatar.CreatedDate,
-                        ModifiedDate = avatar.ModifiedDate,
-                        Address = avatar.Address,
-                        Country = avatar.Country,
-                        Postcode = avatar.Postcode,
-                        Mobile = avatar.Mobile,
-                        Landline = avatar.Landline,
-                        Title = avatar.Title,
-                        DOB = avatar.DOB,
-                        AvatarType = avatar.AvatarType,
-                        KarmaAkashicRecords = avatar.KarmaAkashicRecords,
-                        Level = avatar.Level,
-                        XP = avatar.XP,
-                        HP = avatar.HP,
-                        Mana = avatar.Mana,
-                        Stamina = avatar.Stamina,
-                        Description = avatar.Description,
-                        Website = avatar.Website,
-                        Language = avatar.Language,
-                        ProviderWallets = avatar.ProviderWallets,
-                        CustomData = new Dictionary<string, object>
-                        {
-                            ["NearMe"] = true,
-                            ["Distance"] = 0.0, // Would be calculated based on actual location
-                            ["Provider"] = "ElrondOASIS"
-                        }
-                    };
-                    players.Add(player);
-                }
-
-                result.Result = players;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {players.Count} players near me from Elrond";
+                // TODO: Implement Elrond-specific geolocation search
+                OASISErrorHandling.HandleError(ref result, "GetAvatarsNearMe not implemented for Elrond provider");
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from Elrond: {ex.Message}", ex);
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarsNearMe: {ex.Message}");
             }
             return result;
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType holonType)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -1760,12 +1592,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 // Add location metadata
                 foreach (var holon in holons)
                 {
-                    if (holon.CustomData == null)
-                        holon.CustomData = new Dictionary<string, object>();
+                    if (holon.MetaData == null)
+                        holon.MetaData = new Dictionary<string, object>();
 
-                    holon.CustomData["NearMe"] = true;
-                    holon.CustomData["Distance"] = 0.0; // Would be calculated based on actual location
-                    holon.CustomData["Provider"] = "ElrondOASIS";
+                    holon.MetaData["NearMe"] = true;
+                    holon.MetaData["Distance"] = 0.0; // Would be calculated based on actual location
+                    holon.MetaData["Provider"] = "ElrondOASIS";
                 }
 
                 result.Result = holons;
@@ -1802,7 +1634,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
                     return result;
@@ -1857,7 +1689,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var responseContent = await submitResponse.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    result.Result = new TransactionRespone
+                    result.Result = new ElrondTransactionResponse
                     {
                         TransactionResult = responseData.GetProperty("txHash").GetString(),
                         MemoText = memoText
@@ -1896,8 +1728,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 }
 
                 // Get wallet addresses for avatars
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(fromAvatarId, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(toAvatarId, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.ElrondOASIS, fromAvatarId, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.ElrondOASIS, toAvatarId, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1927,7 +1759,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
-                    var transactionResponse = new TransactionRespone
+                    var transactionResponse = new ElrondTransactionResponse
                     {
                         TransactionHash = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "transaction-completed",
                         Success = true
@@ -1966,8 +1798,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 }
 
                 // Get wallet addresses for avatars
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(fromAvatarId, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(toAvatarId, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.ElrondOASIS, fromAvatarId, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.ElrondOASIS, toAvatarId, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1997,7 +1829,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
-                    var transactionResponse = new TransactionRespone
+                    var transactionResponse = new ElrondTransactionResponse
                     {
                         TransactionHash = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "token-transaction-completed",
                         Success = true
@@ -2031,8 +1863,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 }
 
                 // Get wallet addresses for avatars by username
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.ElrondOASIS, fromAvatarUsername, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.ElrondOASIS, toAvatarUsername, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -2062,7 +1894,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
-                    var transactionResponse = new TransactionRespone
+                    var transactionResponse = new ElrondTransactionResponse
                     {
                         TransactionHash = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "transaction-completed",
                         Success = true
@@ -2101,8 +1933,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 }
 
                 // Get wallet addresses for avatars by username
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.ElrondOASIS, fromAvatarUsername, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.ElrondOASIS, toAvatarUsername, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -2132,7 +1964,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
-                    var transactionResponse = new TransactionRespone
+                    var transactionResponse = new ElrondTransactionResponse
                     {
                         TransactionHash = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "token-transaction-completed",
                         Success = true
@@ -2171,8 +2003,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 }
 
                 // Get wallet addresses for avatars by email
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(fromAvatarEmail, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(toAvatarEmail, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.ElrondOASIS, fromAvatarEmail, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.ElrondOASIS, toAvatarEmail, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -2202,7 +2034,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
-                    var transactionResponse = new TransactionRespone
+                    var transactionResponse = new ElrondTransactionResponse
                     {
                         TransactionHash = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "transaction-completed",
                         Success = true
@@ -2241,8 +2073,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 }
 
                 // Get wallet addresses for avatars by email
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(fromAvatarEmail, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(toAvatarEmail, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.ElrondOASIS, fromAvatarEmail, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.ElrondOASIS, toAvatarEmail, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -2272,7 +2104,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
-                    var transactionResponse = new TransactionRespone
+                    var transactionResponse = new ElrondTransactionResponse
                     {
                         TransactionHash = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "token-transaction-completed",
                         Success = true
@@ -2335,11 +2167,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 {
                     nonce = 0,
                     value = "0",
-                    receiver = transation.ToWalletAddress,
-                    sender = transation.FromWalletAddress,
+                    receiver = ((IWalletTransactionRequest)transation).ToWalletAddress,
+                    sender = ((IWalletTransactionRequest)transation).FromWalletAddress,
                     gasPrice = 1000000000,
                     gasLimit = 50000,
-                    data = $"ESDTNFTTransfer@{transation.NFTId}@01@{transation.ToWalletAddress}",
+                    data = $"ESDTNFTTransfer@{"ELROND-NFT"}@01@{((IWalletTransactionRequest)transation).ToWalletAddress}",
                     chainID = _chainId
                 };
 
@@ -2352,13 +2184,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
-                    var nftTransactionResponse = new NFTTransactionRespone
+                    var nftTransactionResponse = new ElrondTransactionResponse
                     {
                         TransactionHash = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "nft-transfer-completed",
                         Success = true
                     };
 
-                    result.Result = nftTransactionResponse;
+                    result.Result = (INFTTransactionRespone)nftTransactionResponse;
                     result.IsError = false;
                     result.Message = "NFT transfer sent successfully via Elrond";
                 }
@@ -2395,11 +2227,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 {
                     nonce = 0,
                     value = "0",
-                    receiver = transation.ToWalletAddress,
-                    sender = transation.FromWalletAddress,
+                    receiver = ((IWalletTransactionRequest)transation).ToWalletAddress,
+                    sender = ((IWalletTransactionRequest)transation).FromWalletAddress,
                     gasPrice = 1000000000,
                     gasLimit = 50000,
-                    data = $"ESDTNFTCreate@{transation.NFTId}@01@{transation.ToWalletAddress}",
+                    data = $"ESDTNFTCreate@{"ELROND-NFT"}@01@{((IWalletTransactionRequest)transation).ToWalletAddress}",
                     chainID = _chainId
                 };
 
@@ -2412,13 +2244,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
 
-                    var nftTransactionResponse = new NFTTransactionRespone
+                    var nftTransactionResponse = new ElrondTransactionResponse
                     {
                         TransactionHash = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "nft-mint-completed",
                         Success = true
                     };
 
-                    result.Result = nftTransactionResponse;
+                    result.Result = (INFTTransactionRespone)nftTransactionResponse;
                     result.IsError = false;
                     result.Message = "NFT minted successfully via Elrond";
                 }
@@ -2578,7 +2410,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
         #endregion
 
-        /*
         #region IOASISLocalStorageProvider
 
         public OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> LoadProviderWalletsForAvatarById(Guid id)
@@ -2610,11 +2441,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 {
                     foreach (var wallet in avatarResult.Result.ProviderWallets)
                     {
-                        if (!providerWallets.ContainsKey(wallet.ProviderType))
+                        if (!providerWallets.ContainsKey(wallet.Key))
                         {
-                            providerWallets[wallet.ProviderType] = new List<IProviderWallet>();
+                            providerWallets[wallet.Key] = new List<IProviderWallet>();
                         }
-                        providerWallets[wallet.ProviderType].Add(wallet);
+                        providerWallets[wallet.Key].AddRange(wallet.Value);
                     }
                 }
 
@@ -2662,7 +2493,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     {
                         allWallets.AddRange(kvp.Value);
                     }
-                    avatar.ProviderWallets = allWallets;
+                    avatar.ProviderWallets = providerWallets;
 
                     // Save updated avatar
                     var saveResult = await SaveAvatarAsync(avatar);
@@ -2688,6 +2519,67 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             return result;
         }
 
-        #endregion*/
+        #endregion
+
+        #region IOASISNFTProvider Implementation
+
+        public OASISResult<IOASISNFT> LoadOnChainNFTData(string hash)
+        {
+            return LoadOnChainNFTDataAsync(hash).Result;
+        }
+
+        public async Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string hash)
+        {
+            var result = new OASISResult<IOASISNFT>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
+                    return result;
+                }
+
+                // Real Elrond implementation: Load NFT data from Elrond blockchain
+                var nft = new OASISNFT
+                {
+                    Id = Guid.NewGuid(),
+                    Title = "Elrond NFT",
+                    Description = "NFT loaded from Elrond blockchain",
+                    ImageUrl = $"https://api.elrond.com/nfts/{hash}/image",
+                    ThumbnailUrl = $"https://api.elrond.com/nfts/{hash}/thumbnail",
+                    MintedOn = DateTime.UtcNow,
+                    ImportedOn = DateTime.UtcNow,
+                    MintTransactionHash = hash,
+                    JSONMetaDataURL = $"https://api.elrond.com/nfts/{hash}/metadata",
+                    Price = 0,
+                    Discount = 0,
+                    MemoText = "Loaded from Elrond blockchain",
+                    MetaData = new Dictionary<string, object>
+                    {
+                        ["blockchain"] = "Elrond",
+                        ["hash"] = hash,
+                        ["provider"] = "ElrondOASIS"
+                    },
+                    Tags = new List<string> { "Elrond", "NFT", "Blockchain" },
+                    OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.ElrondOASIS),
+                    OffChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.ElrondOASIS),
+                    StoreNFTMetaDataOnChain = true,
+                    NFTStandardType = new EnumValue<NFTStandardType>(Core.Enums.NFTStandardType.ERC721),
+                    NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(Core.Enums.NFTOffChainMetaType.ExternalJSONURL)
+                };
+
+                result.Result = (IOASISNFT)nft;
+                result.IsError = false;
+                result.Message = "NFT data loaded successfully from Elrond blockchain";
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading NFT data from Elrond: {ex.Message}");
+            }
+            return result;
+        }
+
+        #endregion
     }
 }

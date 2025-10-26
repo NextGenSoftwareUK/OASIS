@@ -3,7 +3,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
+//using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         Neo4jOASIS _neo4j;
         SQLLiteDBOASIS _sqlLiteDb;
         ThreeFoldOASIS _threeFold;
-        AcitvityPubOASIS _activityPub;
+        //AcitvityPubOASIS _activityPub;
         OASISDNA _OASISDNA;
 
         public SEEDSOASIS SEEDS
@@ -341,26 +341,26 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             }
         }
 
-        public AcitvityPubOASIS ActivityPub
-        {
-            get
-            {
-                if (_activityPub == null)
-                {
-                    Task.Run(async () =>
-                    {
-                        OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.ActivityPubOASIS);
+        //public AcitvityPubOASIS ActivityPub
+        //{
+        //    get
+        //    {
+        //        if (_activityPub == null)
+        //        {
+        //            Task.Run(async () =>
+        //            {
+        //                OASISResult<IOASISStorageProvider> result = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(ProviderType.ActivityPubOASIS);
 
-                        if (result != null && !result.IsError)
-                            _activityPub = (AcitvityPubOASIS)result.Result;
-                        else
-                            OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In ActivityPub Property Getter. Reason: {result.Message}");
-                    });
-                }
+        //                if (result != null && !result.IsError)
+        //                    _activityPub = (AcitvityPubOASIS)result.Result;
+        //                else
+        //                    OASISErrorHandling.HandleError(ref result, $"Error Occured In OASISAPIProviders In ActivityPub Property Getter. Reason: {result.Message}");
+        //            });
+        //        }
 
-                return _activityPub;
-            }
-        }
+        //        return _activityPub;
+        //    }
+        //}
 
         public OASISProviders(OASISDNA OASISDNA)
         {
