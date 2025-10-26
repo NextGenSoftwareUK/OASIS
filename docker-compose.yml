@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  # OASIS API Web API
+  oasis-api:
+    build:
+      context: .
+      dockerfile: ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - oasis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # STAR API Web API
+  star-api:
+    build:
+      context: .
+      dockerfile: "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/Dockerfile"
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - oasis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # OASIS OPORTAL (.NET + React)
+  oasis-oportal:
+    build:
+      context: .
+      dockerfile: ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL/Dockerfile
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - oasis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # STAR WEB UI (.NET 8 + React)
+  star-web-ui:
+    build:
+      context: .
+      dockerfile: "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI/Dockerfile"
+    ports:
+      - "5003:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - oasis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # OASIS WEB UI (React + Nginx)
+  oasis-web-ui:
+    build:
+      context: .
+      dockerfile: oasisweb4.com/Dockerfile
+    ports:
+      - "3000:80"
+    networks:
+      - oasis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL Database (Optional)
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: oasis
+      POSTGRES_USER: oasis
+      POSTGRES_PASSWORD: oasis123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - oasis-network
+
+  # Redis Cache (Optional)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - oasis-network
+
+networks:
+  oasis-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

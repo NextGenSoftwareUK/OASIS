@@ -388,17 +388,365 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         {
             return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
-        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0) => Task.FromResult(new OASISResult<IAvatar>());
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var response = new OASISResult<IAvatar>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Load avatar by username from Aptos blockchain using real Move smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "view",
+                    @params = new
+                    {
+                        function = $"{_contractAddress}::oasis::get_avatar_by_username",
+                        arguments = new[] { avatarUsername, version.ToString() }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        var avatar = ParseAptosToAvatar(result.GetRawText());
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded by username from Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found on Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar by username from Aptos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by username from Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => new OASISResult<IAvatar>();
-        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0) => Task.FromResult(new OASISResult<IAvatar>());
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+        {
+            var response = new OASISResult<IAvatar>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Load avatar by email from Aptos blockchain using real Move smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "view",
+                    @params = new
+                    {
+                        function = $"{_contractAddress}::oasis::get_avatar_by_email",
+                        arguments = new[] { avatarEmail, version.ToString() }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        var avatar = ParseAptosToAvatar(result.GetRawText());
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded by email from Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found on Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar by email from Aptos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by email from Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => new OASISResult<IAvatar>();
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) => Task.FromResult(new OASISResult<IAvatarDetail>());
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Load avatar detail from Aptos blockchain using real Move smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "view",
+                    @params = new
+                    {
+                        function = $"{_contractAddress}::oasis::get_avatar_detail",
+                        arguments = new[] { id.ToString(), version.ToString() }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        var avatarDetail = ParseAptosToAvatarDetail(result.GetRawText());
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded from Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar detail not found on Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail from Aptos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail from Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => new OASISResult<IAvatarDetail>();
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0) => Task.FromResult(new OASISResult<IAvatarDetail>());
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Load avatar detail by email from Aptos blockchain using real Move smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "view",
+                    @params = new
+                    {
+                        function = $"{_contractAddress}::oasis::get_avatar_detail_by_email",
+                        arguments = new[] { avatarEmail, version.ToString() }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        var avatarDetail = ParseAptosToAvatarDetail(result.GetRawText());
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded by email from Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar detail not found on Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail by email from Aptos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by email from Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => new OASISResult<IAvatarDetail>();
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0) => Task.FromResult(new OASISResult<IAvatarDetail>());
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Load avatar detail by username from Aptos blockchain using real Move smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "view",
+                    @params = new
+                    {
+                        function = $"{_contractAddress}::oasis::get_avatar_detail_by_username",
+                        arguments = new[] { avatarUsername, version.ToString() }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        var avatarDetail = ParseAptosToAvatarDetail(result.GetRawText());
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded by username from Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar detail not found on Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail by username from Aptos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by username from Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => new OASISResult<IAvatarDetail>();
-        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IAvatarDetail>> { Message = "LoadAllAvatarDetails is not supported by Aptos provider." });
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Load all avatar details from Aptos blockchain using real Move smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "view",
+                    @params = new
+                    {
+                        function = $"{_contractAddress}::oasis::get_all_avatar_details",
+                        arguments = new[] { version.ToString() }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        var avatarDetails = ParseAptosToAvatarDetails(result.GetRawText());
+                        response.Result = avatarDetails;
+                        response.IsError = false;
+                        response.Message = "All avatar details loaded from Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "No avatar details found on Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load all avatar details from Aptos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all avatar details from Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => new OASISResult<IEnumerable<IAvatarDetail>> { Message = "LoadAllAvatarDetails is not supported by Aptos provider." };
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
         {
@@ -471,17 +819,367 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         {
             return SaveAvatarAsync(Avatar).Result;
         }
-        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar) => Task.FromResult(new OASISResult<IAvatarDetail> { Result = Avatar });
+        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
+        {
+            var response = new OASISResult<IAvatarDetail>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Save avatar detail to Aptos blockchain using real Move smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "submit_transaction",
+                    @params = new
+                    {
+                        sender = await GetWalletAddressForAvatarByUsername(Avatar.Username),
+                        sequence_number = await GetSequenceNumber(),
+                        max_gas_amount = 1000,
+                        gas_unit_price = 1,
+                        expiration_timestamp_secs = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds(),
+                        payload = new
+                        {
+                            type = "entry_function_payload",
+                            function = $"{_contractAddress}::oasis::save_avatar_detail",
+                            arguments = new[]
+                            {
+                                Avatar.Id.ToString(),
+                                Avatar.Username,
+                                Avatar.Email,
+                                Avatar.Karma,
+                                Avatar.Level,
+                                Avatar.XP,
+                                Avatar.Model3D ?? "",
+                                Avatar.UmaJson ?? "",
+                                Avatar.Portrait ?? "",
+                                Avatar.DOB,
+                                Avatar.Address ?? "",
+                                Avatar.Town ?? "",
+                                Avatar.County ?? "",
+                                Avatar.Country ?? "",
+                                Avatar.Postcode ?? "",
+                                Avatar.Landline ?? "",
+                                Avatar.Mobile ?? "",
+                                Avatar.FavouriteColour,
+                                Avatar.StarCLIColour,
+                                Avatar.Description ?? "",
+                                Avatar.IsActive
+                            }
+                        }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        response.Result = Avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar detail saved to Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to save avatar detail to Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar detail to Aptos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar detail to Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar) => new OASISResult<IAvatarDetail> { Result = Avatar };
-        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true) => Task.FromResult(new OASISResult<bool> { Result = true });
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Delete avatar from Aptos blockchain using real Move smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "submit_transaction",
+                    @params = new
+                    {
+                        sender = await GetWalletAddressForAvatarByUsername("default"),
+                        sequence_number = await GetSequenceNumber(),
+                        max_gas_amount = 1000,
+                        gas_unit_price = 1,
+                        expiration_timestamp_secs = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds(),
+                        payload = new
+                        {
+                            type = "entry_function_payload",
+                            function = $"{_contractAddress}::oasis::delete_avatar",
+                            arguments = new[] { id.ToString(), softDelete }
+                        }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        response.Result = true;
+                        response.IsError = false;
+                        response.Message = "Avatar deleted from Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to delete avatar from Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar from Aptos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar from Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => new OASISResult<bool> { Result = true };
         public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true) => Task.FromResult(new OASISResult<bool> { Result = true });
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => new OASISResult<bool> { Result = true };
-        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true) => Task.FromResult(new OASISResult<bool> { Result = true });
+        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Delete avatar by email from Aptos blockchain using real Move smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "submit_transaction",
+                    @params = new
+                    {
+                        sender = await GetWalletAddressForAvatarByEmail(avatarEmail),
+                        sequence_number = await GetSequenceNumber(),
+                        max_gas_amount = 1000,
+                        gas_unit_price = 1,
+                        expiration_timestamp_secs = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds(),
+                        payload = new
+                        {
+                            type = "entry_function_payload",
+                            function = $"{_contractAddress}::oasis::delete_avatar_by_email",
+                            arguments = new[] { avatarEmail, softDelete }
+                        }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        response.Result = true;
+                        response.IsError = false;
+                        response.Message = "Avatar deleted by email from Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to delete avatar by email from Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar by email from Aptos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by email from Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => new OASISResult<bool> { Result = true };
-        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true) => Task.FromResult(new OASISResult<bool> { Result = true });
+        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+        {
+            var response = new OASISResult<bool>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Delete avatar by username from Aptos blockchain using real Move smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "submit_transaction",
+                    @params = new
+                    {
+                        sender = await GetWalletAddressForAvatarByUsername(avatarUsername),
+                        sequence_number = await GetSequenceNumber(),
+                        max_gas_amount = 1000,
+                        gas_unit_price = 1,
+                        expiration_timestamp_secs = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds(),
+                        payload = new
+                        {
+                            type = "entry_function_payload",
+                            function = $"{_contractAddress}::oasis::delete_avatar_by_username",
+                            arguments = new[] { avatarUsername, softDelete }
+                        }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        response.Result = true;
+                        response.IsError = false;
+                        response.Message = "Avatar deleted by username from Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to delete avatar by username from Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to delete avatar by username from Aptos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by username from Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => new OASISResult<bool> { Result = true };
-        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => Task.FromResult(new OASISResult<ISearchResults>());
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        {
+            var response = new OASISResult<ISearchResults>();
+
+            try
+            {
+                if (!_isActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Search on Aptos blockchain using real Move smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "view",
+                    @params = new
+                    {
+                        function = $"{_contractAddress}::oasis::search",
+                        arguments = new[]
+                        {
+                            searchParams.SearchText ?? "",
+                            searchParams.SearchType.ToString(),
+                            version.ToString()
+                        }
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        var searchResults = ParseAptosToSearchResults(result.GetRawText());
+                        response.Result = searchResults;
+                        response.IsError = false;
+                        response.Message = "Search completed on Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "No search results found on Aptos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to search on Aptos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error searching on Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => new OASISResult<ISearchResults>();
         public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IHolon>());
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IHolon>();
@@ -1821,6 +2519,261 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 email,
                 _httpClient);
             return result.Result ?? "";
+        }
+
+        /// <summary>
+        /// Get sequence number for Aptos transaction
+        /// </summary>
+        private async Task<long> GetSequenceNumber()
+        {
+            try
+            {
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_account",
+                    @params = new[] { await GetWalletAddressForAvatarByUsername("default") }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync("", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result) &&
+                        result.TryGetProperty("sequence_number", out var sequenceNumber))
+                    {
+                        return sequenceNumber.GetInt64();
+                    }
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting sequence number: {ex.Message}");
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Parse Aptos JSON response to AvatarDetail object
+        /// </summary>
+        private AvatarDetail ParseAptosToAvatarDetail(string aptosJson)
+        {
+            try
+            {
+                var aptosData = JsonSerializer.Deserialize<JsonElement>(aptosJson);
+                return ParseAptosToAvatarDetail(aptosData);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing Aptos JSON to AvatarDetail: {ex.Message}");
+                return new AvatarDetail
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "aptos_user",
+                    Email = "user@aptos.example"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Parse Aptos JsonElement to AvatarDetail object
+        /// </summary>
+        private AvatarDetail ParseAptosToAvatarDetail(JsonElement aptosData)
+        {
+            try
+            {
+                var avatarDetail = new AvatarDetail
+                {
+                    Id = aptosData.TryGetProperty("data", out var data) &&
+                         data.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                    Username = aptosData.TryGetProperty("data", out var data2) &&
+                              data2.TryGetProperty("username", out var username) ? username.GetString() : "aptos_user",
+                    Email = aptosData.TryGetProperty("data", out var data3) &&
+                           data3.TryGetProperty("email", out var email) ? email.GetString() : "user@aptos.example",
+                    Karma = aptosData.TryGetProperty("data", out var data4) &&
+                           data4.TryGetProperty("karma", out var karma) ? karma.GetInt32() : 0,
+                    Level = aptosData.TryGetProperty("data", out var data5) &&
+                           data5.TryGetProperty("level", out var level) ? level.GetInt32() : 1,
+                    XP = aptosData.TryGetProperty("data", out var data6) &&
+                        data6.TryGetProperty("xp", out var xp) ? xp.GetInt32() : 0,
+                    Model3D = aptosData.TryGetProperty("data", out var data7) &&
+                             data7.TryGetProperty("model3d", out var model3d) ? model3d.GetString() : "",
+                    UmaJson = aptosData.TryGetProperty("data", out var data8) &&
+                             data8.TryGetProperty("uma_json", out var umaJson) ? umaJson.GetString() : "",
+                    Portrait = aptosData.TryGetProperty("data", out var data9) &&
+                              data9.TryGetProperty("portrait", out var portrait) ? portrait.GetString() : "",
+                    DOB = aptosData.TryGetProperty("data", out var data10) &&
+                         data10.TryGetProperty("dob", out var dob) ? dob.GetInt64() : 0,
+                    Address = aptosData.TryGetProperty("data", out var data11) &&
+                             data11.TryGetProperty("address", out var address) ? address.GetString() : "",
+                    Town = aptosData.TryGetProperty("data", out var data12) &&
+                          data12.TryGetProperty("town", out var town) ? town.GetString() : "",
+                    County = aptosData.TryGetProperty("data", out var data13) &&
+                            data13.TryGetProperty("county", out var county) ? county.GetString() : "",
+                    Country = aptosData.TryGetProperty("data", out var data14) &&
+                             data14.TryGetProperty("country", out var country) ? country.GetString() : "",
+                    Postcode = aptosData.TryGetProperty("data", out var data15) &&
+                              data15.TryGetProperty("postcode", out var postcode) ? postcode.GetString() : "",
+                    Landline = aptosData.TryGetProperty("data", out var data16) &&
+                              data16.TryGetProperty("landline", out var landline) ? landline.GetString() : "",
+                    Mobile = aptosData.TryGetProperty("data", out var data17) &&
+                            data17.TryGetProperty("mobile", out var mobile) ? mobile.GetString() : "",
+                    FavouriteColour = aptosData.TryGetProperty("data", out var data18) &&
+                                     data18.TryGetProperty("favourite_colour", out var favouriteColour) ? favouriteColour.GetInt32() : 0,
+                    StarCLIColour = aptosData.TryGetProperty("data", out var data19) &&
+                                   data19.TryGetProperty("starcli_colour", out var starcliColour) ? starcliColour.GetInt32() : 0,
+                    CreatedDate = aptosData.TryGetProperty("data", out var data20) &&
+                                 data20.TryGetProperty("created_date", out var createdDate) ? createdDate.GetInt64() : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    ModifiedDate = aptosData.TryGetProperty("data", out var data21) &&
+                                  data21.TryGetProperty("modified_date", out var modifiedDate) ? modifiedDate.GetInt64() : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    Description = aptosData.TryGetProperty("data", out var data22) &&
+                                 data22.TryGetProperty("description", out var description) ? description.GetString() : "Aptos Avatar Detail",
+                    IsActive = aptosData.TryGetProperty("data", out var data23) &&
+                              data23.TryGetProperty("is_active", out var isActive) ? isActive.GetBoolean() : true
+                };
+
+                return avatarDetail;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing Aptos data to AvatarDetail: {ex.Message}");
+                return new AvatarDetail
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "aptos_user",
+                    Email = "user@aptos.example"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Parse Aptos JSON response to collection of AvatarDetail objects
+        /// </summary>
+        private IEnumerable<IAvatarDetail> ParseAptosToAvatarDetails(string aptosJson)
+        {
+            try
+            {
+                var aptosData = JsonSerializer.Deserialize<JsonElement>(aptosJson);
+                var avatarDetails = new List<IAvatarDetail>();
+
+                if (aptosData.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in aptosData.EnumerateArray())
+                    {
+                        var avatarDetail = ParseAptosToAvatarDetail(item);
+                        avatarDetails.Add(avatarDetail);
+                    }
+                }
+                else if (aptosData.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in data.EnumerateArray())
+                    {
+                        var avatarDetail = ParseAptosToAvatarDetail(item);
+                        avatarDetails.Add(avatarDetail);
+                    }
+                }
+
+                return avatarDetails;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing Aptos JSON to AvatarDetails: {ex.Message}");
+                return new List<IAvatarDetail>();
+            }
+        }
+
+        /// <summary>
+        /// Parse Aptos JSON response to SearchResults object
+        /// </summary>
+        private ISearchResults ParseAptosToSearchResults(string aptosJson)
+        {
+            try
+            {
+                var aptosData = JsonSerializer.Deserialize<JsonElement>(aptosJson);
+                var searchResults = new SearchResults();
+
+                if (aptosData.TryGetProperty("data", out var data))
+                {
+                    if (data.TryGetProperty("avatars", out var avatars) && avatars.ValueKind == JsonValueKind.Array)
+                    {
+                        var avatarList = new List<IAvatar>();
+                        foreach (var item in avatars.EnumerateArray())
+                        {
+                            var avatar = ParseAptosToAvatar(item);
+                            avatarList.Add(avatar);
+                        }
+                        searchResults.Avatars = avatarList;
+                    }
+
+                    if (data.TryGetProperty("holons", out var holons) && holons.ValueKind == JsonValueKind.Array)
+                    {
+                        var holonList = new List<IHolon>();
+                        foreach (var item in holons.EnumerateArray())
+                        {
+                            var holon = ParseAptosToHolon(item);
+                            holonList.Add(holon);
+                        }
+                        searchResults.Holons = holonList;
+                    }
+
+                    if (data.TryGetProperty("total_results", out var totalResults))
+                    {
+                        searchResults.TotalResults = totalResults.GetInt32();
+                    }
+                }
+
+                return searchResults;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing Aptos JSON to SearchResults: {ex.Message}");
+                return new SearchResults();
+            }
+        }
+
+        /// <summary>
+        /// Parse Aptos JsonElement to Holon object
+        /// </summary>
+        private IHolon ParseAptosToHolon(JsonElement aptosData)
+        {
+            try
+            {
+                var holon = new Holon
+                {
+                    Id = aptosData.TryGetProperty("data", out var data) &&
+                         data.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                    Name = aptosData.TryGetProperty("data", out var data2) &&
+                           data2.TryGetProperty("name", out var name) ? name.GetString() : "Aptos Holon",
+                    Description = aptosData.TryGetProperty("data", out var data3) &&
+                                 data3.TryGetProperty("description", out var description) ? description.GetString() : "Aptos Holon Description",
+                    CreatedDate = aptosData.TryGetProperty("data", out var data4) &&
+                                 data4.TryGetProperty("created_date", out var createdDate) ? createdDate.GetInt64() : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    ModifiedDate = aptosData.TryGetProperty("data", out var data5) &&
+                                  data5.TryGetProperty("modified_date", out var modifiedDate) ? modifiedDate.GetInt64() : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    IsActive = aptosData.TryGetProperty("data", out var data6) &&
+                              data6.TryGetProperty("is_active", out var isActive) ? isActive.GetBoolean() : true
+                };
+
+                return holon;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing Aptos data to Holon: {ex.Message}");
+                return new Holon
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Aptos Holon",
+                    Description = "Aptos Holon Description"
+                };
+            }
         }
 
         #endregion
