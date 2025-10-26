@@ -55,12 +55,10 @@
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RootstockOASIS\NextGenSoftware.OASIS.API.Providers.RootstockOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Network\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS\NextGenSoftware.OASIS.API.Providers.ScuttlebuttOASIS.csproj" />
-    <ProjectReference Include="..\..\Providers\Other\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TelosOASIS\NextGenSoftware.OASIS.API.Providers.TelosOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Network\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS\NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.csproj" />
-    <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
   </ItemGroup>

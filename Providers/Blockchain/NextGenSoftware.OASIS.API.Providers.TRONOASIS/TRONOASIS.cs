@@ -25,6 +25,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 {
