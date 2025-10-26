@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Text;
+using System.Text.Json;
+using System.Linq;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -17,11 +21,19 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using System.Net.Http;
 using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 {
+    public class ChainLinkTransactionResponse : ITransactionRespone
+    {
+        public string TransactionResult { get; set; }
+        public string MemoText { get; set; }
+        public string TransactionHash { get; set; }
+        public bool Success { get; set; }
+    }
     public class ChainLinkOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
     {
         private readonly HttpClient _httpClient;
@@ -383,7 +395,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -453,7 +465,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -523,7 +535,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -596,7 +608,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -612,7 +624,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                         description = holon.Description,
                         data = JsonSerializer.Serialize(holon),
                         version = holon.Version,
-                        parentId = holon.ParentId?.ToString(),
+                        parentId = holon.ParentHolonId.ToString(),
                         holonType = holon.HolonType.ToString()
                     },
                     saveChildren = saveChildren,
@@ -662,7 +674,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -678,7 +690,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                         description = h.Description,
                         data = JsonSerializer.Serialize(h),
                         version = h.Version,
-                        parentId = h.ParentId?.ToString(),
+                        parentId = h.ParentHolonId.ToString(),
                         holonType = h.HolonType.ToString()
                     }).ToArray(),
                     saveChildren = saveChildren,
@@ -736,7 +748,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -795,7 +807,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -854,7 +866,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -865,11 +877,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                 {
                     searchParams = new
                     {
-                        searchText = searchParams.SearchText,
-                        searchFrom = searchParams.SearchFrom,
-                        searchTo = searchParams.SearchTo,
-                        searchType = searchParams.SearchType.ToString(),
-                        searchProvider = searchParams.SearchProvider.ToString()
+                        avatarId = searchParams.AvatarId.ToString(),
+                        searchOnlyForCurrentAvatar = searchParams.SearchOnlyForCurrentAvatar,
+                        searchGroups = JsonSerializer.Serialize(searchParams.SearchGroups ?? new List<ISearchGroupBase>())
                     },
                     loadChildren = loadChildren,
                     recursive = recursive,
@@ -896,7 +906,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                             var holon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
                             holons.Add(holon);
                         }
-                        searchResults.Results = holons;
+                        searchResults.SearchResultHolons = holons.ToList();
                     }
 
                     result.Result = searchResults;
@@ -927,7 +937,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -943,7 +953,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                         description = h.Description,
                         data = JsonSerializer.Serialize(h),
                         version = h.Version,
-                        parentId = h.ParentId?.ToString(),
+                        parentId = h.ParentHolonId.ToString(),
                         holonType = h.HolonType.ToString()
                     }).ToArray()
                 };
@@ -982,7 +992,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -1044,7 +1054,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -1106,7 +1116,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -1168,7 +1178,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -1227,9 +1237,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         #region IOASISNET Implementation
 
-        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var result = new OASISResult<IEnumerable<IPlayer>>();
+            var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
                 if (!IsProviderActivated)
@@ -1238,66 +1248,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     return result;
                 }
 
-                // Get all avatars and convert to players from ChainLink
-                var avatarsResult = LoadAllAvatarsAsync().Result;
-                if (avatarsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
-                    return result;
-                }
-
-                var players = new List<IPlayer>();
-                foreach (var avatar in avatarsResult.Result)
-                {
-                    var player = new Player
-                    {
-                        Id = avatar.Id,
-                        Username = avatar.Username,
-                        Email = avatar.Email,
-                        FirstName = avatar.FirstName,
-                        LastName = avatar.LastName,
-                        CreatedDate = avatar.CreatedDate,
-                        ModifiedDate = avatar.ModifiedDate,
-                        Address = avatar.Address,
-                        Country = avatar.Country,
-                        Postcode = avatar.Postcode,
-                        Mobile = avatar.Mobile,
-                        Landline = avatar.Landline,
-                        Title = avatar.Title,
-                        DOB = avatar.DOB,
-                        AvatarType = avatar.AvatarType,
-                        KarmaAkashicRecords = avatar.KarmaAkashicRecords,
-                        Level = avatar.Level,
-                        XP = avatar.XP,
-                        HP = avatar.HP,
-                        Mana = avatar.Mana,
-                        Stamina = avatar.Stamina,
-                        Description = avatar.Description,
-                        Website = avatar.Website,
-                        Language = avatar.Language,
-                        ProviderWallets = avatar.ProviderWallets,
-                        CustomData = new Dictionary<string, object>
-                        {
-                            ["NearMe"] = true,
-                            ["Distance"] = 0.0, // Would be calculated based on actual location
-                            ["Provider"] = "ChainLinkOASIS"
-                        }
-                    };
-                    players.Add(player);
-                }
-
-                result.Result = players;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {players.Count} players near me from ChainLink";
+                // TODO: Implement ChainLink-specific geolocation search
+                OASISErrorHandling.HandleError(ref result, "GetAvatarsNearMe not implemented for ChainLink provider");
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from ChainLink: {ex.Message}", ex);
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarsNearMe: {ex.Message}");
             }
             return result;
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType holonType)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -1321,17 +1283,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                 // Add location metadata
                 foreach (var holon in holons)
                 {
-                    if (holon.CustomData == null)
-                        holon.CustomData = new Dictionary<string, object>();
+                    if (holon.MetaData == null)
+                        holon.MetaData = new Dictionary<string, object>();
 
-                    holon.CustomData["NearMe"] = true;
-                    holon.CustomData["Distance"] = 0.0; // Would be calculated based on actual location
-                    holon.CustomData["Provider"] = "ChainLinkOASIS";
+                    holon.MetaData["NearMe"] = true;
+                    holon.MetaData["Distance"] = 0.0; // Would be calculated based on actual location
+                    holon.MetaData["Provider"] = "ChainLinkOASIS";
                 }
 
                 result.Result = holons;
                 result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons near me from ChainLink";
+                result.Message = $"Successfully loaded {holons.Count()} holons near me from ChainLink";
             }
             catch (Exception ex)
             {
@@ -1363,7 +1325,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -1414,7 +1376,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     var responseContent = await submitResponse.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    result.Result = new TransactionRespone
+                    result.Result = new ChainLinkTransactionResponse
                     {
                         TransactionResult = responseData.GetProperty("result").GetString(),
                         MemoText = memoText
@@ -1446,15 +1408,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             var result = new OASISResult<ITransactionRespone>();
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
                 }
 
                 // Get wallet addresses for avatars
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(fromAvatarId, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(toAvatarId, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.ChainLinkOASIS, fromAvatarId, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.ChainLinkOASIS, toAvatarId, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1482,15 +1444,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             var result = new OASISResult<ITransactionRespone>();
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
                 }
 
                 // Get wallet addresses for avatars
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(fromAvatarId, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(toAvatarId, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.ChainLinkOASIS, fromAvatarId, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.ChainLinkOASIS, toAvatarId, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1514,15 +1476,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             var result = new OASISResult<ITransactionRespone>();
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
                 }
 
                 // Get wallet addresses for avatars by username
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.ChainLinkOASIS, fromAvatarUsername, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.ChainLinkOASIS, toAvatarUsername, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1550,15 +1512,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             var result = new OASISResult<ITransactionRespone>();
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
                 }
 
                 // Get wallet addresses for avatars by username
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.ChainLinkOASIS, fromAvatarUsername, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager.Instance, Core.Enums.ProviderType.ChainLinkOASIS, toAvatarUsername, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1586,15 +1548,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             var result = new OASISResult<ITransactionRespone>();
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
                 }
 
                 // Get wallet addresses for avatars by email
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(fromAvatarEmail, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(toAvatarEmail, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.ChainLinkOASIS, fromAvatarEmail, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.ChainLinkOASIS, toAvatarEmail, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1622,15 +1584,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             var result = new OASISResult<ITransactionRespone>();
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
                 }
 
                 // Get wallet addresses for avatars by email
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(fromAvatarEmail, _httpClient);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(toAvatarEmail, _httpClient);
+                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.ChainLinkOASIS, fromAvatarEmail, _httpClient);
+                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.ChainLinkOASIS, toAvatarEmail, _httpClient);
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
@@ -1678,7 +1640,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             var result = new OASISResult<INFTTransactionRespone>();
             try
             {
-                if (!_isActivated)
+                if (!IsProviderActivated)
                 {
                     OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                     return result;
@@ -1689,10 +1651,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                 {
                     from = transation.FromWalletAddress,
                     to = transation.ToWalletAddress,
-                    tokenId = transation.NFTId,
+                    tokenId = transation.TokenId,
                     gas = "0x7530", // 30000 gas for NFT transfer
                     gasPrice = "0x3b9aca00", // 1 gwei
-                    data = $"0x23b872dd{transation.FromWalletAddress.Substring(2).PadLeft(64, '0')}{transation.ToWalletAddress.Substring(2).PadLeft(64, '0')}{transation.NFTId.ToString("x").PadLeft(64, '0')}" // ERC-721 transferFrom function
+                    data = $"0x23b872dd{transation.FromWalletAddress.Substring(2).PadLeft(64, '0')}{transation.ToWalletAddress.Substring(2).PadLeft(64, '0')}{transation.TokenId.ToString("x").PadLeft(64, '0')}" // ERC-721 transferFrom function
                 };
 
                 var jsonContent = JsonSerializer.Serialize(nftTransferRequest);
@@ -1704,13 +1666,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    result.Result = new NFTTransactionRespone
+                    result.Result = (INFTTransactionRespone)new ChainLinkTransactionResponse
                     {
                         TransactionHash = responseData.GetProperty("result").GetString(),
                         Success = true
                     };
                     result.IsError = false;
-                    result.Message = $"ChainLink NFT transfer sent successfully. TX Hash: {result.Result.TransactionHash}";
+                    result.Message = $"ChainLink NFT transfer sent successfully. TX Hash: {((ChainLinkTransactionResponse)result.Result).TransactionHash}";
                 }
                 else
                 {
@@ -1730,14 +1692,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             try
             {
                 // Mint NFT using ChainLink oracle
-                var nftTransaction = new NFTTransactionRespone
+                var nftTransaction = new ChainLinkTransactionResponse
                 {
                     TransactionHash = $"chainlink_{Guid.NewGuid()}",
                     Success = true,
-                    Message = "NFT minted successfully using ChainLink oracle"
                 };
 
-                response.Result = nftTransaction;
+                response.Result = (INFTTransactionRespone)nftTransaction;
                 response.Message = "NFT minted using ChainLink oracle successfully";
             }
             catch (Exception ex)
@@ -1754,14 +1715,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             try
             {
                 // Mint NFT using ChainLink oracle
-                var nftTransaction = new NFTTransactionRespone
+                var nftTransaction = new ChainLinkTransactionResponse
                 {
                     TransactionHash = $"chainlink_{Guid.NewGuid()}",
                     Success = true,
-                    Message = "NFT minted successfully using ChainLink oracle"
                 };
 
-                response.Result = nftTransaction;
+                response.Result = (INFTTransactionRespone)nftTransaction;
                 response.Message = "NFT minted using ChainLink oracle successfully";
             }
             catch (Exception ex)
@@ -1780,11 +1740,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                 // Load NFT data from ChainLink oracle
                 var nft = new OASISNFT
                 {
-                    TokenId = nftTokenAddress,
-                    TokenURI = $"chainlink://oracle/{nftTokenAddress}",
-                    Name = "ChainLink NFT",
-                    Description = "NFT from ChainLink oracle",
-                    Image = "https://chain.link/images/logo.png"
+                    NFTTokenAddress = nftTokenAddress,
+                    MetaData = new Dictionary<string, object>
+                    {
+                        {"TokenURI", $"chainlink://oracle/{nftTokenAddress}"},
+                        {"Name", "ChainLink NFT"},
+                        {"Description", "NFT from ChainLink oracle"},
+                        {"Image", "https://chain.link/images/logo.png"}
+                    }
                 };
 
                 response.Result = nft;
@@ -1806,11 +1769,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                 // Load NFT data from ChainLink oracle
                 var nft = new OASISNFT
                 {
-                    TokenId = nftTokenAddress,
-                    TokenURI = $"chainlink://oracle/{nftTokenAddress}",
-                    Name = "ChainLink NFT",
-                    Description = "NFT from ChainLink oracle",
-                    Image = "https://chain.link/images/logo.png"
+                    NFTTokenAddress = nftTokenAddress,
+                    MetaData = new Dictionary<string, object>
+                    {
+                        {"TokenURI", $"chainlink://oracle/{nftTokenAddress}"},
+                        {"Name", "ChainLink NFT"},
+                        {"Description", "NFT from ChainLink oracle"},
+                        {"Image", "https://chain.link/images/logo.png"}
+                    }
                 };
 
                 response.Result = nft;

@@ -42,7 +42,7 @@ using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 //using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 //using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 //using NextGenSoftware.OASIS.API.Providers.MoralisOASIS;
-using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
+//using NextGenSoftware.OASIS.API.Providers.AcitvityPubOASIS;
 using NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.Utilities;
@@ -1156,16 +1156,16 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
-                        case ProviderType.ActivityPubOASIS:
-                            {
-                                AcitvityPubOASIS activityPubOASIS = new AcitvityPubOASIS(
-                                    OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.BaseUrl,
-                                    OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.UserAgent,
-                                    OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.AcceptHeader,
-                                    OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.TimeoutSeconds);
-                                result.Result = activityPubOASIS;
-                            }
-                            break;
+                        //case ProviderType.ActivityPubOASIS:
+                        //    {
+                        //        AcitvityPubOASIS activityPubOASIS = new AcitvityPubOASIS(
+                        //            OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.BaseUrl,
+                        //            OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.UserAgent,
+                        //            OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.AcceptHeader,
+                        //            OASISDNA.OASIS.StorageProviders.ActivityPubOASIS.TimeoutSeconds);
+                        //        result.Result = activityPubOASIS;
+                        //    }
+                        //    break;
 
                         case ProviderType.GoogleCloudOASIS:
                             {
