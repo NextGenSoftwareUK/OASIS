@@ -34,7 +34,7 @@ using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ElrondOASIS;
 //using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
-using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
+//using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 //using NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
 using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
@@ -1064,15 +1064,15 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
-                        case ProviderType.TRONOASIS:
-                            {
-                                TRONOASIS tronOASIS = new TRONOASIS(
-                                    OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint,
-                                    OASISDNA.OASIS.StorageProviders.TRONOASIS.Network,
-                                    OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId);
-                                result.Result = tronOASIS;
-                            }
-                            break;
+                        //case ProviderType.TRONOASIS:
+                        //    {
+                        //        TRONOASIS tronOASIS = new TRONOASIS(
+                        //            OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint,
+                        //            OASISDNA.OASIS.StorageProviders.TRONOASIS.Network,
+                        //            OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId);
+                        //        result.Result = tronOASIS;
+                        //    }
+                        //    break;
 
                         case ProviderType.HashgraphOASIS:
                             {

@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         SolanaOASIS _solana;
         EOSIOOASIS _EOSIO;
         TelosOASIS _telos;
-        SEEDSOASIS _SEEDS;
+        //SEEDSOASIS _SEEDS;
         IPFSOASIS _IPFS;
         HoloOASIS _holochain;
         MongoDBOASIS _mongoDB;
@@ -41,32 +41,32 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         //AcitvityPubOASIS _activityPub;
         OASISDNA _OASISDNA;
 
-        public SEEDSOASIS SEEDS
-        {
-            get
-            {
-                if (_SEEDS == null)
-                {
-                    if (ProviderManager.Instance.IsProviderRegistered(ProviderType.SEEDSOASIS))
-                        _SEEDS = (SEEDSOASIS)ProviderManager.Instance.GetStorageProvider(ProviderType.SEEDSOASIS);
-                    else
-                    {
-                        // We could re-use the TelosOASIS Provider but it could have a different connection string to SEEDSOASIS so they need to be seperate.
-                        // TODO: The only other way is to share it and have to keep disconnecting and re-connecting with the different connections (SEEDS or EOSIO may even work with any EOSIO node end point? NEED TO TEST... if so then we can use the commented out line below).
-                        //_SEEDS = new SEEDSOASIS(Telos); 
-                        _SEEDS = new SEEDSOASIS(new TelosOASIS(
-                            _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
-                            _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
-                            _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
-                            _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey
-                            ));
-                        ProviderManager.Instance.RegisterProvider(_SEEDS);
-                    }
-                }
+        //public SEEDSOASIS SEEDS
+        //{
+        //    get
+        //    {
+        //        if (_SEEDS == null)
+        //        {
+        //            if (ProviderManager.Instance.IsProviderRegistered(ProviderType.SEEDSOASIS))
+        //                _SEEDS = (SEEDSOASIS)ProviderManager.Instance.GetStorageProvider(ProviderType.SEEDSOASIS);
+        //            else
+        //            {
+        //                // We could re-use the TelosOASIS Provider but it could have a different connection string to SEEDSOASIS so they need to be seperate.
+        //                // TODO: The only other way is to share it and have to keep disconnecting and re-connecting with the different connections (SEEDS or EOSIO may even work with any EOSIO node end point? NEED TO TEST... if so then we can use the commented out line below).
+        //                //_SEEDS = new SEEDSOASIS(Telos); 
+        //                _SEEDS = new SEEDSOASIS(new TelosOASIS(
+        //                    _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
+        //                    _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
+        //                    _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
+        //                    _OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey
+        //                    ));
+        //                ProviderManager.Instance.RegisterProvider(_SEEDS);
+        //            }
+        //        }
 
-                return _SEEDS;
-            }
-        }
+        //        return _SEEDS;
+        //    }
+        //}
 
         public IPFSOASIS IPFS
         {

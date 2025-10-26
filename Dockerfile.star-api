@@ -8,25 +8,23 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy project files
-COPY ["NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj", "NextGenSoftware.OASIS.STAR.WebAPI/"]
-COPY ["NextGenSoftware.OASIS.STAR.STARDNA/NextGenSoftware.OASIS.STAR.DNA.csproj", "NextGenSoftware.OASIS.STAR.STARDNA/"]
-COPY ["../../ONODE/NextGenSoftware.OASIS.API.ONODE.Core/NextGenSoftware.OASIS.API.ONODE.Core.csproj", "../../ONODE/NextGenSoftware.OASIS.API.ONODE.Core/"]
-COPY ["../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj", "../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/"]
-COPY ["../../Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj", "../../Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint/"]
-
-# Restore dependencies
-RUN dotnet restore "NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj"
-
-# Copy all source code
+# Copy the entire OASIS project structure
 COPY . .
 
-# Build the application
-WORKDIR "/src/NextGenSoftware.OASIS.STAR.WebAPI"
+# Debug: Check what was copied
+RUN ls -la
+RUN ls -la "STAR ODK" || echo "STAR ODK directory not found"
+RUN find . -name "*.csproj" | head -10
+
+# Build the STAR WebAPI project
+WORKDIR "/src/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI"
+RUN ls -la
+RUN dotnet restore "NextGenSoftware.OASIS.STAR.WebAPI.csproj"
 RUN dotnet build "NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/build
 
 # Publish the application
 FROM build AS publish
+WORKDIR "/src/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI"
 RUN dotnet publish "NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Final stage
