@@ -11,7 +11,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Objects.STARNET
         public List<STARNETDependency> Libraries { get; set; } = new List<STARNETDependency>();
         public List<STARNETDependency> Templates { get; set; } = new List<STARNETDependency>();
         public List<STARNETDependency> NFTs { get; set; } = new List<STARNETDependency>();
+        public List<STARNETDependency> NFTCollections { get; set; } = new List<STARNETDependency>();
         public List<STARNETDependency> GeoNFTs { get; set; } = new List<STARNETDependency>();
+        public List<STARNETDependency> GeoNFTCollections { get; set; } = new List<STARNETDependency>();
         public List<STARNETDependency> GeoHotSpots { get; set; } = new List<STARNETDependency>();
         public List<STARNETDependency> Quests { get; set; } = new List<STARNETDependency>();
         public List<STARNETDependency> Missions { get; set; } = new List<STARNETDependency>();
