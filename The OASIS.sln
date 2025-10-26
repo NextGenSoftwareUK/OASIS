@@ -180,7 +180,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Storage", "Storage", "{4C74
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.MongoDBOASIS", "Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj", "{D9FC0750-B65E-4DA0-BE00-27972C7153E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BlockStackOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj", "{563203F3-B412-4C98-807E-F66DCF5C0563}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.BlockStackOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS\NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj", "{563203F3-B412-4C98-807E-F66DCF5C0563}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenSoftware.OASIS.API.Providers.SOLIDOASIS", "Providers\Network\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj", "{A06EFEAD-549E-4EA9-8CA7-16D701D9ABB1}"
 EndProject
