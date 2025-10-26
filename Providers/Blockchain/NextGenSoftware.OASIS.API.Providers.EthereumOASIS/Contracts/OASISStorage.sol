@@ -9,9 +9,23 @@ contract OASISStorage {
         string email;
         string firstName;
         string lastName;
+        string title;
+        string password;
+        uint8 avatarType;
+        bool acceptTerms;
+        bool isVerified;
+        string jwtToken;
+        uint256 passwordReset;
+        string refreshToken;
+        string resetToken;
+        uint256 resetTokenExpires;
+        string verificationToken;
+        uint256 verified;
+        uint256 lastBeamedIn;
+        uint256 lastBeamedOut;
+        bool isBeamedIn;
         uint256 createdDate;
         uint256 modifiedDate;
-        uint8 avatarType;
         string description;
         bool isActive;
     }
@@ -19,19 +33,26 @@ contract OASISStorage {
     // AvatarDetail struct - completely separate from Avatar
     struct AvatarDetail {
         uint256 id; // Separate ID from Avatar
-        string address;
-        string country;
-        string postcode;
-        string mobile;
-        string landline;
-        string title;
-        uint256 dob;
-        uint256 karmaAkashicRecords;
+        string username;
+        string email;
+        uint256 karma;
         uint256 level;
         uint256 xp;
-        uint256 hp;
-        uint256 mana;
-        uint256 stamina;
+        string model3D;
+        string umaJson;
+        string portrait;
+        uint256 dob;
+        string address;
+        string town;
+        string county;
+        string country;
+        string postcode;
+        string landline;
+        string mobile;
+        uint256 favouriteColour;
+        uint256 starcliColour;
+        uint256 createdDate;
+        uint256 modifiedDate;
         string description;
         bool isActive;
     }
@@ -52,6 +73,22 @@ contract OASISStorage {
         uint256 modifiedByAvatarId;
         uint256 createdDate;
         uint256 modifiedDate;
+        uint8 holonType;
+        uint8 dimensionLevel;
+        uint8 subDimensionLevel;
+        uint256 parentOmniverseId;
+        uint256 parentMultiverseId;
+        uint256 parentUniverseId;
+        uint256 parentDimensionId;
+        uint256 parentGalaxyClusterId;
+        uint256 parentGalaxyId;
+        uint256 parentSolarSystemId;
+        uint256 parentPlanetId;
+        uint256 parentMoonId;
+        uint256 parentStarId;
+        uint256 parentZomeId;
+        uint256 parentHolonId;
+        string metaData;
     }
     
     // Separate mappings for Avatar and AvatarDetail
@@ -80,7 +117,10 @@ contract OASISStorage {
         string memory _email,
         string memory _firstName,
         string memory _lastName,
+        string memory _title,
+        string memory _password,
         uint8 _avatarType,
+        bool _acceptTerms,
         string memory _description
     ) public returns (uint256) {
         require(usernameToAvatarId[_username] == 0, "Username already exists");
@@ -95,9 +135,23 @@ contract OASISStorage {
             email: _email,
             firstName: _firstName,
             lastName: _lastName,
+            title: _title,
+            password: _password,
+            avatarType: _avatarType,
+            acceptTerms: _acceptTerms,
+            isVerified: false,
+            jwtToken: "",
+            passwordReset: 0,
+            refreshToken: "",
+            resetToken: "",
+            resetTokenExpires: 0,
+            verificationToken: "",
+            verified: 0,
+            lastBeamedIn: 0,
+            lastBeamedOut: 0,
+            isBeamedIn: false,
             createdDate: block.timestamp,
             modifiedDate: block.timestamp,
-            avatarType: _avatarType,
             description: _description,
             isActive: true
         });
@@ -112,19 +166,23 @@ contract OASISStorage {
     // AvatarDetail functions - completely separate from Avatar
     function createAvatarDetail(
         string memory _username,
-        string memory _address,
-        string memory _country,
-        string memory _postcode,
-        string memory _mobile,
-        string memory _landline,
-        string memory _title,
-        uint256 _dob,
-        uint256 _karmaAkashicRecords,
+        string memory _email,
+        uint256 _karma,
         uint256 _level,
         uint256 _xp,
-        uint256 _hp,
-        uint256 _mana,
-        uint256 _stamina,
+        string memory _model3D,
+        string memory _umaJson,
+        string memory _portrait,
+        uint256 _dob,
+        string memory _address,
+        string memory _town,
+        string memory _county,
+        string memory _country,
+        string memory _postcode,
+        string memory _landline,
+        string memory _mobile,
+        uint256 _favouriteColour,
+        uint256 _starcliColour,
         string memory _description
     ) public returns (uint256) {
         avatarDetailCount++;
@@ -132,19 +190,26 @@ contract OASISStorage {
         
         avatarDetails[avatarDetailId] = AvatarDetail({
             id: avatarDetailId,
-            address: _address,
-            country: _country,
-            postcode: _postcode,
-            mobile: _mobile,
-            landline: _landline,
-            title: _title,
-            dob: _dob,
-            karmaAkashicRecords: _karmaAkashicRecords,
+            username: _username,
+            email: _email,
+            karma: _karma,
             level: _level,
             xp: _xp,
-            hp: _hp,
-            mana: _mana,
-            stamina: _stamina,
+            model3D: _model3D,
+            umaJson: _umaJson,
+            portrait: _portrait,
+            dob: _dob,
+            address: _address,
+            town: _town,
+            county: _county,
+            country: _country,
+            postcode: _postcode,
+            landline: _landline,
+            mobile: _mobile,
+            favouriteColour: _favouriteColour,
+            starcliColour: _starcliColour,
+            createdDate: block.timestamp,
+            modifiedDate: block.timestamp,
             description: _description,
             isActive: true
         });
@@ -160,7 +225,22 @@ contract OASISStorage {
         string memory _description,
         uint256 _parentHolonId,
         string memory _providerUniqueStorageKey,
-        uint256 _createdByAvatarId
+        uint256 _createdByAvatarId,
+        uint8 _holonType,
+        uint8 _dimensionLevel,
+        uint8 _subDimensionLevel,
+        uint256 _parentOmniverseId,
+        uint256 _parentMultiverseId,
+        uint256 _parentUniverseId,
+        uint256 _parentDimensionId,
+        uint256 _parentGalaxyClusterId,
+        uint256 _parentGalaxyId,
+        uint256 _parentSolarSystemId,
+        uint256 _parentPlanetId,
+        uint256 _parentMoonId,
+        uint256 _parentStarId,
+        uint256 _parentZomeId,
+        string memory _metaData
     ) public returns (uint256) {
         holonCount++;
         uint256 holonId = holonCount;
@@ -179,7 +259,23 @@ contract OASISStorage {
             createdByAvatarId: _createdByAvatarId,
             modifiedByAvatarId: _createdByAvatarId,
             createdDate: block.timestamp,
-            modifiedDate: block.timestamp
+            modifiedDate: block.timestamp,
+            holonType: _holonType,
+            dimensionLevel: _dimensionLevel,
+            subDimensionLevel: _subDimensionLevel,
+            parentOmniverseId: _parentOmniverseId,
+            parentMultiverseId: _parentMultiverseId,
+            parentUniverseId: _parentUniverseId,
+            parentDimensionId: _parentDimensionId,
+            parentGalaxyClusterId: _parentGalaxyClusterId,
+            parentGalaxyId: _parentGalaxyId,
+            parentSolarSystemId: _parentSolarSystemId,
+            parentPlanetId: _parentPlanetId,
+            parentMoonId: _parentMoonId,
+            parentStarId: _parentStarId,
+            parentZomeId: _parentZomeId,
+            parentHolonId: _parentHolonId,
+            metaData: _metaData
         });
         
         providerKeyToHolonId[_providerUniqueStorageKey] = holonId;

@@ -1884,9 +1884,59 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             return new OASISResult<List<IOASISNFT>> { Result = new List<IOASISNFT>() };
         }
 
-        public Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
+        public async Task<OASISResult<List<IOASISNFT>>> LoadAllNFTsForMintAddressAsync(string mintWalletAddress)
         {
-            return Task.FromResult(new OASISResult<List<IOASISNFT>> { Result = new List<IOASISNFT>() });
+            var response = new OASISResult<List<IOASISNFT>>();
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "BlockStack provider is not activated");
+                    return response;
+                }
+
+                // Load NFTs from BlockStack Gaia storage using real BlockStack API
+                var storageUrl = $"https://gaia.blockstack.org/hub/{mintWalletAddress}/nfts.json";
+                
+                using (var httpClient = new HttpClient())
+                {
+                    var jsonResponse = await httpClient.GetStringAsync(storageUrl);
+                    if (!string.IsNullOrEmpty(jsonResponse))
+                    {
+                        // Deserialize the NFT collection from JSON stored in BlockStack
+                        var nfts = System.Text.Json.JsonSerializer.Deserialize<List<OASISNFT>>(jsonResponse, new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true,
+                            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                        });
+                        
+                        if (nfts != null)
+                        {
+                            response.Result = nfts.Cast<IOASISNFT>().ToList();
+                            response.IsError = false;
+                            response.Message = "NFTs loaded from BlockStack Gaia storage successfully";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref response, "Failed to deserialize NFTs from BlockStack storage");
+                        }
+                    }
+                    else
+                    {
+                        response.Result = new List<IOASISNFT>();
+                        response.IsError = false;
+                        response.Message = "No NFTs found in BlockStack storage";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading NFTs from BlockStack: {ex.Message}");
+            }
+
+            return response;
         }
 
 
@@ -1905,9 +1955,59 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             return new OASISResult<List<IOASISGeoSpatialNFT>> { Result = new List<IOASISGeoSpatialNFT>() };
         }
 
-        public Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
+        public async Task<OASISResult<List<IOASISGeoSpatialNFT>>> LoadAllGeoNFTsForMintAddressAsync(string mintWalletAddress)
         {
-            return Task.FromResult(new OASISResult<List<IOASISGeoSpatialNFT>> { Result = new List<IOASISGeoSpatialNFT>() });
+            var response = new OASISResult<List<IOASISGeoSpatialNFT>>();
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "BlockStack provider is not activated");
+                    return response;
+                }
+
+                // Load GeoNFTs from BlockStack Gaia storage using real BlockStack API
+                var storageUrl = $"https://gaia.blockstack.org/hub/{mintWalletAddress}/geonfts.json";
+                
+                using (var httpClient = new HttpClient())
+                {
+                    var jsonResponse = await httpClient.GetStringAsync(storageUrl);
+                    if (!string.IsNullOrEmpty(jsonResponse))
+                    {
+                        // Deserialize the GeoNFT collection from JSON stored in BlockStack
+                        var geoNfts = System.Text.Json.JsonSerializer.Deserialize<List<OASISGeoSpatialNFT>>(jsonResponse, new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true,
+                            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                        });
+                        
+                        if (geoNfts != null)
+                        {
+                            response.Result = geoNfts.Cast<IOASISGeoSpatialNFT>().ToList();
+                            response.IsError = false;
+                            response.Message = "GeoNFTs loaded from BlockStack Gaia storage successfully";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref response, "Failed to deserialize GeoNFTs from BlockStack storage");
+                        }
+                    }
+                    else
+                    {
+                        response.Result = new List<IOASISGeoSpatialNFT>();
+                        response.IsError = false;
+                        response.Message = "No GeoNFTs found in BlockStack storage";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading GeoNFTs from BlockStack: {ex.Message}");
+            }
+
+            return response;
         }
 
         public OASISResult<IOASISGeoSpatialNFT> PlaceGeoNFT(IPlaceGeoSpatialNFTRequest request)

@@ -1011,12 +1011,119 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            return await Task.FromResult(new OASISResult<ITransactionRespone> { Message = "SendTransactionByIdAsync (token) is not implemented yet for TRON provider." });
+            var response = new OASISResult<ITransactionRespone>();
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "TRON provider is not activated");
+                    return response;
+                }
+
+                // Send transaction using real TRON API
+                var tronClient = new TRONClient();
+                
+                // Get wallet addresses for both avatars
+                var fromWalletAddress = await GetWalletAddressForAvatarAsync(fromAvatarId);
+                var toWalletAddress = await GetWalletAddressForAvatarAsync(toAvatarId);
+
+                if (string.IsNullOrEmpty(fromWalletAddress) || string.IsNullOrEmpty(toWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Unable to get wallet addresses for avatars");
+                    return response;
+                }
+
+                // Send TRC20 token transaction
+                var transactionResult = await tronClient.SendTRC20TokenAsync(
+                    fromWalletAddress, 
+                    toWalletAddress, 
+                    amount, 
+                    token);
+
+                if (transactionResult != null)
+                {
+                    var tronResponse = new TRONTransactionResponse
+                    {
+                        TxID = transactionResult.TxID,
+                        RawData = transactionResult.RawData,
+                        Signature = transactionResult.Signature
+                    };
+
+                    response.Result = tronResponse;
+                    response.IsError = false;
+                    response.Message = "TRC20 token transaction sent successfully on TRON blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, "Failed to send TRC20 token transaction on TRON blockchain");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error sending TRC20 token transaction on TRON: {ex.Message}");
+            }
+
+            return response;
         }
 
         public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            return await Task.FromResult(new OASISResult<ITransactionRespone> { Message = "SendTransactionByUsernameAsync is not implemented yet for TRON provider." });
+            var response = new OASISResult<ITransactionRespone>();
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "TRON provider is not activated");
+                    return response;
+                }
+
+                // Send transaction using real TRON API
+                var tronClient = new TRONClient();
+                
+                // Get wallet addresses for both avatars by username
+                var fromWalletAddress = await GetWalletAddressForAvatarByUsernameAsync(fromAvatarUsername);
+                var toWalletAddress = await GetWalletAddressForAvatarByUsernameAsync(toAvatarUsername);
+
+                if (string.IsNullOrEmpty(fromWalletAddress) || string.IsNullOrEmpty(toWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Unable to get wallet addresses for avatars by username");
+                    return response;
+                }
+
+                // Send TRX transaction
+                var transactionResult = await tronClient.SendTRXAsync(
+                    fromWalletAddress, 
+                    toWalletAddress, 
+                    amount);
+
+                if (transactionResult != null)
+                {
+                    var tronResponse = new TRONTransactionResponse
+                    {
+                        TxID = transactionResult.TxID,
+                        RawData = transactionResult.RawData,
+                        Signature = transactionResult.Signature
+                    };
+
+                    response.Result = tronResponse;
+                    response.IsError = false;
+                    response.Message = "TRX transaction sent successfully on TRON blockchain";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, "Failed to send TRX transaction on TRON blockchain");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error sending TRX transaction on TRON: {ex.Message}");
+            }
+
+            return response;
         }
 
         public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
@@ -2217,6 +2324,48 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 // Return null if query fails
             }
             return null;
+        }
+
+        /// <summary>
+        /// Get wallet address for avatar by ID using WalletHelper
+        /// </summary>
+        private async Task<string> GetWalletAddressForAvatarAsync(Guid avatarId)
+        {
+            try
+            {
+                var result = await WalletHelper.GetWalletAddressForAvatarAsync(
+                    WalletManager,
+                    Core.Enums.ProviderType.TRONOASIS,
+                    avatarId,
+                    _httpClient);
+                return result.Result ?? "";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting wallet address for avatar {avatarId}: {ex.Message}");
+                return "";
+            }
+        }
+
+        /// <summary>
+        /// Get wallet address for avatar by username using WalletHelper
+        /// </summary>
+        private async Task<string> GetWalletAddressForAvatarByUsernameAsync(string username)
+        {
+            try
+            {
+                var result = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(
+                    WalletManager,
+                    Core.Enums.ProviderType.TRONOASIS,
+                    username,
+                    _httpClient);
+                return result.Result ?? "";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting wallet address for avatar by username {username}: {ex.Message}");
+                return "";
+            }
         }
         }
     }

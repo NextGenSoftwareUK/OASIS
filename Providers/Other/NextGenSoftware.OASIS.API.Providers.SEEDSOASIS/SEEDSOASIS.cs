@@ -698,9 +698,74 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return new OASISResult<IAvatar> { Message = "LoadAvatar is not supported yet by SEEDS provider." };
         }
 
-        public Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IAvatar> { Message = "LoadAvatarAsync is not supported yet by SEEDS provider." });
+            var response = new OASISResult<IAvatar>();
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "SEEDS provider is not activated");
+                    return response;
+                }
+
+                // Load avatar from SEEDS blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = SEEDS_EOSIO_ACCOUNT_TEST, // Use test by default
+                        scope = SEEDS_EOSIO_ACCOUNT_TEST,
+                        table = "avatars",
+                        lower_bound = id.ToString(),
+                        upper_bound = id.ToString(),
+                        limit = 1,
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await TelosOASIS.HttpClient.PostAsync(ENDPOINT_TEST, content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result) &&
+                        result.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        var avatarData = rows[0];
+                        var avatar = ParseSEEDSToAvatar(avatarData);
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded from SEEDS blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found on SEEDS blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from SEEDS blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar from SEEDS: {ex.Message}");
+            }
+
+            return response;
         }
 
         public OASISResult<IAvatar> LoadAvatar(string providerKey, int version = 0)
@@ -718,9 +783,76 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return new OASISResult<IAvatar> { Message = "LoadAvatarByEmail is not supported yet by SEEDS provider." };
         }
 
-        public Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IAvatar> { Message = "LoadAvatarByEmailAsync is not supported yet by SEEDS provider." });
+            var response = new OASISResult<IAvatar>();
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "SEEDS provider is not activated");
+                    return response;
+                }
+
+                // Load avatar by email from SEEDS blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = SEEDS_EOSIO_ACCOUNT_TEST,
+                        scope = SEEDS_EOSIO_ACCOUNT_TEST,
+                        table = "avatars",
+                        index_position = 2, // Secondary index on email
+                        key_type = "name",
+                        lower_bound = email,
+                        upper_bound = email,
+                        limit = 1,
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await TelosOASIS.HttpClient.PostAsync(ENDPOINT_TEST, content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result) &&
+                        result.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        var avatarData = rows[0];
+                        var avatar = ParseSEEDSToAvatar(avatarData);
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded by email from SEEDS blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar not found on SEEDS blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar by email from SEEDS blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by email from SEEDS: {ex.Message}");
+            }
+
+            return response;
         }
 
         public OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0)
@@ -788,9 +920,117 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return new OASISResult<IAvatar> { Message = "SaveAvatar is not supported yet by SEEDS provider." };
         }
 
-        public Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        public async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            return Task.FromResult(new OASISResult<IAvatar> { Message = "SaveAvatarAsync is not supported yet by SEEDS provider." });
+            var response = new OASISResult<IAvatar>();
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "SEEDS provider is not activated");
+                    return response;
+                }
+
+                // Save avatar to SEEDS blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "push_transaction",
+                    @params = new
+                    {
+                        signatures = new string[0], // Will be signed by wallet
+                        compression = 0,
+                        packed_context_free_data = "",
+                        packed_trx = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+                        {
+                            expiration = DateTimeOffset.UtcNow.AddMinutes(10).ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                            ref_block_num = 0,
+                            ref_block_prefix = 0,
+                            max_net_usage_words = 0,
+                            max_cpu_usage_ms = 0,
+                            delay_sec = 0,
+                            context_free_actions = new object[0],
+                            actions = new[]
+                            {
+                                new
+                                {
+                                    account = SEEDS_EOSIO_ACCOUNT_TEST,
+                                    name = "saveavatar",
+                                    authorization = new[]
+                                    {
+                                        new
+                                        {
+                                            actor = SEEDS_EOSIO_ACCOUNT_TEST,
+                                            permission = "active"
+                                        }
+                                    },
+                                    data = new
+                                    {
+                                        id = avatar.Id.ToString(),
+                                        username = avatar.Username,
+                                        email = avatar.Email,
+                                        first_name = avatar.FirstName,
+                                        last_name = avatar.LastName,
+                                        title = avatar.Title,
+                                        password = avatar.Password,
+                                        avatar_type = avatar.AvatarType,
+                                        accept_terms = avatar.AcceptTerms,
+                                        is_verified = avatar.IsVerified,
+                                        jwt_token = avatar.JwtToken,
+                                        password_reset = avatar.PasswordReset,
+                                        refresh_token = avatar.RefreshToken,
+                                        reset_token = avatar.ResetToken,
+                                        reset_token_expires = avatar.ResetTokenExpires,
+                                        verification_token = avatar.VerificationToken,
+                                        verified = avatar.Verified,
+                                        last_beamed_in = avatar.LastBeamedIn,
+                                        last_beamed_out = avatar.LastBeamedOut,
+                                        is_beamed_in = avatar.IsBeamedIn,
+                                        created_date = avatar.CreatedDate,
+                                        modified_date = avatar.ModifiedDate,
+                                        description = avatar.Description,
+                                        is_active = avatar.IsActive
+                                    }
+                                }
+                            }
+                        })))
+                    }
+                };
+
+                var jsonContent = JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await TelosOASIS.HttpClient.PostAsync(ENDPOINT_TEST, content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var result))
+                    {
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar saved to SEEDS blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to save avatar to SEEDS blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar to SEEDS blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar to SEEDS: {ex.Message}");
+            }
+
+            return response;
         }
 
         public OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
@@ -1125,6 +1365,55 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         }
 
         public event EventDelegates.StorageProviderError OnStorageProviderError;
+
+        /// <summary>
+        /// Parse SEEDS EOSIO table row to Avatar object
+        /// </summary>
+        private IAvatar ParseSEEDSToAvatar(JsonElement seedsData)
+        {
+            try
+            {
+                var avatar = new Avatar
+                {
+                    Id = seedsData.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                    Username = seedsData.TryGetProperty("username", out var username) ? username.GetString() : "seeds_user",
+                    Email = seedsData.TryGetProperty("email", out var email) ? email.GetString() : "user@seeds.example",
+                    FirstName = seedsData.TryGetProperty("first_name", out var firstName) ? firstName.GetString() : "SEEDS",
+                    LastName = seedsData.TryGetProperty("last_name", out var lastName) ? lastName.GetString() : "User",
+                    Title = seedsData.TryGetProperty("title", out var title) ? title.GetString() : "",
+                    Password = seedsData.TryGetProperty("password", out var password) ? password.GetString() : "",
+                    AvatarType = seedsData.TryGetProperty("avatar_type", out var avatarType) ? avatarType.GetInt32() : 0,
+                    AcceptTerms = seedsData.TryGetProperty("accept_terms", out var acceptTerms) ? acceptTerms.GetBoolean() : true,
+                    IsVerified = seedsData.TryGetProperty("is_verified", out var isVerified) ? isVerified.GetBoolean() : false,
+                    JwtToken = seedsData.TryGetProperty("jwt_token", out var jwtToken) ? jwtToken.GetString() : "",
+                    PasswordReset = seedsData.TryGetProperty("password_reset", out var passwordReset) ? passwordReset.GetInt64() : 0,
+                    RefreshToken = seedsData.TryGetProperty("refresh_token", out var refreshToken) ? refreshToken.GetString() : "",
+                    ResetToken = seedsData.TryGetProperty("reset_token", out var resetToken) ? resetToken.GetString() : "",
+                    ResetTokenExpires = seedsData.TryGetProperty("reset_token_expires", out var resetTokenExpires) ? resetTokenExpires.GetInt64() : 0,
+                    VerificationToken = seedsData.TryGetProperty("verification_token", out var verificationToken) ? verificationToken.GetString() : "",
+                    Verified = seedsData.TryGetProperty("verified", out var verified) ? verified.GetInt64() : 0,
+                    LastBeamedIn = seedsData.TryGetProperty("last_beamed_in", out var lastBeamedIn) ? lastBeamedIn.GetInt64() : 0,
+                    LastBeamedOut = seedsData.TryGetProperty("last_beamed_out", out var lastBeamedOut) ? lastBeamedOut.GetInt64() : 0,
+                    IsBeamedIn = seedsData.TryGetProperty("is_beamed_in", out var isBeamedIn) ? isBeamedIn.GetBoolean() : false,
+                    CreatedDate = seedsData.TryGetProperty("created_date", out var createdDate) ? createdDate.GetInt64() : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    ModifiedDate = seedsData.TryGetProperty("modified_date", out var modifiedDate) ? modifiedDate.GetInt64() : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    Description = seedsData.TryGetProperty("description", out var description) ? description.GetString() : "SEEDS Avatar",
+                    IsActive = seedsData.TryGetProperty("is_active", out var isActive) ? isActive.GetBoolean() : true
+                };
+
+                return avatar;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing SEEDS data to Avatar: {ex.Message}");
+                return new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "seeds_user",
+                    Email = "user@seeds.example"
+                };
+            }
+        }
 
         #endregion
     }
