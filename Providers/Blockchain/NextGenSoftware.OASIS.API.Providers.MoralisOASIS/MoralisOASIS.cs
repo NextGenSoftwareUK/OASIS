@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
@@ -57,7 +58,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error activating Moralis provider");
+                var result = new OASISResult<bool>(false);
+                OASISErrorHandling.HandleError(ref result, $"Error activating Moralis provider: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -76,7 +79,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error deactivating Moralis provider");
+                var result = new OASISResult<bool>(false);
+                OASISErrorHandling.HandleError(ref result, $"Error deactivating Moralis provider: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -95,7 +100,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading avatar");
+                var result = new OASISResult<IAvatar>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -104,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             return LoadAvatarAsync(id, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string providerKey, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarAsync(string providerKey, int version = 0)
         {
             try
             {
@@ -113,11 +120,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading avatar by provider key");
+                var result = new OASISResult<IAvatar>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {ex.Message}", ex);
+                return result;
             }
         }
 
-        public override OASISResult<IAvatar> LoadAvatar(string providerKey, int version = 0)
+        public OASISResult<IAvatar> LoadAvatar(string providerKey, int version = 0)
         {
             return LoadAvatarAsync(providerKey, version).Result;
         }
@@ -131,7 +140,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading avatar by email");
+                var result = new OASISResult<IAvatar>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -149,7 +160,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading avatar by username");
+                var result = new OASISResult<IAvatar>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -167,7 +180,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading avatar by provider key");
+                var result = new OASISResult<IAvatar>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -185,7 +200,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading all avatars");
+                var result = new OASISResult<IEnumerable<IAvatar>>(new List<IAvatar>());
+                OASISErrorHandling.HandleError(ref result, $"Error loading all avatars: {ex.Message}", ex);
+                    return result;
             }
         }
 
@@ -203,7 +220,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error saving avatar");
+                var result = new OASISResult<IAvatar>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {ex.Message}", ex);
+                    return result;
             }
         }
 
@@ -221,7 +240,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error deleting avatar");
+                var result = new OASISResult<bool>(false);
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {ex.Message}", ex);
+            return result;
             }
         }
 
@@ -239,7 +260,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error deleting avatar by provider key");
+                var result = new OASISResult<bool>(false);
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -257,7 +280,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error deleting avatar by email");
+                var result = new OASISResult<bool>(false);
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -275,7 +300,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error deleting avatar by username");
+                var result = new OASISResult<bool>(false);
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -294,7 +321,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading avatar detail");
+                var result = new OASISResult<IAvatarDetail>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -312,7 +341,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading avatar detail by email");
+                var result = new OASISResult<IAvatarDetail>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -330,7 +361,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading avatar detail by username");
+                var result = new OASISResult<IAvatarDetail>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -348,7 +381,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading all avatar details");
+                var result = new OASISResult<IEnumerable<IAvatarDetail>>(new List<IAvatarDetail>());
+                OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -366,7 +401,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error saving avatar detail");
+                var result = new OASISResult<IAvatarDetail>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -385,7 +422,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading holon");
+                var result = new OASISResult<IHolon>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -403,7 +442,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading holon by provider key");
+                var result = new OASISResult<IHolon>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -421,7 +462,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error saving holon");
+                var result = new OASISResult<IHolon>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error saving holon: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -439,7 +482,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error saving holons");
+                var result = new OASISResult<IEnumerable<IHolon>>(new List<IHolon>());
+                OASISErrorHandling.HandleError(ref result, $"Error saving holons: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -457,7 +502,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading holons for parent");
+                var result = new OASISResult<IEnumerable<IHolon>>(new List<IHolon>());
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -475,7 +522,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading holons for parent by provider key");
+                var result = new OASISResult<IEnumerable<IHolon>>(new List<IHolon>());
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -493,7 +542,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading holons by metadata");
+                var result = new OASISResult<IEnumerable<IHolon>>(new List<IHolon>());
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {ex.Message}", ex);
+            return result;
             }
         }
 
@@ -511,7 +562,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading holons by metadata dictionary");
+                var result = new OASISResult<IEnumerable<IHolon>>(new List<IHolon>());
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata dictionary: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -529,7 +582,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading all holons");
+                var result = new OASISResult<IEnumerable<IHolon>>(new List<IHolon>());
+                OASISErrorHandling.HandleError(ref result, $"Error loading all holons: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -547,7 +602,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error deleting holon");
+                var result = new OASISResult<IHolon>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -565,7 +622,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error deleting holon by provider key");
+                var result = new OASISResult<IHolon>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -584,7 +643,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error importing holons");
+                var result = new OASISResult<bool>(false);
+                OASISErrorHandling.HandleError(ref result, $"Error importing holons: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -602,7 +663,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error exporting all data for avatar by ID");
+                var result = new OASISResult<IEnumerable<IHolon>>(new List<IHolon>());
+                OASISErrorHandling.HandleError(ref result, $"Error exporting all data for avatar by ID: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -620,7 +683,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error exporting all data for avatar by username");
+                var result = new OASISResult<IEnumerable<IHolon>>(new List<IHolon>());
+                OASISErrorHandling.HandleError(ref result, $"Error exporting all data for avatar by username: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -638,7 +703,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error exporting all data for avatar by email");
+                var result = new OASISResult<IEnumerable<IHolon>>(new List<IHolon>());
+                OASISErrorHandling.HandleError(ref result, $"Error exporting all data for avatar by email: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -656,7 +723,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error exporting all data");
+                var result = new OASISResult<IEnumerable<IHolon>>(new List<IHolon>());
+                OASISErrorHandling.HandleError(ref result, $"Error exporting all data: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -675,7 +744,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error searching");
+                var result = new OASISResult<ISearchResults>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error searching: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -683,7 +754,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
-
 
         // IOASISNETProvider Methods
         public async Task<OASISResult<IEnumerable<IAvatar>>> GetAvatarsNearMeAsync(IAvatar avatar, double radiusKm)
@@ -695,7 +765,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error getting avatars near me");
+                var result = new OASISResult<IEnumerable<IAvatar>>(new List<IAvatar>());
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -713,7 +785,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error getting holons near me");
+                var result = new OASISResult<IEnumerable<IHolon>>(new List<IHolon>());
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -732,7 +806,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error getting avatars near coordinates");
+                var result = new OASISResult<IEnumerable<IAvatar>>(new List<IAvatar>());
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near coordinates: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -750,7 +826,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error getting holons near coordinates");
+                var result = new OASISResult<IEnumerable<IHolon>>(new List<IHolon>());
+                OASISErrorHandling.HandleError(ref result, $"Error getting holons near coordinates: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -769,7 +847,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error sending NFT");
+                var result = new OASISResult<INFTTransactionRespone>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error sending NFT: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -787,7 +867,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error minting NFT");
+                var result = new OASISResult<INFTTransactionRespone>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error minting NFT: {ex.Message}", ex);
+                return result;
             }
         }
 
@@ -805,7 +887,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             }
             catch (Exception ex)
             {
-                return OASISErrorHandling.HandleException(ex, "Error loading NFT data");
+                var result = new OASISResult<IOASISNFT>(null);
+                OASISErrorHandling.HandleError(ref result, $"Error loading NFT data: {ex.Message}", ex);
+                return result;
             }
         }
 
