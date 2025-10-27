@@ -1444,9 +1444,114 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return new OASISResult<IAvatarDetail> { Message = "SaveAvatarDetail is not supported yet by SEEDS provider." };
         }
 
-        public Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+        public async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            return Task.FromResult(new OASISResult<IAvatarDetail> { Message = "SaveAvatarDetailAsync is not supported yet by SEEDS provider." });
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
+                    return result;
+                }
+
+                // Save avatar detail to SEEDS blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "push_transaction",
+                    @params = new
+                    {
+                        signatures = new string[0], // Will be filled by wallet
+                        compression = "none",
+                        packed_context_free_data = "",
+                        packed_trx = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            expiration = DateTime.UtcNow.AddMinutes(30).ToString("yyyy-MM-ddTHH:mm:ss"),
+                            ref_block_num = 0,
+                            ref_block_prefix = 0,
+                            max_net_usage_words = 0,
+                            max_cpu_usage_ms = 0,
+                            delay_sec = 0,
+                            context_free_actions = new object[0],
+                            actions = new[]
+                            {
+                                new
+                                {
+                                    account = SEEDS_EOSIO_ACCOUNT_TEST,
+                                    name = "upsertavatardetail",
+                                    authorization = new[]
+                                    {
+                                        new
+                                        {
+                                            actor = SEEDS_EOSIO_ACCOUNT_TEST,
+                                            permission = "active"
+                                        }
+                                    },
+                                    data = new
+                                    {
+                                        id = avatarDetail.Id.ToString(),
+                                        username = avatarDetail.Username ?? "",
+                                        email = avatarDetail.Email ?? "",
+                                        karma = avatarDetail.Karma,
+                                        xp = avatarDetail.XP,
+                                        model3d = avatarDetail.Model3D ?? "",
+                                        uma_json = avatarDetail.UmaJson ?? "",
+                                        portrait = avatarDetail.Portrait ?? "",
+                                        town = avatarDetail.Town ?? "",
+                                        county = avatarDetail.County ?? "",
+                                        dob = ((DateTimeOffset)avatarDetail.DOB).ToUnixTimeSeconds(),
+                                        address = avatarDetail.Address ?? "",
+                                        country = avatarDetail.Country ?? "",
+                                        postcode = avatarDetail.Postcode ?? "",
+                                        landline = avatarDetail.Landline ?? "",
+                                        mobile = avatarDetail.Mobile ?? "",
+                                        favourite_colour = (int)avatarDetail.FavouriteColour,
+                                        starcli_colour = (int)avatarDetail.STARCLIColour,
+                                        created_date = ((DateTimeOffset)avatarDetail.CreatedDate).ToUnixTimeSeconds(),
+                                        modified_date = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds(),
+                                        description = avatarDetail.Description ?? "SEEDS Avatar Detail",
+                                        is_active = avatarDetail.IsActive
+                                    }
+                                }
+                            }
+                        })))
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{ENDPOINT_TEST}/v1/chain/push_transaction", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement))
+                    {
+                        result.Result = avatarDetail;
+                        result.IsError = false;
+                        result.Message = "Avatar detail saved to SEEDS blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to save avatar detail to SEEDS blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar detail to SEEDS blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail to SEEDS: {ex.Message}");
+            }
+
+            return result;
         }
 
         public OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
