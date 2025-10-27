@@ -11,27 +11,14 @@ WORKDIR /src
 # Copy the entire OASIS project structure
 COPY . .
 
-# Copy external libraries from local directory
-COPY ../NextGenSoftware-Libraries/NextGenSoftware\ Libraries/ "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/"
-COPY ../NextGenSoftware-Libraries/NextGenSoftware\ Libraries/ "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/"
+# Copy external libraries to the correct relative path that the project references expect
+COPY ../NextGenSoftware-Libraries/NextGenSoftware\ Libraries/ ../NextGenSoftware-Libraries/NextGenSoftware\ Libraries/
 
 # Clone holochain-client-csharp from GitHub
 RUN apt-get update && apt-get install -y git
 RUN git clone https://github.com/NextGenSoftwareUK/holochain-client-csharp.git temp-holo
 RUN mkdir -p "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp"
 RUN cp -r temp-holo/* "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp/"
-
-# Install missing NuGet packages for the external libraries
-RUN cd "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging" && \
-    dotnet add package BetterConsoleTables && \
-    dotnet add package NLog
-
-RUN cd "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging.NLog" && \
-    dotnet add package NLog
-
-# Install missing NuGet packages for the main projects
-RUN dotnet add "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware.OASIS.Common.csproj" package BetterConsoleTables
-RUN dotnet add "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj" package NLog
 
 # Clean up
 RUN rm -rf temp-holo
