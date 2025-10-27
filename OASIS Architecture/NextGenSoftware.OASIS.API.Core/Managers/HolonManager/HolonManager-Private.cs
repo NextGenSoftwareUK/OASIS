@@ -108,14 +108,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 PropertyInfo[] props = holon.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
                 var classAttributes = holon.GetType().GetCustomAttributes();
 
-                foreach (CustomOASISProperty attribute in classAttributes)
-                {
-                    Console.WriteLine($"StoreAsJsonString: {attribute.StoreAsJsonString}");
+                //foreach (CustomOASISProperty attribute in classAttributes)
+                //{
+                //    Console.WriteLine($"StoreAsJsonString: {attribute.StoreAsJsonString}");
 
-                    storeAsJsonString = attribute.StoreAsJsonString;
+                //    storeAsJsonString = attribute.StoreAsJsonString;
 
 
-                }
+                //}
 
                 foreach (PropertyInfo propertyInfo in props)
                 {

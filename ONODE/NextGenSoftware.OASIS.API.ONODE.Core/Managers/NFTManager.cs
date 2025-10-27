@@ -361,6 +361,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             request.Symbol = "OASISNFT";
                     }
 
+                    //TODO: Do we simply create x amount of WEB4 OASIS NFTs or do we create one OASIS NFT that contains x amount of WEB3 Nfts?
+                    //for (int i = 0; i < request.NumberToMint; i++)
                     result = await MintNFTInternalAsync(request, request.NFTStandardType.Value, NFTMetaDataProviderType, nftProviderResult, result, errorMessage, responseFormatType);
 
                     //switch (request.NFTStandardType)
@@ -2407,27 +2409,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 DateTime startTime = DateTime.Now;
                 CLIEngine.SupressConsoleLogging = true;
 
-                do
+                //Set NumberToMint to 1 in case the provider attempts to mint multiple nfts (we currently control the multi-minting here in the NFT Manager).
+                //TODO: Is it better to let the providers control the multi-minting or the NFTManager? Its safer for NFTManager I think in case the providers do not implement properly etc...
+                int numberToMint = request.NumberToMint;
+                request.NumberToMint = 1;
+
+                for (int i = 0; i < numberToMint; i++)
                 {
-                    result = await nftProviderResult.Result.MintNFTAsync(request);
-
-                    if (result != null && result.Result != null && !result.IsError)
-                        break;
-
-                    else if (!request.WaitTillNFTMinted)
+                    do
                     {
-                        result.Result.OASISNFT.MintTransactionHash = $"Error occured attempting to mint NFT. Reason: Timeout expired, WaitSeconds ({request.WaitForNFTToMintInSeconds}) exceeded, try increasing and trying again!";
-                        break;
-                    }
+                        result = await nftProviderResult.Result.MintNFTAsync(request);
 
-                    //TODO: May cause issues in the non-async version because will block the calling thread! Need to look into this and find better way if needed...
-                    Thread.Sleep(request.AttemptToMintEveryXSeconds * 1000);
+                        if (result != null && result.Result != null && !result.IsError)
+                            break;
 
-                    if (startTime.AddSeconds(request.WaitForNFTToMintInSeconds) > DateTime.Now)
-                        break;
+                        else if (!request.WaitTillNFTMinted)
+                        {
+                            result.Result.OASISNFT.MintTransactionHash = $"Error occured attempting to mint NFT. Reason: Timeout expired, WaitSeconds ({request.WaitForNFTToMintInSeconds}) exceeded, try increasing and trying again!";
+                            break;
+                        }
 
-                } while (attemptingToMint);
+                        //TODO: May cause issues in the non-async version because will block the calling thread! Need to look into this and find better way if needed...
+                        Thread.Sleep(request.AttemptToMintEveryXSeconds * 1000);
 
+                        if (startTime.AddSeconds(request.WaitForNFTToMintInSeconds) > DateTime.Now)
+                            break;
+
+                    } while (attemptingToMint);
+                }
+
+                request.NumberToMint = numberToMint;
                 CLIEngine.SupressConsoleLogging = false;
 
                 if (result != null && !result.IsError && result.Result != null)
@@ -2635,27 +2646,39 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 bool attemptingToMint = true;
                 DateTime startTime = DateTime.Now;
+                CLIEngine.SupressConsoleLogging = true;
 
-                do
+                //Set NumberToMint to 1 in case the provider attempts to mint multiple nfts (we currently control the multi-minting here in the NFT Manager).
+                //TODO: Is it better to let the providers control the multi-minting or the NFTManager? Its safer for NFTManager I think in case the providers do not implement properly etc...
+                int numberToMint = request.NumberToMint;
+                request.NumberToMint = 1;
+
+                for (int i = 0; i < numberToMint; i++)
                 {
-                    result = nftProviderResult.Result.MintNFT(request);
-
-                    if (result != null && result.Result != null && !result.IsError)
-                        break;
-
-                    else if (!request.WaitTillNFTMinted)
+                    do
                     {
-                        result.Result.OASISNFT.MintTransactionHash = $"Error occured attempting to mint NFT. Reason: Timeout expired, WaitSeconds ({request.WaitForNFTToMintInSeconds}) exceeded, try increasing and trying again!";
-                        break;
-                    }
+                        result = nftProviderResult.Result.MintNFT(request);
 
-                    //TODO: May cause issues in the non-async version because will block the calling thread! Need to look into this and find better way if needed...
-                    Thread.Sleep(request.AttemptToMintEveryXSeconds * 1000);
+                        if (result != null && result.Result != null && !result.IsError)
+                            break;
 
-                    if (startTime.AddSeconds(request.WaitForNFTToMintInSeconds) > DateTime.Now)
-                        break;
+                        else if (!request.WaitTillNFTMinted)
+                        {
+                            result.Result.OASISNFT.MintTransactionHash = $"Error occured attempting to mint NFT. Reason: Timeout expired, WaitSeconds ({request.WaitForNFTToMintInSeconds}) exceeded, try increasing and trying again!";
+                            break;
+                        }
 
-                } while (attemptingToMint);
+                        //TODO: May cause issues in the non-async version because will block the calling thread! Need to look into this and find better way if needed...
+                        Thread.Sleep(request.AttemptToMintEveryXSeconds * 1000);
+
+                        if (startTime.AddSeconds(request.WaitForNFTToMintInSeconds) > DateTime.Now)
+                            break;
+
+                    } while (attemptingToMint);
+                }
+
+                request.NumberToMint = numberToMint;
+                CLIEngine.SupressConsoleLogging = false;
 
                 if (result != null && !result.IsError && result.Result != null)
                 {
