@@ -779,7 +779,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                                a.FavouriteColour as FavouriteColour, a.STARCLIColour as STARCLIColour";
 
                     var result = await session.RunAsync(query, new { id = id.ToString() });
-                    var record = await result.SingleOrDefaultAsync();
+                    var records = await result.ToListAsync();
+                    var record = records.FirstOrDefault();
 
                     if (record != null)
                     {
@@ -859,7 +860,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                                a.FavouriteColour as FavouriteColour, a.STARCLIColour as STARCLIColour";
 
                     var result = await session.RunAsync(query, new { email = avatarEmail });
-                    var record = await result.SingleOrDefaultAsync();
+                    var records = await result.ToListAsync();
+                    var record = records.FirstOrDefault();
 
                     if (record != null)
                     {
@@ -939,7 +941,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                                a.FavouriteColour as FavouriteColour, a.STARCLIColour as STARCLIColour";
 
                     var result = await session.RunAsync(query, new { username = avatarUsername });
-                    var record = await result.SingleOrDefaultAsync();
+                    var records = await result.ToListAsync();
+                    var record = records.FirstOrDefault();
 
                     if (record != null)
                     {
@@ -1091,19 +1094,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 {
                     var query = @"
                         MERGE (a:AvatarDetail {Id: $id})
-                        SET a.Username = $username, a.Email = $email, a.FirstName = $firstName,
-                            a.LastName = $lastName, a.Title = $title, a.Password = $password,
-                            a.AvatarType = $avatarType, a.AcceptTerms = $acceptTerms, a.JwtToken = $jwtToken,
-                            a.PasswordReset = $passwordReset, a.RefreshToken = $refreshToken,
-                            a.ResetToken = $resetToken, a.ResetTokenExpires = $resetTokenExpires,
-                            a.VerificationToken = $verificationToken, a.Verified = $verified,
-                            a.LastBeamedIn = $lastBeamedIn, a.LastBeamedOut = $lastBeamedOut,
-                            a.IsBeamedIn = $isBeamedIn, a.CreatedDate = $createdDate,
+                        SET a.Username = $username, a.Email = $email, a.CreatedDate = $createdDate,
                             a.ModifiedDate = $modifiedDate, a.Description = $description,
-                            a.IsActive = $isActive, a.Karma = $karma, a.Level = $level,
-                            a.XP = $xp, a.Model3D = $model3D, a.UmaJson = $umaJson,
-                            a.Portrait = $portrait, a.Town = $town, a.County = $county,
-                            a.FavouriteColour = $favouriteColour, a.StarcliColour = $starcliColour
+                            a.IsActive = $isActive, a.Karma = $karma, a.XP = $xp,
+                            a.Model3D = $model3D, a.UmaJson = $umaJson, a.Portrait = $portrait,
+                            a.Town = $town, a.County = $county, a.DOB = $dob,
+                            a.Address = $address, a.Country = $country, a.Postcode = $postcode,
+                            a.Landline = $landline, a.Mobile = $mobile,
+                            a.FavouriteColour = $favouriteColour, a.STARCLIColour = $starcliColour
                         RETURN a.Id as Id";
 
                     var parameters = new
@@ -1111,40 +1109,30 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                         id = Avatar.Id.ToString(),
                         username = Avatar.Username ?? "",
                         email = Avatar.Email ?? "",
-                        firstName = Avatar.FirstName ?? "",
-                        lastName = Avatar.LastName ?? "",
-                        title = Avatar.Title ?? "",
-                        password = Avatar.Password ?? "",
-                        avatarType = (int)Avatar.AvatarType.Value,
-                        acceptTerms = Avatar.AcceptTerms,
-                        jwtToken = Avatar.JwtToken ?? "",
-                        passwordReset = Avatar.PasswordReset,
-                        refreshToken = Avatar.RefreshToken ?? "",
-                        resetToken = Avatar.ResetToken ?? "",
-                        resetTokenExpires = Avatar.ResetTokenExpires,
-                        verificationToken = Avatar.VerificationToken ?? "",
-                        verified = Avatar.Verified,
-                        lastBeamedIn = Avatar.LastBeamedIn,
-                        lastBeamedOut = Avatar.LastBeamedOut,
-                        isBeamedIn = Avatar.IsBeamedIn,
                         createdDate = Avatar.CreatedDate,
                         modifiedDate = DateTime.UtcNow,
                         description = Avatar.Description ?? "",
                         isActive = Avatar.IsActive,
                         karma = Avatar.Karma,
-                        level = Avatar.Level,
                         xp = Avatar.XP,
                         model3D = Avatar.Model3D ?? "",
                         umaJson = Avatar.UmaJson ?? "",
                         portrait = Avatar.Portrait ?? "",
                         town = Avatar.Town ?? "",
                         county = Avatar.County ?? "",
-                        favouriteColour = Avatar.FavouriteColour ?? "",
-                        starcliColour = Avatar.StarcliColour ?? ""
+                        dob = Avatar.DOB,
+                        address = Avatar.Address ?? "",
+                        country = Avatar.Country ?? "",
+                        postcode = Avatar.Postcode ?? "",
+                        landline = Avatar.Landline ?? "",
+                        mobile = Avatar.Mobile ?? "",
+                        favouriteColour = (int)Avatar.FavouriteColour,
+                        starcliColour = (int)Avatar.STARCLIColour
                     };
 
                     var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleOrDefaultAsync();
+                    var records = await result.ToListAsync();
+                    var record = records.FirstOrDefault();
 
                     if (record != null)
                     {
