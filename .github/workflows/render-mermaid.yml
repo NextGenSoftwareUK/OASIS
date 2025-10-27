@@ -1,0 +1,44 @@
+name: Render Mermaid Diagrams
+
+on:
+  push:
+    paths:
+      - 'Docs/Devs/OASIS_ARCHITECTURE_DIAGRAMS.md'
+      - 'Images/Diagrams/**.mmd'
+      - '.github/workflows/render-mermaid.yml'
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Mermaid CLI
+        run: npm i -g @mermaid-js/mermaid-cli
+
+      - name: Render diagrams
+        shell: pwsh
+        run: |
+          ./Images/Diagrams/render-diagrams.ps1 -InputDir Images/Diagrams -OutDir Images/Diagrams
+
+      - name: Commit SVGs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Images/Diagrams/*.svg
+          if git diff --cached --quiet; then
+            echo "No diagram updates to commit."
+          else
+            git commit -m "chore(diagrams): auto-render Mermaid SVGs"
+            git push
+          fi
+
+

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { OAPPKarmaData, AvatarKarmaData } from '../types/star';
-import { starService } from '../services/starService';
+import { starCoreService, avatarService } from '../services';
 import { toast } from 'react-hot-toast';
 
 interface KarmaVisualizationProps {
@@ -27,8 +27,8 @@ const KarmaVisualization: React.FC<KarmaVisualizationProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const data = await starService.getOAPPKarmaData(oappId);
-      setKarmaData(data);
+      const result = await starCoreService.getOAPPKarmaData(oappId);
+      setKarmaData(result.result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load karma data');
       toast.error('Failed to load karma data');

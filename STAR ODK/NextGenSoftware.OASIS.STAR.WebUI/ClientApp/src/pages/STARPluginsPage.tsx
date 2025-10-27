@@ -34,7 +34,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
-import { starService } from '../services/starService';
+import { pluginService } from '../services';
 import toast from 'react-hot-toast';
 
 interface Plugin {
@@ -64,7 +64,7 @@ const STARPluginsPage: React.FC = () => {
 
   const { data: pluginsData, isLoading } = useQuery(
     'star-plugins',
-    () => starService.getSTARPlugins()
+    () => pluginService.getAll()
   );
 
   const plugins = pluginsData?.result || [];
@@ -208,7 +208,7 @@ const STARPluginsPage: React.FC = () => {
                       <Box sx={{ mb: 2 }}>
                         <Rating value={plugin.rating} readOnly size="small" />
                         <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                          ({plugin.downloads.toLocaleString()} downloads)
+                          ({(plugin.downloads ?? 0).toLocaleString()} downloads)
                         </Typography>
                       </Box>
 

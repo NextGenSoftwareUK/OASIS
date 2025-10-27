@@ -48,7 +48,7 @@ import {
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starNetService } from '../services/starNetService';
+import { oappService } from '../services';
 import { OAPP } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -67,7 +67,7 @@ const OAPPDetailPage: React.FC = () => {
     async () => {
       if (!id) throw new Error('OAPP ID is required');
       // For now, we'll get it from the list and filter by ID
-      const response = await starNetService.getAllOAPPs();
+      const response = await oappService.getAll();
       const foundOapp = response.result?.find((o: OAPP) => o.id === id);
       if (!foundOapp) throw new Error('OAPP not found');
       return { result: foundOapp };
@@ -86,7 +86,7 @@ const OAPPDetailPage: React.FC = () => {
   const installOappMutation = useMutation(
     async () => {
       if (!id) throw new Error('OAPP ID is required');
-      return await starNetService.installOAPP(id);
+      return await oappService.install(id);
     },
     {
       onSuccess: () => {
@@ -106,7 +106,7 @@ const OAPPDetailPage: React.FC = () => {
   const uninstallOappMutation = useMutation(
     async () => {
       if (!id) throw new Error('OAPP ID is required');
-      return await starNetService.uninstallOAPP(id);
+      return await oappService.uninstall(id);
     },
     {
       onSuccess: () => {

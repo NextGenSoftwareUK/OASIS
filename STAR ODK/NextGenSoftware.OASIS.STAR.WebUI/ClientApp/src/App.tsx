@@ -20,9 +20,12 @@ import HomePage from './pages/HomePage';
 import Dashboard from './pages/Dashboard';
 import OAPPsPage from './pages/OAPPsPage';
 import OAPPDetailPage from './pages/OAPPDetailPage';
+import OAPPBuilderPage from './pages/OAPPBuilderPage';
+import MetaDataPage from './pages/MetaDataPage';
 import QuestsPage from './pages/QuestsPage';
 import NFTsPage from './pages/NFTsPage';
 import NFTDetailPage from './pages/NFTDetailPage';
+import NFTMintingPage from './pages/NFTMintingPage';
 import GeoNFTsPage from './pages/GeoNFTsPage';
 import GeoNFTDetailPage from './pages/GeoNFTDetailPage';
 import InventoryDetailPage from './pages/InventoryDetailPage';
@@ -52,6 +55,7 @@ import GeoHotSpotsPage from './pages/GeoHotSpotsPage';
 import STARNETStorePage from './pages/STARNETStorePage';
 import STARNETDetailPage from './pages/STARNETDetailPage';
 import SettingsPage from './pages/SettingsPage';
+import HyperDrivePage from './pages/HyperDrivePage';
 import KarmaDetailPage from './pages/KarmaDetailPage';
 import MyDataDetailPage from './pages/MyDataDetailPage';
 import KarmaPage from './pages/KarmaPage';
@@ -60,9 +64,25 @@ import DevPortalPage from './pages/DevPortalPage';
 import HolonsPage from './pages/HolonsPage';
 import ZomesPage from './pages/ZomesPage';
 import STARPluginsPage from './pages/STARPluginsPage';
+import WalletsPage from './pages/WalletsPage';
+import STARCLIPage from './pages/STARCLIPage';
+import SubscriptionPlansPage from './pages/SubscriptionPlansPage';
+import SubscriptionSuccessPage from './pages/SubscriptionSuccessPage';
+import SubscriptionManagePage from './pages/SubscriptionManagePage';
+import UsagePage from './pages/UsagePage';
+import EggsPage from './pages/EggsPage';
+import VideoCallsPage from './pages/VideoCallsPage';
+import CompetitionPage from './pages/CompetitionPage';
+import MessagingPage from './pages/MessagingPage';
+import ChatPage from './pages/ChatPage';
+import SocialPage from './pages/SocialPage';
+import ContactPage from './pages/ContactPage';
+import OASISDNAConfigPage from './pages/OASISDNAConfigPage';
+import ONETPage from './pages/ONETPage';
+import ONODEPage from './pages/ONODEPage';
 
 // Services
-import { starService } from './services/starService';
+import { starCoreService } from './services';
 import { useSTARConnection } from './hooks/useSTARConnection';
 
 // Types
@@ -131,6 +151,102 @@ const App: React.FC = () => {
           <AnimatePresence mode="wait">
             <Routes>
               <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route 
+                path="/eggs" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <EggsPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/video" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <VideoCallsPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/competition" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <CompetitionPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/messaging" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <MessagingPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/chat" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <ChatPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/social" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <SocialPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
               <Route 
                 path="/home" 
                 element={
@@ -253,6 +369,22 @@ const App: React.FC = () => {
                       transition={pageTransition}
                     >
                       <NFTDetailPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/nfts/mint" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <NFTMintingPage />
                     </motion.div>
                   </ProtectedRoute>
                 } 
@@ -582,6 +714,38 @@ const App: React.FC = () => {
                 } 
               />
               <Route 
+                path="/wallets" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <WalletsPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/star-cli" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <STARCLIPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/settings" 
                 element={
                   <motion.div
@@ -593,6 +757,22 @@ const App: React.FC = () => {
                   >
                     <SettingsPage />
                   </motion.div>
+                } 
+              />
+              <Route 
+                path="/hyperdrive" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <HyperDrivePage />
+                    </motion.div>
+                  </ProtectedRoute>
                 } 
               />
               <Route 
@@ -708,6 +888,62 @@ const App: React.FC = () => {
                 } 
               />
               <Route 
+                path="/oapps" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <OAPPsPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/oapps/:id" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <OAPPDetailPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/oapp-builder" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <OAPPBuilderPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/metadata" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <MetaDataPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
                 path="/dev-portal" 
                 element={
                   <motion.div
@@ -762,6 +998,128 @@ const App: React.FC = () => {
                     <STARPluginsPage />
                   </motion.div>
                 } 
+              />
+              <Route 
+                path="/subscription/plans" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <SubscriptionPlansPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/subscription/success" 
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <SubscriptionSuccessPage />
+                  </motion.div>
+                } 
+              />
+              <Route 
+                path="/subscription/manage" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <SubscriptionManagePage />
+                    </motion.div>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/subscription/usage" 
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <UsagePage />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/contact"
+                element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <ContactPage />
+                  </motion.div>
+                }
+              />
+              <Route
+                path="/oasisdna"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <OASISDNAConfigPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/onet"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <ONETPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/onode"
+                element={
+                  <ProtectedRoute>
+                    <motion.div
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                    >
+                      <ONODEPage />
+                    </motion.div>
+                  </ProtectedRoute>
+                }
               />
             </Routes>
           </AnimatePresence>

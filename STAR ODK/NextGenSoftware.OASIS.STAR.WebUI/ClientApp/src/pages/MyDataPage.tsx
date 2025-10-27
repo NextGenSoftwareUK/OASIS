@@ -89,37 +89,9 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { starService } from '../services/starService';
+import { starCoreService, avatarService } from '../services';
 
-// OASIS Provider Types - Full ProviderType enum from backend
-const OASIS_PROVIDERS = [
-  { value: 'Auto', label: 'Auto (Let OASIS Choose)', description: 'OASIS will automatically select the best provider for your needs' },
-  { value: 'Default', label: 'Default', description: 'Use the default OASIS provider' },
-  { value: 'MongoDBOASIS', label: 'MongoDB', description: 'MongoDB document database - Fast and flexible' },
-  { value: 'SQLLiteDBOASIS', label: 'SQLite', description: 'SQLite relational database - Local and lightweight' },
-  { value: 'Neo4jOASIS', label: 'Neo4j', description: 'Neo4j graph database - Perfect for relationships' },
-  { value: 'EthereumOASIS', label: 'Ethereum', description: 'Ethereum blockchain - Decentralized and secure' },
-  { value: 'ArbitrumOASIS', label: 'Arbitrum', description: 'Arbitrum Layer 2 - Fast and cheap transactions' },
-  { value: 'PolygonOASIS', label: 'Polygon', description: 'Polygon network - Low-cost Ethereum scaling' },
-  { value: 'SolanaOASIS', label: 'Solana', description: 'Solana blockchain - High-speed transactions' },
-  { value: 'EOSIOOASIS', label: 'EOSIO', description: 'EOSIO blockchain - Enterprise-grade performance' },
-  { value: 'TRONOASIS', label: 'TRON', description: 'TRON blockchain - High throughput network' },
-  { value: 'HoloOASIS', label: 'Holochain', description: 'Holochain - Agent-centric distributed computing' },
-  { value: 'IPFSOASIS', label: 'IPFS', description: 'InterPlanetary File System - Distributed storage' },
-  { value: 'PinataOASIS', label: 'Pinata', description: 'Pinata IPFS service - Reliable IPFS hosting' },
-  { value: 'AzureStorageOASIS', label: 'Azure Storage', description: 'Microsoft Azure cloud storage' },
-  { value: 'AzureCosmosDBOASIS', label: 'Azure Cosmos DB', description: 'Azure Cosmos DB - Global distributed database' },
-  { value: 'AWSOASIS', label: 'AWS', description: 'Amazon Web Services cloud platform' },
-  { value: 'GoogleCloudOASIS', label: 'Google Cloud', description: 'Google Cloud Platform services' },
-  { value: 'LocalFileOASIS', label: 'Local File', description: 'Local file system storage' },
-  { value: 'ActivityPubOASIS', label: 'ActivityPub', description: 'ActivityPub protocol - Federated social web' },
-  { value: 'ScuttlebuttOASIS', label: 'Scuttlebutt', description: 'Scuttlebutt - Offline-first social network' },
-  { value: 'ThreeFoldOASIS', label: 'ThreeFold', description: 'ThreeFold - Decentralized internet infrastructure' },
-  { value: 'UrbitOASIS', label: 'Urbit', description: 'Urbit - Personal server platform' },
-  { value: 'SOLIDOASIS', label: 'SOLID', description: 'SOLID - Decentralized web standards' },
-  { value: 'HoloWebOASIS', label: 'Holo Web', description: 'Holo Web - Distributed web hosting' },
-  { value: 'PLANOASIS', label: 'PLAN', description: 'PLAN protocol - Decentralized planning' },
-];
+import { OASIS_PROVIDERS } from '../constants/providers';
 
 interface DataFile {
   id: string;
@@ -213,7 +185,7 @@ const MyDataPage: React.FC = () => {
       try {
         // Force demo data for now
         throw 'Forcing demo data for My Data files';
-        const response = await starService.getMyDataFiles?.();
+        const response = await starCoreService.getMyDataFiles?.();
         return response;
       } catch (error) {
         // Fallback to impressive demo data - only log to console
@@ -896,7 +868,7 @@ const MyDataPage: React.FC = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const filteredFiles = filesData?.result?.files?.filter((file: DataFile) => 
+  const filteredFiles = (filesData?.result as any)?.files?.filter((file: DataFile) => 
     file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (file.metadata?.tags || []).some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
@@ -905,8 +877,8 @@ const MyDataPage: React.FC = () => {
   console.log('MyDataPage Debug:', {
     filesData: filesData,
     hasResult: !!filesData?.result,
-    hasFiles: !!filesData?.result?.files,
-    filesCount: filesData?.result?.files?.length || 0,
+    hasFiles: !!(filesData?.result as any)?.files,
+    filesCount: (filesData?.result as any)?.files?.length || 0,
     filteredCount: filteredFiles.length,
     searchTerm: searchTerm
   });
@@ -970,7 +942,7 @@ const MyDataPage: React.FC = () => {
                 <CardContent sx={{ textAlign: 'center', color: 'white' }}>
                   <Storage sx={{ fontSize: 40, mb: 1 }} />
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {filesData?.result?.stats?.totalFiles || 0}
+                    {(filesData?.result as any)?.stats?.totalFiles || 0}
                   </Typography>
                   <Typography variant="body2">Total Files</Typography>
                 </CardContent>
@@ -981,7 +953,7 @@ const MyDataPage: React.FC = () => {
                 <CardContent sx={{ textAlign: 'center', color: 'white' }}>
                   <Memory sx={{ fontSize: 40, mb: 1 }} />
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {formatFileSize(filesData?.result?.stats?.totalSize || 0)}
+                    {formatFileSize((filesData?.result as any)?.stats?.totalSize || 0)}
                   </Typography>
                   <Typography variant="body2">Total Storage</Typography>
                 </CardContent>
@@ -992,7 +964,7 @@ const MyDataPage: React.FC = () => {
                 <CardContent sx={{ textAlign: 'center', color: 'white' }}>
                   <CloudSync sx={{ fontSize: 40, mb: 1 }} />
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {filesData?.result?.stats?.replicationFactor || 0}x
+                    {(filesData?.result as any)?.stats?.replicationFactor || 0}x
                   </Typography>
                   <Typography variant="body2">Replication</Typography>
                 </CardContent>
@@ -1003,7 +975,7 @@ const MyDataPage: React.FC = () => {
                 <CardContent sx={{ textAlign: 'center', color: 'white' }}>
                   <Shield sx={{ fontSize: 40, mb: 1 }} />
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    {filesData?.result?.stats?.encryptionCoverage || 0}%
+                    {(filesData?.result as any)?.stats?.encryptionCoverage || 0}%
                   </Typography>
                   <Typography variant="body2">Encrypted</Typography>
                 </CardContent>
@@ -1040,7 +1012,7 @@ const MyDataPage: React.FC = () => {
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
             <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
               <Tab label={`My Files (${filteredFiles.length})`} />
-              <Tab label={`Storage Nodes (${filesData?.result?.nodes?.length || 0})`} />
+              <Tab label={`Storage Nodes (${(filesData?.result as any)?.nodes?.length || 0})`} />
               <Tab label="Security & Permissions" />
             </Tabs>
           </Box>
@@ -1136,7 +1108,7 @@ const MyDataPage: React.FC = () => {
               {/* Storage Nodes Tab */}
               {tabValue === 1 && (
                 <Grid container spacing={3}>
-                  {filesData?.result?.nodes?.map((node: StorageNode) => (
+                  {(filesData?.result as any)?.nodes?.map((node: StorageNode) => (
                     <Grid item xs={12} sm={6} md={4} key={node.id}>
                       <motion.div
                         variants={itemVariants}
@@ -1232,11 +1204,11 @@ const MyDataPage: React.FC = () => {
                           </Typography>
                           <LinearProgress
                             variant="determinate"
-                            value={filesData?.result?.stats?.encryptionCoverage || 0}
+                            value={(filesData?.result as any)?.stats?.encryptionCoverage || 0}
                             sx={{ height: 8, borderRadius: 4 }}
                           />
                           <Typography variant="caption" color="text.secondary">
-                            {filesData?.result?.stats?.encryptionCoverage || 0}% of files encrypted
+                            {(filesData?.result as any)?.stats?.encryptionCoverage || 0}% of files encrypted
                           </Typography>
                         </Box>
                         <List>

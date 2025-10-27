@@ -47,42 +47,17 @@ import {
   Edit as EditIcon,
   Check as CheckIcon,
   Close as CloseIcon,
+  Rocket as RocketIcon,
+  Tune as TuneIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starService } from '../services/starService';
+import { useNavigate } from 'react-router-dom';
+import { starCoreService, avatarService } from '../services';
 import { useDemoMode } from '../contexts/DemoModeContext';
 import toast from 'react-hot-toast';
 
-// OASIS Provider Types - Full ProviderType enum from backend
-const OASIS_PROVIDERS = [
-  { value: 'Auto', label: 'Auto (Let OASIS Choose)', description: 'OASIS will automatically select the best provider for your needs' },
-  { value: 'Default', label: 'Default', description: 'Use the default OASIS provider' },
-  { value: 'MongoDBOASIS', label: 'MongoDB', description: 'MongoDB document database - Fast and flexible' },
-  { value: 'SQLLiteDBOASIS', label: 'SQLite', description: 'SQLite relational database - Local and lightweight' },
-  { value: 'Neo4jOASIS', label: 'Neo4j', description: 'Neo4j graph database - Perfect for relationships' },
-  { value: 'EthereumOASIS', label: 'Ethereum', description: 'Ethereum blockchain - Decentralized and secure' },
-  { value: 'ArbitrumOASIS', label: 'Arbitrum', description: 'Arbitrum Layer 2 - Fast and cheap transactions' },
-  { value: 'PolygonOASIS', label: 'Polygon', description: 'Polygon network - Low-cost Ethereum scaling' },
-  { value: 'SolanaOASIS', label: 'Solana', description: 'Solana blockchain - High-speed transactions' },
-  { value: 'EOSIOOASIS', label: 'EOSIO', description: 'EOSIO blockchain - Enterprise-grade performance' },
-  { value: 'TRONOASIS', label: 'TRON', description: 'TRON blockchain - High throughput network' },
-  { value: 'HoloOASIS', label: 'Holochain', description: 'Holochain - Agent-centric distributed computing' },
-  { value: 'IPFSOASIS', label: 'IPFS', description: 'InterPlanetary File System - Distributed storage' },
-  { value: 'PinataOASIS', label: 'Pinata', description: 'Pinata IPFS service - Reliable IPFS hosting' },
-  { value: 'AzureStorageOASIS', label: 'Azure Storage', description: 'Microsoft Azure cloud storage' },
-  { value: 'AzureCosmosDBOASIS', label: 'Azure Cosmos DB', description: 'Azure Cosmos DB - Global distributed database' },
-  { value: 'AWSOASIS', label: 'AWS', description: 'Amazon Web Services cloud platform' },
-  { value: 'GoogleCloudOASIS', label: 'Google Cloud', description: 'Google Cloud Platform services' },
-  { value: 'LocalFileOASIS', label: 'Local File', description: 'Local file system storage' },
-  { value: 'ActivityPubOASIS', label: 'ActivityPub', description: 'ActivityPub protocol - Federated social web' },
-  { value: 'ScuttlebuttOASIS', label: 'Scuttlebutt', description: 'Scuttlebutt - Offline-first social network' },
-  { value: 'ThreeFoldOASIS', label: 'ThreeFold', description: 'ThreeFold - Decentralized internet infrastructure' },
-  { value: 'UrbitOASIS', label: 'Urbit', description: 'Urbit - Personal server platform' },
-  { value: 'SOLIDOASIS', label: 'SOLID', description: 'SOLID - Decentralized web standards' },
-  { value: 'HoloWebOASIS', label: 'Holo Web', description: 'Holo Web - Distributed web hosting' },
-  { value: 'PLANOASIS', label: 'PLAN', description: 'PLAN protocol - Decentralized planning' },
-];
+import { OASIS_PROVIDERS } from '../constants/providers';
 
 interface Settings {
   general: {
@@ -119,9 +94,14 @@ interface Settings {
     autoReplication: boolean;
     replicationProviders: string[];
   };
+  stats: {
+    enableCaching: boolean;
+    cacheTtlSeconds: number;
+  };
 }
 
 const SettingsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { isDemoMode, setDemoMode } = useDemoMode();
   const [settings, setSettings] = useState<Settings>({
     general: {
@@ -158,6 +138,10 @@ const SettingsPage: React.FC = () => {
       autoReplication: true,
       replicationProviders: ['Auto', 'IPFSOASIS', 'PinataOASIS'],
     },
+    stats: {
+      enableCaching: true,
+      cacheTtlSeconds: 300,
+    },
   });
 
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -176,17 +160,21 @@ const SettingsPage: React.FC = () => {
     }));
   }, [isDemoMode]);
 
-  // Fetch settings with demo data
+  // Fetch settings: try STAR API first, fallback to current local/demo settings
   const { data: settingsData, isLoading, error, refetch } = useQuery(
     'settings',
     async () => {
       try {
-        // Force demo settings to prevent API issues
-        throw 'Forcing demo settings for presentation';
-      } catch (error) {
-        // Fallback to demo settings
-        console.log('Using demo settings for investor presentation');
-        return { result: settings };
+        const response = await starCoreService.getSettings();
+        if (!response.isError && response.result) {
+          return response;
+        }
+        // Fallback to local defaults if API returns error
+        console.warn('STAR settings API returned error, using local defaults.');
+        return { result: settings } as any;
+      } catch (err) {
+        console.warn('STAR settings API failed, using local defaults.', err);
+        return { result: settings } as any;
       }
     }
   );
@@ -194,7 +182,7 @@ const SettingsPage: React.FC = () => {
   const saveSettingsMutation = useMutation(
     async (newSettings: Settings) => {
       try {
-        return await starService.updateSettings(newSettings);
+        return await starCoreService.updateSettings(newSettings);
       } catch (error) {
         // For demo purposes, simulate success
         toast.success('Settings saved successfully! (Demo Mode)');
@@ -281,6 +269,13 @@ const SettingsPage: React.FC = () => {
       settings: settings.oasiss,
       section: 'oasiss' as keyof Settings,
     },
+    {
+      title: 'Stats & Caching',
+      icon: <SpeedIcon />,
+      color: '#00bcd4',
+      settings: settings.stats,
+      section: 'stats' as keyof Settings,
+    },
   ];
 
   return (
@@ -345,13 +340,34 @@ const SettingsPage: React.FC = () => {
       {/* OASIS Provider Management */}
       <Card sx={{ mb: 3, background: 'linear-gradient(135deg, #9c27b015, #9c27b005)', border: '2px solid #9c27b030' }}>
         <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-            <Avatar sx={{ bgcolor: '#9c27b0', width: 50, height: 50 }}>
-              <CloudIcon />
-            </Avatar>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              🌐 OASIS Provider Management
-            </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: '#9c27b0', width: 50, height: 50 }}>
+                <CloudIcon />
+              </Avatar>
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                🌐 OASIS Provider Management
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              startIcon={<RocketIcon />}
+              sx={{
+                bgcolor: '#ff6b35',
+                '&:hover': { bgcolor: '#e55a2b' },
+                fontWeight: 'bold',
+                px: 3,
+                py: 1.5,
+                borderRadius: 2,
+                boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)',
+              }}
+              onClick={() => {
+                // Navigate to HyperDrive page using React Router
+                navigate('/my-data');
+              }}
+            >
+              Configure HyperDrive
+            </Button>
           </Box>
 
           <Grid container spacing={3}>

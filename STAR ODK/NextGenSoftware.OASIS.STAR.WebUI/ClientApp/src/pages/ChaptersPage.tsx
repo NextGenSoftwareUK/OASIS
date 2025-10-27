@@ -34,11 +34,12 @@ import {
   Star,
   Refresh,
   FilterList,
+  Info,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { starService } from '../services/starService';
+import { chapterService } from '../services';
 import { useNavigate } from 'react-router-dom';
 
 interface Chapter {
@@ -92,7 +93,7 @@ const ChaptersPage: React.FC = () => {
     async () => {
       try {
         // Try to get real data first
-        const response = await starService.getAllChapters?.();
+        const response = await chapterService.getAll();
         return response;
       } catch (error) {
         // Fallback to impressive demo data
@@ -331,6 +332,12 @@ const ChaptersPage: React.FC = () => {
             <Typography variant="subtitle1" color="text.secondary">
               Manage and explore story chapters in the OASIS universe
             </Typography>
+            <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Info sx={{ color: 'white' }} />
+              <Typography variant="body2" sx={{ color: 'white' }}>
+                Create, manage and publish story chapters. Track reading progress and engagement.
+              </Typography>
+            </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl size="small" sx={{ minWidth: 140 }}>
@@ -481,9 +488,9 @@ const ChaptersPage: React.FC = () => {
                           Stats:
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                          <Chip label={`${chapter.wordCount.toLocaleString()} words`} size="small" variant="outlined" />
-                          <Chip label={`${chapter.readingTime} min read`} size="small" variant="outlined" />
-                          <Chip label={`${chapter.views.toLocaleString()} views`} size="small" variant="outlined" />
+                          <Chip label={`${(chapter.wordCount ?? 0).toLocaleString()} words`} size="small" variant="outlined" />
+                          <Chip label={`${chapter.readingTime ?? 0} min read`} size="small" variant="outlined" />
+                          <Chip label={`${(chapter.views ?? 0).toLocaleString()} views`} size="small" variant="outlined" />
                         </Box>
                       </Box>
                       

@@ -40,11 +40,12 @@ import {
   Memory,
   Security,
   Category,
-  Download
+  Download,
+  Info
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
-import { starService } from '../services/starService';
+import { holonService } from '../services';
 import { Link } from 'react-router-dom';
 
 interface Holon {
@@ -103,11 +104,11 @@ const HolonsPage: React.FC = () => {
     ['holons', viewFilter],
     async () => {
       if (viewFilter === 'Installed') {
-        return starService.getInstalledHolons();
+        return holonService.getInstalled();
       } else if (viewFilter === 'My Holons') {
-        return starService.getHolonsForAvatar('current-avatar-id');
+        return holonService.getForAvatar('current-avatar-id');
       } else {
-        return starService.getAllHolons();
+        return holonService.getAll();
       }
     }
   );
@@ -115,7 +116,7 @@ const HolonsPage: React.FC = () => {
   const holons: Holon[] = holonsData?.result || [];
 
   // Filter holons based on search and category
-  const filteredHolons = holons.filter((holon) => {
+  const filteredHolons = (holons || []).filter((holon) => {
     const matchesSearch = holon.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          holon.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'All' || holon.category === categoryFilter;
@@ -157,6 +158,12 @@ const HolonsPage: React.FC = () => {
               <Typography variant="subtitle1" color="text.secondary">
                 Reusable data structures and objects for building your OAPP
               </Typography>
+              <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Info sx={{ color: 'white' }} />
+                <Typography variant="body2" sx={{ color: 'white' }}>
+                  Create, manage and reuse data structures. Build modular OAPPs with reusable components.
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </Box>

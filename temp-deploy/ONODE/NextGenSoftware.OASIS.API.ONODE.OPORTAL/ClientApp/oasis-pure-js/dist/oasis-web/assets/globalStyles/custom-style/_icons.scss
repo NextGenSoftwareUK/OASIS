@@ -1,0 +1,27 @@
+@function str-replace($string, $search, $replace: '') {
+
+  $index: str-index($string, $search);
+
+  @if $index {
+    @return str-slice($string, 1, $index - 1)+$replace+str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
+  }
+
+  @return $string;
+};
+
+@function get-icon($icon, $color: #fff) {
+
+  $icon: map-get($icons, $icon);
+  
+  $placeholder: '%%COLOR%%';
+
+  $data-uri: str-replace(url($data-svg-prefix + $icon ), $placeholder, $color);
+
+  @return str-replace($data-uri, '#', '%23');
+};
+
+$data-svg-prefix: 'data:image/svg+xml;utf-8,';
+
+$icons: (
+  'chevron': '<svg xmlns="http://www.w3.org/2000/svg" width="9" height="12" viewBox="0.9 0.95 9 12"><path d="M2.95 11.95l-2-1.75 4.243-3.752L.95 2.7l2-1.75 6 5.5z "fill="none" stroke="&&COLOR%%" stroke-width="2"/></svg>',
+);

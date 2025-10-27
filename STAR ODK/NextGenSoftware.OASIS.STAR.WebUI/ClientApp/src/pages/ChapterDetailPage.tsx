@@ -53,7 +53,7 @@ import {
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starNetService } from '../services/starNetService';
+import { chapterService } from '../services';
 import { Chapter } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -73,7 +73,7 @@ const ChapterDetailPage: React.FC = () => {
     async () => {
       if (!id) throw new Error('Chapter ID is required');
       // For now, we'll get it from the list and filter by ID
-      const response = await starNetService.getAllChapters();
+      const response = await chapterService.getAll();
       const foundChapter = response.result?.find((c: Chapter) => c.id === id);
       if (!foundChapter) throw new Error('Chapter not found');
       return { result: foundChapter };
@@ -92,7 +92,7 @@ const ChapterDetailPage: React.FC = () => {
   const updateChapterMutation = useMutation(
     async (data: any) => {
       if (!id) throw new Error('Chapter ID is required');
-      return await starNetService.updateChapter(id, data);
+      return await chapterService.update(id, data);
     },
     {
       onSuccess: () => {
@@ -112,7 +112,7 @@ const ChapterDetailPage: React.FC = () => {
   const deleteChapterMutation = useMutation(
     async () => {
       if (!id) throw new Error('Chapter ID is required');
-      return await starNetService.deleteChapter(id);
+      return await chapterService.delete(id);
     },
     {
       onSuccess: () => {

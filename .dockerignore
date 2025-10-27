@@ -1,55 +1,72 @@
-# Ignore unnecessary files and directories
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+Docs/
+Images/
+Logos/
+
+# Build outputs
 **/bin/
 **/obj/
-**/node_modules/
-**/test/
-**/tests/
-**/TestHarness/
-**/TestHarnes/
-**/.git/
-**/.vs/
-**/.vscode/
-**/Archived/
-**/Images/
-**/Logos/
-# **/OASIS Architecture/
-**/STAR ODK/
-**/Spectre.Console/
-**/meta-bricks-main/
-**/oasis-react-ui-library/
-**/oasis-wallet-ui/
-**/contract_verification_package/
-**/AssetRail/
-**/Native EndPoint/
-**/Providers/
-**/holochain-client-csharp/
-**/External Libs/net-ipfs-http-client-master/test/
-**/External Libs/net-ipfs-http-client-master/doc/
-**/External Libs/net-ipfs-http-client-master/src/bin/
-**/External Libs/net-ipfs-http-client-master/src/obj/
+**/out/
+**/publish/
 
-# Documentation files
-*.md
-*.txt
-*.yml
-*.yaml
-*.json
-!OASIS_DNA.json
-!package.json
-!package-lock.json
-
-# Build artifacts
-*.sln
-!The OASIS.sln
+# IDE files
+.vs/
+.vscode/
 *.user
 *.suo
-*.cache
+*.userosscache
+*.sln.docstates
 
-# OS generated files
+# Test files
+**/TestHarness/
+**/UnitTests/
+**/IntegrationTests/
+**/TestResults/
+
+# Logs
+*.log
+build.log
+build_errors.txt
+
+# Archives
+*.zip
+*.rar
+*.7z
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
+
+# Large directories that aren't needed for build
+Archived/
+External Libs/
+lumina-j5-bootstrap/
+
+# Package files
+*.nupkg
+*.snupkg
+
+# Coverage reports
+coverage/
+*.coverage
+*.coveragexml
+
+# JetBrains
+.idea/
+
+# Visual Studio
+*.user
+*.suo
+*.userosscache
+*.sln.docstates

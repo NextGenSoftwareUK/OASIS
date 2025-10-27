@@ -32,7 +32,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starService } from '../services/starService';
+import { avatarService } from '../services';
 import { toast } from 'react-hot-toast';
 
 interface Avatar {
@@ -69,7 +69,7 @@ const AvatarsPage: React.FC = () => {
     'avatars',
     async () => {
       try {
-        const response = await starService.getAllAvatars();
+        const response = await avatarService.getAll();
         // Check if the real data has meaningful values, if not use demo data
         console.log('API Response for Avatars:', response);
         if (response?.result && response.result.length > 0) {
@@ -463,7 +463,7 @@ const AvatarsPage: React.FC = () => {
 
   // Create avatar mutation
   const createAvatarMutation = useMutation(
-    (avatarData: any) => starService.createAvatar(avatarData),
+    (avatarData: any) => avatarService.create(avatarData),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('avatars');
@@ -486,7 +486,7 @@ const AvatarsPage: React.FC = () => {
 
   // Delete avatar mutation
   const deleteAvatarMutation = useMutation(
-    (avatarId: string) => starService.deleteAvatar(avatarId),
+    (avatarId: string) => avatarService.delete(avatarId),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('avatars');

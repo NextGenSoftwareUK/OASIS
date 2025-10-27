@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useQueryClient } from 'react-query';
-import { starService } from '../services/starService';
+import { starCoreService } from '../services';
 import { signalRService } from '../services/signalRService';
 import { ConnectionStatus, STARStatus } from '../types/star';
 
@@ -24,7 +24,7 @@ export const useSTARConnection = () => {
   // TODO: Re-enable when backend is fixed to be consistent
   const { data: starStatus, isLoading, error } = useQuery<STARStatus>(
     'starStatus',
-    starService.getSTARStatus,
+    starCoreService.getSTARStatus,
     {
       refetchInterval: false, // Disabled due to backend inconsistency
       refetchOnWindowFocus: false, // Disabled due to backend inconsistency
@@ -105,7 +105,7 @@ export const useSTARConnection = () => {
   const igniteSTAR = useCallback(async () => {
     try {
       setConnectionStatus(prev => ({ ...prev, status: 'connecting' }));
-      const result = await starService.igniteSTAR();
+      const result = await starCoreService.igniteSTAR();
       
       if (result.isError || result.result === false) {
         // API failed or backend returned false result - update status to error
@@ -146,7 +146,7 @@ export const useSTARConnection = () => {
   const extinguishStar = useCallback(async () => {
     try {
       setConnectionStatus(prev => ({ ...prev, status: 'connecting' }));
-      const result = await starService.extinguishStar();
+      const result = await starCoreService.extinguishStar();
       
       if (result.isError) {
         // API failed - update status to error
