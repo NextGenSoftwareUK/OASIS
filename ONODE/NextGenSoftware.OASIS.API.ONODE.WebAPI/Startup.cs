@@ -7,13 +7,16 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
+using NextGenSoftware.OASIS.API.Providers.TelegramOASIS;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
@@ -224,6 +227,67 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<ICargoService, CargoService>();
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();
+            
+            // Register Telegram services
+            services.AddSingleton<TelegramOASIS>(sp =>
+            {
+                // Load from OASIS_DNA.json TelegramOASIS config
+                string botToken = "7927576561:AAEFHa3k1t6kj0t6wOu6QtU61KRsNxOoeMo";
+                string webhookUrl = "https://oasisweb4.one/api/telegram/webhook";
+                // Note: In C# code, use the actual ! character, not URL-encoded %21
+                string mongoConnectionString = "mongodb+srv://OASISWEB4:Uppermall1!@oasisweb4.ifxnugb.mongodb.net/?retryWrites=true&w=majority&appName=OASISWeb4";
+                
+                var provider = new TelegramOASIS(botToken, webhookUrl, mongoConnectionString);
+                
+                // Activate the provider immediately
+                var activationResult = provider.ActivateProvider();
+                if (activationResult.IsError)
+                {
+                    System.Console.WriteLine($"❌ TelegramOASIS activation failed: {activationResult.Message}");
+                }
+                else
+                {
+                    System.Console.WriteLine("✅ TelegramOASIS provider activated in DI registration");
+                }
+                
+                return provider;
+            });
+            
+            services.AddSingleton<NFTService>(sp =>
+            {
+                var logger = sp.GetService<ILogger<NFTService>>();
+                return new NFTService(
+                    "http://localhost:5000",  // Fixed: Changed from 5003 to 5000 (actual OASIS API port)
+                    "max.gershfield1@gmail.com",
+                    "Uppermall1!",
+                    Guid.Parse("5f7daa80-160e-4213-9e81-94500390f31e"),
+                    logger
+                );
+            });
+            
+            services.AddSingleton<PinataService>(sp =>
+            {
+                var logger = sp.GetService<ILogger<PinataService>>();
+                return new PinataService(
+                    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJmMTg4ODA1Ny0yZDRhLTQ1MzMtOWI4ZS0wZGMxYjEwNmM4YzMiLCJlbWFpbCI6Im1heC5nZXJzaGZpZWxkMUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiOWJlZDEzNDUwNzliMTU5YzE0NDMiLCJzY29wZWRLZXlTZWNyZXQiOiI2MzAzNzBkNGVhZDNkNWZkOGZiMGQ0N2FmNzhhYTZiYWNkZmM5YzY4ODNjMzEyZDc1MTYzODRhNWYzZWRmYTk0IiwiZXhwIjoxNzkxNzI2NTM3fQ.sk7jWHU6JOAlW2eF-LQrOGg-Nh84kc0-Ja8XcjQJ2Yk",
+                    logger
+                );
+            });
+            
+            services.AddSingleton<TelegramBotService>(sp =>
+            {
+                var telegramProvider = sp.GetRequiredService<TelegramOASIS>();
+                var avatarManager = AvatarManager.Instance;
+                var logger = sp.GetService<ILogger<TelegramBotService>>();
+                var nftService = sp.GetRequiredService<NFTService>();
+                var pinataService = sp.GetRequiredService<PinataService>();
+                
+                // Bot token from OASIS_DNA.json TelegramOASIS config
+                string botToken = "7927576561:AAEFHa3k1t6kj0t6wOu6QtU61KRsNxOoeMo";
+                
+                return new TelegramBotService(botToken, telegramProvider, avatarManager, logger, nftService, pinataService);
+            });
+            
             services.AddHttpContextAccessor();
 
             //services.AddCors(options =>
@@ -253,6 +317,40 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             LoggingManager.Log("Test Info", LogType.Info);
             LoggingManager.Log("Test Warning", LogType.Warning);
             LoggingManager.Log("Test Error", LogType.Error);
+            
+            // Activate TelegramOASIS provider and start bot
+            try
+            {
+                var telegramProvider = app.ApplicationServices.GetService<TelegramOASIS>();
+                if (telegramProvider != null)
+                {
+                    var activationResult = telegramProvider.ActivateProvider();
+                    if (activationResult.IsError)
+                    {
+                        LoggingManager.Log($"❌ Error activating TelegramOASIS: {activationResult.Message}", LogType.Error);
+                    }
+                    else
+                    {
+                        LoggingManager.Log("✅ TelegramOASIS provider activated successfully", LogType.Info);
+                    }
+                }
+                
+                // Start the Telegram bot service
+                var botService = app.ApplicationServices.GetService<TelegramBotService>();
+                if (botService != null)
+                {
+                    botService.StartReceiving();
+                    LoggingManager.Log("✅ Telegram bot started receiving messages", LogType.Info);
+                }
+                else
+                {
+                    LoggingManager.Log("⚠️ TelegramBotService not found in DI container", LogType.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggingManager.Log($"❌ Exception activating TelegramOASIS or starting bot: {ex.Message}", LogType.Error);
+            }
 
             // migrate database changes on startup (includes initial db creation)
             //context.Database.Migrate();

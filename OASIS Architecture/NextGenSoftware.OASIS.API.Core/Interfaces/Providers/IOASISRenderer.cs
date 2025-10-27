@@ -1,4 +1,4 @@
-﻿
+
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {

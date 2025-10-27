@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+WORKDIR /app
+COPY publish/ .
+EXPOSE 80
+ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.API.ONODE.WebAPI.dll"]
