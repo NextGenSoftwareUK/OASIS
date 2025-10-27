@@ -28,6 +28,10 @@ RUN cp -r temp-libs/NextGenSoftware\ Libraries/* "OASIS Architecture/NextGenSoft
 # Copy holochain-client-csharp
 RUN cp -r temp-holo/* "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp/"
 
+# Install missing NuGet packages for the libraries
+RUN dotnet add "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware.OASIS.Common.csproj" package BetterConsoleTables
+RUN dotnet add "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj" package NLog
+
 # Clean up
 RUN rm -rf temp-libs temp-holo
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
