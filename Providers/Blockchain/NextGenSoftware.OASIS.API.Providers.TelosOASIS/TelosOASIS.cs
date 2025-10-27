@@ -1097,22 +1097,110 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var request = new
+                {
+                    json = true,
+                    code = "orgs.seeds",
+                    table = "holon",
+                    scope = "orgs.seeds",
+                    index_position = 1,
+                    key_type = "i64",
+                    lower_bound = id.ToString(),
+                    upper_bound = id.ToString(),
+                    limit = 1
+                };
+
+                var json = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync($"{ENDPOINT_TEST}/v1/chain/get_table_rows", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var holon = ParseTelosToHolon(responseContent);
+                    if (holon != null)
+                    {
+                        result.Result = holon;
+                        result.IsError = false;
+                        result.Message = "Holon loaded successfully from Telos";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Holon not found in Telos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Telos: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Telos: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var request = new
+                {
+                    json = true,
+                    code = "orgs.seeds",
+                    table = "holon",
+                    scope = "orgs.seeds",
+                    index_position = 2,
+                    key_type = "str",
+                    lower_bound = providerKey,
+                    upper_bound = providerKey,
+                    limit = 1
+                };
+
+                var json = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync($"{ENDPOINT_TEST}/v1/chain/get_table_rows", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var holon = ParseTelosToHolon(responseContent);
+                    if (holon != null)
+                    {
+                        result.Result = holon;
+                        result.IsError = false;
+                        result.Message = "Holon loaded successfully from Telos by provider key";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Holon not found in Telos blockchain by provider key");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Telos by provider key: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Telos by provider key: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)

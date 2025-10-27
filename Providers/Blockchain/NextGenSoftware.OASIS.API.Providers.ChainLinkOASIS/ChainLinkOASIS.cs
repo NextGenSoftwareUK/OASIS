@@ -211,52 +211,133 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var avatarDetail = await LoadAvatarDetailFromChainLinkAsync(id.ToString());
+                if (avatarDetail != null)
+                {
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully from ChainLink";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found in ChainLink oracle");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailAsync(id, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var avatarDetail = await LoadAvatarDetailFromChainLinkAsync($"email:{avatarEmail}");
+                if (avatarDetail != null)
+                {
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully from ChainLink by email";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found in ChainLink oracle by email");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from ChainLink by email: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var avatarDetail = await LoadAvatarDetailFromChainLinkAsync($"username:{avatarUsername}");
+                if (avatarDetail != null)
+                {
+                    result.Result = avatarDetail;
+                    result.IsError = false;
+                    result.Message = "Avatar detail loaded successfully from ChainLink by username";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found in ChainLink oracle by username");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from ChainLink by username: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                var avatars = await LoadAllAvatarsFromChainLinkAsync();
+                result.Result = avatars;
+                result.IsError = false;
+                result.Message = "All avatars loaded successfully from ChainLink";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            return null;
+            return LoadAllAvatarsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                var avatarDetails = await LoadAllAvatarDetailsFromChainLinkAsync();
+                result.Result = avatarDetails;
+                result.IsError = false;
+                result.Message = "All avatar details loaded successfully from ChainLink";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from ChainLink: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            return null;
+            return LoadAllAvatarDetailsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
