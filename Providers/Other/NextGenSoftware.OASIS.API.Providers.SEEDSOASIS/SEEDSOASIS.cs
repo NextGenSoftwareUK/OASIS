@@ -1016,7 +1016,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            return new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetail is not supported yet by SEEDS provider." };
+            return LoadAvatarDetailAsync(id, version).Result;
         }
 
         public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
@@ -1092,7 +1092,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0)
         {
-            return new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailByEmail is not supported yet by SEEDS provider." };
+            return LoadAvatarDetailByEmailAsync(email, version).Result;
         }
 
         public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
@@ -1169,7 +1169,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0)
         {
-            return new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailByUsername is not supported yet by SEEDS provider." };
+            return LoadAvatarDetailByUsernameAsync(username, version).Result;
         }
 
         public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
@@ -1246,7 +1246,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            return new OASISResult<IEnumerable<IAvatarDetail>> { Message = "LoadAllAvatarDetails is not supported yet by SEEDS provider." };
+            return LoadAllAvatarDetailsAsync(version).Result;
         }
 
         public async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
@@ -1323,7 +1323,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            return new OASISResult<IAvatar> { Message = "SaveAvatar is not supported yet by SEEDS provider." };
+            return SaveAvatarAsync(avatar).Result;
         }
 
         public async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -1441,7 +1441,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
         {
-            return new OASISResult<IAvatarDetail> { Message = "SaveAvatarDetail is not supported yet by SEEDS provider." };
+            return SaveAvatarDetailAsync(avatarDetail).Result;
         }
 
         public async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
@@ -1556,7 +1556,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            return new OASISResult<bool> { Message = "DeleteAvatar is not supported yet by SEEDS provider." };
+            return DeleteAvatarAsync(id, softDelete).Result;
         }
 
         public Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
@@ -1566,7 +1566,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true)
         {
-            return new OASISResult<bool> { Message = "DeleteAvatarByEmail is not supported yet by SEEDS provider." };
+            return DeleteAvatarByEmailAsync(email, softDelete).Result;
         }
 
         public Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
@@ -1576,7 +1576,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true)
         {
-            return new OASISResult<bool> { Message = "DeleteAvatarByUsername is not supported yet by SEEDS provider." };
+            return DeleteAvatarByUsernameAsync(username, softDelete).Result;
         }
 
         public Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
@@ -1975,3 +1975,4 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         #endregion
     }
 }
+                                            
