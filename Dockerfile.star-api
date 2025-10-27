@@ -11,17 +11,26 @@ WORKDIR /src
 # Copy the entire OASIS project structure (now including external libraries)
 COPY . .
 
-# Build the STAR WebAPI project
-WORKDIR "/src/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI"
+# Set up external libraries in the expected locations for project references
+# This creates the directory structure that the project references expect
+RUN mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging" && \
+    cp -r "NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging/." "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging/" && \
+    mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging.NLog" && \
+    cp -r "NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging.NLog/." "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging.NLog/" && \
+    mkdir -p "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp" && \
+    cp -r "holochain-client-csharp/." "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp/"
+
+# Build the STAR WebAPI project from the root directory
+WORKDIR "/src"
 
 # Restore and build
-RUN dotnet restore "NextGenSoftware.OASIS.STAR.WebAPI.csproj"
-RUN dotnet build "NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/build
+RUN dotnet restore "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj"
+RUN dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/build
 
 # Publish the application
 FROM build AS publish
-WORKDIR "/src/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI"
-RUN dotnet publish "NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+WORKDIR "/src"
+RUN dotnet publish "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Final stage
 FROM base AS final
