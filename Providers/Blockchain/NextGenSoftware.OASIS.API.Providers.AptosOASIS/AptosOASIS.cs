@@ -747,7 +747,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             return response;
         }
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => new OASISResult<IEnumerable<IAvatarDetail>> { Message = "LoadAllAvatarDetails is not supported by Aptos provider." };
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
         {
             var response = new OASISResult<IAvatar>();
