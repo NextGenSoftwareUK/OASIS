@@ -12,6 +12,7 @@ WORKDIR /src
 COPY . .
 
 # Set up external libraries in the expected locations for project references
+# This creates the directory structure that the project references expect
 RUN mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging" && \
     cp -r "NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging"/* "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging/" && \
     mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging.NLog" && \
