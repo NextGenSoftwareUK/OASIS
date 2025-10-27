@@ -1,4 +1,5 @@
 # Use the official .NET 9 runtime as base image
+# Updated to include external libraries in build context
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 EXPOSE 8080
