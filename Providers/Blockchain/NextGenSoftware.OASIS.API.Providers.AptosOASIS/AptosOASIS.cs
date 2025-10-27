@@ -1144,8 +1144,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         function = $"{_contractAddress}::oasis::search",
                         arguments = new[]
                         {
-                            searchParams.SearchText ?? "",
-                            searchParams.SearchType.ToString(),
+                            "", // SearchParams doesn't have SearchText property
+                            "All", // SearchParams doesn't have SearchType property
                             version.ToString()
                         }
                     }
@@ -2847,7 +2847,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                             var avatar = ParseAptosToAvatar(item);
                             avatarList.Add(avatar);
                         }
-                        searchResults.Avatars = avatarList;
+                        searchResults.SearchResultAvatars = avatarList;
                     }
 
                     if (data.TryGetProperty("holons", out var holons) && holons.ValueKind == JsonValueKind.Array)
@@ -2892,9 +2892,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     Description = aptosData.TryGetProperty("data", out var data3) &&
                                  data3.TryGetProperty("description", out var description) ? description.GetString() : "Aptos Holon Description",
                     CreatedDate = aptosData.TryGetProperty("data", out var data4) &&
-                                 data4.TryGetProperty("created_date", out var createdDate) ? createdDate.GetInt64() : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                                 data4.TryGetProperty("created_date", out var createdDate) ? DateTimeOffset.FromUnixTimeSeconds(createdDate.GetInt64()).DateTime : DateTime.UtcNow,
                     ModifiedDate = aptosData.TryGetProperty("data", out var data5) &&
-                                  data5.TryGetProperty("modified_date", out var modifiedDate) ? modifiedDate.GetInt64() : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                                  data5.TryGetProperty("modified_date", out var modifiedDate) ? DateTimeOffset.FromUnixTimeSeconds(modifiedDate.GetInt64()).DateTime : DateTime.UtcNow,
                     IsActive = aptosData.TryGetProperty("data", out var data6) &&
                               data6.TryGetProperty("is_active", out var isActive) ? isActive.GetBoolean() : true
                 };
