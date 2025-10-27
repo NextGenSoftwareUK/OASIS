@@ -944,7 +944,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         {
                             type = "entry_function_payload",
                             function = $"{_contractAddress}::oasis::delete_avatar",
-                            arguments = new[] { id.ToString(), softDelete }
+                            arguments = new[] { id.ToString(), softDelete.ToString() }
                         }
                     }
                 };
@@ -1014,7 +1014,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         {
                             type = "entry_function_payload",
                             function = $"{_contractAddress}::oasis::delete_avatar_by_email",
-                            arguments = new[] { avatarEmail, softDelete }
+                            arguments = new[] { avatarEmail, softDelete.ToString() }
                         }
                     }
                 };
@@ -1082,7 +1082,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         {
                             type = "entry_function_payload",
                             function = $"{_contractAddress}::oasis::delete_avatar_by_username",
-                            arguments = new[] { avatarUsername, softDelete }
+                            arguments = new[] { avatarUsername, softDelete.ToString() }
                         }
                     }
                 };
@@ -1290,19 +1290,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                             holon.Name ?? "",
                             holon.Description ?? "",
                             (int)holon.HolonType,
-                            holon.ParentHolonId?.ToString() ?? "",
-                            holon.ParentOmniverseId?.ToString() ?? "",
-                            holon.ParentMultiverseId?.ToString() ?? "",
-                            holon.ParentUniverseId?.ToString() ?? "",
-                            holon.ParentDimensionId?.ToString() ?? "",
-                            holon.ParentGalaxyClusterId?.ToString() ?? "",
-                            holon.ParentGalaxyId?.ToString() ?? "",
-                            holon.ParentSolarSystemId?.ToString() ?? "",
-                            holon.ParentPlanetId?.ToString() ?? "",
-                            holon.ParentMoonId?.ToString() ?? "",
-                            holon.ParentStarId?.ToString() ?? "",
-                            holon.ParentZomeId?.ToString() ?? "",
-                            holon.MetaData ?? "",
+                            holon.ParentHolonId.ToString(),
+                            holon.ParentOmniverseId.ToString(),
+                            holon.ParentMultiverseId.ToString(),
+                            holon.ParentUniverseId.ToString(),
+                            holon.ParentDimensionId.ToString(),
+                            holon.ParentGalaxyClusterId.ToString(),
+                            holon.ParentGalaxyId.ToString(),
+                            holon.ParentSolarSystemId.ToString(),
+                            holon.ParentPlanetId.ToString(),
+                            holon.ParentMoonId.ToString(),
+                            holon.ParentStarId.ToString(),
+                            holon.ParentZomeId.ToString(),
+                            holon.MetaData != null ? System.Text.Json.JsonSerializer.Serialize(holon.MetaData) : "",
                             ((DateTimeOffset)holon.CreatedDate).ToUnixTimeSeconds(),
                             ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds(),
                             holon.IsActive
@@ -2858,12 +2858,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                             var holon = ParseAptosToHolon(item);
                             holonList.Add(holon);
                         }
-                        searchResults.Holons = holonList;
+                        searchResults.SearchResultHolons = holonList;
                     }
 
                     if (data.TryGetProperty("total_results", out var totalResults))
                     {
-                        searchResults.TotalResults = totalResults.GetInt32();
+                        searchResults.NumberOfResults = totalResults.GetInt32();
                     }
                 }
 
