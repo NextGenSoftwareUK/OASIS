@@ -561,22 +561,68 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                // Delete avatar by email from BlockStack Gaia storage
+                var userDir = $"avatar_{avatarEmail.Replace("@", "_").Replace(".", "_")}";
+                var filePath = $"{userDir}/avatar.json";
+                
+                var deleteResult = await _blockStackClient.DeleteFileAsync(filePath);
+                if (deleteResult.Success)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully from BlockStack";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar from BlockStack: {deleteResult.ErrorMessage}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from BlockStack: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                // Delete avatar by username from BlockStack Gaia storage
+                var userDir = $"avatar_{avatarUsername}";
+                var filePath = $"{userDir}/avatar.json";
+                
+                var deleteResult = await _blockStackClient.DeleteFileAsync(filePath);
+                if (deleteResult.Success)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully from BlockStack by username";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar from BlockStack by username: {deleteResult.ErrorMessage}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from BlockStack by username: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
