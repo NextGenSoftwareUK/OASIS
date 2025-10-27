@@ -11,6 +11,13 @@ WORKDIR /src
 # Copy the entire OASIS project structure (now including external libraries)
 COPY . .
 
+# Debug: Check what directories exist
+RUN ls -la /src/ | head -20
+
+# Debug: Check if external libraries exist
+RUN echo "Checking NextGenSoftware-Libraries:" && ls -la "NextGenSoftware-Libraries/" || echo "NextGenSoftware-Libraries not found"
+RUN echo "Checking holochain-client-csharp:" && ls -la "holochain-client-csharp/" || echo "holochain-client-csharp not found"
+
 # Set up external libraries in the expected locations for project references
 # This creates the directory structure that the project references expect
 RUN mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging" && \
