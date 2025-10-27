@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public STARNFTCollectionManager(Guid avatarId, STARDNA STARDNA, OASISDNA OASISDNA = null) : base(avatarId,
             STARDNA,
             OASISDNA,
-            typeof(STARNFTCollection),
+            typeof(NFTType),
             HolonType.STARNFTCollection,
             HolonType.InstalledNFTCollection,
             "NFTCollection",

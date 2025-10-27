@@ -52,32 +52,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             request.Title = CLIEngine.GetValidInput("What is the NFT's title?");
             request.Description = CLIEngine.GetValidInput("What is the NFT's description?");
             request.MemoText = CLIEngine.GetValidInput("What is the NFT's memotext? (optional)");
-
-            if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT or input a URI to an online image? (Press Y for local or N for online)"))
-            {
-                Console.WriteLine("");
-                string localImagePath = CLIEngine.GetValidFile("What is the full path to the local image you want to represent the NFT?");
-                request.Image = File.ReadAllBytes(localImagePath);
-            }
-            else
-            {
-                Console.WriteLine("");
-                request.ImageUrl = CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT?").Result.AbsoluteUri;
-            }
-
-
-            if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT Thumbnail or input a URI to an online image? (Press Y for local or N for online)"))
-            {
-                Console.WriteLine("");
-                string localImagePath = CLIEngine.GetValidFile("What is the full path to the local image you want to represent the NFT Thumbnail?");
-                request.Thumbnail = File.ReadAllBytes(localImagePath);
-            }
-            else
-            {
-                Console.WriteLine("");
-                request.ThumbnailUrl = CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT Thumbnail?").Result.AbsoluteUri;
-            }
-
             request.Price = CLIEngine.GetValidInputForLong("What is the price for the NFT?");
 
             if (CLIEngine.GetConfirmation("Is there any discount for the NFT? (This can always be changed later)"))
@@ -143,6 +117,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             } while (!validStandard);
 
+            if (request.NFTOffChainMetaType.Value != NFTOffChainMetaType.ExternalJSONURL)
+            {
+                if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT or input a URI to an online image? (Press Y for local or N for online)"))
+                {
+                    Console.WriteLine("");
+                    string localImagePath = CLIEngine.GetValidFile("What is the full path to the local image you want to represent the NFT?");
+                    request.Image = File.ReadAllBytes(localImagePath);
+                }
+                else
+                {
+                    Console.WriteLine("");
+                    request.ImageUrl = CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT?").Result.AbsoluteUri;
+                }
+
+
+                if (CLIEngine.GetConfirmation("Do you want to upload a local image on your device to represent the NFT Thumbnail or input a URI to an online image? (Press Y for local or N for online)"))
+                {
+                    Console.WriteLine("");
+                    string localImagePath = CLIEngine.GetValidFile("What is the full path to the local image you want to represent the NFT Thumbnail?");
+                    request.Thumbnail = File.ReadAllBytes(localImagePath);
+                }
+                else
+                {
+                    Console.WriteLine("");
+                    request.ThumbnailUrl = CLIEngine.GetValidURIAsync("What is the URI to the image you want to represent the NFT Thumbnail?").Result.AbsoluteUri;
+                }
+            }
 
             if (CLIEngine.GetConfirmation("Do you wish to add any metadata to this NFT?"))
             {

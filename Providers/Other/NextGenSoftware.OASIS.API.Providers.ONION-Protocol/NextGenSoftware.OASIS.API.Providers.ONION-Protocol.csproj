@@ -5,4 +5,8 @@
     <RootNamespace>NextGenSoftware.OASIS.API.Providers.ONION_Protocol</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.WebSocket\NextGenSoftware.WebSocket.csproj" />
+  </ItemGroup>
+
 </Project>

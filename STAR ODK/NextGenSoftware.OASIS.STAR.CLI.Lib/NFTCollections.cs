@@ -1,5 +1,7 @@
-﻿using NextGenSoftware.CLI.Engine;
+﻿using Newtonsoft.Json;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -59,16 +61,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (CLIEngine.GetConfirmation("Do you have an existing WEB4 OASIS NFT Collection you wish to create a WEB5 NFT Collection from?"))
             {
                 Console.WriteLine("");
-                Guid id = CLIEngine.GetValidInputForGuid("Please enter the ID of the WEB4 NFT Collection you wish to upload to STARNET: ");
+                collectionResult = await FindWeb4NFTCollectionAsync("wrap");
 
-                if (id != Guid.Empty)
-                    collectionResult = await STAR.OASISAPI.NFTs.LoadOASISNFTCollectionAsync(id, providerType: providerType);
-                else
-                {
-                    result.IsWarning = true;
-                    result.Message = "User Exited";
-                    return result;
-                }
+                //Guid id = CLIEngine.GetValidInputForGuid("Please enter the ID of the WEB4 NFT Collection you wish to upload to STARNET: ");
+
+                //if (id != Guid.Empty)
+                //    collectionResult = await STAR.OASISAPI.NFTs.LoadOASISNFTCollectionAsync(id, providerType: providerType);
+                //else
+                //{
+                //    result.IsWarning = true;
+                //    result.Message = "User Exited";
+                //    return result;
+                //}
             }
             else
             {
@@ -100,7 +104,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
-                        result.Result.NFTCollectionType = (NFTCollectionType)result.Result.STARNETDNA.STARNETCategory;
+                        result.Result.NFTCollectionType = (NFTCollectionType)Enum.Parse(typeof(NFTCollectionType), result.Result.STARNETDNA.STARNETCategory.ToString());
                         OASISResult<STARNFTCollection> saveResult = await result.Result.SaveAsync<STARNFTCollection>();
 
                         if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
@@ -121,6 +125,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             return result;
+        }
+
+        public override void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 35, object customData = null)
+        {
+            displayFieldLength = DEFAULT_FIELD_LENGTH;
+            base.Show(starHolon, showHeader, false, showNumbers, number, showDetailedInfo, displayFieldLength, customData);
+
+            if (starHolon.STARNETDNA != null && starHolon.STARNETDNA.MetaData != null && starHolon.STARNETDNA.MetaData.ContainsKey("NFTCollection") && starHolon.STARNETDNA.MetaData["NFTCollection"] != null)
+            {
+                IOASISNFTCollection collection = starHolon.STARNETDNA.MetaData["NFTCollection"] as IOASISNFTCollection;
+
+                if (collection == null)
+                    collection = JsonConvert.DeserializeObject<OASISNFTCollection>(starHolon.STARNETDNA.MetaData["NFTCollection"].ToString());
+
+                if (collection != null)
+                {
+                    Console.WriteLine("");
+                    DisplayProperty("NFT COLLECTION DETAILS", "", displayFieldLength, false);
+                    ShowNFTCollection(collection, showHeader: false, showFooter: false);
+                }
+            }
+
+            CLIEngine.ShowDivider();
         }
 
         public async Task<OASISResult<IOASISNFTCollection>> CreateWeb4NFTCollectionAsync(object createOptions = null, ProviderType providerType = ProviderType.Default)
@@ -467,7 +494,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         if (searchResults.Result.Count() > 1)
                         {
-                            ListWeb4NFTCollections(searchResults);
+                            ListWeb4NFTCollections(searchResults, true);
 
                             if (CLIEngine.GetConfirmation("Are any of these correct?"))
                             {
@@ -548,7 +575,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private OASISResult<IEnumerable<IOASISNFTCollection>> ListWeb4NFTCollections(OASISResult<IEnumerable<IOASISNFTCollection>> collections)
+        private OASISResult<IEnumerable<IOASISNFTCollection>> ListWeb4NFTCollections(OASISResult<IEnumerable<IOASISNFTCollection>> collections, bool showNumbers = false, bool showDetailedInfo = false)
         {
             if (collections != null)
             {
@@ -563,8 +590,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         else
                             CLIEngine.ShowMessage($"{collections.Result.Count()} WEB4 Collection's Found:");
 
-                        foreach (IOASISNFTCollection collection in collections.Result)
-                            ShowNFTCollection(collection);
+                        for (int i = 0; i < collections.Result.Count(); i++)
+                            ShowNFTCollection(collections.Result.ElementAt(i), i == 0, true, showNumbers, i + 1, showDetailedInfo);
                     }
                     else
                         CLIEngine.ShowWarningMessage($"No WEB4 Collection's Found.");
@@ -578,11 +605,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return collections;
         }
 
-        private void ShowNFTCollection(IOASISNFTCollection collection, bool showDetailed = true, int displayFieldLength = DEFAULT_FIELD_LENGTH)
+        private void ShowNFTCollection(IOASISNFTCollection collection, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = DEFAULT_FIELD_LENGTH)
         {
+            if (DisplayFieldLength > displayFieldLength)
+                displayFieldLength = DisplayFieldLength;
+
+            if (showHeader)
+                CLIEngine.ShowDivider();
+
             Console.WriteLine("");
-            DisplayProperty("NFT COLLECTION DETAILS", "", displayFieldLength, false);
-            Console.WriteLine("");
+
+            if (showNumbers)
+                CLIEngine.ShowMessage(string.Concat("Number:".PadRight(displayFieldLength), number), false);
+
+            //DisplayProperty("NFT COLLECTION DETAILS", "", displayFieldLength, false);
+            //Console.WriteLine("");
             DisplayProperty("Id", collection.Id.ToString(), displayFieldLength);
             DisplayProperty("Title", collection.Name, displayFieldLength);
             DisplayProperty("Description", collection.Description, displayFieldLength);
@@ -597,7 +634,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("Thumbnail", collection.Thumbnail != null ? "Yes" : "None", displayFieldLength);
             DisplayProperty("Thumbnail Url", !string.IsNullOrEmpty(collection.ThumbnailUrl) ? collection.ThumbnailUrl : "None", displayFieldLength);
             ShowMetaData(collection.MetaData);
-            ShowNFTCollectionNFTs(collection.OASISNFTs, showDetailed, 20);
+            ShowNFTCollectionNFTs(collection.OASISNFTs, showDetailedInfo, 20);
+
+            if (showFooter)
+                CLIEngine.ShowDivider();
         }
 
         private void ShowNFTCollectionNFTs(IEnumerable<IOASISNFT> nfts, bool showDetailed = false, int defaultFieldLength = 20)

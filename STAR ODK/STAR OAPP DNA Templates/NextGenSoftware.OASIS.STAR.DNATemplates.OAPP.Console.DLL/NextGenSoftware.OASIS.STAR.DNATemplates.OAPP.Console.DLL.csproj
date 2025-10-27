@@ -19,12 +19,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="OASIS_DNA.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-	</ItemGroup>
-
-	<ItemGroup>
 		<None Include="Program.cs" />
 	</ItemGroup>
 
@@ -527,6 +521,15 @@
 		<Reference Include="ZstdSharp">
 			<HintPath>Runtimes\OASIS Runtime v3.2.2\ZstdSharp.dll</HintPath>
 		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="DNA\OASIS_DNA.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="DNA\STAR_DNA.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
 </Project>
