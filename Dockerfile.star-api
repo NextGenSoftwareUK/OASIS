@@ -11,9 +11,8 @@ WORKDIR /src
 # Copy the entire OASIS project structure
 COPY . .
 
-# Create the directory structure and copy external libraries to the correct relative path
-RUN mkdir -p ../NextGenSoftware-Libraries/NextGenSoftware\ Libraries/
-COPY external-libs/NextGenSoftware-Libraries/NextGenSoftware\ Libraries/ ../NextGenSoftware-Libraries/NextGenSoftware\ Libraries/
+# Copy external libraries to a location within the build context
+COPY external-libs/NextGenSoftware-Libraries/NextGenSoftware\ Libraries/ NextGenSoftware-Libraries/NextGenSoftware\ Libraries/
 
 # Clone holochain-client-csharp from GitHub
 RUN apt-get update && apt-get install -y git
