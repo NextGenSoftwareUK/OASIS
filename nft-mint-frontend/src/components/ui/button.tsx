@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 const baseStyles = "inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
 
-const variantStyles: Record<ButtonProps["variant"], string> = {
+const variantStyles: Record<NonNullable<ButtonProps["variant"]>, string> = {
   primary:
     "bg-[var(--accent)] text-[#041321] shadow-[0_20px_40px_rgba(34,211,238,0.25)] hover:bg-[#38e0ff] focus-visible:ring-[var(--accent)] focus-visible:ring-offset-0",
   outline:
@@ -23,6 +23,7 @@ export type ButtonProps = DetailedHTMLProps<
   HTMLButtonElement
 > & {
   variant?: "primary" | "outline" | "ghost" | "secondary" | "toggle";
+  "data-state"?: string;
 };
 
 export function Button({ className, variant = "primary", "data-state": dataState, ...props }: ButtonProps) {

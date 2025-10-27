@@ -99,6 +99,7 @@ export async function POST(request: NextRequest) {
         jwtToken?: string;
         avatarId?: string;
         avatar?: { id?: string; AvatarId?: string };
+        message?: string;
       };
     } | null = null;
 

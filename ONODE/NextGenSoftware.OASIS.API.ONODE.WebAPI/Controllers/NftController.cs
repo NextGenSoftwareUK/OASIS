@@ -279,7 +279,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IOASISGeoSpatialNFT>> PlaceGeoNFTAsync(PlaceGeoSpatialNFTRequest request)
         {
             // Use the ProviderType directly
-            ProviderType originalOASISNFTProviderType = request.OriginalOASISNFTOffChainProvider;
+            ProviderType originalOASISNFTProviderType = request.OriginalOASISNFTOffChainProvider.Value;
 
 
             // No need to parse - ProviderType is already a ProviderType enum

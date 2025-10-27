@@ -147,18 +147,52 @@ export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMin
                 });
 
                 setMintResult(response);
-                if (process.env.NODE_ENV !== "production") {
-                  console.log("[mint] success", response);
+                console.log("[mint] API response:", JSON.stringify(response, null, 2));
+
+                // Check if the response indicates actual success
+                const responseObj = response as Record<string, unknown> | null;
+                const isSuccess = responseObj?.IsError === false || responseObj?.isError === false;
+                const errorMessage = responseObj?.Message || responseObj?.message || responseObj?.ErrorMessage;
+                const innerMessages = responseObj?.InnerMessages;
+
+                if (!isSuccess && errorMessage) {
+                  console.error("[mint] Error details:", {
+                    message: errorMessage,
+                    innerMessages,
+                    fullResponse: responseObj,
+                  });
+                  let fullError = String(errorMessage);
+                  if (innerMessages) {
+                    fullError += `\n\nInner Messages: ${JSON.stringify(innerMessages, null, 2)}`;
+                  }
+                  throw new Error(fullError);
                 }
+
+                // Check if there's an error in nested result
+                const result = responseObj?.result as Record<string, unknown> | undefined;
+                if (result?.IsError === true || result?.isError === true) {
+                  const nestedError = result?.Message || result?.message || result?.ErrorMessage;
+                  const nestedInner = result?.InnerMessages;
+                  console.error("[mint] Nested error:", {
+                    message: nestedError,
+                    innerMessages: nestedInner,
+                    fullResult: result,
+                  });
+                  let fullError = String(nestedError || "Minting failed");
+                  if (nestedInner) {
+                    fullError += `\n\nInner Messages: ${JSON.stringify(nestedInner, null, 2)}`;
+                  }
+                  throw new Error(fullError);
+                }
+
                 onStatusChange?.("ready");
                 onMintSuccess?.(response);
                 setShowSuccessModal(true);
               } catch (error: unknown) {
                 const message = error instanceof Error ? error.message : "Minting failed";
                 setMintError(message);
-                if (process.env.NODE_ENV !== "production") {
-                  console.error("[mint] failed", error);
-                }
+                console.error("[mint] failed:", error);
+                console.error("[mint] full error:", JSON.stringify(error, null, 2));
                 onStatusChange?.("idle");
               } finally {
                 setMinting(false);

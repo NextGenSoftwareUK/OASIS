@@ -5,7 +5,7 @@ const PINATA_API_KEY = process.env.PINATA_API_KEY ?? process.env.PINATA_PUBLIC_K
 const PINATA_SECRET_KEY = process.env.PINATA_API_SECRET ?? process.env.PINATA_SECRET_KEY ?? process.env.NEXT_PUBLIC_PINATA_API_SECRET;
 const PINATA_GATEWAY = process.env.PINATA_GATEWAY ?? "https://gateway.pinata.cloud";
 
-function getAuthHeaders() {
+function getAuthHeaders(): Record<string, string> {
   if (PINATA_JWT) {
     return { Authorization: `Bearer ${PINATA_JWT}` };
   }

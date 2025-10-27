@@ -299,3 +299,7 @@ If something doesn't work:
 
 **Good luck with your first custom badge NFT!** 🎉
 
+
+
+
+
