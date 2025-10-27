@@ -849,9 +849,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
                     {
-                        if (task.Result.IsError || task.Result.Result == null)
+                        if (task.Result == null || (task.Result.IsError || task.Result.Result == null))
                         {
-                            if (string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication)
+                            if (task.Result == null || (task.Result != null && string.IsNullOrEmpty(task.Result.Message) && saveMode != SaveMode.AutoReplication))
                                 task.Result.Message = "Unknown.";
 
                             OASISErrorHandling.HandleWarning(ref result, string.Concat(errorMessage, task.Result.Message), task.Result.DetailedMessage, saveMode == SaveMode.AutoReplication);
@@ -1048,7 +1048,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                     HolonType = HolonType.Avatar,
                                     SearchQuery = searchTerm,
                                     SearchAvatars = true,
-                                    AvatarSerachParams = new SearchAvatarParams()
+                                    AvatarSearchParams = new SearchAvatarParams()
                                     {
                                         SearchAllFields = true
                                     }
@@ -1078,7 +1078,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                                     HolonType = HolonType.Avatar,
                                     SearchQuery = searchTerm,
                                     SearchAvatars = true,
-                                    AvatarSerachParams = new SearchAvatarParams()
+                                    AvatarSearchParams = new SearchAvatarParams()
                                     {
                                         SearchAllFields = true
                                     }

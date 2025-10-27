@@ -5,7 +5,8 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
     {
         MainQuest,
         SideQuest,
-        MagicQuest
+        MagicQuest,
+        EggQuest
         //Mission
     }
 }

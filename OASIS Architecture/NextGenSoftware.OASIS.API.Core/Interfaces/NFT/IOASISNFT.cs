@@ -38,6 +38,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT
         //public string Token { get; set; } //TODO: Should be dervied from the OnChainProvider so may not need this?
         public string MemoText { get; set; }
         Dictionary<string, object> MetaData { get; set; }
+        public List<string> Tags { get; set; }
         EnumValue<ProviderType> OffChainProvider { get; set; }
         EnumValue<ProviderType> OnChainProvider { get; set; }
         public bool StoreNFTMetaDataOnChain { get; set; }

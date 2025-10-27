@@ -18,7 +18,7 @@ OASISResult<bool> bootResult = await STAR.OASISAPI.BootOASISAsync();
 
 if (bootResult != null && !bootResult.IsError)
 {
-    {INITCUSTOMTAGHOLONS}
+    //{INITCUSTOMTAGHOLONS}
     {ZOME1} zome = new {ZOME1}();
 
     CLIEngine.ShowDivider();

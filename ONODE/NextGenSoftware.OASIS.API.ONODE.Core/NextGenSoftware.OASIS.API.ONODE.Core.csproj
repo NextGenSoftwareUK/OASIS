@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
 	  <PackageId>NextGenSoftware.OASIS.API.ONODE.Core</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API ONODE Core</Product>
@@ -40,6 +42,8 @@
 	  <PackageReference Include="SevenZip" Version="19.0.0" />
 	  <PackageReference Include="SharpCompress" Version="0.39.0" />
 	  <PackageReference Include="SharpZipLib" Version="1.4.2" />
+	  <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.4" />
+	  <PackageReference Include="Ipfs.Core" Version="0.55.0" />
 	</ItemGroup>
 
 	<!--<ItemGroup>
@@ -60,9 +64,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+	  <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
 	  <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+	  <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
 	  <ProjectReference Include="..\..\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\NextGenSoftware.OASIS.STAR.DNA.csproj" />
+	  <ProjectReference Include="..\..\Providers\Network\NextGenSoftware.OASIS.API.Providers.IPFSOASIS\NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj" />
+	  <ProjectReference Include="..\..\Providers\Network\NextGenSoftware.OASIS.API.Providers.PinataOASIS\NextGenSoftware.OASIS.API.Providers.PinataOASIS.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Remove="NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests\**" />
+		<EmbeddedResource Remove="NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests\**" />
+		<None Remove="NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests\**" />
 	</ItemGroup>
 
 </Project>

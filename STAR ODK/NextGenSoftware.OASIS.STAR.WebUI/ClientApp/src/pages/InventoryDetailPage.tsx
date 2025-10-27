@@ -50,7 +50,7 @@ import {
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starNetService } from '../services/starNetService';
+import { inventoryService } from '../services';
 import { InventoryItem } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -70,7 +70,7 @@ const InventoryDetailPage: React.FC = () => {
     async () => {
       if (!id) throw new Error('Item ID is required');
       // For now, we'll get it from the list and filter by ID
-      const response = await starNetService.getAllInventoryItems();
+      const response = await inventoryService.getAll();
       const foundItem = response.result?.find((i: InventoryItem) => i.id === id);
       if (!foundItem) throw new Error('Item not found');
       return { result: foundItem };
@@ -89,7 +89,7 @@ const InventoryDetailPage: React.FC = () => {
   const updateItemMutation = useMutation(
     async (data: any) => {
       if (!id) throw new Error('Item ID is required');
-      return await starNetService.updateInventoryItem(id, data);
+      return await inventoryService.update(id, data);
     },
     {
       onSuccess: () => {
@@ -109,7 +109,7 @@ const InventoryDetailPage: React.FC = () => {
   const deleteItemMutation = useMutation(
     async () => {
       if (!id) throw new Error('Item ID is required');
-      return await starNetService.deleteInventoryItem(id);
+      return await inventoryService.delete(id);
     },
     {
       onSuccess: () => {

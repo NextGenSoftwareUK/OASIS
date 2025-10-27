@@ -1,4 +1,5 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
+﻿using System;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
 using NextGenSoftware.Utilities;
 
@@ -14,5 +15,13 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.Wallets.Requests
         public EnumValue<ProviderType> ToProvider { get; set; }
         public decimal Amount { get; set; }
         public string MemoText { get; set; }
+        
+        // Avatar-based properties for backward compatibility
+        public Guid FromAvatarId { get; set; }
+        public string FromAvatarUsername { get; set; }
+        public string FromAvatarEmail { get; set; }
+        public Guid ToAvatarId { get; set; }
+        public string ToAvatarUsername { get; set; }
+        public string ToAvatarEmail { get; set; }
     }
 }

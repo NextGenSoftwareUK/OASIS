@@ -124,6 +124,19 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultGeoNFTsDownloadedPath { get; set; } = "GeoNFTs\\Downloaded";
         public string DefaultGeoNFTsInstalledPath { get; set; } = "GeoNFTs\\Installed";
 
+        //NFT Collections are collections of NFTs.
+        public string DefaultNFTCollectionsSourcePath { get; set; } = "NFTCollections\\Source";
+        public string DefaultNFTCollectionsPublishedPath { get; set; } = "NFTCollections\\Published";
+        public string DefaultNFTCollectionsDownloadedPath { get; set; } = "NFTCollections\\Downloaded";
+        public string DefaultNFTCollectionsInstalledPath { get; set; } = "NFTCollectionvs\\Installed";
+
+
+        //GeoNFT Collections are collections of GeoNFTs.
+        public string DefaultGeoNFTCollectionsSourcePath { get; set; } = "GeoNFTCollections\\Source";
+        public string DefaultGeoNFTCollectionsPublishedPath { get; set; } = "GeoNFTCollections\\Published";
+        public string DefaultGeoNFTCollectionsDownloadedPath { get; set; } = "GeoNFTCollections\\Downloaded";
+        public string DefaultGeoNFTCollectionsInstalledPath { get; set; } = "GeoNFTCollections\\Installed";
+
 
         //GeoHotSpots are special geolocations within Our World/Omniverse that can be triggered when you arrive at the location, when you activate AR mode or interact with a virtual object at that location.
         public string DefaultGeoHotSpotsSourcePath { get; set; } = "GeoHotSpots\\Source";

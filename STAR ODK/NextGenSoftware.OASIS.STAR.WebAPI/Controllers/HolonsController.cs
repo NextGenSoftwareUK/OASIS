@@ -6,6 +6,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.STAR.WebAPI.Models;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
@@ -319,5 +322,444 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// Creates a new holon with specified parameters.
+        /// </summary>
+        /// <param name="request">Create request containing holon details and source folder path.</param>
+        /// <returns>Result of the holon creation operation.</returns>
+        /// <response code="200">Holon created successfully</response>
+        /// <response code="400">Error creating holon</response>
+        [HttpPost("create")]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CreateHolonWithOptions([FromBody] CreateHolonRequest request)
+        {
+            try
+            {
+                var result = await _starAPI.Holons.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<STARHolon>
+                {
+                    IsError = true,
+                    Message = $"Error creating holon: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Loads a holon by ID with optional version and holon type.
+        /// </summary>
+        /// <param name="id">The unique identifier of the holon to load.</param>
+        /// <param name="version">The version of the holon to load (0 for latest).</param>
+        /// <param name="holonType">The type of holon to load.</param>
+        /// <returns>The requested holon details.</returns>
+        /// <response code="200">Holon loaded successfully</response>
+        /// <response code="400">Error loading holon</response>
+        [HttpGet("{id}/load")]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> LoadHolon(Guid id, [FromQuery] int version = 0, [FromQuery] string holonType = "Default")
+        {
+            try
+            {
+                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var result = await _starAPI.Holons.LoadAsync(AvatarId, id, version, holonTypeEnum);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<STARHolon>
+                {
+                    IsError = true,
+                    Message = $"Error loading holon: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Loads a holon from source or installed folder path.
+        /// </summary>
+        /// <param name="path">The source or installed folder path.</param>
+        /// <param name="holonType">The type of holon to load.</param>
+        /// <returns>The loaded holon details.</returns>
+        /// <response code="200">Holon loaded successfully</response>
+        /// <response code="400">Error loading holon</response>
+        [HttpGet("load-from-path")]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> LoadHolonFromPath([FromQuery] string path, [FromQuery] string holonType = "Default")
+        {
+            try
+            {
+                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var result = await _starAPI.Holons.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<STARHolon>
+                {
+                    IsError = true,
+                    Message = $"Error loading holon from path: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Loads a holon from a published file.
+        /// </summary>
+        /// <param name="publishedFilePath">The path to the published holon file.</param>
+        /// <returns>The loaded holon details.</returns>
+        /// <response code="200">Holon loaded successfully</response>
+        /// <response code="400">Error loading holon</response>
+        [HttpGet("load-from-published")]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> LoadHolonFromPublished([FromQuery] string publishedFilePath)
+        {
+            try
+            {
+                var result = await _starAPI.Holons.LoadForPublishedFileAsync(AvatarId, publishedFilePath);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<STARHolon>
+                {
+                    IsError = true,
+                    Message = $"Error loading holon from published file: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Loads all holons for the authenticated avatar.
+        /// </summary>
+        /// <param name="showAllVersions">Whether to show all versions of holons.</param>
+        /// <param name="version">Specific version to load (0 for latest).</param>
+        /// <returns>List of all holons for the avatar.</returns>
+        /// <response code="200">Holons loaded successfully</response>
+        /// <response code="400">Error loading holons</response>
+        [HttpGet("load-all-for-avatar")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARHolon>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARHolon>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> LoadAllHolonsForAvatar([FromQuery] bool showAllVersions = false, [FromQuery] int version = 0)
+        {
+            try
+            {
+                var result = await _starAPI.Holons.LoadAllForAvatarAsync(AvatarId, showAllVersions, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<STARHolon>>
+                {
+                    IsError = true,
+                    Message = $"Error loading holons for avatar: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Publishes a holon to the STARNET system.
+        /// </summary>
+        /// <param name="id">The unique identifier of the holon to publish.</param>
+        /// <param name="request">Publish request containing source path, launch target, and publish options.</param>
+        /// <returns>Result of the holon publish operation.</returns>
+        /// <response code="200">Holon published successfully</response>
+        /// <response code="400">Error publishing holon</response>
+        [HttpPost("{id}/publish")]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> PublishHolon(Guid id, [FromBody] PublishRequest request)
+        {
+            try
+            {
+                var result = await _starAPI.Holons.PublishAsync(
+                    AvatarId, 
+                    request.SourcePath, 
+                    request.LaunchTarget, 
+                    request.PublishPath, 
+                    request.Edit, 
+                    request.RegisterOnSTARNET, 
+                    request.GenerateBinary, 
+                    request.UploadToCloud
+                );
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<STARHolon>
+                {
+                    IsError = true,
+                    Message = $"Error publishing holon: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Downloads a holon from the STARNET system.
+        /// </summary>
+        /// <param name="id">The unique identifier of the holon to download.</param>
+        /// <param name="version">The version of the holon to download.</param>
+        /// <param name="downloadPath">Optional path where the holon should be downloaded.</param>
+        /// <param name="reInstall">Whether to reinstall if already installed.</param>
+        /// <returns>Result of the holon download operation.</returns>
+        /// <response code="200">Holon downloaded successfully</response>
+        /// <response code="400">Error downloading holon</response>
+        [HttpPost("{id}/download")]
+        [ProducesResponseType(typeof(OASISResult<DownloadedSTARHolon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<DownloadedSTARHolon>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DownloadHolon(Guid id, [FromQuery] int version = 0, [FromQuery] string downloadPath = "", [FromQuery] bool reInstall = false)
+        {
+            try
+            {
+                var result = await _starAPI.Holons.DownloadAsync(AvatarId, id, version, downloadPath, reInstall);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<DownloadedSTARHolon>
+                {
+                    IsError = true,
+                    Message = $"Error downloading holon: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Gets all versions of a specific holon.
+        /// </summary>
+        /// <param name="id">The unique identifier of the holon to get versions for.</param>
+        /// <returns>List of all versions of the specified holon.</returns>
+        /// <response code="200">Versions retrieved successfully</response>
+        /// <response code="400">Error retrieving versions</response>
+        [HttpGet("{id}/versions")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARHolon>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<STARHolon>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetHolonVersions(Guid id)
+        {
+            try
+            {
+                var result = await _starAPI.Holons.LoadVersionsAsync(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<STARHolon>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving holon versions: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Loads a specific version of a holon.
+        /// </summary>
+        /// <param name="id">The unique identifier of the holon.</param>
+        /// <param name="version">The version string to load.</param>
+        /// <returns>The requested holon version details.</returns>
+        /// <response code="200">Holon version loaded successfully</response>
+        /// <response code="400">Error loading holon version</response>
+        [HttpGet("{id}/version/{version}")]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> LoadHolonVersion(Guid id, string version)
+        {
+            try
+            {
+                var result = await _starAPI.Holons.LoadVersionAsync(id, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<STARHolon>
+                {
+                    IsError = true,
+                    Message = $"Error loading holon version: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Edits a holon with new DNA configuration.
+        /// </summary>
+        /// <param name="id">The unique identifier of the holon to edit.</param>
+        /// <param name="request">Edit request containing new DNA configuration.</param>
+        /// <returns>Result of the holon edit operation.</returns>
+        /// <response code="200">Holon edited successfully</response>
+        /// <response code="400">Error editing holon</response>
+        [HttpPost("{id}/edit")]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> EditHolon(Guid id, [FromBody] EditHolonRequest request)
+        {
+            try
+            {
+                var result = await _starAPI.Holons.EditAsync(id, request.NewDNA, AvatarId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<STARHolon>
+                {
+                    IsError = true,
+                    Message = $"Error editing holon: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Unpublishes a holon from the STARNET system.
+        /// </summary>
+        /// <param name="id">The unique identifier of the holon to unpublish.</param>
+        /// <param name="version">The version of the holon to unpublish.</param>
+        /// <returns>Result of the holon unpublish operation.</returns>
+        /// <response code="200">Holon unpublished successfully</response>
+        /// <response code="400">Error unpublishing holon</response>
+        [HttpPost("{id}/unpublish")]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UnpublishHolon(Guid id, [FromQuery] int version = 0)
+        {
+            try
+            {
+                var result = await _starAPI.Holons.UnpublishAsync(AvatarId, id, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<STARHolon>
+                {
+                    IsError = true,
+                    Message = $"Error unpublishing holon: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Republishes a holon to the STARNET system.
+        /// </summary>
+        /// <param name="id">The unique identifier of the holon to republish.</param>
+        /// <param name="version">The version of the holon to republish.</param>
+        /// <returns>Result of the holon republish operation.</returns>
+        /// <response code="200">Holon republished successfully</response>
+        /// <response code="400">Error republishing holon</response>
+        [HttpPost("{id}/republish")]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RepublishHolon(Guid id, [FromQuery] int version = 0)
+        {
+            try
+            {
+                var result = await _starAPI.Holons.RepublishAsync(AvatarId, id, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<STARHolon>
+                {
+                    IsError = true,
+                    Message = $"Error republishing holon: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Activates a holon.
+        /// </summary>
+        /// <param name="id">The unique identifier of the holon to activate.</param>
+        /// <param name="version">The version of the holon to activate.</param>
+        /// <returns>Result of the holon activation operation.</returns>
+        /// <response code="200">Holon activated successfully</response>
+        /// <response code="400">Error activating holon</response>
+        [HttpPost("{id}/activate")]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ActivateHolon(Guid id, [FromQuery] int version = 0)
+        {
+            try
+            {
+                var result = await _starAPI.Holons.ActivateAsync(AvatarId, id, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<STARHolon>
+                {
+                    IsError = true,
+                    Message = $"Error activating holon: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Deactivates a holon.
+        /// </summary>
+        /// <param name="id">The unique identifier of the holon to deactivate.</param>
+        /// <param name="version">The version of the holon to deactivate.</param>
+        /// <returns>Result of the holon deactivation operation.</returns>
+        /// <response code="200">Holon deactivated successfully</response>
+        /// <response code="400">Error deactivating holon</response>
+        [HttpPost("{id}/deactivate")]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DeactivateHolon(Guid id, [FromQuery] int version = 0)
+        {
+            try
+            {
+                var result = await _starAPI.Holons.DeactivateAsync(AvatarId, id, version);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<STARHolon>
+                {
+                    IsError = true,
+                    Message = $"Error deactivating holon: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
     }
+
+    public class CreateHolonRequest
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public HolonType HolonSubType { get; set; } = HolonType.Holon;
+        public string SourceFolderPath { get; set; } = "";
+        public ISTARNETCreateOptions<STARHolon, STARNETDNA> CreateOptions { get; set; } = null;
+    }
+
+    public class EditHolonRequest
+    {
+        public STARNETDNA NewDNA { get; set; } = null;
+    }
+
+    public class DownloadedSTARHolon
+    {
+        public STARHolon Holon { get; set; } = new STARHolon();
+        public string DownloadPath { get; set; } = "";
+        public bool Success { get; set; } = false;
+    }
+
 }

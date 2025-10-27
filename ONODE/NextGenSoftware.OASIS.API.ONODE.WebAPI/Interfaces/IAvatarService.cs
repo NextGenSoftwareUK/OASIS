@@ -57,11 +57,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces
         Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest);
         
         // Avatar Session Management
-        Task<OASISResult<AvatarSessionManagement>> GetAvatarSessionsAsync(Guid avatarId);
+        Task<OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionManagement>> GetAvatarSessionsAsync(Guid avatarId);
         Task<OASISResult<bool>> LogoutAvatarSessionsAsync(Guid avatarId, System.Collections.Generic.List<string> sessionIds);
         Task<OASISResult<bool>> LogoutAllAvatarSessionsAsync(Guid avatarId);
-        Task<OASISResult<AvatarSession>> CreateAvatarSessionAsync(Guid avatarId, CreateSessionRequest request);
-        Task<OASISResult<AvatarSession>> UpdateAvatarSessionAsync(Guid avatarId, string sessionId, UpdateSessionRequest request);
-        Task<OASISResult<AvatarSessionStats>> GetAvatarSessionStatsAsync(Guid avatarId);
+        Task<OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession>> CreateAvatarSessionAsync(Guid avatarId, NextGenSoftware.OASIS.API.Core.Objects.Avatar.CreateSessionRequest request);
+        Task<OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession>> UpdateAvatarSessionAsync(Guid avatarId, string sessionId, NextGenSoftware.OASIS.API.Core.Objects.Avatar.UpdateSessionRequest request);
+        Task<OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionStats>> GetAvatarSessionStatsAsync(Guid avatarId);
     }
 }

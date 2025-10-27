@@ -8,6 +8,8 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using System.Linq;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -124,6 +126,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default)
         {
+            // HyperDrive v2 routing with safe fallback to legacy
+            try
+            {
+                var dna = OASISDNAManager.OASISDNA;
+                if (dna?.OASIS?.HyperDriveMode == "OASISHyperDrive2")
+                {
+                    var hyperDrive = new NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive();
+                    var request = new StorageOperationRequest
+                    {
+                        Operation = "LoadHolon",
+                        HolonId = id,
+                        PreferredProvider = providerType
+                    };
+
+                var hdResult = await hyperDrive.RouteRequestAsync<IHolon>(request, LoadBalancingStrategy.Auto);
+                if (hdResult != null && !hdResult.IsError && hdResult.Result != null)
+                        return hdResult;
+                }
+            }
+            catch { /* fallback to legacy */ }
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 

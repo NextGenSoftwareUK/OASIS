@@ -63,4 +63,18 @@
     </None>
   </ItemGroup>
 
+  <!-- Removed reference to Core to avoid circular dependency with Core referencing DNA. -->
+
+  <!-- Exclude any test files from main DNA library build -->
+  <ItemGroup>
+    <Compile Remove="**\*.IntegrationTests.cs" />
+    <Compile Remove="**\*IntegrationTests.cs" />
+    <Compile Remove="**\*UnitTests.cs" />
+    <Compile Remove="**\*Tests.cs" />
+    <None Include="**\*.IntegrationTests.cs" />
+    <None Include="**\*IntegrationTests.cs" />
+    <None Include="**\*UnitTests.cs" />
+    <None Include="**\*Tests.cs" />
+  </ItemGroup>
+
 </Project>

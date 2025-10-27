@@ -1,0 +1,72 @@
+# Use the official .NET 9 runtime as base image
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+
+# Use the .NET 9 SDK for building
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Copy the entire OASIS project structure
+COPY . .
+
+# FORCE CACHE BREAK - Download ALL external libraries from GitHub
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries.git temp-libs
+RUN git clone https://github.com/NextGenSoftwareUK/holochain-client-csharp.git temp-holo
+
+# Create directory structure for ALL libraries
+RUN mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries"
+RUN mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries"
+RUN mkdir -p "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp"
+
+# Copy ALL NextGenSoftware libraries to both locations
+RUN cp -r temp-libs/NextGenSoftware\ Libraries/* "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/"
+RUN cp -r temp-libs/NextGenSoftware\ Libraries/* "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/"
+
+# Copy holochain-client-csharp
+RUN cp -r temp-holo/* "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp/"
+
+# Install missing NuGet packages for the external libraries
+RUN cd "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging" && \
+    dotnet add package BetterConsoleTables && \
+    dotnet add package NLog
+
+RUN cd "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging.NLog" && \
+    dotnet add package NLog
+
+# Install missing NuGet packages for the main projects
+RUN dotnet add "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware.OASIS.Common.csproj" package BetterConsoleTables
+RUN dotnet add "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj" package NLog
+
+# Clean up
+RUN rm -rf temp-libs temp-holo
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Build the STAR WebAPI project from the root directory
+WORKDIR "/src"
+
+# Restore and build
+RUN dotnet restore "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj"
+RUN dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/build
+
+# Publish the application
+FROM build AS publish
+WORKDIR "/src"
+RUN dotnet publish "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Final stage
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+# Set environment variables
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_URLS=http://+:8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/api/health || exit 1
+
+ENTRYPOINT ["dotnet", "NextGenSoftware.OASIS.STAR.WebAPI.dll"]

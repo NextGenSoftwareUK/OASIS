@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.Utilities;
 
@@ -20,6 +21,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request
         public string Nft3DObjectURI { get; set; }
         public byte[] Nft2DSprite { get; set; }
         public string Nft2DSpriteURI { get; set; }
+        public List<string> Tags { get; set; }
         //public ProviderType ProviderType { get; set; }
     }
 }

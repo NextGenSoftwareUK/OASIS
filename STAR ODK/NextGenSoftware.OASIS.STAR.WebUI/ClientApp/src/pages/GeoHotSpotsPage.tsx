@@ -33,11 +33,12 @@ import {
   Explore,
   Refresh,
   FilterList,
+  Info,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { starService } from '../services/starService';
+import { geoHotSpotService } from '../services';
 
 interface GeoHotSpot {
   id: string;
@@ -90,7 +91,7 @@ const GeoHotSpotsPage: React.FC = () => {
     async () => {
       try {
         // Try to get real data first
-        const response = await starService.getAllGeoHotSpots?.();
+        const response = await geoHotSpotService.getAll();
         return response;
       } catch (error) {
         // Fallback to impressive demo data
@@ -342,6 +343,12 @@ const GeoHotSpotsPage: React.FC = () => {
             <Typography variant="subtitle1" color="text.secondary">
               Discover and explore exciting locations and activities around the world
             </Typography>
+            <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Info sx={{ color: 'white' }} />
+              <Typography variant="body2" sx={{ color: 'white' }}>
+                Discover, explore and participate in location-based activities and events.
+              </Typography>
+            </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl size="small" sx={{ minWidth: 120 }}>
@@ -404,9 +411,13 @@ const GeoHotSpotsPage: React.FC = () => {
                       <CardMedia
                         component="img"
                         height="200"
-                        image={hotSpot.imageUrl}
+                        image={hotSpot.imageUrl || 'https://via.placeholder.com/400x300/1a237e/ffffff?text=Geo+Hot+Spot'}
                         alt={hotSpot.name}
                         sx={{ objectFit: 'cover' }}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://via.placeholder.com/400x300/1a237e/ffffff?text=Geo+Hot+Spot';
+                        }}
                       />
                       <Chip
                         label={hotSpot.type}
@@ -418,6 +429,8 @@ const GeoHotSpotsPage: React.FC = () => {
                           bgcolor: getTypeColor(hotSpot.type),
                           color: 'white',
                           fontWeight: 'bold',
+                          zIndex: 2,
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
                         }}
                       />
                       <Chip
@@ -430,6 +443,8 @@ const GeoHotSpotsPage: React.FC = () => {
                           bgcolor: getIntensityColor(hotSpot.intensity),
                           color: 'white',
                           fontWeight: 'bold',
+                          zIndex: 2,
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
                         }}
                       />
                     </Box>

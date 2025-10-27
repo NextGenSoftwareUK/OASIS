@@ -71,7 +71,7 @@ import {
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starService } from '../services/starService';
+import { avatarService } from '../services';
 import { toast } from 'react-hot-toast';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
@@ -143,7 +143,7 @@ const AvatarDetailPage: React.FC = () => {
       if (!id) {
         throw 'Avatar ID is required';
       }
-      const response = await starService.getAvatarById(id);
+      const response = await avatarService.getById(id);
       return response;
     },
     {
@@ -171,7 +171,7 @@ const AvatarDetailPage: React.FC = () => {
         throw 'Avatar ID is required';
       }
       try {
-        const response = await starService.getAvatarSessions?.(id);
+        const response = await avatarService.getSessions?.(id);
         return response;
       } catch (error) {
         // Fallback to impressive demo data
@@ -292,7 +292,7 @@ const AvatarDetailPage: React.FC = () => {
       if (!id) {
         throw 'Avatar ID is required';
       }
-      return await starService.updateAvatar(id, data);
+      return await avatarService.update(id, data);
     },
     {
       onSuccess: () => {
@@ -314,7 +314,7 @@ const AvatarDetailPage: React.FC = () => {
       if (!id) {
         throw 'Avatar ID is required';
       }
-      return await starService.deleteAvatar(id);
+      return await avatarService.delete(id);
     },
     {
       onSuccess: () => {
@@ -336,7 +336,7 @@ const AvatarDetailPage: React.FC = () => {
         throw 'Avatar ID is required';
       }
       try {
-        return await starService.logoutAvatarSessions?.(id, sessionIds);
+        return await avatarService.logoutSessions?.(id, sessionIds);
       } catch (error) {
         // Demo mode - simulate logout
         console.log('Demo mode: Logging out sessions', sessionIds);
@@ -697,7 +697,7 @@ const AvatarDetailPage: React.FC = () => {
                     Recent Activity
                   </Typography>
                   <List dense>
-                    {sessionData?.sessions.slice(0, 3).map((session) => (
+                    {(sessionData?.sessions || []).slice(0, 3).map((session) => (
                       <ListItem key={session.id} divider>
                         <ListItemIcon>
                           <Avatar sx={{ bgcolor: session.isActive ? 'success.main' : 'grey.400' }}>

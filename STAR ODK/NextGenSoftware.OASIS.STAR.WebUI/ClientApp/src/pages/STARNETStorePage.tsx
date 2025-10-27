@@ -16,6 +16,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Tooltip,
 } from '@mui/material';
 import {
   Store,
@@ -25,10 +26,14 @@ import {
   TrendingUp,
   Visibility,
   Favorite,
+  Help,
+  Info,
+  Download,
+  Upload,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
-import { starService } from '../services/starService';
+import { starCoreService, avatarService } from '../services';
 import toast from 'react-hot-toast';
 
 const STARNETStorePage: React.FC = () => {
@@ -38,7 +43,7 @@ const STARNETStorePage: React.FC = () => {
     async () => {
       try {
         // Try to get real data first
-        const response = await starService.getStoreItems?.();
+        const response = await starCoreService.getStoreItems?.();
         return response;
       } catch (error) {
         // Fallback to impressive demo data
@@ -253,12 +258,25 @@ const STARNETStorePage: React.FC = () => {
       <Box sx={{ mb: 4, mt: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box>
-            <Typography variant="h4" gutterBottom className="page-heading">
-              STARNET Store
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+              <Typography variant="h4" gutterBottom className="page-heading">
+                STARNET Store
+              </Typography>
+              <Tooltip title="STARNET Store is the marketplace for OASIS assets. You can browse, purchase, download, and manage your digital assets here.">
+                <IconButton size="small" color="primary">
+                  <Help />
+                </IconButton>
+              </Tooltip>
+            </Box>
             <Typography variant="subtitle1" color="text.secondary">
               Asset marketplace and community store
             </Typography>
+            <Box sx={{ mt: 1, p: 2, bgcolor: 'info.light', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Info color="primary" />
+              <Typography variant="body2" color="text.primary">
+                <strong>Quick Actions:</strong> Click <strong>Download</strong> to get assets locally, <strong>Purchase</strong> to buy premium items, <strong>View Details</strong> to see full information
+              </Typography>
+            </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl size="small" sx={{ minWidth: 140 }}>

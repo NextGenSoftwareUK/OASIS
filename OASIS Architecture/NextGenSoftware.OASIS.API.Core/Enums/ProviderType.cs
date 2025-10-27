@@ -24,6 +24,16 @@
         CosmosBlockChainOASIS,
         RootstockOASIS,
         ChainLinkOASIS,
+        CardanoOASIS,
+        PolkadotOASIS,
+        BitcoinOASIS,
+        NEAROASIS,
+        SuiOASIS,
+        AptosOASIS,
+        OptimismOASIS,
+        BNBChainOASIS,
+        FantomOASIS,
+        MoralisOASIS, //Web3 API
         IPFSOASIS, //IPFS
         PinataOASIS,
         HoloOASIS, //Holochain
@@ -43,15 +53,6 @@
         SOLIDOASIS,
         ActivityPubOASIS,
         ScuttlebuttOASIS,
-        LocalFileOASIS,
-        CardanoOASIS,
-        PolkadotOASIS,
-        BitcoinOASIS,
-        NEAROASIS,
-        SuiOASIS,
-        AptosOASIS,
-        OptimismOASIS,
-        BNBChainOASIS,
-        FantomOASIS
+        LocalFileOASIS
     }
 }

@@ -1,0 +1,36 @@
+# Ignore Node.js files to prevent Railpack detection
+package.json
+package-lock.json
+node_modules/
+
+# Ignore development files
+*.md
+*.txt
+*.log
+.git/
+.vscode/
+.idea/
+
+# Ignore build outputs
+bin/
+obj/
+build/
+dist/
+
+# Ignore test files
+*Test*
+*Tests*
+TestHarness/
+UnitTests/
+IntegrationTests/
+
+# Ignore documentation
+Docs/
+Images/
+Logos/
+
+# Ignore archived files
+Archived/
+
+# Ignore other deployment configs
+railway-deploy/

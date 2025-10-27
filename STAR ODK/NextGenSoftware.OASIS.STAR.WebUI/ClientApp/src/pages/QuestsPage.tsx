@@ -1,492 +1,643 @@
+/**
+ * Quests Page
+ * Complete Quest management interface
+ */
+
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDemoMode } from '../contexts/DemoModeContext';
 import {
   Box,
   Typography,
+  Button,
   Card,
   CardContent,
-  Button,
   Grid,
   Chip,
   IconButton,
+  Menu,
+  MenuItem,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  CircularProgress,
-  Alert,
-  LinearProgress,
-  Badge,
   FormControl,
   InputLabel,
   Select,
-  MenuItem,
+  Fab,
+  Tooltip,
+  Tabs,
+  Tab,
+  Badge,
+  Stack,
+  Avatar,
+  CardMedia,
+  CardActions,
+  Divider,
+  LinearProgress,
 } from '@mui/material';
 import {
-  Assignment,
   Add,
+  MoreVert,
   PlayArrow,
   Pause,
-  CheckCircle,
-  Star,
-  Refresh,
+  Download,
+  Upload,
+  Delete,
+  Edit,
+  Visibility,
+  Assignment,
   FilterList,
+  Search,
+  Help,
+  Info,
+  Build,
+  Star,
+  CheckCircle,
+  Schedule,
+  TrendingUp,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starService } from '../services/starService';
+import { questService } from '../services';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 
-interface Quest {
-  id: string;
-  title: string;
-  description: string;
-  status: 'active' | 'completed' | 'paused' | 'draft';
-  difficulty: 'easy' | 'medium' | 'hard' | 'legendary';
-  karmaReward: number;
-  progress: number;
-  maxProgress: number;
-  createdAt: string;
-  isInstalled?: boolean; // Added for installed badge and filtering
-  creator?: string; // Added for 'mine' filter demo
-  updatedAt: string;
-  category: string;
-  tags: string[];
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`quest-tabpanel-${index}`}
+      aria-labelledby={`quest-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
 }
 
 const QuestsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [viewScope, setViewScope] = useState<string>('all');
-  const [newQuest, setNewQuest] = useState({
-    title: '',
-    description: '',
-    difficulty: 'medium',
-    karmaReward: 100,
-    category: 'general',
-    tags: '',
-  });
-
+  const { isDemoMode } = useDemoMode();
   const queryClient = useQueryClient();
+  const [tabValue, setTabValue] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedQuest, setSelectedQuest] = useState<any>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  // Mock quest data - replace with real API calls when available
-  const { data: questsData, isLoading, error, refetch } = useQuery(
-    'quests',
-    () => Promise.resolve({
-      result: [
-        {
-          id: '1',
-          title: 'Environmental Cleanup',
-          description: 'Help clean up the virtual environment and earn karma points',
-          status: 'active',
-          difficulty: 'medium',
-          karmaReward: 150,
-          progress: 75,
-          maxProgress: 100,
-          createdAt: '2024-12-19T10:00:00Z',
-          updatedAt: '2024-12-19T15:30:00Z',
-          category: 'environment',
-          tags: ['environment', 'cleanup', 'karma'],
-        },
-        {
-          id: '2',
-          title: 'Avatar Training',
-          description: 'Complete basic avatar training to unlock new abilities',
-          status: 'completed',
-          difficulty: 'easy',
-          karmaReward: 50,
-          progress: 100,
-          maxProgress: 100,
-          createdAt: '2024-12-18T09:00:00Z',
-          updatedAt: '2024-12-18T12:00:00Z',
-          category: 'training',
-          tags: ['training', 'avatar', 'beginner'],
-        },
-        {
-          id: '3',
-          title: 'Legendary Challenge',
-          description: 'Face the ultimate challenge in the OASIS',
-          status: 'paused',
-          difficulty: 'legendary',
-          karmaReward: 1000,
-          progress: 25,
-          maxProgress: 100,
-          createdAt: '2024-12-17T08:00:00Z',
-          updatedAt: '2024-12-19T14:00:00Z',
-          category: 'challenge',
-          tags: ['legendary', 'challenge', 'ultimate'],
-        },
-      ]
-    }),
-    {
-      refetchInterval: 30000,
-    }
-  );
+  // Fetch Quests
+  const { data: quests, isLoading, error } = useQuery('quests', () => questService.getAll());
 
-  // Create quest mutation
+  // Create Quest mutation
   const createQuestMutation = useMutation(
-    (questData: any) => {
-      // Mock API call - replace with real implementation
-      return Promise.resolve({ success: true, result: { id: Date.now().toString(), ...questData } });
+    async (questData: any) => {
+      const response = await questService.create(questData);
+      return response.result;
     },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('quests');
-        setCreateDialogOpen(false);
-        setNewQuest({
-          title: '',
-          description: '',
-          difficulty: 'medium',
-          karmaReward: 100,
-          category: 'general',
-          tags: '',
-        });
         toast.success('Quest created successfully!');
+        setCreateDialogOpen(false);
       },
       onError: (error: any) => {
-        toast.error('Failed to create quest');
+        toast.error('Failed to create Quest: ' + error.message);
       },
     }
   );
 
-  const handleCreateQuest = () => {
-    createQuestMutation.mutate({
-      ...newQuest,
-      tags: newQuest.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-      status: 'draft',
-      progress: 0,
-      maxProgress: 100,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
+  // Start Quest mutation
+  const startQuestMutation = useMutation(
+    async (questId: string) => {
+      const response = await questService.start(questId);
+      return response.result;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('quests');
+        toast.success('Quest started successfully!');
+      },
+      onError: (error: any) => {
+        toast.error('Failed to start Quest: ' + error.message);
+      },
+    }
+  );
+
+  // Complete Quest mutation
+  const completeQuestMutation = useMutation(
+    async (questId: string) => {
+      const response = await questService.complete(questId);
+      return response.result;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('quests');
+        toast.success('Quest completed successfully!');
+      },
+      onError: (error: any) => {
+        toast.error('Failed to complete Quest: ' + error.message);
+      },
+    }
+  );
+
+  const handleCreateQuest = (questData: any) => {
+    createQuestMutation.mutate(questData);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'success';
-      case 'completed': return 'primary';
-      case 'paused': return 'warning';
-      case 'draft': return 'default';
-      default: return 'default';
-    }
+  const handleStartQuest = (questId: string) => {
+    startQuestMutation.mutate(questId);
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return '#4caf50';
-      case 'medium': return '#ff9800';
-      case 'hard': return '#f44336';
-      case 'legendary': return '#9c27b0';
-      default: return '#757575';
-    }
+  const handleCompleteQuest = (questId: string) => {
+    completeQuestMutation.mutate(questId);
   };
 
-  // Filter by view scope first, then by status
-  const getFilteredQuests = () => {
-    let filtered = questsData?.result || [];
-    
-    // Apply view scope filter
-    if (viewScope === 'installed') {
-      filtered = filtered.filter((quest: any) => quest.isInstalled);
-    } else if (viewScope === 'mine') {
-      // For demo, show quests created by current user
-      filtered = filtered.filter((quest: any) => quest.creator === 'Current User');
-    }
-    
-    // Apply status filter
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter((quest: any) => quest.status === filterStatus);
-    }
-    
-    return filtered;
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, quest: any) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedQuest(quest);
   };
-  
-  const filteredQuests = getFilteredQuests();
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedQuest(null);
+  };
+
+  const filteredQuests = quests?.result?.filter((quest: any) => {
+    const matchesSearch = quest.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         quest.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterType === 'all' || quest.status === filterType;
+    return matchesSearch && matchesFilter;
+  }) || [];
+
+  const sortedQuests = [...filteredQuests].sort((a: any, b: any) => {
+    switch (sortBy) {
+      case 'newest':
+        return new Date(b.createdOn || 0).getTime() - new Date(a.createdOn || 0).getTime();
+      case 'oldest':
+        return new Date(a.createdOn || 0).getTime() - new Date(b.createdOn || 0).getTime();
+      case 'name':
+        return (a.name || '').localeCompare(b.name || '');
+      case 'difficulty':
+        return (b.difficulty || 0) - (a.difficulty || 0);
+      default:
+        return 0;
+    }
+  });
+
+  const questStats = {
+    total: quests?.result?.length || 0,
+    active: quests?.result?.filter((quest: any) => quest.status === 'active').length || 0,
+    completed: quests?.result?.filter((quest: any) => quest.status === 'completed').length || 0,
+    averageDifficulty: quests?.result?.reduce((sum: number, quest: any) => sum + (quest.difficulty || 0), 0) / (quests?.result?.length || 1) || 0,
+  };
 
   return (
-    <>
-        <Box sx={{ mb: 4, mt: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
-          <Typography variant="h4" gutterBottom className="page-heading">
+          <Typography variant="h4" component="h1" gutterBottom>
             Quests
           </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Interactive quests and adventures in the OASIS
+          <Typography variant="body1" color="text.secondary">
+            Manage your Quests and Adventures
           </Typography>
+          <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Info sx={{ color: 'white' }} />
+            <Typography variant="body2" sx={{ color: 'white' }}>
+              View, create and manage Quests. Data updates in real-time.
+            </Typography>
+          </Box>
         </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 140 }}>
-            <InputLabel>View</InputLabel>
-            <Select
-              value={viewScope}
-              label="View"
-              onChange={(e) => setViewScope(e.target.value)}
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="installed">Installed</MenuItem>
-              <MenuItem value="mine">My Quests</MenuItem>
-            </Select>
-          </FormControl>
-          
-          <Button
-            variant="outlined"
-            startIcon={<FilterList />}
-            onClick={() => setFilterStatus(filterStatus === 'all' ? 'active' : 'all')}
-          >
-            {filterStatus === 'all' ? 'All Quests' : 'Active Only'}
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Refresh />}
-            onClick={() => refetch()}
-            disabled={isLoading}
-          >
-            Refresh
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => setCreateDialogOpen(true)}
-          >
-            Create Quest
-          </Button>
-        </Box>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => setCreateDialogOpen(true)}
+          sx={{ borderRadius: 2 }}
+        >
+          Create Quest
+        </Button>
       </Box>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          Failed to load quests: {error instanceof Error ? error.message : 'Unknown error'}
-        </Alert>
-      )}
+      {/* Stats Cards */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Assignment color="primary" sx={{ mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">{questStats.total}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Total Quests
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <PlayArrow color="success" sx={{ mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">{questStats.active}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Active
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <CheckCircle color="info" sx={{ mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">{questStats.completed}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Completed
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <TrendingUp color="warning" sx={{ mr: 2 }} />
+                <Box>
+                  <Typography variant="h6">{questStats.averageDifficulty.toFixed(1)}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Avg Difficulty
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
-      {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <Grid container spacing={3}>
-          {filteredQuests.map((quest: any) => (
-            <Grid item xs={12} md={6} lg={4} key={quest.id}>
+      {/* Filters and Search */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                placeholder="Search Quests..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>Filter by Status</InputLabel>
+                <Select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                >
+                  <MenuItem value="all">All Status</MenuItem>
+                  <MenuItem value="draft">Draft</MenuItem>
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="completed">Completed</MenuItem>
+                  <MenuItem value="paused">Paused</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth>
+                <InputLabel>Sort by</InputLabel>
+                <Select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <MenuItem value="newest">Newest</MenuItem>
+                  <MenuItem value="oldest">Oldest</MenuItem>
+                  <MenuItem value="name">Name</MenuItem>
+                  <MenuItem value="difficulty">Difficulty</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<FilterList />}
+              >
+                More Filters
+              </Button>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+
+      {/* Quests Grid */}
+      <Grid container spacing={3}>
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Card>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Avatar sx={{ mr: 2 }} />
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="h6" sx={{ mb: 1 }}>
+                        Loading...
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Loading Quest details...
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        ) : error ? (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                <Typography variant="h6" color="error" gutterBottom>
+                  Failed to load Quests
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {error instanceof Error ? error.message : 'An error occurred'}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ) : sortedQuests.length === 0 ? (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                <Assignment sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  No Quests found
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  {searchTerm ? 'Try adjusting your search criteria' : 'Create your first Quest to get started'}
+                </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<Add />}
+                  onClick={() => setCreateDialogOpen(true)}
+                >
+                  Create Quest
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        ) : (
+          sortedQuests.map((quest: any) => (
+            <Grid item xs={12} sm={6} md={4} key={quest.id}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card 
-                  sx={{ height: '100%', position: 'relative', cursor: 'pointer' }}
-                  onClick={() => navigate(`/quests/${quest.id}`)}
-                >
-                  {quest.isInstalled && (
-                    <Chip
-                      label="Installed"
-                      size="small"
-                      color="success"
-                      sx={{
-                        position: 'absolute',
-                        bottom: 8,
-                        right: 8,
-                        fontWeight: 'bold',
-                        zIndex: 1,
-                      }}
-                    />
-                  )}
-                  <CardContent>
+                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={quest.imageUrl || '/api/placeholder/400/200'}
+                    alt={quest.name}
+                    sx={{ objectFit: 'cover' }}
+                  />
+                  <CardContent sx={{ flexGrow: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Box sx={{ flexGrow: 1 }}>
-                        <Typography variant="h6" gutterBottom>
-                          {quest.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                          {quest.description}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Chip
-                          label={quest.status.toUpperCase()}
-                          size="small"
-                          color={getStatusColor(quest.status) as any}
-                          variant="outlined"
-                        />
-                      </Box>
+                      <Typography variant="h6" component="h3" noWrap>
+                        {quest.name}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMenuClick(e, quest)}
+                      >
+                        <MoreVert />
+                      </IconButton>
                     </Box>
-
-                    <Box sx={{ mb: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Progress
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {quest.progress}/{quest.maxProgress}
-                        </Typography>
-                      </Box>
-                      <LinearProgress
-                        variant="determinate"
-                        value={(quest.progress / quest.maxProgress) * 100}
-                        sx={{ mb: 2 }}
-                      />
-                    </Box>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Chip
-                          label={quest.difficulty.toUpperCase()}
-                          size="small"
-                          sx={{
-                            bgcolor: getDifficultyColor(quest.difficulty),
-                            color: 'white',
-                            fontWeight: 'bold',
-                          }}
-                        />
-                        <Chip
-                          label={quest.category.toUpperCase()}
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                        />
-                        <Chip
-                          label={`${quest.karmaReward} Karma`}
-                          size="small"
-                          color="secondary"
-                          variant="outlined"
-                        />
-                      </Box>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        {quest.status === 'active' && (
-                          <IconButton size="small" color="primary">
-                            <PlayArrow />
-                          </IconButton>
-                        )}
-                        {quest.status === 'paused' && (
-                          <IconButton size="small" color="warning">
-                            <Pause />
-                          </IconButton>
-                        )}
-                        {quest.status === 'completed' && (
-                          <IconButton size="small" color="success">
-                            <CheckCircle />
-                          </IconButton>
-                        )}
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      {quest.tags.map((tag: string, index: number) => (
-                        <Chip
-                          key={index}
-                          label={tag}
-                          size="small"
-                          variant="outlined"
-                          sx={{ fontSize: '0.7rem' }}
-                        />
-                      ))}
-                    </Box>
-
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                      Created: {new Date(quest.createdAt).toLocaleDateString()}
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      {quest.description}
                     </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Chip
+                        label={quest.status || 'Draft'}
+                        size="small"
+                        color={quest.status === 'completed' ? 'success' : quest.status === 'active' ? 'primary' : 'default'}
+                        variant="outlined"
+                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Star sx={{ fontSize: 16, mr: 0.5, color: 'warning.main' }} />
+                        <Typography variant="body2">
+                          {quest.difficulty || 1}/5
+                        </Typography>
+                      </Box>
+                    </Box>
+                    {quest.progress !== undefined && (
+                      <Box sx={{ mb: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            Progress
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {quest.progress}%
+                          </Typography>
+                        </Box>
+                        <LinearProgress variant="determinate" value={quest.progress} />
+                      </Box>
+                    )}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {quest.rewards || 'No rewards'}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                          {quest.duration || 'Unknown'} duration
+                        </Typography>
+                      </Box>
+                    </Box>
                   </CardContent>
+                  <Divider />
+                  <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
+                    <Button
+                      size="small"
+                      startIcon={<Visibility />}
+                      onClick={() => navigate(`/quests/${quest.id}`)}
+                    >
+                      View
+                    </Button>
+                    <Box>
+                      {quest.status === 'draft' && (
+                        <Button
+                          size="small"
+                          startIcon={<PlayArrow />}
+                          onClick={() => handleStartQuest(quest.id)}
+                          disabled={startQuestMutation.isLoading}
+                        >
+                          Start
+                        </Button>
+                      )}
+                      {quest.status === 'active' && (
+                        <Button
+                          size="small"
+                          startIcon={<CheckCircle />}
+                          onClick={() => handleCompleteQuest(quest.id)}
+                          disabled={completeQuestMutation.isLoading}
+                        >
+                          Complete
+                        </Button>
+                      )}
+                    </Box>
+                  </CardActions>
                 </Card>
               </motion.div>
             </Grid>
-          ))}
-        </Grid>
-      )}
+          ))
+        )}
+      </Grid>
 
       {/* Create Quest Dialog */}
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Create New Quest</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-            <TextField
-              label="Quest Title"
-              value={newQuest.title}
-              onChange={(e) => setNewQuest({ ...newQuest, title: e.target.value })}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Description"
-              value={newQuest.description}
-              onChange={(e) => setNewQuest({ ...newQuest, description: e.target.value })}
-              fullWidth
-              multiline
-              rows={3}
-              required
-            />
-            <TextField
-              label="Difficulty"
-              value={newQuest.difficulty}
-              onChange={(e) => setNewQuest({ ...newQuest, difficulty: e.target.value })}
-              fullWidth
-              select
-              SelectProps={{ native: true }}
-            >
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-              <option value="legendary">Legendary</option>
-            </TextField>
-            <TextField
-              label="Karma Reward"
-              type="number"
-              value={newQuest.karmaReward}
-              onChange={(e) => setNewQuest({ ...newQuest, karmaReward: parseInt(e.target.value) })}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Category"
-              value={newQuest.category}
-              onChange={(e) => setNewQuest({ ...newQuest, category: e.target.value })}
-              fullWidth
-              select
-              SelectProps={{ native: true }}
-              required
-            >
-              <option value="general">General</option>
-              <option value="exploration">Exploration</option>
-              <option value="combat">Combat</option>
-              <option value="crafting">Crafting</option>
-              <option value="social">Social</option>
-              <option value="puzzle">Puzzle</option>
-              <option value="collection">Collection</option>
-              <option value="achievement">Achievement</option>
-              <option value="story">Story</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="event">Event</option>
-              <option value="pvp">PvP</option>
-              <option value="pve">PvE</option>
-              <option value="raid">Raid</option>
-              <option value="dungeon">Dungeon</option>
-              <option value="quest">Quest</option>
-              <option value="mission">Mission</option>
-              <option value="challenge">Challenge</option>
-              <option value="tutorial">Tutorial</option>
-            </TextField>
-            <TextField
-              label="Tags (comma-separated)"
-              value={newQuest.tags}
-              onChange={(e) => setNewQuest({ ...newQuest, tags: e.target.value })}
-              fullWidth
-              placeholder="environment, cleanup, karma"
-            />
-          </Box>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Quest Name"
+                placeholder="Enter Quest name"
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Description"
+                placeholder="Enter Quest description"
+                multiline
+                rows={3}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Difficulty</InputLabel>
+                <Select defaultValue="1">
+                  <MenuItem value="1">Easy</MenuItem>
+                  <MenuItem value="2">Medium</MenuItem>
+                  <MenuItem value="3">Hard</MenuItem>
+                  <MenuItem value="4">Expert</MenuItem>
+                  <MenuItem value="5">Master</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Duration"
+                placeholder="e.g., 30 minutes"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Rewards"
+                placeholder="Enter Quest rewards"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Image URL"
+                placeholder="https://example.com/image.png"
+              />
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setCreateDialogOpen(false)}>
+            Cancel
+          </Button>
           <Button
-            onClick={handleCreateQuest}
             variant="contained"
+            onClick={() => handleCreateQuest({})}
             disabled={createQuestMutation.isLoading}
           >
             {createQuestMutation.isLoading ? 'Creating...' : 'Create Quest'}
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+
+      {/* Context Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={() => {
+          if (selectedQuest) navigate(`/quests/${selectedQuest.id}`);
+          handleMenuClose();
+        }}>
+          <Visibility sx={{ mr: 1 }} />
+          View Details
+        </MenuItem>
+        <MenuItem onClick={() => {
+          if (selectedQuest) handleStartQuest(selectedQuest.id);
+          handleMenuClose();
+        }}>
+          <PlayArrow sx={{ mr: 1 }} />
+          Start Quest
+        </MenuItem>
+        <MenuItem onClick={() => {
+          if (selectedQuest) handleCompleteQuest(selectedQuest.id);
+          handleMenuClose();
+        }}>
+          <CheckCircle sx={{ mr: 1 }} />
+          Complete Quest
+        </MenuItem>
+        <MenuItem onClick={handleMenuClose}>
+          <Edit sx={{ mr: 1 }} />
+          Edit
+        </MenuItem>
+        <MenuItem onClick={handleMenuClose} sx={{ color: 'error.main' }}>
+          <Delete sx={{ mr: 1 }} />
+          Delete
+        </MenuItem>
+      </Menu>
+
+      {/* Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="create quest"
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        onClick={() => setCreateDialogOpen(true)}
+      >
+        <Add />
+      </Fab>
+    </Box>
   );
 };
 

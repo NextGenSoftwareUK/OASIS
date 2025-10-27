@@ -2,7 +2,8 @@
 using System.Linq;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
@@ -44,13 +45,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
             }
         }
 
-        public string Status
+        public string SubQuestStatus
         {
             get
             {
                 return $"Quest {CurrentSubQuestNumber}/{Quests.Count}";
             }
         }
+
+        public QuestStatus Status { get; set; }
+        public QuestType Type { get; set; }
+        public QuestDifficulty Difficulty { get; set; }
+        public long RewardKarma { get; set; }
+        public long RewardXP { get; set; }
+        public List<string> Requirements { get; set; } = new List<string>();
+        public string CompletionNotes { get; set; }
+
 
         [CustomOASISProperty()]
         public IList<IQuest> Quests { get; set; } //TODO: Dont think is needed now because it is stored in the Dependencies.

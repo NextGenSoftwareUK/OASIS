@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>NextGenSoftware.OASIS.API.Core</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
 	  <PackageId>NextGenSoftware.OASIS.API.Core</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Core</Product>
@@ -54,7 +56,11 @@
   <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <!-- Removed Utilities reference as it may not exist or cause circular dependency -->
+    <!-- <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" /> -->
   </ItemGroup>
+
+  
 
   <ItemGroup>
     <Folder Include="Interfaces\STAR\CelestialHolons\" />

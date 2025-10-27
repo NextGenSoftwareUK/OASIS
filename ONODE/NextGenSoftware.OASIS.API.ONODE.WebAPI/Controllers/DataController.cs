@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<Holon>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
-        public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(LoadHolonRequest request)
+        public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Models.Data.LoadHolonRequest request)
         {
             //OASISResult<Holon> response = new OASISResult<Holon>();
             OASISHttpResponseMessage<Holon> response;
@@ -107,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("load-holon/{id}")]
         public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Guid id)
         {
-            return await LoadHolon(new LoadHolonRequest() { Id = id });
+            return await LoadHolon(new Models.Data.LoadHolonRequest() { Id = id });
         }
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("load-holon/{id}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}")]
         public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return await LoadHolon(new LoadHolonRequest()
+            return await LoadHolon(new Models.Data.LoadHolonRequest()
             {
                 Id = id,
                 LoadChildren = loadChildren,
@@ -163,7 +163,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("load-holon/{id}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "", bool setGlobally = false)
         {
-            return await LoadHolon(new LoadHolonRequest()
+            return await LoadHolon(new Models.Data.LoadHolonRequest()
             {
                 Id = id,
                 LoadChildren = loadChildren,
@@ -214,7 +214,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("load-holon/{id}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{autoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}")]
         public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0, string providerType = "Default", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
         {
-            return await LoadHolon(new LoadHolonRequest()
+            return await LoadHolon(new Models.Data.LoadHolonRequest()
             {
                 Id = id,
                 LoadChildren = loadChildren,
@@ -652,7 +652,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
      /// <returns></returns>
      [Authorize]
      [HttpPost("save-holon")]
-     public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(SaveHolonRequest request)
+     public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(Models.Data.SaveHolonRequest request)
      {
          OASISConfigResult<IHolon> configResult = ConfigureOASISEngine<IHolon>(request);
 
@@ -683,7 +683,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
    [HttpPost("save-holon/{holon}")]
    public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(Holon holon)
    {
-       return await SaveHolon(new SaveHolonRequest() { Holon = holon });
+       return await SaveHolon(new Models.Data.SaveHolonRequest() { Holon = holon });
 
        //OASISResult<Holon> response = new OASISResult<Holon>();
        //OASISResult<IHolon> result = await HolonManager.SaveHolonAsync(holon);
@@ -713,7 +713,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}")]
         public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(Holon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
-            return await SaveHolon(new SaveHolonRequest()
+            return await SaveHolon(new Models.Data.SaveHolonRequest()
             {
                 Holon = holon,
                 SaveChildren = saveChildren,
@@ -747,7 +747,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(Holon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, string providerType = "Default", bool setGlobally = false)
         {
-            return await SaveHolon(new SaveHolonRequest() 
+            return await SaveHolon(new Models.Data.SaveHolonRequest() 
             { 
                 Holon = holon,
                 SaveChildren = saveChildren,
@@ -796,7 +796,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("save-holon/{saveChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{providerType}/{setGlobally}/{autoReplicationMode}/{autoFailOverMode}/{autoLoadBalanceMode}/{autoReplicationProviders}/{autoFailOverProviders}/{AutoLoadBalanceProviders}/{waitForAutoReplicationResult}/{showDetailedSettings}")]
         public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(Holon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, string providerType = "Default", bool setGlobally = false, string autoReplicationMode = "DEFAULT", string autoFailOverMode = "DEFAULT", string autoLoadBalanceMode = "DEFAULT", string autoReplicationProviders = "DEFAULT", string autoFailOverProviders = "DEFAULT", string autoLoadBalanceProviders = "DEFAULT", bool waitForAutoReplicationResult = false, bool showDetailedSettings = false)
         {
-            return await SaveHolon(new SaveHolonRequest()
+            return await SaveHolon(new Models.Data.SaveHolonRequest()
             {
                 Holon = holon,
                 SaveChildren = saveChildren,
@@ -826,7 +826,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("save-holon-off-chain")]
-        public async Task<OASISHttpResponseMessage<Holon>> SaveHolonOffChain(SaveHolonRequest request)
+        public async Task<OASISHttpResponseMessage<Holon>> SaveHolonOffChain(Models.Data.SaveHolonRequest request)
         {
             return HttpResponseHelper.FormatResponse(new OASISResult<Holon>
             {

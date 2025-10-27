@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -10,46 +11,62 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
+    /// <summary>
+    /// Karma management endpoints for tracking and managing user karma points, achievements, and spiritual growth.
+    /// Supports karma weighting, positive/negative karma tracking, and spiritual development metrics.
+    /// </summary>
     [Route("api/karma")]
     [ApiController]
-
-    //[EnableCors(origins: "http://mywebclient.azurewebsites.net", headers: "*", methods: "*")]
     [EnableCors()]
     public class KarmaController : OASISControllerBase
     {
         /// <summary>
-        /// Get karma weighting for a given positive karma cateogey.
+        /// Get karma weighting for a given positive karma category.
         /// </summary>
-        /// <param name="karmaType"></param>
-        /// <returns></returns>
+        /// <param name="karmaType">The positive karma type to get weighting for.</param>
+        /// <returns>OASIS result containing the karma weighting value.</returns>
+        /// <response code="200">Karma weighting retrieved successfully</response>
+        /// <response code="400">Invalid karma type provided</response>
         [HttpGet("get-positive-karma-weighting/{karmaType}")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public OASISResult<bool> GetPositiveKarmaWeighting(KarmaTypePositive karmaType)
         {
             return new();
         }
 
         /// <summary>
-        /// Get karma weighting for a given positive karma cateogey.
+        /// Get karma weighting for a given positive karma category with specific provider.
         /// </summary>
-        /// <param name="karmaType"></param>
-        /// <param name="providerType">Pass in the provider you wish to use.</param>
-        /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
-        /// <returns></returns>
+        /// <param name="karmaType">The positive karma type to get weighting for.</param>
+        /// <param name="providerType">The OASIS provider type to use for the operation.</param>
+        /// <param name="setGlobally">Whether to set this provider globally for all future requests.</param>
+        /// <returns>OASIS result containing the karma weighting value.</returns>
+        /// <response code="200">Karma weighting retrieved successfully</response>
+        /// <response code="400">Invalid karma type or provider type provided</response>
         [HttpGet("get-positive-karma-weighting/{karmaType}/{providerType}/{setGlobally}")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public OASISResult<bool> GetPositiveKarmaWeighting(KarmaTypePositive karmaType, ProviderType providerType, bool setGlobally = false)
         {
             return new();
         }
 
         /// <summary>
-        /// Get karma weighting for a given negative karma cateogey.
+        /// Get karma weighting for a given negative karma category.
         /// </summary>
-        /// <param name="karmaType"></param>
-        /// <returns></returns>
+        /// <param name="karmaType">The negative karma type to get weighting for.</param>
+        /// <returns>OASIS result containing the karma weighting value.</returns>
+        /// <response code="200">Karma weighting retrieved successfully</response>
+        /// <response code="400">Invalid karma type provided</response>
         [HttpGet("get-negative-karma-weighting/{karmaType}")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public OASISResult<bool> GetNegativeKarmaWeighting(KarmaTypeNegative karmaType)
         {
             return new();
@@ -257,7 +274,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("add-karma-to-avatar/{avatarId}")]
-        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
+        public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
             object karmaTypePositiveObject = null;
             object karmaSourceTypeObject = null;
@@ -266,7 +283,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new() { Message = string.Concat("ERROR: KarmaType needs to be one of the values found in KarmaTypePositive enumeration. Possible value can be:\n\n", EnumHelper.GetEnumValues(typeof(KarmaTypePositive))), IsError = true };
             if (!Enum.TryParse(typeof(KarmaSourceType), addKarmaToAvatarRequest.karmaSourceType, out karmaSourceTypeObject))
                 return new() { Message = string.Concat("ERROR: KarmaSourceType needs to be one of the values found in KarmaSourceType enumeration. Possible value can be:\n\n", EnumHelper.GetEnumValues(typeof(KarmaSourceType))), IsError = true };
-            return Program.AvatarManager.AddKarmaToAvatar(avatarId, (KarmaTypePositive)karmaTypePositiveObject, (KarmaSourceType)karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle, addKarmaToAvatarRequest.KarmaSourceDesc);
+            return await KarmaManager.Instance.AddKarmaToAvatarAsync(avatarId, (KarmaTypePositive)karmaTypePositiveObject, (KarmaSourceType)karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle, addKarmaToAvatarRequest.KarmaSourceDesc);
         }
 
         /// <summary>
@@ -282,10 +299,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("add-karma-to-avatar/{avatarId}/{providerType}/{setGlobally}")]
-        public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest, Guid avatarId, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatar(AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest, Guid avatarId, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return AddKarmaToAvatar(avatarId, addKarmaToAvatarRequest);
+            return await AddKarmaToAvatar(avatarId, addKarmaToAvatarRequest);
         }
 
         /// <summary>
@@ -299,7 +316,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("remove-karma-from-avatar/{avatarId}")]
-        public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
+        public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
             object karmaTypeNegativeObject = null;
             object karmaSourceTypeObject = null;
@@ -308,7 +325,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new() { IsError = true, Message = string.Concat("ERROR: KarmaType needs to be one of the values found in KarmaTypeNegative enumeration. Possible value can be:\n\n", EnumHelper.GetEnumValues(typeof(KarmaTypeNegative))) };
             if (!Enum.TryParse(typeof(KarmaSourceType), addKarmaToAvatarRequest.karmaSourceType, out karmaSourceTypeObject))
                 return new() { IsError = true, Message = string.Concat("ERROR: KarmaSourceType needs to be one of the values found in KarmaSourceType enumeration. Possible value can be:\n\n", EnumHelper.GetEnumValues(typeof(KarmaSourceType))) };
-            return Program.AvatarManager.RemoveKarmaFromAvatar(avatarId, (KarmaTypeNegative)karmaTypeNegativeObject, (KarmaSourceType)karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle, addKarmaToAvatarRequest.KarmaSourceDesc);
+            return await KarmaManager.Instance.RemoveKarmaFromAvatarAsync(avatarId, (KarmaTypeNegative)karmaTypeNegativeObject, (KarmaSourceType)karmaSourceTypeObject, addKarmaToAvatarRequest.KaramSourceTitle, addKarmaToAvatarRequest.KarmaSourceDesc);
         }
 
         /// <summary>
@@ -324,10 +341,56 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("remove-karma-from-avatar/{avatarId}/{providerType}/{setGlobally}")]
-        public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest, Guid avatarId, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatar(AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest, Guid avatarId, ProviderType providerType, bool setGlobally = false)
         {
             GetAndActivateProvider(providerType, setGlobally);
-            return RemoveKarmaFromAvatar(avatarId, addKarmaToAvatarRequest);
+            return await RemoveKarmaFromAvatar(avatarId, addKarmaToAvatarRequest);
         }
+
+        /// <summary>
+        /// Gets karma statistics (totals, distributions, recent activity) for a given avatar.
+        /// </summary>
+        [HttpGet("get-karma-stats/{avatarId}")]
+        public async Task<OASISResult<Dictionary<string, object>>> GetKarmaStats(Guid avatarId)
+        {
+            return await KarmaManager.Instance.GetKarmaStatsAsync(avatarId);
+        }
+
+        /// <summary>
+        /// Gets karma statistics for a given avatar with provider activation.
+        /// </summary>
+        [HttpGet("get-karma-stats/{avatarId}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<Dictionary<string, object>>> GetKarmaStats(Guid avatarId, ProviderType providerType, bool setGlobally = false)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetKarmaStats(avatarId);
+        }
+
+        /// <summary>
+        /// Gets karma history (paged) for a given avatar.
+        /// </summary>
+        [HttpGet("get-karma-history/{avatarId}")]
+        public async Task<OASISResult<List<KarmaTransaction>>> GetKarmaHistory(Guid avatarId, int limit = 50, int offset = 0)
+        {
+            return await KarmaManager.Instance.GetKarmaHistoryAsync(avatarId, limit, offset);
+        }
+
+        /// <summary>
+        /// Gets karma history (paged) for a given avatar with provider activation.
+        /// </summary>
+        [HttpGet("get-karma-history/{avatarId}/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<List<KarmaTransaction>>> GetKarmaHistory(Guid avatarId, ProviderType providerType, bool setGlobally = false, int limit = 50, int offset = 0)
+        {
+            GetAndActivateProvider(providerType, setGlobally);
+            return await GetKarmaHistory(avatarId, limit, offset);
+        }
+
+        // NOTE: Karma cannot be transferred; endpoint intentionally commented out per product rules
+        // [Authorize]
+        // [HttpPost("transfer-karma")]
+        // public async Task<OASISResult<bool>> TransferKarma([FromBody] TransferKarmaRequest request)
+        // {
+        //     return await KarmaManager.Instance.TransferKarmaAsync(request.FromAvatarId, request.ToAvatarId, request.Amount, request.Description);
+        // }
     }
 }

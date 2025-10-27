@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
 {
     public class OASISNFT : IOASISNFT
     {
-
+        //public List<Web3NFT> Web3NFTs { get; set; } = new List<Web3NFT>();
         public string SendToAddressAfterMinting { get; set; }
         public Guid SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
@@ -43,6 +43,9 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         //public string Token { get; set; } //TODO: Should be dervied from the OnChainProvider so may not need this?
         public string MemoText { get; set; }
         public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
+        //public List<NFTRoyalty> Royalties { get; set; } = new List<NFTRoyalty>(); //TODO: May need to add this later...
+
+        public List<string> Tags { get; set; }
 
 
         /// <summary>
