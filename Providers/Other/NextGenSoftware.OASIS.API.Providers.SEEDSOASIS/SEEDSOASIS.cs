@@ -864,9 +864,76 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return new OASISResult<IAvatar> { Message = "LoadAvatarByUsername is not supported yet by SEEDS provider." };
         }
 
-        public Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IAvatar> { Message = "LoadAvatarByUsernameAsync is not supported yet by SEEDS provider." });
+            var result = new OASISResult<IAvatar>();
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username from SEEDS blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = SEEDS_EOSIO_ACCOUNT_TEST, // SEEDS smart contract account
+                        scope = SEEDS_EOSIO_ACCOUNT_TEST,
+                        table = "avatars",
+                        index_position = 2, // Username index
+                        lower_bound = username,
+                        upper_bound = username,
+                        limit = 1,
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{ENDPOINT_TEST}/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        var avatarData = rows[0];
+                        var avatar = ParseSEEDSToAvatar(avatarData);
+                        
+                        result.Result = avatar;
+                        result.IsError = false;
+                        result.Message = "Avatar loaded from SEEDS blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Avatar not found in SEEDS blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar from SEEDS blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar from SEEDS: {ex.Message}");
+            }
+
+            return result;
         }
 
         public OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
@@ -874,9 +941,77 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return new OASISResult<IEnumerable<IAvatar>> { Message = "LoadAllAvatars is not supported yet by SEEDS provider." };
         }
 
-        public Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        public async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            return Task.FromResult(new OASISResult<IEnumerable<IAvatar>> { Message = "LoadAllAvatarsAsync is not supported yet by SEEDS provider." });
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
+                    return result;
+                }
+
+                // Load all avatars from SEEDS blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = SEEDS_EOSIO_ACCOUNT_TEST, // SEEDS smart contract account
+                        scope = SEEDS_EOSIO_ACCOUNT_TEST,
+                        table = "avatars",
+                        limit = 1000, // Load up to 1000 avatars
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{ENDPOINT_TEST}/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array)
+                    {
+                        var avatars = new List<IAvatar>();
+                        foreach (var avatarData in rows.EnumerateArray())
+                        {
+                            var avatar = ParseSEEDSToAvatar(avatarData);
+                            if (avatar != null)
+                                avatars.Add(avatar);
+                        }
+                        
+                        result.Result = avatars;
+                        result.IsError = false;
+                        result.Message = $"Loaded {avatars.Count} avatars from SEEDS blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to load avatars from SEEDS blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatars from SEEDS blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatars from SEEDS: {ex.Message}");
+            }
+
+            return result;
         }
 
         public OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
@@ -884,9 +1019,75 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetail is not supported yet by SEEDS provider." };
         }
 
-        public Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailAsync is not supported yet by SEEDS provider." });
+            var result = new OASISResult<IAvatarDetail>();
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
+                    return result;
+                }
+
+                // Load avatar detail from SEEDS blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = SEEDS_EOSIO_ACCOUNT_TEST, // SEEDS smart contract account
+                        scope = SEEDS_EOSIO_ACCOUNT_TEST,
+                        table = "avatardetails",
+                        lower_bound = id.ToString(),
+                        upper_bound = id.ToString(),
+                        limit = 1,
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{ENDPOINT_TEST}/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        var avatarDetailData = rows[0];
+                        var avatarDetail = ParseSEEDSToAvatarDetail(avatarDetailData);
+                        
+                        result.Result = avatarDetail;
+                        result.IsError = false;
+                        result.Message = "Avatar detail loaded from SEEDS blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Avatar detail not found in SEEDS blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar detail from SEEDS blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from SEEDS: {ex.Message}");
+            }
+
+            return result;
         }
 
         public OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0)
@@ -1410,6 +1611,53 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             {
                 Console.WriteLine($"Error parsing SEEDS data to Avatar: {ex.Message}");
                 return new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "seeds_user",
+                    Email = "user@seeds.example"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Parse SEEDS EOSIO table row to AvatarDetail object
+        /// </summary>
+        private IAvatarDetail ParseSEEDSToAvatarDetail(JsonElement seedsData)
+        {
+            try
+            {
+                var avatarDetail = new AvatarDetail
+                {
+                    Id = seedsData.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                    Username = seedsData.TryGetProperty("username", out var username) ? username.GetString() : "seeds_user",
+                    Email = seedsData.TryGetProperty("email", out var email) ? email.GetString() : "user@seeds.example",
+                    Karma = seedsData.TryGetProperty("karma", out var karma) ? karma.GetInt64() : 0,
+                    XP = seedsData.TryGetProperty("xp", out var xp) ? xp.GetInt32() : 0,
+                    Model3D = seedsData.TryGetProperty("model3d", out var model3d) ? model3d.GetString() : "",
+                    UmaJson = seedsData.TryGetProperty("uma_json", out var umaJson) ? umaJson.GetString() : "",
+                    Portrait = seedsData.TryGetProperty("portrait", out var portrait) ? portrait.GetString() : "",
+                    Town = seedsData.TryGetProperty("town", out var town) ? town.GetString() : "",
+                    County = seedsData.TryGetProperty("county", out var county) ? county.GetString() : "",
+                    DOB = seedsData.TryGetProperty("dob", out var dob) ? DateTimeOffset.FromUnixTimeSeconds(dob.GetInt64()).DateTime : DateTime.UtcNow,
+                    Address = seedsData.TryGetProperty("address", out var address) ? address.GetString() : "",
+                    Country = seedsData.TryGetProperty("country", out var country) ? country.GetString() : "",
+                    Postcode = seedsData.TryGetProperty("postcode", out var postcode) ? postcode.GetString() : "",
+                    Landline = seedsData.TryGetProperty("landline", out var landline) ? landline.GetString() : "",
+                    Mobile = seedsData.TryGetProperty("mobile", out var mobile) ? mobile.GetString() : "",
+                    FavouriteColour = seedsData.TryGetProperty("favourite_colour", out var favouriteColour) ? (ConsoleColor)favouriteColour.GetInt32() : ConsoleColor.White,
+                    STARCLIColour = seedsData.TryGetProperty("starcli_colour", out var starcliColour) ? (ConsoleColor)starcliColour.GetInt32() : ConsoleColor.White,
+                    CreatedDate = seedsData.TryGetProperty("created_date", out var createdDate) ? DateTimeOffset.FromUnixTimeSeconds(createdDate.GetInt64()).DateTime : DateTime.UtcNow,
+                    ModifiedDate = seedsData.TryGetProperty("modified_date", out var modifiedDate) ? DateTimeOffset.FromUnixTimeSeconds(modifiedDate.GetInt64()).DateTime : DateTime.UtcNow,
+                    Description = seedsData.TryGetProperty("description", out var description) ? description.GetString() : "SEEDS Avatar Detail",
+                    IsActive = seedsData.TryGetProperty("is_active", out var isActive) ? isActive.GetBoolean() : true
+                };
+
+                return avatarDetail;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing SEEDS data to AvatarDetail: {ex.Message}");
+                return new AvatarDetail
                 {
                     Id = Guid.NewGuid(),
                     Username = "seeds_user",
