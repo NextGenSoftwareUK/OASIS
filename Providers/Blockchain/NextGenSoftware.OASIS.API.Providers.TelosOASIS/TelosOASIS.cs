@@ -518,11 +518,75 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            result.Message = "LoadAvatarDetail is not supported yet by Telos provider.";
-            return Task.FromResult(result);
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
+                    return result;
+                }
+
+                // Load avatar detail from Telos blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = "oasis.telos", // Telos smart contract account
+                        scope = "oasis.telos",
+                        table = "avatardetails",
+                        lower_bound = id.ToString(),
+                        upper_bound = id.ToString(),
+                        limit = 1,
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{TELOS_API_BASE_URL}/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        var avatarDetailData = rows[0];
+                        var avatarDetail = ParseTelosToAvatarDetail(avatarDetailData);
+                        
+                        result.Result = avatarDetail;
+                        result.IsError = false;
+                        result.Message = "Avatar detail loaded from Telos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Avatar detail not found in Telos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar detail from Telos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from Telos: {ex.Message}");
+            }
+
+            return result;
         }
 
         public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
