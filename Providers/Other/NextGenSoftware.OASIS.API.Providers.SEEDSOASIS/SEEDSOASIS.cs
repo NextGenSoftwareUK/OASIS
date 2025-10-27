@@ -1586,28 +1586,28 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            return new OASISResult<bool> { Message = "DeleteAvatar by providerKey is not supported yet by SEEDS provider." };
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
         public Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            return Task.FromResult(new OASISResult<bool> { Message = "DeleteAvatarAsync by providerKey is not supported yet by SEEDS provider." });
+            return DeleteAvatarAsync(Guid.Parse(providerKey), softDelete);
         }
 
         // Additional IOASISStorageProvider interface members
         public OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            return new OASISResult<IAvatar> { Message = "LoadAvatarByProviderKey is not supported yet by SEEDS provider." };
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
         public Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IAvatar> { Message = "LoadAvatarByProviderKeyAsync is not supported yet by SEEDS provider." });
+            return LoadAvatarAsync(providerKey, version);
         }
 
         public OASISResult<KarmaAkashicRecord> AddKarmaToAvatar(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
         {
-            return new OASISResult<KarmaAkashicRecord> { Message = "AddKarmaToAvatar is not supported yet by SEEDS provider." };
+            return AddKarmaToAvatarAsync(avatar, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDescription, webLink).Result;
         }
 
         public Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatarAsync(IAvatarDetail avatar, KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
@@ -1617,7 +1617,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<KarmaAkashicRecord> RemoveKarmaFromAvatar(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
         {
-            return new OASISResult<KarmaAkashicRecord> { Message = "RemoveKarmaFromAvatar is not supported yet by SEEDS provider." };
+            return RemoveKarmaFromAvatarAsync(avatar, karmaType, karmaSourceType, karmaSourceTitle, karmaSourceDescription, webLink).Result;
         }
 
         public Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatarAsync(IAvatarDetail avatar, KarmaTypeNegative karmaType, KarmaSourceType karmaSourceType, string karmaSourceTitle, string karmaSourceDescription, string webLink)
@@ -1627,7 +1627,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true)
         {
-            return new OASISResult<IHolon> { Message = "SaveHolon is not supported yet by SEEDS provider." };
+            return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, sendKarma).Result;
         }
 
         public Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true)
@@ -1637,7 +1637,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int continueOnError = 0, bool sendKarma = true, bool reloadChildren = true)
         {
-            return new OASISResult<IEnumerable<IHolon>> { Message = "SaveHolons is not supported yet by SEEDS provider." };
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, continueOnError, sendKarma, reloadChildren).Result;
         }
 
         public Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int continueOnError = 0, bool sendKarma = true, bool reloadChildren = true)
@@ -1647,7 +1647,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return new OASISResult<IHolon> { Message = "LoadHolon is not supported yet by SEEDS provider." };
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, sendKarma, version).Result;
         }
 
         public Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
@@ -1657,17 +1657,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return new OASISResult<IHolon> { Message = "LoadHolon by providerKey is not supported yet by SEEDS provider." };
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, sendKarma, version).Result;
         }
 
         public Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IHolon> { Message = "LoadHolonAsync by providerKey is not supported yet by SEEDS provider." });
+            return LoadHolonAsync(Guid.Parse(providerKey), loadChildren, recursive, maxChildDepth, continueOnError, sendKarma, version);
         }
 
         public OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParent is not supported yet by SEEDS provider." };
+            return LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, maxChildCount, continueOnError, sendKarma, version).Result;
         }
 
         public Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
@@ -1677,17 +1677,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParent by providerKey is not supported yet by SEEDS provider." };
+            return LoadHolonsForParentAsync(providerKey, holonType, loadChildren, recursive, maxChildDepth, maxChildCount, continueOnError, sendKarma, version).Result;
         }
 
         public Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParentAsync by providerKey is not supported yet by SEEDS provider." });
+            return LoadHolonsForParentAsync(Guid.Parse(providerKey), holonType, loadChildren, recursive, maxChildDepth, maxChildCount, continueOnError, sendKarma, version);
         }
 
         public OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaData is not supported yet by SEEDS provider." };
+            return LoadHolonsByMetaDataAsync(metaKey, metaValue, holonType, loadChildren, recursive, maxChildDepth, maxChildCount, continueOnError, sendKarma, version).Result;
         }
 
         public Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
@@ -1697,7 +1697,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode = MetaKeyValuePairMatchMode.All, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaData with Dictionary is not supported yet by SEEDS provider." };
+            return LoadHolonsByMetaDataAsync(metaData, matchMode, holonType, loadChildren, recursive, maxChildDepth, maxChildCount, continueOnError, sendKarma, version).Result;
         }
 
         public Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaData, MetaKeyValuePairMatchMode matchMode = MetaKeyValuePairMatchMode.All, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
@@ -1707,7 +1707,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
         {
-            return new OASISResult<IEnumerable<IHolon>> { Message = "LoadAllHolons is not supported yet by SEEDS provider." };
+            return LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, maxChildCount, continueOnError, sendKarma, version).Result;
         }
 
         public Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int maxChildCount = 0, bool continueOnError = true, bool sendKarma = true, int version = 0)
@@ -1717,7 +1717,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IHolon> DeleteHolon(Guid id)
         {
-            return new OASISResult<IHolon> { Message = "DeleteHolon is not supported yet by SEEDS provider." };
+            return DeleteHolonAsync(id).Result;
         }
 
         public Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
@@ -1727,17 +1727,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IHolon> DeleteHolon(string providerKey)
         {
-            return new OASISResult<IHolon> { Message = "DeleteHolon by providerKey is not supported yet by SEEDS provider." };
+            return DeleteHolonAsync(providerKey).Result;
         }
 
         public Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            return Task.FromResult(new OASISResult<IHolon> { Message = "DeleteHolonAsync by providerKey is not supported yet by SEEDS provider." });
+            return DeleteHolonAsync(Guid.Parse(providerKey));
         }
 
         public OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
-            return new OASISResult<bool> { Message = "Import is not supported yet by SEEDS provider." };
+            return ImportAsync(holons).Result;
         }
 
         public Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
@@ -1747,7 +1747,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int version = 0)
         {
-            return new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarById is not supported yet by SEEDS provider." };
+            return ExportAllDataForAvatarByIdAsync(id, version).Result;
         }
 
         public Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int version = 0)
@@ -1757,7 +1757,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string username, int version = 0)
         {
-            return new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByUsername is not supported yet by SEEDS provider." };
+            return ExportAllDataForAvatarByUsernameAsync(username, version).Result;
         }
 
         public Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
@@ -1975,4 +1975,3 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         #endregion
     }
 }
-                                            
