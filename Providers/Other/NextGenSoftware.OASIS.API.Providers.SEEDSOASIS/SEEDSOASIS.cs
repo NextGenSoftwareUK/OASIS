@@ -1767,7 +1767,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int version = 0)
         {
-            return new OASISResult<IEnumerable<IHolon>> { Message = "ExportAllDataForAvatarByEmail is not supported yet by SEEDS provider." };
+            return ExportAllDataForAvatarByEmailAsync(email, version).Result;
         }
 
         public async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
