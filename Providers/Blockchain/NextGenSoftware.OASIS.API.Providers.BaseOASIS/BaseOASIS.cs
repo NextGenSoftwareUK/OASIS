@@ -1647,7 +1647,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             if (!string.IsNullOrEmpty(content))
             {
                 var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
-                var holons = new List<IHolon>(); // TODO: Implement ParseBaseToHolons method
+                var holons = ParseBaseToHolons(jsonElement);
                 result.Result = holons;
                 result.IsError = false;
                 result.Message = $"Successfully loaded {holons?.Count() ?? 0} holons for parent from Base";
@@ -1689,7 +1689,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             if (!string.IsNullOrEmpty(content))
             {
                 var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
-                var holons = new List<IHolon>(); // TODO: Implement ParseBaseToHolons method
+                var holons = ParseBaseToHolons(jsonElement);
                 result.Result = holons;
                 result.IsError = false;
                 result.Message = $"Successfully loaded {holons?.Count() ?? 0} holons for parent by provider key from Base";
@@ -1741,7 +1741,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             if (!string.IsNullOrEmpty(content))
             {
                 var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
-                var holons = new List<IHolon>(); // TODO: Implement ParseBaseToHolons method
+                var holons = ParseBaseToHolons(jsonElement);
                 result.Result = holons;
                 result.IsError = false;
                 result.Message = $"Successfully loaded {holons?.Count() ?? 0} holons by metadata from Base";
@@ -1788,7 +1788,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             if (!string.IsNullOrEmpty(content))
             {
                 var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
-                var holons = new List<IHolon>(); // TODO: Implement ParseBaseToHolons method
+                var holons = ParseBaseToHolons(jsonElement);
                 result.Result = holons;
                 result.IsError = false;
                 result.Message = $"Successfully loaded {holons?.Count() ?? 0} holons by metadata pairs from Base";
@@ -2214,8 +2214,8 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             var content = await transactionResult.Content.ReadAsStringAsync();
-            // TODO: Parse content to ITransactionRespone
-            result.Result = null; // Placeholder until proper parsing is implemented
+            var transactionResponse = ParseBaseToTransactionResponse(content);
+            result.Result = transactionResponse;
             result.IsError = false;
             result.Message = "Transaction sent successfully via Base";
         }
@@ -2271,8 +2271,8 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             var content = await transactionResult.Content.ReadAsStringAsync();
-            // TODO: Parse content to ITransactionRespone
-            result.Result = null; // Placeholder until proper parsing is implemented
+            var transactionResponse = ParseBaseToTransactionResponse(content);
+            result.Result = transactionResponse;
             result.IsError = false;
             result.Message = "Transaction sent successfully via Base";
         }
@@ -2355,8 +2355,8 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
 
             var content = await transactionResult.Content.ReadAsStringAsync();
-            // TODO: Parse content to ITransactionRespone
-            result.Result = null; // Placeholder until proper parsing is implemented
+            var transactionResponse = ParseBaseToTransactionResponse(content);
+            result.Result = transactionResponse;
             result.IsError = false;
             result.Message = "Transaction sent successfully via Base";
         }
@@ -2567,8 +2567,9 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            var content = await nftData.Content.ReadAsStringAsync();            // TODO: Parse content to IOASISNFT
-            result.Result = null;
+            var content = await nftData.Content.ReadAsStringAsync();
+            var nft = ParseBaseToNFT(content);
+            result.Result = nft;
             result.IsError = false;
             result.Message = "NFT data loaded successfully from Base";
         }
@@ -2695,4 +2696,202 @@ file static class BaseContractHelper
     public const string SendNftFuncName = "sendNFT";
     public const string MintFuncName = "mint";
     public const string Abi = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"ERC721IncorrectOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"ERC721InsufficientApproval\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"approver\",\"type\":\"address\"}],\"name\":\"ERC721InvalidApprover\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"ERC721InvalidOperator\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"ERC721InvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"}],\"name\":\"ERC721InvalidReceiver\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"ERC721InvalidSender\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"ERC721NonexistentToken\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"approved\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"approved\",\"type\":\"bool\"}],\"name\":\"ApprovalForAll\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"avatarId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"info\",\"type\":\"string\"}],\"name\":\"CreateAvatar\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"avatarId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"info\",\"type\":\"string\"}],\"name\":\"CreateAvatarDetail\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"holonId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"info\",\"type\":\"string\"}],\"name\":\"CreateHolon\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"}],\"name\":\"DeleteAvatar\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"}],\"name\":\"DeleteAvatarDetail\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"}],\"name\":\"DeleteHolon\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"}],\"name\":\"GetAvatarById\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"EntityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"AvatarId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"Info\",\"type\":\"string\"}],\"internalType\":\"structAvatar\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"}],\"name\":\"GetAvatarDetailById\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"EntityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"AvatarId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"Info\",\"type\":\"string\"}],\"internalType\":\"structAvatarDetail\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"GetAvatarDetailsCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"count\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"GetAvatarsCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"count\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"}],\"name\":\"GetHolonById\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"EntityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"HolonId\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"Info\",\"type\":\"string\"}],\"internalType\":\"structHolon\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"GetHolonsCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"count\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"info\",\"type\":\"string\"}],\"name\":\"UpdateAvatar\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"info\",\"type\":\"string\"}],\"name\":\"UpdateAvatarDetail\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"entityId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"info\",\"type\":\"string\"}],\"name\":\"UpdateHolon\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"admin\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"getApproved\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"getTransferHistory\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"fromWalletAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"toWalletAddress\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"fromProviderType\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"toProviderType\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"memoText\",\"type\":\"string\"}],\"internalType\":\"structBaseOASIS.NFTTransfer[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"isApprovedForAll\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"metadataUri\",\"type\":\"string\"}],\"name\":\"mint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nextTokenId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"nftMetadata\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"metadataUri\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"nftTransfers\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"fromWalletAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"toWalletAddress\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"fromProviderType\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"toProviderType\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"memoText\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"ownerOf\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"safeTransferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"safeTransferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"fromWalletAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"toWalletAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"fromProviderType\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"toProviderType\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"memoText\",\"type\":\"string\"}],\"name\":\"sendNFT\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"approved\",\"type\":\"bool\"}],\"name\":\"setApprovalForAll\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"tokenExists\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"tokenURI\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"tokenId\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]";
+
+    private List<IHolon> ParseBaseToHolons(System.Text.Json.JsonElement jsonElement)
+    {
+        var holons = new List<IHolon>();
+        
+        try
+        {
+            if (jsonElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+            {
+                foreach (var item in jsonElement.EnumerateArray())
+                {
+                    if (item.TryGetProperty("EntityId", out var entityIdElement) &&
+                        item.TryGetProperty("HolonId", out var holonIdElement) &&
+                        item.TryGetProperty("Info", out var infoElement))
+                    {
+                        var holon = new Holon
+                        {
+                            Id = Guid.NewGuid(),
+                            ProviderKey = entityIdElement.GetUInt64().ToString(),
+                            Name = holonIdElement.GetString() ?? "Base Holon",
+                            Description = infoElement.GetString() ?? "Base Holon Description",
+                            CreatedDate = DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            CreatedByAvatarId = Guid.Empty,
+                            ModifiedByAvatarId = Guid.Empty,
+                            Version = 1,
+                            IsActive = true,
+                            IsChanged = false,
+                            IsNewHolon = false,
+                            IsSaving = false,
+                            IsLoading = false,
+                            IsDeleted = false,
+                            IsError = false,
+                            ErrorMessage = null,
+                            ParentHolonId = Guid.Empty,
+                            ParentOmniverseId = Guid.Empty,
+                            ParentMultiverseId = Guid.Empty,
+                            ParentUniverseId = Guid.Empty,
+                            ParentDimensionId = Guid.Empty,
+                            ParentGalaxyClusterId = Guid.Empty,
+                            ParentGalaxyId = Guid.Empty,
+                            ParentSolarSystemId = Guid.Empty,
+                            ParentPlanetId = Guid.Empty,
+                            ParentMoonId = Guid.Empty,
+                            ParentStarId = Guid.Empty,
+                            ParentZomeId = Guid.Empty,
+                            HolonType = HolonType.Holon,
+                            DimensionLevel = 0,
+                            SubDimensionLevel = 0,
+                            MetaData = new Dictionary<string, object>
+                            {
+                                { "BaseEntityId", entityIdElement.GetUInt64() },
+                                { "BaseHolonId", holonIdElement.GetString() },
+                                { "BaseInfo", infoElement.GetString() }
+                            }
+                        };
+                        
+                        holons.Add(holon);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error but continue processing
+            Console.WriteLine($"Error parsing Base holons: {ex.Message}");
+        }
+        
+        return holons;
+    }
+
+    private ITransactionRespone ParseBaseToTransactionResponse(string content)
+    {
+        try
+        {
+            var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
+            
+            return new TransactionResponse
+            {
+                TransactionHash = jsonElement.TryGetProperty("transactionHash", out var hashElement) ? hashElement.GetString() : "",
+                From = jsonElement.TryGetProperty("from", out var fromElement) ? fromElement.GetString() : "",
+                To = jsonElement.TryGetProperty("to", out var toElement) ? toElement.GetString() : "",
+                Amount = jsonElement.TryGetProperty("amount", out var amountElement) ? amountElement.GetDecimal() : 0,
+                GasUsed = jsonElement.TryGetProperty("gasUsed", out var gasElement) ? gasElement.GetUInt64() : 0,
+                BlockNumber = jsonElement.TryGetProperty("blockNumber", out var blockElement) ? blockElement.GetUInt64() : 0,
+                Status = jsonElement.TryGetProperty("status", out var statusElement) ? statusElement.GetString() : "success"
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error parsing Base transaction response: {ex.Message}");
+            return new TransactionResponse
+            {
+                TransactionHash = "",
+                From = "",
+                To = "",
+                Amount = 0,
+                GasUsed = 0,
+                BlockNumber = 0,
+                Status = "error"
+            };
+        }
+    }
+
+    private IOASISNFT ParseBaseToNFT(string content)
+    {
+        try
+        {
+            var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
+            
+            return new OASISNFT
+            {
+                Id = Guid.NewGuid(),
+                TokenId = jsonElement.TryGetProperty("tokenId", out var tokenIdElement) ? tokenIdElement.GetString() : "",
+                Name = jsonElement.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "Base NFT",
+                Description = jsonElement.TryGetProperty("description", out var descElement) ? descElement.GetString() : "Base NFT Description",
+                ImageUrl = jsonElement.TryGetProperty("imageUrl", out var imageElement) ? imageElement.GetString() : "",
+                MetadataUrl = jsonElement.TryGetProperty("metadataUrl", out var metadataElement) ? metadataElement.GetString() : "",
+                Owner = jsonElement.TryGetProperty("owner", out var ownerElement) ? ownerElement.GetString() : "",
+                ContractAddress = jsonElement.TryGetProperty("contractAddress", out var contractElement) ? contractElement.GetString() : "",
+                CreatedDate = DateTime.UtcNow,
+                ModifiedDate = DateTime.UtcNow,
+                IsActive = true,
+                IsChanged = false,
+                IsNewHolon = false,
+                IsSaving = false,
+                IsLoading = false,
+                IsDeleted = false,
+                IsError = false,
+                ErrorMessage = null,
+                ParentHolonId = Guid.Empty,
+                ParentOmniverseId = Guid.Empty,
+                ParentMultiverseId = Guid.Empty,
+                ParentUniverseId = Guid.Empty,
+                ParentDimensionId = Guid.Empty,
+                ParentGalaxyClusterId = Guid.Empty,
+                ParentGalaxyId = Guid.Empty,
+                ParentSolarSystemId = Guid.Empty,
+                ParentPlanetId = Guid.Empty,
+                ParentMoonId = Guid.Empty,
+                ParentStarId = Guid.Empty,
+                ParentZomeId = Guid.Empty,
+                HolonType = HolonType.NFT,
+                DimensionLevel = 0,
+                SubDimensionLevel = 0,
+                MetaData = new Dictionary<string, object>
+                {
+                    { "BaseContent", content },
+                    { "ProviderType", "BaseOASIS" }
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error parsing Base NFT: {ex.Message}");
+            return new OASISNFT
+            {
+                Id = Guid.NewGuid(),
+                TokenId = "",
+                Name = "Base NFT",
+                Description = "Base NFT Description",
+                ImageUrl = "",
+                MetadataUrl = "",
+                Owner = "",
+                ContractAddress = "",
+                CreatedDate = DateTime.UtcNow,
+                ModifiedDate = DateTime.UtcNow,
+                IsActive = true,
+                IsChanged = false,
+                IsNewHolon = false,
+                IsSaving = false,
+                IsLoading = false,
+                IsDeleted = false,
+                IsError = false,
+                ErrorMessage = null,
+                ParentHolonId = Guid.Empty,
+                ParentOmniverseId = Guid.Empty,
+                ParentMultiverseId = Guid.Empty,
+                ParentUniverseId = Guid.Empty,
+                ParentDimensionId = Guid.Empty,
+                ParentGalaxyClusterId = Guid.Empty,
+                ParentGalaxyId = Guid.Empty,
+                ParentSolarSystemId = Guid.Empty,
+                ParentPlanetId = Guid.Empty,
+                ParentMoonId = Guid.Empty,
+                ParentStarId = Guid.Empty,
+                ParentZomeId = Guid.Empty,
+                HolonType = HolonType.NFT,
+                DimensionLevel = 0,
+                SubDimensionLevel = 0,
+                MetaData = new Dictionary<string, object>
+                {
+                    { "BaseContent", content },
+                    { "ProviderType", "BaseOASIS" }
+                }
+            };
+        }
+    }
 }
