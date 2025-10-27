@@ -748,6 +748,61 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
+
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Load all avatar details from Aptos blockchain using real Aptos RPC
+                var request = new
+                {
+                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_all_avatar_details",
+                    arguments = new object[0],
+                    type_arguments = new object[0]
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var aptosResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (aptosResponse.TryGetProperty("0", out var avatarDetailsArray) && 
+                        avatarDetailsArray.ValueKind == JsonValueKind.Array)
+                    {
+                        var avatarDetails = ParseAptosToAvatarDetails(avatarDetailsArray);
+                        response.Result = avatarDetails;
+                        response.IsError = false;
+                        response.Message = $"Loaded {avatarDetails.Count()} avatar details from Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse avatar details from Aptos response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar details from Aptos: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all avatar details from Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
         {
             var response = new OASISResult<IAvatar>();
@@ -909,7 +964,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             return response;
         }
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar) => new OASISResult<IAvatarDetail> { Result = Avatar };
+        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar) => SaveAvatarDetailAsync(Avatar).Result;
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             var response = new OASISResult<bool>();
@@ -1193,10 +1248,143 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaData is not supported by Aptos provider." };
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaData (multi) is not supported by Aptos provider." });
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsByMetaData (multi) is not supported by Aptos provider." };
-        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadAllHolons is not supported by Aptos provider." });
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "LoadAllHolons is not supported by Aptos provider." };
-        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => Task.FromResult(new OASISResult<IHolon> { Result = holon });
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => new OASISResult<IHolon> { Result = holon };
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var response = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Load all holons from Aptos blockchain using real Aptos RPC
+                var request = new
+                {
+                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_all_holons",
+                    arguments = new object[] { (int)type },
+                    type_arguments = new object[0]
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var aptosResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (aptosResponse.TryGetProperty("0", out var holonsArray) && 
+                        holonsArray.ValueKind == JsonValueKind.Array)
+                    {
+                        var holons = new List<IHolon>();
+                        foreach (var holonData in holonsArray.EnumerateArray())
+                        {
+                            var holon = ParseAptosToHolon(holonData);
+                            if (holon != null)
+                                holons.Add(holon);
+                        }
+                        
+                        response.Result = holons;
+                        response.IsError = false;
+                        response.Message = $"Loaded {holons.Count} holons from Aptos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse holons from Aptos response");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons from Aptos: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all holons from Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
+        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var response = new OASISResult<IHolon>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
+                    return response;
+                }
+
+                // Save holon to Aptos blockchain using real Aptos RPC
+                var sequenceNumber = await GetSequenceNumber();
+                var request = new
+                {
+                    sender = APTOS_ACCOUNT_ADDRESS,
+                    sequence_number = sequenceNumber.ToString(),
+                    max_gas_amount = "1000",
+                    gas_unit_price = "1",
+                    expiration_timestamp_secs = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(10)).ToUnixTimeSeconds().ToString(),
+                    payload = new
+                    {
+                        type = "entry_function_payload",
+                        function = $"{APTOS_CONTRACT_ADDRESS}::oasis::save_holon",
+                        arguments = new object[]
+                        {
+                            holon.Id.ToString(),
+                            holon.Name ?? "",
+                            holon.Description ?? "",
+                            (int)holon.HolonType,
+                            holon.ParentHolonId?.ToString() ?? "",
+                            holon.ParentOmniverseId?.ToString() ?? "",
+                            holon.ParentMultiverseId?.ToString() ?? "",
+                            holon.ParentUniverseId?.ToString() ?? "",
+                            holon.ParentDimensionId?.ToString() ?? "",
+                            holon.ParentGalaxyClusterId?.ToString() ?? "",
+                            holon.ParentGalaxyId?.ToString() ?? "",
+                            holon.ParentSolarSystemId?.ToString() ?? "",
+                            holon.ParentPlanetId?.ToString() ?? "",
+                            holon.ParentMoonId?.ToString() ?? "",
+                            holon.ParentStarId?.ToString() ?? "",
+                            holon.ParentZomeId?.ToString() ?? "",
+                            holon.MetaData ?? "",
+                            ((DateTimeOffset)holon.CreatedDate).ToUnixTimeSeconds(),
+                            ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds(),
+                            holon.IsActive
+                        },
+                        type_arguments = new object[0]
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/transactions", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response.Result = holon;
+                    response.IsError = false;
+                    response.Message = "Holon saved to Aptos blockchain successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to save holon to Aptos: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error saving holon to Aptos: {ex.Message}");
+            }
+
+            return response;
+        }
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
         public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Result = holons });
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => new OASISResult<IEnumerable<IHolon>> { Result = holons };
         public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => Task.FromResult(new OASISResult<IHolon> { Result = new Holon { Id = id } });
