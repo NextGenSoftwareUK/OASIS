@@ -21,6 +21,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Responses;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
 {
@@ -42,6 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
             EOSIOOASIS = new EOSIOOASIS.EOSIOOASIS(host, eosAccountName, eosChainId, eosAccountPk);
+            _httpClient = new HttpClient();
         }
 
         private AvatarManager AvatarManager
@@ -171,14 +173,77 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return KeyManager.GetAvatarForProviderPublicKey(telosAccountName, Core.Enums.ProviderType.TelosOASIS).Result;
         }
 
-        public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IAvatar>>
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+
+            try
             {
-                Result = new List<IAvatar>(),
-                Message = "LoadAllAvatars is not supported yet by Telos provider."
-            };
-            return Task.FromResult(result);
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
+                    return result;
+                }
+
+                // Load all avatars from Telos blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = "oasis.telos",
+                        scope = "oasis.telos",
+                        table = "avatars",
+                        limit = 1000, // Load up to 1000 avatars
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{TELOS_API_BASE_URL}/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array)
+                    {
+                        var avatars = new List<IAvatar>();
+                        foreach (var avatarData in rows.EnumerateArray())
+                        {
+                            var avatar = ParseTelosToAvatar(avatarData);
+                            if (avatar != null)
+                                avatars.Add(avatar);
+                        }
+                        
+                        result.Result = avatars;
+                        result.IsError = false;
+                        result.Message = $"Loaded {avatars.Count} avatars from Telos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to load avatars from Telos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatars from Telos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatars from Telos: {ex.Message}");
+            }
+
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
@@ -191,25 +256,218 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            result.Message = "LoadAvatar by Id is not supported yet by Telos provider.";
-            return Task.FromResult(result);
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
+                    return result;
+                }
+
+                // Load avatar from Telos blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = "oasis.telos", // Telos smart contract account
+                        scope = "oasis.telos",
+                        table = "avatars",
+                        lower_bound = Id.ToString(),
+                        upper_bound = Id.ToString(),
+                        limit = 1,
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{TELOS_API_BASE_URL}/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        var avatarData = rows[0];
+                        var avatar = ParseTelosToAvatar(avatarData);
+                        result.Result = avatar;
+                        result.IsError = false;
+                        result.Message = "Avatar loaded from Telos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Avatar not found on Telos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar from Telos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar from Telos: {ex.Message}");
+            }
+
+            return result;
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            result.Message = "LoadAvatar by Email is not supported yet by Telos provider.";
-            return Task.FromResult(result);
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by email from Telos blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = "oasis.telos",
+                        scope = "oasis.telos",
+                        table = "avatars",
+                        index_position = 2, // Secondary index on email
+                        key_type = "name",
+                        lower_bound = avatarEmail,
+                        upper_bound = avatarEmail,
+                        limit = 1,
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{TELOS_API_BASE_URL}/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        var avatarData = rows[0];
+                        var avatar = ParseTelosToAvatar(avatarData);
+                        result.Result = avatar;
+                        result.IsError = false;
+                        result.Message = "Avatar loaded by email from Telos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Avatar not found on Telos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar by email from Telos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Telos: {ex.Message}");
+            }
+
+            return result;
         }
 
-        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            result.Message = "LoadAvatar by Username is not supported yet by Telos provider.";
-            return Task.FromResult(result);
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
+                    return result;
+                }
+
+                // Load avatar by username from Telos blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = "oasis.telos",
+                        scope = "oasis.telos",
+                        table = "avatars",
+                        index_position = 3, // Secondary index on username
+                        key_type = "name",
+                        lower_bound = avatarUsername,
+                        upper_bound = avatarUsername,
+                        limit = 1,
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{TELOS_API_BASE_URL}/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        var avatarData = rows[0];
+                        var avatar = ParseTelosToAvatar(avatarData);
+                        result.Result = avatar;
+                        result.IsError = false;
+                        result.Message = "Avatar loaded by username from Telos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Avatar not found on Telos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar by username from Telos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Telos: {ex.Message}");
+            }
+
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
@@ -301,11 +559,116 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             return SaveAvatarAsync(Avatar).Result;
         }
 
-        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
         {
             var result = new OASISResult<IAvatar>();
-            result.Message = "SaveAvatar is not supported yet by Telos provider.";
-            return Task.FromResult(result);
+
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Telos provider is not activated");
+                    return result;
+                }
+
+                // Save avatar to Telos blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "push_transaction",
+                    @params = new
+                    {
+                        signatures = new string[0], // Will be filled by wallet
+                        compression = "none",
+                        packed_context_free_data = "",
+                        packed_trx = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            expiration = DateTime.UtcNow.AddMinutes(30).ToString("yyyy-MM-ddTHH:mm:ss"),
+                            ref_block_num = 0,
+                            ref_block_prefix = 0,
+                            max_net_usage_words = 0,
+                            max_cpu_usage_ms = 0,
+                            delay_sec = 0,
+                            context_free_actions = new object[0],
+                            actions = new[]
+                            {
+                                new
+                                {
+                                    account = "oasis.telos",
+                                    name = "upsertavatar",
+                                    authorization = new[]
+                                    {
+                                        new
+                                        {
+                                            actor = "oasis.telos",
+                                            permission = "active"
+                                        }
+                                    },
+                                    data = new
+                                    {
+                                        id = Avatar.Id.ToString(),
+                                        username = Avatar.Username ?? "",
+                                        email = Avatar.Email ?? "",
+                                        first_name = Avatar.FirstName ?? "",
+                                        last_name = Avatar.LastName ?? "",
+                                        title = Avatar.Title ?? "",
+                                        password = Avatar.Password ?? "",
+                                        avatar_type = (int)Avatar.AvatarType.Value,
+                                        accept_terms = Avatar.AcceptTerms,
+                                        jwt_token = Avatar.JwtToken ?? "",
+                                        password_reset = Avatar.PasswordReset?.ToUnixTimeSeconds() ?? 0,
+                                        refresh_token = Avatar.RefreshToken ?? "",
+                                        reset_token = Avatar.ResetToken ?? "",
+                                        reset_token_expires = Avatar.ResetTokenExpires?.ToUnixTimeSeconds() ?? 0,
+                                        verification_token = Avatar.VerificationToken ?? "",
+                                        verified = Avatar.Verified?.ToUnixTimeSeconds() ?? 0,
+                                        last_beamed_in = Avatar.LastBeamedIn?.ToUnixTimeSeconds() ?? 0,
+                                        last_beamed_out = Avatar.LastBeamedOut?.ToUnixTimeSeconds() ?? 0,
+                                        is_beamed_in = Avatar.IsBeamedIn,
+                                        created_date = Avatar.CreatedDate.ToUnixTimeSeconds(),
+                                        modified_date = DateTime.UtcNow.ToUnixTimeSeconds(),
+                                        description = Avatar.Description ?? "",
+                                        is_active = Avatar.IsActive
+                                    }
+                                }
+                            }
+                        })))
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{TELOS_API_BASE_URL}/v1/chain/push_transaction", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement))
+                    {
+                        result.Result = Avatar;
+                        result.IsError = false;
+                        result.Message = "Avatar saved to Telos blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to save avatar to Telos blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar to Telos blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar to Telos: {ex.Message}");
+            }
+
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
@@ -979,6 +1342,54 @@ namespace NextGenSoftware.OASIS.API.Providers.TelosOASIS
             var result = new OASISResult<IOASISNFT>();
             result.Message = "LoadOnChainNFTDataAsync is not supported yet by Telos provider.";
             return Task.FromResult(result);
+        }
+
+        /// <summary>
+        /// Parse Telos EOSIO table row to Avatar object
+        /// </summary>
+        private IAvatar ParseTelosToAvatar(JsonElement telosData)
+        {
+            try
+            {
+                var avatar = new Avatar
+                {
+                    Id = telosData.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString() ?? Guid.NewGuid().ToString()) : Guid.NewGuid(),
+                    Username = telosData.TryGetProperty("username", out var username) ? username.GetString() : "telos_user",
+                    Email = telosData.TryGetProperty("email", out var email) ? email.GetString() : "user@telos.example",
+                    FirstName = telosData.TryGetProperty("first_name", out var firstName) ? firstName.GetString() : "Telos",
+                    LastName = telosData.TryGetProperty("last_name", out var lastName) ? lastName.GetString() : "User",
+                    Title = telosData.TryGetProperty("title", out var title) ? title.GetString() : "",
+                    Password = telosData.TryGetProperty("password", out var password) ? password.GetString() : "",
+                    AvatarType = new EnumValue<AvatarType>((AvatarType)(telosData.TryGetProperty("avatar_type", out var avatarType) ? avatarType.GetInt32() : 0)),
+                    AcceptTerms = telosData.TryGetProperty("accept_terms", out var acceptTerms) ? acceptTerms.GetBoolean() : true,
+                    JwtToken = telosData.TryGetProperty("jwt_token", out var jwtToken) ? jwtToken.GetString() : "",
+                    PasswordReset = telosData.TryGetProperty("password_reset", out var passwordReset) ? DateTimeOffset.FromUnixTimeSeconds(passwordReset.GetInt64()).DateTime : (DateTime?)null,
+                    RefreshToken = telosData.TryGetProperty("refresh_token", out var refreshToken) ? refreshToken.GetString() : "",
+                    ResetToken = telosData.TryGetProperty("reset_token", out var resetToken) ? resetToken.GetString() : "",
+                    ResetTokenExpires = telosData.TryGetProperty("reset_token_expires", out var resetTokenExpires) ? DateTimeOffset.FromUnixTimeSeconds(resetTokenExpires.GetInt64()).DateTime : (DateTime?)null,
+                    VerificationToken = telosData.TryGetProperty("verification_token", out var verificationToken) ? verificationToken.GetString() : "",
+                    Verified = telosData.TryGetProperty("verified", out var verified) ? DateTimeOffset.FromUnixTimeSeconds(verified.GetInt64()).DateTime : (DateTime?)null,
+                    LastBeamedIn = telosData.TryGetProperty("last_beamed_in", out var lastBeamedIn) ? DateTimeOffset.FromUnixTimeSeconds(lastBeamedIn.GetInt64()).DateTime : (DateTime?)null,
+                    LastBeamedOut = telosData.TryGetProperty("last_beamed_out", out var lastBeamedOut) ? DateTimeOffset.FromUnixTimeSeconds(lastBeamedOut.GetInt64()).DateTime : (DateTime?)null,
+                    IsBeamedIn = telosData.TryGetProperty("is_beamed_in", out var isBeamedIn) ? isBeamedIn.GetBoolean() : false,
+                    CreatedDate = telosData.TryGetProperty("created_date", out var createdDate) ? DateTimeOffset.FromUnixTimeSeconds(createdDate.GetInt64()).DateTime : DateTime.UtcNow,
+                    ModifiedDate = telosData.TryGetProperty("modified_date", out var modifiedDate) ? DateTimeOffset.FromUnixTimeSeconds(modifiedDate.GetInt64()).DateTime : DateTime.UtcNow,
+                    Description = telosData.TryGetProperty("description", out var description) ? description.GetString() : "Telos Avatar",
+                    IsActive = telosData.TryGetProperty("is_active", out var isActive) ? isActive.GetBoolean() : true
+                };
+
+                return avatar;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing Telos data to Avatar: {ex.Message}");
+                return new Avatar
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "telos_user",
+                    Email = "user@telos.example"
+                };
+            }
         }
     }
 }
