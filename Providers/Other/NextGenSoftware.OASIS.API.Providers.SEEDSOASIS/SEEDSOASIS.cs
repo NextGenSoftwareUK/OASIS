@@ -1095,9 +1095,76 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailByEmail is not supported yet by SEEDS provider." };
         }
 
-        public Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
+        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailByEmailAsync is not supported yet by SEEDS provider." });
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
+                    return result;
+                }
+
+                // Load avatar detail by email from SEEDS blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = SEEDS_EOSIO_ACCOUNT_TEST,
+                        scope = SEEDS_EOSIO_ACCOUNT_TEST,
+                        table = "avatardetails",
+                        index_position = 3, // Email index
+                        key_type = "i64",
+                        lower_bound = email,
+                        upper_bound = email,
+                        limit = 1,
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{ENDPOINT_TEST}/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        var avatarDetailData = rows[0];
+                        var avatarDetail = ParseSEEDSToAvatarDetail(avatarDetailData);
+                        
+                        result.Result = avatarDetail;
+                        result.IsError = false;
+                        result.Message = "Avatar detail loaded from SEEDS blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Avatar detail not found in SEEDS blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar detail from SEEDS blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from SEEDS: {ex.Message}");
+            }
+
+            return result;
         }
 
         public OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0)
@@ -1105,9 +1172,76 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailByUsername is not supported yet by SEEDS provider." };
         }
 
-        public Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
+        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IAvatarDetail> { Message = "LoadAvatarDetailByUsernameAsync is not supported yet by SEEDS provider." });
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
+                    return result;
+                }
+
+                // Load avatar detail by username from SEEDS blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = SEEDS_EOSIO_ACCOUNT_TEST,
+                        scope = SEEDS_EOSIO_ACCOUNT_TEST,
+                        table = "avatardetails",
+                        index_position = 2, // Username index
+                        key_type = "i64",
+                        lower_bound = username,
+                        upper_bound = username,
+                        limit = 1,
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{ENDPOINT_TEST}/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array &&
+                        rows.GetArrayLength() > 0)
+                    {
+                        var avatarDetailData = rows[0];
+                        var avatarDetail = ParseSEEDSToAvatarDetail(avatarDetailData);
+                        
+                        result.Result = avatarDetail;
+                        result.IsError = false;
+                        result.Message = "Avatar detail loaded from SEEDS blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Avatar detail not found in SEEDS blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar detail from SEEDS blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from SEEDS: {ex.Message}");
+            }
+
+            return result;
         }
 
         public OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
@@ -1115,9 +1249,76 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
             return new OASISResult<IEnumerable<IAvatarDetail>> { Message = "LoadAllAvatarDetails is not supported yet by SEEDS provider." };
         }
 
-        public Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        public async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            return Task.FromResult(new OASISResult<IEnumerable<IAvatarDetail>> { Message = "LoadAllAvatarDetailsAsync is not supported yet by SEEDS provider." });
+            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SEEDS provider is not activated");
+                    return result;
+                }
+
+                // Load all avatar details from SEEDS blockchain using real EOSIO smart contract
+                var rpcRequest = new
+                {
+                    jsonrpc = "2.0",
+                    id = 1,
+                    method = "get_table_rows",
+                    @params = new
+                    {
+                        code = SEEDS_EOSIO_ACCOUNT_TEST,
+                        scope = SEEDS_EOSIO_ACCOUNT_TEST,
+                        table = "avatardetails",
+                        limit = 1000, // Load up to 1000 avatar details
+                        reverse = false,
+                        show_payer = false
+                    }
+                };
+
+                var jsonContent = System.Text.Json.JsonSerializer.Serialize(rpcRequest);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var httpResponse = await _httpClient.PostAsync($"{ENDPOINT_TEST}/v1/chain/get_table_rows", content);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                    var rpcResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
+                    
+                    if (rpcResponse.TryGetProperty("result", out var resultElement) &&
+                        resultElement.TryGetProperty("rows", out var rows) &&
+                        rows.ValueKind == JsonValueKind.Array)
+                    {
+                        var avatarDetails = new List<IAvatarDetail>();
+                        foreach (var avatarDetailData in rows.EnumerateArray())
+                        {
+                            var avatarDetail = ParseSEEDSToAvatarDetail(avatarDetailData);
+                            if (avatarDetail != null)
+                                avatarDetails.Add(avatarDetail);
+                        }
+                        
+                        result.Result = avatarDetails;
+                        result.IsError = false;
+                        result.Message = $"Loaded {avatarDetails.Count} avatar details from SEEDS blockchain successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Failed to load avatar details from SEEDS blockchain");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load avatar details from SEEDS blockchain: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar details from SEEDS: {ex.Message}");
+            }
+
+            return result;
         }
 
         public OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
