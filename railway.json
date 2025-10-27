@@ -1,7 +1,7 @@
 {
   "build": {
     "builder": "dockerfile",
-    "dockerfilePath": "Dockerfile.star-api.new"
+    "dockerfilePath": "Dockerfile"
   },
   "deploy": {
     "startCommand": "dotnet NextGenSoftware.OASIS.STAR.WebAPI.dll",
