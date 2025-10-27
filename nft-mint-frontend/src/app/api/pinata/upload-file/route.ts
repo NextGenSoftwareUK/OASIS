@@ -5,7 +5,7 @@ const PINATA_API_KEY = process.env.PINATA_API_KEY ?? process.env.PINATA_PUBLIC_K
 const PINATA_SECRET_KEY = process.env.PINATA_API_SECRET ?? process.env.PINATA_SECRET_KEY ?? process.env.NEXT_PUBLIC_PINATA_API_SECRET;
 const PINATA_GATEWAY = process.env.PINATA_GATEWAY ?? "https://gateway.pinata.cloud";
 
-function getAuthHeaders() {
+function getAuthHeaders(): Record<string, string> {
   if (PINATA_JWT) {
     return { Authorization: `Bearer ${PINATA_JWT}` };
   }
@@ -38,18 +38,14 @@ export async function POST(request: NextRequest) {
 
     const matches = /^data:(?<type>[^;]+);base64,(?<data>.+)$/u.exec(base64);
     const buffer = Buffer.from(matches?.groups?.data ?? base64, "base64");
-    const isNodeRuntime = typeof Blob === "undefined";
     const inferredType = matches?.groups?.type ?? contentType ?? "application/octet-stream";
     const safeName = fileName ?? `upload-${Date.now()}`;
 
     const form = new FormData();
-    if (isNodeRuntime) {
-      // Running in Node (Next.js route) – use buffer
-      form.append("file", buffer, safeName);
-    } else {
-      const blob = new Blob([buffer], { type: inferredType });
-      form.append("file", blob, safeName);
-    }
+    // Use File API (experimental in Node but works in Next.js)
+    const blob = new Blob([buffer], { type: inferredType });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    form.append("file", blob as any, safeName);
     form.append("pinataMetadata", JSON.stringify({ name: safeName }));
     form.append("pinataOptions", JSON.stringify({ cidVersion: 1 }));
 

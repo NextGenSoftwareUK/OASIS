@@ -45,14 +45,14 @@ export function CredentialsPanel({
         body: JSON.stringify({ username, password, baseUrl }),
       });
 
-      const data: { token?: string; avatarId?: string; message?: string } = await response.json();
+      const data: { token?: string; avatarId?: string | null; message?: string; result?: { avatarId?: string | null; avatar?: { id?: string | null; AvatarId?: string | null } } } = await response.json();
 
       if (!response.ok || !data?.token) {
         throw new Error(data?.message ?? `Authentication failed (HTTP ${response.status})`);
       }
 
       const token = data.token;
-      const avatarId = data?.result?.avatarId ?? data?.result?.avatar?.id ?? null;
+      const avatarId = data.avatarId ?? data?.result?.avatarId ?? data?.result?.avatar?.id ?? data?.result?.avatar?.AvatarId ?? null;
 
       onToken?.(token);
       onAuthenticated?.({ token, avatarId });
@@ -103,7 +103,7 @@ export function CredentialsPanel({
             {isLoading ? "Authenticating..." : authenticated ? "Authenticated" : "Authenticate Avatar"}
           </Button>
           {authenticated ? (
-            <Button variant="success" className="whitespace-nowrap" disabled>
+            <Button variant="primary" className="whitespace-nowrap" disabled>
               Authentication Successful
             </Button>
           ) : (

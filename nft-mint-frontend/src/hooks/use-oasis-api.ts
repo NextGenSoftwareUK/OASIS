@@ -22,7 +22,7 @@ export function useOasisApi(config: OasisConfig) {
       });
 
       const text = await response.text();
-      let json: any = null;
+      let json: unknown = null;
       try {
         json = text ? JSON.parse(text) : null;
       } catch (error) {
@@ -30,17 +30,25 @@ export function useOasisApi(config: OasisConfig) {
       }
 
       if (!response.ok) {
-        if (process.env.NODE_ENV !== "production") {
-          console.error("[oasis-api] request failed", {
-            path,
-            status: response.status,
-            body: text,
-          });
-        }
-        throw new Error(json?.message ?? `HTTP ${response.status}`);
+        console.error("[oasis-api] request failed", {
+          url: `${config.baseUrl}${path}`,
+          path,
+          status: response.status,
+          statusText: response.statusText,
+          body: text,
+          headers: Object.fromEntries(response.headers.entries()),
+        });
+        const message =
+          typeof json === "object" && json !== null && "message" in json && typeof (json as { message: unknown }).message === "string"
+            ? (json as { message: string }).message
+            : `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(message);
       }
 
-      return json;
+      if (json === null) {
+        return null;
+      }
+      return json as Record<string, unknown>;
     },
     [config.baseUrl, config.token]
   );

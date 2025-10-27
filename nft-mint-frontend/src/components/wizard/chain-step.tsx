@@ -1,9 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { SOLANA_CHAIN } from "@/types/chains";
-
-const CONFIG_OPTIONS = SOLANA_CHAIN.configurationVariants ?? [];
 
 type SolanaConfigStepProps = {
   selectedOption: string;

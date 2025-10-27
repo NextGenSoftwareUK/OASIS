@@ -11,5 +11,3 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data
         public Guid? AvatarId { get; set; }
     }
 }
-    }
-}

@@ -1343,8 +1343,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         OriginalOASISNFTId = mintNftResult.Result.OASISNFT.Id,
                         OriginalOASISNFTOffChainProvider = request.OffChainProvider != null ? request.OffChainProvider : new EnumValue<ProviderType>(ProviderType.None),
-                        GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider,
-                        PlacedByAvatarId = request.MintedByAvatarId,
+                        GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider != null ? request.GeoNFTMetaDataProvider.Value : ProviderType.None,
                         Lat = request.Lat,
                         Long = request.Long,
                         AllowOtherPlayersToAlsoCollect = request.AllowOtherPlayersToAlsoCollect,
@@ -1394,9 +1393,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     PlaceGeoSpatialNFTRequest placeGeoSpatialNFTRequest = new PlaceGeoSpatialNFTRequest()
                     {
                         OriginalOASISNFTId = mintNftResult.Result.OASISNFT.Id,
-                        OriginalOASISNFTOffChainProvider = request.OffChainProvider,
-                        GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider,
-                        PlacedByAvatarId = request.MintedByAvatarId,
+                        OriginalOASISNFTOffChainProvider = request.OffChainProvider != null ? request.OffChainProvider : new EnumValue<ProviderType>(ProviderType.None),
+                        GeoNFTMetaDataProvider = request.GeoNFTMetaDataProvider != null ? request.GeoNFTMetaDataProvider.Value : ProviderType.None,
                         Lat = request.Lat,
                         Long = request.Long,
                         AllowOtherPlayersToAlsoCollect = request.AllowOtherPlayersToAlsoCollect,
