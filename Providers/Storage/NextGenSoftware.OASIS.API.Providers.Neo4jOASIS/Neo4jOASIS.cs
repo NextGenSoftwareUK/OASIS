@@ -757,8 +757,67 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // Neo4j implementation for loading avatar detail by ID
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailAsync not implemented for Neo4j provider");
+                // REAL Neo4j implementation for loading avatar detail by ID
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"
+                        MATCH (a:AvatarDetail {Id: $id})
+                        RETURN a.Id as Id, a.Username as Username, a.Email as Email, 
+                               a.CreatedDate as CreatedDate, a.ModifiedDate as ModifiedDate,
+                               a.Description as Description, a.IsActive as IsActive, 
+                               a.Karma as Karma, a.Level as Level, a.XP as XP, 
+                               a.Model3D as Model3D, a.UmaJson as UmaJson,
+                               a.Portrait as Portrait, a.Town as Town, a.County as County,
+                               a.DOB as DOB, a.Address as Address, a.Country as Country,
+                               a.Postcode as Postcode, a.Landline as Landline, a.Mobile as Mobile,
+                               a.FavouriteColour as FavouriteColour, a.STARCLIColour as STARCLIColour";
+
+                    var result = await session.RunAsync(query, new { id = id.ToString() });
+                    var record = await result.SingleOrDefaultAsync();
+
+                    if (record != null)
+                    {
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = Guid.Parse(record["Id"].As<string>()),
+                            Username = record["Username"].As<string>(),
+                            Email = record["Email"].As<string>(),
+                            CreatedDate = record["CreatedDate"].As<DateTime>(),
+                            ModifiedDate = record["ModifiedDate"].As<DateTime>(),
+                            Description = record["Description"].As<string>(),
+                            IsActive = record["IsActive"].As<bool>(),
+                            Karma = record["Karma"].As<long>(),
+                            XP = record["XP"].As<int>(),
+                            Model3D = record["Model3D"].As<string>(),
+                            UmaJson = record["UmaJson"].As<string>(),
+                            Portrait = record["Portrait"].As<string>(),
+                            Town = record["Town"].As<string>(),
+                            County = record["County"].As<string>(),
+                            DOB = record["DOB"].As<DateTime>(),
+                            Address = record["Address"].As<string>(),
+                            Country = record["Country"].As<string>(),
+                            Postcode = record["Postcode"].As<string>(),
+                            Landline = record["Landline"].As<string>(),
+                            Mobile = record["Mobile"].As<string>(),
+                            FavouriteColour = (ConsoleColor)record["FavouriteColour"].As<int>(),
+                            STARCLIColour = (ConsoleColor)record["STARCLIColour"].As<int>()
+                        };
+
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded from Neo4j successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar detail not found in Neo4j");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -778,8 +837,67 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // Neo4j implementation for loading avatar detail by email
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailByEmailAsync not implemented for Neo4j provider");
+                // REAL Neo4j implementation for loading avatar detail by email
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"
+                        MATCH (a:AvatarDetail {Email: $email})
+                        RETURN a.Id as Id, a.Username as Username, a.Email as Email, 
+                               a.CreatedDate as CreatedDate, a.ModifiedDate as ModifiedDate,
+                               a.Description as Description, a.IsActive as IsActive, 
+                               a.Karma as Karma, a.Level as Level, a.XP as XP, 
+                               a.Model3D as Model3D, a.UmaJson as UmaJson,
+                               a.Portrait as Portrait, a.Town as Town, a.County as County,
+                               a.DOB as DOB, a.Address as Address, a.Country as Country,
+                               a.Postcode as Postcode, a.Landline as Landline, a.Mobile as Mobile,
+                               a.FavouriteColour as FavouriteColour, a.STARCLIColour as STARCLIColour";
+
+                    var result = await session.RunAsync(query, new { email = avatarEmail });
+                    var record = await result.SingleOrDefaultAsync();
+
+                    if (record != null)
+                    {
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = Guid.Parse(record["Id"].As<string>()),
+                            Username = record["Username"].As<string>(),
+                            Email = record["Email"].As<string>(),
+                            CreatedDate = record["CreatedDate"].As<DateTime>(),
+                            ModifiedDate = record["ModifiedDate"].As<DateTime>(),
+                            Description = record["Description"].As<string>(),
+                            IsActive = record["IsActive"].As<bool>(),
+                            Karma = record["Karma"].As<long>(),
+                            XP = record["XP"].As<int>(),
+                            Model3D = record["Model3D"].As<string>(),
+                            UmaJson = record["UmaJson"].As<string>(),
+                            Portrait = record["Portrait"].As<string>(),
+                            Town = record["Town"].As<string>(),
+                            County = record["County"].As<string>(),
+                            DOB = record["DOB"].As<DateTime>(),
+                            Address = record["Address"].As<string>(),
+                            Country = record["Country"].As<string>(),
+                            Postcode = record["Postcode"].As<string>(),
+                            Landline = record["Landline"].As<string>(),
+                            Mobile = record["Mobile"].As<string>(),
+                            FavouriteColour = (ConsoleColor)record["FavouriteColour"].As<int>(),
+                            STARCLIColour = (ConsoleColor)record["STARCLIColour"].As<int>()
+                        };
+
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded by email from Neo4j successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar detail not found in Neo4j");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -799,8 +917,67 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // Neo4j implementation for loading avatar detail by username
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailByUsernameAsync not implemented for Neo4j provider");
+                // REAL Neo4j implementation for loading avatar detail by username
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"
+                        MATCH (a:AvatarDetail {Username: $username})
+                        RETURN a.Id as Id, a.Username as Username, a.Email as Email, 
+                               a.CreatedDate as CreatedDate, a.ModifiedDate as ModifiedDate,
+                               a.Description as Description, a.IsActive as IsActive, 
+                               a.Karma as Karma, a.Level as Level, a.XP as XP, 
+                               a.Model3D as Model3D, a.UmaJson as UmaJson,
+                               a.Portrait as Portrait, a.Town as Town, a.County as County,
+                               a.DOB as DOB, a.Address as Address, a.Country as Country,
+                               a.Postcode as Postcode, a.Landline as Landline, a.Mobile as Mobile,
+                               a.FavouriteColour as FavouriteColour, a.STARCLIColour as STARCLIColour";
+
+                    var result = await session.RunAsync(query, new { username = avatarUsername });
+                    var record = await result.SingleOrDefaultAsync();
+
+                    if (record != null)
+                    {
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = Guid.Parse(record["Id"].As<string>()),
+                            Username = record["Username"].As<string>(),
+                            Email = record["Email"].As<string>(),
+                            CreatedDate = record["CreatedDate"].As<DateTime>(),
+                            ModifiedDate = record["ModifiedDate"].As<DateTime>(),
+                            Description = record["Description"].As<string>(),
+                            IsActive = record["IsActive"].As<bool>(),
+                            Karma = record["Karma"].As<long>(),
+                            XP = record["XP"].As<int>(),
+                            Model3D = record["Model3D"].As<string>(),
+                            UmaJson = record["UmaJson"].As<string>(),
+                            Portrait = record["Portrait"].As<string>(),
+                            Town = record["Town"].As<string>(),
+                            County = record["County"].As<string>(),
+                            DOB = record["DOB"].As<DateTime>(),
+                            Address = record["Address"].As<string>(),
+                            Country = record["Country"].As<string>(),
+                            Postcode = record["Postcode"].As<string>(),
+                            Landline = record["Landline"].As<string>(),
+                            Mobile = record["Mobile"].As<string>(),
+                            FavouriteColour = (ConsoleColor)record["FavouriteColour"].As<int>(),
+                            STARCLIColour = (ConsoleColor)record["STARCLIColour"].As<int>()
+                        };
+
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded by username from Neo4j successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Avatar detail not found in Neo4j");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -903,8 +1080,83 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // Neo4j implementation for saving avatar detail
-                OASISErrorHandling.HandleError(ref response, "SaveAvatarDetailAsync not implemented for Neo4j provider");
+                // REAL Neo4j implementation for saving avatar detail
+                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
+                    return response;
+                }
+
+                using (var session = _driver.AsyncSession())
+                {
+                    var query = @"
+                        MERGE (a:AvatarDetail {Id: $id})
+                        SET a.Username = $username, a.Email = $email, a.FirstName = $firstName,
+                            a.LastName = $lastName, a.Title = $title, a.Password = $password,
+                            a.AvatarType = $avatarType, a.AcceptTerms = $acceptTerms, a.JwtToken = $jwtToken,
+                            a.PasswordReset = $passwordReset, a.RefreshToken = $refreshToken,
+                            a.ResetToken = $resetToken, a.ResetTokenExpires = $resetTokenExpires,
+                            a.VerificationToken = $verificationToken, a.Verified = $verified,
+                            a.LastBeamedIn = $lastBeamedIn, a.LastBeamedOut = $lastBeamedOut,
+                            a.IsBeamedIn = $isBeamedIn, a.CreatedDate = $createdDate,
+                            a.ModifiedDate = $modifiedDate, a.Description = $description,
+                            a.IsActive = $isActive, a.Karma = $karma, a.Level = $level,
+                            a.XP = $xp, a.Model3D = $model3D, a.UmaJson = $umaJson,
+                            a.Portrait = $portrait, a.Town = $town, a.County = $county,
+                            a.FavouriteColour = $favouriteColour, a.StarcliColour = $starcliColour
+                        RETURN a.Id as Id";
+
+                    var parameters = new
+                    {
+                        id = Avatar.Id.ToString(),
+                        username = Avatar.Username ?? "",
+                        email = Avatar.Email ?? "",
+                        firstName = Avatar.FirstName ?? "",
+                        lastName = Avatar.LastName ?? "",
+                        title = Avatar.Title ?? "",
+                        password = Avatar.Password ?? "",
+                        avatarType = (int)Avatar.AvatarType.Value,
+                        acceptTerms = Avatar.AcceptTerms,
+                        jwtToken = Avatar.JwtToken ?? "",
+                        passwordReset = Avatar.PasswordReset,
+                        refreshToken = Avatar.RefreshToken ?? "",
+                        resetToken = Avatar.ResetToken ?? "",
+                        resetTokenExpires = Avatar.ResetTokenExpires,
+                        verificationToken = Avatar.VerificationToken ?? "",
+                        verified = Avatar.Verified,
+                        lastBeamedIn = Avatar.LastBeamedIn,
+                        lastBeamedOut = Avatar.LastBeamedOut,
+                        isBeamedIn = Avatar.IsBeamedIn,
+                        createdDate = Avatar.CreatedDate,
+                        modifiedDate = DateTime.UtcNow,
+                        description = Avatar.Description ?? "",
+                        isActive = Avatar.IsActive,
+                        karma = Avatar.Karma,
+                        level = Avatar.Level,
+                        xp = Avatar.XP,
+                        model3D = Avatar.Model3D ?? "",
+                        umaJson = Avatar.UmaJson ?? "",
+                        portrait = Avatar.Portrait ?? "",
+                        town = Avatar.Town ?? "",
+                        county = Avatar.County ?? "",
+                        favouriteColour = Avatar.FavouriteColour ?? "",
+                        starcliColour = Avatar.StarcliColour ?? ""
+                    };
+
+                    var result = await session.RunAsync(query, parameters);
+                    var record = await result.SingleOrDefaultAsync();
+
+                    if (record != null)
+                    {
+                        response.Result = Avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar detail saved to Neo4j successfully";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to save avatar detail to Neo4j");
+                    }
+                }
             }
             catch (Exception ex)
             {
