@@ -8,23 +8,8 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy only the necessary project files first
-COPY "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj" "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/"
-COPY "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/Controllers/" "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/Controllers/"
-COPY "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/Program.cs" "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/"
-COPY "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/Properties/" "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/Properties/"
-COPY "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/appsettings*.json" "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/"
-
-# Copy the Core project files
-COPY "STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/NextGenSoftware.OASIS.STAR.CLI.Lib.csproj" "STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/"
-COPY "STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/" "STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/"
-
-# Copy OASIS Core dependencies
-COPY "OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj" "OASIS Architecture/NextGenSoftware.OASIS.API.Core/"
-COPY "OASIS Architecture/NextGenSoftware.OASIS.API.Core/" "OASIS Architecture/NextGenSoftware.OASIS.API.Core/"
-
-# Copy Providers
-COPY "Providers/" "Providers/"
+# Copy the entire OASIS project structure from the parent directory
+COPY ../. .
 
 # Build the STAR WebAPI project
 WORKDIR "/src/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI"
