@@ -33,7 +33,7 @@ RUN cd "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Librarie
     dotnet add package BetterConsoleTables && \
     dotnet add package NLog
 
-RUN cd "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging.NLog" && \
+RUN cd "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging.NLog" && \
     dotnet add package NLog
 
 # Install missing NuGet packages for the main projects
