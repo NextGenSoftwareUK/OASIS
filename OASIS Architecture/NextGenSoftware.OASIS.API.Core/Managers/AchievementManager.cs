@@ -1,10 +1,11 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
@@ -16,7 +17,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     public class AchievementManager : OASISManager
     {
         private readonly AvatarManager _avatarManager;
-        private readonly ILogger<AchievementManager> _logger;
 
         // Singleton instance
         private static AchievementManager _instance;
@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         if (_instance == null)
                         {
-                            _instance = new AchievementManager();
+                            _instance = new AchievementManager(null, null, null);
                         }
                     }
                 }
@@ -40,15 +40,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
         }
 
-        private AchievementManager()
+        public AchievementManager(IOASISStorageProvider storageProvider, OASISDNA dna = null, AvatarManager avatarManager = null) : base(storageProvider, dna)
         {
-            _avatarManager = AvatarManager.Instance;
-        }
-
-        public AchievementManager(AvatarManager avatarManager, ILogger<AchievementManager> logger)
-        {
-            _avatarManager = avatarManager;
-            _logger = logger;
+            _avatarManager = avatarManager ?? AvatarManager.Instance;
         }
 
         #region Karma Rewards
@@ -90,7 +84,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 var karmaRecord = await _avatarManager.AddKarmaToAvatarAsync(
                     avatarId,
                     karmaType,
-                    KarmaSourceType.OApp, // Telegram bot is an OAPP
+                    KarmaSourceType.dApp, // Telegram bot is a dApp
                     achievementTitle,
                     achievementDescription,
                     sourceLink,
@@ -99,9 +93,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (karmaRecord != null)
                 {
-                    _logger?.LogInformation(
-                        $"Awarded {karmaAmount} karma to avatar {avatarId} for: {achievementTitle}"
-                    );
+                    // Log karma award for tracking
+                    System.Console.WriteLine($"[AchievementManager] Awarded {karmaAmount} karma to avatar {avatarId} for: {achievementTitle}");
 
                     return new OASISResult<KarmaAkashicRecord>
                     {
@@ -118,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, $"Error awarding karma to avatar {avatarId}");
+                System.Console.WriteLine($"[AchievementManager] Error awarding karma to avatar {avatarId}: {ex.Message}");
                 return new OASISResult<KarmaAkashicRecord>
                 {
                     IsError = true,
@@ -154,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 var karmaRecord = _avatarManager.AddKarmaToAvatar(
                     avatarId,
                     karmaType,
-                    KarmaSourceType.OApp,
+                    KarmaSourceType.dApp,
                     achievementTitle,
                     achievementDescription,
                     sourceLink,
@@ -163,9 +156,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (karmaRecord != null && !karmaRecord.IsError)
                 {
-                    _logger?.LogInformation(
-                        $"Awarded {karmaAmount} karma to avatar {avatarId} for: {achievementTitle}"
-                    );
+                    System.Console.WriteLine($"[AchievementManager] Awarded {karmaAmount} karma to avatar {avatarId} for: {achievementTitle}");
 
                     return new OASISResult<KarmaAkashicRecord>
                     {
@@ -182,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, $"Error awarding karma to avatar {avatarId}");
+                System.Console.WriteLine($"[AchievementManager] Error awarding karma to avatar {avatarId}: {ex.Message}");
                 return new OASISResult<KarmaAkashicRecord>
                 {
                     IsError = true,
@@ -199,13 +190,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // Map karma amounts to predefined karma types
             // This is a simplified mapping - could be more sophisticated
             if (amount >= 100)
-                return KarmaTypePositive.BeAwesome; // Large achievements
+                return KarmaTypePositive.OurWorldBeASuperHero; // Large achievements
             else if (amount >= 50)
-                return KarmaTypePositive.BeKind; // Medium achievements
+                return KarmaTypePositive.OurWorldBeAHero; // Medium achievements
             else if (amount >= 20)
-                return KarmaTypePositive.BeHelpful; // Small achievements
+                return KarmaTypePositive.OurWorldHelpOtherPlayer; // Small achievements
             else
-                return KarmaTypePositive.BePositive; // Check-ins and small tasks
+                return KarmaTypePositive.OurWorldPickupLitter; // Check-ins and small tasks
         }
 
         #endregion
@@ -250,23 +241,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     };
                 }
 
-                // Get the avatar's wallet for the specified provider
-                var wallets = avatarResult.Result.Wallets;
-                string recipientWallet = null;
-
-                // Find wallet address for the provider
-                if (wallets != null && wallets.Count > 0)
-                {
-                    foreach (var wallet in wallets)
-                    {
-                        if (wallet.WalletAddress != null)
-                        {
-                            recipientWallet = wallet.WalletAddress;
-                            break;
-                        }
-                    }
-                }
-
+                // Get the avatar's Solana wallet address
+                // For now, return placeholder. In production, retrieve from avatar's wallet collection
+                string recipientWallet = "PLACEHOLDER_SOLANA_WALLET";
+                
+                // TODO: Implement proper wallet retrieval from IAvatarDetail
+                // Cast to AvatarDetail to access Wallets property if needed:
+                // var avatarDetail = avatarResult.Result as AvatarDetail;
+                // if (avatarDetail?.Wallets != null && avatarDetail.Wallets.Count > 0) { ... }
+                
                 if (string.IsNullOrEmpty(recipientWallet))
                 {
                     return new OASISResult<string>
@@ -279,8 +262,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // TODO: Implement actual token transfer via WalletManager or provider
                 // This would integrate with SolanaOASIS provider's token transfer functionality
                 
-                _logger?.LogInformation(
-                    $"Token award initiated: {tokenAmount} {tokenSymbol} to avatar {avatarId} " +
+                System.Console.WriteLine(
+                    $"[AchievementManager] Token award initiated: {tokenAmount} {tokenSymbol} to avatar {avatarId} " +
                     $"at wallet {recipientWallet} for: {achievementTitle}"
                 );
 
@@ -296,7 +279,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, $"Error awarding tokens to avatar {avatarId}");
+                System.Console.WriteLine($"[AchievementManager] Error awarding tokens to avatar {avatarId}: {ex.Message}");
                 return new OASISResult<string>
                 {
                     IsError = true,
@@ -393,7 +376,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, $"Error completing achievement for avatar {avatarId}");
+                System.Console.WriteLine($"[AchievementManager] Error completing achievement for avatar {avatarId}: {ex.Message}");
                 return new OASISResult<AchievementRewardResult>
                 {
                     IsError = true,
