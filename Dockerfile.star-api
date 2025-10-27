@@ -11,17 +11,20 @@ WORKDIR /src
 # Copy the entire OASIS project structure
 COPY . .
 
-# Download external libraries from their GitHub repositories during build
+# Download external libraries from GitHub during build
 RUN apt-get update && apt-get install -y git && \
-    # Clone NextGenSoftware-Libraries and copy to expected locations
+    # Clone NextGenSoftware-Libraries
     git clone https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries.git temp-libs && \
-    mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries" && \
-    cp -r temp-libs/NextGenSoftware\ Libraries/* "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/" && \
-    mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries" && \
-    cp -r temp-libs/NextGenSoftware\ Libraries/* "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/" && \
-    # Clone holochain-client-csharp and copy to expected location
+    # Copy NextGenSoftware.Logging to expected location
+    mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging" && \
+    cp -r temp-libs/NextGenSoftware\ Libraries/NextGenSoftware.Logging/* "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging/" && \
+    # Copy NextGenSoftware.Logging.NLog to expected location
+    mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging.NLog" && \
+    cp -r temp-libs/NextGenSoftware\ Libraries/NextGenSoftware.Logging.NLog/* "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/NextGenSoftware.Logging.NLog/" && \
+    # Clone holochain-client-csharp
     git clone https://github.com/NextGenSoftwareUK/holochain-client-csharp.git temp-holo && \
-    mkdir -p "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS" && \
+    # Copy holochain-client-csharp to expected location
+    mkdir -p "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp" && \
     cp -r temp-holo/* "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp/" && \
     # Clean up
     rm -rf temp-libs temp-holo && \
