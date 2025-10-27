@@ -699,7 +699,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
         // Stub implementations for IOASISStorageProvider interface
         public OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
         {
-            return new OASISResult<IAvatar> { Message = "LoadAvatar is not supported yet by SEEDS provider." };
+            return LoadAvatarAsync(id, version).Result;
         }
 
         public async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -774,17 +774,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IAvatar> LoadAvatar(string providerKey, int version = 0)
         {
-            return new OASISResult<IAvatar> { Message = "LoadAvatar by providerKey is not supported yet by SEEDS provider." };
+            return LoadAvatarAsync(providerKey, version).Result;
         }
 
         public Task<OASISResult<IAvatar>> LoadAvatarAsync(string providerKey, int version = 0)
         {
-            return Task.FromResult(new OASISResult<IAvatar> { Message = "LoadAvatarAsync by providerKey is not supported yet by SEEDS provider." });
+            return LoadAvatarAsync(Guid.Parse(providerKey), version);
         }
 
         public OASISResult<IAvatar> LoadAvatarByEmail(string email, int version = 0)
         {
-            return new OASISResult<IAvatar> { Message = "LoadAvatarByEmail is not supported yet by SEEDS provider." };
+            return LoadAvatarByEmailAsync(email, version).Result;
         }
 
         public async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
@@ -861,7 +861,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0)
         {
-            return new OASISResult<IAvatar> { Message = "LoadAvatarByUsername is not supported yet by SEEDS provider." };
+            return LoadAvatarByUsernameAsync(username, version).Result;
         }
 
         public async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
@@ -938,7 +938,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
 
         public OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            return new OASISResult<IEnumerable<IAvatar>> { Message = "LoadAllAvatars is not supported yet by SEEDS provider." };
+            return LoadAllAvatarsAsync(version).Result;
         }
 
         public async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
