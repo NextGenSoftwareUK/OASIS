@@ -1,22 +1,24 @@
-﻿using Newtonsoft.Json;
+﻿using ADRaffy.ENSNormalize;
+using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.STAR.DNA;
-using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
-using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
-using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Network;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
+using NextGenSoftware.OASIS.STAR.DNA;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -58,16 +60,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (CLIEngine.GetConfirmation("Do you have an existing WEB4 OASIS Geo-NFT you wish to create a WEB5 Geo-NFT from?"))
             {
                 Console.WriteLine("");
-                Guid geoNFTId = CLIEngine.GetValidInputForGuid("Please enter the ID of the WEB4 GeoNFT you wish to upload to STARNET: ");
+                geoNFTResult = await FindWeb4GeoNFTAsync("wrap");
 
-                if (geoNFTId != Guid.Empty)
-                    geoNFTResult = await STAR.OASISAPI.NFTs.LoadGeoNftAsync(geoNFTId);
-                else
-                {
-                    result.IsWarning = true;
-                    result.Message = "User Exited";
-                    return result;
-                }
+                //Guid geoNFTId = CLIEngine.GetValidInputForGuid("Please enter the ID of the WEB4 GeoNFT you wish to upload to STARNET: ");
+
+                //if (geoNFTId != Guid.Empty)
+                //    geoNFTResult = await STAR.OASISAPI.NFTs.LoadGeoNftAsync(geoNFTId);
+                //else
+                //{
+                //    result.IsWarning = true;
+                //    result.Message = "User Exited";
+                //    return result;
+                //}
             }
             else
             {
@@ -304,7 +308,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             result = await FindWeb4GeoNFTAsync("view", idOrName, true, providerType: providerType);
 
             if (result != null && result.Result != null && !result.IsError)
-                ShowGeoNFT(result.Result, DEFAULT_FIELD_LENGTH);
+                ShowGeoNFT(result.Result);
             else
                 OASISErrorHandling.HandleError(ref result, "No WEB4 Geo-NFT Found For That Id or Name!");
 
@@ -324,7 +328,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     geoNFT = JsonConvert.DeserializeObject<OASISGeoSpatialNFT>(starHolon.STARNETDNA.MetaData["GeoNFT"].ToString());
 
                 if (geoNFT != null)
-                    ShowGeoNFT(geoNFT, displayFieldLength);
+                {
+                    Console.WriteLine("");
+                    DisplayProperty("GEO-NFT DETAILS", "", displayFieldLength, false);
+                    ShowGeoNFT(geoNFT, showHeader: false, showFooter: false);
+                }
             }
 
             CLIEngine.ShowDivider();
@@ -408,7 +416,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         if (searchResults.Result.Count() > 1)
                         {
-                            ListWeb4GeoNFTs(searchResults);
+                            ListWeb4GeoNFTs(searchResults, true);
 
                             if (CLIEngine.GetConfirmation("Are any of these correct?"))
                             {
@@ -444,7 +452,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
 
                 if (result.Result != null)
-                    ShowGeoNFT(result.Result, DEFAULT_FIELD_LENGTH);
+                    ShowGeoNFT(result.Result);
 
                 if (idOrName == "exit")
                     break;
@@ -490,7 +498,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
 
-        private OASISResult<IEnumerable<IOASISGeoSpatialNFT>> ListWeb4GeoNFTs(OASISResult<IEnumerable<IOASISGeoSpatialNFT>> geoNFTs)
+        private OASISResult<IEnumerable<IOASISGeoSpatialNFT>> ListWeb4GeoNFTs(OASISResult<IEnumerable<IOASISGeoSpatialNFT>> geoNFTs, bool showNumbers = false, bool showDetailedInfo = false)
         {
             if (geoNFTs != null)
             {
@@ -505,8 +513,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         else
                             CLIEngine.ShowMessage($"{geoNFTs.Result.Count()} WEB4 GeoNFT's Found:");
 
-                        foreach (IOASISGeoSpatialNFT geoNFT in geoNFTs.Result)
-                            ShowGeoNFT(geoNFT, DEFAULT_FIELD_LENGTH);
+                        for (int i = 0; i < geoNFTs.Result.Count(); i++)
+                            ShowGeoNFT(geoNFTs.Result.ElementAt(i), i == 0, true, showNumbers, i + 1, showDetailedInfo);
                     }
                     else
                         CLIEngine.ShowWarningMessage($"No WEB4 GeoNFT's Found.");
@@ -520,11 +528,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return geoNFTs;
         }
 
-        private void ShowGeoNFT(IOASISGeoSpatialNFT geoNFT, int displayFieldLength)
+        private void ShowGeoNFT(IOASISGeoSpatialNFT geoNFT, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 39)
         {
+            if (DisplayFieldLength > displayFieldLength)
+                displayFieldLength = DisplayFieldLength;
+
+            if (showHeader)
+                CLIEngine.ShowDivider();
+
             Console.WriteLine("");
-            DisplayProperty("GEO-NFT DETAILS", "", displayFieldLength, false);
-            Console.WriteLine("");
+
+            if (showNumbers)
+                CLIEngine.ShowMessage(string.Concat("Number:".PadRight(displayFieldLength), number), false);
+
+            //DisplayProperty("GEO-NFT DETAILS", "", displayFieldLength, false);
+            //Console.WriteLine("");
             DisplayProperty("Geo-NFT Id", geoNFT.Id.ToString(), displayFieldLength);
             DisplayProperty("NFT Id", geoNFT.OriginalOASISNFTId.ToString(), displayFieldLength);
             DisplayProperty("Title", geoNFT.Title, displayFieldLength);
@@ -588,6 +606,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("3D Object URL", !string.IsNullOrEmpty(geoNFT.Nft3DObjectURI) ? geoNFT.Nft3DObjectURI : "None", displayFieldLength);
 
             ShowMetaData(geoNFT.MetaData);
+
+            if (showFooter)
+                CLIEngine.ShowDivider();
         }
 
         private async Task<IPlaceGeoSpatialNFTRequest> GenerateGeoNFTRequestAsync(bool isExistingNFT)

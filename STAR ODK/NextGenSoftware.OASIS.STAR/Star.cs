@@ -2897,6 +2897,8 @@ namespace NextGenSoftware.OASIS.STAR
                         }
                     }
 
+
+
                     File.Delete(file.FullName);
                     File.Move(string.Concat(file.FullName, ".temp"), file.FullName);
                 }
@@ -2999,7 +3001,20 @@ namespace NextGenSoftware.OASIS.STAR
                 }
 
                 if (!foundOASISDNA && root)
-                    File.Copy(OASISDNAPath, Path.Combine(OAPPFolder, "OASIS_DNA.json"));
+                {
+                    if (File.Exists(Path.Combine(OAPPFolder, "DNA\\OASIS_DNA.json")))
+                        File.Delete(Path.Combine(OAPPFolder, "DNA\\OASIS_DNA.json"));
+
+                    if (File.Exists(Path.Combine(OAPPFolder, "DNA\\STAR_DNA.json")))
+                        File.Delete(Path.Combine(OAPPFolder, "DNA\\STAR_DNA.json"));
+
+                    if (!File.Exists(Path.Combine(OAPPFolder, "DNA")))
+                        Directory.CreateDirectory(Path.Combine(OAPPFolder, "DNA"));
+
+                    File.Copy(OASISDNAPath, Path.Combine(OAPPFolder, "DNA\\OASIS_DNA.json"));
+                    File.Copy(STARDNAPath, Path.Combine(OAPPFolder, "DNA\\STAR_DNA.json"));
+                    //File.Copy(OASISDNAPath, Path.Combine(OAPPFolder, "OASIS_DNA.json"));
+                }
             }
         }
 

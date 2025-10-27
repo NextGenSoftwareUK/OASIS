@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -246,7 +247,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (result.IsError)
                     return BadRequest(result);
 
-                var filteredMissions = result.Result?.Where(m => m.Status?.ToString() == status);
+                var filteredMissions = result.Result?.Where(m => Enum.GetName(typeof(QuestStatus), m.Status) == status);
                 return Ok(new OASISResult<IEnumerable<Mission>>
                 {
                     Result = filteredMissions,

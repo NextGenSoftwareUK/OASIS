@@ -14,7 +14,7 @@ CLIEngine.ShowDivider();
 Console.WriteLine("");
 
 //OASISResult<bool> bootResult = await OASISAPI.BootOASISAsync();
-OASISResult<bool> bootResult = await STAR.OASISAPI.BootOASISAsync();
+OASISResult<bool> bootResult = await STAR.OASISAPI.BootOASISAsync(OASISDNAPath: "DNA\\OASIS_DNA.json");
 
 if (bootResult != null && !bootResult.IsError)
 {

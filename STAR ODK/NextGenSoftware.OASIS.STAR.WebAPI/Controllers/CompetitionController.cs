@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.STAR.WebAPI.Attributes;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {

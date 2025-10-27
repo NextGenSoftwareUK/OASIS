@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
@@ -68,16 +69,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (CLIEngine.GetConfirmation("Do you have an existing WEB4 OASIS NFT you wish to create a WEB5 NFT from?"))
             {
                 Console.WriteLine("");
-                Guid id = CLIEngine.GetValidInputForGuid("Please enter the ID of the WEB4 NFT you wish to upload to STARNET: ");
+                NFTResult = await FindWeb4NFTAsync("wrap");
+                
+                //Guid id = CLIEngine.GetValidInputForGuid("Please enter the ID of the WEB4 NFT you wish to upload to STARNET: ");
 
-                if (id != Guid.Empty)
-                    NFTResult = await STAR.OASISAPI.NFTs.LoadNftAsync(id);
-                else
-                {
-                    result.IsWarning = true;
-                    result.Message = "User Exited";
-                    return result;
-                }
+                //if (id != Guid.Empty)
+                //    NFTResult = await STAR.OASISAPI.NFTs.LoadNftAsync(id);
+                //else
+                //{
+                //    result.IsWarning = true;
+                //    result.Message = "User Exited";
+                //    return result;
+                //}
             }
             else
             {
@@ -108,7 +111,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (result != null && result.Result != null && !result.IsError)
                     {
-                        result.Result.NFTType = (NFTType)result.Result.STARNETDNA.STARNETCategory;
+                        //result.Result.NFTType = (NFTType)result.Result.STARNETDNA.STARNETCategory;
+                        result.Result.NFTType = (NFTType)Enum.Parse(typeof(NFTType), result.Result.STARNETDNA.STARNETCategory.ToString());
                         OASISResult<STARNFT> saveResult = await result.Result.SaveAsync<STARNFT>();
 
                         if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
@@ -201,7 +205,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     nft = JsonConvert.DeserializeObject<OASISNFT>(starHolon.STARNETDNA.MetaData["NFT"].ToString());
 
                 if (nft != null)
-                    ShowNFT(nft, displayFieldLength);
+                {
+                    Console.WriteLine("");
+                    DisplayProperty("NFT DETAILS", "", displayFieldLength, false);
+                    ShowNFT(nft, showHeader: false, showFooter: false);
+                }
             }
 
             CLIEngine.ShowDivider();
@@ -366,7 +374,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             result = await FindWeb4NFTAsync("view", idOrName, true, providerType: providerType);
 
             if (result != null && result.Result != null && !result.IsError)
-                ShowNFT(result.Result, DEFAULT_FIELD_LENGTH);
+                ShowNFT(result.Result);
             else
                 OASISErrorHandling.HandleError(ref result, "No WEB4 NFT Found For That Id or Name!");
 
@@ -451,7 +459,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         if (searchResults.Result.Count() > 1)
                         {
-                            ListWeb4NFTs(searchResults);
+                            ListWeb4NFTs(searchResults, true);
 
                             if (CLIEngine.GetConfirmation("Are any of these correct?"))
                             {
@@ -487,7 +495,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
 
                 if (result.Result != null)
-                    ShowNFT(result.Result, DEFAULT_FIELD_LENGTH);
+                    ShowNFT(result.Result);
 
                 if (idOrName == "exit")
                     break;
@@ -532,7 +540,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        private OASISResult<IEnumerable<IOASISNFT>> ListWeb4NFTs(OASISResult<IEnumerable<IOASISNFT>> nfts)
+        private OASISResult<IEnumerable<IOASISNFT>> ListWeb4NFTs(OASISResult<IEnumerable<IOASISNFT>> nfts, bool showNumbers = false, bool showDetailedInfo = false)
         {
             if (nfts != null)
             {
@@ -547,8 +555,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         else
                             CLIEngine.ShowMessage($"{nfts.Result.Count()} WEB4 NFT's Found:");
 
-                        foreach (IOASISNFT nft in nfts.Result)
-                            ShowNFT(nft, DEFAULT_FIELD_LENGTH);
+                        //foreach (IOASISNFT nft in nfts.Result)
+                        //    ShowNFT(nft, showNumbers, showDetailedInfo, DEFAULT_FIELD_LENGTH);
+
+                        for (int i = 0; i < nfts.Result.Count(); i++)
+                            ShowNFT(nfts.Result.ElementAt(i), i == 0, true, showNumbers, i + 1, showDetailedInfo);
                     }
                     else
                         CLIEngine.ShowWarningMessage($"No WEB4 NFT's Found.");
@@ -561,11 +572,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             return nfts;
         }
-        private void ShowNFT(IOASISNFT nft, int displayFieldLength)
+
+        private void ShowNFT(IOASISNFT nft, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 39)
         {
+            if (DisplayFieldLength > displayFieldLength)
+                displayFieldLength = DisplayFieldLength;
+
+            if (showHeader)
+                CLIEngine.ShowDivider();
+
             Console.WriteLine("");
-            DisplayProperty("NFT DETAILS", "", displayFieldLength, false);
-            Console.WriteLine("");
+
+            if (showNumbers)
+                CLIEngine.ShowMessage(string.Concat("Number:".PadRight(displayFieldLength), number), false);
+
+            //DisplayProperty("NFT DETAILS", "", displayFieldLength, false);
+            //Console.WriteLine("");
             DisplayProperty("NFT Id", nft.Id.ToString(), displayFieldLength);
             DisplayProperty("Title", nft.Title, displayFieldLength);
             DisplayProperty("Description", nft.Description, displayFieldLength);
@@ -604,6 +626,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
                 CLIEngine.ShowMessage($"MetaData: None");
+
+            if (showFooter)
+                CLIEngine.ShowDivider();
         }
     }
 }
