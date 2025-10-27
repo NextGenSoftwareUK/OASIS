@@ -23,6 +23,10 @@ using NextGenSoftware.OASIS.STAR.CLI.Lib;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Network;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using System.IO;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 { //test
@@ -686,11 +690,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "nft":
-                                    await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.EditAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, STARCLI.NFTs.MintNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.CloneNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ListAllWeb4NFTsAsync, STARCLI.NFTs.ListAllWeb4NFTForAvatarsAsync, STARCLI.NFTs.ShowWeb4NFTAsync, STARCLI.NFTs.SearchWeb4NFTAsync, providerType: providerType);
+                                    {
+                                       if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "collection")
+                                            await ShowSubCommandAsync<STARNFTCollection>(inputArgs, "nft collection", "nft collection's", STARCLI.NFTCollections.CreateAsync, STARCLI.NFTCollections.EditAsync, STARCLI.NFTCollections.DeleteAsync, STARCLI.NFTCollections.DownloadAndInstallAsync, STARCLI.NFTCollections.UninstallAsync, STARCLI.NFTCollections.PublishAsync, STARCLI.NFTCollections.UnpublishAsync, STARCLI.NFTCollections.RepublishAsync, STARCLI.NFTCollections.ActivateAsync, STARCLI.NFTCollections.DeactivateAsync, STARCLI.NFTCollections.ShowAsync, STARCLI.NFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllAsync, STARCLI.NFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTCollections.SearchAsync, STARCLI.NFTCollections.AddDependencyAsync, STARCLI.NFTCollections.RemoveDependencyAsync, createWeb4NFTCollectionPredicate: STARCLI.NFTCollections.CreateWeb4NFTCollectionAsync, updateWeb4NFTCollectionPredicate: STARCLI.NFTCollections.UpdateWeb4NFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.NFTCollections.AddWeb4NFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.NFTCollections.RemoveWeb4NFTFromCollectionAsync, deleteWeb4NFTCollectionPredicate: STARCLI.NFTCollections.DeleteWeb4NFTCollectionAsync, listAllWeb4NFTsPredicate: STARCLI.NFTCollections.ListAllWeb4NFTCollections, listWeb4NFTsForBeamedInAvatarPredicate: STARCLI.NFTCollections.ListWeb4NFTCollectionsForAvatar, showWeb4NFTPredicate: STARCLI.NFTCollections.ShowWeb4NFTCollectionAsync, searchWeb4NFTPredicate: STARCLI.NFTCollections.SearchWeb4NFTCollectionAsync, providerType: providerType);
+                                       else
+                                            await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.EditAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, STARCLI.NFTs.MintNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.CloneNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ListAllWeb4NFTsAsync, STARCLI.NFTs.ListAllWeb4NFTForAvatarsAsync, STARCLI.NFTs.ShowWeb4NFTAsync, STARCLI.NFTs.SearchWeb4NFTAsync, providerType: providerType);
+                                    }
                                     break;
 
                                 case "geonft":
-                                    await ShowSubCommandAsync<STARGeoNFT>(inputArgs, "geo-nft", "geo-nft's", STARCLI.GeoNFTs.CreateAsync, STARCLI.GeoNFTs.EditAsync, STARCLI.GeoNFTs.DeleteAsync, STARCLI.GeoNFTs.DownloadAndInstallAsync, STARCLI.GeoNFTs.UninstallAsync, STARCLI.GeoNFTs.PublishAsync, STARCLI.GeoNFTs.UnpublishAsync, STARCLI.GeoNFTs.RepublishAsync, STARCLI.GeoNFTs.ActivateAsync, STARCLI.GeoNFTs.DeactivateAsync, STARCLI.GeoNFTs.ShowAsync, STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllAsync, STARCLI.GeoNFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTs.SearchAsync, STARCLI.GeoNFTs.AddDependencyAsync, STARCLI.GeoNFTs.RemoveDependencyAsync, STARCLI.GeoNFTs.MintGeoNFTAsync, STARCLI.GeoNFTs.BurnGeoNFTAsync, STARCLI.GeoNFTs.ImportGeoNFTAsync, STARCLI.GeoNFTs.ExportGeoNFTAsync, STARCLI.GeoNFTs.CloneGeoNFTAsync, STARCLI.GeoNFTs.ConvertGeoNFTAsync, STARCLI.GeoNFTs.ListAllWeb4GeoNFTsAsync, STARCLI.GeoNFTs.ListAllWeb4GeoNFTForAvatarsAsync, STARCLI.GeoNFTs.ShowWeb4GeoNFTAsync, STARCLI.GeoNFTs.SearchWeb4GeoNFTAsync, providerType: providerType);
+                                    {
+                                        if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "collection")
+                                            await ShowSubCommandAsync<STARGeoNFTCollection>(inputArgs, "geo-nft collection", "geo-nft collection's", STARCLI.GeoNFTCollections.CreateAsync, STARCLI.GeoNFTCollections.EditAsync, STARCLI.GeoNFTCollections.DeleteAsync, STARCLI.GeoNFTCollections.DownloadAndInstallAsync, STARCLI.GeoNFTCollections.UninstallAsync, STARCLI.GeoNFTCollections.PublishAsync, STARCLI.GeoNFTCollections.UnpublishAsync, STARCLI.GeoNFTCollections.RepublishAsync, STARCLI.GeoNFTCollections.ActivateAsync, STARCLI.GeoNFTCollections.DeactivateAsync, STARCLI.GeoNFTCollections.ShowAsync, STARCLI.GeoNFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllAsync, STARCLI.GeoNFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.SearchAsync, STARCLI.GeoNFTCollections.AddDependencyAsync, STARCLI.GeoNFTCollections.RemoveDependencyAsync, createWeb4NFTCollectionPredicate: STARCLI.GeoNFTCollections.CreateWeb4GeoNFTCollectionAsync, updateWeb4NFTCollectionPredicate: STARCLI.GeoNFTCollections.UpdateWeb4GeoNFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.GeoNFTCollections.AddWeb4GeoNFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.GeoNFTCollections.RemoveWeb4GeoNFTFromCollectionAsync, deleteWeb4NFTCollectionPredicate: STARCLI.GeoNFTCollections.DeleteWeb4GeoNFTCollectionAsync, listAllWeb4NFTsPredicate: STARCLI.GeoNFTCollections.ListAllWeb4GeoNFTCollections, listWeb4NFTsForBeamedInAvatarPredicate: STARCLI.GeoNFTCollections.ListWeb4GeoNFTCollectionsForAvatar, showWeb4NFTPredicate: STARCLI.GeoNFTCollections.ShowWeb4GeoNFTCollectionAsync, searchWeb4NFTPredicate: STARCLI.GeoNFTCollections.SearchWeb4GeoNFTCollectionAsync, providerType: providerType);
+                                        else
+                                            await ShowSubCommandAsync<STARGeoNFT>(inputArgs, "geo-nft", "geo-nft's", STARCLI.GeoNFTs.CreateAsync, STARCLI.GeoNFTs.EditAsync, STARCLI.GeoNFTs.DeleteAsync, STARCLI.GeoNFTs.DownloadAndInstallAsync, STARCLI.GeoNFTs.UninstallAsync, STARCLI.GeoNFTs.PublishAsync, STARCLI.GeoNFTs.UnpublishAsync, STARCLI.GeoNFTs.RepublishAsync, STARCLI.GeoNFTs.ActivateAsync, STARCLI.GeoNFTs.DeactivateAsync, STARCLI.GeoNFTs.ShowAsync, STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllAsync, STARCLI.GeoNFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTs.SearchAsync, STARCLI.GeoNFTs.AddDependencyAsync, STARCLI.GeoNFTs.RemoveDependencyAsync, STARCLI.GeoNFTs.MintGeoNFTAsync, STARCLI.GeoNFTs.BurnGeoNFTAsync, STARCLI.GeoNFTs.ImportGeoNFTAsync, STARCLI.GeoNFTs.ExportGeoNFTAsync, STARCLI.GeoNFTs.CloneGeoNFTAsync, STARCLI.GeoNFTs.ConvertGeoNFTAsync, STARCLI.GeoNFTs.ListAllWeb4GeoNFTsAsync, STARCLI.GeoNFTs.ListAllWeb4GeoNFTForAvatarsAsync, STARCLI.GeoNFTs.ShowWeb4GeoNFTAsync, STARCLI.GeoNFTs.SearchWeb4GeoNFTAsync, providerType: providerType);
+                                    }
                                     break;
 
                                 case "geohotspot":
@@ -858,10 +872,32 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<object, Task> exportPredicate = null,
             Func<object, Task> clonePredicate = null,
             Func<object, Task> convertPredicate = null,
-            Func<bool, bool, int, ProviderType, Task> listAllWeb4NFTsPredicate = null,
-            Func<bool, bool, int, ProviderType, Task> listWeb4NFTsForBeamedInAvatarPredicate = null,
+            Func<ProviderType, Task> listAllWeb4NFTsPredicate = null,
+            Func<ProviderType, Task> listWeb4NFTsForBeamedInAvatarPredicate = null,
             Func<string, ProviderType, Task> showWeb4NFTPredicate = null,
             Func<string, bool, ProviderType, Task> searchWeb4NFTPredicate = null,
+            //Func<ProviderType, Task> listAllWeb4GeoNFTsPredicate = null,
+            //Func<ProviderType, Task> listWeb4GeoNFTsForBeamedInAvatarPredicate = null,
+            //Func<string, ProviderType, Task> showWeb4GeoNFTPredicate = null,
+            //Func<string, bool, ProviderType, Task> searchWeb4GeoNFTPredicate = null,
+            Func<object, ProviderType, Task> createWeb4NFTCollectionPredicate = null,
+            Func<string, ProviderType, Task> updateWeb4NFTCollectionPredicate = null,
+            Func<string, string, ProviderType, Task> addWeb4NFTToCollectionPredicate = null,
+            Func<string, string, ProviderType, Task> removeWeb4NFTFromCollectionPredicate = null,
+            Func<string, bool, ProviderType, Task> deleteWeb4NFTCollectionPredicate = null,
+            //Func<ProviderType, Task> listAllWeb4NFTCollectionsPredicate = null,
+            //Func<ProviderType, Task> listWeb4NFTCollectionsForBeamedInAvatarPredicate = null,
+            //Func<string, ProviderType, Task> showWeb4NFTCollectionPredicate = null,
+            //Func<string, bool, ProviderType, Task> searchWeb4NFTCollectionPredicate = null,
+            //Func<object, ProviderType, Task> createWeb4GeoNFTCollectionPredicate = null,
+            //Func<string, ProviderType, Task> updateWeb4GeoNFTCollectionPredicate = null,
+            //Func<string, string, ProviderType, Task> addWeb4GeoNFTToCollectionPredicate = null,
+            //Func<string, string, ProviderType, Task> removeWeb4GeoNFTFromCollectionPredicate = null,
+            //Func<string, bool, ProviderType, Task> deleteWeb4GeoNFTCollectionPredicate = null,
+            //Func<ProviderType, Task> listAllWeb4GeoNFTCollectionsPredicate = null,
+            //Func<ProviderType, Task> listWeb4GeoNFTCollectionsForBeamedInAvatarPredicate = null,
+            //Func<string, ProviderType, Task> showWeb4GeoNFTCollectionPredicate = null,
+            //Func<string, bool, ProviderType, Task> searchWeb4GeoNFTCollectionPredicate = null,
             bool showCreate = true,
             bool showUpdate = true,
             bool showDelete = true,
@@ -880,13 +916,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
             string id = "";
 
-            if ((inputArgs.Length > 1 && inputArgs[1] != "template" && inputArgs[1] != "metadata") || (inputArgs.Length > 2 && (inputArgs[1] == "template" || inputArgs[1] == "metadata")))
+            //if ((inputArgs.Length > 1 && inputArgs[1] != "template" && inputArgs[1] != "metadata") || (inputArgs.Length > 2 && (inputArgs[1] == "template" || inputArgs[1] == "metadata")))
+            if ((inputArgs.Length > 1 && inputArgs[1] != "template" && inputArgs[1] != "metadata" && inputArgs[1] != "collection") || (inputArgs.Length > 2 && (inputArgs[1] == "template" || inputArgs[1] == "metadata" || inputArgs[1] == "collection")))
             { 
-                if (inputArgs[1] != "template" && inputArgs[1] != "metadata" && inputArgs.Length > 2)
+                if (inputArgs[1] != "template" && inputArgs[1] != "metadata" && inputArgs[1] != "collection" && inputArgs.Length > 2)
                     id = inputArgs[2];
 
-                if ((inputArgs[1] == "template" || inputArgs[1] == "metadata") && inputArgs.Length > 3)
+                if ((inputArgs[1] == "template" || inputArgs[1] == "metadata" || inputArgs[1] == "collection") && inputArgs.Length > 3)
                     id = inputArgs[3];
+
 
                 if (inputArgs.Length > 1 && !string.IsNullOrEmpty(inputArgs[1]))
                     subCommandParam = inputArgs[1].ToLower();
@@ -900,7 +938,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 if (inputArgs.Length > 4 && !string.IsNullOrEmpty(inputArgs[4]))
                     subCommandParam4 = inputArgs[4].ToLower();
 
-                if (inputArgs[1] == "template" || inputArgs[1] == "metadata")
+                if (inputArgs[1] == "template" || inputArgs[1] == "metadata" || inputArgs[1] == "collection")
                 {
                     if (inputArgs.Length > 2 && !string.IsNullOrEmpty(inputArgs[2]))
                         subCommandParam = inputArgs[2].ToLower();
@@ -1198,6 +1236,24 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         }
                         break;
 
+                    case "add":
+                        {
+                            if (addWeb4NFTToCollectionPredicate != null)
+                                await addWeb4NFTToCollectionPredicate(id, subCommandParam2, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
+                    case "remove":
+                        {
+                            if (removeWeb4NFTFromCollectionPredicate != null)
+                                await removeWeb4NFTFromCollectionPredicate(id, subCommandParam2, providerType);
+                            else
+                                CLIEngine.ShowMessage("Coming Soon...");
+                        }
+                        break;
+
                     case "list":
                         {
                             switch (subCommandParam2.ToLower())
@@ -1245,7 +1301,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             if (web4)
                                             {
                                                 if (listAllWeb4NFTsPredicate != null)
-                                                    await listAllWeb4NFTsPredicate(showAllVersions, showDetailed, 0, providerType);
+                                                    await listAllWeb4NFTsPredicate(providerType);
                                                 else
                                                     CLIEngine.ShowMessage("Coming Soon...");
                                             }
@@ -1262,7 +1318,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             if (web4)
                                             {
                                                 if (listWeb4NFTsForBeamedInAvatarPredicate != null)
-                                                    await listWeb4NFTsForBeamedInAvatarPredicate(showAllVersions, showDetailed, 0, providerType);
+                                                    await listWeb4NFTsForBeamedInAvatarPredicate(providerType);
                                                 else
                                                     CLIEngine.ShowMessage("Coming Soon...");
                                             }
@@ -2340,43 +2396,49 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 {
                     case "start":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await StartONODEAsync();
                         }
                         break;
 
                     case "stop":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await StopONODEAsync();
                         }
                         break;
 
                     case "status":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await ShowONODEStatusAsync();
                         }
                         break;
 
                     case "config":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await OpenONODEConfigAsync();
                         }
                         break;
 
                     case "providers":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await ShowONODEProvidersAsync();
                         }
                         break;
 
                     case "startprovider":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            if (inputArgs.Length > 2)
+                                await StartONODEProviderAsync(inputArgs[2]);
+                            else
+                                CLIEngine.ShowErrorMessage("Please specify provider name: startprovider {ProviderName}");
                         }
                         break;
 
                     case "stopprovider":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            if (inputArgs.Length > 2)
+                                await StopONODEProviderAsync(inputArgs[2]);
+                            else
+                                CLIEngine.ShowErrorMessage("Please specify provider name: stopprovider {ProviderName}");
                         }
                         break;
 
@@ -2457,13 +2519,43 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 {
                     case "status":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await ShowONETStatusAsync();
                         }
                         break;
 
                     case "providers":
                         {
-                            CLIEngine.ShowMessage("Coming Soon...");
+                            await ShowONETProvidersAsync();
+                        }
+                        break;
+
+                    case "discover":
+                        {
+                            await DiscoverONETNodesAsync();
+                        }
+                        break;
+
+                    case "connect":
+                        {
+                            if (inputArgs.Length > 2)
+                                await ConnectToONETNodeAsync(inputArgs[2]);
+                            else
+                                CLIEngine.ShowErrorMessage("Please specify node address: connect {NodeAddress}");
+                        }
+                        break;
+
+                    case "disconnect":
+                        {
+                            if (inputArgs.Length > 2)
+                                await DisconnectFromONETNodeAsync(inputArgs[2]);
+                            else
+                                CLIEngine.ShowErrorMessage("Please specify node address: disconnect {NodeAddress}");
+                        }
+                        break;
+
+                    case "topology":
+                        {
+                            await ShowONETTopologyAsync();
                         }
                         break;
 
@@ -2477,8 +2569,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"ONET SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
-                CLIEngine.ShowMessage("    status     Shows stats for the OASIS Network (ONET).", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    providers  Shows what OASIS Providers are running across the ONET and on what ONODE's.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    status      Shows stats for the OASIS Network (ONET).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    providers   Shows what OASIS Providers are running across the ONET and on what ONODE's.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    discover    Discovers available ONET nodes in the network.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    connect     Connects to a specific ONET node.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    disconnect  Disconnects from a specific ONET node.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    topology    Shows the ONET network topology and connections.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
             }
         }
@@ -2627,452 +2723,639 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplayCommand("light wiz", "", "Start the Light Wizard.");
                 DisplayCommand("light transmute", "{hAppDNA} {geneisFolder}", "Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
                 DisplayCommand("bang", "", "Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
+                DisplayCommand("wiz", "", "Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
+                DisplayCommand("flare", "", "Build a OAPP for the given {id} or {name}.");
+                DisplayCommand("shine", "", "Launch & activate a OAPP for the given {id} or {name} by shining the 's light upon it...");
+                DisplayCommand("twinkle", "", "Activate a published OAPP for the given {id} or {name} within the STARNET store.");
+                DisplayCommand("dim", "", "Deactivate a published OAPP for the given {id} or {name} within the STARNET store.");
+                DisplayCommand("seed", "", "Deploy/Publish a OAPP for the given {id} or {name} to the STARNET Store.");
+                DisplayCommand("unseed", "", "Undeploy/Unpublish a OAPP for the given {id} or {name} from the STARNET Store.");
+                DisplayCommand("reseed", "", "Redeploy/Republish a OAPP for the given {id} or {name} to the STARNET Store.");
+                DisplayCommand("dust", "", "Delete a OAPP for the given {id} or {name} (this will also remove it from STARNET if it has already been published).");
+                DisplayCommand("radiate", "", "Highlight the OAPP for the given {id} or {name} in the STARNET Store. *Admin/Wizards Only*");
+                DisplayCommand("emit", "{id/name}", "Show how much light the OAPP is emitting into the solar system for the given {id} or {name} (this is determined by the collective karma score of all users of that OAPP).");
+                DisplayCommand("reflect", "{id/name}", "Show stats of the OAPP for the given {id} or {name}.");
+                DisplayCommand("evolve", "{id/name}", "Upgrade/update a OAPP for the given {id} or {name}.");
+                DisplayCommand("mutate", "{id/name}", "Import/Export hApp, dApp & others for the given {id} or {name}.");
+                DisplayCommand("love", "{id/username}", "Send/Receive Love for the given {id} or {username}.");
+                DisplayCommand("burst", "", "View network stats/management/settings.");
+                DisplayCommand("super", "", "Reserved For Future Use...");
+                DisplayCommand("net", "", "Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
+                DisplayCommand("gate", "", "Opens the STARGATE to the OASIS Portal!");
+                DisplayCommand("api", "[oasis]", "Opens the WEB5 STAR API (if oasis is included then it will open the WEB4 OASIS API instead).");
+                DisplayCommand("avatar beamin", "", "Beam in (log in).");
+                DisplayCommand("avatar beamout", "", "Beam out (Log out).");
+                DisplayCommand("avatar whoisbeamedin", "", "Display who is currently beamed in (if any) and the last time they beamed in and out.");
+                DisplayCommand("avatar show me", "", "Display the currently beamed in avatar details (if any).");
+                DisplayCommand("avatar show", "{id/username}", "Shows the details for the avatar for the given {id} or {username}.");
+                DisplayCommand("avatar edit", "", "Edit the currently beamed in avatar.");
+                DisplayCommand("avatar list", "[detailed]", "Lists all avatars. If [detailed] is included it will list detailed stats also.");
+                DisplayCommand("avatar search", "", "Search avatars that match the given search parameters (public fields only such as level, karma, username & any fields the player has set to public).");
+                DisplayCommand("avatar forgotpassword", "", "Send a Forgot Password email to your email account containing a Reset Token.");
+                DisplayCommand("avatar resetpassword", "", "Allows you to reset your password using the Reset Token received in your email from the forgotpassword sub-command.");
+                DisplayCommand("karma list", "", "Display the karma thresholds.");
+                DisplayCommand("keys link privateKey", "[walletId] [privateKey]", "Links a private key to the given wallet for the currently beamed in avatar.");
+                DisplayCommand("keys link publicKey", "[walletId] [publicKey]", "Links a public key to the given wallet for the currently beamed in avatar.");
+                DisplayCommand("keys link genKeyPair", "[walletId]", "Generates a unique keyvalue pair and then links them to to the given wallet for the currently beamed in avatar.");
+                DisplayCommand("keys generateKeyPair", "", "Generates a unique keyvalue pair.");
+                DisplayCommand("keys clearCache", "", "Clears the cache.");
+                DisplayCommand("keys get provideruniquestoragekey", "{providerType}", "Gets the Provider Unique Storage Key for the given provider and the currently beamed in avatar.");
+                DisplayCommand("keys get providerpublickeys", "{providerType}", "Gets the Provider Public Keys for the given provider and the currently beamed in avatar.");
+                DisplayCommand("keys get avataridforprovideruniquestoragekey", "{avatarId}", "Gets the Provider Private Keys for the given provider and the currently beamed in avatar.");
+                DisplayCommand("keys list", "", "Shows the keys for the currently beamed in avatar.");
+                DisplayCommand("wallet sendtoken", "{walletAddress} {token} {amount}", "Sends a token to the given wallet address.");
+                DisplayCommand("wallet transfer", "{from walletId/name} {amount} {to walletId/name}", "Transfers the given [amount] from one wallet to another for the currently beamed in avatar.");
+                DisplayCommand("wallet get", "{publickey}", "Gets the wallet that the public key belongs to.");
+                DisplayCommand("wallet getDefault", "", "Gets the default wallet for the currently beamed in avatar.");
+                DisplayCommand("wallet setDefault", "{walletId}", "Sets the default wallet for the currently beamed in avatar.");
+                DisplayCommand("wallet import privateKey", "{privateKey}", "Imports a wallet using the privateKey.");
+                DisplayCommand("wallet import publicKey", "{publicKey}", "Imports a wallet using the publicKey.");
+                DisplayCommand("wallet import secretPhase", "{secretPhase}", "Imports a wallet using the secretPhase.");
+                DisplayCommand("wallet import json", "{jsonFile}", "Imports a wallet using the jsonFile.");
+                DisplayCommand("wallet add", "", "Adds a wallet for the currently beamed in avatar.");
+                DisplayCommand("wallet list", "", "Lists the wallets for the currently beamed in avatar.");
+                DisplayCommand("wallet balance", "{walletId}", "Gets the balance for the given wallet for the currently beamed in avatar.");
+                DisplayCommand("wallet balance", "", "Gets the total balance for all wallets for the currently beamed in avatar.");
+                DisplayCommand("search", "", "Searches The OASIS for the given search parameters.");
+                DisplaySTARNETHolonCommands("oapp", createDesc: "Shortcut to the light sub-command.", publishDesc: "Shortcut to the seed sub-command.", unpublishDesc: "Shortcut to the un-seed sub-command.", republishDesc: "Shortcut to the re-seed sub-command.");
+                DisplaySTARNETHolonCommands("oapp template");
+                DisplaySTARNETHolonCommands("runtime");
+                DisplaySTARNETHolonCommands("lib");
+                DisplaySTARNETHolonCommands("celestialspace");
+                DisplaySTARNETHolonCommands("celestialbody");
+                DisplaySTARNETHolonCommands("zome");
+                DisplaySTARNETHolonCommands("holon");
+                DisplaySTARNETHolonCommands("chapter");
+                DisplaySTARNETHolonCommands("mission");
+                DisplaySTARNETHolonCommands("quest");
+                DisplayCommand("nft mint", "{id/name}", "Mints a WEB4 OASIS NFT for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS NFT.");
+                DisplayCommand("nft burn", "{id/name}", "Burn's a nft for the given {id} or {name}.");
+                DisplayCommand("nft send", "{id/name}", "Send a NFT for the given {id} or {name} to another wallet cross-chain.");
+                DisplayCommand("nft import", "{id/name} [web3]", "Imports a WEB4 OASIS NFT JSON file. If [web3] param is given it will either import a WEB3 NFT JSON MetaData file and mint a WEB3 NFT and then wrap in a WEB4 OASIS NFT or use an existing WEB3 NFT Token Address to be wrapped in a WEB4 OASIS NFT.");
+                DisplayCommand("nft export", "{id/name}", "Exports a WEB4 OASIS NFT as a JSON file as well as a WEB3 JSON MetaData file.");
+                DisplayCommand("nft convert", "{id/name}", "Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 Metadata.");
+                DisplaySTARNETHolonCommands("nft");
+                DisplayCommand("nft collection add", "{colid/colname} {nftid/nftname}", "Adds a nft to the nft collection.");
+                DisplayCommand("nft collection remove", "{colid/colname} {nftid/nftname}", "Remove's a nft from the nft collection.");
+                //DisplaySTARNETHolonCommands("nft collection", showParams: "{id/name} [detailed] [web4]", showDesc: "Shows a nft collection for the given {id} or {name}. If [web4] is included it will show a WEB4 OASIS NFT Collection, otherwise it will show a WEB5 STAR NFT Collection.", listParams: "[allVersions] [forAllAvatars] [detailed] [web4]", listDesc: "List all that have been generated.", searchParams: "", searchDesc: "");
+                DisplaySTARNETHolonCommands("nft collection", showParams: "{id/name} [detailed] [web4]", listParams: "[allVersions] [forAllAvatars] [detailed] [web4]", searchParams: "[allVersions] [forAllAvatars] [web4]");
+                DisplayCommand("geonft mint", "{id/name}", "Mints a OASIS GeoNFT and places in Our World for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS GeoNFT.");
+                DisplayCommand("geonft burn", "{id/name}", "Burn's a GeoNFT for the given {id} or {name}.");
+                DisplayCommand("geonft place", "{id/name}", "Places an existing OASIS NFT for the given {id} or {name} in Our World for the currently beamed in avatar.");
+                DisplayCommand("geonft send", "{id/name}", "Send a GeoNFT for the given {id} or {name} to another wallet cross-chain.");
+                DisplayCommand("geonft import", "{id/name}", "Imports a WEB4 OASIS GeoNFT JSON file.");
+                DisplayCommand("geonft export", "{id/name}", "Exports a WEB4 OASIS GeoNFT as a JSON file as well as a WEB3 JSON MetaData file.");
+                DisplaySTARNETHolonCommands("geonft");
+                DisplayCommand("geonft collection add", "{colid/colname} {nftid/nftname}", "Adds a geo-nft to the geo-nft collection.");
+                DisplayCommand("geonft collection remove", "{colid/colname} {nftid/nftname}", "Remove's a geo-nft from the geo-nft collection.");
+                DisplaySTARNETHolonCommands("geonft collection", showParams: "{id/name} [detailed] [web4]", listParams: "[allVersions] [forAllAvatars] [detailed] [web4]", searchParams: "[allVersions] [forAllAvatars] [web4]");
+                DisplaySTARNETHolonCommands("geohotspot");
+                DisplaySTARNETHolonCommands("inventoryitem");
+                DisplaySTARNETHolonCommands("plugin");
+
+                //SEEDS Commands
+                DisplayCommand("seeds balance", "{telosAccountName/avatarId}", "Get's the balance of your SEEDS account.");
+                DisplayCommand("seeds organisations", "", "Get's a list of all the SEEDS organisations.");
+                DisplayCommand("seeds organisation", "{organisationName}", "Get's a organisation for the given {organisationName}.");
+                DisplayCommand("seeds pay", "{telosAccountName/avatarId}", "Pay using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                DisplayCommand("seeds donate", "{telosAccountName/avatarId}", "Donate using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                DisplayCommand("seeds reward", "{telosAccountName/avatarId}", "Reward using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                DisplayCommand("seeds invite", "{telosAccountName/avatarId}", "Send invite to join SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                DisplayCommand("seeds accept", "{telosAccountName/avatarId}", "Accept the invite to join SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                DisplayCommand("seeds qrcode", "{telosAccountName/avatarId}", "Generate a sign-in QR code using either your {telosAccountName} or {avatarId}.");
+
+                //Data Commands
+                DisplayCommand("data save", "{key} {value}", "Saves data for the given {key} and {value} to the currently beamed in avatar.");
+                DisplayCommand("data load", "{key}", "Loads data for the given {key} for the currently beamed in avatar.");
+                DisplayCommand("data delete", "{key}", "Deletes data for the given {key} for the currently beamed in avatar.");
+                DisplayCommand("data list", "", "Lists all data for the currently beamed in avatar.");
+
+                //Map Commands
+                DisplayCommand("map setprovider", "{mapProviderType}", "Sets the currently {mapProviderType}.");
+                DisplayCommand("map draw3dobject", "{3dObjectPath} {x} {y}", "Draws a 3D object on the map at {x/y} co-ordinates for the given file {3dobjectPath}.");
+                DisplayCommand("map draw2dsprite", "{2dSpritePath} {x} {y}", "Draws a 2d sprite on the map at {x/y} co-ordinates for the given file {2dSpritePath}.");
+                DisplayCommand("map draw2dspriteonhud", "{2dSpritePath}", "Draws a 2d sprite on the HUD for the given file {2dSpritePath}.");
+                DisplayCommand("map placeHolon", "{Holon id/name} {x} {y}", "Place the holon on the map.");
+                DisplayCommand("map placeBuilding", "{Building id/name} {x} {y}", "Place the building on the map.");
+                DisplayCommand("map placeQuest", "{Quest id/name} {x} {y}", "Place the Quest on the map.");
+                DisplayCommand("map placeGeoNFT", "{GeoNFT id/name} {x} {y}", "Place the GeoNFT on the map.");
+                DisplayCommand("map placeGeoHotSpot", "{GeoHotSpot id/name} {x} {y}", "Place the GeoHotSpot on the map.");
+                DisplayCommand("map placeOAPP", "{OAPP id/name} {x} {y}", "Place the OAPP on the map.");
+                DisplayCommand("map pamLeft", "", "Pam the map left.");
+                DisplayCommand("map pamRight", "", "Pam the map right.");
+                DisplayCommand("map pamUp", "", "Pam the map up.");
+                DisplayCommand("map pamDown", "", "Pam the map down.");
+                DisplayCommand("map zoomOut", "", "Zoom the map out.");
+                DisplayCommand("map zoomIn", "", "Zoom the map in.");
+                DisplayCommand("map zoomToHolon", "{GeoNFT id/name}", "Zoom the map to the location of the given holon.");
+                DisplayCommand("map zoomToBuilding", "{GeoNFT id/name}", "Zoom the map to the location of the given building.");
+                DisplayCommand("map zoomToQuest", "{GeoNFT id/name}", "Zoom the map to the location of the given quest.");
+                DisplayCommand("map zoomToGeoNFT", "{GeoNFT id/name}", "Zoom the map to the location of the given GeoNFT.");
+                DisplayCommand("map zoomToGeoHotSpot", "{GeoHotSpot id/name}", "Zoom the map to the location of the given GeoHotSpot.");
+                DisplayCommand("map zoomToOAPP", "{OAPP id/name}", "Zoom the map to the location of the given OAPP.");
+                DisplayCommand("map zoomToCoOrds", "{x} {y}", "Zoom the map to the location of the given {x} and {y} coordinates.");
+                DisplayCommand("map drawRouteOnMap", "{startX} {startY} {endX} {endY}", "Draw a route on the map.");
+                DisplayCommand("map drawRouteBetweenHolons", "{fromHolonId} {toHolonId}", "Draw a route on the map between the two holons.");
+                DisplayCommand("map drawRouteBetweenBuildings", "{fromBuildingId} {toBuildingId}", "Draw a route on the map between the two buildings.");
+                DisplayCommand("map drawRouteBetweenQuests", "{fromQuestId} {toQuestId}", "Draw a route on the map between the two quests.");
+                DisplayCommand("map drawRouteBetweenGeoNFTs", "{fromGeoNFTId} {ToGeoNFTId}", "Draw a route on the map between the two GeoNFTs.");
+                DisplayCommand("map drawRouteBetweenGeoHotSpots", "{fromGeoHotSpotId} {ToGeoHotSpotId}", "Draw a route on the map between the two GeoHotSpots.");
+                DisplayCommand("map drawRouteBetweenOAPPs", "{fromOAPP id/name} {ToOAPP id/name}", "Draw a route on the map between the two OAPPs.");
+
+                //OLAND Commands
+                DisplayCommand("oland price", "", "Get the currently OLAND price.");
+                DisplayCommand("oland purchase", "", "Purchase OLAND for Our World/OASIS.");
+                DisplayCommand("oland load", "{id}", "Load a OLAND for the given {id}.");
+                DisplayCommand("oland save", "", "Save a OLAND.");
+                DisplayCommand("oland delete", "{id}", "Deletes a OLAND for the given {id}.");
+                DisplayCommand("oland list", "[allVersions] [forAllAvatars]", "If [all] is omitted it will list all OLAND for the given beamed in avatar, otherwise it will list all OLAND for all avatars.");
+
+                //ONET Commands
+                DisplayCommand("onet status", "", "Shows stats for the OASIS Network (ONET).");
+                DisplayCommand("onet providers", "", "Shows what OASIS Providers are running across the ONET and on what ONODE's.");
+                DisplayCommand("onet discover", "", "Discovers available ONET nodes in the network.");
+                DisplayCommand("onet connect", "{nodeAddress}", "Connects to a specific ONET node.");
+                DisplayCommand("onet disconnect", "{nodeAddress}", "Disconnects from a specific ONET node.");
+                DisplayCommand("onet topology", "", "Shows the ONET network topology and connections.");
+               
+                //ONODE Commands
+                DisplayCommand("onode start", "", "Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).");
+                DisplayCommand("onode stop", "", "Stops a OASIS Node (ONODE).");
+                DisplayCommand("onode status", "", "Shows stats for this ONODE.");
+                DisplayCommand("onode config", "", "Opens the ONODE's OASISDNA to allow changes to be made (you will need to stop and start the ONODE for changes to apply).");
+                DisplayCommand("onode providers", "", "Shows what OASIS Providers are running for this ONODE.");
+                DisplayCommand("onode startprovider", "{ProviderName}", "Starts a given provider.");
+                DisplayCommand("onode stopprovider", "{ProviderName}", "Stops a given provider.");
+
+                //HyperNET Commands
+                DisplayCommand("hypernet start", "", "Starts the HoloNET P2P HyperNET Service.");
+                DisplayCommand("hypernet stop", "", "Stops the HoloNET P2P HyperNET Service.");
+                DisplayCommand("hypernet status", "", "Shows stats for the HoloNET P2P HyperNET Service.");
+                DisplayCommand("hypernet config", "", "Opens the HyperNET's DNA to allow changes to be made (you will need to stop and start the HyperNET Service for changes to apply.");
+
+                //ONET Commands
+                DisplayCommand("onet status", "", "Shows stats for the OASIS Network (ONET).");
+                DisplayCommand("onet providers", "", "Shows what OASIS Providers are running across the ONET and on what ONODE's.");
+
+                //Config Commands
+                DisplayCommand("config cosmicdetailedoutput", "{enable/disable/status}", "Enables/disables COSMIC Detailed Output.");
+                DisplayCommand("config starstatusdetailedoutput", "{enable/disable/status}", "Enables/disables STAR ODK Detailed Output.");
+
+                //Test Commands
+                DisplayCommand("runcosmictests", "{OAPPType} {dnaFolder} {geneisFolder}", "Run the STAR ODK/COSMIC Tests... If OAPPType, DNAFolder or GenesisFolder are not specified it will use the defaults.");
+                DisplayCommand("runoasisapitests", "", "Run the OASIS API Tests...");
+
+                
+
+
+                //DisplayCommand("oapp create", "", "Shortcut to the light sub-command.");
+                //DisplayCommand("oapp update", "{id/name}", "Update an existing OAPP for the given {id} or {name}.");
+                //DisplayCommand("oapp adddependency", "{id/name}", "Adds a dependency to an existing OAPP for the given {id} or {name}.");
+                //DisplayCommand("oapp removedependency", "{id/name}", "Removes a dependency for an existing OAPP for the given {id} or {name}.");
+                //DisplayCommand("oapp delete", "{id/name}", "Delete an existing OAPP for the given {id} or {name}.");
+                //DisplayCommand("oapp publish", "{id/name}", "Shortcut to the seed sub-command.");
+                //DisplayCommand("oapp unpublish", "{id/name}", "Shortcut to the un-seed sub-command.");
+                //DisplayCommand("oapp republish", "{id/name}", "Shortcut to the re-seed sub-command.");
+                //DisplayCommand("oapp activate", "{id/name}", "Activate a OAPP for the given {id} or {name}.");
+                //DisplayCommand("oapp deactivate", "{id/name}", "Deactivate a OAPP for the given {id} or {name}.");
+                //DisplayCommand("oapp download", "{id/name}", "Download a OAPP for the given {id} or {name}.");
+                //DisplayCommand("oapp install", "{id/name}", "Install/download a OAPP for the given {id} or {name}.");
+                //DisplayCommand("oapp uninstall", "{id/name}", "Uninstall a OAPP for the given {id} or {name}.");
+                //DisplayCommand("oapp show", "{id/name} [detailed]", "Shows a OAPP for the given {id} or {name}.");
+                //DisplayCommand("oapp list", "[allVersions] [forAllAvatars] [detailed]", "List all OAPPs (contains zomes and holons) that have been generated.");
+                //DisplayCommand("oapp list installed", "", "List all OAPP's installed for the currently beamed in avatar.");
+                //DisplayCommand("oapp list uninstalled", "", "List all OAPP's uninstalled for the currently beamed in avatar (and allow re-install).");
+                //DisplayCommand("oapp list unpublished", "", "List all OAPP's unpublished for the currently beamed in avatar (and allow republish).");
+                //DisplayCommand("oapp list deactivated", "", "List all OAPP's deactivated for the currently beamed in avatar (and allow reactivate).");
+                //DisplayCommand("oapp search", "[allVersions] [forAllAvatars]", "Searches the OAPP's for the given search criteria.");
+                //DisplayCommand("oapp template create", "", "Creates a OAPP template.");
+                //DisplayCommand("oapp template update", "{id/name}", "Updates a OAPP template for the given {id} or {name}.");
+                //DisplayCommand("oapp template adddependency", "{id/name}", "Adds a dependency to an existing OAPP Template for the given {id} or {name}.");
+                //DisplayCommand("oapp template removedependency", "{id/name}", "Removes a dependency for an existing OAPP Template for the given {id} or {name}.");
+                //DisplayCommand("oapp template delete", "{id/name}", "Deletes a OAPP template for the given {id} or {name}.");
+                //DisplayCommand("oapp template publish", "{id/name}", "Publishes a OAPP template to the STARNET store for the given {id} or {name}.");
+                //DisplayCommand("oapp template unpublish", "{id/name}", "Unpublishes a OAPP template from the STARNET store for the given {id} or {name}.");
+                //DisplayCommand("oapp template republish", "{id/name}", "Republishes a OAPP template to the STARNET store for the given {id} or {name}.");
+                //DisplayCommand("oapp template activate", "{id/name}", "Activate a OAPP for the given {id} or {name}.");
+                //DisplayCommand("oapp template deactivate", "{id/name}", "Deactivate a OAPP for the given {id} or {name}.");
+                //DisplayCommand("oapp template download", "{id/name}", "Downloads a OAPP template for the given {id} or {name}.");
+                //DisplayCommand("oapp template install", "{id/name}", "Installs/downloads a OAPP template for the given {id} or {name}.");
+                //DisplayCommand("oapp template uninstall", "{id/name}", "Uninstalls a OAPP template for the given {id} or {name}.");
+                //DisplayCommand("oapp template show", "{id/name} [detailed]", "Shows a OAPP template for the given {id} or {name}.");
+                //DisplayCommand("oapp template list", "[allVersions] [forAllAvatars] [detailed]", "List all OAPP template's that have been created.");
+                //DisplayCommand("oapp template list installed", "", "List all OAPP template's installed for the currently beamed in avatar.");
+                //DisplayCommand("oapp template list uninstalled", "", "List all OAPP template's uninstalled for the currently beamed in avatar (and allow reinstalling).");
+                //DisplayCommand("oapp template list unpublished", "", "List all OAPP template's unpublished for the currently beamed in avatar (and allow republishing).");
+                //DisplayCommand("oapp template list deactivated", "", "List all OAPP template's deactivated for the currently beamed in avatar (and allow reactivating).");
+                //DisplayCommand("oapp template search", "[allVersions] [forAllAvatars]", "Searches the OAPP template's for the given search criteria.");
+                //DisplayCommand("happ create", "", "Shortcut to the light sub-command.");
+                //DisplayCommand("happ update", "{id/name}", "Update an existing hApp for the given {id} or {name}.");
+                //DisplayCommand("happ adddependency", "{id/name}", "Adds a dependency to an existing hApp for the given {id} or {name}.");
+                //DisplayCommand("happ removedependency", "{id/name}", "Removes a dependency for an existing hApp for the given {id} or {name}.");
+                //DisplayCommand("happ delete", "{id/name}", "Delete an existing hApp for the given {id} or {name}.");
+                //DisplayCommand("happ publish", "{id/name}", "Publishes a hApp to the STARNET store for the given {id} or {name}.");
+                //DisplayCommand("happ unpublish", "{id/name}", "Unpublishes a hApp from the STARNET store for the given {id} or {name}.");
+                //DisplayCommand("happ republish", "{id/name}", "Republishes a hApp to the STARNET store for the given {id} or {name}.");
+                //DisplayCommand("happ activate", "{id/name}", "Activates a hApp on the STARNET store for the given {id} or {name}.");
+                //DisplayCommand("happ deactivate", "{id/name}", "Deactivates a hApp on the STARNET store for the given {id} or {name}.");
+                //DisplayCommand("happ download", "{id/name}", "Downloads a hApp for the given {id} or {name}.");
+                //DisplayCommand("happ install", "{id/name}", "Installs/downloads a hApp for the given {id} or {name}.");
+                //DisplayCommand("happ uninstall", "{id/name}", "Uninstalls a hApp for the given {id} or {name}.");
+                //DisplayCommand("happ show", "{id/name} [detailed]", "Shows a hApp for the given {id} or {name}.");
+                //DisplayCommand("happ list", "[allVersions] [forAllAvatars] [detailed]", "List all hApp's (contains zomes) that have been generated.");
+                //DisplayCommand("happ list installed", "", "List all hApp's installed for the currently beamed in avatar.");
+                //DisplayCommand("happ list uninstalled", "", "List all hApp's uninstalled for the currently beamed in avatar (and allow reinstalling).");
+                //DisplayCommand("happ list unpublished", "", "List all hApp's unpublished for the currently beamed in avatar (and allow republishing).");
+                //DisplayCommand("happ list deactivated", "", "List all hApp's deactivated for the currently beamed in avatar (and allow reactivating).");
+                //DisplayCommand("happ search", "[allVersions] [forAllAvatars]", "Searches the hApp's for the given search criteria.");
+                //DisplayCommand("lib create", "", "Create a new library. Only admin's can create & publish OASIS/STAR runtime's.");
+                //DisplayCommand("lib update", "{id/name}", "Update an existing library for the given {id} or {name}.");
+                //DisplayCommand("lib adddependency", "{id/name}", "Adds a dependency to an existing library for the given {id} or {name}.");
+                //DisplayCommand("lib removedependency", "{id/name}", "Removes a dependency for an existing library for the given {id} or {name}.");
+                //DisplayCommand("lib delete", "{id/name}", "Delete an existing library for the given {id} or {name}.");
+                //DisplayCommand("lib publish", "{id/name}", "Publish a library.");
+                //DisplayCommand("lib unpublish", "{id/name}", "Unpublish a library.");
+                //DisplayCommand("lib republish", "{id/name}", "Republish a library.");
+                //DisplayCommand("lib activate", "{id/name}", "Activates a library on the STARNET store for the given {id} or {name}.");
+                //DisplayCommand("lib deactivate", "{id/name}", "Deactivates a library on the STARNET store for the given {id} or {name}.");
+                //DisplayCommand("lib download", "{id/name}", "Downloads a library for the given {id} or {name}.");
+                //DisplayCommand("lib install", "{id/name}", "Installs/downloads a library for the given {id} or {name}.");
+                //DisplayCommand("lib uninstall", "{id/name}", "Uninstalls a library for the given {id} or {name}.");
+                //DisplayCommand("lib show", "{id/name} [detailed]", "Shows a library for the given {id} or {name}.");
+                //DisplayCommand("lib list", "[allVersions] [forAllAvatars] [detailed]", "List all libraries that have been generated.");
+                //DisplayCommand("lib list installed", "", "List all libraries installed for the currently beamed in avatar.");
+                //DisplayCommand("lib list uninstalled", "", "List all libraries uninstalled for the currently beamed in avatar (and allow reinstalling).");
+                //DisplayCommand("lib list unpublished", "", "List all libraries unpublished for the currently beamed in avatar (and allow republishing).");
+                //DisplayCommand("lib list deactivated", "", "List all libraries deactivated for the currently beamed in avatar (and allow reactivating).");
+                //DisplayCommand("lib search", "[allVersions] [forAllAvatars]", "Searches the libraries for the given search criteria.");
 
 
 
-                Console.WriteLine("    light                                         {OAPPName} {OAPPDesc} {OAPPType}          Creates a new OAPP (Zomes/Holons/Star/Planet/Moon) at the given genesis folder location, from the given OAPP DNA.");
-                Console.WriteLine("                                                  {dnaFolder} {geneisFolder}");
-                Console.WriteLine("                                                  {genesisNameSpace} {genesisType}");
-                Console.WriteLine("                                                  {parentCelestialBodyId}");
-                Console.WriteLine("    light                                                                                   Displays more detail on how to use this command and optionally launches the Light Wizard.");
-                Console.WriteLine("    light wiz                                                                               Start the Light Wizard.");
-                Console.WriteLine("    light transmute                               {hAppDNA} {geneisFolder}                  Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
-                Console.WriteLine("    bang                                                                                    Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
-                //Console.WriteLine("    wiz                                                                                   Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs");
-                //Console.WriteLine("                                                                                          (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
-                Console.WriteLine("    wiz                                                                                     Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
-                Console.WriteLine("    flare                                         {id/name}                                 Build a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    shine                                         {id/name}                                 Launch & activate a OAPP for the given {id} or {name} by shining the 's light upon it..."); //TODO: Dev next.
-                Console.WriteLine("    twinkle                                       {id/name}                                 Activate a published OAPP for the given {id} or {name} within the STARNET store."); //TODO: Dev next.
-                Console.WriteLine("    dim                                           {id/name}                                 Deactivate a published OAPP for the given {id} or {name} within the STARNET store."); //TODO: Dev next.
-                Console.WriteLine("    seed                                          {id/name}                                 Deploy/Publish a OAPP for the given {id} or {name} to the STARNET Store.");
-                Console.WriteLine("    unseed                                        {id/name}                                 Undeploy/Unpublish a OAPP for the given {id} or {name} from the STARNET Store.");
-                Console.WriteLine("    reseed                                        {id/name}                                 Redeploy/Republish a OAPP for the given {id} or {name} to the STARNET Store.");
-                Console.WriteLine("    dust                                          {id/name}                                 Delete a OAPP for the given {id} or {name} (this will also remove it from STARNET if it has already been published)."); //TODO: Dev next.
-                Console.WriteLine("    radiate                                       {id/name}                                 Highlight the OAPP for the given {id} or {name} in the STARNET Store. *Admin/Wizards Only*");
-                Console.WriteLine("    emit                                          {id/name}                                 Show how much light the OAPP is emitting into the solar system for the given {id} or {name}");
-                Console.WriteLine("                                                                                            (this is determined by the collective karma score of all users of that OAPP).");
-                Console.WriteLine("    reflect                                       {id/name}                                 Show stats of the OAPP for the given {id} or {name}.");
-                Console.WriteLine("    evolve                                        {id/name}                                 Upgrade/update a OAPP) for the given {id} or {name}."); //TODO: Dev next.
-                Console.WriteLine("    mutate                                        {id/name}                                 Import/Export hApp, dApp & others for the given {id} or {name}.");
-                Console.WriteLine("    love                                          {id/username}                             Send/Receive Love for the given {id} or {username}.");
-                Console.WriteLine("    burst                                                                                   View network stats/management/settings.");
-                Console.WriteLine("    super                                                                                   Reserved For Future Use...");
-                //Console.WriteLine("    net = Launch the STARNET Library/Store where you can list, search, update, publish, u npublish, install & uninstall OAPP's, zomes, holons, celestial spaces, celestial bodies, geo-nft's, geo-hotspots, missions, chapters, quests & inventory items.");
-                Console.WriteLine("    net                                                                                     Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
-                Console.WriteLine("    gate                                                                                    Opens the STARGATE to the OASIS Portal!");
-                Console.WriteLine("    api                                           [oasis]                                   Opens the WEB5 STAR API (if oasis is included then it will open the WEB4 OASIS API instead).");
-                Console.WriteLine("    avatar beamin                                                                           Beam in (log in).");
-                Console.WriteLine("    avatar beamout                                                                          Beam out (Log out).");
-                Console.WriteLine("    avatar whoisbeamedin                                                                    Display who is currently beamed in (if any) and the last time they beamed in and out.");
-                Console.WriteLine("    avatar show me                                                                          Display the currently beamed in avatar details (if any).");
-                Console.WriteLine("    avatar show                                   {id/username}                             Shows the details for the avatar for the given {id} or {username}.");
-                Console.WriteLine("    avatar edit                                                                             Edit the currently beamed in avatar.");
-                Console.WriteLine("    avatar list                                   [detailed]                                Lists all avatars. If [detailed] is included it will list detailed stats also.");
-                Console.WriteLine("    avatar search                                                                           Seach avatars that match the given seach parameters (public fields only such as level, karma, username & any fields the player has set to public).");
-                Console.WriteLine("    avatar forgotpassword                                                                   Send a Forgot Password email to your email account containing a Reset Token.");
-                Console.WriteLine("    avatar resetpassword                                                                    Allows you to reset your password using the Reset Token received in your email from the forgotpassword sub-command.");
-                Console.WriteLine("    karma list                                                                              Display the karma thresholds.");
-                Console.WriteLine("    keys link privateKey                          [walletId] [privateKey]                   Links a private key to the given wallet for the currently beamed in avatar.");
-                Console.WriteLine("    keys link publicKey                           [walletId] [publicKey]                    Links a public key to the given wallet for the currently beamed in avatar.");
-                Console.WriteLine("    keys link genKeyPair                          [walletId]                                Generates a unique keyvalue pair and then links them to to the given wallet for the currently beamed in avatar.");
-                Console.WriteLine("    keys generateKeyPair                                                                    Generates a unique keyvalue pair.");
-                Console.WriteLine("    keys clearCache                                                                         Clears the cache.");
-                Console.WriteLine("    keys get provideruniquestoragekey             {providerType}                            Gets the Provider Unique Storage Key for the given provider and the currently beamed in avatar.");
-                Console.WriteLine("    keys get providerpublickeys                   {providerType}                            Gets the Provider Public Keys for the given provider and the currently beamed in avatar.");
-                Console.WriteLine("    keys get avataridforprovideruniquestoragekey  {avatarId}                                Gets the Provider Private Keys for the given provider and the currently beamed in avatar.");
-                Console.WriteLine("    keys get avataridforprovideruniquestoragekey  {avatarId}                                Gets the Provider Private Keys for the given provider and the currently beamed in avatar.");
-                Console.WriteLine("    keys list                                                                               Shows the keys for the currently beamed in avatar.");
-                Console.WriteLine("    wallet sendtoken                              {walletAddress} {token} {amount}          Sends a token to the given wallet address.");
-                Console.WriteLine("    wallet transfer                               {from walletId/name} {amount}             Transfers the given [amount] from one wallet to another for the currently beamed in avatar.");
-                Console.WriteLine("                                                  {to walletId/name}");                           
-                Console.WriteLine("    wallet get                                    {publickey}                               Gets the wallet that the public key belongs to.");
-                Console.WriteLine("    wallet getDefault                                                                       Gets the default wallet for the currently beamed in avatar.");
-                Console.WriteLine("    wallet setDefault                             {walletId}                                Sets the default wallet for the currently beamed in avatar.");
-                Console.WriteLine("    wallet import privateKey                      {privateKey}                              Imports a wallet using the privateKey.");
-                Console.WriteLine("    wallet import publicKey                       {publicKey}                               Imports a wallet using the publicKey.");
-                Console.WriteLine("    wallet import secretPhase                     {secretPhase}                             Imports a wallet using the secretPhase.");
-                Console.WriteLine("    wallet import json                            {jsonFile}                                Imports a wallet using the jsonFile.");
-                Console.WriteLine("    wallet import json                            {jsonFile}                                Imports a wallet using the jsonFile.");
-                Console.WriteLine("    wallet add                                                                              Adds a wallet for the currently beamed in avatar.");
-                Console.WriteLine("    wallet list                                                                             Lists the wallets for the currently beamed in avatar.");
-                Console.WriteLine("    wallet balance                                {walletId}                                Gets the balance for the given wallet for the currently beamed in avatar.");
-                Console.WriteLine("    wallet balance                                                                          Gets the total balance for all wallets for the currently beamed in avatar.");
-                Console.WriteLine("    search                                                                                  Seaches The OASIS for the given seach parameters.");
-                Console.WriteLine("    oapp create                                                                             Shortcut to the light sub-command.");
-                Console.WriteLine("    oapp update                                   {id/name}                                 Update an existing OAPP for the given {id} or {name}.");
-                //Console.WriteLine("    oapp addlib                                   {id/name}                                 Adds a library to an existing OAPP for the given {id} or {name}.");
-                //Console.WriteLine("    oapp removelib                                {id/name}                                 Removes a library for an existing OAPP for the given {id} or {name}.");
-                //Console.WriteLine("    oapp addruntime                               {id/name}                                 Adds a runtime to an existing OAPP for the given {id} or {name}.");
-                //Console.WriteLine("    oapp removeruntime                            {id/name}                                 Removes a runtime for an existing OAPP for the given {id} or {name}.");
-                //Console.WriteLine("    oapp addtemplate                              {id/name}                                 Adds a sub-template to an existing OAPP for the given {id} or {name}.");
-                //Console.WriteLine("    oapp removetemplate                           {id/name}                                 Removes a sub-template for an existing OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp adddependency                            {id/name}                                 Adds a dependency to an existing OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp removedependency                         {id/name}                                 Removes a dependency for an existing OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp delete                                   {id/name}                                 Delete an existing OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp publish                                  {id/name}                                 Shortcut to the seed sub-command.");
-                Console.WriteLine("    oapp unpublish                                {id/name}                                 Shortcut to the un-seed sub-command.");
-                Console.WriteLine("    oapp republish                                {id/name}                                 Shortcut to the re-seed sub-command.");
-                Console.WriteLine("    oapp activate                                 {id/name}                                 Activate a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp deactivate                               {id/name}                                 Deactivate a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp download                                 {id/name}                                 Download a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp install                                  {id/name}                                 Install/download a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp uninstall                                {id/name}                                 Uninstall a OAPP for the given {id} or {name}.");
-                //Console.WriteLine("    oapp reinstall                              {id/name}                                 Reinstall a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp show                                     {id/name} [detailed]                      Shows a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp list                                     [allVersions] [forAllAvatars] [detailed]  List all OAPPs (contains zomes and holons) that have been generated.");
-                Console.WriteLine("    oapp list installed                                                                     List all OAPP's installed for the currently beamed in avatar.");
-                Console.WriteLine("    oapp list uninstalled                                                                   List all OAPP's uninstalled for the currently beamed in avatar (and allow re-install).");
-                Console.WriteLine("    oapp list unpublished                                                                   List all OAPP's unpublished for the currently beamed in avatar (and allow republish).");
-                Console.WriteLine("    oapp list deactivated                                                                   List all OAPP's deactivated for the currently beamed in avatar (and allow reactivate).");
-                Console.WriteLine("    oapp search                                   [allVersions] [forAllAvatars]             Searches the OAPP's for the given search critera.");
-                Console.WriteLine("    oapp template create                                                                    Creates a OAPP template.");
-                Console.WriteLine("    oapp template update                          {id/name}                                 Updates a OAPP template for the given {id} or {name}.");
-                Console.WriteLine("    oapp template adddependency                   {id/name}                                 Adds a dependency to an existing OAPP Template for the given {id} or {name}.");
-                Console.WriteLine("    oapp template removedependency                {id/name}                                 Removes a dependency for an existing OAPP Template for the given {id} or {name}.");
-                //Console.WriteLine("    oapp template addlib                          {id/name}                                 Adds a library to an existing OAPP Template for the given {id} or {name}.");
-                //Console.WriteLine("    oapp template removelib                       {id/name}                                 Removes a library for an existing OAPP Template for the given {id} or {name}.");
-                //Console.WriteLine("    oapp template addruntime                      {id/name}                                 Adds a runtime to an existing OAPP Template for the given {id} or {name}.");
-                //Console.WriteLine("    oapp template removeruntime                   {id/name}                                 Removes a runtime for an existing OAPP Template for the given {id} or {name}.");
-                //Console.WriteLine("    oapp template addtemplate                     {id/name}                                 Adds a sub-template to an existing OAPP Template for the given {id} or {name}.");
-                //Console.WriteLine("    oapp template removetemplate                  {id/name}                                 Removes a sub-template for an existing OAPP Template for the given {id} or {name}.");
-                Console.WriteLine("    oapp template delete                          {id/name}                                 Deletes a OAPP template for the given {id} or {name}.");
-                Console.WriteLine("    oapp template publish                         {id/name}                                 Publishes a OAPP template to the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    oapp template unpublish                       {id/name}                                 Unpublishes a OAPP template from the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    oapp template republish                       {id/name}                                 Republishes a OAPP template to the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    oapp template activate                        {id/name}                                 Activate a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp template deactivate                      {id/name}                                 Deactivate a OAPP for the given {id} or {name}.");
-                Console.WriteLine("    oapp template download                        {id/name}                                 Downloads a OAPP template for the given {id} or {name}.");
-                Console.WriteLine("    oapp template install                         {id/name}                                 Installs/downloads a OAPP template for the given {id} or {name}.");
-                Console.WriteLine("    oapp template uninstall                       {id/name}                                 Uninstalls a OAPP template for the given {id} or {name}.");
-                //Console.WriteLine("    oapp template reinstall                     {id/name}                                Reinstalls a OAPP template for the given {id} or {name}.");
-                Console.WriteLine("    oapp template show                            {id/name} [detailed]                      Shows a OAPP template for the given {id} or {name}.");
-                Console.WriteLine("    oapp template list                            [allVersions] [forAllAvatars] [detailed]  List all OAPP template's that have been created.");
-                Console.WriteLine("    oapp template list installed                                                            List all OAPP template's installed for the currently beamed in avatar.");
-                Console.WriteLine("    oapp template list uninstalled                                                          List all OAPP template's uninstalled for the currently beamed in avatar (and allow reinstalling).");
-                Console.WriteLine("    oapp template list unpublished                                                          List all OAPP template's unpublished for the currently beamed in avatar (and allow republishing.");
-                Console.WriteLine("    oapp template list deactivated                                                          List all OAPP template's deactivated for the currently beamed in avatar (and allow reactivating).");
-                Console.WriteLine("    oapp template search                          [allVersions] [forAllAvatars]             Searches the OAPP template's for the given search critera.");
-                Console.WriteLine("    happ create                                                                             Shortcut to the light sub-command.");
-                Console.WriteLine("    happ update                                   {id/name}                                 Update an existing hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ adddependency                            {id/name}                                 Adds a dependency to an existing hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ removedependency                         {id/name}                                 Removes a dependency for an existing hApp for the given {id} or {name}.");
-                //Console.WriteLine("    happ addlib                                   {id/name}                                 Adds a library to an existing hApp for the given {id} or {name}.");
-                //Console.WriteLine("    happ removelib                                {id/name}                                 Removes a library for an existing hApp for the given {id} or {name}.");
-                //Console.WriteLine("    happ addruntime                               {id/name}                                 Adds a runtime to an existing hApp for the given {id} or {name}.");
-                //Console.WriteLine("    happ removeruntime                            {id/name}                                 Removes a runtime for an existing hApp for the given {id} or {name}.");
-                //Console.WriteLine("    happ addtemplate                              {id/name}                                 Adds a sub-template to an existing hApp for the given {id} or {name}.");
-                //Console.WriteLine("    happ removetemplate                           {id/name}                                 Removes a sub-template for an existing hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ delete                                   {id/name}                                 Delete an existing hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ publish                                  {id/name}                                 Publishes a hApp to the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    happ unpublish                                {id/name}                                 Unpublishes a hApp from the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    happ republish                                {id/name}                                 Republishes a hApp to the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    happ activate                                 {id/name}                                 Activates a hApp on the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    happ deactivate                               {id/name}                                 Decctivates a hApp on the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    happ download                                 {id/name}                                 Downloads a hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ install                                  {id/name}                                 Installs/downloads a hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ uninstall                                {id/name}                                 Uninstalls a hApp for the given {id} or {name}.");
-                //Console.WriteLine("    happ reinstall                               {id/name}                                Reinstalls a hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ show                                     {id/name} [detailed]                      Shows a hApp for the given {id} or {name}.");
-                Console.WriteLine("    happ list                                     [allVersions] [forAllAvatars] [detailed]  List all hApp's (contains zomes) that have been generated.");
-                Console.WriteLine("    happ list installed                                                                     List all hApp's installed for the currently beamed in avatar.");
-                Console.WriteLine("    happ list uninstalled                                                                   List all hApp's uninstalled for the currently beamed in avatar (and allow reinstalling).");
-                Console.WriteLine("    happ list unpublished                                                                   List all hApp's unpublished for the currently beamed in avatar (and allow republishing).");
-                Console.WriteLine("    happ list deactivated                                                                   List all hApp's deactivated for the currently beamed in avatar (and allow reactivating).");
-                Console.WriteLine("    happ search                                   [allVersions] [forAllAvatars]             Searches the hApp's for the given search critera.");
-                Console.WriteLine("    runtime create                                                                          Create a new runtime. Only admin's can create & publish OASIS/STAR runtime's.");
-                Console.WriteLine("    runtime update                                {id/name}                                 Update an existing runtime for the given {id} or {name}.");
-                Console.WriteLine("    runtime adddependency                         {id/name}                                 Adds a dependency to an existing runtime for the given {id} or {name}.");
-                Console.WriteLine("    runtime removedependency                      {id/name}                                 Removes a dependency for an existing runtime for the given {id} or {name}.");
+                //Console.WriteLine("    light                                         {OAPPName} {OAPPDesc} {OAPPType}          Creates a new OAPP (Zomes/Holons/Star/Planet/Moon) at the given genesis folder location, from the given OAPP DNA.");
+                //Console.WriteLine("                                                  {dnaFolder} {geneisFolder}");
+                //Console.WriteLine("                                                  {genesisNameSpace} {genesisType}");
+                //Console.WriteLine("                                                  {parentCelestialBodyId}");
+                //Console.WriteLine("    light                                                                                   Displays more detail on how to use this command and optionally launches the Light Wizard.");
+                //Console.WriteLine("    light wiz                                                                               Start the Light Wizard.");
+                //Console.WriteLine("    light transmute                               {hAppDNA} {geneisFolder}                  Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
+                //Console.WriteLine("    bang                                                                                    Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
+                ////Console.WriteLine("    wiz                                                                                   Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs");
+                ////Console.WriteLine("                                                                                          (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
+                //Console.WriteLine("    wiz                                                                                     Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
+                //Console.WriteLine("    flare                                         {id/name}                                 Build a OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    shine                                         {id/name}                                 Launch & activate a OAPP for the given {id} or {name} by shining the 's light upon it..."); //TODO: Dev next.
+                //Console.WriteLine("    twinkle                                       {id/name}                                 Activate a published OAPP for the given {id} or {name} within the STARNET store."); //TODO: Dev next.
+                //Console.WriteLine("    dim                                           {id/name}                                 Deactivate a published OAPP for the given {id} or {name} within the STARNET store."); //TODO: Dev next.
+                //Console.WriteLine("    seed                                          {id/name}                                 Deploy/Publish a OAPP for the given {id} or {name} to the STARNET Store.");
+                //Console.WriteLine("    unseed                                        {id/name}                                 Undeploy/Unpublish a OAPP for the given {id} or {name} from the STARNET Store.");
+                //Console.WriteLine("    reseed                                        {id/name}                                 Redeploy/Republish a OAPP for the given {id} or {name} to the STARNET Store.");
+                //Console.WriteLine("    dust                                          {id/name}                                 Delete a OAPP for the given {id} or {name} (this will also remove it from STARNET if it has already been published)."); //TODO: Dev next.
+                //Console.WriteLine("    radiate                                       {id/name}                                 Highlight the OAPP for the given {id} or {name} in the STARNET Store. *Admin/Wizards Only*");
+                //Console.WriteLine("    emit                                          {id/name}                                 Show how much light the OAPP is emitting into the solar system for the given {id} or {name}");
+                //Console.WriteLine("                                                                                            (this is determined by the collective karma score of all users of that OAPP).");
+                //Console.WriteLine("    reflect                                       {id/name}                                 Show stats of the OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    evolve                                        {id/name}                                 Upgrade/update a OAPP) for the given {id} or {name}."); //TODO: Dev next.
+                //Console.WriteLine("    mutate                                        {id/name}                                 Import/Export hApp, dApp & others for the given {id} or {name}.");
+                //Console.WriteLine("    love                                          {id/username}                             Send/Receive Love for the given {id} or {username}.");
+                //Console.WriteLine("    burst                                                                                   View network stats/management/settings.");
+                //Console.WriteLine("    super                                                                                   Reserved For Future Use...");
+                //Console.WriteLine("    net                                                                                     Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
+                //Console.WriteLine("    gate                                                                                    Opens the STARGATE to the OASIS Portal!");
+                //Console.WriteLine("    api                                           [oasis]                                   Opens the WEB5 STAR API (if oasis is included then it will open the WEB4 OASIS API instead).");
+                //Console.WriteLine("    avatar beamin                                                                           Beam in (log in).");
+                //Console.WriteLine("    avatar beamout                                                                          Beam out (Log out).");
+                //Console.WriteLine("    avatar whoisbeamedin                                                                    Display who is currently beamed in (if any) and the last time they beamed in and out.");
+                //Console.WriteLine("    avatar show me                                                                          Display the currently beamed in avatar details (if any).");
+                //Console.WriteLine("    avatar show                                   {id/username}                             Shows the details for the avatar for the given {id} or {username}.");
+                //Console.WriteLine("    avatar edit                                                                             Edit the currently beamed in avatar.");
+                //Console.WriteLine("    avatar list                                   [detailed]                                Lists all avatars. If [detailed] is included it will list detailed stats also.");
+                //Console.WriteLine("    avatar search                                                                           Seach avatars that match the given seach parameters (public fields only such as level, karma, username & any fields the player has set to public).");
+                //Console.WriteLine("    avatar forgotpassword                                                                   Send a Forgot Password email to your email account containing a Reset Token.");
+                //Console.WriteLine("    avatar resetpassword                                                                    Allows you to reset your password using the Reset Token received in your email from the forgotpassword sub-command.");
+                //Console.WriteLine("    karma list                                                                              Display the karma thresholds.");
+                //Console.WriteLine("    keys link privateKey                          [walletId] [privateKey]                   Links a private key to the given wallet for the currently beamed in avatar.");
+                //Console.WriteLine("    keys link publicKey                           [walletId] [publicKey]                    Links a public key to the given wallet for the currently beamed in avatar.");
+                //Console.WriteLine("    keys link genKeyPair                          [walletId]                                Generates a unique keyvalue pair and then links them to to the given wallet for the currently beamed in avatar.");
+                //Console.WriteLine("    keys generateKeyPair                                                                    Generates a unique keyvalue pair.");
+                //Console.WriteLine("    keys clearCache                                                                         Clears the cache.");
+                //Console.WriteLine("    keys get provideruniquestoragekey             {providerType}                            Gets the Provider Unique Storage Key for the given provider and the currently beamed in avatar.");
+                //Console.WriteLine("    keys get providerpublickeys                   {providerType}                            Gets the Provider Public Keys for the given provider and the currently beamed in avatar.");
+                //Console.WriteLine("    keys get avataridforprovideruniquestoragekey  {avatarId}                                Gets the Provider Private Keys for the given provider and the currently beamed in avatar.");
+                //Console.WriteLine("    keys get avataridforprovideruniquestoragekey  {avatarId}                                Gets the Provider Private Keys for the given provider and the currently beamed in avatar.");
+                //Console.WriteLine("    keys list                                                                               Shows the keys for the currently beamed in avatar.");
+                //Console.WriteLine("    wallet sendtoken                              {walletAddress} {token} {amount}          Sends a token to the given wallet address.");
+                //Console.WriteLine("    wallet transfer                               {from walletId/name} {amount}             Transfers the given [amount] from one wallet to another for the currently beamed in avatar.");
+                //Console.WriteLine("                                                  {to walletId/name}");                           
+                //Console.WriteLine("    wallet get                                    {publickey}                               Gets the wallet that the public key belongs to.");
+                //Console.WriteLine("    wallet getDefault                                                                       Gets the default wallet for the currently beamed in avatar.");
+                //Console.WriteLine("    wallet setDefault                             {walletId}                                Sets the default wallet for the currently beamed in avatar.");
+                //Console.WriteLine("    wallet import privateKey                      {privateKey}                              Imports a wallet using the privateKey.");
+                //Console.WriteLine("    wallet import publicKey                       {publicKey}                               Imports a wallet using the publicKey.");
+                //Console.WriteLine("    wallet import secretPhase                     {secretPhase}                             Imports a wallet using the secretPhase.");
+                //Console.WriteLine("    wallet import json                            {jsonFile}                                Imports a wallet using the jsonFile.");
+                //Console.WriteLine("    wallet import json                            {jsonFile}                                Imports a wallet using the jsonFile.");
+                //Console.WriteLine("    wallet add                                                                              Adds a wallet for the currently beamed in avatar.");
+                //Console.WriteLine("    wallet list                                                                             Lists the wallets for the currently beamed in avatar.");
+                //Console.WriteLine("    wallet balance                                {walletId}                                Gets the balance for the given wallet for the currently beamed in avatar.");
+                //Console.WriteLine("    wallet balance                                                                          Gets the total balance for all wallets for the currently beamed in avatar.");
+                //Console.WriteLine("    search                                                                                  Seaches The OASIS for the given seach parameters.");
+                //Console.WriteLine("    oapp create                                                                             Shortcut to the light sub-command.");
+                //Console.WriteLine("    oapp update                                    {id/name}                                 Update an existing OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp adddependency                             {id/name}                                 Adds a dependency to an existing OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp removedependency                          {id/name}                                 Removes a dependency for an existing OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp delete                                    {id/name}                                 Delete an existing OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp publish                                   {id/name}                                 Shortcut to the seed sub-command.");
+                //Console.WriteLine("    oapp unpublish                                 {id/name}                                 Shortcut to the un-seed sub-command.");
+                //Console.WriteLine("    oapp republish                                 {id/name}                                 Shortcut to the re-seed sub-command.");
+                //Console.WriteLine("    oapp activate                                  {id/name}                                 Activate a OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp deactivate                                {id/name}                                 Deactivate a OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp download                                  {id/name}                                 Download a OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp install                                   {id/name}                                 Install/download a OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp uninstall                                 {id/name}                                 Uninstall a OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp show                                      {id/name} [detailed]                      Shows a OAPP for the given {id} or {name}.");
+                //Console.WriteLine("    oapp list                                      [allVersions] [forAllAvatars] [detailed]  List all OAPPs (contains zomes and holons) that have been generated.");
+                //Console.WriteLine("    oapp list installed                                                                      List all OAPP's installed for the currently beamed in avatar.");
+                //Console.WriteLine("    oapp list uninstalled                                                                    List all OAPP's uninstalled for the currently beamed in avatar (and allow re-install).");
+                //Console.WriteLine("    oapp list unpublished                                                                    List all OAPP's unpublished for the currently beamed in avatar (and allow republish).");
+                //Console.WriteLine("    oapp list deactivated                                                                    List all OAPP's deactivated for the currently beamed in avatar (and allow reactivate).");
+                //Console.WriteLine("    oapp search                                    [allVersions] [forAllAvatars]             Searches the OAPP's for the given search critera.");
+                //Console.WriteLine("    runtime create                                                                          Create a new runtime. Only admin's can create & publish OASIS/STAR runtime's.");
+                //Console.WriteLine("    runtime update                                {id/name}                                 Update an existing runtime for the given {id} or {name}.");
+                //Console.WriteLine("    runtime adddependency                         {id/name}                                 Adds a dependency to an existing runtime for the given {id} or {name}.");
+                //Console.WriteLine("    runtime removedependency                      {id/name}                                 Removes a dependency for an existing runtime for the given {id} or {name}.");
                 //Console.WriteLine("    runtime addlib                                {id/name}                                 Adds a library to an existing runtime for the given {id} or {name}.");
                 //Console.WriteLine("    runtime removelib                             {id/name}                                 Removes a library for an existing runtime for the given {id} or {name}.");
                 //Console.WriteLine("    runtime addruntime                            {id/name}                                 Adds a sub-runtime to a runtime for the given {id} or {name}.");
                 //Console.WriteLine("    runtime removeruntime                         {id/name}                                 Removes a sub-runtime from an existing runtime for the given {id} or {name}.");
                 //Console.WriteLine("    runtime addtemplate                           {id/name}                                 Adds a sub-template to an existing runtime for the given {id} or {name}.");
                 //Console.WriteLine("    runtime removetemplate                        {id/name}                                 Removes a sub-template for an existing runtime for the given {id} or {name}.");
-                Console.WriteLine("    runtime delete                                {id/name}                                 Delete an existing runtime for the given {id} or {name}.");
-                Console.WriteLine("    runtime publish                               {id/name}                                 Publish a runtime.");
-                Console.WriteLine("    runtime unpublish                             {id/name}                                 Unpublish a runtime.");
-                Console.WriteLine("    runtime republish                             {id/name}                                 Republish a runtime.");
-                Console.WriteLine("    runtime activate                              {id/name}                                 Activates a runtime on the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    runtime deactivate                            {id/name}                                 Decctivates a runtime on the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    runtime download                              {id/name}                                 Downloads a runtime for the given {id} or {name}.");
-                Console.WriteLine("    runtime install                               {id/name}                                 Installs/downloads a runtime for the given {id} or {name}.");
-                Console.WriteLine("    runtime uninstall                             {id/name}                                 Uninstalls a runtime for the given {id} or {name}.");
+                //Console.WriteLine("    runtime delete                                {id/name}                                 Delete an existing runtime for the given {id} or {name}.");
+                //Console.WriteLine("    runtime publish                               {id/name}                                 Publish a runtime.");
+                //Console.WriteLine("    runtime unpublish                             {id/name}                                 Unpublish a runtime.");
+                //Console.WriteLine("    runtime republish                             {id/name}                                 Republish a runtime.");
+                //Console.WriteLine("    runtime activate                              {id/name}                                 Activates a runtime on the STARNET store for the given {id} or {name}.");
+                //Console.WriteLine("    runtime deactivate                            {id/name}                                 Decctivates a runtime on the STARNET store for the given {id} or {name}.");
+                //Console.WriteLine("    runtime download                              {id/name}                                 Downloads a runtime for the given {id} or {name}.");
+                //Console.WriteLine("    runtime install                               {id/name}                                 Installs/downloads a runtime for the given {id} or {name}.");
+                //Console.WriteLine("    runtime uninstall                             {id/name}                                 Uninstalls a runtime for the given {id} or {name}.");
                 //Console.WriteLine("    runtime reinstall                            {id/name}                                Reinstalls a runtime for the given {id} or {name}.");
-                Console.WriteLine("    runtime show                                  {id/name} [detailed]                      Shows a runtime for the given {id} or {name}.");
-                Console.WriteLine("    runtime list                                  [allVersions] [forAllAvatars] [detailed]  List all runtime's that have been generated.");
-                Console.WriteLine("    runtime list installed                                                                  List all runtime's installed for the currently beamed in avatar.");
-                Console.WriteLine("    runtime list uninstalled                                                                List all runtime's uninstalled for the currently beamed in avatar (and allow reinstalling).");
-                Console.WriteLine("    runtime list unpublished                                                                List all runtime's unpublished for the currently beamed in avatar (and allow republishing).");
-                Console.WriteLine("    runtime list deactivated                                                                List all runtime's deactivated for the currently beamed in avatar (and allow reactivating).");
-                Console.WriteLine("    runtime search                                [allVersions] [forAllAvatars]             Searches the runtime's for the given search critera.");
-                Console.WriteLine("    lib create                                                                              Create a new library. Only admin's can create & publish OASIS/STAR runtime's.");
-                Console.WriteLine("    lib update                                    {id/name}                                 Update an existing library for the given {id} or {name}.");
-                Console.WriteLine("    lib adddependency                             {id/name}                                 Adds a dependency to an existing library for the given {id} or {name}.");
-                Console.WriteLine("    lib removedependency                          {id/name}                                 Removes a dependency for an existing library for the given {id} or {name}.");
+                //Console.WriteLine("    runtime show                                  {id/name} [detailed]                      Shows a runtime for the given {id} or {name}.");
+                //Console.WriteLine("    runtime list                                  [allVersions] [forAllAvatars] [detailed]  List all runtime's that have been generated.");
+                //Console.WriteLine("    runtime list installed                                                                  List all runtime's installed for the currently beamed in avatar.");
+                //Console.WriteLine("    runtime list uninstalled                                                                List all runtime's uninstalled for the currently beamed in avatar (and allow reinstalling).");
+                //Console.WriteLine("    runtime list unpublished                                                                List all runtime's unpublished for the currently beamed in avatar (and allow republishing).");
+                //Console.WriteLine("    runtime list deactivated                                                                List all runtime's deactivated for the currently beamed in avatar (and allow reactivating).");
+                //Console.WriteLine("    runtime search                                [allVersions] [forAllAvatars]             Searches the runtime's for the given search critera.");
+                //Console.WriteLine("    lib create                                                                              Create a new library. Only admin's can create & publish OASIS/STAR runtime's.");
+                //Console.WriteLine("    lib update                                    {id/name}                                 Update an existing library for the given {id} or {name}.");
+                //Console.WriteLine("    lib adddependency                             {id/name}                                 Adds a dependency to an existing library for the given {id} or {name}.");
+                //Console.WriteLine("    lib removedependency                          {id/name}                                 Removes a dependency for an existing library for the given {id} or {name}.");
                 //Console.WriteLine("    lib addlib                                    {id/name}                                 Adds a sub-library to an existing library for the given {id} or {name}.");
                 //Console.WriteLine("    lib removelib                                 {id/name}                                 Removes a sub-library for an existing library for the given {id} or {name}.");
                 //Console.WriteLine("    lib addruntime                                {id/name}                                 Adds a runtime to a library for the given {id} or {name}.");
                 //Console.WriteLine("    lib removeruntime                             {id/name}                                 Removes a runtime from an existing library for the given {id} or {name}.");
                 //Console.WriteLine("    lib addtemplate                               {id/name}                                 Adds a sub-template to an existing library for the given {id} or {name}.");
                 //Console.WriteLine("    lib removetemplate                            {id/name}                                 Removes a sub-template for an existing library for the given {id} or {name}.");
-                Console.WriteLine("    lib delete                                    {id/name}                                 Delete an existing library for the given {id} or {name}.");
-                Console.WriteLine("    lib publish                                   {id/name}                                 Publish a library.");
-                Console.WriteLine("    lib unpublish                                 {id/name}                                 Unpublish a library.");
-                Console.WriteLine("    lib republish                                 {id/name}                                 Republish a library.");
-                Console.WriteLine("    lib activate                                  {id/name}                                 Activates a library on the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    lib deactivate                                {id/name}                                 Decctivates a library on the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    lib download                                  {id/name}                                 Downloads a library for the given {id} or {name}.");
-                Console.WriteLine("    lib install                                   {id/name}                                 Installs/downloads a library for the given {id} or {name}.");
-                Console.WriteLine("    lib uninstall                                 {id/name}                                 Uninstalls a library for the given {id} or {name}.");
+                //Console.WriteLine("    lib delete                                    {id/name}                                 Delete an existing library for the given {id} or {name}.");
+                //Console.WriteLine("    lib publish                                   {id/name}                                 Publish a library.");
+                //Console.WriteLine("    lib unpublish                                 {id/name}                                 Unpublish a library.");
+                //Console.WriteLine("    lib republish                                 {id/name}                                 Republish a library.");
+                //Console.WriteLine("    lib activate                                  {id/name}                                 Activates a library on the STARNET store for the given {id} or {name}.");
+                //Console.WriteLine("    lib deactivate                                {id/name}                                 Decctivates a library on the STARNET store for the given {id} or {name}.");
+                //Console.WriteLine("    lib download                                  {id/name}                                 Downloads a library for the given {id} or {name}.");
+                //Console.WriteLine("    lib install                                   {id/name}                                 Installs/downloads a library for the given {id} or {name}.");
+                //Console.WriteLine("    lib uninstall                                 {id/name}                                 Uninstalls a library for the given {id} or {name}.");
                 //Console.WriteLine("    lib reinstall                               {id/name}                                 Reinstalls a lib for the given {id} or {name}.");
-                Console.WriteLine("    lib show                                      {id/name} [detailed]                      Shows a library for the given {id} or {name}.");
-                Console.WriteLine("    lib list                                      [allVersions] [forAllAvatars] [detailed]  List all libraries that have been generated.");
-                Console.WriteLine("    lib list installed                                                                      List all libraries installed for the currently beamed in avatar.");
-                Console.WriteLine("    lib list uninstalled                                                                    List all libraries uninstalled for the currently beamed in avatar (and allow reinstalling).");
-                Console.WriteLine("    lib list unpublished                                                                    List all libraries unpublished for the currently beamed in avatar (and allow republishing).");
-                Console.WriteLine("    lib list deactivated                                                                    List all libraries deactivated for the currently beamed in avatar (and allow reactivating).");
-                Console.WriteLine("    lib search                                    [allVersions] [forAllAvatars]             Searches the libraries for the given search critera.");
-                Console.WriteLine("    celestialspace create                                                                   Creates a celestial space.");
-                Console.WriteLine("    celestialspace update                         {id/name}                                 Update an existing celestial space for the given {id} or {name}.");
-                Console.WriteLine("    celestialspace adddependency                  {id/name}                                 Adds a dependency to an existing celestial space for the given {id} or {name}.");
-                Console.WriteLine("    celestialspace removedependency               {id/name}                                 Removes a dependency for an existing celestial space for the given {id} or {name}.");
-                //Console.WriteLine("    celestialspace addlib                         {id/name}                                 Adds a library to an existing celestial space for the given {id} or {name}.");
-                //Console.WriteLine("    celestialspace removelib                      {id/name}                                 Removes a library for an celestial space library for the given {id} or {name}.");
-                //Console.WriteLine("    celestialspace addruntime                     {id/name}                                 Adds a runtime to a celestial space for the given {id} or {name}.");
-                //Console.WriteLine("    celestialspace removeruntime                  {id/name}                                 Removes a runtime from a celestial space for the given {id} or {name}.");
-                //Console.WriteLine("    celestialspace addtemplate                    {id/name}                                 Adds a sub-template to an existing celestial space for the given {id} or {name}.");
-                //Console.WriteLine("    celestialspace removetemplate                 {id/name}                                 Removes a sub-template for an existing celestial space for the given {id} or {name}.");
-                Console.WriteLine("    celestialspace delete                         {id/name}                                 Delete an existing celestial space for the given {id} or {name}.");
-                Console.WriteLine("    celestialspace publish                        {id/name}                                 Publishes a celestial space for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
-                Console.WriteLine("    celestialspace unpublish                      {id/name}                                 Unpublishes a celestial space for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    celestialspace show                           {id/name} [detailed]                      Shows a celestial space for the given {id} or {name}.");
-                Console.WriteLine("    celestialspace list                           [allVersions] [forAllAvatars] [detailed]  List all celestial spaces that have been generated.");
-                Console.WriteLine("    celestialspace search                         [allVersions] [forAllAvatars]             Searches the celestial spaces for the given search critera.");
-                Console.WriteLine("    celestialbody create                                                                    Creates a celestial body.");
-                Console.WriteLine("    celestialbody update                          {id/name}                                 Update an existing celestial body for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody adddependency                   {id/name}                                 Adds a dependency to an existing celestial body for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody removedependency                {id/name}                                 Removes a dependency for an existing celestial body for the given {id} or {name}.");
-                //Console.WriteLine("    celestialbody addlib                          {id/name}                                 Adds a library to an existing celestial body for the given {id} or {name}.");
-                //Console.WriteLine("    celestialbody removelib                       {id/name}                                 Removes a library for an celestial body for the given {id} or {name}.");
-                //Console.WriteLine("    celestialbody addruntime                      {id/name}                                 Adds a runtime to a celestial body for the given {id} or {name}.");
-                //Console.WriteLine("    celestialbody removeruntime                   {id/name}                                 Removes a runtime from an celestial body library for the given {id} or {name}.");
-                //Console.WriteLine("    celestialbody addtemplate                     {id/name}                                 Adds a sub-template to an existing celestial body for the given {id} or {name}.");
-                //Console.WriteLine("    celestialbody removetemplate                  {id/name}                                 Removes a sub-template for an existing celestial body for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody delete                          {id/name}                                 Delete an existing celestial body for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody publish                         {id/name}                                 Publishes a celestial body for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
-                Console.WriteLine("    celestialbody unpublish                       {id/name}                                 Unpublishes a celestial body for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    celestialbody show                            {id/name}                                 Shows a celestial body for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody list                            [allVersions] [forAllAvatars] [detailed]  List all celestial bodies that have been generated.");
-                Console.WriteLine("    celestialbody search                          [allVersions] [forAllAvatars]             Searches the celestial bodies for the given search critera.");
-                Console.WriteLine("    celestialbody metadata create                                                           Creates celestial body metadata.");
-                Console.WriteLine("    celestialbody metadata update                 {id/name}                                 Update existing celestial body metadata for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody metadata delete                 {id/name}                                 Delete existing celestial body metadata for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody metadata publish                {id/name}                                 Publishes celestial body metadata for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
-                Console.WriteLine("    celestialbody metadata unpublish              {id/name}                                 Unpublishes celestial body metadata for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    celestialbody metadata show                   {id/name}                                 Shows celestial body metadata for the given {id} or {name}.");
-                Console.WriteLine("    celestialbody metadata list                   [allVersions] [forAllAvatars] [detailed]  List all celestial body metadata that have been generated.");
-                Console.WriteLine("    celestialbody metadata search                 [allVersions] [forAllAvatars]             Searches the celestial body metadata for the given search critera.");
-                Console.WriteLine("    zome create                                                                             Create a zome (module).");
-                Console.WriteLine("    zome update                                   {id/name}                                 Update an existing zome for the given {id} or {name}");
-                Console.WriteLine("                                                                                            (can upload a zome.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
-                Console.WriteLine("    zome adddependency                            {id/name}                                 Adds a dependency to an existing zome for the given {id} or {name}.");
-                Console.WriteLine("    zome removedependency                         {id/name}                                 Removes a dependency for an existing zome for the given {id} or {name}.");
-                //Console.WriteLine("    zome addlib                                   {id/name}                                 Adds a library to an existing zome for the given {id} or {name}.");
-                //Console.WriteLine("    zome removelib                                {id/name}                                 Removes a library for an zome for the given {id} or {name}.");
-                //Console.WriteLine("    zome addruntime                               {id/name}                                 Adds a runtime to a zome for the given {id} or {name}.");
-                //Console.WriteLine("    zome removeruntime                            {id/name}                                 Removes a runtime from an zome library for the given {id} or {name}.");
-                //Console.WriteLine("    zome addtemplate                              {id/name}                                 Adds a sub-template to an existing zome for the given {id} or {name}.");
-                //Console.WriteLine("    zome removetemplate                           {id/name}                                 Removes a sub-template for an existing zome for the given {id} or {name}.");
+                //Console.WriteLine("    lib show                                      {id/name} [detailed]                      Shows a library for the given {id} or {name}.");
+                //Console.WriteLine("    lib list                                      [allVersions] [forAllAvatars] [detailed]  List all libraries that have been generated.");
+                //Console.WriteLine("    lib list installed                                                                      List all libraries installed for the currently beamed in avatar.");
+                //Console.WriteLine("    lib list uninstalled                                                                    List all libraries uninstalled for the currently beamed in avatar (and allow reinstalling).");
+                //Console.WriteLine("    lib list unpublished                                                                    List all libraries unpublished for the currently beamed in avatar (and allow republishing).");
+                //Console.WriteLine("    lib list deactivated                                                                    List all libraries deactivated for the currently beamed in avatar (and allow reactivating).");
+                //Console.WriteLine("    lib search                                    [allVersions] [forAllAvatars]             Searches the libraries for the given search critera.");
+                //Console.WriteLine("    celestialspace create                                                                   Creates a celestial space.");
+                //Console.WriteLine("    celestialspace update                         {id/name}                                 Update an existing celestial space for the given {id} or {name}.");
+                //Console.WriteLine("    celestialspace adddependency                  {id/name}                                 Adds a dependency to an existing celestial space for the given {id} or {name}.");
+                //Console.WriteLine("    celestialspace removedependency               {id/name}                                 Removes a dependency for an existing celestial space for the given {id} or {name}.");
+                //Console.WriteLine("    celestialspace delete                         {id/name}                                 Delete an existing celestial space for the given {id} or {name}.");
+                //Console.WriteLine("    celestialspace publish                        {id/name}                                 Publishes a celestial space for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
+                //Console.WriteLine("    celestialspace unpublish                      {id/name}                                 Unpublishes a celestial space for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    celestialspace show                           {id/name} [detailed]                      Shows a celestial space for the given {id} or {name}.");
+                //Console.WriteLine("    celestialspace list                           [allVersions] [forAllAvatars] [detailed]  List all celestial spaces that have been generated.");
+                //Console.WriteLine("    celestialspace search                         [allVersions] [forAllAvatars]             Searches the celestial spaces for the given search critera.");
+                //Console.WriteLine("    celestialbody create                                                                    Creates a celestial body.");
+                //Console.WriteLine("    celestialbody update                          {id/name}                                 Update an existing celestial body for the given {id} or {name}.");
+                //Console.WriteLine("    celestialbody adddependency                   {id/name}                                 Adds a dependency to an existing celestial body for the given {id} or {name}.");
+                //Console.WriteLine("    celestialbody removedependency                {id/name}                                 Removes a dependency for an existing celestial body for the given {id} or {name}.");
+                //Console.WriteLine("    celestialbody delete                          {id/name}                                 Delete an existing celestial body for the given {id} or {name}.");
+                //Console.WriteLine("    celestialbody publish                         {id/name}                                 Publishes a celestial body for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
+                //Console.WriteLine("    celestialbody unpublish                       {id/name}                                 Unpublishes a celestial body for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    celestialbody show                            {id/name}                                 Shows a celestial body for the given {id} or {name}.");
+                //Console.WriteLine("    celestialbody list                            [allVersions] [forAllAvatars] [detailed]  List all celestial bodies that have been generated.");
+                //Console.WriteLine("    celestialbody search                          [allVersions] [forAllAvatars]             Searches the celestial bodies for the given search critera.");
+                //Console.WriteLine("    celestialbody metadata create                                                           Creates celestial body metadata.");
+                //Console.WriteLine("    celestialbody metadata update                 {id/name}                                 Update existing celestial body metadata for the given {id} or {name}.");
+                //Console.WriteLine("    celestialbody metadata delete                 {id/name}                                 Delete existing celestial body metadata for the given {id} or {name}.");
+                //Console.WriteLine("    celestialbody metadata publish                {id/name}                                 Publishes celestial body metadata for the given {id} or {name} to the STARNET store so others can use in their own OAPP's etc.");
+                //Console.WriteLine("    celestialbody metadata unpublish              {id/name}                                 Unpublishes celestial body metadata for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    celestialbody metadata show                   {id/name}                                 Shows celestial body metadata for the given {id} or {name}.");
+                //Console.WriteLine("    celestialbody metadata list                   [allVersions] [forAllAvatars] [detailed]  List all celestial body metadata that have been generated.");
+                //Console.WriteLine("    celestialbody metadata search                 [allVersions] [forAllAvatars]             Searches the celestial body metadata for the given search critera.");
+                //Console.WriteLine("    zome create                                                                             Create a zome (module).");
+                //Console.WriteLine("    zome update                                   {id/name}                                 Update an existing zome for the given {id} or {name}");
+                //Console.WriteLine("                                                                                            (can upload a zome.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
+                //Console.WriteLine("    zome adddependency                            {id/name}                                 Adds a dependency to an existing zome for the given {id} or {name}.");
+                //Console.WriteLine("    zome removedependency                         {id/name}                                 Removes a dependency for an existing zome for the given {id} or {name}.");
+                //Console.WriteLine("    zome delete                                   {id/name}                                 Delete an existing zome for the given {id} or {name}.");
+                //Console.WriteLine("    zome publish                                  {id/name}                                 Publishes a zome for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
+                //Console.WriteLine("    zome unpublish                                {id/name}                                 Unpublishes a zome for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    zome show                                     {id/name}                                 Shows a zome for the given {id} or {name}.");
+                //Console.WriteLine("    zome list                                     [allVersions] [forAllAvatars] [detailed]  List all zomes (modules that contain holons) that have been generated.");
+                //Console.WriteLine("    zome search                                   [allVersions] [forAllAvatars]             Searches the zomes (modules) for the given search critera. If [all] is omitted it will search only your zomes otherwise it will search all public/shared zomes.");
+                //Console.WriteLine("    zome metadata create                                                                    Create zome metadata.");
+                //Console.WriteLine("    zome metadata update                          {id/name}                                 Update existing zome metadata for the given {id} or {name}");
+                //Console.WriteLine("    zome metadata delete                          {id/name}                                 Delete existing zome metadata for the given {id} or {name}.");
+                //Console.WriteLine("    zome metadata publish                         {id/name}                                 Publishes zome metadata for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
+                //Console.WriteLine("    zome metadata unpublish                       {id/name}                                 Unpublishes zome metadata for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    zome metadata show                            {id/name}                                 Shows zome metadata for the given {id} or {name}.");
+                //Console.WriteLine("    zome metadata list                            [allVersions] [forAllAvatars]             List all zome metadata that have been generated.");
+                //Console.WriteLine("    zome metadata search                          [allVersions] [forAllAvatars]             Searches the zome metadata for the given search critera. If [all] is omitted it will search only your zomes otherwise it will search all public/shared zomes.");
+                //Console.WriteLine("    holon create                                  json={holonJSONFile}                      Creates/Saves a holon from the given {holonJSONFile}.");
+                //Console.WriteLine("    holon create wiz                                                                        Starts the Create Holon Wizard.");
+                //Console.WriteLine("    holon update                                  {id/name}                                 Update an existing holon for the given {id} or {name}");
+                //Console.WriteLine("    holon delete                                  {id/name}                                 Deletes a holon for the given {id} or {name}.");
+                //Console.WriteLine("    holon publish                                 {id/name}                                 Publishes a holon for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
+                //Console.WriteLine("    holon unpublish                               {id/name}                                 Unpublishes a holon for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    holon show                                    {id/name} [detailed]                      Shows a holon for the given {id} or {name}.");
+                //Console.WriteLine("    holon list                                    [allVersions] [forAllAvatars]             List all holons (OASIS Data Objects) that have been generated.");
+                //Console.WriteLine("    holon search                                  [allVersions] [forAllAvatars]             Searches the holons for the given search critera.");
+                //Console.WriteLine("    holon metadata create                                                                   Creates/Saves holon metadata.");
+                //Console.WriteLine("    holon metadata update                         {id/name}                                 Update an existing holon metadata for the given {id} or {name}");
+                //Console.WriteLine("    holon metadata delete                         {id/name}                                 Deletes holon metadata for the given {id} or {name}.");
+                //Console.WriteLine("    holon metadata publish                        {id/name}                                 Publishes holon metadata for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
+                //Console.WriteLine("    holon metadata unpublish                      {id/name}                                 Unpublishes holon metadata for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    holon metadata show                           {id/name} [detailed]                      Shows holon metadata for the given {id} or {name}.");
+                //Console.WriteLine("    holon metadata list                           [allVersions] [forAllAvatars] [detailed]  List all holon metadata that has been generated.");
+                //Console.WriteLine("    holon metadata search                         [allVersions] [forAllAvatars]             Searches the holon metadata for the given search critera.");
+                //Console.WriteLine("    chapter create                                                                          Creates a chapter that can be linked to a mission. Quests can be added to the chapter. Chapters are used to group quests together (optional).");
+                //Console.WriteLine("    chapter update                                {id/name}                                 Updates a chapter for the given {id} or {name}.");
+                //Console.WriteLine("    chapter delete                                {id/name}                                 Deletes a chapter for the given {id} or {name}.");
+                //Console.WriteLine("    chapter publish                               {id/name}                                 Publishes a chapter to the STARNET store for the given {id} or {name} so others can use in their own missions.");
+                //Console.WriteLine("    chapter unpublish                             {id/name}                                 Unpublishes a chapter from the STARNET store for the given {id} or {name}.");
+                //Console.WriteLine("    chapter show                                  {id/name}                                 Shows the chapter for the given {id} or {name}.");
+                //Console.WriteLine("    chapter list                                  [allVersions] [forAllAvatars]             List chapters that have been created.");
+                //Console.WriteLine("    chapter search                                [allVersions] [forAllAvatars]             Search chapters that have been created.");
+                //Console.WriteLine("    mission create                                                                          Creates a mission that chapters & quests can be added to.");
+                //Console.WriteLine("    mission update                                {id/name}                                 Updates a mission for the given {id} or {name}.");
+                //Console.WriteLine("    mission delete                                {id/name}                                 Deletes an mission for the given {id} or {name}.");
+                //Console.WriteLine("    mission publish                               {id/name}                                 Publishes a mission  for the given {id} or {name} to the STARNET store so others can find and play in Our World/AR World, One World & any other OASIS OAPP.");
+                //Console.WriteLine("    mission unpublish                             {id/name}                                 Unpublishes a mission from the STARNET store for the given {id} or {name}.");
+                //Console.WriteLine("    mission show                                  {id/name} [detailed]                      Shows the mission for the given {id} or {name}.");
+                //Console.WriteLine("    missions list                                 [allVersions] [forAllAvatars] [detailed]  List all mission's that have been created.");
+                //Console.WriteLine("    missions search                               [allVersions] [forAllAvatars]             Search all mission's that have been created.");
+                //Console.WriteLine("    quest create                                                                            Creates a quest that can be linked to a mission. Geo-nfts, geo-hotspots & rewards can be linked to the quest.");
+                //Console.WriteLine("    quest update                                  {id/name}                                 Updates a quest for the given {id} or {name}.");
+                //Console.WriteLine("    quest delete                                  {id/name}                                 Deletes a quest for the given {id} or {name}.");
+                //Console.WriteLine("    quest publish                                 {id/name}                                 Publishes a quest to the STARNET store so others can use in their own quests as sub-quests or in missions/chapters.");
+                //Console.WriteLine("    quest unpublish                               {id/name}                                 Unpublishes a quest from the STARNET store for the given {id} or {name}.");
+                //Console.WriteLine("    quest show                                    {id/name} [detailed]                      Shows the quest for the given {id} or {name}.");
+                //Console.WriteLine("    quest list                                    [allVersions] [forAllAvatars] [detailed]  List all quests that have been created.");
+                //Console.WriteLine("    quest search                                  [allVersions] [forAllAvatars]             Search all quests that have been created.");
+                //Console.WriteLine("    nft mint                                                                                Mints a WEB4 OASIS NFT for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS NFT.");
+                //Console.WriteLine("    nft create                                                                              Creates a WEB5 STAR NFT by wrapping a WEB4 OASIS NFT.");
+                //Console.WriteLine("    nft update                                    {id/name}                                 Updates a nft for the given {id} or {name}.");
+                //Console.WriteLine("    nft burn                                      {id/name}                                 Burn's a nft for the given {id} or {name}.");
+                //Console.WriteLine("    nft send                                      {id/name}                                 Send a NFT for the given {id} or {name} to another wallet cross-chain.");
+                //Console.WriteLine("    nft import                                    [web3]                                    Imports a WEB4 OASIS NFT JSON file. If [web3] param is given it will import a WEB3 NFT JSON MetaData file of NFT Token Address to be wrapped in a WEB4 OASIS NFT.");
+                //Console.WriteLine("    nft export                                                                              Exports a WEB4 OASIS NFT as a JSON file as well as a WEB3 JSON MetaData file.");
+                //Console.WriteLine("    nft clone                                                                               Clones a WEB4 OASIS NFT.");
+                //Console.WriteLine("    nft convert                                                                             Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 Metadata.");
+                //Console.WriteLine("    nft publish                                   {id/name}                                 Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.");
+                //Console.WriteLine("    nft unpublish                                 {id/name}                                 Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    nft show                                      {id/name} [detailed] [web4]               Shows the NFT for the given {id} or {name}.");
+                //Console.WriteLine("    nft list                                      [allVersions] [forAllAvatars] [detailed] [web4]  Shows the NFT's that belong to the currently beamed in avatar.");
+                //Console.WriteLine("    nft search                                    [allVersions] [forAllAvatars] [web4]      Search for NFT's that match certain criteria and belong to the currently beamed in avatar.");
+                //Console.WriteLine("    nft collection create                                                                   Mints a WEB4 OASIS NFT for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS NFT.");
+                //Console.WriteLine("    nft collection update                         {id/name}                                 Updates a nft for the given {id} or {name}.");
+                //Console.WriteLine("    nft collection delete                         {id/name}                                 Updates a nft for the given {id} or {name}.");
+                //Console.WriteLine("    nft collection publish                        {id/name}                                 Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.");
+                //Console.WriteLine("    nft collection unpublish                      {id/name}                                 Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    nft collection show                           {id/name} [detailed] [web4]               Shows the NFT for the given {id} or {name}.");
+                //Console.WriteLine("    nft collection list                           [allVersions] [forAllAvatars] [detailed] [web4] Shows the NFT's that belong to the currently beamed in avatar.");
+                //Console.WriteLine("    nft collection search                         [allVersions] [forAllAvatars] [web4]     Search for NFT's that match certain criteria and belong to the currently beamed in avatar.");
+                //Console.WriteLine("    geonft mint                                                                             Mints a OASIS Geo-NFT and places in Our World/AR World for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS Geo-NFT.");
+                //Console.WriteLine("    geonft update                                 {id/name}                                 Updates a geo-nft for the given {id} or {name}.");
+                //Console.WriteLine("    geonft burn                                   {id/name}                                 Burn's a geo-nft for the given {id} or {name}.");
+                //Console.WriteLine("    geonft place                                  {id/name}                                 Places an existing OASIS NFT for the given {id} or {name} in Our World/AR World for the currently beamed in avatar.");
+                //Console.WriteLine("    geonft send                                   {id/name}                                 Send a geo-nft for the given {id} or {name} to another wallet cross-chain.");
+                //Console.WriteLine("    geonft import                                                                           Imports a WEB4 OASIS Geo-NFT JSON file.");
+                //Console.WriteLine("    geonft export                                                                           Exports a WEB4 OASIS Geo-NFT as a JSON file as well as a WEB3 JSON MetaData file.");
+                //Console.WriteLine("    geonft clone                                                                            Clones a WEB4 OASIS Geo-NFT.");
+                //Console.WriteLine("    geonft convert                                                                          Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 Metadata.");
+                //Console.WriteLine("    geonft publish                                {id/name}                                 Publishes a geo-nft for the given {id} or {name} to the STARNET store so others can use in their own quests etc.");
+                //Console.WriteLine("    geonft unpublish                              {id/name}                                 Unpublishes a geo-nft for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    geonft show                                   {id/name} [detailed]                      Shows the Geo-NFT for the given {id} or {name}");
+                //Console.WriteLine("    geonft list                                   [allVersions] [forAllAvatars] [detailed]  List all geo-nft's that have been created. If [all] is omitted it will list only your geo-nft's otherwise it will list all published geo-nft's as well as yours.");
+                //Console.WriteLine("    geonft search                                 [allVersions] [forAllAvatars]             Search for Geo-NFT's that match certain criteria and belong to the currently beamed in avatar.");
+                //Console.WriteLine("                                                                                            If [all] is used then it will also include any shared/public/published geo-nft's");
+                //Console.WriteLine("    geohotspot create                                                                       Creates a geo-hotspot that chapters & quests can be added to.");
+                //Console.WriteLine("    geohotspot update                             {id/name}                                 Updates a geo-hotspot for the given {id} or {name}.");
+                //Console.WriteLine("    geohotspot delete                             {id/name}                                 Deletes an geo-hotspot for the given {id} or {name}.");
+                //Console.WriteLine("    geohotspot publish                            {id/name}                                 Publishes a geo-hotspot for the given {id} or {name} to the STARNET store so others can use in their own quests.");
+                //Console.WriteLine("    geohotspot unpublish                          {id/name}                                 Unpublishes a geo-hotspot from the STARNET store.");
+                //Console.WriteLine("    geohotspot show                               {id/name} [detailed]                      Shows the geo-hotspot for the given {id} or {name}.");
+                //Console.WriteLine("    geohotspots list                              [allVersions] [forAllAvatars] [detailed]  List all geo-hotspot's that have been created.");
+                //Console.WriteLine("    geohotspots search                            [allVersions] [forAllAvatars]             Search all geo-hotspot's that have been created.");
+                //Console.WriteLine("    inventoryitem create                                                                    Creates an inventory item that can be granted as a reward");
+                //Console.WriteLine("                                                                                            (will be placed in the avatar's inventory) for completing quests, collecting geo-nft's, triggering geo-hotspots etc.");
+                //Console.WriteLine("    inventoryitem update                          {id/name}                                 Updates a inventory item for the given {id} or {name}.");
+                //Console.WriteLine("    inventoryitem delete                          {id/name}                                 Deletes a inventory item for the given {id} or {name}.");
+                //Console.WriteLine("    inventoryitem publish                         {id/name}                                 Publishes an inventory item for the given {id} or {name} to the STARNET store so others can use in their own quests, geo-hotspots, geo-nfts, etc.");
+                //Console.WriteLine("    inventoryitem unpublish                       {id/name}                                 Unpublishes an inventory item  for the given {id} or {name} from the STARNET store.");
+                //Console.WriteLine("    inventoryitem show                            {id/name} [detailed]                      Shows the inventory item for the given {id} or {name}.");
+                //Console.WriteLine("    inventoryitem list                            [allVersions] [forAllAvatars] [detailed]  List all inventory item's that have been created.");
+                //Console.WriteLine("    inventoryitem search                          [allVersions] [forAllAvatars]             Search all inventory item's that have been created.");
+                //Console.WriteLine("    plugin create                                                                           Creates a plugin.");
+                //Console.WriteLine("    plugin update                                 {id/name}                                 Updates a plugin for the given {id} or {name}.");
+                //Console.WriteLine("    plugin delete                                 {id/name}                                 Deletes a plugin for the given {id} or {name}.");
+                //Console.WriteLine("    plugin publish                                {id/name}                                 Publishes a plugin for the given {id} or {name} to the STARNET store so others can use in their own quests.");
+                //Console.WriteLine("    plugin unpublish                              {id/name}                                 Unpublishes a plugin from the STARNET store.");
+                //Console.WriteLine("    plugin show                                   {id/name} [detailed]                      Shows the plugin for the given {id} or {name}.");
+                //Console.WriteLine("    plugin list                                   [allVersions] [forAllAvatars]             List all plugin that have been created.");
+                //Console.WriteLine("    plugin list installed                                                                   List all plugin's installed for the currently beamed in avatar.");
+                //Console.WriteLine("    plugin list uninstalled                                                                 List all plugin's uninstalled for the currently beamed in avatar (and allow re-install).");
+                //Console.WriteLine("    plugin list unpublished                                                                 List all plugin's unpublished for the currently beamed in avatar (and allow republish).");
+                //Console.WriteLine("    plugin list deactivated                                                                 List all plugin's deactivated for the currently beamed in avatar (and allow reactivate).");
+                //Console.WriteLine("    plugin search                                 [allVersions] [forAllAvatars]             Search all plugin's that have been created.");
+                //Console.WriteLine("    plugin install                                {id/name}                                 Installs/downloads a plugin for the given {id} or {name}.");
+                //Console.WriteLine("    plugin uninstall                              {id/name}                                 Uninstalls a plugin for the given {id} or {name}.");
+                //Console.WriteLine("    seeds balance                                 {telosAccountName/avatarId}               Get's the balance of your SEEDS account.");
+                //Console.WriteLine("    seeds organisations                                                                     Get's a list of all the SEEDS organisations.");
+                //Console.WriteLine("    seeds organisation                            {organisationName}                        Get's a organisation for the given {organisationName}.");
+                //Console.WriteLine("    seeds pay                                     {telosAccountName/avatarId}               Pay using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                //Console.WriteLine("    seeds donate                                  {telosAccountName/avatarId}               Donate using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                //Console.WriteLine("    seeds reward                                  {telosAccountName/avatarId}               Reward using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                //Console.WriteLine("    seeds invite                                  {telosAccountName/avatarId}               Send invite to join SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                //Console.WriteLine("    seeds accept                                  {telosAccountName/avatarId}               Accept the invite to join SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
+                //Console.WriteLine("    seeds qrcode                                  {telosAccountName/avatarId}               Generate a sign-in QR code using either your {telosAccountName} or {avatarId}.");
+                //Console.WriteLine("    data save                                     {key} {value}                             Saves data for the given {key} and {value} to the currently beamed in avatar.");
+                //Console.WriteLine("    data load                                     {key}                                     Loads data for the given {key} for the currently beamed in avatar.");
+                //Console.WriteLine("    data delete                                   {key}                                     Deletes data for the given {key} for the currently beamed in avatar.");
+                //Console.WriteLine("    data list                                                                               Lists all data for the currently beamed in avatar.");
+                //Console.WriteLine("    map setprovider                               {mapProviderType}                         Sets the currently {mapProviderType}.");
+                //Console.WriteLine("    map draw3dobject                              {3dObjectPath} {x} {y}                    Draws a 3D object on the map at {x/y} co-ordinates for the given file {3dobjectPath}.");
+                //Console.WriteLine("    map draw2dsprite                              {2dSpritePath} {x} {y}                    Draws a 2d sprite on the map at {x/y} co-ordinates for the given file {2dSpritePath}.");
+                //Console.WriteLine("    map draw2dspriteonhud                         {2dSpritePath}                            Draws a 2d sprite on the HUD for the given file {2dSpritePath}.");
+                //Console.WriteLine("    map placeHolon                                {Holon id/name} {x} {y}                   Place the holon on the map.");
+                //Console.WriteLine("    map placeBuilding                             {Building id/name} {x} {y}                Place the building on the map.");
+                //Console.WriteLine("    map placeQuest                                {Quest id/name} {x} {y}                   Place the Quest on the map.");
+                //Console.WriteLine("    map placeGeoNFT                               {GeoNFT id/name} {x} {y}                  Place the GeoNFT on the map.");
+                //Console.WriteLine("    map placeGeoHotSpot                           {GeoHotSpot id/name} {x} {y}              Place the GeoHotSpot on the map.");
+                //Console.WriteLine("    map placeOAPP                                 {OAPP id/name} {x} {y}                    Place the OAPP on the map.");
+                //Console.WriteLine("    map pamLeft                                                                             Pam the map left.");
+                //Console.WriteLine("    map pamRight                                                                            Pam the map right.");
+                //Console.WriteLine("    map pamUp                                                                               Pam the map left.");
+                //Console.WriteLine("    map pamDown                                                                             Pam the map down.");
+                //Console.WriteLine("    map zoomOut                                                                             Zoom the map out.");
+                //Console.WriteLine("    map zoomIn                                                                              Zoom the map in.");
+                //Console.WriteLine("    map zoomToHolon                               {GeoNFT id/name}                          Zoom the map to the location of the given holon.");
+                //Console.WriteLine("    map zoomToBuilding                            {GeoNFT id/name}                          Zoom the map to the location of the given building.");
+                //Console.WriteLine("    map zoomToQuest                               {GeoNFT id/name}                          Zoom the map to the location of the given quest.");
+                //Console.WriteLine("    map zoomToGeoNFT                              {GeoNFT id/name}                          Zoom the map to the location of the given GeoNFT.");
+                //Console.WriteLine("    map zoomToGeoHotSpot                          {GeoHotSpot id/name}                      Zoom the map to the location of the given GeoHotSpot.");
+                //Console.WriteLine("    map zoomToOAPP                                {OAPP id/name}                            Zoom the map to the location of the given OAPP.");
+                //Console.WriteLine("    map zoomToCoOrds                              {x} {y}                                   Zoom the map to the location of the given {x} and {y} coordinates.");
+                //Console.WriteLine("    map drawRouteOnMap                            {startX} {startY} {endX} {endY}           Draw a route on the map.");
+                //Console.WriteLine("    map drawRouteBetweenHolons                    {fromHolonId} {toHolonId}                 Draw a route on the map between the two holons.");
+                //Console.WriteLine("    map drawRouteBetweenBuildings                 {fromBuildingId} {toBuildingId}           Draw a route on the map between the two buildings.");
+                //Console.WriteLine("    map drawRouteBetweenQuests                    {fromQuestId} {toQuestId}                 Draw a route on the map between the two quests.");
+                //Console.WriteLine("    map drawRouteBetweenGeoNFTs                   {fromGeoNFTId} {ToGeoNFTId}               Draw a route on the map between the two GeoNFTs.");
+                //Console.WriteLine("    map drawRouteBetweenGeoHotSpots               {fromGeoHotSpotId} {ToGeoHotSpotId}       Draw a route on the map between the two GeoHotSpots.");
+                //Console.WriteLine("    map drawRouteBetweenOAPPs                     {fromOAPP id/name} {ToOAPP id/name}       Draw a route on the map between the two OAPPs.");
+                //Console.WriteLine("    oland price                                                                             Get the currently OLAND price.");
+                //Console.WriteLine("    oland purchase                                                                          Purchase OLAND for Our World/OASIS.");
+                //Console.WriteLine("    oland load                                    {id}                                      Load a OLAND for the given {id}.");
+                //Console.WriteLine("    oland save                                                                              Save a OLAND.");
+                //Console.WriteLine("    oland delete                                  {id}                                      Deletes a OLAND for the given {id}.");
+                //Console.WriteLine("    oland list                                    [allVersions] [forAllAvatars]             If [all] is omitted it will list all OLAND for the given beamed in avatar, otherwise it will list all OLAND for all avatars.");
+                //Console.WriteLine("    onode start                                                                             Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).");
+                //Console.WriteLine("    onode stop                                                                              Stops a OASIS Node (ONODE).");
+                //Console.WriteLine("    onode status                                                                            Shows stats for this ONODE.");
+                //Console.WriteLine("    onode config                                                                            Opens the ONODE's OASISDNA to allow changes to be made (you will need to stop and start the ONODE for changes to apply).");
+                //Console.WriteLine("    onode providers                                                                         Shows what OASIS Providers are running for this ONODE.");
+                //Console.WriteLine("    onode startprovider                           {ProviderName}                            Starts a given provider.");
+                //Console.WriteLine("    onode stopprovider                            {ProviderName}                            Stops a given provider.");
+                //Console.WriteLine("    hypernet start                                                                          Starts the HoloNET P2P HyperNET Service.");
+                //Console.WriteLine("    hypernet stop                                                                           Stops the HoloNET P2P HyperNET Service.");
+                //Console.WriteLine("    hypernet status                                                                         Shows stats for the HoloNET P2P HyperNET Service.");
+                //Console.WriteLine("    hypernet config                                                                         Opens the HyperNET's DNA to allow changes to be made (you will need to stop and start the HyperNET Service for changes to apply.");
+                //Console.WriteLine("    onet status                                                                             Shows stats for the OASIS Network (ONET).");
+                //Console.WriteLine("    onet providers                                                                          Shows what OASIS Providers are running across the ONET and on what ONODE's.");
+                //Console.WriteLine("    config cosmicdetailedoutput                   {enable/disable/status}                   Enables/disables COSMIC Detailed Output.");
+                //Console.WriteLine("    config starstatusdetailedoutput               {enable/disable/status}                   Enables/disables STAR ODK Detailed Output.");
+                //Console.WriteLine("    runcosmictests                                {OAPPType} {dnaFolder} {geneisFolder}     Run the STAR ODK/COSMIC Tests... If OAPPType, DNAFolder or GenesisFolder are not specified it will use the defaults.");
+                //Console.WriteLine("    runoasisapitests                                                                        Run the OASIS API Tests...");
 
-                Console.WriteLine("    zome delete                                   {id/name}                                 Delete an existing zome for the given {id} or {name}.");
-                Console.WriteLine("    zome publish                                  {id/name}                                 Publishes a zome for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
-                Console.WriteLine("    zome unpublish                                {id/name}                                 Unpublishes a zome for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    zome show                                     {id/name}                                 Shows a zome for the given {id} or {name}.");
-                Console.WriteLine("    zome list                                     [allVersions] [forAllAvatars] [detailed]  List all zomes (modules that contain holons) that have been generated.");
-                Console.WriteLine("    zome search                                   [allVersions] [forAllAvatars]             Searches the zomes (modules) for the given search critera. If [all] is omitted it will search only your zomes otherwise it will search all public/shared zomes.");
-                Console.WriteLine("    zome metadata create                                                                    Create zome metadata.");
-                Console.WriteLine("    zome metadata update                          {id/name}                                 Update existing zome metadata for the given {id} or {name}");
-                Console.WriteLine("    zome metadata delete                          {id/name}                                 Delete existing zome metadata for the given {id} or {name}.");
-                Console.WriteLine("    zome metadata publish                         {id/name}                                 Publishes zome metadata for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
-                Console.WriteLine("    zome metadata unpublish                       {id/name}                                 Unpublishes zome metadata for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    zome metadata show                            {id/name}                                 Shows zome metadata for the given {id} or {name}.");
-                Console.WriteLine("    zome metadata list                            [allVersions] [forAllAvatars]             List all zome metadata that have been generated.");
-                Console.WriteLine("    zome metadata search                          [allVersions] [forAllAvatars]             Searches the zome metadata for the given search critera. If [all] is omitted it will search only your zomes otherwise it will search all public/shared zomes.");
-
-                //Console.WriteLine("    holon = Shows more info on how to use this command and optionally lauches the Save Holon Wizard.");
-                Console.WriteLine("    holon create                                  json={holonJSONFile}                      Creates/Saves a holon from the given {holonJSONFile}.");
-                Console.WriteLine("    holon create wiz                                                                        Starts the Create Holon Wizard.");
-                Console.WriteLine("    holon update                                  {id/name}                                 Update an existing holon for the given {id} or {name}");
-                //Console.WriteLine("                                                                                         (can upload a holon.cs file containing custom code/logic/functions which is then shareable with other OAPP's).");
-                Console.WriteLine("    holon delete                                  {id/name}                                 Deletes a holon for the given {id} or {name}.");
-                Console.WriteLine("    holon publish                                 {id/name}                                 Publishes a holon for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
-                Console.WriteLine("    holon unpublish                               {id/name}                                 Unpublishes a holon for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    holon show                                    {id/name} [detailed]                      Shows a holon for the given {id} or {name}.");
-                Console.WriteLine("    holon list                                    [allVersions] [forAllAvatars]             List all holons (OASIS Data Objects) that have been generated.");
-                Console.WriteLine("    holon search                                  [allVersions] [forAllAvatars]             Searches the holons for the given search critera.");
-                Console.WriteLine("    holon metadata create                                                                   Creates/Saves holon metadata.");
-                Console.WriteLine("    holon metadata update                         {id/name}                                 Update an existing holon metadata for the given {id} or {name}");
-                Console.WriteLine("    holon metadata delete                         {id/name}                                 Deletes holon metadata for the given {id} or {name}.");
-                Console.WriteLine("    holon metadata publish                        {id/name}                                 Publishes holon metadata for the given {id} or {name} to the STARNET store so others can use in their own OAPP's/hApp's etc.");
-                Console.WriteLine("    holon metadata unpublish                      {id/name}                                 Unpublishes holon metadata for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    holon metadata show                           {id/name} [detailed]                      Shows holon metadata for the given {id} or {name}.");
-                Console.WriteLine("    holon metadata list                           [allVersions] [forAllAvatars] [detailed]  List all holon metadata that has been generated.");
-                Console.WriteLine("    holon metadata search                         [allVersions] [forAllAvatars]             Searches the holon metadata for the given search critera.");
-                Console.WriteLine("    chapter create                                                                          Creates a chapter that can be linked to a mission. Quests can be added to the chapter. Chapters are used to group quests together (optional).");
-                Console.WriteLine("    chapter update                                {id/name}                                 Updates a chapter for the given {id} or {name}.");
-                Console.WriteLine("    chapter delete                                {id/name}                                 Deletes a chapter for the given {id} or {name}.");
-                Console.WriteLine("    chapter publish                               {id/name}                                 Publishes a chapter to the STARNET store for the given {id} or {name} so others can use in their own missions.");
-                Console.WriteLine("    chapter unpublish                             {id/name}                                 Unpublishes a chapter from the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    chapter show                                  {id/name}                                 Shows the chapter for the given {id} or {name}.");
-                Console.WriteLine("    chapter list                                  [allVersions] [forAllAvatars]             List chapters that have been created.");
-                Console.WriteLine("    chapter search                                [allVersions] [forAllAvatars]             Search chapters that have been created.");
-                Console.WriteLine("    mission create                                                                          Creates a mission that chapters & quests can be added to.");
-                Console.WriteLine("    mission update                                {id/name}                                 Updates a mission for the given {id} or {name}.");
-                Console.WriteLine("    mission delete                                {id/name}                                 Deletes an mission for the given {id} or {name}.");
-                Console.WriteLine("    mission publish                               {id/name}                                 Publishes a mission  for the given {id} or {name} to the STARNET store so others can find and play in Our World/AR World, One World & any other OASIS OAPP.");
-                Console.WriteLine("    mission unpublish                             {id/name}                                 Unpublishes a mission from the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    mission show                                  {id/name} [detailed]                      Shows the mission for the given {id} or {name}.");
-                Console.WriteLine("    missions list                                 [allVersions] [forAllAvatars] [detailed]  List all mission's that have been created.");
-                Console.WriteLine("    missions search                               [allVersions] [forAllAvatars]             Search all mission's that have been created.");
-                Console.WriteLine("    quest create                                                                            Creates a quest that can be linked to a mission. Geo-nfts, geo-hotspots & rewards can be linked to the quest.");
-                Console.WriteLine("    quest update                                  {id/name}                                 Updates a quest for the given {id} or {name}.");
-                Console.WriteLine("    quest delete                                  {id/name}                                 Deletes a quest for the given {id} or {name}.");
-                Console.WriteLine("    quest publish                                 {id/name}                                 Publishes a quest to the STARNET store so others can use in their own quests as sub-quests or in missions/chapters.");
-                Console.WriteLine("    quest unpublish                               {id/name}                                 Unpublishes a quest from the STARNET store for the given {id} or {name}.");
-                Console.WriteLine("    quest show                                    {id/name} [detailed]                      Shows the quest for the given {id} or {name}.");
-                Console.WriteLine("    quest list                                    [allVersions] [forAllAvatars] [detailed]  List all quests that have been created.");
-                Console.WriteLine("    quest search                                  [allVersions] [forAllAvatars]             Search all quests that have been created.");
-                Console.WriteLine("    nft mint                                                                                Mints a WEB4 OASIS NFT for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS NFT.");
-                Console.WriteLine("    nft update                                    {id/name}                                 Updates a nft for the given {id} or {name}.");
-                Console.WriteLine("    nft burn                                      {id/name}                                 Burn's a nft for the given {id} or {name}.");
-                Console.WriteLine("    nft send                                      {id/name}                                 Send a NFT for the given {id} or {name} to another wallet cross-chain.");
-                Console.WriteLine("    nft import                                    [web3]                                    Imports a WEB4 OASIS NFT JSON file. If [web3] param is given it will import a WEB3 NFT JSON MetaData file of NFT Token Address to be wrapped in a WEB4 OASIS NFT.");
-                Console.WriteLine("    nft export                                                                              Exports a WEB4 OASIS NFT as a JSON file as well as a WEB3 JSON MetaData file.");
-                Console.WriteLine("    nft clone                                                                               Clones a WEB4 OASIS NFT.");
-                Console.WriteLine("    nft convert                                                                             Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 Metadata.");
-                Console.WriteLine("    nft publish                                   {id/name}                                 Publishes a OASIS NFT for the given {id} or {name} to the STARNET store so others can use in their own geo-nft's etc.");
-                Console.WriteLine("    nft unpublish                                 {id/name}                                 Unpublishes a OASIS NFT for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    nft show                                      {id/name} [detailed]                      Shows the NFT for the given {id} or {name}.");
-                Console.WriteLine("    nft list                                      [allVersions] [forAllAvatars] [detailed]  Shows the NFT's that belong to the currently beamed in avatar.");
-                Console.WriteLine("    nft search                                    [allVersions] [forAllAvatars]             Search for NFT's that match certain criteria and belong to the currently beamed in avatar.");
-                Console.WriteLine("    geonft mint                                                                             Mints a OASIS Geo-NFT and places in Our World/AR World for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS Geo-NFT.");
-                Console.WriteLine("    geonft update                                 {id/name}                                 Updates a geo-nft for the given {id} or {name}.");
-                Console.WriteLine("    geonft burn                                   {id/name}                                 Burn's a geo-nft for the given {id} or {name}.");
-                Console.WriteLine("    geonft place                                  {id/name}                                 Places an existing OASIS NFT for the given {id} or {name} in Our World/AR World for the currently beamed in avatar.");
-                Console.WriteLine("    geonft send                                   {id/name}                                 Send a geo-nft for the given {id} or {name} to another wallet cross-chain.");
-                Console.WriteLine("    geonft import                                                                           Imports a WEB4 OASIS Geo-NFT JSON file.");
-                Console.WriteLine("    geonft export                                                                           Exports a WEB4 OASIS Geo-NFT as a JSON file as well as a WEB3 JSON MetaData file.");
-                Console.WriteLine("    geonft clone                                                                            Clones a WEB4 OASIS Geo-NFT.");
-                Console.WriteLine("    geonft convert                                                                          Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 Metadata.");
-                Console.WriteLine("    geonft publish                                {id/name}                                 Publishes a geo-nft for the given {id} or {name} to the STARNET store so others can use in their own quests etc.");
-                Console.WriteLine("    geonft unpublish                              {id/name}                                 Unpublishes a geo-nft for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    geonft show                                   {id/name} [detailed]                      Shows the Geo-NFT for the given {id} or {name}");
-                Console.WriteLine("    geonft list                                   [allVersions] [forAllAvatars] [detailed]  List all geo-nft's that have been created. If [all] is omitted it will list only your geo-nft's otherwise it will list all published geo-nft's as well as yours.");
-                Console.WriteLine("    geonft search                                 [allVersions] [forAllAvatars]             Search for Geo-NFT's that match certain criteria and belong to the currently beamed in avatar.");
-                Console.WriteLine("                                                                                            If [all] is used then it will also include any shared/public/published geo-nft's");
-                Console.WriteLine("    geohotspot create                                                                       Creates a geo-hotspot that chapters & quests can be added to.");
-                Console.WriteLine("    geohotspot update                             {id/name}                                 Updates a geo-hotspot for the given {id} or {name}.");
-                Console.WriteLine("    geohotspot delete                             {id/name}                                 Deletes an geo-hotspot for the given {id} or {name}.");
-                Console.WriteLine("    geohotspot publish                            {id/name}                                 Publishes a geo-hotspot for the given {id} or {name} to the STARNET store so others can use in their own quests.");
-                Console.WriteLine("    geohotspot unpublish                          {id/name}                                 Unpublishes a geo-hotspot from the STARNET store.");
-                Console.WriteLine("    geohotspot show                               {id/name} [detailed]                      Shows the geo-hotspot for the given {id} or {name}.");
-                Console.WriteLine("    geohotspots list                              [allVersions] [forAllAvatars] [detailed]  List all geo-hotspot's that have been created.");
-                Console.WriteLine("    geohotspots search                            [allVersions] [forAllAvatars]             Search all geo-hotspot's that have been created.");
-                Console.WriteLine("    inventoryitem create                                                                    Creates an inventory item that can be granted as a reward");
-                Console.WriteLine("                                                                                            (will be placed in the avatar's inventory) for completing quests, collecting geo-nft's, triggering geo-hotspots etc.");
-                Console.WriteLine("    inventoryitem update                          {id/name}                                 Updates a inventory item for the given {id} or {name}.");
-                Console.WriteLine("    inventoryitem delete                          {id/name}                                 Deletes a inventory item for the given {id} or {name}.");
-                Console.WriteLine("    inventoryitem publish                         {id/name}                                 Publishes an inventory item for the given {id} or {name} to the STARNET store so others can use in their own quests, geo-hotspots, geo-nfts, etc.");
-                Console.WriteLine("    inventoryitem unpublish                       {id/name}                                 Unpublishes an inventory item  for the given {id} or {name} from the STARNET store.");
-                Console.WriteLine("    inventoryitem show                            {id/name} [detailed]                      Shows the inventory item for the given {id} or {name}.");
-                Console.WriteLine("    inventoryitem list                            [allVersions] [forAllAvatars] [detailed]  List all inventory item's that have been created.");
-                Console.WriteLine("    inventoryitem search                          [allVersions] [forAllAvatars]             Search all inventory item's that have been created.");
-                //Console.WriteLine("    inventoryitem activate = Activates an inventory item that has been published to the STARNET store so is visible to others.");
-                //Console.WriteLine("    inventoryitem deactivate = Deactivates an inventory item that has been published to the STARNET store so is invisible to others.");
-                Console.WriteLine("    plugin create                                                                           Creates a plugin.");
-                Console.WriteLine("    plugin update                                 {id/name}                                 Updates a plugin for the given {id} or {name}.");
-                Console.WriteLine("    plugin delete                                 {id/name}                                 Deletes a plugin for the given {id} or {name}.");
-                Console.WriteLine("    plugin publish                                {id/name}                                 Publishes a plugin for the given {id} or {name} to the STARNET store so others can use in their own quests.");
-                Console.WriteLine("    plugin unpublish                              {id/name}                                 Unpublishes a plugin from the STARNET store.");
-                Console.WriteLine("    plugin show                                   {id/name} [detailed]                      Shows the plugin for the given {id} or {name}.");
-                Console.WriteLine("    plugin list                                   [allVersions] [forAllAvatars]             List all plugin that have been created.");
-                Console.WriteLine("    plugin list installed                                                                   List all plugin's installed for the currently beamed in avatar.");
-                Console.WriteLine("    plugin list uninstalled                                                                 List all plugin's uninstalled for the currently beamed in avatar (and allow re-install).");
-                Console.WriteLine("    plugin list unpublished                                                                 List all plugin's unpublished for the currently beamed in avatar (and allow republish).");
-                Console.WriteLine("    plugin list deactivated                                                                 List all plugin's deactivated for the currently beamed in avatar (and allow reactivate).");
-                Console.WriteLine("    plugin search                                 [allVersions] [forAllAvatars]             Search all plugin's that have been created.");
-                Console.WriteLine("    plugin install                                {id/name}                                 Installs/downloads a plugin for the given {id} or {name}.");
-                Console.WriteLine("    plugin uninstall                              {id/name}                                 Uninstalls a plugin for the given {id} or {name}.");
-                Console.WriteLine("    seeds balance                                 {telosAccountName/avatarId}               Get's the balance of your SEEDS account.");
-                Console.WriteLine("    seeds organisations                                                                     Get's a list of all the SEEDS organisations.");
-                Console.WriteLine("    seeds organisation                            {organisationName}                        Get's a organisation for the given {organisationName}.");
-                Console.WriteLine("    seeds pay                                     {telosAccountName/avatarId}               Pay using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
-                Console.WriteLine("    seeds donate                                  {telosAccountName/avatarId}               Donate using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
-                Console.WriteLine("    seeds reward                                  {telosAccountName/avatarId}               Reward using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
-                Console.WriteLine("    seeds invite                                  {telosAccountName/avatarId}               Send invite to join SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
-                Console.WriteLine("    seeds accept                                  {telosAccountName/avatarId}               Accept the invite to join SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
-                Console.WriteLine("    seeds qrcode                                  {telosAccountName/avatarId}               Generate a sign-in QR code using either your {telosAccountName} or {avatarId}.");
-                Console.WriteLine("    data save                                     {key} {value}                             Saves data for the given {key} and {value} to the currently beamed in avatar.");
-                Console.WriteLine("    data load                                     {key}                                     Loads data for the given {key} for the currently beamed in avatar.");
-                Console.WriteLine("    data delete                                   {key}                                     Deletes data for the given {key} for the currently beamed in avatar.");
-                Console.WriteLine("    data list                                                                               Lists all data for the currently beamed in avatar.");
-                Console.WriteLine("    map setprovider                               {mapProviderType}                         Sets the currently {mapProviderType}.");
-                Console.WriteLine("    map draw3dobject                              {3dObjectPath} {x} {y}                    Draws a 3D object on the map at {x/y} co-ordinates for the given file {3dobjectPath}.");
-                Console.WriteLine("    map draw2dsprite                              {2dSpritePath} {x} {y}                    Draws a 2d sprite on the map at {x/y} co-ordinates for the given file {2dSpritePath}.");
-                Console.WriteLine("    map draw2dspriteonhud                         {2dSpritePath}                            Draws a 2d sprite on the HUD for the given file {2dSpritePath}.");
-                Console.WriteLine("    map placeHolon                                {Holon id/name} {x} {y}                   Place the holon on the map.");
-                Console.WriteLine("    map placeBuilding                             {Building id/name} {x} {y}                Place the building on the map.");
-                Console.WriteLine("    map placeQuest                                {Quest id/name} {x} {y}                   Place the Quest on the map.");
-                Console.WriteLine("    map placeGeoNFT                               {GeoNFT id/name} {x} {y}                  Place the GeoNFT on the map.");
-                Console.WriteLine("    map placeGeoHotSpot                           {GeoHotSpot id/name} {x} {y}              Place the GeoHotSpot on the map.");
-                Console.WriteLine("    map placeOAPP                                 {OAPP id/name} {x} {y}                    Place the OAPP on the map.");
-                Console.WriteLine("    map pamLeft                                                                             Pam the map left.");
-                Console.WriteLine("    map pamRight                                                                            Pam the map right.");
-                Console.WriteLine("    map pamUp                                                                               Pam the map left.");
-                Console.WriteLine("    map pamDown                                                                             Pam the map down.");
-                Console.WriteLine("    map zoomOut                                                                             Zoom the map out.");
-                Console.WriteLine("    map zoomIn                                                                              Zoom the map in.");
-                Console.WriteLine("    map zoomToHolon                               {GeoNFT id/name}                          Zoom the map to the location of the given holon.");
-                Console.WriteLine("    map zoomToBuilding                            {GeoNFT id/name}                          Zoom the map to the location of the given building.");
-                Console.WriteLine("    map zoomToQuest                               {GeoNFT id/name}                          Zoom the map to the location of the given quest.");
-                Console.WriteLine("    map zoomToGeoNFT                              {GeoNFT id/name}                          Zoom the map to the location of the given GeoNFT.");
-                Console.WriteLine("    map zoomToGeoHotSpot                          {GeoHotSpot id/name}                      Zoom the map to the location of the given GeoHotSpot.");
-                Console.WriteLine("    map zoomToOAPP                                {OAPP id/name}                            Zoom the map to the location of the given OAPP.");
-                Console.WriteLine("    map zoomToCoOrds                              {x} {y}                                   Zoom the map to the location of the given {x} and {y} coordinates.");
-                //Console.WriteLine("    map selectBuildingOnMap        {building id}                          Selects the given building on the map.");
-                //Console.WriteLine("    map highlightBuildingOnMap     {building id}                          Highlight the given building on the map.");
-                Console.WriteLine("    map drawRouteOnMap                            {startX} {startY} {endX} {endY}           Draw a route on the map.");
-                Console.WriteLine("    map drawRouteBetweenHolons                    {fromHolonId} {toHolonId}                 Draw a route on the map between the two holons.");
-                Console.WriteLine("    map drawRouteBetweenBuildings                 {fromBuildingId} {toBuildingId}           Draw a route on the map between the two buildings.");
-                Console.WriteLine("    map drawRouteBetweenQuests                    {fromQuestId} {toQuestId}                 Draw a route on the map between the two quests.");
-                Console.WriteLine("    map drawRouteBetweenGeoNFTs                   {fromGeoNFTId} {ToGeoNFTId}               Draw a route on the map between the two GeoNFTs.");
-                Console.WriteLine("    map drawRouteBetweenGeoHotSpots               {fromGeoHotSpotId} {ToGeoHotSpotId}       Draw a route on the map between the two GeoHotSpots.");
-                Console.WriteLine("    map drawRouteBetweenOAPPs                     {fromOAPP id/name} {ToOAPP id/name}       Draw a route on the map between the two OAPPs.");
-                Console.WriteLine("    oland price                                                                             Get the currently OLAND price.");
-                Console.WriteLine("    oland purchase                                                                          Purchase OLAND for Our World/OASIS.");
-                Console.WriteLine("    oland load                                    {id}                                      Load a OLAND for the given {id}.");
-                Console.WriteLine("    oland save                                                                              Save a OLAND.");
-                Console.WriteLine("    oland delete                                  {id}                                      Deletes a OLAND for the given {id}.");
-                Console.WriteLine("    oland list                                    [allVersions] [forAllAvatars]             If [all] is omitted it will list all OLAND for the given beamed in avatar, otherwise it will list all OLAND for all avatars.");
-                Console.WriteLine("    onode start                                                                             Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).");
-                Console.WriteLine("    onode stop                                                                              Stops a OASIS Node (ONODE).");
-                Console.WriteLine("    onode status                                                                            Shows stats for this ONODE.");
-                Console.WriteLine("    onode config                                                                            Opens the ONODE's OASISDNA to allow changes to be made (you will need to stop and start the ONODE for changes to apply).");
-                Console.WriteLine("    onode providers                                                                         Shows what OASIS Providers are running for this ONODE.");
-                Console.WriteLine("    onode startprovider                           {ProviderName}                            Starts a given provider.");
-                Console.WriteLine("    onode stopprovider                            {ProviderName}                            Stops a given provider.");
-                Console.WriteLine("    hypernet start                                                                          Starts the HoloNET P2P HyperNET Service.");
-                Console.WriteLine("    hypernet stop                                                                           Stops the HoloNET P2P HyperNET Service.");
-                Console.WriteLine("    hypernet status                                                                         Shows stats for the HoloNET P2P HyperNET Service.");
-                Console.WriteLine("    hypernet config                                                                         Opens the HyperNET's DNA to allow changes to be made (you will need to stop and start the HyperNET Service for changes to apply.");
-                Console.WriteLine("    onet status                                                                             Shows stats for the OASIS Network (ONET).");
-                Console.WriteLine("    onet providers                                                                          Shows what OASIS Providers are running across the ONET and on what ONODE's.");
-                Console.WriteLine("    config cosmicdetailedoutput                   {enable/disable/status}                   Enables/disables COSMIC Detailed Output.");
-                Console.WriteLine("    config starstatusdetailedoutput               {enable/disable/status}                   Enables/disables STAR ODK Detailed Output.");
-                Console.WriteLine("    runcosmictests                                {OAPPType} {dnaFolder} {geneisFolder}     Run the STAR ODK/COSMIC Tests... If OAPPType, DNAFolder or GenesisFolder are not specified it will use the defaults.");
-                Console.WriteLine("    runoasisapitests                                                                        Run the OASIS API Tests...");
                 Console.WriteLine("");
                 //Console.WriteLine(" NOTES: -  is not needed if using the STAR CLI Console directly. Star is only needed if calling from the command line or another external script ( is simply the name of the exe).");
                 Console.WriteLine(" NOTES:");
@@ -3112,27 +3395,49 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("    keys                    Manage keys.");
                 Console.WriteLine("    wallet                  Manage wallets.");
                 Console.WriteLine("    search                  Search the OASIS.");
-                //Console.WriteLine("    oapp                    Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates & OAPP's.");
-                Console.WriteLine("    oapp                    Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP's.");
-                Console.WriteLine("    oapp template           Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates.");
-                Console.WriteLine("    happ                    Create, edit, delete, publish, unpublish, install, uninstall, list & show hApp's.");
-                Console.WriteLine("    runtime                 Create, edit, delete, publish, unpublish, install, uninstall, list & show runtime's.");
-                Console.WriteLine("    lib                     Create, edit, delete, publish, unpublish, install, uninstall, list & show libraries.");
-                Console.WriteLine("    celestialspace          Create, edit, delete, publish, unpublish, list & show celestial space's.");
-                Console.WriteLine("    celestialbody           Create, edit, delete, publish, unpublish, list & show celestial bodies's.");
-                Console.WriteLine("    celestialbody metadata  Create, edit, delete, publish, unpublish, list & show celestial body metadata.");
-                Console.WriteLine("    zome                    Create, edit, delete, publish, unpublish, list & show zome's.");
-                Console.WriteLine("    zome metadata           Create, edit, delete, publish, unpublish, list & show zome metadata.");
-                Console.WriteLine("    holon                   Create, edit, delete, publish, unpublish, list & show holon's.");
-                Console.WriteLine("    holon metadata          Create, edit, delete, publish, unpublish, list & show holon metadata.");
-                Console.WriteLine("    chapter                 Create, edit, delete, publish, unpublish, list & show chapter's.");
-                Console.WriteLine("    mission                 Create, edit, delete, publish, unpublish, list & show mission's.");
-                Console.WriteLine("    quest                   Create, edit, delete, publish, unpublish, list & show quest's.");
-                Console.WriteLine("    nft                     Mint, send, edit, burn, publish, unpublish, list & show nft's.");
-                Console.WriteLine("    geonft                  Mint, place, edit, burn, publish, unpublish, list & show geo-nft's.");
-                Console.WriteLine("    geohotspot              Create, edit, delete, publish, unpublish, list & show geo-hotspot's.");
-                Console.WriteLine("    inventoryitem           Create, edit, delete, publish, unpublish, list & show inventory item's.");
-                Console.WriteLine("    plugin                  Create, edit, delete, publish, unpublish, list & show plugin item's.");
+
+                DisplaySTARNETHolonCommandSummaries("oapp");
+                DisplaySTARNETHolonCommandSummaries("oapp template");
+                DisplaySTARNETHolonCommandSummaries("runtime");
+                DisplaySTARNETHolonCommandSummaries("lib");
+                DisplaySTARNETHolonCommandSummaries("celestialspace");
+                DisplaySTARNETHolonCommandSummaries("celestialbody");
+                DisplaySTARNETHolonCommandSummaries("zome");
+                DisplaySTARNETHolonCommandSummaries("holon");
+                DisplaySTARNETHolonCommandSummaries("chapter");
+                DisplaySTARNETHolonCommandSummaries("mission");
+                DisplaySTARNETHolonCommandSummaries("quest");
+                DisplaySTARNETHolonCommandSummaries("nft");
+                DisplaySTARNETHolonCommandSummaries("nft collection");
+                DisplaySTARNETHolonCommandSummaries("geonft");
+                DisplaySTARNETHolonCommandSummaries("geonft collection");
+                DisplaySTARNETHolonCommandSummaries("geohotspot");
+                DisplaySTARNETHolonCommandSummaries("inventoryitem");
+                DisplaySTARNETHolonCommandSummaries("plugin");
+
+
+                //Console.WriteLine("    oapp                    Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP's.");
+                //Console.WriteLine("    oapp template           Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates.");
+                //Console.WriteLine("    happ                    Create, edit, delete, publish, unpublish, install, uninstall, list & show hApp's.");
+                //Console.WriteLine("    runtime                 Create, edit, delete, publish, unpublish, install, uninstall, list & show runtime's.");
+                //Console.WriteLine("    lib                     Create, edit, delete, publish, unpublish, install, uninstall, list & show libraries.");
+                //Console.WriteLine("    celestialspace          Create, edit, delete, publish, unpublish, list & show celestial space's.");
+                //Console.WriteLine("    celestialbody           Create, edit, delete, publish, unpublish, list & show celestial bodies's.");
+                //Console.WriteLine("    celestialbody metadata  Create, edit, delete, publish, unpublish, list & show celestial body metadata.");
+                //Console.WriteLine("    zome                    Create, edit, delete, publish, unpublish, list & show zome's.");
+                //Console.WriteLine("    zome metadata           Create, edit, delete, publish, unpublish, list & show zome metadata.");
+                //Console.WriteLine("    holon                   Create, edit, delete, publish, unpublish, list & show holon's.");
+                //Console.WriteLine("    holon metadata          Create, edit, delete, publish, unpublish, list & show holon metadata.");
+                //Console.WriteLine("    chapter                 Create, edit, delete, publish, unpublish, list & show chapter's.");
+                //Console.WriteLine("    mission                 Create, edit, delete, publish, unpublish, list & show mission's.");
+                //Console.WriteLine("    quest                   Create, edit, delete, publish, unpublish, list & show quest's.");
+                //Console.WriteLine("    nft                     Mint, send, edit, burn, publish, unpublish, list & show nft's.");
+                //Console.WriteLine("    nft collection          Work with nft collections.");
+                //Console.WriteLine("    geonft                  Mint, place, edit, burn, publish, unpublish, list & show geo-nft's.");
+                //Console.WriteLine("    geonft collection       Work with geo-nft collections.");
+                //Console.WriteLine("    geohotspot              Create, edit, delete, publish, unpublish, list & show geo-hotspot's.");
+                //Console.WriteLine("    inventoryitem           Create, edit, delete, publish, unpublish, list & show inventory item's.");
+                //Console.WriteLine("    plugin                  Create, edit, delete, publish, unpublish, list & show plugin item's.");
                 Console.WriteLine("    seeds                   Access the SEEDS API.");
                 Console.WriteLine("    data                    Access the Data API.");
                 Console.WriteLine("    map                     Access the Map API.");
@@ -3373,9 +3678,432 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             //CLIEngine.ShowErrorMessage(string.Concat(" Star Core Error Occurred. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
         }
 
-        private static void DisplayCommand(string command, string args, string desc, int indent = 4, int commandColSize = 48, int argsColSize = 42)
+        private static void DisplayCommand(string command, string args, string desc, int indent = 4, int commandColSize = 48, int argsColSize = 52)
         {
             Console.WriteLine(string.Concat("".PadRight(indent), command.PadRight(commandColSize), args.PadRight(argsColSize), desc));
         }
+
+        private static void DisplaySTARNETHolonCommands(string holonType, string createParams = "", string createDesc = "", string updateParams = "", string updateDesc = "", string cloneParams = "", string cloneDesc = "", string addDependencyParams = "", string addDependencyDesc = "", string removeDependencyParams = "", string removeDependencyDesc = "", string deleteParams = "", string deleteDesc = "", string publishParams = "", string publishDesc = "", string unpublishParams = "", string unpublishDesc = "", string republishParams = "", string republishDesc = "", string activateParams = "", string activateDesc = "", string deactivateParams = "", string deactivateDesc = "", string downloadParams = "", string downloadDesc = "", string installParams = "", string installDesc = "", string uninstallParams = "", string uninstallDesc = "", string reinstallParams = "", string reinstallDesc = "", string showParams = "", string showDesc = "", string listParams = "", string listDesc = "", string listInstalledParams = "", string listInstalledDesc = "", string listUninstalledParams = "", string listUninstalledDesc = "", string listUnpublishedParams = "", string listUnpublishedDesc = "", string listDeactivatedParams = "", string listDeactivatedDesc = "", string searchParams = "", string searchDesc = "")
+        {
+            DisplayCommand(string.Concat(holonType, " create"), !string.IsNullOrEmpty(createParams) ? createParams : "", !string.IsNullOrEmpty(createDesc) ? createDesc : $"Create a new {holonType}.");
+            DisplayCommand(string.Concat(holonType, " update"), !string.IsNullOrEmpty(updateParams) ? updateParams : "{id/name}", !string.IsNullOrEmpty(updateDesc) ? updateDesc : string.Concat("Updates an existing ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " clone"), !string.IsNullOrEmpty(cloneParams) ? cloneParams : "{id/name}", !string.IsNullOrEmpty(cloneDesc) ? cloneDesc : string.Concat("Clones an existing ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " adddependency"), !string.IsNullOrEmpty(addDependencyDesc) ? addDependencyDesc : "{id/name}", !string.IsNullOrEmpty(addDependencyDesc) ? addDependencyDesc : string.Concat("Adds a dependency to an existing ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " removedependency"), !string.IsNullOrEmpty(removeDependencyParams) ? removeDependencyParams : "{id/name}", !string.IsNullOrEmpty(removeDependencyDesc) ? removeDependencyDesc : string.Concat("Removes a dependency from an existing ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " delete"), !string.IsNullOrEmpty(addDependencyParams) ? addDependencyParams : "{id/name}", !string.IsNullOrEmpty(addDependencyDesc) ? addDependencyDesc : !string.IsNullOrEmpty(deleteDesc) ? deleteDesc : string.Concat("Deletes a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " publish"), !string.IsNullOrEmpty(publishParams) ? publishParams : "{id/name}", !string.IsNullOrEmpty(publishDesc) ? publishDesc : string.Concat("Publishes a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " unpublish"), !string.IsNullOrEmpty(unpublishParams) ? unpublishParams : "{id/name}", !string.IsNullOrEmpty(unpublishDesc) ? unpublishDesc : string.Concat("Unpublishes a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " republish"), !string.IsNullOrEmpty(republishParams) ? republishParams : "{id/name}", !string.IsNullOrEmpty(republishDesc) ? republishDesc : string.Concat("Republish a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " activate"), !string.IsNullOrEmpty(activateParams) ? activateParams : "{id/name}", !string.IsNullOrEmpty(activateDesc) ? activateDesc : string.Concat("Activate a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " deactivate"), !string.IsNullOrEmpty(deactivateParams) ? deactivateParams : "{id/name}", !string.IsNullOrEmpty(deactivateDesc) ? deactivateDesc : string.Concat("Deactivate a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " download"), !string.IsNullOrEmpty(downloadParams) ? downloadParams : "{id/name}", !string.IsNullOrEmpty(downloadDesc) ? downloadDesc : string.Concat("Download a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " install"), !string.IsNullOrEmpty(installParams) ? installParams : "{id/name}", !string.IsNullOrEmpty(installDesc) ? installDesc : string.Concat("Install/Download a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " uninstall"), !string.IsNullOrEmpty(uninstallParams) ? uninstallParams : "{id/name}", !string.IsNullOrEmpty(uninstallDesc) ? uninstallDesc : string.Concat("Uninstall a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " reinstall"), !string.IsNullOrEmpty(reinstallParams) ? reinstallParams : "{id/name}", !string.IsNullOrEmpty(reinstallDesc) ? reinstallDesc : string.Concat("Reinstall a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " show"), !string.IsNullOrEmpty(showParams) ? showParams : "{id/name} [detailed]", !string.IsNullOrEmpty(showDesc) ? showDesc : string.Concat("Shows a  ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " list"), !string.IsNullOrEmpty(listParams) ? listParams : "[allVersions] [forAllAvatars] [detailed]", !string.IsNullOrEmpty(listDesc) ? listDesc : string.Concat("List all  ", holonType, " that have been generated."));
+            DisplayCommand(string.Concat(holonType, " list installed"), !string.IsNullOrEmpty(listInstalledParams) ? listInstalledParams : "", !string.IsNullOrEmpty(listInstalledDesc) ? listInstalledDesc : string.Concat("List all ", holonType, "'s installed for the currently beamed in avatar."));
+            DisplayCommand(string.Concat(holonType, " list uninstalled"), !string.IsNullOrEmpty(listUninstalledParams) ? listUninstalledParams : "", !string.IsNullOrEmpty(listUninstalledDesc) ? listUninstalledDesc : string.Concat("List all ", holonType, "'s uninstalled for the currently beamed in avatar (and allow re-install)."));
+            DisplayCommand(string.Concat(holonType, " list unpublished"), !string.IsNullOrEmpty(listUnpublishedParams) ? listUnpublishedParams : "", !string.IsNullOrEmpty(listUnpublishedDesc) ? listUnpublishedDesc : string.Concat("List all ", holonType, "'s unpublished for the currently beamed in avatar (and allow republish)."));
+            DisplayCommand(string.Concat(holonType, " list deactivated"), !string.IsNullOrEmpty(listDeactivatedParams) ? listDeactivatedParams : "", !string.IsNullOrEmpty(listDeactivatedDesc) ? listDeactivatedDesc : string.Concat("List all ", holonType, "'s deactivated for the currently beamed in avatar (and allow reactivate)."));
+            DisplayCommand(string.Concat(holonType, " search"), !string.IsNullOrEmpty(searchParams) ? searchParams : "[allVersions] [forAllAvatars]", !string.IsNullOrEmpty(searchDesc) ? searchDesc : string.Concat("Searches the ", holonType, "'s for the given search criteria."));
+        }
+
+        private static void DisplaySTARNETHolonCommandSummaries(string holonType)
+        {
+            DisplayCommand(holonType, "", $" Create, edit, clone delete, publish, unpublish, install, uninstall, list & show {holonType}'s.");
+        }
+
+        #region ONET/ONODE CLI Implementation
+
+        private static ONETManager? _onetManager;
+        //private static ONETProtocol? _onetProtocol;
+        private static ONETDiscovery? _onetDiscovery;
+
+        private static async Task InitializeONETAsync()
+        {
+            try
+            {
+                if (_onetManager == null)
+                {
+                    CLIEngine.ShowWorkingMessage("Initializing ONET (OASIS Network)...");
+                    _onetManager = new ONETManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    //_onetProtocol = new ONETProtocol(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    _onetDiscovery = new ONETDiscovery(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
+                    await _onetDiscovery.InitializeAsync();
+                    CLIEngine.ShowSuccessMessage("ONET initialized successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error initializing ONET: {ex.Message}");
+            }
+        }
+
+        #region ONODE Commands
+
+        private static async Task StartONODEAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Starting ONODE...");
+                
+                var result = await _onetManager!.StartNetworkAsync();
+                if (result.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to start ONODE: {result.Message}");
+                }
+                else
+                {
+                    CLIEngine.ShowSuccessMessage($"ONODE started successfully. Node ID: {result.Result}");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error starting ONODE: {ex.Message}");
+            }
+        }
+
+        private static async Task StopONODEAsync()
+        {
+            try
+            {
+                if (_onetManager == null)
+                {
+                    CLIEngine.ShowErrorMessage("ONODE is not running");
+                    return;
+                }
+
+                CLIEngine.ShowWorkingMessage("Stopping ONODE...");
+                var result = await _onetManager.StopNetworkAsync();
+                if (result.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to stop ONODE: {result.Message}");
+                }
+                else
+                {
+                    CLIEngine.ShowSuccessMessage("ONODE stopped successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error stopping ONODE: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowONODEStatusAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Getting ONODE status...");
+
+                var statusResult = await _onetManager!.GetNetworkStatusAsync();
+                if (statusResult.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to get ONODE status: {statusResult.Message}");
+                    return;
+                }
+
+            var status = statusResult.Result;
+            Console.WriteLine();
+            CLIEngine.ShowMessage("=== ONODE STATUS ===", ConsoleColor.Green);
+            CLIEngine.ShowMessage($"Network ID: {status.NetworkId}", ConsoleColor.White);
+            CLIEngine.ShowMessage($"Is Running: {status.IsRunning}", ConsoleColor.White);
+            CLIEngine.ShowMessage($"Connected Nodes: {status.ConnectedNodes}", ConsoleColor.White);
+            CLIEngine.ShowMessage($"Network Health: {status.NetworkHealth:P1}", ConsoleColor.White);
+            CLIEngine.ShowMessage($"Last Activity: {status.LastActivity}", ConsoleColor.White);
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error getting ONODE status: {ex.Message}");
+            }
+        }
+
+        private static async Task OpenONODEConfigAsync()
+        {
+            try
+            {
+                CLIEngine.ShowWorkingMessage("Opening ONODE configuration...");
+                
+                var configPath = Path.Combine(Environment.CurrentDirectory, "OASISDNA.json");
+                if (File.Exists(configPath))
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = configPath,
+                        UseShellExecute = true
+                    });
+                    CLIEngine.ShowSuccessMessage("ONODE configuration opened in default editor");
+                }
+                else
+                {
+                    CLIEngine.ShowErrorMessage("OASISDNA.json configuration file not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error opening ONODE configuration: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowONODEProvidersAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Getting ONODE providers...");
+
+            // Get network stats instead of providers (providers method doesn't exist)
+            var statsResult = await _onetManager!.GetNetworkStatsAsync();
+            if (statsResult.IsError)
+            {
+                CLIEngine.ShowErrorMessage($"Failed to get ONODE stats: {statsResult.Message}");
+                return;
+            }
+
+            var stats = statsResult.Result;
+            Console.WriteLine();
+            CLIEngine.ShowMessage("=== ONODE STATS ===", ConsoleColor.Green);
+            
+            foreach (var stat in stats)
+            {
+                CLIEngine.ShowMessage($"• {stat.Key}: {stat.Value}", ConsoleColor.White);
+            }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error getting ONODE providers: {ex.Message}");
+            }
+        }
+
+        private static async Task StartONODEProviderAsync(string providerName)
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage($"Starting provider: {providerName}...");
+
+            // Provider management not implemented in ONETManager
+            CLIEngine.ShowErrorMessage($"Provider management not implemented for {providerName}");
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error starting provider {providerName}: {ex.Message}");
+            }
+        }
+
+        private static async Task StopONODEProviderAsync(string providerName)
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage($"Stopping provider: {providerName}...");
+
+            // Provider management not implemented in ONETManager
+            CLIEngine.ShowErrorMessage($"Provider management not implemented for {providerName}");
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error stopping provider {providerName}: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region ONET Commands
+
+        private static async Task ShowONETStatusAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Getting ONET network status...");
+
+                var statusResult = await _onetManager!.GetNetworkStatusAsync();
+                if (statusResult.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to get ONET status: {statusResult.Message}");
+                    return;
+                }
+
+                var status = statusResult.Result;
+                Console.WriteLine();
+                CLIEngine.ShowMessage("=== ONET NETWORK STATUS ===", ConsoleColor.Green);
+                CLIEngine.ShowMessage($"Is Running: {status.IsRunning}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Connected Nodes: {status.ConnectedNodes}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Network Health: {status.NetworkHealth:P1}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Network ID: {status.NetworkId}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Last Activity: {status.LastActivity}", ConsoleColor.White);
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error getting ONET status: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowONETProvidersAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Getting ONET network providers...");
+
+                // Get network stats instead of providers (providers method doesn't exist)
+                var statsResult = await _onetManager!.GetNetworkStatsAsync();
+                if (statsResult.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to get ONET stats: {statsResult.Message}");
+                    return;
+                }
+
+                var stats = statsResult.Result;
+                Console.WriteLine();
+                CLIEngine.ShowMessage("=== ONET NETWORK STATS ===", ConsoleColor.Green);
+                
+                foreach (var stat in stats)
+                {
+                    CLIEngine.ShowMessage($"• {stat.Key}: {stat.Value}", ConsoleColor.White);
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error getting ONET providers: {ex.Message}");
+            }
+        }
+
+        private static async Task DiscoverONETNodesAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Discovering ONET nodes...");
+
+                var discoveryResult = await _onetDiscovery!.DiscoverAvailableNodesAsync();
+                if (discoveryResult.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to discover nodes: {discoveryResult.Message}");
+                    return;
+                }
+
+                var nodes = discoveryResult.Result;
+                Console.WriteLine();
+                CLIEngine.ShowMessage("=== DISCOVERED ONET NODES ===", ConsoleColor.Green);
+                
+                if (nodes.Any())
+                {
+                    foreach (var node in nodes)
+                    {
+                        CLIEngine.ShowMessage($"• {node.Id} - {node.Address}", ConsoleColor.White);
+                        CLIEngine.ShowMessage($"  Status: {node.Status} | Latency: {node.Latency}ms | Reliability: {node.Reliability}%", ConsoleColor.Gray);
+                        CLIEngine.ShowMessage($"  Capabilities: {string.Join(", ", node.Capabilities)}", ConsoleColor.Gray);
+                    }
+                }
+                else
+                {
+                    CLIEngine.ShowMessage("No ONET nodes discovered", ConsoleColor.Yellow);
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error discovering ONET nodes: {ex.Message}");
+            }
+        }
+
+        private static async Task ConnectToONETNodeAsync(string nodeAddress)
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage($"Connecting to ONET node: {nodeAddress}...");
+
+                var result = await _onetManager!.ConnectToNodeAsync(nodeAddress, nodeAddress);
+                if (result.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to connect to node {nodeAddress}: {result.Message}");
+                }
+                else
+                {
+                    CLIEngine.ShowSuccessMessage($"Successfully connected to ONET node: {nodeAddress}");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error connecting to ONET node {nodeAddress}: {ex.Message}");
+            }
+        }
+
+        private static async Task DisconnectFromONETNodeAsync(string nodeAddress)
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage($"Disconnecting from ONET node: {nodeAddress}...");
+
+                var result = await _onetManager!.DisconnectFromNodeAsync(nodeAddress);
+                if (result.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to disconnect from node {nodeAddress}: {result.Message}");
+                }
+                else
+                {
+                    CLIEngine.ShowSuccessMessage($"Successfully disconnected from ONET node: {nodeAddress}");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error disconnecting from ONET node {nodeAddress}: {ex.Message}");
+            }
+        }
+
+        private static async Task ShowONETTopologyAsync()
+        {
+            try
+            {
+                await InitializeONETAsync();
+                CLIEngine.ShowWorkingMessage("Getting ONET network topology...");
+
+                var topologyResult = await _onetManager!.GetNetworkTopologyAsync();
+                if (topologyResult.IsError)
+                {
+                    CLIEngine.ShowErrorMessage($"Failed to get network topology: {topologyResult.Message}");
+                    return;
+                }
+
+                var topology = topologyResult.Result;
+                Console.WriteLine();
+                CLIEngine.ShowMessage("=== ONET NETWORK TOPOLOGY ===", ConsoleColor.Green);
+                CLIEngine.ShowMessage($"Total Nodes: {topology.Nodes.Count}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Connections: {topology.Connections.Count}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"Last Updated: {topology.LastUpdated}", ConsoleColor.White);
+                
+                if (topology.Nodes.Any())
+                {
+                    CLIEngine.ShowMessage("\nNodes:", ConsoleColor.Yellow);
+                    foreach (var node in topology.Nodes)
+                    {
+                        CLIEngine.ShowMessage($"• {node.Id} - {node.Address} (Status: {node.Status})", ConsoleColor.Gray);
+                    }
+                }
+                
+                if (topology.Connections.Any())
+                {
+                    CLIEngine.ShowMessage("\nConnections:", ConsoleColor.Yellow);
+                    foreach (var connection in topology.Connections)
+                    {
+                        CLIEngine.ShowMessage($"• {connection.FromNodeId} ↔ {connection.ToNodeId} (Latency: {connection.Latency}ms)", ConsoleColor.Gray);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Error getting ONET topology: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #endregion
     }
 }

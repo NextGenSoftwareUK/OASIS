@@ -252,6 +252,31 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
+        public static NFTCollections NFTCollections
+        {
+            get
+            {
+                if (!IsSTARIgnited)
+                    IgniteSTAR();
+
+                return new NFTCollections(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
+            }
+        }
+
+        //public static GeoNFTs GeoNFTs { get; } = new GeoNFTs(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
+
+        public static GeoNFTCollections GeoNFTCollections
+        {
+            get
+            {
+                if (!IsSTARIgnited)
+                    IgniteSTAR();
+
+                return new GeoNFTCollections(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
+            }
+        }
+
+
         //public static GeoHotSpots GeoHotSpots { get; } = new GeoHotSpots(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
         public static GeoHotSpots GeoHotSpots
         {

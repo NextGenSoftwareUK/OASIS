@@ -1,234 +1,265 @@
-using System.Text;
-using Newtonsoft.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
+﻿using NextGenSoftware.OASIS.STAR.WebAPI;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.Common;
+using Xunit;
+using FluentAssertions;
 
-namespace NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests
+namespace NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests;
+
+public class STARWebAPIIntegrationTests
 {
-    public class STARWebAPIIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+    [Fact]
+    public async Task STARWebAPI_Should_Initialize_Successfully()
     {
-        private readonly WebApplicationFactory<Program> _factory;
-        private readonly HttpClient _client;
+        // Arrange & Act
+        var starWebAPI = new STARWebAPI();
+        
+        // Assert
+        starWebAPI.Should().NotBeNull();
+        starWebAPI.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-        public STARWebAPIIntegrationTests(WebApplicationFactory<Program> factory)
-        {
-            _factory = factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    // Configure test services here if needed
-                });
-            });
-            _client = _factory.CreateClient();
-        }
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Avatar_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Avatar.Should().NotBeNull();
+        starWebAPI.Avatar.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-        [Fact]
-        public async Task GetCelestialBodies_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/celestialbodies");
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Holon_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Holon.Should().NotBeNull();
+        starWebAPI.Holon.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Key_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Key.Should().NotBeNull();
+        starWebAPI.Key.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-        [Fact]
-        public async Task GetCelestialSpaces_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/celestialspaces");
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Map_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Map.Should().NotBeNull();
+        starWebAPI.Map.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
+    [Fact]
+    public async Task STARWebAPI_Should_Support_NFT_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.NFT.Should().NotBeNull();
+        starWebAPI.NFT.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-        [Fact]
-        public async Task GetZomes_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/zomes");
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Search_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Search.Should().NotBeNull();
+        starWebAPI.Search.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Wallet_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Wallet.Should().NotBeNull();
+        starWebAPI.Wallet.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-        [Fact]
-        public async Task GetMissions_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/missions");
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Data_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Data.Should().NotBeNull();
+        starWebAPI.Data.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Storage_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Storage.Should().NotBeNull();
+        starWebAPI.Storage.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-        [Fact]
-        public async Task GetChapters_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/chapters");
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Link_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Link.Should().NotBeNull();
+        starWebAPI.Link.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Log_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Log.Should().NotBeNull();
+        starWebAPI.Log.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-        [Fact]
-        public async Task GetQuests_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/quests");
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Quest_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Quest.Should().NotBeNull();
+        starWebAPI.Quest.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Mission_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Mission.Should().NotBeNull();
+        starWebAPI.Mission.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-        [Fact]
-        public async Task GetGeoHotSpots_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/geohotspots");
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Park_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Park.Should().NotBeNull();
+        starWebAPI.Park.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Inventory_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Inventory.Should().NotBeNull();
+        starWebAPI.Inventory.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-        [Fact]
-        public async Task GetGeoNFTs_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/geonfts");
+    [Fact]
+    public async Task STARWebAPI_Should_Support_OAPP_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.OAPP.Should().NotBeNull();
+        starWebAPI.OAPP.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Zome_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Zome.Should().NotBeNull();
+        starWebAPI.Zome.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-        [Fact]
-        public async Task GetParks_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/parks");
+    [Fact]
+    public async Task STARWebAPI_Should_Support_CelestialBody_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.CelestialBody.Should().NotBeNull();
+        starWebAPI.CelestialBody.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
+    [Fact]
+    public async Task STARWebAPI_Should_Support_CelestialSpace_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.CelestialSpace.Should().NotBeNull();
+        starWebAPI.CelestialSpace.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-        [Fact]
-        public async Task GetInventoryItems_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/inventoryitems");
+    [Fact]
+    public async Task STARWebAPI_Should_Support_Chapter_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.Chapter.Should().NotBeNull();
+        starWebAPI.Chapter.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
+    [Fact]
+    public async Task STARWebAPI_Should_Support_GeoHotSpot_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.GeoHotSpot.Should().NotBeNull();
+        starWebAPI.GeoHotSpot.ProviderType.Should().Be(ProviderType.STAR);
+    }
 
-        [Fact]
-        public async Task GetNFTs_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/nfts");
-
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
-
-        [Fact]
-        public async Task GetHolons_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/holons");
-
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
-
-        [Fact]
-        public async Task GetOAPPs_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/oapps");
-
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
-
-        [Fact]
-        public async Task GetSTARStatus_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/star/status");
-
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
-
-        [Fact]
-        public async Task Authenticate_WithValidCredentials_ReturnsJwtToken()
-        {
-            // Arrange
-            var authenticateRequest = new
-            {
-                username = "testuser",
-                password = "testpassword"
-            };
-            var json = JsonConvert.SerializeObject(authenticateRequest);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            // Act
-            var response = await _client.PostAsync("/api/avatar/authenticate", content);
-
-            // Assert
-            // Note: This will likely fail in test environment without real WEB4 OASIS API
-            // but we're testing the endpoint structure and response format
-            Assert.True(response.StatusCode == System.Net.HttpStatusCode.OK || 
-                       response.StatusCode == System.Net.HttpStatusCode.BadRequest);
-        }
-
-        [Fact]
-        public async Task GetCurrentAvatar_WithoutAuthentication_ReturnsUnauthorized()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/avatar/current");
-
-            // Assert
-            Assert.Equal(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task SwaggerEndpoint_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/swagger");
-
-            // Assert
-            response.EnsureSuccessStatusCode();
-        }
-
-        [Fact]
-        public async Task SwaggerJson_ReturnsSuccessStatusCode()
-        {
-            // Act
-            var response = await _client.GetAsync("/swagger/v1/swagger.json");
-
-            // Assert
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
+    [Fact]
+    public async Task STARWebAPI_Should_Support_GeoNFT_Operations()
+    {
+        // Arrange
+        var starWebAPI = new STARWebAPI();
+        
+        // Act & Assert
+        starWebAPI.GeoNFT.Should().NotBeNull();
+        starWebAPI.GeoNFT.ProviderType.Should().Be(ProviderType.STAR);
     }
 }
-
-

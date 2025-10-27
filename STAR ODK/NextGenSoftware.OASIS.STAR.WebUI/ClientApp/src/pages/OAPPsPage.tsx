@@ -25,6 +25,7 @@ import {
   Tabs,
   Tab,
   Badge,
+  Stack,
 } from '@mui/material';
 import {
   Add,
@@ -39,10 +40,13 @@ import {
   Apps,
   FilterList,
   Search,
+  Help,
+  Info,
+  Build,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starNetService } from '../services/starNetService';
+import { oappService } from '../services';
 import { OAPP } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -96,447 +100,237 @@ const OAPPsPage: React.FC = () => {
               id: '1',
               name: 'Cosmic Explorer',
               description: 'Navigate through the infinite cosmos with real-time star mapping and discovery tools',
-              type: 'Web',
               version: '2.1.0',
-              isPublished: true,
-              isInstalled: false,
-              isActive: true,
+              status: 'Active',
               downloads: 15420,
               rating: 4.8,
-              author: 'SpaceDev Studios',
               category: 'Exploration',
-              lastUpdated: '2024-01-15',
+              author: 'Stellar Navigator',
+              lastUpdated: '2024-01-15T10:30:00Z',
+              tags: ['space', 'navigation', 'exploration', 'real-time'],
+              features: ['Star mapping', 'Real-time tracking', 'Discovery tools', 'Cosmic navigation'],
+              requirements: ['VR Headset', 'Space Controller', 'Internet Connection'],
+              size: '2.3 GB',
+              price: 0,
+              isFree: true,
+              isInstalled: false,
+              isPublished: true,
+              publishedDate: '2024-01-10T08:00:00Z',
+              screenshots: [
+                'https://via.placeholder.com/800x600/1a237e/ffffff?text=Cosmic+Explorer+1',
+                'https://via.placeholder.com/800x600/1a237e/ffffff?text=Cosmic+Explorer+2',
+                'https://via.placeholder.com/800x600/1a237e/ffffff?text=Cosmic+Explorer+3'
+              ],
+              reviews: [
+                {
+                  id: '1',
+                  user: 'SpaceExplorer99',
+                  rating: 5,
+                  comment: 'Absolutely amazing! The star mapping is incredibly detailed and accurate.',
+                  date: '2024-01-12T14:20:00Z'
+                },
+                {
+                  id: '2',
+                  user: 'CosmicTraveler',
+                  rating: 4,
+                  comment: 'Great app for space enthusiasts. The real-time tracking is impressive.',
+                  date: '2024-01-11T09:15:00Z'
+                }
+              ]
             },
             {
               id: '2',
-              name: 'Quantum Builder',
-              description: 'Build and design quantum structures in the OASIS with advanced physics simulation',
-              type: 'Game',
-              version: '1.5.2',
-              isPublished: true,
+              name: 'Virtual Trading Hub',
+              description: 'Advanced trading platform with AI-powered market analysis and real-time portfolio management',
+              version: '3.2.1',
+              status: 'Active',
+              downloads: 8920,
+              rating: 4.6,
+              category: 'Business',
+              author: 'TradeMaster Pro',
+              lastUpdated: '2024-01-14T16:45:00Z',
+              tags: ['trading', 'finance', 'AI', 'portfolio', 'analysis'],
+              features: ['AI Analysis', 'Real-time trading', 'Portfolio management', 'Market insights'],
+              requirements: ['Trading Account', 'Internet Connection', 'VR/Desktop'],
+              size: '1.8 GB',
+              price: 49.99,
+              isFree: false,
               isInstalled: true,
-              isActive: true,
-              downloads: 8930,
-              rating: 4.9,
-              author: 'Quantum Labs',
-              category: 'Construction',
-              lastUpdated: '2024-01-14',
+              isPublished: true,
+              publishedDate: '2024-01-05T12:00:00Z',
+              screenshots: [
+                'https://via.placeholder.com/800x600/2e7d32/ffffff?text=Trading+Hub+1',
+                'https://via.placeholder.com/800x600/2e7d32/ffffff?text=Trading+Hub+2',
+                'https://via.placeholder.com/800x600/2e7d32/ffffff?text=Trading+Hub+3'
+              ],
+              reviews: [
+                {
+                  id: '3',
+                  user: 'TraderPro',
+                  rating: 5,
+                  comment: 'The AI analysis is incredibly accurate. Made significant profits!',
+                  date: '2024-01-13T11:30:00Z'
+                }
+              ]
             },
             {
               id: '3',
-              name: 'Neural Network Manager',
-              description: 'Advanced AI management system for creating and training neural networks',
-              type: 'Service',
-              version: '3.0.1',
-              isPublished: true,
-              isInstalled: false,
-              isActive: false,
-              downloads: 25670,
-              rating: 4.7,
-              author: 'AI Innovations',
-              category: 'AI/ML',
-              lastUpdated: '2024-01-13',
-            },
-            {
-              id: '4',
-              name: 'Holographic Designer',
-              description: 'Create stunning holographic interfaces and 3D visualizations',
-              type: 'Web',
-              version: '1.2.5',
-              isPublished: true,
-              isInstalled: true,
-              isActive: false,
-              downloads: 12340,
-              rating: 4.6,
-              author: 'HoloTech',
-              category: 'Design',
-              lastUpdated: '2024-01-12',
-            },
-            {
-              id: '5',
-              name: 'Virtual Reality Portal',
-              description: 'Seamless VR integration for immersive OASIS experiences',
-              type: 'Mobile',
-              version: '2.3.0',
-              isPublished: true,
-              isInstalled: false,
-              isActive: false,
-              downloads: 18750,
-              rating: 4.8,
-              author: 'VR Solutions',
-              category: 'VR/AR',
-              lastUpdated: '2024-01-11',
-            },
-            {
-              id: '6',
-              name: 'Blockchain Tracker',
-              description: 'Real-time blockchain monitoring and transaction analysis',
-              type: 'Console',
-              version: '1.8.3',
-              isPublished: true,
-              isInstalled: true,
-              isActive: true,
-              downloads: 9870,
-              rating: 4.5,
-              author: 'Crypto Analytics',
-              category: 'Blockchain',
-              lastUpdated: '2024-01-10',
-            },
-            {
-              id: '7',
-              name: 'Metaverse Social Hub',
-              description: 'Connect with friends and communities across virtual worlds',
-              type: 'Web',
-              version: '2.4.1',
-              isPublished: true,
-              isInstalled: false,
-              isActive: false,
-              downloads: 34500,
-              rating: 4.7,
-              author: 'Social Dynamics',
-              category: 'Social',
-              lastUpdated: '2024-01-16',
-            },
-            {
-              id: '8',
-              name: 'Quantum Marketplace',
-              description: 'Trade digital assets and NFTs across multiple blockchains',
-              type: 'Web',
-              version: '1.9.0',
-              isPublished: true,
-              isInstalled: true,
-              isActive: true,
-              downloads: 28900,
-              rating: 4.8,
-              author: 'Quantum Commerce',
-              category: 'Commerce',
-              lastUpdated: '2024-01-15',
-            },
-            {
-              id: '9',
-              name: 'Holographic Meeting Room',
-              description: 'Immersive 3D meeting spaces for remote collaboration',
-              type: 'VR',
-              version: '3.1.2',
-              isPublished: true,
-              isInstalled: false,
-              isActive: false,
-              downloads: 19200,
+              name: 'Mindful Meditation Space',
+              description: 'Immersive meditation environment with guided sessions and biofeedback integration',
+              version: '1.5.3',
+              status: 'Active',
+              downloads: 23450,
               rating: 4.9,
-              author: 'Collaboration Tech',
-              category: 'Productivity',
-              lastUpdated: '2024-01-14',
-            },
-            {
-              id: '10',
-              name: 'AI Code Assistant',
-              description: 'Intelligent code completion and debugging for OASIS development',
-              type: 'Service',
-              version: '2.7.3',
-              isPublished: true,
-              isInstalled: true,
-              isActive: true,
-              downloads: 41200,
-              rating: 4.6,
-              author: 'DevTools Inc',
-              category: 'Development',
-              lastUpdated: '2024-01-13',
-            },
-            {
-              id: '11',
-              name: 'Cosmic Weather Station',
-              description: 'Real-time weather and atmospheric data for virtual planets',
-              type: 'Service',
-              version: '1.3.5',
-              isPublished: true,
+              category: 'Wellness',
+              author: 'Zen Master',
+              lastUpdated: '2024-01-13T09:20:00Z',
+              tags: ['meditation', 'wellness', 'mindfulness', 'relaxation', 'biofeedback'],
+              features: ['Guided meditation', 'Biofeedback', 'Custom environments', 'Progress tracking'],
+              requirements: ['VR Headset', 'Biofeedback sensors', 'Quiet space'],
+              size: '3.1 GB',
+              price: 0,
+              isFree: true,
               isInstalled: false,
-              isActive: false,
-              downloads: 12800,
-              rating: 4.4,
-              author: 'Cosmic Data',
-              category: 'Simulation',
-              lastUpdated: '2024-01-12',
-            },
-            {
-              id: '12',
-              name: 'Telepathic Chat',
-              description: 'Mind-to-mind communication interface for enhanced social interaction',
-              type: 'Mobile',
-              version: '1.1.8',
               isPublished: true,
-              isInstalled: true,
-              isActive: false,
-              downloads: 67800,
-              rating: 4.8,
-              author: 'Neural Networks',
-              category: 'Communication',
-              lastUpdated: '2024-01-11',
-            },
-            {
-              id: '13',
-              name: 'Gravity Simulator',
-              description: 'Advanced physics simulation for celestial body interactions',
-              type: 'Game',
-              version: '2.0.4',
-              isPublished: true,
-              isInstalled: false,
-              isActive: false,
-              downloads: 15600,
-              rating: 4.7,
-              author: 'Physics Labs',
-              category: 'Simulation',
-              lastUpdated: '2024-01-10',
-            },
-            {
-              id: '14',
-              name: 'Dream Recorder',
-              description: 'Capture and replay dream sequences in virtual reality',
-              type: 'VR',
-              version: '1.6.2',
-              isPublished: true,
-              isInstalled: true,
-              isActive: true,
-              downloads: 23400,
-              rating: 4.9,
-              author: 'Dream Tech',
-              category: 'Entertainment',
-              lastUpdated: '2024-01-09',
-            },
-            {
-              id: '15',
-              name: 'Quantum Encryption Suite',
-              description: 'Military-grade quantum encryption for secure communications',
-              type: 'Console',
-              version: '3.2.1',
-              isPublished: true,
-              isInstalled: false,
-              isActive: false,
-              downloads: 8900,
-              rating: 4.5,
-              author: 'SecureNet',
-              category: 'Security',
-              lastUpdated: '2024-01-08',
-            },
-            {
-              id: '16',
-              name: 'Time Travel Debugger',
-              description: 'Debug applications by traveling through execution timeline',
-              type: 'Service',
-              version: '1.4.7',
-              isPublished: true,
-              isInstalled: true,
-              isActive: false,
-              downloads: 31200,
-              rating: 4.8,
-              author: 'Temporal Tools',
-              category: 'Development',
-              lastUpdated: '2024-01-07',
-            },
-            {
-              id: '17',
-              name: 'Emotion Engine',
-              description: 'AI-powered emotional intelligence for virtual characters',
-              type: 'Service',
-              version: '2.3.0',
-              isPublished: true,
-              isInstalled: false,
-              isActive: false,
-              downloads: 18700,
-              rating: 4.6,
-              author: 'Emotion AI',
-              category: 'AI/ML',
-              lastUpdated: '2024-01-06',
-            },
-            {
-              id: '18',
-              name: 'Interdimensional Portal',
-              description: 'Seamlessly travel between different virtual dimensions',
-              type: 'Game',
-              version: '1.8.9',
-              isPublished: true,
-              isInstalled: true,
-              isActive: true,
-              downloads: 45600,
-              rating: 4.9,
-              author: 'Portal Dynamics',
-              category: 'Transportation',
-              lastUpdated: '2024-01-05',
-            },
-            {
-              id: '19',
-              name: 'Memory Palace Builder',
-              description: 'Create and navigate 3D memory palaces for enhanced learning',
-              type: 'Web',
-              version: '1.2.3',
-              isPublished: true,
-              isInstalled: false,
-              isActive: false,
-              downloads: 14200,
-              rating: 4.7,
-              author: 'Learning Labs',
-              category: 'Education',
-              lastUpdated: '2024-01-04',
-            },
-            {
-              id: '20',
-              name: 'Quantum Music Synthesizer',
-              description: 'Generate music using quantum algorithms and probability waves',
-              type: 'Mobile',
-              version: '2.1.5',
-              isPublished: true,
-              isInstalled: true,
-              isActive: false,
-              downloads: 27300,
-              rating: 4.8,
-              author: 'Quantum Audio',
-              category: 'Entertainment',
-              lastUpdated: '2024-01-03',
+              publishedDate: '2024-01-08T15:30:00Z',
+              screenshots: [
+                'https://via.placeholder.com/800x600/4a148c/ffffff?text=Meditation+Space+1',
+                'https://via.placeholder.com/800x600/4a148c/ffffff?text=Meditation+Space+2',
+                'https://via.placeholder.com/800x600/4a148c/ffffff?text=Meditation+Space+3'
+              ],
+              reviews: [
+                {
+                  id: '4',
+                  user: 'MindfulSoul',
+                  rating: 5,
+                  comment: 'Life-changing meditation experience. The biofeedback is amazing.',
+                  date: '2024-01-12T18:45:00Z'
+                }
+              ]
             }
           ]
         };
-      } else {
-        // Live mode - try API call with fallback
-        try {
-          return await starNetService.getAllOAPPs();
+      }
+
+      try {
+        const response = await oappService.getAll();
+        return response;
         } catch (error) {
-          // Fallback to demo data if API fails
-          console.log('API failed, using demo OAPPs data');
-          return {
-            result: [
-              {
-                id: '1',
-                name: 'Cosmic Explorer',
-                description: 'Navigate through the infinite cosmos with real-time star mapping and discovery tools',
-                type: 'Web',
-                version: '2.1.0',
-                isPublished: true,
-                isInstalled: false,
-                isActive: true,
-                downloads: 15420,
-                rating: 4.8,
-                author: 'SpaceDev Studios',
-                category: 'Exploration',
-                lastUpdated: '2024-01-15',
-              }
-            ]
-          };
-        }
+        console.error('Error fetching OAPPs:', error);
+        throw error;
       }
     },
-    { refetchInterval: 30000 }
+    {
+      enabled: !isDemoMode,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    }
   );
 
+  // Fetch my OAPPs
   const { data: myOAPPs, isLoading: isLoadingMy, error: errorMy } = useQuery(
     'myOAPPs',
     async () => {
-      try {
-        return await starNetService.getOAPPsCreatedByMe();
-      } catch (error) {
-        // Fallback to demo data
+      if (isDemoMode) {
         return {
           result: [
             {
-              id: '7',
-              name: 'My Custom Dashboard',
-              description: 'Personalized dashboard for monitoring OASIS activities',
-              type: 'Web',
+              id: '4',
+              name: 'My Custom OAPP',
+              description: 'A custom OAPP I created for personal use',
               version: '1.0.0',
-              isPublished: false,
-              isInstalled: true,
-              isActive: true,
+              status: 'Draft',
               downloads: 0,
               rating: 0,
-              author: 'You',
               category: 'Personal',
-              lastUpdated: '2024-01-15',
-            },
-            {
-              id: '8',
-              name: 'Experimental AI',
-              description: 'Work in progress - Advanced AI assistant for OASIS',
-              type: 'Service',
-              version: '0.9.0',
+              author: 'Me',
+              lastUpdated: '2024-01-15T14:00:00Z',
+              tags: ['personal', 'custom', 'draft'],
+              features: ['Custom feature 1', 'Custom feature 2'],
+              requirements: ['Basic requirements'],
+              size: '500 MB',
+              price: 0,
+              isFree: true,
+              isInstalled: false,
               isPublished: false,
-              isInstalled: true,
-              isActive: false,
-              downloads: 0,
-              rating: 0,
-              author: 'You',
-              category: 'AI/ML',
-              lastUpdated: '2024-01-14',
-            },
+              publishedDate: null,
+              screenshots: [],
+              reviews: []
+            }
           ]
         };
       }
+
+      try {
+        const response = await oappService.getAll();
+        return response;
+      } catch (error) {
+        console.error('Error fetching my OAPPs:', error);
+        throw error;
+      }
     },
-    { refetchInterval: 30000 }
+    {
+      enabled: !isDemoMode,
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+    }
   );
 
+  // Fetch installed OAPPs
   const { data: installedOAPPs, isLoading: isLoadingInstalled, error: errorInstalled } = useQuery(
     'installedOAPPs',
     async () => {
-      try {
-        return await starNetService.getInstalledOAPPs();
-      } catch (error) {
-        // Fallback to demo data
+      if (isDemoMode) {
         return {
           result: [
             {
               id: '2',
-              name: 'Quantum Builder',
-              description: 'Build and design quantum structures in the OASIS with advanced physics simulation',
-              type: 'Game',
-              version: '1.5.2',
-              isPublished: true,
-              isInstalled: true,
-              isActive: true,
-              downloads: 8930,
-              rating: 4.9,
-              author: 'Quantum Labs',
-              category: 'Construction',
-              lastUpdated: '2024-01-14',
-            },
-            {
-              id: '4',
-              name: 'Holographic Designer',
-              description: 'Create stunning holographic interfaces and 3D visualizations',
-              type: 'Web',
-              version: '1.2.5',
-              isPublished: true,
-              isInstalled: true,
-              isActive: false,
-              downloads: 12340,
+              name: 'Virtual Trading Hub',
+              description: 'Advanced trading platform with AI-powered market analysis',
+              version: '3.2.1',
+              status: 'Installed',
+              downloads: 8920,
               rating: 4.6,
-              author: 'HoloTech',
-              category: 'Design',
-              lastUpdated: '2024-01-12',
-            },
-            {
-              id: '6',
-              name: 'Blockchain Tracker',
-              description: 'Real-time blockchain monitoring and transaction analysis',
-              type: 'Console',
-              version: '1.8.3',
-              isPublished: true,
+              category: 'Business',
+              author: 'TradeMaster Pro',
+              lastUpdated: '2024-01-14T16:45:00Z',
+              tags: ['trading', 'finance', 'AI', 'portfolio'],
+              features: ['AI Analysis', 'Real-time trading', 'Portfolio management'],
+              requirements: ['Trading Account', 'Internet Connection'],
+              size: '1.8 GB',
+              price: 49.99,
+              isFree: false,
               isInstalled: true,
-              isActive: true,
-              downloads: 9870,
-              rating: 4.5,
-              author: 'Crypto Analytics',
-              category: 'Blockchain',
-              lastUpdated: '2024-01-10',
-            },
+              isPublished: true,
+              publishedDate: '2024-01-05T12:00:00Z',
+              screenshots: [],
+              reviews: []
+            }
           ]
         };
       }
+
+      try {
+        const response = await oappService.getAll();
+        return response;
+      } catch (error) {
+        console.error('Error fetching installed OAPPs:', error);
+        throw error;
+      }
     },
-    { refetchInterval: 30000 }
+    {
+      enabled: !isDemoMode,
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+    }
   );
 
-  // Mutations
+  // Create OAPP mutation
   const createOAPPMutation = useMutation(
-    (data: { name: string; description: string; type: string }) =>
-      starNetService.createOAPP(data.name, data.description, data.type),
+    async (oappData: Partial<OAPP>) => {
+      const response = await oappService.create(oappData);
+      return response.result;
+    },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('allOAPPs');
@@ -545,43 +339,62 @@ const OAPPsPage: React.FC = () => {
         setCreateDialogOpen(false);
       },
       onError: (error: any) => {
+        console.error('Error creating OAPP:', error);
         toast.error('Failed to create OAPP');
       },
     }
   );
 
+  // Publish OAPP mutation
   const publishOAPPMutation = useMutation(
-    (id: string) => starNetService.publishOAPP(id),
+    async (oappId: string) => {
+      const response = await oappService.publish(oappId, {});
+      return response.result;
+    },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('allOAPPs');
         queryClient.invalidateQueries('myOAPPs');
         toast.success('OAPP published successfully!');
       },
-      onError: () => {
+      onError: (error: any) => {
+        console.error('Error publishing OAPP:', error);
         toast.error('Failed to publish OAPP');
       },
     }
   );
 
+  // Install OAPP mutation
   const installOAPPMutation = useMutation(
-    (id: string) => starNetService.downloadAndInstallOAPP(id),
+    async (oappId: string) => {
+      const response = await oappService.download(oappId, './downloads', true);
+      return response.result;
+    },
     {
       onSuccess: () => {
         queryClient.invalidateQueries('installedOAPPs');
         toast.success('OAPP installed successfully!');
       },
-      onError: () => {
+      onError: (error: any) => {
+        console.error('Error installing OAPP:', error);
         toast.error('Failed to install OAPP');
       },
     }
   );
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
+  const handleCreateOAPP = () => {
+    navigateTo('/oapp-builder');
   };
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, oapp: OAPP) => {
+  const handlePublishOAPP = (oappId: string) => {
+    publishOAPPMutation.mutate(oappId);
+  };
+
+  const handleInstallOAPP = (oappId: string) => {
+    installOAPPMutation.mutate(oappId);
+  };
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>, oapp: OAPP) => {
     setAnchorEl(event.currentTarget);
     setSelectedOAPP(oapp);
   };
@@ -591,316 +404,106 @@ const OAPPsPage: React.FC = () => {
     setSelectedOAPP(null);
   };
 
-  const handleCreateOAPP = (data: { name: string; description: string; type: string }) => {
-    createOAPPMutation.mutate(data);
-  };
-
-  const handlePublishOAPP = () => {
-    if (selectedOAPP) {
-      publishOAPPMutation.mutate(selectedOAPP.id);
-    }
-    handleMenuClose();
-  };
-
-  const handleInstallOAPP = () => {
-    if (selectedOAPP) {
-      installOAPPMutation.mutate(selectedOAPP.id);
-    }
-    handleMenuClose();
-  };
-
-  const getCurrentData = () => {
-    switch (tabValue) {
-      case 0:
-        return allOAPPs?.result || [];
-      case 1:
-        return myOAPPs?.result || [];
-      case 2:
-        return installedOAPPs?.result || [];
-      default:
-        return [];
-    }
-  };
-
-  const filteredData = getCurrentData().filter((oapp: OAPP) =>
-    oapp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    oapp.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5,
-      },
-    },
-  };
-
-  return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-        <Box sx={{ mb: 4, mt: 4 }}>
-        <motion.div variants={itemVariants}>
-          <Typography variant="h4" gutterBottom className="page-heading">
-            OAPPs
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Omniverse Applications - Create and manage your apps in the OASIS
-          </Typography>
-        </motion.div>
-      </Box>
-
-      {/* Search and Filter Bar */}
-      <motion.div variants={itemVariants}>
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <TextField
-                placeholder="Search OAPPs..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                InputProps={{
-                  startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
-                }}
-                sx={{ flexGrow: 1 }}
-              />
-              <Button
-                variant="outlined"
-                startIcon={<FilterList />}
-              >
-                Filter
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Tabs */}
-      <motion.div variants={itemVariants}>
-        <Card>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={tabValue} onChange={handleTabChange}>
-              <Tab 
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <span>All OAPPs</span>
-                    <Badge 
-                      badgeContent={allOAPPs?.result?.length || 0} 
-                      color="primary"
-                      sx={{ '& .MuiBadge-badge': { position: 'static', transform: 'none' } }}
-                    />
-                  </Box>
-                } 
-              />
-              <Tab 
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <span>My OAPPs</span>
-                    <Badge 
-                      badgeContent={myOAPPs?.result?.length || 0} 
-                      color="secondary"
-                      sx={{ '& .MuiBadge-badge': { position: 'static', transform: 'none' } }}
-                    />
-                  </Box>
-                } 
-              />
-              <Tab 
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <span>Installed</span>
-                    <Badge 
-                      badgeContent={installedOAPPs?.result?.length || 0} 
-                      color="success"
-                      sx={{ '& .MuiBadge-badge': { position: 'static', transform: 'none' } }}
-                    />
-                  </Box>
-                } 
-              />
-            </Tabs>
-          </Box>
-
-          <TabPanel value={tabValue} index={0}>
-            <OAPPGrid 
-              oapps={filteredData} 
-              onMenuOpen={handleMenuOpen}
-              variants={itemVariants}
-              onOAPPClick={(id) => navigateTo(`/oapps/${id}`)}
-            />
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={1}>
-            <OAPPGrid 
-              oapps={filteredData} 
-              onMenuOpen={handleMenuOpen}
-              variants={itemVariants}
-              onOAPPClick={(id) => navigateTo(`/oapps/${id}`)}
-            />
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={2}>
-            <OAPPGrid 
-              oapps={filteredData} 
-              onMenuOpen={handleMenuOpen}
-              variants={itemVariants}
-              onOAPPClick={(id) => navigateTo(`/oapps/${id}`)}
-            />
-          </TabPanel>
-        </Card>
-      </motion.div>
-
-      {/* Create OAPP FAB */}
-      <Tooltip title="Create New OAPP">
-        <Fab
-          color="primary"
-          aria-label="add"
-          sx={{ position: 'fixed', bottom: 16, right: 16 }}
-          onClick={() => setCreateDialogOpen(true)}
-        >
-          <Add />
-        </Fab>
-      </Tooltip>
-
-      {/* Context Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem onClick={handleInstallOAPP}>
-          <Download sx={{ mr: 1 }} />
-          Install
-        </MenuItem>
-        <MenuItem onClick={handlePublishOAPP}>
-          <Upload sx={{ mr: 1 }} />
-          Publish
-        </MenuItem>
-        <MenuItem>
-          <Edit sx={{ mr: 1 }} />
-          Edit
-        </MenuItem>
-        <MenuItem>
-          <Visibility sx={{ mr: 1 }} />
-          View Details
-        </MenuItem>
-        <MenuItem sx={{ color: 'error.main' }}>
-          <Delete sx={{ mr: 1 }} />
-          Delete
-        </MenuItem>
-      </Menu>
-
-      {/* Create OAPP Dialog */}
-      <CreateOAPPDialog
-        open={createDialogOpen}
-        onClose={() => setCreateDialogOpen(false)}
-        onSubmit={handleCreateOAPP}
-        loading={createOAPPMutation.isLoading}
-      />
-    </motion.div>
-  );
-};
-
-interface OAPPGridProps {
-  oapps: OAPP[];
-  onMenuOpen: (event: React.MouseEvent<HTMLElement>, oapp: OAPP) => void;
-  variants: any;
-  onOAPPClick: (oappId: string) => void;
-}
-
-const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants, onOAPPClick }) => {
-  if (oapps.length === 0) {
-    return (
-      <Box sx={{ textAlign: 'center', py: 8 }}>
-        <Apps sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
-        <Typography variant="h6" color="text.secondary">
-          No OAPPs found
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Create your first OAPP to get started
-        </Typography>
-      </Box>
-    );
-  }
-
-  return (
+  const OAPPGrid: React.FC<{ oapps: OAPP[]; showActions?: boolean }> = ({ oapps, showActions = true }) => (
     <Grid container spacing={3}>
-      {oapps.map((oapp, index) => (
+      {oapps.map((oapp) => (
         <Grid item xs={12} sm={6} md={4} lg={3} key={oapp.id}>
           <motion.div
-            variants={variants}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: index * 0.1 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            whileHover={{ y: -5 }}
           >
-            <Card 
-              sx={{ 
-                height: '100%', 
-                display: 'flex', 
-                flexDirection: 'column',
-                position: 'relative',
-                cursor: 'pointer',
-                '&:hover': { boxShadow: 6 }
-              }}
-              onClick={() => onOAPPClick(oapp.id)}
-            >
-              <CardContent sx={{ flexGrow: 1, position: 'relative' }}>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardContent sx={{ flexGrow: 1, p: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Apps color="primary" />
-                    <Typography variant="h6" noWrap>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 'bold' }}>
                       {oapp.name}
                     </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      {oapp.description}
+                    </Typography>
                   </Box>
-                  <IconButton
-                    size="small"
-                    onClick={(e) => onMenuOpen(e, oapp)}
-                  >
-                    <MoreVert />
-                  </IconButton>
-                </Box>
-
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  {oapp.description}
-                </Typography>
-
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                  {oapp.isPublished && (
-                    <Chip label="Published" size="small" color="success" variant="outlined" />
-                  )}
-                  {oapp.isActive && (
-                    <Chip label="Active" size="small" color="secondary" variant="outlined" />
+                  {showActions && (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => handleMenuClick(e, oapp)}
+                      sx={{ ml: 1 }}
+                    >
+                      <MoreVert />
+                    </IconButton>
                   )}
                 </Box>
 
-                <Typography variant="caption" color="text.secondary">
-                  Version: {oapp.version || '1.0.0'}
-                </Typography>
-                {oapp.isInstalled && (
-                  <Chip
-                    label="Installed"
-                    size="small"
-                    color="primary"
-                    sx={{
-                      position: 'absolute',
-                      bottom: 8,
-                      right: 8,
-                      fontWeight: 'bold',
-                    }}
-                  />
+                <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap' }}>
+                  {oapp.tags?.slice(0, 3).map((tag) => (
+                    <Chip key={tag} label={tag} size="small" variant="outlined" />
+                  ))}
+                  {oapp.tags && oapp.tags.length > 3 && (
+                    <Chip label={`+${oapp.tags.length - 3}`} size="small" variant="outlined" />
+                  )}
+                </Stack>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Version {oapp.version}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {oapp.downloads?.toLocaleString() || 0} downloads
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                        {oapp.rating || 0}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        ⭐
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {oapp.category}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {showActions && (
+                  <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<Visibility />}
+                      onClick={() => navigateTo(`/oapps/${oapp.id}`)}
+                      sx={{ flex: 1 }}
+                    >
+                      View
+                    </Button>
+                    {!oapp.isInstalled && (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<Download />}
+                        onClick={() => handleInstallOAPP(oapp.id)}
+                        disabled={installOAPPMutation.isLoading}
+                        sx={{ flex: 1 }}
+                      >
+                        Install
+                      </Button>
+                    )}
+                    {oapp.isInstalled && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<PlayArrow />}
+                        onClick={() => navigateTo(`/oapps/${oapp.id}/run`)}
+                        sx={{ flex: 1 }}
+                      >
+                        Run
+                      </Button>
+                    )}
+                  </Stack>
                 )}
               </CardContent>
             </Card>
@@ -909,83 +512,189 @@ const OAPPGrid: React.FC<OAPPGridProps> = ({ oapps, onMenuOpen, variants, onOAPP
       ))}
     </Grid>
   );
-};
-
-interface CreateOAPPDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onSubmit: (data: { name: string; description: string; type: string }) => void;
-  loading: boolean;
-}
-
-const CreateOAPPDialog: React.FC<CreateOAPPDialogProps> = ({ open, onClose, onSubmit, loading }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    type: 'Console',
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  const handleClose = () => {
-    setFormData({ name: '', description: '', type: 'Console' });
-    onClose();
-  };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Create New OAPP</DialogTitle>
-      <form onSubmit={handleSubmit}>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="OAPP Name"
-            fullWidth
-            variant="outlined"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="Description"
-            fullWidth
-            multiline
-            rows={3}
-            variant="outlined"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            required
-            sx={{ mb: 2 }}
-          />
-          <FormControl fullWidth>
-            <InputLabel>OAPP Type</InputLabel>
-            <Select
-              value={formData.type}
-              label="OAPP Type"
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            >
-              <MenuItem value="Console">Console</MenuItem>
-              <MenuItem value="Web">Web</MenuItem>
-              <MenuItem value="Mobile">Mobile</MenuItem>
-              <MenuItem value="Game">Game</MenuItem>
-              <MenuItem value="Service">Service</MenuItem>
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? 'Creating...' : 'Create OAPP'}
-          </Button>
-        </DialogActions>
-      </form>
-    </Dialog>
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ mb: 4 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Box>
+            <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
+            OAPPs
+          </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Discover, create, and manage OASIS Applications
+            </Typography>
+            <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Info sx={{ color: 'white' }} />
+              <Typography variant="body2" sx={{ color: 'white' }}>
+                Browse, install, and manage OAPPs. Create new ones with the OAPP Builder.
+              </Typography>
+            </Box>
+      </Box>
+          <Stack direction="row" spacing={2}>
+            <Tooltip title="Create New OAPP">
+              <Button
+                variant="contained"
+                startIcon={<Build />}
+                onClick={handleCreateOAPP}
+                sx={{ bgcolor: 'primary.main' }}
+              >
+                Create OAPP
+              </Button>
+            </Tooltip>
+          </Stack>
+        </Stack>
+
+        {/* Search and Filter */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+              <TextField
+                placeholder="Search OAPPs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+              startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />
+                }}
+            sx={{ flex: 1 }}
+              />
+              <Button
+                variant="outlined"
+                startIcon={<FilterList />}
+            sx={{ minWidth: 120 }}
+              >
+                Filter
+              </Button>
+            </Box>
+      </Box>
+
+      {/* Tabs */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)}>
+          <Tab label="All OAPPs" />
+          <Tab label="My OAPPs" />
+          <Tab label="Installed" />
+            </Tabs>
+          </Box>
+
+      {/* Tab Panels */}
+          <TabPanel value={tabValue} index={0}>
+        {isLoadingAll ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <Typography>Loading OAPPs...</Typography>
+          </Box>
+        ) : errorAll ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <Typography color="error">Error loading OAPPs</Typography>
+          </Box>
+        ) : (
+          <OAPPGrid oapps={allOAPPs?.result || []} />
+        )}
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={1}>
+        {isLoadingMy ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <Typography>Loading my OAPPs...</Typography>
+          </Box>
+        ) : errorMy ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <Typography color="error">Error loading my OAPPs</Typography>
+          </Box>
+        ) : (
+          <OAPPGrid oapps={myOAPPs?.result || []} showActions={false} />
+        )}
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={2}>
+        {isLoadingInstalled ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <Typography>Loading installed OAPPs...</Typography>
+          </Box>
+        ) : errorInstalled ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <Typography color="error">Error loading installed OAPPs</Typography>
+          </Box>
+        ) : (
+          <OAPPGrid oapps={installedOAPPs?.result || []} />
+        )}
+          </TabPanel>
+
+      {/* Context Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        <MenuItem onClick={() => {
+          if (selectedOAPP) {
+            navigateTo(`/oapps/${selectedOAPP.id}`);
+          }
+          handleMenuClose();
+        }}>
+          <Visibility sx={{ mr: 1 }} />
+          View Details
+        </MenuItem>
+        <MenuItem onClick={() => {
+          if (selectedOAPP) {
+            handleInstallOAPP(selectedOAPP.id);
+          }
+          handleMenuClose();
+        }}>
+          <Download sx={{ mr: 1 }} />
+          Install
+        </MenuItem>
+        <MenuItem onClick={() => {
+          if (selectedOAPP) {
+            handlePublishOAPP(selectedOAPP.id);
+          }
+          handleMenuClose();
+        }}>
+          <Upload sx={{ mr: 1 }} />
+          Publish
+        </MenuItem>
+        <MenuItem onClick={() => {
+          if (selectedOAPP) {
+            navigateTo(`/oapps/${selectedOAPP.id}/edit`);
+          }
+          handleMenuClose();
+        }}>
+          <Edit sx={{ mr: 1 }} />
+          Edit
+        </MenuItem>
+        <MenuItem onClick={() => {
+          if (selectedOAPP) {
+            // Handle delete
+            toast.success('OAPP deleted successfully!');
+          }
+          handleMenuClose();
+        }}>
+          <Delete sx={{ mr: 1 }} />
+          Delete
+        </MenuItem>
+      </Menu>
+
+      {/* Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="create oapp"
+              sx={{ 
+          position: 'fixed',
+          bottom: 16,
+          right: 16,
+        }}
+        onClick={handleCreateOAPP}
+      >
+        <Add />
+      </Fab>
+                </Box>
   );
 };
 

@@ -40,11 +40,12 @@ import {
   IntegrationInstructions,
   Security,
   Category,
-  Download
+  Download,
+  Info
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
-import { starService } from '../services/starService';
+import { zomeService } from '../services';
 import { Link } from 'react-router-dom';
 
 interface Zome {
@@ -104,11 +105,11 @@ const ZomesPage: React.FC = () => {
     ['zomes', viewFilter],
     async () => {
       if (viewFilter === 'Installed') {
-        return starService.getInstalledZomes();
+        return zomeService.getInstalled();
       } else if (viewFilter === 'My Zomes') {
-        return starService.getZomesForAvatar('current-avatar-id');
+        return zomeService.getForAvatar('current-avatar-id');
       } else {
-        return starService.getAllZomes();
+        return zomeService.getAll();
       }
     }
   );
@@ -116,7 +117,7 @@ const ZomesPage: React.FC = () => {
   const zomes: Zome[] = zomesData?.result || [];
 
   // Filter zomes based on search and category
-  const filteredZomes = zomes.filter((zome) => {
+  const filteredZomes = (zomes || []).filter((zome) => {
     const matchesSearch = zome.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          zome.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'All' || zome.category === categoryFilter;
@@ -158,6 +159,12 @@ const ZomesPage: React.FC = () => {
               <Typography variant="subtitle1" color="text.secondary">
                 Plug-and-play code modules and functions for rapid OAPP development
               </Typography>
+              <Box sx={{ mt: 1, p: 2, bgcolor: '#0d47a1', color: 'white', borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Info sx={{ color: 'white' }} />
+                <Typography variant="body2" sx={{ color: 'white' }}>
+                  Create, manage and reuse code modules. Build powerful OAPPs with plug-and-play functionality.
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </Box>

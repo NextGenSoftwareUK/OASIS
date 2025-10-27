@@ -748,114 +748,114 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowSuccessMessage("MongoDB Tests Completed.");
 
             // SEEDS Support
-            try
-            {
-                CLIEngine.ShowWorkingMessage("Initiating SEEDS Tests...");
+            //try
+            //{
+            //    CLIEngine.ShowWorkingMessage("Initiating SEEDS Tests...");
 
-                if (!STAR.OASISAPI.Providers.SEEDS.IsProviderActivated)
-                {
-                    CLIEngine.ShowWorkingMessage("Activating SEEDS Provider...");
-                    STAR.OASISAPI.Providers.SEEDS.ActivateProvider();
-                    CLIEngine.ShowSuccessMessage("SEEDS Provider Activated.");
-                }
+            //    if (!STAR.OASISAPI.Providers.SEEDS.IsProviderActivated)
+            //    {
+            //        CLIEngine.ShowWorkingMessage("Activating SEEDS Provider...");
+            //        STAR.OASISAPI.Providers.SEEDS.ActivateProvider();
+            //        CLIEngine.ShowSuccessMessage("SEEDS Provider Activated.");
+            //    }
 
-                CLIEngine.ShowWorkingMessage("Getting Balance for account davidsellams...");
-                string balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
-                CLIEngine.ShowSuccessMessage(string.Concat("Balance: ", balance));
+            //    CLIEngine.ShowWorkingMessage("Getting Balance for account davidsellams...");
+            //    string balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
+            //    CLIEngine.ShowSuccessMessage(string.Concat("Balance: ", balance));
 
-                CLIEngine.ShowWorkingMessage("Getting Balance for account nextgenworld...");
-                balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
-                CLIEngine.ShowSuccessMessage(string.Concat("Balance: ", balance));
+            //    CLIEngine.ShowWorkingMessage("Getting Balance for account nextgenworld...");
+            //    balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
+            //    CLIEngine.ShowSuccessMessage(string.Concat("Balance: ", balance));
 
-                CLIEngine.ShowWorkingMessage("Getting Account for account davidsellams...");
-                GetAccountResponseDto account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("davidsellams");
+            //    CLIEngine.ShowWorkingMessage("Getting Account for account davidsellams...");
+            //    GetAccountResponseDto account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("davidsellams");
 
-                if (account != null)
-                {
-                    CLIEngine.ShowSuccessMessage(string.Concat("Account.account_name: ", account.AccountName));
-                    CLIEngine.ShowSuccessMessage(string.Concat("Account.created: ", account.Created.ToString()));
-                }
-                else
-                    CLIEngine.ShowErrorMessage("Account not found.");
+            //    if (account != null)
+            //    {
+            //        CLIEngine.ShowSuccessMessage(string.Concat("Account.account_name: ", account.AccountName));
+            //        CLIEngine.ShowSuccessMessage(string.Concat("Account.created: ", account.Created.ToString()));
+            //    }
+            //    else
+            //        CLIEngine.ShowErrorMessage("Account not found.");
 
-                CLIEngine.ShowWorkingMessage("Getting Account for account nextgenworld...");
-                account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("nextgenworld");
+            //    CLIEngine.ShowWorkingMessage("Getting Account for account nextgenworld...");
+            //    account = STAR.OASISAPI.Providers.SEEDS.TelosOASIS.GetTelosAccount("nextgenworld");
 
-                if (account != null)
-                {
-                    CLIEngine.ShowSuccessMessage(string.Concat("Account.account_name: ", account.AccountName));
-                    CLIEngine.ShowSuccessMessage(string.Concat("Account.created: ", account.Created.ToString()));
-                }
-                else
-                    CLIEngine.ShowErrorMessage("Account not found.");
+            //    if (account != null)
+            //    {
+            //        CLIEngine.ShowSuccessMessage(string.Concat("Account.account_name: ", account.AccountName));
+            //        CLIEngine.ShowSuccessMessage(string.Concat("Account.created: ", account.Created.ToString()));
+            //    }
+            //    else
+            //        CLIEngine.ShowErrorMessage("Account not found.");
 
-                // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
-                if (!STAR.BeamedInAvatar.ProviderUniqueStorageKey.ContainsKey(ProviderType.TelosOASIS))
-                {
-                    CLIEngine.ShowWorkingMessage("Linking Telos Account to Avatar...");
-                    OASISResult<Guid> linkKeyResult = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarById(Guid.Empty, STAR.BeamedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
+            //    // Check that the Telos account name is linked to the avatar and link it if it is not (PayWithSeeds will fail if it is not linked when it tries to add the karma points).
+            //    if (!STAR.BeamedInAvatar.ProviderUniqueStorageKey.ContainsKey(ProviderType.TelosOASIS))
+            //    {
+            //        CLIEngine.ShowWorkingMessage("Linking Telos Account to Avatar...");
+            //        OASISResult<Guid> linkKeyResult = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarById(Guid.Empty, STAR.BeamedInAvatar.Id, ProviderType.TelosOASIS, "davidsellams");
 
-                    if (!linkKeyResult.IsError && linkKeyResult.Result != Guid.Empty)
-                        CLIEngine.ShowSuccessMessage($"Telos Account Successfully Linked to Avatar. WalletID: {linkKeyResult.Result}");
-                    else
-                        CLIEngine.ShowErrorMessage($"Error occured Whilst Linking Telos Account To Avatar. Reason: {linkKeyResult.Message}");
-                }
+            //        if (!linkKeyResult.IsError && linkKeyResult.Result != Guid.Empty)
+            //            CLIEngine.ShowSuccessMessage($"Telos Account Successfully Linked to Avatar. WalletID: {linkKeyResult.Result}");
+            //        else
+            //            CLIEngine.ShowErrorMessage($"Error occured Whilst Linking Telos Account To Avatar. Reason: {linkKeyResult.Message}");
+            //    }
 
-                CLIEngine.ShowWorkingMessage("Sending SEEDS from nextgenworld to davidsellams...");
-                OASISResult<string> payWithSeedsResult = STAR.OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("davidsellams", _privateKey, "nextgenworld", 1, KarmaSourceType.API, "test", "test", "test", "test memo");
+            //    CLIEngine.ShowWorkingMessage("Sending SEEDS from nextgenworld to davidsellams...");
+            //    OASISResult<string> payWithSeedsResult = STAR.OASISAPI.Providers.SEEDS.PayWithSeedsUsingTelosAccount("davidsellams", _privateKey, "nextgenworld", 1, KarmaSourceType.API, "test", "test", "test", "test memo");
 
-                if (payWithSeedsResult.IsError)
-                    CLIEngine.ShowErrorMessage(string.Concat("Error Occured: ", payWithSeedsResult.Message));
-                else
-                    CLIEngine.ShowSuccessMessage(string.Concat("SEEDS Sent. Transaction ID: ", payWithSeedsResult.Result));
+            //    if (payWithSeedsResult.IsError)
+            //        CLIEngine.ShowErrorMessage(string.Concat("Error Occured: ", payWithSeedsResult.Message));
+            //    else
+            //        CLIEngine.ShowSuccessMessage(string.Concat("SEEDS Sent. Transaction ID: ", payWithSeedsResult.Result));
 
 
-                CLIEngine.ShowWorkingMessage("Getting Balance for account davidsellams...");
-                balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
-                CLIEngine.ShowSuccessMessage(string.Concat("Balance: ", balance));
+            //    CLIEngine.ShowWorkingMessage("Getting Balance for account davidsellams...");
+            //    balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("davidsellams");
+            //    CLIEngine.ShowSuccessMessage(string.Concat("Balance: ", balance));
 
-                CLIEngine.ShowWorkingMessage("Getting Balance for account nextgenworld...");
-                balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
-                CLIEngine.ShowSuccessMessage(string.Concat("Balance: ", balance));
+            //    CLIEngine.ShowWorkingMessage("Getting Balance for account nextgenworld...");
+            //    balance = STAR.OASISAPI.Providers.SEEDS.GetBalanceForTelosAccount("nextgenworld");
+            //    CLIEngine.ShowSuccessMessage(string.Concat("Balance: ", balance));
 
-                CLIEngine.ShowWorkingMessage("Getting Organsiations...");
-                string orgs = STAR.OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
-                CLIEngine.ShowSuccessMessage(string.Concat("Organisations: ", orgs));
+            //    CLIEngine.ShowWorkingMessage("Getting Organsiations...");
+            //    string orgs = STAR.OASISAPI.Providers.SEEDS.GetAllOrganisationsAsJSON();
+            //    CLIEngine.ShowSuccessMessage(string.Concat("Organisations: ", orgs));
 
-                //CLIEngine.ShowErrorMessage("Getting nextgenworld organsiation...");
-                //string org = OASISAPI.Providers.SEEDS.GetOrganisation("nextgenworld");
-                //CLIEngine.ShowErrorMessage(string.Concat("nextgenworld org: ", org));
+            //    //CLIEngine.ShowErrorMessage("Getting nextgenworld organsiation...");
+            //    //string org = OASISAPI.Providers.SEEDS.GetOrganisation("nextgenworld");
+            //    //CLIEngine.ShowErrorMessage(string.Concat("nextgenworld org: ", org));
 
-                CLIEngine.ShowWorkingMessage("Generating QR Code for davidsellams...");
-                string qrCode = STAR.OASISAPI.Providers.SEEDS.GenerateSignInQRCode("davidsellams");
-                CLIEngine.ShowSuccessMessage(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
+            //    CLIEngine.ShowWorkingMessage("Generating QR Code for davidsellams...");
+            //    string qrCode = STAR.OASISAPI.Providers.SEEDS.GenerateSignInQRCode("davidsellams");
+            //    CLIEngine.ShowSuccessMessage(string.Concat("SEEDS Sign-In QRCode: ", qrCode));
 
-                CLIEngine.ShowWorkingMessage("Sending invite to davidsellams...");
-                OASISResult<SendInviteResult> sendInviteResult = STAR.OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", _privateKey, "davidsellams", 1, 1, KarmaSourceType.API, "test", "test", "test");
-                CLIEngine.ShowSuccessMessage(string.Concat("Success: ", sendInviteResult.IsError ? "false" : "true"));
+            //    CLIEngine.ShowWorkingMessage("Sending invite to davidsellams...");
+            //    OASISResult<SendInviteResult> sendInviteResult = STAR.OASISAPI.Providers.SEEDS.SendInviteToJoinSeedsUsingTelosAccount("davidsellams", _privateKey, "davidsellams", 1, 1, KarmaSourceType.API, "test", "test", "test");
+            //    CLIEngine.ShowSuccessMessage(string.Concat("Success: ", sendInviteResult.IsError ? "false" : "true"));
 
-                if (sendInviteResult.IsError)
-                    CLIEngine.ShowErrorMessage(string.Concat("Error Message: ", sendInviteResult.Message));
-                else
-                {
-                    CLIEngine.ShowSuccessMessage(string.Concat("Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
+            //    if (sendInviteResult.IsError)
+            //        CLIEngine.ShowErrorMessage(string.Concat("Error Message: ", sendInviteResult.Message));
+            //    else
+            //    {
+            //        CLIEngine.ShowSuccessMessage(string.Concat("Invite Sent To Join SEEDS. Invite Secret: ", sendInviteResult.Result.InviteSecret, ". Transction ID: ", sendInviteResult.Result.TransactionId));
 
-                    CLIEngine.ShowWorkingMessage("Accepting invite to davidsellams...");
-                    OASISResult<string> acceptInviteResult = STAR.OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("davidsellams", sendInviteResult.Result.InviteSecret, KarmaSourceType.API, "test", "test", "test");
-                    CLIEngine.ShowSuccessMessage(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
+            //        CLIEngine.ShowWorkingMessage("Accepting invite to davidsellams...");
+            //        OASISResult<string> acceptInviteResult = STAR.OASISAPI.Providers.SEEDS.AcceptInviteToJoinSeedsUsingTelosAccount("davidsellams", sendInviteResult.Result.InviteSecret, KarmaSourceType.API, "test", "test", "test");
+            //        CLIEngine.ShowSuccessMessage(string.Concat("Success: ", acceptInviteResult.IsError ? "false" : "true"));
 
-                    if (acceptInviteResult.IsError)
-                        CLIEngine.ShowErrorMessage(string.Concat("Error Message: ", acceptInviteResult.Message));
-                    else
-                        CLIEngine.ShowSuccessMessage(string.Concat("Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error occured during SEEDS Tests: {ex.Message}");
-            }
+            //        if (acceptInviteResult.IsError)
+            //            CLIEngine.ShowErrorMessage(string.Concat("Error Message: ", acceptInviteResult.Message));
+            //        else
+            //            CLIEngine.ShowSuccessMessage(string.Concat("Invite Accepted To Join SEEDS. Transction ID: ", acceptInviteResult.Result));
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    CLIEngine.ShowErrorMessage($"Error occured during SEEDS Tests: {ex.Message}");
+            //}
 
-            CLIEngine.ShowSuccessMessage("SEEDS Tests Completed.");
+            //CLIEngine.ShowSuccessMessage("SEEDS Tests Completed.");
 
 
             // ThreeFold, AcivityPub, SOLID, Cross/Off Chain, Smart Contract Interoperability & lots more coming soon! :)

@@ -55,6 +55,7 @@ export interface SignupData {
 export interface SigninData {
   username: string;
   password: string;
+  providerType?: string;
 }
 
 export const avatarService = {
@@ -134,7 +135,8 @@ export const avatarService = {
     }
 
     try {
-      const response = await web4Api.post('/avatar/signin', data);
+      // Use the authenticate endpoint which accepts providerType
+      const response = await web4Api.post('/avatar/authenticate', data);
       return response.data;
     } catch (error) {
       return {

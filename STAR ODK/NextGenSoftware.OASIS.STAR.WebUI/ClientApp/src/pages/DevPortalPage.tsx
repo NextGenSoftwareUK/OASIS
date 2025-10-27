@@ -132,7 +132,7 @@ import {
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { starService } from '../services/starService';
+import { starCoreService, avatarService } from '../services';
 
 interface DevResource {
   id: string;
@@ -190,7 +190,7 @@ const DevPortalPage: React.FC = () => {
     'devPortalStats',
     async () => {
       try {
-        const response = await starService.getDevPortalStats?.();
+        const response = await starCoreService.getDevPortalStats();
         return response;
       } catch (error) {
         // Fallback to impressive demo data
@@ -220,7 +220,7 @@ const DevPortalPage: React.FC = () => {
     'devPortalResources',
     async () => {
       try {
-        const response = await starService.getDevPortalResources?.();
+        const response = await starCoreService.getDevPortalResources();
         return response;
       } catch (error) {
         // Fallback to impressive demo data
@@ -469,7 +469,7 @@ const DevPortalPage: React.FC = () => {
     }
   };
 
-  const filteredResources = devResources?.result?.filter((resource: DevResource) => {
+  const filteredResources = (devResources?.result || []).filter((resource: DevResource) => {
     const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          resource.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          resource.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -478,34 +478,34 @@ const DevPortalPage: React.FC = () => {
     const matchesType = selectedType === 'all' || resource.type === selectedType;
     
     return matchesSearch && matchesCategory && matchesDifficulty && matchesType;
-  }) || [];
+  });
 
   const categories = [
-    { value: 'all', label: 'All Categories', count: devResources?.result?.length || 0 },
-    { value: 'getting-started', label: 'Getting Started', count: devResources?.result?.filter((r: DevResource) => r.category === 'getting-started').length || 0 },
-    { value: 'integration', label: 'Integration', count: devResources?.result?.filter((r: DevResource) => r.category === 'integration').length || 0 },
-    { value: 'advanced', label: 'Advanced', count: devResources?.result?.filter((r: DevResource) => r.category === 'advanced').length || 0 },
-    { value: 'examples', label: 'Examples', count: devResources?.result?.filter((r: DevResource) => r.category === 'examples').length || 0 },
-    { value: 'tools', label: 'Tools', count: devResources?.result?.filter((r: DevResource) => r.category === 'tools').length || 0 },
+    { value: 'all', label: 'All Categories', count: (devResources?.result || []).length },
+    { value: 'getting-started', label: 'Getting Started', count: (devResources?.result || []).filter((r: DevResource) => r.category === 'getting-started').length },
+    { value: 'integration', label: 'Integration', count: (devResources?.result || []).filter((r: DevResource) => r.category === 'integration').length },
+    { value: 'advanced', label: 'Advanced', count: (devResources?.result || []).filter((r: DevResource) => r.category === 'advanced').length },
+    { value: 'examples', label: 'Examples', count: (devResources?.result || []).filter((r: DevResource) => r.category === 'examples').length },
+    { value: 'tools', label: 'Tools', count: (devResources?.result || []).filter((r: DevResource) => r.category === 'tools').length },
   ];
 
   const types = [
-    { value: 'all', label: 'All Types', count: devResources?.result?.length || 0 },
-    { value: 'cli', label: 'CLI Tools', count: devResources?.result?.filter((r: DevResource) => r.type === 'cli').length || 0 },
-    { value: 'sdk', label: 'SDKs', count: devResources?.result?.filter((r: DevResource) => r.type === 'sdk').length || 0 },
-    { value: 'api', label: 'APIs', count: devResources?.result?.filter((r: DevResource) => r.type === 'api').length || 0 },
-    { value: 'documentation', label: 'Documentation', count: devResources?.result?.filter((r: DevResource) => r.type === 'documentation').length || 0 },
-    { value: 'tutorial', label: 'Tutorials', count: devResources?.result?.filter((r: DevResource) => r.type === 'tutorial').length || 0 },
-    { value: 'case-study', label: 'Case Studies', count: devResources?.result?.filter((r: DevResource) => r.type === 'case-study').length || 0 },
-    { value: 'example', label: 'Examples', count: devResources?.result?.filter((r: DevResource) => r.type === 'example').length || 0 },
-    { value: 'postman', label: 'Postman', count: devResources?.result?.filter((r: DevResource) => r.type === 'postman').length || 0 },
+    { value: 'all', label: 'All Types', count: (devResources?.result || []).length },
+    { value: 'cli', label: 'CLI Tools', count: (devResources?.result || []).filter((r: DevResource) => r.type === 'cli').length },
+    { value: 'sdk', label: 'SDKs', count: (devResources?.result || []).filter((r: DevResource) => r.type === 'sdk').length },
+    { value: 'api', label: 'APIs', count: (devResources?.result || []).filter((r: DevResource) => r.type === 'api').length },
+    { value: 'documentation', label: 'Documentation', count: (devResources?.result || []).filter((r: DevResource) => r.type === 'documentation').length },
+    { value: 'tutorial', label: 'Tutorials', count: (devResources?.result || []).filter((r: DevResource) => r.type === 'tutorial').length },
+    { value: 'case-study', label: 'Case Studies', count: (devResources?.result || []).filter((r: DevResource) => r.type === 'case-study').length },
+    { value: 'example', label: 'Examples', count: (devResources?.result || []).filter((r: DevResource) => r.type === 'example').length },
+    { value: 'postman', label: 'Postman', count: (devResources?.result || []).filter((r: DevResource) => r.type === 'postman').length },
   ];
 
   const difficulties = [
-    { value: 'all', label: 'All Levels', count: devResources?.result?.length || 0 },
-    { value: 'beginner', label: 'Beginner', count: devResources?.result?.filter((r: DevResource) => r.difficulty === 'beginner').length || 0 },
-    { value: 'intermediate', label: 'Intermediate', count: devResources?.result?.filter((r: DevResource) => r.difficulty === 'intermediate').length || 0 },
-    { value: 'advanced', label: 'Advanced', count: devResources?.result?.filter((r: DevResource) => r.difficulty === 'advanced').length || 0 },
+    { value: 'all', label: 'All Levels', count: (devResources?.result || []).length },
+    { value: 'beginner', label: 'Beginner', count: (devResources?.result || []).filter((r: DevResource) => r.difficulty === 'beginner').length },
+    { value: 'intermediate', label: 'Intermediate', count: (devResources?.result || []).filter((r: DevResource) => r.difficulty === 'intermediate').length },
+    { value: 'advanced', label: 'Advanced', count: (devResources?.result || []).filter((r: DevResource) => r.difficulty === 'advanced').length },
   ];
 
   return (

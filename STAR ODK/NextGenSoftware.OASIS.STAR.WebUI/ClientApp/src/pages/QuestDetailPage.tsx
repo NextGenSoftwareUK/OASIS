@@ -55,7 +55,7 @@ import {
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starNetService } from '../services/starNetService';
+import { questService } from '../services';
 import { Quest } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -75,7 +75,7 @@ const QuestDetailPage: React.FC = () => {
     async () => {
       if (!id) throw new Error('Quest ID is required');
       // For now, we'll get it from the list and filter by ID
-      const response = await starNetService.getAllQuests();
+      const response = await questService.getAll();
       const foundQuest = response.result?.find((q: Quest) => q.id === id);
       if (!foundQuest) throw new Error('Quest not found');
       return { result: foundQuest };
@@ -94,7 +94,7 @@ const QuestDetailPage: React.FC = () => {
   const updateQuestMutation = useMutation(
     async (data: any) => {
       if (!id) throw new Error('Quest ID is required');
-      return await starNetService.updateQuest(id, data);
+      return await questService.update(id, data);
     },
     {
       onSuccess: () => {
@@ -114,7 +114,7 @@ const QuestDetailPage: React.FC = () => {
   const deleteQuestMutation = useMutation(
     async () => {
       if (!id) throw new Error('Quest ID is required');
-      return await starNetService.deleteQuest(id);
+      return await questService.delete(id);
     },
     {
       onSuccess: () => {

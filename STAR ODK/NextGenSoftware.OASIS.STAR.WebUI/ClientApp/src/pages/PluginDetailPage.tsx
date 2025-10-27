@@ -62,7 +62,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starService } from '../services/starService';
+import { pluginService } from '../services';
 import { toast } from 'react-hot-toast';
 
 interface Plugin {

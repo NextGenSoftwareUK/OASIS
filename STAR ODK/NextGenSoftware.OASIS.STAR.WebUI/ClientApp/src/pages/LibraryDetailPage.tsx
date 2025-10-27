@@ -53,7 +53,7 @@ import {
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { starNetService } from '../services/starNetService';
+import { libraryService } from '../services';
 import { Library } from '../types/star';
 import { toast } from 'react-hot-toast';
 
@@ -73,7 +73,7 @@ const LibraryDetailPage: React.FC = () => {
     async () => {
       if (!id) throw new Error('Library ID is required');
       // For now, we'll get it from the list and filter by ID
-      const response = await starNetService.getAllLibraries();
+      const response = await libraryService.getAll();
       const foundLibrary = response.result?.find((l: Library) => l.id === id);
       if (!foundLibrary) throw new Error('Library not found');
       return { result: foundLibrary };
@@ -92,7 +92,7 @@ const LibraryDetailPage: React.FC = () => {
   const updateLibraryMutation = useMutation(
     async (data: any) => {
       if (!id) throw new Error('Library ID is required');
-      return await starNetService.updateLibrary(id, data);
+      return await libraryService.update(id, data);
     },
     {
       onSuccess: () => {
@@ -112,7 +112,7 @@ const LibraryDetailPage: React.FC = () => {
   const deleteLibraryMutation = useMutation(
     async () => {
       if (!id) throw new Error('Library ID is required');
-      return await starNetService.deleteLibrary(id);
+      return await libraryService.delete(id);
     },
     {
       onSuccess: () => {

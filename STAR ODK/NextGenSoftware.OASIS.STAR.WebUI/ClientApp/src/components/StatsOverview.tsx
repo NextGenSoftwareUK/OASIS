@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Grid, Card, CardContent, Typography, LinearProgress } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useQuery } from 'react-query';
-import { starService } from '../services/starService';
+import { statsService } from '../services';
 
 interface StatCardProps {
   title: string;
@@ -62,59 +62,64 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, isLoadin
 };
 
 const StatsOverview: React.FC = () => {
-  // Mock data queries - replace with real API calls when available
-  const { data: oappsData, isLoading: oappsLoading } = useQuery(
-    'oappsStats',
-    () => Promise.resolve({ count: 42 }),
+  const avatarId = typeof window !== 'undefined' ? (localStorage.getItem('avatarId') || 'demo-avatar') : 'demo-avatar';
+
+  // Real stats via STAR API with demo fallback inside service
+  const { data: karmaStats, isLoading: karmaLoading } = useQuery(
+    ['stats-karma', avatarId],
+    async () => {
+      const res = await statsService.getKarmaStats(avatarId);
+      return res.result || { totalKarma: 0 };
+    },
     { refetchInterval: 30000 }
   );
 
-  const { data: questsData, isLoading: questsLoading } = useQuery(
-    'questsStats',
-    () => Promise.resolve({ count: 128 }),
+  const { data: chatStats, isLoading: chatLoading } = useQuery(
+    ['stats-chat', avatarId],
+    async () => {
+      const res = await statsService.getChatStats(avatarId);
+      return res.result || { totalMessages: 0 };
+    },
     { refetchInterval: 30000 }
   );
 
-  const { data: nftsData, isLoading: nftsLoading } = useQuery(
-    'nftsStats',
-    () => Promise.resolve({ count: 256 }),
-    { refetchInterval: 30000 }
-  );
-
-  const { data: avatarsData, isLoading: avatarsLoading } = useQuery(
-    'avatarsStats',
-    () => Promise.resolve({ count: 89 }),
+  const { data: questStats, isLoading: questLoading } = useQuery(
+    ['stats-quests', avatarId],
+    async () => {
+      const res = await statsService.getQuestStats(avatarId);
+      return res.result || { totalQuests: 0 };
+    },
     { refetchInterval: 30000 }
   );
 
   const stats = [
     {
-      title: 'OAPPs',
-      value: oappsData?.count || 0,
-      icon: '🌌',
+      title: 'Total Karma',
+      value: karmaStats?.totalKarma || 0,
+      icon: '⭐',
       color: '#9c27b0',
-      isLoading: oappsLoading,
+      isLoading: karmaLoading,
     },
     {
-      title: 'Quests',
-      value: questsData?.count || 0,
+      title: 'Messages Sent',
+      value: chatStats?.totalMessages || 0,
+      icon: '💬',
+      color: '#2196f3',
+      isLoading: chatLoading,
+    },
+    {
+      title: 'Total Quests',
+      value: questStats?.totalQuests || 0,
       icon: '⚔️',
       color: '#ff9800',
-      isLoading: questsLoading,
+      isLoading: questLoading,
     },
     {
-      title: 'NFTs',
-      value: nftsData?.count || 0,
-      icon: '🎨',
-      color: '#2196f3',
-      isLoading: nftsLoading,
-    },
-    {
-      title: 'Avatars',
-      value: avatarsData?.count || 0,
-      icon: '👤',
+      title: 'Completed Quests',
+      value: questStats?.completedQuests || 0,
+      icon: '🏁',
       color: '#4caf50',
-      isLoading: avatarsLoading,
+      isLoading: questLoading,
     },
   ];
 
