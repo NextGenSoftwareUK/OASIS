@@ -48,6 +48,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         private readonly string _privateKey;
         private readonly string _contractAddress;
         private bool _isActivated;
+
+        // Aptos blockchain constants
+        private const string APTOS_CONTRACT_ADDRESS = "0x1::oasis";
+        private const string APTOS_API_BASE_URL = "https://fullnode.mainnet.aptoslabs.com/v1";
+        private const string APTOS_ACCOUNT_ADDRESS = "0x1";
         private WalletManager _walletManager;
 
         public WalletManager WalletManager
@@ -748,61 +753,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
-
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
-                }
-
-                // Load all avatar details from Aptos blockchain using real Aptos RPC
-                var request = new
-                {
-                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_all_avatar_details",
-                    arguments = new object[0],
-                    type_arguments = new object[0]
-                };
-
-                var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var aptosResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    if (aptosResponse.TryGetProperty("0", out var avatarDetailsArray) && 
-                        avatarDetailsArray.ValueKind == JsonValueKind.Array)
-                    {
-                        var avatarDetails = ParseAptosToAvatarDetails(avatarDetailsArray);
-                        response.Result = avatarDetails;
-                        response.IsError = false;
-                        response.Message = $"Loaded {avatarDetails.Count()} avatar details from Aptos blockchain successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse avatar details from Aptos response");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar details from Aptos: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading all avatar details from Aptos: {ex.Message}");
-            }
-
-            return response;
-        }
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
         {
             var response = new OASISResult<IAvatar>();
@@ -923,7 +873,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                                 Avatar.Landline ?? "",
                                 Avatar.Mobile ?? "",
                                 Avatar.FavouriteColour,
-                                Avatar.StarCLIColour,
+                                Avatar.STARCLIColour,
                                 Avatar.Description ?? "",
                                 Avatar.IsActive
                             }
@@ -2788,8 +2738,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                            data3.TryGetProperty("email", out var email) ? email.GetString() : "user@aptos.example",
                     Karma = aptosData.TryGetProperty("data", out var data4) &&
                            data4.TryGetProperty("karma", out var karma) ? karma.GetInt32() : 0,
-                    Level = aptosData.TryGetProperty("data", out var data5) &&
-                           data5.TryGetProperty("level", out var level) ? level.GetInt32() : 1,
+                    // Level is read-only, calculated from XP
                     XP = aptosData.TryGetProperty("data", out var data6) &&
                         data6.TryGetProperty("xp", out var xp) ? xp.GetInt32() : 0,
                     Model3D = aptosData.TryGetProperty("data", out var data7) &&
@@ -2815,13 +2764,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     Mobile = aptosData.TryGetProperty("data", out var data17) &&
                             data17.TryGetProperty("mobile", out var mobile) ? mobile.GetString() : "",
                     FavouriteColour = aptosData.TryGetProperty("data", out var data18) &&
-                                     data18.TryGetProperty("favourite_colour", out var favouriteColour) ? favouriteColour.GetInt32() : 0,
-                    StarCLIColour = aptosData.TryGetProperty("data", out var data19) &&
-                                   data19.TryGetProperty("starcli_colour", out var starcliColour) ? starcliColour.GetInt32() : 0,
+                                     data18.TryGetProperty("favourite_colour", out var favouriteColour) ? (ConsoleColor)favouriteColour.GetInt32() : ConsoleColor.White,
+                    STARCLIColour = aptosData.TryGetProperty("data", out var data19) &&
+                                   data19.TryGetProperty("starcli_colour", out var starcliColour) ? (ConsoleColor)starcliColour.GetInt32() : ConsoleColor.White,
                     CreatedDate = aptosData.TryGetProperty("data", out var data20) &&
-                                 data20.TryGetProperty("created_date", out var createdDate) ? createdDate.GetInt64() : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                                 data20.TryGetProperty("created_date", out var createdDate) ? DateTimeOffset.FromUnixTimeSeconds(createdDate.GetInt64()).DateTime : DateTime.UtcNow,
                     ModifiedDate = aptosData.TryGetProperty("data", out var data21) &&
-                                  data21.TryGetProperty("modified_date", out var modifiedDate) ? modifiedDate.GetInt64() : DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                                  data21.TryGetProperty("modified_date", out var modifiedDate) ? DateTimeOffset.FromUnixTimeSeconds(modifiedDate.GetInt64()).DateTime : DateTime.UtcNow,
                     Description = aptosData.TryGetProperty("data", out var data22) &&
                                  data22.TryGetProperty("description", out var description) ? description.GetString() : "Aptos Avatar Detail",
                     IsActive = aptosData.TryGetProperty("data", out var data23) &&
