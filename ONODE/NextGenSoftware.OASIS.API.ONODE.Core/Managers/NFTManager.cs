@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     public class NFTManager : COSMICManagerBase, INFTManager
     {
-        private const int FORMAT_SUCCESS_MESSAGE_COL_WIDTH = 30;
+        private const int FORMAT_SUCCESS_MESSAGE_COL_WIDTH = 33;
         IPFSOASIS _ipfs = new IPFSOASIS();
         PinataOASIS _pinata = new PinataOASIS();
 
@@ -2341,7 +2341,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
             }
 
-            if (!string.IsNullOrEmpty(request.ImageUrl))
+            if (!string.IsNullOrEmpty(request.ImageUrl) || request.NFTOffChainMetaType.Value == NFTOffChainMetaType.ExternalJSONURL)
             {
                 string json = request.JSONMetaData;
 
@@ -2758,7 +2758,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         private string FormatSuccessMessage(IMintNFTTransactionRequest request, OASISResult<INFTTransactionRespone> response, EnumValue<ProviderType> metaDataProviderType, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = FORMAT_SUCCESS_MESSAGE_COL_WIDTH)
         {
-            string lineBreak = "";
+            string lineBreak = "\n";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
@@ -2787,7 +2787,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         private string FormatSuccessMessage(IImportWeb3NFTRequest request, OASISResult<IOASISNFT> response, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = FORMAT_SUCCESS_MESSAGE_COL_WIDTH)
         {
-            string lineBreak = "";
+            string lineBreak = "\n";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
@@ -2815,7 +2815,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         private string FormatSuccessMessage(OASISResult<IOASISNFT> response, Guid importedByByAvatarId, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = FORMAT_SUCCESS_MESSAGE_COL_WIDTH)
         {
-            string lineBreak = "";
+            string lineBreak = "\n";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {
@@ -2843,7 +2843,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         private string FormatSuccessMessage(OASISResult<IOASISGeoSpatialNFT> response, Guid importedByByAvatarId, ResponseFormatType responseFormatType = ResponseFormatType.FormattedText, int colWidth = FORMAT_SUCCESS_MESSAGE_COL_WIDTH)
         {
-            string lineBreak = "";
+            string lineBreak = "\n";
 
             if (responseFormatType == ResponseFormatType.SimpleText)
             {

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Drawing;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
@@ -256,6 +258,161 @@ namespace NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS
             {
                 return false;
             }
+        }
+
+        public bool CreateAndDrawRouteOnMapBetweenHolons(Guid fromHolonId, Guid toHolonId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool DrawRouteOnMap(float startX, float startY, float endX, float endY, Color colour)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SelectQuestOnMap(object quest)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ZoomToHolonOnMap(Guid holonId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ZoomToQuestOnMap(IQuest quest)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ZoomToQuestOnMap(Guid questId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool PlaceHolonOnMap(IHolon holon, float x, float y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool PlaceBuildingOnMap(IBuilding building, float x, float y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool PlaceQuestOnMap(object quest, float x, float y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool PlaceGeoNFTOnMap(object geoNFT, float x, float y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool PlaceGeoHotSpotOnMap(object geoHotSpot, float x, float y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool PlaceOAPPOnMap(object oapp, float x, float y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool CreateAndDrawRouteOnMapBetweenQuests(object fromQuest, object toQuest)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool CreateAndDrawRouteOnMapBetweenQuests(Guid fromQuestId, Guid toQuestId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(object fromGeoNFT, object toGeoNFT)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(Guid fromGeoNFTId, Guid toGeoNFTId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(object fromGeoHotSpot, object toGeoHotSpot)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(Guid fromGeoHotSpotId, Guid toGeoHotSpotId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool CreateAndDrawRouteOnMapBetweenOAPPs(object fromOAPP, object toOAPP)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool CreateAndDrawRouteOnMapBetweenOAPPs(Guid fromOAPPId, Guid toOAPPId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool CreateAndDrawRouteOnMapBetweenBuildings(IBuilding fromBuilding, IBuilding toBuilding)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool CreateAndDrawRouteOnMapBetweenBuildings(Guid fromBuildingId, Guid toBuildingId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ZoomToGeoNFTOnMap(object geoNFT)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ZoomToGeoNFTOnMap(Guid geoNFTId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ZoomToGeoHotSpotOnMap(object geoHotSpot)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ZoomToGeoHotSpotOnMap(Guid geoHotSpotId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ZoomToOAPPOnMap(object oapp)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ZoomToOAPPOnMap(Guid oappId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ZoomToBuildingOnMap(IBuilding building)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ZoomToBuildingOnMap(Guid buildingId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ZoomToCoOrdsOnMap(float x, float y)
+        {
+            throw new NotImplementedException();
         }
 
         // IQuest support is not currently available in Core; method omitted.

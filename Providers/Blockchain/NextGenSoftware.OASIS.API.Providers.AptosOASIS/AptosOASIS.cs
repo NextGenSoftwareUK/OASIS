@@ -983,7 +983,38 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => new OASISResult<bool> { Result = true };
-        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true) => Task.FromResult(new OASISResult<bool> { Result = true });
+        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                var request = new
+                {
+                    function = "delete_avatar_by_provider_key",
+                    arguments = new[] { providerKey, softDelete.ToString().ToLower() }
+                };
+
+                var json = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/transactions/simulate", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    result.Result = true;
+                    result.IsError = false;
+                    result.Message = "Avatar deleted successfully from Aptos";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to delete avatar from Aptos: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Aptos: {ex.Message}", ex);
+            }
+            return result;
+        }
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => new OASISResult<bool> { Result = true };
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
@@ -1186,9 +1217,75 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => new OASISResult<ISearchResults>();
-        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IHolon>());
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var request = new
+                {
+                    function = "get_holon_by_id",
+                    arguments = new[] { id.ToString() }
+                };
+
+                var json = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var holon = ParseAptosToHolon(responseContent);
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from Aptos";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Aptos: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Aptos: {ex.Message}", ex);
+            }
+            return result;
+        }
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IHolon>();
-        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IHolon>());
+        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var request = new
+                {
+                    function = "get_holon_by_provider_key",
+                    arguments = new[] { providerKey }
+                };
+
+                var json = System.Text.Json.JsonSerializer.Serialize(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var holon = ParseAptosToHolon(responseContent);
+                    result.Result = holon;
+                    result.IsError = false;
+                    result.Message = "Holon loaded successfully from Aptos";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Aptos: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Aptos: {ex.Message}", ex);
+            }
+            return result;
+        }
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IHolon>();
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParent is not supported by Aptos provider." });
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => new OASISResult<IEnumerable<IHolon>> { Message = "LoadHolonsForParent is not supported by Aptos provider." };

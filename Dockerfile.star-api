@@ -12,7 +12,7 @@ WORKDIR /src
 COPY . .
 
 # Copy external libraries to the correct relative path that the project references expect
-COPY ../NextGenSoftware-Libraries/NextGenSoftware\ Libraries/ ../NextGenSoftware-Libraries/NextGenSoftware\ Libraries/
+COPY external-libs/NextGenSoftware-Libraries/NextGenSoftware\ Libraries/ ../NextGenSoftware-Libraries/NextGenSoftware\ Libraries/
 
 # Clone holochain-client-csharp from GitHub
 RUN apt-get update && apt-get install -y git
