@@ -11,24 +11,26 @@ WORKDIR /src
 # Copy the entire OASIS project structure
 COPY . .
 
-# Download external libraries from GitHub during build - CACHE BUST v2
-RUN apt-get update && apt-get install -y git && \
-    # Clone NextGenSoftware-Libraries
-    git clone https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries.git temp-libs && \
-    # Copy all required NextGenSoftware libraries to both locations
-    mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries" && \
-    mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries" && \
-    # Copy all libraries (Logging, ErrorHandling, CLI.Engine, etc.)
-    cp -r temp-libs/NextGenSoftware\ Libraries/* "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/" && \
-    cp -r temp-libs/NextGenSoftware\ Libraries/* "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/" && \
-    # Clone holochain-client-csharp
-    git clone https://github.com/NextGenSoftwareUK/holochain-client-csharp.git temp-holo && \
-    # Copy holochain-client-csharp to expected location
-    mkdir -p "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp" && \
-    cp -r temp-holo/* "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp/" && \
-    # Clean up
-    rm -rf temp-libs temp-holo && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# FORCE CACHE BREAK - Download ALL external libraries from GitHub
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries.git temp-libs
+RUN git clone https://github.com/NextGenSoftwareUK/holochain-client-csharp.git temp-holo
+
+# Create directory structure for ALL libraries
+RUN mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries"
+RUN mkdir -p "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries"
+RUN mkdir -p "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp"
+
+# Copy ALL NextGenSoftware libraries to both locations
+RUN cp -r temp-libs/NextGenSoftware\ Libraries/* "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware-Libraries/NextGenSoftware Libraries/"
+RUN cp -r temp-libs/NextGenSoftware\ Libraries/* "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware-Libraries/NextGenSoftware Libraries/"
+
+# Copy holochain-client-csharp
+RUN cp -r temp-holo/* "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp/"
+
+# Clean up
+RUN rm -rf temp-libs temp-holo
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Build the STAR WebAPI project from the root directory
 WORKDIR "/src"
