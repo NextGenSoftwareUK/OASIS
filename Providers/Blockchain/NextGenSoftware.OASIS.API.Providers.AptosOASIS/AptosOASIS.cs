@@ -856,15 +856,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                             arguments = new[]
                             {
                                 Avatar.Id.ToString(),
-                                Avatar.Username,
-                                Avatar.Email,
-                                Avatar.Karma,
-                                Avatar.Level,
-                                Avatar.XP,
+                                Avatar.Username ?? "",
+                                Avatar.Email ?? "",
+                                Avatar.Karma.ToString(),
+                                Avatar.Level.ToString(),
+                                Avatar.XP.ToString(),
                                 Avatar.Model3D ?? "",
                                 Avatar.UmaJson ?? "",
                                 Avatar.Portrait ?? "",
-                                Avatar.DOB,
+                                ((DateTimeOffset)Avatar.DOB).ToUnixTimeSeconds().ToString(),
                                 Avatar.Address ?? "",
                                 Avatar.Town ?? "",
                                 Avatar.County ?? "",
@@ -872,10 +872,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                                 Avatar.Postcode ?? "",
                                 Avatar.Landline ?? "",
                                 Avatar.Mobile ?? "",
-                                Avatar.FavouriteColour,
-                                Avatar.STARCLIColour,
+                                ((int)Avatar.FavouriteColour).ToString(),
+                                ((int)Avatar.STARCLIColour).ToString(),
                                 Avatar.Description ?? "",
-                                Avatar.IsActive
+                                Avatar.IsActive.ToString()
                             }
                         }
                     }
@@ -2748,7 +2748,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     Portrait = aptosData.TryGetProperty("data", out var data9) &&
                               data9.TryGetProperty("portrait", out var portrait) ? portrait.GetString() : "",
                     DOB = aptosData.TryGetProperty("data", out var data10) &&
-                         data10.TryGetProperty("dob", out var dob) ? dob.GetInt64() : 0,
+                         data10.TryGetProperty("dob", out var dob) ? DateTimeOffset.FromUnixTimeSeconds(dob.GetInt64()).DateTime : DateTime.UtcNow,
                     Address = aptosData.TryGetProperty("data", out var data11) &&
                              data11.TryGetProperty("address", out var address) ? address.GetString() : "",
                     Town = aptosData.TryGetProperty("data", out var data12) &&
