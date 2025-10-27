@@ -11,17 +11,17 @@ WORKDIR /src
 # Copy the entire OASIS project structure (now including external libraries)
 COPY . .
 
-# Build the STAR WebAPI project
-WORKDIR "/src/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI"
+# Build the STAR WebAPI project from the root directory
+WORKDIR "/src"
 
 # Restore and build
-RUN dotnet restore "NextGenSoftware.OASIS.STAR.WebAPI.csproj"
-RUN dotnet build "NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/build
+RUN dotnet restore "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj"
+RUN dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/build
 
 # Publish the application
 FROM build AS publish
-WORKDIR "/src/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI"
-RUN dotnet publish "NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+WORKDIR "/src"
+RUN dotnet publish "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Final stage
 FROM base AS final
