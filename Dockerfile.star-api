@@ -11,7 +11,7 @@ WORKDIR /src
 # Copy the entire OASIS project structure
 COPY . .
 
-# Download external libraries from GitHub during build
+# Download external libraries from GitHub during build - CACHE BUST v2
 RUN apt-get update && apt-get install -y git && \
     # Clone NextGenSoftware-Libraries
     git clone https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries.git temp-libs && \
