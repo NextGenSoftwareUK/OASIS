@@ -552,7 +552,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
         }
 
-        private void MapMetaData<T>(OASISResult<IEnumerable<T>> result) where T : IHolon
+        public void MapMetaData<T>(OASISResult<IEnumerable<T>> result) where T : IHolon
         {
             List<T> holons = result.Result.ToList();
             for (int i = 0; i < holons.Count(); i++)
@@ -562,7 +562,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
         }
 
-        private IHolon MapMetaData<T>(IHolon holon) where T : IHolon
+        public IHolon MapMetaData<T>(IHolon holon) where T : IHolon
         {
             foreach (string key in holon.MetaData.Keys)
             {

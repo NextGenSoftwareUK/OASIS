@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+//using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
@@ -832,17 +832,17 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
-                        case ProviderType.TelosOASIS:
-                            {
-                                TelosOASIS TelosOASIS = new TelosOASIS(
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
-                                    OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
-                                TelosOASIS.OnStorageProviderError += TelosOASIS_StorageProviderError;
-                                result.Result = TelosOASIS;
-                            }
-                            break;
+                        //case ProviderType.TelosOASIS:
+                        //    {
+                        //        TelosOASIS TelosOASIS = new TelosOASIS(
+                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ConnectionString,
+                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountName,
+                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.ChainId,
+                        //            OASISDNA.OASIS.StorageProviders.EOSIOOASIS.AccountPrivateKey);
+                        //        TelosOASIS.OnStorageProviderError += TelosOASIS_StorageProviderError;
+                        //        result.Result = TelosOASIS;
+                        //    }
+                        //    break;
 
                         //case ProviderType.SEEDSOASIS:
                         //    {
