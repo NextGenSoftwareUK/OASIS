@@ -28,8 +28,8 @@ export function CapitalFlowLine({ from, to, amount, isActive, showFlows }: Capit
   
   if (!showFlows) return null;
   
-  // Line thickness based on capital amount
-  const thickness = Math.log10(amount / 10_000_000);
+  // Line thickness based on capital amount (increased for visibility)
+  const thickness = Math.max(2, Math.log10(amount / 10_000_000) * 2);
   
   return (
     <Line
@@ -38,11 +38,11 @@ export function CapitalFlowLine({ from, to, amount, isActive, showFlows }: Capit
       color={isActive ? "#22d3ee" : "#64748b"}
       lineWidth={thickness}
       dashed={isActive}
-      dashScale={50}
-      dashSize={2}
-      gapSize={1}
+      dashScale={30}
+      dashSize={3}
+      gapSize={2}
       transparent
-      opacity={isActive ? 0.6 : 0.2}
+      opacity={isActive ? 0.8 : 0.3}
     />
   );
 }
