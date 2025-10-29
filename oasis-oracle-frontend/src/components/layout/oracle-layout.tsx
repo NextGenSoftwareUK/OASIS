@@ -2,16 +2,15 @@
 
 import Link from "next/link";
 import { ReactNode } from "react";
-import { Activity, TrendingUp, CheckCircle2, Coins, Shuffle, Image, Vote, Wallet } from "lucide-react";
+import { Activity, TrendingUp, CheckCircle2, Coins, Shuffle, Image, Vote, Wallet, Network } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", href: "/", icon: Activity },
+  { label: "Network 3D", href: "/network", icon: Network },
   { label: "Collateral", href: "/collateral", icon: Wallet },
   { label: "Verify", href: "/verify", icon: CheckCircle2 },
   { label: "Prices", href: "/prices", icon: TrendingUp },
   { label: "Arbitrage", href: "/arbitrage", icon: Shuffle },
-  { label: "NFT Transfer", href: "/nft-transfer", icon: Image },
-  { label: "DAO Voting", href: "/dao", icon: Vote },
 ];
 
 type OracleLayoutProps = {
