@@ -23,6 +23,16 @@ export function Blockchain3DScene({
   autoRotate, 
   onNodeClick 
 }: Blockchain3DSceneProps) {
+  // Debug logging
+  console.log("🌐 3D Scene Render:", {
+    totalNodes: blockchain3DNodes.length,
+    totalFlows: capitalFlows3D.length,
+    activeFlows: capitalFlows3D.filter(f => f.isActive).length,
+    showFlows,
+    showLabels,
+    autoRotate
+  });
+  
   return (
     <Canvas
       camera={{ position: [0, 0, 45], fov: 75 }}
@@ -64,7 +74,12 @@ export function Blockchain3DScene({
           const fromPos = getChainPosition(flow.from);
           const toPos = getChainPosition(flow.to);
           
-          if (!fromPos || !toPos) return null;
+          if (!fromPos || !toPos) {
+            console.warn(`❌ Flow ${index}: Missing position for ${flow.from} → ${flow.to}`);
+            return null;
+          }
+          
+          console.log(`✓ Flow ${index}:`, flow.from, "→", flow.to, `$${(flow.amount / 1e9).toFixed(1)}B`, flow.isActive ? "ACTIVE" : "inactive");
           
           return (
             <CapitalFlowLine
@@ -86,6 +101,8 @@ export function Blockchain3DScene({
             const toPos = getChainPosition(flow.to);
             
             if (!fromPos || !toPos) return null;
+            
+            console.log(`⚡ Particles ${index}:`, flow.from, "→", flow.to, `${Math.max(10, Math.floor(flow.amount / 50_000_000))} particles`);
             
             return (
               <FlowingParticles

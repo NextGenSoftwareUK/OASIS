@@ -17,6 +17,8 @@ export function FlowingParticles({ from, to, amount, isActive }: FlowingParticle
   // Number of particles based on amount (1 particle per $50M for better visibility)
   const count = Math.max(10, Math.floor(amount / 50_000_000));
   
+  console.log("✨ FlowingParticles render:", { from, to, amount, isActive, count });
+  
   const { positions, colors } = useMemo(() => {
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
