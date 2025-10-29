@@ -222,3 +222,4 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
   );
 }
 
+
