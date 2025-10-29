@@ -128,6 +128,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
+        public override Task EditAsync(string idOrName = "", object editParams = null, bool editLaunchTarget = true, ProviderType providerType = ProviderType.Default)
+        {
+            return base.EditAsync(idOrName, editParams, false, providerType);
+        }
+
         public override void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 35, object customData = null)
         {
             displayFieldLength = DEFAULT_FIELD_LENGTH;
@@ -154,7 +159,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<IOASISNFTCollection>> CreateWeb4NFTCollectionAsync(object createOptions = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOASISNFTCollection> result = new OASISResult<IOASISNFTCollection>();
-            CreateOASISNFTCollectionRequest request = new CreateOASISNFTCollectionRequest();
+            CreateNFTCollectionRequest request = new CreateNFTCollectionRequest();
 
             request.Title = CLIEngine.GetValidInput("Please enter a title for the NFT Collection: ");
             request.Description = CLIEngine.GetValidInput("Please enter a description for the NFT Collection: ");
@@ -234,7 +239,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<IOASISNFTCollection>> UpdateWeb4NFTCollectionAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOASISNFTCollection> result = new OASISResult<IOASISNFTCollection>();
-            UpdateOASISNFTCollectionRequest request = new UpdateOASISNFTCollectionRequest();
+            UpdateNFTCollectionRequest request = new UpdateNFTCollectionRequest();
 
             OASISResult<IOASISNFTCollection> collectionResult = await FindWeb4NFTCollectionAsync("update", idOrName, providerType: providerType);
 

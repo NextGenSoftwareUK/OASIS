@@ -16,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         //public string SendToAvatarAfterMintingEmail { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public Guid MintedByAvatarId { get; set; }
         public Guid ImportedByAvatarId { get; set; }
+        public Guid ModifiedByAvatarId { get; set; }
         public string OASISMintWalletAddress { get; set; } //The OASIS System account that minted the NFT.
         public string NFTMintedUsingWalletAddress { get; set; } //This may be different to OASISMintWalletAddress if it was imported.
         public string NFTTokenAddress { get; set; } //The address of the actual minted NFT on the chain.
@@ -28,6 +29,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         
         public DateTime MintedOn { get; set; }
         public DateTime ImportedOn { get; set; }
+        public DateTime ModifiedOn { get; set; }    
         public string Title { get; set; }
         public string Description { get; set; }
         public string MintTransactionHash { get; set; }
@@ -61,85 +63,102 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         public EnumValue<NFTStandardType> NFTStandardType { get; set; }
         public EnumValue<NFTOffChainMetaType> NFTOffChainMetaType { get; set; }
 
-       
 
 
-        //TODO: May add some or all of these later (taken from SOLNET Metaplex code)...
-        //May be able to store some in metadata but some important ones which are common to all chains should go here...
+        public int RoyaltyPercentage { get; set; }
+        public Guid PreviousOwnerAvatarId { get; set; }
+        public Guid CurrentOwnerAvatarId { get; set; }
+        public bool IsForSale { get; set; }
+        public DateTime? SaleStartDate { get; set; }
+        public DateTime? SaleEndDate { get; set; }
+        public int TotalNumberOfSales { get; set; }
+        public string LastSaleTransactionHash { get; set; }
+        public Guid LastSoldByAvatarId { get; set; }
+        public Guid LastPurchasedByAvatarId { get; set; }
+        public int LastSaleQuantity { get; set; }
+        public decimal LastSaleDiscount { get; set; }
+        public decimal LastSaleTax { get; set; }
+        public string SalesHistory { get; set; }
+        public decimal LastSalePrice { get; set; }
+        public decimal LastSaleAmount { get; set; }
+        public DateTime LastSaleDate { get; set; }
 
-        //       animation_url
+            //TODO: May add some or all of these later (taken from SOLNET Metaplex code)...
+            //May be able to store some in metadata but some important ones which are common to all chains should go here...
 
-        ////
-        //// Summary:
-        ////     metadata public key
-        //public PublicKey metadataKey;
+            //       animation_url
 
-        //       //
-        //       // Summary:
-        //       //     update authority key
-        //       public PublicKey updateAuthority;
+            ////
+            //// Summary:
+            ////     metadata public key
+            //public PublicKey metadataKey;
 
-        //       public List<Attribute> attributes { get; set; }
-        //       public Collection collection { get; set; }
+            //       //
+            //       // Summary:
+            //       //     update authority key
+            //       public PublicKey updateAuthority;
 
-        //       //     Metadata token content receipt
-        //       [JsonProperty("properties")]
-        //       public Properties properties { get; set; }
+            //       public List<Attribute> attributes { get; set; }
+            //       public Collection collection { get; set; }
 
-
-        //       public class Properties
-        //       {
-        //           //
-        //           // Summary:
-        //           //     Files linked to token. Core link between the token and its content
-        //           [JsonProperty("files")]
-        //           public List<FileType> files { get; set; }
-
-        //           //
-        //           // Summary:
-        //           //     Creators of the token and content. Should always be signed
-        //           [JsonProperty("creators")]
-        //           public List<Creator> creators { get; set; }
-        //       }
-
-
-
-
-        //       //
-        //       // Summary:
-        //       //     JSON class for the Properties FileType object
-        //       public class FileType
-        //       {
-        //           //
-        //           // Summary:
-        //           //     Offsite file URI link
-        //           [JsonProperty("uri")]
-        //           public string uri { get; set; }
-
-        //           //
-        //           // Summary:
-        //           //     File type used to know how to render the content
-        //           [JsonProperty("type")]
-        //           public string type { get; set; }
-        //       }
+            //       //     Metadata token content receipt
+            //       [JsonProperty("properties")]
+            //       public Properties properties { get; set; }
 
 
-        //       //
-        //       // Summary:
-        //       //     JSON class for the Creator object
-        //       public class Creator
-        //       {
-        //           //
-        //           // Summary:
-        //           //     Creator account address
-        //           [JsonProperty("address")]
-        //           public string address { get; set; }
+            //       public class Properties
+            //       {
+            //           //
+            //           // Summary:
+            //           //     Files linked to token. Core link between the token and its content
+            //           [JsonProperty("files")]
+            //           public List<FileType> files { get; set; }
 
-        //           //
-        //           // Summary:
-        //           //     Creators share
-        //           [JsonProperty("share")]
-        //           public int share { get; set; }
-        //       }
-    }
+            //           //
+            //           // Summary:
+            //           //     Creators of the token and content. Should always be signed
+            //           [JsonProperty("creators")]
+            //           public List<Creator> creators { get; set; }
+            //       }
+
+
+
+
+            //       //
+            //       // Summary:
+            //       //     JSON class for the Properties FileType object
+            //       public class FileType
+            //       {
+            //           //
+            //           // Summary:
+            //           //     Offsite file URI link
+            //           [JsonProperty("uri")]
+            //           public string uri { get; set; }
+
+            //           //
+            //           // Summary:
+            //           //     File type used to know how to render the content
+            //           [JsonProperty("type")]
+            //           public string type { get; set; }
+            //       }
+
+
+            //       //
+            //       // Summary:
+            //       //     JSON class for the Creator object
+            //       public class Creator
+            //       {
+            //           //
+            //           // Summary:
+            //           //     Creator account address
+            //           [JsonProperty("address")]
+            //           public string address { get; set; }
+
+            //           //
+            //           // Summary:
+            //           //     Creators share
+            //           [JsonProperty("share")]
+            //           public int share { get; set; }
+            //       }
+        }
 }

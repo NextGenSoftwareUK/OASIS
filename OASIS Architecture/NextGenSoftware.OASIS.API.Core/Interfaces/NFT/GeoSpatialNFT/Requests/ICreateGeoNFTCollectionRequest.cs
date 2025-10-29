@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 
 namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
 {
-    public interface ICreateOASISGeoNFTCollectionRequest
+    public interface ICreateGeoNFTCollectionRequest
     {
         Guid CreatedBy { get; set; }
         string Description { get; set; }
