@@ -1,78 +1,69 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { Table } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatCurrency, formatPercentage, timeAgo } from "@/lib/utils";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Search, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { mockPriceFeeds } from "@/lib/mock-data";
 import type { PriceFeed } from "@/types/price-feed";
 
 export function PriceFeedTable() {
-  // Mock data - will be replaced with real API calls
-  const mockPriceFeeds: PriceFeed[] = [
-    {
-      token: "SOL",
-      price: 142.35,
-      change24h: 2.3,
-      deviation: 0.12,
-      activeSources: 8,
-      totalSources: 12,
-      lastUpdate: new Date(Date.now() - 5000),
-      sources: [],
-      confidence: 95,
-    },
-    {
-      token: "ETH",
-      price: 3421.12,
-      change24h: 1.1,
-      deviation: 0.08,
-      activeSources: 12,
-      totalSources: 12,
-      lastUpdate: new Date(Date.now() - 3000),
-      sources: [],
-      confidence: 99,
-    },
-    {
-      token: "XRD",
-      price: 0.0542,
-      change24h: -0.5,
-      deviation: 0.15,
-      activeSources: 6,
-      totalSources: 12,
-      lastUpdate: new Date(Date.now() - 8000),
-      sources: [],
-      confidence: 85,
-    },
-    {
-      token: "MATIC",
-      price: 0.8234,
-      change24h: 0.8,
-      deviation: 0.10,
-      activeSources: 10,
-      totalSources: 12,
-      lastUpdate: new Date(Date.now() - 4000),
-      sources: [],
-      confidence: 92,
-    },
-    {
-      token: "ARB",
-      price: 1.2341,
-      change24h: 3.2,
-      deviation: 0.18,
-      activeSources: 9,
-      totalSources: 12,
-      lastUpdate: new Date(Date.now() - 6000),
-      sources: [],
-      confidence: 88,
-    },
-  ];
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showOnlyVerified, setShowOnlyVerified] = useState(false);
+  
+  // Filter price feeds based on search and filters
+  const filteredFeeds = useMemo(() => {
+    return mockPriceFeeds.filter(feed => {
+      const matchesSearch = feed.token.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFilter = !showOnlyVerified || feed.confidence > 90;
+      return matchesSearch && matchesFilter;
+    });
+  }, [searchQuery, showOnlyVerified]);
 
   return (
     <Card
       title="Live Price Feeds"
       description="Real-time aggregated prices from multiple sources"
       variant="glass"
+      headerAction={
+        <div className="flex items-center gap-2">
+          <Button
+            variant={showOnlyVerified ? "primary" : "secondary"}
+            onClick={() => setShowOnlyVerified(!showOnlyVerified)}
+            className="text-xs"
+          >
+            {showOnlyVerified ? "All" : "Verified Only"}
+          </Button>
+        </div>
+      }
     >
+      {/* Search Bar */}
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--muted)]" />
+        <input
+          type="text"
+          placeholder="Search tokens (e.g., SOL, ETH, BTC...)"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-10 py-2 rounded-lg bg-[rgba(5,5,16,0.8)] border border-[var(--color-card-border)]/50 text-[var(--color-foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none transition"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--accent)] transition"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Results Count */}
+      <div className="mb-4 text-sm text-[var(--muted)]">
+        Showing {filteredFeeds.length} of {mockPriceFeeds.length} tokens
+      </div>
       <Table
         columns={[
           {
@@ -171,8 +162,9 @@ export function PriceFeedTable() {
             align: "center",
           },
         ]}
-        data={mockPriceFeeds}
+        data={filteredFeeds}
         keyExtractor={(feed, index) => feed.token + index}
+        emptyMessage={searchQuery ? `No tokens found matching "${searchQuery}"` : "No price data available"}
       />
     </Card>
   );

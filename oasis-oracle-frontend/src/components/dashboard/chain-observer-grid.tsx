@@ -1,69 +1,27 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatNumber } from "@/lib/utils";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Search, X, ChevronDown, ChevronUp } from "lucide-react";
+import { mockChainData } from "@/lib/mock-data";
 import type { ChainObserverData } from "@/types/chains";
 
 export function ChainObserverGrid() {
-  // Mock data - will be replaced with real API calls
-  const mockChainData: ChainObserverData[] = [
-    {
-      chainName: "Solana",
-      isHealthy: true,
-      currentBlock: 285234123,
-      gasPrice: "0.000005 SOL",
-      tps: 3456,
-      latency: 45,
-      lastUpdate: new Date(),
-    },
-    {
-      chainName: "Ethereum",
-      isHealthy: true,
-      currentBlock: 18934567,
-      gasPrice: "23 Gwei",
-      tps: 15,
-      latency: 150,
-      lastUpdate: new Date(),
-    },
-    {
-      chainName: "Polygon",
-      isHealthy: true,
-      currentBlock: 52123789,
-      gasPrice: "35 Gwei",
-      tps: 145,
-      latency: 100,
-      lastUpdate: new Date(),
-    },
-    {
-      chainName: "Arbitrum",
-      isHealthy: true,
-      currentBlock: 156789234,
-      gasPrice: "0.1 Gwei",
-      tps: 450,
-      latency: 85,
-      lastUpdate: new Date(),
-    },
-    {
-      chainName: "Base",
-      isHealthy: true,
-      currentBlock: 89456123,
-      gasPrice: "0.5 Gwei",
-      tps: 234,
-      latency: 120,
-      lastUpdate: new Date(),
-    },
-    {
-      chainName: "Radix",
-      isHealthy: true,
-      currentBlock: 12345678,
-      gasPrice: "0.01 XRD",
-      tps: 567,
-      latency: 60,
-      lastUpdate: new Date(),
-    },
-  ];
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAll, setShowAll] = useState(false);
+
+  // Filter chains based on search
+  const filteredChains = useMemo(() => {
+    return mockChainData.filter(chain =>
+      chain.chainName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  // Display limited or all chains
+  const displayedChains = showAll ? filteredChains : filteredChains.slice(0, 6);
 
   const getTrendIcon = (change: number) => {
     if (change > 0) return <TrendingUp className="h-3 w-3 text-[var(--positive)]" />;
@@ -79,13 +37,40 @@ export function ChainObserverGrid() {
       headerAction={
         <div className="flex items-center gap-2">
           <Badge variant="success" size="sm" dot>
-            {mockChainData.filter(c => c.isHealthy).length} Online
+            {mockChainData.filter(c => c.isHealthy).length} / {mockChainData.length} Online
           </Badge>
         </div>
       }
     >
+      {/* Search Bar */}
+      <div className="mb-4 relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--muted)]" />
+        <input
+          type="text"
+          placeholder="Search chains (e.g., Solana, Ethereum, Bitcoin...)"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-10 pr-10 py-2 rounded-lg bg-[rgba(5,5,16,0.8)] border border-[var(--color-card-border)]/50 text-[var(--color-foreground)] placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:outline-none transition"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--accent)] transition"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Results Count */}
+      {searchQuery && (
+        <div className="mb-4 text-sm text-[var(--muted)]">
+          Found {filteredChains.length} chain{filteredChains.length !== 1 ? "s" : ""}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {mockChainData.map((chain) => (
+        {displayedChains.map((chain) => (
           <div
             key={chain.chainName}
             className="group relative overflow-hidden rounded-xl border border-[var(--color-card-border)]/60 bg-[rgba(6,11,26,0.7)] p-4 transition hover:border-[var(--accent)]/70 hover:bg-[rgba(34,211,238,0.05)]"
@@ -150,13 +135,28 @@ export function ChainObserverGrid() {
         ))}
       </div>
 
-      {/* View All Button */}
-      <div className="mt-6 text-center">
-        <button className="text-sm text-[var(--accent)] hover:text-[#38e0ff] transition flex items-center justify-center gap-2 mx-auto">
-          View All 20 Chains
-          <TrendingUp className="h-4 w-4" />
-        </button>
-      </div>
+      {/* Show More/Less Button */}
+      {!searchQuery && filteredChains.length > 6 && (
+        <div className="mt-6 text-center">
+          <Button
+            variant="secondary"
+            onClick={() => setShowAll(!showAll)}
+            className="flex items-center gap-2 mx-auto"
+          >
+            {showAll ? (
+              <>
+                <ChevronUp className="h-4 w-4" />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4" />
+                Show All {filteredChains.length} Chains
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </Card>
   );
 }
