@@ -4,6 +4,7 @@ pragma solidity ^0.8.9;
 
 enum ProviderType {
     SolanaOASIS,
+    RadixOASIS,
     HoloOASIS,
     EthereumOASIS,
     EOSIOOASIS,
