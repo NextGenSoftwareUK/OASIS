@@ -1569,7 +1569,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
 
             //TODO: Not sure if we should store the entire NFTs in the collection or just their IDs?
-            createOASISNFTCollectionRequest.OASISNFTs = null;
+            List<IOASISNFT> nfts = OASISNFTCollection.OASISNFTs;
+            OASISNFTCollection.OASISNFTs = null;
 
             OASISResult<OASISNFTCollection> saveResult = await OASISNFTCollection.SaveAsync<OASISNFTCollection>();
 
@@ -1600,6 +1601,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
             {
+                OASISNFTCollection.OASISNFTs = nfts;
                 result.Result = OASISNFTCollection;
                 result.Message = "OASIS NFT Collection created successfully.";
             }
@@ -1642,6 +1644,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
             }
 
+            //TODO: Not sure if we should store the entire NFTs in the collection or just their IDs?
+            List<IOASISGeoSpatialNFT> nfts = OASISGeoNFTCollection.OASISGeoNFTs;
+            OASISGeoNFTCollection.OASISGeoNFTs = null;
             OASISResult<OASISGeoNFTCollection> saveResult = await OASISGeoNFTCollection.SaveAsync<OASISGeoNFTCollection>();
 
             //Dictionary<string, object> metaData = new Dictionary<string, object>()
@@ -1671,6 +1676,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
             {
+                OASISGeoNFTCollection.OASISGeoNFTs = nfts;
                 result.Result = OASISGeoNFTCollection;
                 result.Message = "OASIS GeoNFT Collection created successfully.";
             }
@@ -1833,17 +1839,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
                 {
-                    holonResult.Result.OASISNFTIds.Add(OASISNFTId.ToString());
-
-                    OASISResult<OASISNFTCollection> saveResult = await Data.SaveHolonAsync<OASISNFTCollection>(holonResult.Result);
-
-                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                    if (!holonResult.Result.OASISNFTIds.Contains(OASISNFTId.ToString()))
                     {
-                        result.Result = saveResult.Result;
-                        result.Message = "OASIS NFT Added To Collection Successfully.";
+                        holonResult.Result.OASISNFTIds.Add(OASISNFTId.ToString());
+
+                        OASISResult<OASISNFTCollection> saveResult = await Data.SaveHolonAsync<OASISNFTCollection>(holonResult.Result);
+
+                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                        {
+                            result.Result = saveResult.Result;
+                            result.Message = "OASIS NFT Added To Collection Successfully.";
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured adding OASIS NFT to collection. Reason: {saveResult?.Message}");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured adding OASIS NFT to collection. Reason: {saveResult?.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured adding OASIS NFT to collection. Reason: NFT already added!");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading OASIS NFT Collection. Reason: {holonResult?.Message}");
@@ -1871,17 +1882,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
                 {
-                    holonResult.Result.OASISNFTIds.Remove(OASISNFTId.ToString());
-
-                    OASISResult<OASISNFTCollection> saveResult = await Data.SaveHolonAsync<OASISNFTCollection>(holonResult.Result);
-
-                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                    if (holonResult.Result.OASISNFTIds.Contains(OASISNFTId.ToString()))
                     {
-                        result.Result = saveResult.Result;
-                        result.Message = "OASIS NFT Removed From Collection Successfully.";
+                        holonResult.Result.OASISNFTIds.Remove(OASISNFTId.ToString());
+
+                        OASISResult<OASISNFTCollection> saveResult = await Data.SaveHolonAsync<OASISNFTCollection>(holonResult.Result);
+
+                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                        {
+                            result.Result = saveResult.Result;
+                            result.Message = "OASIS NFT Removed From Collection Successfully.";
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured removing OASIS NFT from collection. Reason: {saveResult?.Message}");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured removing OASIS NFT from collection. Reason: {saveResult?.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured removing OASIS NFT from collection. Reason: NFT Not Found!");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading OASIS NFT Collection. Reason: {holonResult?.Message}");
@@ -1910,17 +1926,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
                 {
-                    holonResult.Result.OASISGeoNFTIds.Add(OASISGeoNFTId.ToString());
-
-                    OASISResult<OASISGeoNFTCollection> saveResult = await Data.SaveHolonAsync<OASISGeoNFTCollection>(holonResult.Result);
-
-                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                    if (!holonResult.Result.OASISGeoNFTIds.Contains(OASISGeoNFTId.ToString()))
                     {
-                        result.Result = saveResult.Result;
-                        result.Message = "OASIS GeoNFT Added To Collection Successfully.";
+                        holonResult.Result.OASISGeoNFTIds.Add(OASISGeoNFTId.ToString());
+
+                        OASISResult<OASISGeoNFTCollection> saveResult = await Data.SaveHolonAsync<OASISGeoNFTCollection>(holonResult.Result);
+
+                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                        {
+                            result.Result = saveResult.Result;
+                            result.Message = "OASIS GeoNFT Added To Collection Successfully.";
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured adding OASIS GeoNFT to collection. Reason: {saveResult?.Message}");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured adding OASIS GeoNFT to collection. Reason: {saveResult?.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured adding OASIS GeoNFT to collection. Reason: GeoNFT Already Added!");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading OASIS GeoNFT Collection. Reason: {holonResult?.Message}");
@@ -1949,17 +1970,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (holonResult != null && holonResult.Result != null && !holonResult.IsError)
                 {
-                    holonResult.Result.OASISGeoNFTIds.Remove(OASISGeoNFTId.ToString());
-
-                    OASISResult<OASISGeoNFTCollection> saveResult = await Data.SaveHolonAsync<OASISGeoNFTCollection>(holonResult.Result);
-
-                    if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                    if (holonResult.Result.OASISGeoNFTIds.Contains(OASISGeoNFTId.ToString()))
                     {
-                        result.Result = saveResult.Result;
-                        result.Message = "OASIS GeoNFT Removed From Collection Successfully.";
+                        holonResult.Result.OASISGeoNFTIds.Remove(OASISGeoNFTId.ToString());
+
+                        OASISResult<OASISGeoNFTCollection> saveResult = await Data.SaveHolonAsync<OASISGeoNFTCollection>(holonResult.Result);
+
+                        if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                        {
+                            result.Result = saveResult.Result;
+                            result.Message = "OASIS GeoNFT Removed From Collection Successfully.";
+                        }
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured removing OASIS GeoNFT from collection. Reason: {saveResult?.Message}");
                     }
                     else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured removing OASIS GeoNFT from collection. Reason: {saveResult?.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured removing OASIS GeoNFT from collection. Reason: GeoNFT Not Found!");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading OASIS GeoNFT Collection. Reason: {holonResult?.Message}");
@@ -2033,6 +2059,56 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
+        public async Task<OASISResult<IList<IOASISNFT>>> LoadChildNFTsForNFTCollectionAsync(List<string> OASISNFTIds, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IList<IOASISNFT>> result = new OASISResult<IList<IOASISNFT>>();
+
+            if (OASISNFTIds != null && OASISNFTIds.Count > 0)
+            {
+                result.Result = new List<IOASISNFT>();
+
+                foreach (string nftId in OASISNFTIds)
+                {
+                    OASISResult<IOASISNFT> nftRes = await LoadNftAsync(Guid.Parse(nftId), providerType: providerType);
+
+                    if (nftRes != null && !nftRes.IsError && nftRes.Result != null)
+                        result.Result.Add(nftRes.Result);
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"Error occured in LoadChildNFTsForNFTCollection loading child nft for id {nftId}. Reason: {nftRes.Message}");
+                }
+            }
+
+            if (result.ErrorCount > 0)
+                result.Message = $"Error(s) occured in LoadChildNFTsForNFTCollection loading child nfts. Reason(s): {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+
+            return result;
+        }
+
+        public async Task<OASISResult<IList<IOASISGeoSpatialNFT>>> LoadChildGeoNFTsForNFTCollectionAsync(List<string> OASISGeoNFTIds, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IList<IOASISGeoSpatialNFT>> result = new OASISResult<IList<IOASISGeoSpatialNFT>>();
+
+            if (OASISGeoNFTIds != null && OASISGeoNFTIds.Count > 0)
+            {
+                result.Result = new List<IOASISGeoSpatialNFT>();
+
+                foreach (string nftId in OASISGeoNFTIds)
+                {
+                    OASISResult<IOASISGeoSpatialNFT> nftRes = await LoadGeoNftAsync(Guid.Parse(nftId), providerType: providerType);
+
+                    if (nftRes != null && !nftRes.IsError && nftRes.Result != null)
+                        result.Result.Add(nftRes.Result);
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"Error occured in LoadChildGeoNFTsForNFTCollection loading child nft for id {nftId}. Reason: {nftRes.Message}");
+                }
+            }
+
+            if (result.ErrorCount > 0)
+                result.Message = $"Error(s) occured in LoadChildGeoNFTsForNFTCollection loading child nfts. Reason(s): {OASISResultHelper.BuildInnerMessageError(result.InnerMessages)}";
+
+            return result;
+        }
+
         public async Task<OASISResult<IOASISNFTCollection>> LoadOASISNFTCollectionAsync(Guid id, bool loadChildNFTs = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOASISNFTCollection> result = new();
@@ -2044,17 +2120,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 
                 if (holonRes != null && !holonRes.IsError && holonRes.Result != null)
                 {
-                   if (holonRes.Result.OASISNFTs == null && loadChildNFTs && holonRes.Result.OASISNFTIds != null && holonRes.Result.OASISNFTIds.Count > 0)
+                   if (loadChildNFTs && holonRes.Result.OASISNFTIds != null && holonRes.Result.OASISNFTIds.Count > 0)
                    {
-                        holonRes.Result.OASISNFTs = new List<IOASISNFT>();
+                        OASISResult<IList<IOASISNFT>> childrenResult = await LoadChildNFTsForNFTCollectionAsync(holonRes.Result.OASISNFTIds, providerType);
 
-                        foreach (string nftId in holonRes.Result.OASISNFTIds)
-                        {
-                            OASISResult<IOASISNFT> nftRes = await LoadNftAsync(Guid.Parse(nftId), providerType: providerType);
-                            
-                            if (nftRes != null && !nftRes.IsError && nftRes.Result != null)
-                                holonRes.Result.OASISNFTs.Add(nftRes.Result);
-                        }
+                        if (childrenResult != null && childrenResult.Result != null && !childrenResult.IsError)
+                            holonRes.Result.OASISNFTs = childrenResult.Result.ToList();
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading child nfts, reason: {childrenResult.Message}");
                     }
 
                     result.Result = holonRes.Result;
@@ -2081,17 +2154,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (holonRes != null && !holonRes.IsError && holonRes.Result != null)
                 {
-                    if (holonRes.Result.OASISGeoNFTs == null && loadChildGeoNFTs && holonRes.Result.OASISGeoNFTIds != null && holonRes.Result.OASISGeoNFTIds.Count > 0)
+                    if (loadChildGeoNFTs && holonRes.Result.OASISGeoNFTIds != null && holonRes.Result.OASISGeoNFTIds.Count > 0)
                     {
-                        holonRes.Result.OASISGeoNFTs = new List<IOASISGeoSpatialNFT>();
+                        OASISResult<IList<IOASISGeoSpatialNFT>> childrenResult = await LoadChildGeoNFTsForNFTCollectionAsync(holonRes.Result.OASISGeoNFTIds, providerType);
 
-                        foreach (string nftId in holonRes.Result.OASISGeoNFTIds)
-                        {
-                            OASISResult<IOASISGeoSpatialNFT> nftRes = await LoadGeoNftAsync(Guid.Parse(nftId), providerType: providerType);
-
-                            if (nftRes != null && !nftRes.IsError && nftRes.Result != null)
-                                holonRes.Result.OASISGeoNFTs.Add(nftRes.Result);
-                        }
+                        if (childrenResult != null && childrenResult.Result != null && !childrenResult.IsError)
+                            holonRes.Result.OASISGeoNFTs = childrenResult.Result.ToList();
+                        else
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading child nfts, reason: {childrenResult.Message}");
                     }
 
                     result.Result = holonRes.Result;
@@ -2107,7 +2177,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IOASISNFTCollection>>> LoadAllNFTCollectionsAsync(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IOASISNFTCollection>>> LoadAllNFTCollectionsAsync(bool loadChildNFTs = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOASISNFTCollection>> result = new();
             string errorMessage = "Error occured in LoadAllNFTCollectionsAsync in NFTManager. Reason:";
@@ -2117,7 +2187,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 OASISResult<IEnumerable<OASISNFTCollection>> holonRes = await Data.LoadAllHolonsAsync<OASISNFTCollection>(HolonType.NFTCollection, providerType: providerType);
 
                 if (holonRes != null && !holonRes.IsError && holonRes.Result != null)
+                {
+                    if (loadChildNFTs)
+                    {
+                        foreach (IOASISNFTCollection collection in holonRes.Result)
+                        {
+                            OASISResult<IList<IOASISNFT>> childrenResult = await LoadChildNFTsForNFTCollectionAsync(collection.OASISNFTIds, providerType);
+
+                            if (childrenResult != null && childrenResult.Result != null && !childrenResult.IsError)
+                                collection.OASISNFTs = childrenResult.Result.ToList();
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading child nfts, reason: {childrenResult.Message}");
+                        }
+                    }
                     result.Result = holonRes.Result;
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading collections. Reason: {holonRes?.Message}");
             }
@@ -2129,7 +2213,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IOASISNFTCollection>>> LoadNFTCollectionsForAvatarAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IOASISNFTCollection>>> LoadNFTCollectionsForAvatarAsync(Guid avatarId,bool loadChildNFTs = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOASISNFTCollection>> result = new();
             string errorMessage = "Error occured in LoadNFTCollectionsForAvatarAsync in NFTManager. Reason:";
@@ -2139,7 +2223,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 OASISResult<IEnumerable<OASISNFTCollection>> holonRes = await Data.LoadHolonsForParentAsync<OASISNFTCollection>(avatarId, HolonType.NFTCollection, providerType: providerType);
 
                 if (holonRes != null && !holonRes.IsError && holonRes.Result != null)
+                {
+                    if (loadChildNFTs)
+                    {
+                        foreach (IOASISNFTCollection collection in holonRes.Result)
+                        {
+                            OASISResult<IList<IOASISNFT>> childrenResult = await LoadChildNFTsForNFTCollectionAsync(collection.OASISNFTIds, providerType);
+
+                            if (childrenResult != null && childrenResult.Result != null && !childrenResult.IsError)
+                                collection.OASISNFTs = childrenResult.Result.ToList();
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading child nfts, reason: {childrenResult.Message}");
+                        }
+                    }
                     result.Result = holonRes.Result;
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading collections. Reason: {holonRes?.Message}");
             }
@@ -2151,7 +2249,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IOASISGeoNFTCollection>>> LoadAllGeoNFTCollectionsAsync(ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IOASISGeoNFTCollection>>> LoadAllGeoNFTCollectionsAsync(bool loadChildNFTs = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOASISGeoNFTCollection>> result = new();
             string errorMessage = "Error occured in LoadAllGeoNFTCollectionsAsync in NFTManager. Reason:";
@@ -2161,7 +2259,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 OASISResult<IEnumerable<OASISGeoNFTCollection>> holonRes = await Data.LoadAllHolonsAsync<OASISGeoNFTCollection>(HolonType.GeoNFTCollection, providerType: providerType);
 
                 if (holonRes != null && !holonRes.IsError && holonRes.Result != null)
+                {
+                    if (loadChildNFTs)
+                    {
+                        foreach (IOASISGeoNFTCollection collection in holonRes.Result)
+                        {
+                            OASISResult<IList<IOASISGeoSpatialNFT>> childrenResult = await LoadChildGeoNFTsForNFTCollectionAsync(collection.OASISGeoNFTIds, providerType);
+
+                            if (childrenResult != null && childrenResult.Result != null && !childrenResult.IsError)
+                                collection.OASISGeoNFTs = childrenResult.Result.ToList();
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading child nfts, reason: {childrenResult.Message}");
+                        }
+                    }
                     result.Result = holonRes.Result;
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading collections. Reason: {holonRes?.Message}");
             }
@@ -2173,17 +2285,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<IOASISGeoNFTCollection>>> LoadGeoNFTCollectionsForAvatarAsync(Guid avatarId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IEnumerable<IOASISGeoNFTCollection>>> LoadGeoNFTCollectionsForAvatarAsync(Guid avatarId, bool loadChildNFTs = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IEnumerable<IOASISGeoNFTCollection>> result = new();
             string errorMessage = "Error occured in LoadGeoNFTCollectionsForAvatarAsync in NFTManager. Reason:";
 
             try
             {
-                OASISResult<IEnumerable<OASISGeoNFTCollection>> holonRes = await Data.LoadHolonsForParentAsync<OASISGeoNFTCollection>(avatarId, HolonType.NFTCollection, providerType: providerType);
+                OASISResult<IEnumerable<OASISGeoNFTCollection>> holonRes = await Data.LoadHolonsForParentAsync<OASISGeoNFTCollection>(avatarId, HolonType.GeoNFTCollection, providerType: providerType);
 
                 if (holonRes != null && !holonRes.IsError && holonRes.Result != null)
+                {
+                    if (loadChildNFTs)
+                    {
+                        foreach (IOASISGeoNFTCollection collection in holonRes.Result)
+                        {
+                            OASISResult<IList<IOASISGeoSpatialNFT>> childrenResult = await LoadChildGeoNFTsForNFTCollectionAsync(collection.OASISGeoNFTIds, providerType);
+
+                            if (childrenResult != null && childrenResult.Result != null && !childrenResult.IsError)
+                                collection.OASISGeoNFTs = childrenResult.Result.ToList();
+                            else
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading child nfts, reason: {childrenResult.Message}");
+                        }
+                    }
                     result.Result = holonRes.Result;
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured loading collections. Reason: {holonRes?.Message}");
             }
