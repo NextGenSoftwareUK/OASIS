@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IEnumerable<T>> SearchHolons<T>(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon
+        public OASISResult<IEnumerable<T>> SearchHolons<T>(string searchTerm, Guid avatarId, bool searchOnlyForCurrentAvatar = true, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, HolonType childHolonType = HolonType.All, int version = 0, ProviderType providerType = ProviderType.Default, bool cache = true) where T : IHolon, new()
         {
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
             OASISResult<ISearchResults> searchResults = SearchManager.Instance.Search(new SearchParams()
@@ -93,7 +93,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             });
 
             if (searchResults != null && !searchResults.IsError && searchResults.Result != null)
-                result.Result = Mapper.Convert<IHolon, T>(searchResults.Result.SearchResultHolons);
+            {
+                List<T> results = new List<T>();
+                foreach (IHolon holon in searchResults.Result.SearchResultHolons)
+                {
+                    T holonResult = new T();
+                    holonResult = (T)Mapper.MapBaseHolonProperties(holon, holonResult);
+                    holonResult = (T)MapMetaData<T>(holonResult);
+                    results.Add(holonResult);
+                }
+
+                result.Result = results;
+            }
 
             return result;
         }
@@ -128,6 +139,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     T holonResult = new T();
                     holonResult = (T)Mapper.MapBaseHolonProperties(holon, holonResult);
+                    holonResult = (T)MapMetaData<T>(holonResult);
                     results.Add(holonResult);
                 }
 

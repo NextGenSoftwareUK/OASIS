@@ -14,6 +14,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         //public DateTime CreatedOn { get; set; }
         //public Guid CreatedBy { get; set; }
 
+        public OASISNFTCollection() : base(Enums.HolonType.NFTCollection) { }
+
         [CustomOASISProperty]
         public byte[] Image { get; set; }
 

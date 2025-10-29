@@ -8,6 +8,8 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
     //public class OASISGeoNFTCollection : HolonBase, IOASISGeoNFTCollection
     public class OASISGeoNFTCollection : Holon, IOASISGeoNFTCollection
     {
+        public OASISGeoNFTCollection() : base(Enums.HolonType.GeoNFTCollection) { }
+
         [CustomOASISProperty]
         public byte[] Image { get; set; }
 
