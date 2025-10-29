@@ -16,6 +16,8 @@ type CapitalFlowLineProps = {
 export function CapitalFlowLine({ from, to, amount, isActive, showFlows }: CapitalFlowLineProps) {
   const lineRef = useRef<any>(null);
   
+  console.log("📏 CapitalFlowLine render:", { from, to, amount, isActive, showFlows });
+  
   // Animated dashed line (flows)
   useFrame((state) => {
     if (lineRef.current && isActive && showFlows) {
@@ -26,7 +28,10 @@ export function CapitalFlowLine({ from, to, amount, isActive, showFlows }: Capit
     }
   });
   
-  if (!showFlows) return null;
+  if (!showFlows) {
+    console.log("📏 CapitalFlowLine hidden (showFlows=false)");
+    return null;
+  }
   
   // Line thickness based on capital amount (increased for visibility)
   const thickness = Math.max(2, Math.log10(amount / 10_000_000) * 2);
