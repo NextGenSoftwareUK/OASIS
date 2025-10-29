@@ -7,6 +7,7 @@ import * as THREE from "three";
 import { OracleLayout } from "@/components/layout/oracle-layout";
 import { blockchain3DNodes, capitalFlows3D, getChainPosition } from "@/lib/visualization-data";
 import type { ChainNode3D } from "@/lib/visualization-data";
+import { getCollateralForChain, formatTimeToMaturity } from "@/lib/collateral-data";
 
 // Blockchain node with label
 function BlockchainNodeWithLabel({ node, onClick, showLabels }: { node: ChainNode3D; onClick: (node: ChainNode3D) => void; showLabels: boolean }) {
@@ -311,103 +312,137 @@ export default function NetworkPage() {
             </div>
           </div>
           
-          {/* Selected Chain Info with Collateral Details */}
-          {selectedChain && (
-            <div className="absolute bottom-4 left-4 bg-black/90 backdrop-blur-md border border-cyan-400/40 rounded-xl p-6 text-white max-w-2xl shadow-2xl">
-              <button 
-                onClick={() => setSelectedChain(null)}
-                className="absolute top-3 right-3 text-white/50 hover:text-white text-lg"
-              >
-                ✕
-              </button>
-              
-              {/* Chain Header */}
-              <div className="mb-4 pb-4 border-b border-cyan-400/20">
-                <h3 className="text-2xl font-bold text-cyan-400 mb-1">{selectedChain.name}</h3>
-                <div className="flex gap-4 text-sm">
-                  <div>TVL: <span className="text-cyan-400 font-mono">${(selectedChain.tvl / 1e9).toFixed(2)}B</span></div>
-                  <div>TPS: <span className="text-cyan-400 font-mono">{selectedChain.tps}</span></div>
-                  <div>Health: <span className="text-green-400">● {selectedChain.health}</span></div>
+          {/* Selected Chain Info with REAL Institutional Collateral Data */}
+          {selectedChain && (() => {
+            const collateral = getCollateralForChain(selectedChain.name);
+            const encumberedAssets = collateral.assets.filter(a => a.encumbered);
+            const availableAssets = collateral.assets.filter(a => !a.encumbered);
+            
+            return (
+              <div className="absolute bottom-4 left-4 bg-black/95 backdrop-blur-md border border-cyan-400/40 rounded-xl p-6 text-white max-w-3xl shadow-2xl overflow-y-auto max-h-[80vh]">
+                <button 
+                  onClick={() => setSelectedChain(null)}
+                  className="absolute top-3 right-3 text-white/50 hover:text-white text-lg"
+                >
+                  ✕
+                </button>
+                
+                {/* Chain Header */}
+                <div className="mb-4 pb-4 border-b border-cyan-400/20">
+                  <h3 className="text-2xl font-bold text-cyan-400 mb-1">{selectedChain.name} Collateral Position</h3>
+                  <div className="grid grid-cols-3 gap-3 text-sm mt-2">
+                    <div>
+                      <span className="text-white/50 text-xs">Total Value</span>
+                      <div className="text-cyan-400 font-mono font-bold">${(collateral.totalValue / 1e9).toFixed(2)}B</div>
+                    </div>
+                    <div>
+                      <span className="text-white/50 text-xs">Available</span>
+                      <div className="text-green-400 font-mono font-bold">${(collateral.availableValue / 1e9).toFixed(2)}B</div>
+                    </div>
+                    <div>
+                      <span className="text-white/50 text-xs">Encumbered</span>
+                      <div className="text-yellow-400 font-mono font-bold">${(collateral.encumberedValue / 1e9).toFixed(2)}B</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                {/* Collateral on this Chain */}
-                <div className="bg-cyan-400/5 border border-cyan-400/20 rounded-lg p-3">
-                  <h4 className="text-xs font-semibold text-cyan-400 mb-2 uppercase tracking-wide">Collateral Held</h4>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Total Assets:</span>
-                      <span className="text-cyan-400 font-mono">{Math.floor(Math.random() * 5000 + 1000)}</span>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Encumbered Assets (Left Column) */}
+                  <div className="bg-yellow-400/5 border border-yellow-400/20 rounded-lg p-3">
+                    <h4 className="text-xs font-semibold text-yellow-400 mb-3 uppercase tracking-wide flex items-center gap-2">
+                      <span>🔒</span> Encumbered Assets ({encumberedAssets.length})
+                    </h4>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {encumberedAssets.map((asset, i) => (
+                        <div key={i} className="bg-yellow-400/10 rounded px-2 py-2 text-xs border border-yellow-400/20">
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-semibold text-white">{asset.symbol}</span>
+                            <span className="text-yellow-400 font-mono">${(asset.valueUSD / 1e6).toFixed(0)}M</span>
+                          </div>
+                          <div className="text-white/60 text-[10px] space-y-0.5">
+                            <div>{asset.assetType}</div>
+                            <div className="text-red-400">{asset.encumbranceType} • {asset.counterparty}</div>
+                            <div className="text-cyan-400">Matures: {formatTimeToMaturity(asset.maturityTime!)}</div>
+                            {asset.haircut && <div>Haircut: {(asset.haircut * 100).toFixed(0)}%</div>}
+                          </div>
+                        </div>
+                      ))}
+                      {encumberedAssets.length === 0 && (
+                        <div className="text-white/30 text-center py-4 text-xs">No encumbered assets</div>
+                      )}
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Encumbered:</span>
-                      <span className="text-yellow-400 font-mono">{Math.floor(Math.random() * 200 + 50)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Available:</span>
-                      <span className="text-green-400 font-mono">{Math.floor(Math.random() * 4000 + 500)}</span>
-                    </div>
-                    <div className="flex justify-between pt-1 border-t border-cyan-400/20">
-                      <span className="text-white/80 font-semibold">Value:</span>
-                      <span className="text-cyan-400 font-mono font-bold">${(selectedChain.tvl / 1e9 * 0.8).toFixed(2)}B</span>
+                  </div>
+                  
+                  {/* Available Assets (Right Column) */}
+                  <div className="bg-green-400/5 border border-green-400/20 rounded-lg p-3">
+                    <h4 className="text-xs font-semibold text-green-400 mb-3 uppercase tracking-wide flex items-center gap-2">
+                      <span>✅</span> Available Assets ({availableAssets.length})
+                    </h4>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {availableAssets.map((asset, i) => (
+                        <div key={i} className="bg-green-400/10 rounded px-2 py-2 text-xs border border-green-400/20">
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-semibold text-white">{asset.symbol}</span>
+                            <span className="text-green-400 font-mono">${(asset.valueUSD / 1e6).toFixed(0)}M</span>
+                          </div>
+                          <div className="text-white/60 text-[10px] space-y-0.5">
+                            <div>{asset.assetType}</div>
+                            {asset.yieldRate && <div className="text-green-400">Yield: {asset.yieldRate.toFixed(2)}%</div>}
+                          </div>
+                        </div>
+                      ))}
+                      {availableAssets.length === 0 && (
+                        <div className="text-white/30 text-center py-4 text-xs">No available assets</div>
+                      )}
                     </div>
                   </div>
                 </div>
                 
                 {/* Active Transfers */}
-                <div className="bg-purple-400/5 border border-purple-400/20 rounded-lg p-3">
-                  <h4 className="text-xs font-semibold text-purple-400 mb-2 uppercase tracking-wide">Active Transfers</h4>
-                  <div className="space-y-2 text-xs">
-                    {/* Incoming flows */}
-                    {capitalFlows3D
-                      .filter(f => f.to === selectedChain.name && f.isActive)
-                      .slice(0, 2)
-                      .map((flow, i) => (
-                        <div key={`in-${i}`} className="flex items-center gap-2 bg-green-400/10 rounded px-2 py-1">
-                          <span className="text-green-400">←</span>
-                          <span className="text-white/80 flex-1">{flow.from}</span>
-                          <span className="text-green-400 font-mono">${(flow.amount / 1e9).toFixed(1)}B</span>
+                {collateral.activeTransfers.length > 0 && (
+                  <div className="mt-4 bg-purple-400/5 border border-purple-400/20 rounded-lg p-3">
+                    <h4 className="text-xs font-semibold text-purple-400 mb-2 uppercase tracking-wide">
+                      ⚡ Active Transfers ({collateral.activeTransfers.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {collateral.activeTransfers.map((transfer, i) => (
+                        <div key={i} className={`flex items-center gap-2 rounded px-2 py-2 text-xs ${
+                          transfer.direction === 'incoming' ? 'bg-green-400/10 border border-green-400/20' : 'bg-orange-400/10 border border-orange-400/20'
+                        }`}>
+                          <span className={transfer.direction === 'incoming' ? 'text-green-400 text-lg' : 'text-orange-400 text-lg'}>
+                            {transfer.direction === 'incoming' ? '←' : '→'}
+                          </span>
+                          <div className="flex-1">
+                            <div className="text-white font-semibold">{transfer.assetType} • ${(transfer.amountUSD / 1e6).toFixed(0)}M</div>
+                            <div className="text-white/60 text-[10px]">
+                              {transfer.purpose} • {transfer.counterparty}
+                            </div>
+                            <div className="text-cyan-400 text-[10px]">
+                              ETA: {formatTimeToMaturity(transfer.expectedCompletion)} • {transfer.status}
+                            </div>
+                          </div>
                         </div>
                       ))}
-                    
-                    {/* Outgoing flows */}
-                    {capitalFlows3D
-                      .filter(f => f.from === selectedChain.name && f.isActive)
-                      .slice(0, 2)
-                      .map((flow, i) => (
-                        <div key={`out-${i}`} className="flex items-center gap-2 bg-orange-400/10 rounded px-2 py-1">
-                          <span className="text-orange-400">→</span>
-                          <span className="text-white/80 flex-1">{flow.to}</span>
-                          <span className="text-orange-400 font-mono">${(flow.amount / 1e9).toFixed(1)}B</span>
-                        </div>
-                      ))}
-                    
-                    {/* No flows message */}
-                    {capitalFlows3D.filter(f => 
-                      (f.to === selectedChain.name || f.from === selectedChain.name) && f.isActive
-                    ).length === 0 && (
-                      <div className="text-white/40 text-center py-2">No active transfers</div>
-                    )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Real-time Oracle Stats */}
+                <div className="mt-4 pt-4 border-t border-cyan-400/20">
+                  <div className="flex justify-between items-center text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                      <span className="text-white/60">Last Update:</span>
+                      <span className="text-cyan-400 font-mono">{new Date().toLocaleTimeString()}</span>
+                    </div>
+                    <div className="text-white/40">
+                      Oracle Consensus: <span className="text-cyan-400">99.8%</span>
+                    </div>
                   </div>
                 </div>
               </div>
-              
-              {/* Real-time Ownership Stats */}
-              <div className="mt-4 pt-4 border-t border-cyan-400/20">
-                <div className="flex justify-between items-center text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                    <span className="text-white/60">Last Update:</span>
-                    <span className="text-cyan-400 font-mono">{new Date().toLocaleTimeString()}</span>
-                  </div>
-                  <div className="text-white/40">
-                    Oracle Consensus: <span className="text-cyan-400">99.8%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
         
         {/* Info Card */}
