@@ -311,20 +311,100 @@ export default function NetworkPage() {
             </div>
           </div>
           
-          {/* Selected Chain Info */}
+          {/* Selected Chain Info with Collateral Details */}
           {selectedChain && (
-            <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur-sm border border-cyan-400/30 rounded-xl p-4 text-white max-w-sm">
+            <div className="absolute bottom-4 left-4 bg-black/90 backdrop-blur-md border border-cyan-400/40 rounded-xl p-6 text-white max-w-2xl shadow-2xl">
               <button 
                 onClick={() => setSelectedChain(null)}
-                className="absolute top-2 right-2 text-white/50 hover:text-white"
+                className="absolute top-3 right-3 text-white/50 hover:text-white text-lg"
               >
                 ✕
               </button>
-              <h3 className="text-xl font-bold text-cyan-400 mb-2">{selectedChain.name}</h3>
-              <div className="space-y-1 text-sm">
-                <div>TVL: <span className="text-cyan-400">${(selectedChain.tvl / 1e9).toFixed(2)}B</span></div>
-                <div>TPS: <span className="text-cyan-400">{selectedChain.tps}</span></div>
-                <div>Health: <span className="text-green-400">{selectedChain.health}</span></div>
+              
+              {/* Chain Header */}
+              <div className="mb-4 pb-4 border-b border-cyan-400/20">
+                <h3 className="text-2xl font-bold text-cyan-400 mb-1">{selectedChain.name}</h3>
+                <div className="flex gap-4 text-sm">
+                  <div>TVL: <span className="text-cyan-400 font-mono">${(selectedChain.tvl / 1e9).toFixed(2)}B</span></div>
+                  <div>TPS: <span className="text-cyan-400 font-mono">{selectedChain.tps}</span></div>
+                  <div>Health: <span className="text-green-400">● {selectedChain.health}</span></div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {/* Collateral on this Chain */}
+                <div className="bg-cyan-400/5 border border-cyan-400/20 rounded-lg p-3">
+                  <h4 className="text-xs font-semibold text-cyan-400 mb-2 uppercase tracking-wide">Collateral Held</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Total Assets:</span>
+                      <span className="text-cyan-400 font-mono">{Math.floor(Math.random() * 5000 + 1000)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Encumbered:</span>
+                      <span className="text-yellow-400 font-mono">{Math.floor(Math.random() * 200 + 50)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Available:</span>
+                      <span className="text-green-400 font-mono">{Math.floor(Math.random() * 4000 + 500)}</span>
+                    </div>
+                    <div className="flex justify-between pt-1 border-t border-cyan-400/20">
+                      <span className="text-white/80 font-semibold">Value:</span>
+                      <span className="text-cyan-400 font-mono font-bold">${(selectedChain.tvl / 1e9 * 0.8).toFixed(2)}B</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Active Transfers */}
+                <div className="bg-purple-400/5 border border-purple-400/20 rounded-lg p-3">
+                  <h4 className="text-xs font-semibold text-purple-400 mb-2 uppercase tracking-wide">Active Transfers</h4>
+                  <div className="space-y-2 text-xs">
+                    {/* Incoming flows */}
+                    {capitalFlows3D
+                      .filter(f => f.to === selectedChain.name && f.isActive)
+                      .slice(0, 2)
+                      .map((flow, i) => (
+                        <div key={`in-${i}`} className="flex items-center gap-2 bg-green-400/10 rounded px-2 py-1">
+                          <span className="text-green-400">←</span>
+                          <span className="text-white/80 flex-1">{flow.from}</span>
+                          <span className="text-green-400 font-mono">${(flow.amount / 1e9).toFixed(1)}B</span>
+                        </div>
+                      ))}
+                    
+                    {/* Outgoing flows */}
+                    {capitalFlows3D
+                      .filter(f => f.from === selectedChain.name && f.isActive)
+                      .slice(0, 2)
+                      .map((flow, i) => (
+                        <div key={`out-${i}`} className="flex items-center gap-2 bg-orange-400/10 rounded px-2 py-1">
+                          <span className="text-orange-400">→</span>
+                          <span className="text-white/80 flex-1">{flow.to}</span>
+                          <span className="text-orange-400 font-mono">${(flow.amount / 1e9).toFixed(1)}B</span>
+                        </div>
+                      ))}
+                    
+                    {/* No flows message */}
+                    {capitalFlows3D.filter(f => 
+                      (f.to === selectedChain.name || f.from === selectedChain.name) && f.isActive
+                    ).length === 0 && (
+                      <div className="text-white/40 text-center py-2">No active transfers</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Real-time Ownership Stats */}
+              <div className="mt-4 pt-4 border-t border-cyan-400/20">
+                <div className="flex justify-between items-center text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                    <span className="text-white/60">Last Update:</span>
+                    <span className="text-cyan-400 font-mono">{new Date().toLocaleTimeString()}</span>
+                  </div>
+                  <div className="text-white/40">
+                    Oracle Consensus: <span className="text-cyan-400">99.8%</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
