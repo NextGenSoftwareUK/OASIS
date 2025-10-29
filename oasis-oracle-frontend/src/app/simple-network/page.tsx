@@ -129,27 +129,70 @@ export default function SimpleNetworkPage() {
   return (
     <div className="w-full h-screen bg-[#050510]">
       {/* Header */}
-      <div className="absolute top-6 left-6 z-10 text-white">
-        <h1 className="text-3xl font-bold mb-2">OASIS Oracle Network (Simplified)</h1>
-        <p className="text-cyan-400">Live Data • {nodes.length} Chains • {flows.length} Active Flows</p>
-        <div className="mt-4 text-sm space-y-1">
-          <div>🌐 Ethereum: ${nodes[0].tvl}B TVL</div>
-          <div>⚡ Solana: ${nodes[1].tvl}B TVL</div>
-          <div>💜 Polygon: ${nodes[2].tvl}B TVL</div>
-          <div>🟠 Bitcoin: ${nodes[3].tvl}B TVL</div>
-          <div className="mt-3 text-cyan-400">
-            💫 Flow 1: ${flows[0].amount.toFixed(0)}M (live updating)
+      <div className="absolute top-6 left-6 z-10 text-white bg-black/60 backdrop-blur-sm border border-cyan-400/30 rounded-xl p-6">
+        <h1 className="text-3xl font-bold mb-2">OASIS Oracle Network</h1>
+        <p className="text-cyan-400 mb-3">🔴 Live Real-Time Data • {nodes.length} Major Chains • {flows.length} Active Flows</p>
+        <div className="mt-4 text-sm space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-[#627EEA]"></div>
+            <span>Ethereum: <span className="text-cyan-400 font-mono">${nodes[0].tvl.toFixed(1)}B</span> TVL</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-[#14F195]"></div>
+            <span>Solana: <span className="text-cyan-400 font-mono">${nodes[1].tvl.toFixed(1)}B</span> TVL</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-[#8247E5]"></div>
+            <span>Polygon: <span className="text-cyan-400 font-mono">${nodes[2].tvl.toFixed(1)}B</span> TVL</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-[#F7931A]"></div>
+            <span>Bitcoin: <span className="text-cyan-400 font-mono">${nodes[3].tvl.toFixed(1)}B</span> TVL</span>
+          </div>
+          <div className="mt-4 pt-3 border-t border-cyan-400/20">
+            <div className="text-cyan-400 font-semibold">
+              💫 Capital Flows (Live)
+            </div>
+            <div className="text-xs mt-1 space-y-1">
+              <div>Eth → Sol: ${flows[0].amount.toFixed(0)}M</div>
+              <div>Eth → Poly: ${flows[1].amount.toFixed(0)}M</div>
+            </div>
           </div>
         </div>
       </div>
       
       {/* Stats */}
-      <div className="absolute top-6 right-6 z-10 bg-black/50 backdrop-blur-sm border border-cyan-400/30 rounded-lg p-4 text-white">
-        <div className="text-xl font-bold text-cyan-400 mb-2">Network Stats</div>
-        <div className="space-y-1 text-sm">
-          <div>Total TVL: $10.8B</div>
-          <div>Active Flows: {flows.length}</div>
-          <div>Status: 🟢 Healthy</div>
+      <div className="absolute top-6 right-6 z-10 bg-black/60 backdrop-blur-sm border border-cyan-400/30 rounded-xl p-6 text-white min-w-[280px]">
+        <div className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
+          <span className="text-2xl">📊</span> Network Stats
+        </div>
+        <div className="space-y-3 text-sm">
+          <div className="flex justify-between items-center">
+            <span className="text-white/70">Total TVL:</span>
+            <span className="text-cyan-400 font-mono font-bold text-lg">
+              ${(nodes[0].tvl + nodes[1].tvl + nodes[2].tvl + nodes[3].tvl).toFixed(1)}B
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-white/70">Active Flows:</span>
+            <span className="text-cyan-400 font-bold">{flows.length}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-white/70">Status:</span>
+            <span className="text-green-400 font-bold flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+              Live
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-white/70">Update Rate:</span>
+            <span className="text-cyan-400 font-bold">3s</span>
+          </div>
+          <div className="pt-3 border-t border-cyan-400/20">
+            <div className="text-xs text-white/50 text-center">
+              Multi-Oracle Consensus: 99.8%
+            </div>
+          </div>
         </div>
       </div>
       
@@ -159,8 +202,19 @@ export default function SimpleNetworkPage() {
       </Canvas>
       
       {/* Instructions */}
-      <div className="absolute bottom-6 left-6 z-10 text-white/70 text-sm">
-        🖱️ Drag to rotate • 📜 Scroll to zoom • Data updates every 3 seconds
+      <div className="absolute bottom-6 left-6 z-10 bg-black/60 backdrop-blur-sm border border-cyan-400/30 rounded-xl p-4 text-white">
+        <div className="text-cyan-400 font-semibold mb-2 text-sm">🎮 Controls</div>
+        <div className="text-xs text-white/70 space-y-1">
+          <div>🖱️ Drag to rotate view</div>
+          <div>📜 Scroll to zoom in/out</div>
+          <div>⏱️ Data updates every 3 seconds</div>
+        </div>
+      </div>
+      
+      {/* Branding */}
+      <div className="absolute bottom-6 right-6 z-10 text-right">
+        <div className="text-cyan-400 font-bold text-xl">OASIS</div>
+        <div className="text-white/50 text-xs">Cross-Chain Oracle Network</div>
       </div>
     </div>
   );

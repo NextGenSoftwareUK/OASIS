@@ -43,3 +43,4 @@ export type VerificationRequest = {
   requiredConfirmations: number;
 };
 
+
