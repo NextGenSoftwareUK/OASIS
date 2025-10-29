@@ -6,7 +6,7 @@ import { Activity, TrendingUp, CheckCircle2, Coins, Shuffle, Image, Vote, Wallet
 
 const navItems = [
   { label: "Dashboard", href: "/", icon: Activity },
-  { label: "Network 3D", href: "/network", icon: Network },
+  { label: "Network 3D", href: "/simple-network", icon: Network },
   { label: "Collateral", href: "/collateral", icon: Wallet },
   { label: "Verify", href: "/verify", icon: CheckCircle2 },
   { label: "Prices", href: "/prices", icon: TrendingUp },
