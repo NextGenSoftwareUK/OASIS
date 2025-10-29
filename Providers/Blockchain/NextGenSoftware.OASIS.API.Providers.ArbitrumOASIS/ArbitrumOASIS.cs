@@ -34,6 +34,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
+using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.Infrastructure.Services.Arbitrum;
 
 
 namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
@@ -50,6 +51,23 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
     private Account _oasisAccount;
     private Contract _contract;
     private ContractHandler _contractHandler;
+    private ArbitrumBridgeService _bridgeService;
+
+    /// <summary>
+    /// Gets the bridge service for cross-chain operations
+    /// Lazily initializes the service when first accessed
+    /// </summary>
+    public IArbitrumBridgeService BridgeService
+    {
+        get
+        {
+            if (_bridgeService == null && _web3Client != null && _oasisAccount != null)
+            {
+                _bridgeService = new ArbitrumBridgeService(_web3Client, _oasisAccount, _gasLimit, _hostURI);
+            }
+            return _bridgeService;
+        }
+    }
 
     public ArbitrumOASIS(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
     {

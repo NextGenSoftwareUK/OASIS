@@ -6,6 +6,7 @@
         All,
         Default,
         SolanaOASIS, //Chains
+        RadixOASIS,
         ArbitrumOASIS,
         AvalancheOASIS,
         BaseOASIS,
