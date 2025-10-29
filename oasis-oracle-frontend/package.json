@@ -8,7 +8,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "install:3d": "npm install --legacy-peer-deps"
   },
   "dependencies": {
     "@react-spring/three": "^9.7.3",
