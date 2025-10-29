@@ -121,3 +121,4 @@ function DetailBox({ label, value, chain }: { label: string; value: string; chai
   );
 }
 
+

@@ -88,3 +88,4 @@ export function calculateNodeSize(tvl: number): number {
   return Math.max(0.5, Math.log10(tvl / 100_000_000) * 0.8 + 0.5);
 }
 
+
