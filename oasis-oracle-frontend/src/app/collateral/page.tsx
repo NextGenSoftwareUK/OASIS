@@ -1,6 +1,7 @@
 "use client";
 
 import { OracleLayout } from "@/components/layout/oracle-layout";
+import { Card } from "@/components/ui/card";
 import { OwnershipTracker } from "@/components/collateral/ownership-tracker";
 import { MaturityCalendar } from "@/components/collateral/maturity-calendar";
 import { PortfolioBreakdown } from "@/components/collateral/portfolio-breakdown";
