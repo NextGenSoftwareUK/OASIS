@@ -3,8 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/utils";
-import { AlertTriangle, TrendingDown, Shield, Zap } from "lucide-react";
+import { AlertTriangle, TrendingDown, Shield, Zap, Clock } from "lucide-react";
 
 export function MarginCallAlert() {
   // Mock data - will be replaced with API call to MarginCallOracle
