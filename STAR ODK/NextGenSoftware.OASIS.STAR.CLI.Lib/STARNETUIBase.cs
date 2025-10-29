@@ -201,7 +201,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return (result, defaultPath);
         }
 
-        public virtual async Task EditAsync(string idOrName = "", object editParams = null, ProviderType providerType = ProviderType.Default)
+        public virtual async Task EditAsync(string idOrName = "", object editParams = null, bool editLaunchTarget = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> loadResult = await FindAsync("edit", idOrName, true, providerType: providerType);
             bool changesMade = false;
@@ -226,10 +226,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     Console.WriteLine("");
 
-                if (CLIEngine.GetConfirmation($"Do you wish to edit the {STARNETManager.STARNETHolonUIName} Type?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to edit the {STARNETManager.STARNETHolonUIName} Category?"))
                 {
                     Console.WriteLine("");
-                    object holonSubType = CLIEngine.GetValidInputForEnum($"What is the new type of the {STARNETManager.STARNETHolonUIName}?", STARNETManager.STARNETCategory);
+                    object holonSubType = CLIEngine.GetValidInputForEnum($"What is the new category of the {STARNETManager.STARNETHolonUIName}?", STARNETManager.STARNETCategory);
 
                     if (holonSubType != null)
                     {
@@ -243,7 +243,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     Console.WriteLine("");
 
-                if (CLIEngine.GetConfirmation("Do you wish to edit the launch target?"))
+                if (editLaunchTarget && CLIEngine.GetConfirmation("Do you wish to edit the launch target?"))
                 {
                     Console.WriteLine("");
                     loadResult.Result.STARNETDNA.LaunchTarget = CLIEngine.GetValidInput($"What is the new launch target of the {STARNETManager.STARNETHolonUIName}?");
@@ -2686,6 +2686,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"Error occured finding {STARNETManager.STARNETHolonUIName}. Reason: {findResult.Message}");
                 OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(findResult, result);
             }
+
+            return result;
+        }
+
+        public async Task<OASISResult<T1>> CloneAsync(object options = null)
+        {
+            OASISResult<T1> result = new OASISResult<T1>();
+            
+            //TODO: Implement ASAP! ;-)
 
             return result;
         }

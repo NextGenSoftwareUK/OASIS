@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
 {
-    public class CreateOASISNFTCollectionRequest : ICreateOASISNFTCollectionRequest
+    public class CreateNFTCollectionRequest : ICreateNFTCollectionRequest
     {
         public string Title { get; set; }
         public string Description { get; set; }
