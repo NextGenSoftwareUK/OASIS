@@ -14,8 +14,8 @@ type FlowingParticlesProps = {
 export function FlowingParticles({ from, to, amount, isActive }: FlowingParticlesProps) {
   const particlesRef = useRef<THREE.Points>(null);
   
-  // Number of particles based on amount (1 particle per $100M)
-  const count = Math.floor(amount / 100_000_000);
+  // Number of particles based on amount (1 particle per $50M for better visibility)
+  const count = Math.max(10, Math.floor(amount / 50_000_000));
   
   const { positions, colors } = useMemo(() => {
     const positions = new Float32Array(count * 3);
@@ -75,11 +75,11 @@ export function FlowingParticles({ from, to, amount, isActive }: FlowingParticle
         />
       </bufferGeometry>
       <pointsMaterial
-        size={0.3}
+        size={0.8}
         vertexColors
-        sizeAttenuation
+        sizeAttenuation={false}
         transparent
-        opacity={0.8}
+        opacity={1.0}
         blending={THREE.AdditiveBlending}
       />
     </points>
