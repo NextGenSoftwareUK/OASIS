@@ -7,6 +7,7 @@ import { ChainDetailsOverlay } from "@/components/visualization/chain-details-ov
 import { StatsOverlay } from "@/components/visualization/stats-overlay";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/utils";
 import { Eye, EyeOff, Play, Pause, Maximize2 } from "lucide-react";
 import { blockchain3DNodes, capitalFlows3D } from "@/lib/visualization-data";
 import type { ChainNode3D } from "@/lib/visualization-data";
