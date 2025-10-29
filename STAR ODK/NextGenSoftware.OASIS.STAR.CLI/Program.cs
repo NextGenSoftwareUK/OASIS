@@ -572,16 +572,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                     break;
 
                                                 case "template":
-                                                    await ShowSubCommandAsync<OAPPTemplate>(inputArgs, "OAPP TEMPLATE", "", STARCLI.OAPPTemplates.CreateAsync, STARCLI.OAPPTemplates.EditAsync, STARCLI.OAPPTemplates.DeleteAsync, STARCLI.OAPPTemplates.DownloadAndInstallAsync, STARCLI.OAPPTemplates.UninstallAsync, STARCLI.OAPPTemplates.PublishAsync, STARCLI.OAPPTemplates.UnpublishAsync, STARCLI.OAPPTemplates.RepublishAsync, STARCLI.OAPPTemplates.ActivateAsync, STARCLI.OAPPTemplates.DeactivateAsync, STARCLI.OAPPTemplates.ShowAsync, STARCLI.OAPPTemplates.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllAsync, STARCLI.OAPPTemplates.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.SearchAsync, STARCLI.OAPPTemplates.AddDependencyAsync, STARCLI.OAPPTemplates.RemoveDependencyAsync, providerType: providerType);
+                                                    await ShowSubCommandAsync<OAPPTemplate>(inputArgs, "OAPP TEMPLATE", "", STARCLI.OAPPTemplates.CreateAsync, STARCLI.OAPPTemplates.EditAsync, STARCLI.OAPPTemplates.DeleteAsync, STARCLI.OAPPTemplates.DownloadAndInstallAsync, STARCLI.OAPPTemplates.UninstallAsync, STARCLI.OAPPTemplates.PublishAsync, STARCLI.OAPPTemplates.UnpublishAsync, STARCLI.OAPPTemplates.RepublishAsync, STARCLI.OAPPTemplates.ActivateAsync, STARCLI.OAPPTemplates.DeactivateAsync, STARCLI.OAPPTemplates.ShowAsync, STARCLI.OAPPTemplates.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllAsync, STARCLI.OAPPTemplates.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPTemplates.SearchAsync, STARCLI.OAPPTemplates.AddDependencyAsync, STARCLI.OAPPTemplates.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                                     break;
 
                                                 default:
-                                                    await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, providerType: providerType);
+                                                    await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                                     break;
                                             }
                                         }
                                         else
-                                            await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
 
                                         break;
                                     }
@@ -610,20 +610,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         }
 
                                         //TODO: Make a hAPP STARManager ASAP! ;-) I think!
-                                        await ShowSubCommandAsync<OAPP>(inputArgs, "hApp", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, providerType: providerType);
+                                        await ShowSubCommandAsync<OAPP>(inputArgs, "hApp", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.EditAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                         break;
                                     }
 
                                 case "runtime":
-                                    await ShowSubCommandAsync<Runtime>(inputArgs, "runtime", "runtimes", STARCLI.Runtimes.CreateAsync, STARCLI.Runtimes.EditAsync, STARCLI.Runtimes.DeleteAsync, STARCLI.Runtimes.DownloadAndInstallAsync, STARCLI.Runtimes.UninstallAsync, STARCLI.Runtimes.PublishAsync, STARCLI.Runtimes.UnpublishAsync, STARCLI.Runtimes.RepublishAsync, STARCLI.Runtimes.ActivateAsync, STARCLI.Runtimes.DeactivateAsync, STARCLI.Runtimes.ShowAsync, STARCLI.Runtimes.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Runtimes.ListAllAsync, STARCLI.Runtimes.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Runtimes.SearchAsync, STARCLI.Runtimes.AddDependencyAsync, STARCLI.Runtimes.RemoveDependencyAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Runtime>(inputArgs, "runtime", "runtimes", STARCLI.Runtimes.CreateAsync, STARCLI.Runtimes.EditAsync, STARCLI.Runtimes.DeleteAsync, STARCLI.Runtimes.DownloadAndInstallAsync, STARCLI.Runtimes.UninstallAsync, STARCLI.Runtimes.PublishAsync, STARCLI.Runtimes.UnpublishAsync, STARCLI.Runtimes.RepublishAsync, STARCLI.Runtimes.ActivateAsync, STARCLI.Runtimes.DeactivateAsync, STARCLI.Runtimes.ShowAsync, STARCLI.Runtimes.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Runtimes.ListAllAsync, STARCLI.Runtimes.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Runtimes.SearchAsync, STARCLI.Runtimes.AddDependencyAsync, STARCLI.Runtimes.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "lib":
-                                    await ShowSubCommandAsync<Library>(inputArgs, "library", "libs", STARCLI.Libs.CreateAsync, STARCLI.Libs.EditAsync, STARCLI.Libs.DeleteAsync, STARCLI.Libs.DownloadAndInstallAsync, STARCLI.Libs.UninstallAsync, STARCLI.Libs.PublishAsync, STARCLI.Libs.UnpublishAsync, STARCLI.Libs.RepublishAsync, STARCLI.Libs.ActivateAsync, STARCLI.Libs.DeactivateAsync, STARCLI.Libs.ShowAsync, STARCLI.Libs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Libs.ListAllAsync, STARCLI.Libs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Libs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Libs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Libs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Libs.SearchAsync, STARCLI.Libs.AddDependencyAsync, STARCLI.Libs.RemoveDependencyAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Library>(inputArgs, "library", "libs", STARCLI.Libs.CreateAsync, STARCLI.Libs.EditAsync, STARCLI.Libs.DeleteAsync, STARCLI.Libs.DownloadAndInstallAsync, STARCLI.Libs.UninstallAsync, STARCLI.Libs.PublishAsync, STARCLI.Libs.UnpublishAsync, STARCLI.Libs.RepublishAsync, STARCLI.Libs.ActivateAsync, STARCLI.Libs.DeactivateAsync, STARCLI.Libs.ShowAsync, STARCLI.Libs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Libs.ListAllAsync, STARCLI.Libs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Libs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Libs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Libs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Libs.SearchAsync, STARCLI.Libs.AddDependencyAsync, STARCLI.Libs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "celestialspace":
-                                    await ShowSubCommandAsync<STARCelestialSpace>(inputArgs, "celestial space", "celestial spaces", STARCLI.CelestialSpaces.CreateAsync, STARCLI.CelestialSpaces.EditAsync, STARCLI.CelestialSpaces.DeleteAsync, STARCLI.CelestialSpaces.DownloadAndInstallAsync, STARCLI.CelestialSpaces.UninstallAsync, STARCLI.CelestialSpaces.PublishAsync, STARCLI.CelestialSpaces.UnpublishAsync, STARCLI.CelestialSpaces.RepublishAsync, STARCLI.CelestialSpaces.ActivateAsync, STARCLI.CelestialSpaces.DeactivateAsync, STARCLI.CelestialSpaces.ShowAsync, STARCLI.CelestialSpaces.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllAsync, STARCLI.CelestialSpaces.ListAllInstalledForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.CelestialSpaces.SearchAsync, STARCLI.CelestialSpaces.AddDependencyAsync, STARCLI.CelestialSpaces.RemoveDependencyAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<STARCelestialSpace>(inputArgs, "celestial space", "celestial spaces", STARCLI.CelestialSpaces.CreateAsync, STARCLI.CelestialSpaces.EditAsync, STARCLI.CelestialSpaces.DeleteAsync, STARCLI.CelestialSpaces.DownloadAndInstallAsync, STARCLI.CelestialSpaces.UninstallAsync, STARCLI.CelestialSpaces.PublishAsync, STARCLI.CelestialSpaces.UnpublishAsync, STARCLI.CelestialSpaces.RepublishAsync, STARCLI.CelestialSpaces.ActivateAsync, STARCLI.CelestialSpaces.DeactivateAsync, STARCLI.CelestialSpaces.ShowAsync, STARCLI.CelestialSpaces.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllAsync, STARCLI.CelestialSpaces.ListAllInstalledForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.CelestialSpaces.SearchAsync, STARCLI.CelestialSpaces.AddDependencyAsync, STARCLI.CelestialSpaces.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "celestialbody":
@@ -637,9 +637,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         }
 
                                         if (showSubCommand)
-                                            await ShowSubCommandAsync<CelestialBodyMetaDataDNA>(inputArgs, "celestial body metadata", "celestial body metadata", STARCLI.CelestialBodiesMetaDataDNA.CreateAsync, STARCLI.CelestialBodiesMetaDataDNA.EditAsync, STARCLI.CelestialBodiesMetaDataDNA.DeleteAsync, STARCLI.CelestialBodiesMetaDataDNA.DownloadAndInstallAsync, STARCLI.CelestialBodiesMetaDataDNA.UninstallAsync, STARCLI.CelestialBodiesMetaDataDNA.PublishAsync, STARCLI.CelestialBodiesMetaDataDNA.UnpublishAsync, STARCLI.CelestialBodiesMetaDataDNA.RepublishAsync, STARCLI.CelestialBodiesMetaDataDNA.ActivateAsync, STARCLI.CelestialBodiesMetaDataDNA.DeactivateAsync, STARCLI.CelestialBodiesMetaDataDNA.ShowAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllInstalledForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.SearchAsync, STARCLI.CelestialBodiesMetaDataDNA.AddDependencyAsync, STARCLI.CelestialBodiesMetaDataDNA.RemoveDependencyAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<CelestialBodyMetaDataDNA>(inputArgs, "celestial body metadata", "celestial body metadata", STARCLI.CelestialBodiesMetaDataDNA.CreateAsync, STARCLI.CelestialBodiesMetaDataDNA.EditAsync, STARCLI.CelestialBodiesMetaDataDNA.DeleteAsync, STARCLI.CelestialBodiesMetaDataDNA.DownloadAndInstallAsync, STARCLI.CelestialBodiesMetaDataDNA.UninstallAsync, STARCLI.CelestialBodiesMetaDataDNA.PublishAsync, STARCLI.CelestialBodiesMetaDataDNA.UnpublishAsync, STARCLI.CelestialBodiesMetaDataDNA.RepublishAsync, STARCLI.CelestialBodiesMetaDataDNA.ActivateAsync, STARCLI.CelestialBodiesMetaDataDNA.DeactivateAsync, STARCLI.CelestialBodiesMetaDataDNA.ShowAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllInstalledForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.SearchAsync, STARCLI.CelestialBodiesMetaDataDNA.AddDependencyAsync, STARCLI.CelestialBodiesMetaDataDNA.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                         else
-                                            await ShowSubCommandAsync<STARCelestialBody>(inputArgs, "celestial body", "celestial bodies", STARCLI.CelestialBodies.CreateAsync, STARCLI.CelestialBodies.EditAsync, STARCLI.CelestialBodies.DeleteAsync, STARCLI.CelestialBodies.DownloadAndInstallAsync, STARCLI.CelestialBodies.UninstallAsync, STARCLI.CelestialBodies.PublishAsync, STARCLI.CelestialBodies.UnpublishAsync, STARCLI.CelestialBodies.RepublishAsync, STARCLI.CelestialBodies.ActivateAsync, STARCLI.CelestialBodies.DeactivateAsync, STARCLI.CelestialBodies.ShowAsync, STARCLI.CelestialBodies.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialBodies.ListAllAsync, STARCLI.CelestialBodies.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Zomes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Zomes.SearchAsync, STARCLI.Zomes.AddDependencyAsync, STARCLI.Zomes.RemoveDependencyAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARCelestialBody>(inputArgs, "celestial body", "celestial bodies", STARCLI.CelestialBodies.CreateAsync, STARCLI.CelestialBodies.EditAsync, STARCLI.CelestialBodies.DeleteAsync, STARCLI.CelestialBodies.DownloadAndInstallAsync, STARCLI.CelestialBodies.UninstallAsync, STARCLI.CelestialBodies.PublishAsync, STARCLI.CelestialBodies.UnpublishAsync, STARCLI.CelestialBodies.RepublishAsync, STARCLI.CelestialBodies.ActivateAsync, STARCLI.CelestialBodies.DeactivateAsync, STARCLI.CelestialBodies.ShowAsync, STARCLI.CelestialBodies.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialBodies.ListAllAsync, STARCLI.CelestialBodies.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Zomes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Zomes.SearchAsync, STARCLI.Zomes.AddDependencyAsync, STARCLI.Zomes.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                     }
                                     break;
 
@@ -654,9 +654,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         }
 
                                         if (showSubCommand)
-                                            await ShowSubCommandAsync<ZomeMetaDataDNA>(inputArgs, "zome metadata", "zome metadata", STARCLI.ZomesMetaDataDNA.CreateAsync, STARCLI.ZomesMetaDataDNA.EditAsync, STARCLI.ZomesMetaDataDNA.DeleteAsync, STARCLI.ZomesMetaDataDNA.DownloadAndInstallAsync, STARCLI.ZomesMetaDataDNA.UninstallAsync, STARCLI.ZomesMetaDataDNA.PublishAsync, STARCLI.ZomesMetaDataDNA.UnpublishAsync, STARCLI.ZomesMetaDataDNA.RepublishAsync, STARCLI.ZomesMetaDataDNA.ActivateAsync, STARCLI.ZomesMetaDataDNA.DeactivateAsync, STARCLI.ZomesMetaDataDNA.ShowAsync, STARCLI.ZomesMetaDataDNA.ListAllCreatedByBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllAsync, STARCLI.ZomesMetaDataDNA.ListAllInstalledForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.SearchAsync, STARCLI.ZomesMetaDataDNA.AddDependencyAsync, STARCLI.ZomesMetaDataDNA.RemoveDependencyAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<ZomeMetaDataDNA>(inputArgs, "zome metadata", "zome metadata", STARCLI.ZomesMetaDataDNA.CreateAsync, STARCLI.ZomesMetaDataDNA.EditAsync, STARCLI.ZomesMetaDataDNA.DeleteAsync, STARCLI.ZomesMetaDataDNA.DownloadAndInstallAsync, STARCLI.ZomesMetaDataDNA.UninstallAsync, STARCLI.ZomesMetaDataDNA.PublishAsync, STARCLI.ZomesMetaDataDNA.UnpublishAsync, STARCLI.ZomesMetaDataDNA.RepublishAsync, STARCLI.ZomesMetaDataDNA.ActivateAsync, STARCLI.ZomesMetaDataDNA.DeactivateAsync, STARCLI.ZomesMetaDataDNA.ShowAsync, STARCLI.ZomesMetaDataDNA.ListAllCreatedByBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllAsync, STARCLI.ZomesMetaDataDNA.ListAllInstalledForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.SearchAsync, STARCLI.ZomesMetaDataDNA.AddDependencyAsync, STARCLI.ZomesMetaDataDNA.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                         else
-                                            await ShowSubCommandAsync<STARZome>(inputArgs, "zome", "zomes", STARCLI.Zomes.CreateAsync, STARCLI.Zomes.EditAsync, STARCLI.Zomes.DeleteAsync, STARCLI.Zomes.DownloadAndInstallAsync, STARCLI.Zomes.UninstallAsync, STARCLI.Zomes.PublishAsync, STARCLI.Zomes.UnpublishAsync, STARCLI.Zomes.RepublishAsync, STARCLI.Zomes.ActivateAsync, STARCLI.Zomes.DeactivateAsync, STARCLI.Zomes.ShowAsync, STARCLI.Zomes.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Zomes.ListAllAsync, STARCLI.Zomes.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Zomes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Zomes.SearchAsync, STARCLI.Zomes.AddDependencyAsync, STARCLI.Zomes.RemoveDependencyAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARZome>(inputArgs, "zome", "zomes", STARCLI.Zomes.CreateAsync, STARCLI.Zomes.EditAsync, STARCLI.Zomes.DeleteAsync, STARCLI.Zomes.DownloadAndInstallAsync, STARCLI.Zomes.UninstallAsync, STARCLI.Zomes.PublishAsync, STARCLI.Zomes.UnpublishAsync, STARCLI.Zomes.RepublishAsync, STARCLI.Zomes.ActivateAsync, STARCLI.Zomes.DeactivateAsync, STARCLI.Zomes.ShowAsync, STARCLI.Zomes.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Zomes.ListAllAsync, STARCLI.Zomes.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Zomes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Zomes.SearchAsync, STARCLI.Zomes.AddDependencyAsync, STARCLI.Zomes.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                     }
                                     break;
 
@@ -671,52 +671,52 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         }
 
                                         if (showSubCommand)
-                                            await ShowSubCommandAsync<HolonMetaDataDNA>(inputArgs, "holon metadata", "holon metadata", STARCLI.HolonsMetaDataDNA.CreateAsync, STARCLI.HolonsMetaDataDNA.EditAsync, STARCLI.HolonsMetaDataDNA.DeleteAsync, STARCLI.HolonsMetaDataDNA.DownloadAndInstallAsync, STARCLI.HolonsMetaDataDNA.UninstallAsync, STARCLI.HolonsMetaDataDNA.PublishAsync, STARCLI.HolonsMetaDataDNA.UnpublishAsync, STARCLI.HolonsMetaDataDNA.RepublishAsync, STARCLI.HolonsMetaDataDNA.ActivateAsync, STARCLI.HolonsMetaDataDNA.DeactivateAsync, STARCLI.HolonsMetaDataDNA.ShowAsync, STARCLI.HolonsMetaDataDNA.ListAllCreatedByBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllAsync, STARCLI.HolonsMetaDataDNA.ListAllInstalledForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.SearchAsync, STARCLI.HolonsMetaDataDNA.AddDependencyAsync, STARCLI.HolonsMetaDataDNA.RemoveDependencyAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<HolonMetaDataDNA>(inputArgs, "holon metadata", "holon metadata", STARCLI.HolonsMetaDataDNA.CreateAsync, STARCLI.HolonsMetaDataDNA.EditAsync, STARCLI.HolonsMetaDataDNA.DeleteAsync, STARCLI.HolonsMetaDataDNA.DownloadAndInstallAsync, STARCLI.HolonsMetaDataDNA.UninstallAsync, STARCLI.HolonsMetaDataDNA.PublishAsync, STARCLI.HolonsMetaDataDNA.UnpublishAsync, STARCLI.HolonsMetaDataDNA.RepublishAsync, STARCLI.HolonsMetaDataDNA.ActivateAsync, STARCLI.HolonsMetaDataDNA.DeactivateAsync, STARCLI.HolonsMetaDataDNA.ShowAsync, STARCLI.HolonsMetaDataDNA.ListAllCreatedByBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllAsync, STARCLI.HolonsMetaDataDNA.ListAllInstalledForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.SearchAsync, STARCLI.HolonsMetaDataDNA.AddDependencyAsync, STARCLI.HolonsMetaDataDNA.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                         else
-                                            await ShowSubCommandAsync<STARHolon>(inputArgs, "holon", "holons", STARCLI.Holons.CreateAsync, STARCLI.Holons.EditAsync, STARCLI.Holons.DeleteAsync, STARCLI.Holons.DownloadAndInstallAsync, STARCLI.Holons.UninstallAsync, STARCLI.Holons.PublishAsync, STARCLI.Holons.UnpublishAsync, STARCLI.Holons.RepublishAsync, STARCLI.Holons.ActivateAsync, STARCLI.Holons.DeactivateAsync, STARCLI.Holons.ShowAsync, STARCLI.Holons.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Holons.ListAllAsync, STARCLI.Holons.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Holons.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Holons.SearchAsync, STARCLI.Holons.AddDependencyAsync, STARCLI.Holons.RemoveDependencyAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARHolon>(inputArgs, "holon", "holons", STARCLI.Holons.CreateAsync, STARCLI.Holons.EditAsync, STARCLI.Holons.DeleteAsync, STARCLI.Holons.DownloadAndInstallAsync, STARCLI.Holons.UninstallAsync, STARCLI.Holons.PublishAsync, STARCLI.Holons.UnpublishAsync, STARCLI.Holons.RepublishAsync, STARCLI.Holons.ActivateAsync, STARCLI.Holons.DeactivateAsync, STARCLI.Holons.ShowAsync, STARCLI.Holons.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Holons.ListAllAsync, STARCLI.Holons.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Holons.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Holons.SearchAsync, STARCLI.Holons.AddDependencyAsync, STARCLI.Holons.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                     }
                                     break;
 
                                 case "chapter":
-                                    await ShowSubCommandAsync<Chapter>(inputArgs, "chapter", "chapters", STARCLI.Chapters.CreateAsync, STARCLI.Chapters.EditAsync, STARCLI.Chapters.DeleteAsync, STARCLI.Chapters.DownloadAndInstallAsync, STARCLI.Chapters.UninstallAsync, STARCLI.Chapters.PublishAsync, STARCLI.Chapters.UnpublishAsync, STARCLI.Chapters.RepublishAsync, STARCLI.Chapters.ActivateAsync, STARCLI.Chapters.DeactivateAsync, STARCLI.Chapters.ShowAsync, STARCLI.Chapters.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Chapters.ListAllAsync, STARCLI.Chapters.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Chapters.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Chapters.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Chapters.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Chapters.SearchAsync, STARCLI.Chapters.AddDependencyAsync, STARCLI.Chapters.RemoveDependencyAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Chapter>(inputArgs, "chapter", "chapters", STARCLI.Chapters.CreateAsync, STARCLI.Chapters.EditAsync, STARCLI.Chapters.DeleteAsync, STARCLI.Chapters.DownloadAndInstallAsync, STARCLI.Chapters.UninstallAsync, STARCLI.Chapters.PublishAsync, STARCLI.Chapters.UnpublishAsync, STARCLI.Chapters.RepublishAsync, STARCLI.Chapters.ActivateAsync, STARCLI.Chapters.DeactivateAsync, STARCLI.Chapters.ShowAsync, STARCLI.Chapters.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Chapters.ListAllAsync, STARCLI.Chapters.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Chapters.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Chapters.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Chapters.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Chapters.SearchAsync, STARCLI.Chapters.AddDependencyAsync, STARCLI.Chapters.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "mission":
-                                    await ShowSubCommandAsync<Mission>(inputArgs, "mission", "missions", STARCLI.Missions.CreateAsync, STARCLI.Missions.EditAsync, STARCLI.Missions.DeleteAsync, STARCLI.Missions.DownloadAndInstallAsync, STARCLI.Missions.UninstallAsync, STARCLI.Missions.PublishAsync, STARCLI.Missions.UnpublishAsync, STARCLI.Missions.RepublishAsync, STARCLI.Missions.ActivateAsync, STARCLI.Missions.DeactivateAsync, STARCLI.Missions.ShowAsync, STARCLI.Missions.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Missions.ListAllAsync, STARCLI.Missions.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Missions.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Missions.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Missions.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Missions.SearchAsync, STARCLI.Missions.AddDependencyAsync, STARCLI.Missions.RemoveDependencyAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Mission>(inputArgs, "mission", "missions", STARCLI.Missions.CreateAsync, STARCLI.Missions.EditAsync, STARCLI.Missions.DeleteAsync, STARCLI.Missions.DownloadAndInstallAsync, STARCLI.Missions.UninstallAsync, STARCLI.Missions.PublishAsync, STARCLI.Missions.UnpublishAsync, STARCLI.Missions.RepublishAsync, STARCLI.Missions.ActivateAsync, STARCLI.Missions.DeactivateAsync, STARCLI.Missions.ShowAsync, STARCLI.Missions.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Missions.ListAllAsync, STARCLI.Missions.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Missions.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Missions.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Missions.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Missions.SearchAsync, STARCLI.Missions.AddDependencyAsync, STARCLI.Missions.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "quest":
-                                    await ShowSubCommandAsync<Quest>(inputArgs, "quest", "quests", STARCLI.Quests.CreateAsync, STARCLI.Quests.EditAsync, STARCLI.Quests.DeleteAsync, STARCLI.Quests.DownloadAndInstallAsync, STARCLI.Quests.UninstallAsync, STARCLI.Quests.PublishAsync, STARCLI.Quests.UnpublishAsync, STARCLI.Quests.RepublishAsync, STARCLI.Quests.ActivateAsync, STARCLI.Quests.DeactivateAsync, STARCLI.Quests.ShowAsync, STARCLI.Quests.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Quests.ListAllAsync, STARCLI.Quests.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Quests.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Quests.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Quests.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Quests.SearchAsync, STARCLI.Quests.AddDependencyAsync, STARCLI.Quests.RemoveDependencyAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Quest>(inputArgs, "quest", "quests", STARCLI.Quests.CreateAsync, STARCLI.Quests.EditAsync, STARCLI.Quests.DeleteAsync, STARCLI.Quests.DownloadAndInstallAsync, STARCLI.Quests.UninstallAsync, STARCLI.Quests.PublishAsync, STARCLI.Quests.UnpublishAsync, STARCLI.Quests.RepublishAsync, STARCLI.Quests.ActivateAsync, STARCLI.Quests.DeactivateAsync, STARCLI.Quests.ShowAsync, STARCLI.Quests.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Quests.ListAllAsync, STARCLI.Quests.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Quests.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Quests.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Quests.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Quests.SearchAsync, STARCLI.Quests.AddDependencyAsync, STARCLI.Quests.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "nft":
                                     {
                                        if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "collection")
-                                            await ShowSubCommandAsync<STARNFTCollection>(inputArgs, "nft collection", "nft collection's", STARCLI.NFTCollections.CreateAsync, STARCLI.NFTCollections.EditAsync, STARCLI.NFTCollections.DeleteAsync, STARCLI.NFTCollections.DownloadAndInstallAsync, STARCLI.NFTCollections.UninstallAsync, STARCLI.NFTCollections.PublishAsync, STARCLI.NFTCollections.UnpublishAsync, STARCLI.NFTCollections.RepublishAsync, STARCLI.NFTCollections.ActivateAsync, STARCLI.NFTCollections.DeactivateAsync, STARCLI.NFTCollections.ShowAsync, STARCLI.NFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllAsync, STARCLI.NFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTCollections.SearchAsync, STARCLI.NFTCollections.AddDependencyAsync, STARCLI.NFTCollections.RemoveDependencyAsync, createWeb4NFTCollectionPredicate: STARCLI.NFTCollections.CreateWeb4NFTCollectionAsync, updateWeb4NFTCollectionPredicate: STARCLI.NFTCollections.UpdateWeb4NFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.NFTCollections.AddWeb4NFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.NFTCollections.RemoveWeb4NFTFromCollectionAsync, deleteWeb4NFTCollectionPredicate: STARCLI.NFTCollections.DeleteWeb4NFTCollectionAsync, listAllWeb4NFTsPredicate: STARCLI.NFTCollections.ListAllWeb4NFTCollections, listWeb4NFTsForBeamedInAvatarPredicate: STARCLI.NFTCollections.ListWeb4NFTCollectionsForAvatar, showWeb4NFTPredicate: STARCLI.NFTCollections.ShowWeb4NFTCollectionAsync, searchWeb4NFTPredicate: STARCLI.NFTCollections.SearchWeb4NFTCollectionAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARNFTCollection>(inputArgs, "nft collection", "nft collection's", STARCLI.NFTCollections.CreateAsync, STARCLI.NFTCollections.EditAsync, STARCLI.NFTCollections.DeleteAsync, STARCLI.NFTCollections.DownloadAndInstallAsync, STARCLI.NFTCollections.UninstallAsync, STARCLI.NFTCollections.PublishAsync, STARCLI.NFTCollections.UnpublishAsync, STARCLI.NFTCollections.RepublishAsync, STARCLI.NFTCollections.ActivateAsync, STARCLI.NFTCollections.DeactivateAsync, STARCLI.NFTCollections.ShowAsync, STARCLI.NFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllAsync, STARCLI.NFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTCollections.SearchAsync, STARCLI.NFTCollections.AddDependencyAsync, STARCLI.NFTCollections.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, createWeb4Predicate: STARCLI.NFTCollections.CreateWeb4NFTCollectionAsync, updateWeb4Predicate: STARCLI.NFTCollections.UpdateWeb4NFTCollectionAsync, deleteWeb4Predicate: STARCLI.NFTCollections.DeleteWeb4NFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.NFTCollections.AddWeb4NFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.NFTCollections.RemoveWeb4NFTFromCollectionAsync, listAllWeb4Predicate: STARCLI.NFTCollections.ListAllWeb4NFTCollections, listWeb4ForBeamedInAvatarPredicate: STARCLI.NFTCollections.ListWeb4NFTCollectionsForAvatar, showWeb4Predicate: STARCLI.NFTCollections.ShowWeb4NFTCollectionAsync, searchWeb4Predicate: STARCLI.NFTCollections.SearchWeb4NFTCollectionAsync, providerType: providerType);
                                        else
-                                            await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.EditAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, STARCLI.NFTs.MintNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.CloneNFTAsync, STARCLI.NFTs.ConvertNFTAsync, STARCLI.NFTs.ListAllWeb4NFTsAsync, STARCLI.NFTs.ListAllWeb4NFTForAvatarsAsync, STARCLI.NFTs.ShowWeb4NFTAsync, STARCLI.NFTs.SearchWeb4NFTAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.EditAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, clonePredicate: STARCLI.NFTs.CloneAsync, mintPredicate: STARCLI.NFTs.MintNFTAsync, burnPredicate: STARCLI.NFTs.BurnNFTAsync, importPredicate: STARCLI.NFTs.ImportNFTAsync, exportPredicate: STARCLI.NFTs.ExportNFTAsync,  convertPredicate: STARCLI.NFTs.ConvertNFTAsync, updateWeb4Predicate: STARCLI.NFTs.UpdateWeb4NFTAsync, deleteWeb4Predicate: STARCLI.NFTs.DeleteWeb4NFTAsync, listAllWeb4Predicate: STARCLI.NFTs.ListAllWeb4NFTsAsync, listWeb4ForBeamedInAvatarPredicate: STARCLI.NFTs.ListAllWeb4NFTForAvatarsAsync, showWeb4Predicate: STARCLI.NFTs.ShowWeb4NFTAsync, searchWeb4Predicate: STARCLI.NFTs.SearchWeb4NFTAsync, providerType: providerType);
                                     }
                                     break;
 
                                 case "geonft":
                                     {
                                         if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "collection")
-                                            await ShowSubCommandAsync<STARGeoNFTCollection>(inputArgs, "geo-nft collection", "geo-nft collection's", STARCLI.GeoNFTCollections.CreateAsync, STARCLI.GeoNFTCollections.EditAsync, STARCLI.GeoNFTCollections.DeleteAsync, STARCLI.GeoNFTCollections.DownloadAndInstallAsync, STARCLI.GeoNFTCollections.UninstallAsync, STARCLI.GeoNFTCollections.PublishAsync, STARCLI.GeoNFTCollections.UnpublishAsync, STARCLI.GeoNFTCollections.RepublishAsync, STARCLI.GeoNFTCollections.ActivateAsync, STARCLI.GeoNFTCollections.DeactivateAsync, STARCLI.GeoNFTCollections.ShowAsync, STARCLI.GeoNFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllAsync, STARCLI.GeoNFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.SearchAsync, STARCLI.GeoNFTCollections.AddDependencyAsync, STARCLI.GeoNFTCollections.RemoveDependencyAsync, createWeb4NFTCollectionPredicate: STARCLI.GeoNFTCollections.CreateWeb4GeoNFTCollectionAsync, updateWeb4NFTCollectionPredicate: STARCLI.GeoNFTCollections.UpdateWeb4GeoNFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.GeoNFTCollections.AddWeb4GeoNFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.GeoNFTCollections.RemoveWeb4GeoNFTFromCollectionAsync, deleteWeb4NFTCollectionPredicate: STARCLI.GeoNFTCollections.DeleteWeb4GeoNFTCollectionAsync, listAllWeb4NFTsPredicate: STARCLI.GeoNFTCollections.ListAllWeb4GeoNFTCollections, listWeb4NFTsForBeamedInAvatarPredicate: STARCLI.GeoNFTCollections.ListWeb4GeoNFTCollectionsForAvatar, showWeb4NFTPredicate: STARCLI.GeoNFTCollections.ShowWeb4GeoNFTCollectionAsync, searchWeb4NFTPredicate: STARCLI.GeoNFTCollections.SearchWeb4GeoNFTCollectionAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARGeoNFTCollection>(inputArgs, "geo-nft collection", "geo-nft collection's", STARCLI.GeoNFTCollections.CreateAsync, STARCLI.GeoNFTCollections.EditAsync, STARCLI.GeoNFTCollections.DeleteAsync, STARCLI.GeoNFTCollections.DownloadAndInstallAsync, STARCLI.GeoNFTCollections.UninstallAsync, STARCLI.GeoNFTCollections.PublishAsync, STARCLI.GeoNFTCollections.UnpublishAsync, STARCLI.GeoNFTCollections.RepublishAsync, STARCLI.GeoNFTCollections.ActivateAsync, STARCLI.GeoNFTCollections.DeactivateAsync, STARCLI.GeoNFTCollections.ShowAsync, STARCLI.GeoNFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllAsync, STARCLI.GeoNFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.SearchAsync, STARCLI.GeoNFTCollections.AddDependencyAsync, STARCLI.GeoNFTCollections.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, createWeb4Predicate: STARCLI.GeoNFTCollections.CreateWeb4GeoNFTCollectionAsync, updateWeb4Predicate: STARCLI.GeoNFTCollections.UpdateWeb4GeoNFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.GeoNFTCollections.AddWeb4GeoNFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.GeoNFTCollections.RemoveWeb4GeoNFTFromCollectionAsync, deleteWeb4Predicate: STARCLI.GeoNFTCollections.DeleteWeb4GeoNFTCollectionAsync, listAllWeb4Predicate: STARCLI.GeoNFTCollections.ListAllWeb4GeoNFTCollections, listWeb4ForBeamedInAvatarPredicate: STARCLI.GeoNFTCollections.ListWeb4GeoNFTCollectionsForAvatar, showWeb4Predicate: STARCLI.GeoNFTCollections.ShowWeb4GeoNFTCollectionAsync, searchWeb4Predicate: STARCLI.GeoNFTCollections.SearchWeb4GeoNFTCollectionAsync, providerType: providerType);
                                         else
-                                            await ShowSubCommandAsync<STARGeoNFT>(inputArgs, "geo-nft", "geo-nft's", STARCLI.GeoNFTs.CreateAsync, STARCLI.GeoNFTs.EditAsync, STARCLI.GeoNFTs.DeleteAsync, STARCLI.GeoNFTs.DownloadAndInstallAsync, STARCLI.GeoNFTs.UninstallAsync, STARCLI.GeoNFTs.PublishAsync, STARCLI.GeoNFTs.UnpublishAsync, STARCLI.GeoNFTs.RepublishAsync, STARCLI.GeoNFTs.ActivateAsync, STARCLI.GeoNFTs.DeactivateAsync, STARCLI.GeoNFTs.ShowAsync, STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllAsync, STARCLI.GeoNFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTs.SearchAsync, STARCLI.GeoNFTs.AddDependencyAsync, STARCLI.GeoNFTs.RemoveDependencyAsync, STARCLI.GeoNFTs.MintGeoNFTAsync, STARCLI.GeoNFTs.BurnGeoNFTAsync, STARCLI.GeoNFTs.ImportGeoNFTAsync, STARCLI.GeoNFTs.ExportGeoNFTAsync, STARCLI.GeoNFTs.CloneGeoNFTAsync, STARCLI.GeoNFTs.ConvertGeoNFTAsync, STARCLI.GeoNFTs.ListAllWeb4GeoNFTsAsync, STARCLI.GeoNFTs.ListAllWeb4GeoNFTForAvatarsAsync, STARCLI.GeoNFTs.ShowWeb4GeoNFTAsync, STARCLI.GeoNFTs.SearchWeb4GeoNFTAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARGeoNFT>(inputArgs, "geo-nft", "geo-nft's", STARCLI.GeoNFTs.CreateAsync, STARCLI.GeoNFTs.EditAsync, STARCLI.GeoNFTs.DeleteAsync, STARCLI.GeoNFTs.DownloadAndInstallAsync, STARCLI.GeoNFTs.UninstallAsync, STARCLI.GeoNFTs.PublishAsync, STARCLI.GeoNFTs.UnpublishAsync, STARCLI.GeoNFTs.RepublishAsync, STARCLI.GeoNFTs.ActivateAsync, STARCLI.GeoNFTs.DeactivateAsync, STARCLI.GeoNFTs.ShowAsync, STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllAsync, STARCLI.GeoNFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTs.SearchAsync, STARCLI.GeoNFTs.AddDependencyAsync, STARCLI.GeoNFTs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, mintPredicate: STARCLI.GeoNFTs.MintGeoNFTAsync, burnPredicate: STARCLI.GeoNFTs.BurnGeoNFTAsync, importPredicate: STARCLI.GeoNFTs.ImportGeoNFTAsync, exportPredicate: STARCLI.GeoNFTs.ExportGeoNFTAsync, convertPredicate: STARCLI.GeoNFTs.ConvertGeoNFTAsync, updateWeb4Predicate: STARCLI.GeoNFTs.UpdateWeb4GeoNFTAsync, deleteWeb4Predicate: STARCLI.GeoNFTs.DeleteWeb4GeoNFTAsync, listAllWeb4Predicate: STARCLI.GeoNFTs.ListAllWeb4GeoNFTsAsync, listWeb4ForBeamedInAvatarPredicate: STARCLI.GeoNFTs.ListAllWeb4GeoNFTForAvatarsAsync, showWeb4Predicate: STARCLI.GeoNFTs.ShowWeb4GeoNFTAsync, searchWeb4Predicate: STARCLI.GeoNFTs.SearchWeb4GeoNFTAsync, providerType: providerType);
                                     }
                                     break;
 
                                 case "geohotspot":
-                                    await ShowSubCommandAsync<GeoHotSpot>(inputArgs, "geo-hotspot", "geo-hotspots", STARCLI.GeoHotSpots.CreateAsync, STARCLI.GeoHotSpots.EditAsync, STARCLI.GeoHotSpots.DeleteAsync, STARCLI.GeoHotSpots.DownloadAndInstallAsync, STARCLI.GeoHotSpots.UninstallAsync, STARCLI.GeoHotSpots.PublishAsync, STARCLI.GeoHotSpots.UnpublishAsync, STARCLI.GeoHotSpots.RepublishAsync, STARCLI.GeoHotSpots.ActivateAsync, STARCLI.GeoHotSpots.DeactivateAsync, STARCLI.GeoHotSpots.ShowAsync, STARCLI.GeoHotSpots.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllAsync, STARCLI.GeoHotSpots.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoHotSpots.SearchAsync, STARCLI.GeoHotSpots.AddDependencyAsync, STARCLI.GeoHotSpots.RemoveDependencyAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<GeoHotSpot>(inputArgs, "geo-hotspot", "geo-hotspots", STARCLI.GeoHotSpots.CreateAsync, STARCLI.GeoHotSpots.EditAsync, STARCLI.GeoHotSpots.DeleteAsync, STARCLI.GeoHotSpots.DownloadAndInstallAsync, STARCLI.GeoHotSpots.UninstallAsync, STARCLI.GeoHotSpots.PublishAsync, STARCLI.GeoHotSpots.UnpublishAsync, STARCLI.GeoHotSpots.RepublishAsync, STARCLI.GeoHotSpots.ActivateAsync, STARCLI.GeoHotSpots.DeactivateAsync, STARCLI.GeoHotSpots.ShowAsync, STARCLI.GeoHotSpots.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllAsync, STARCLI.GeoHotSpots.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoHotSpots.SearchAsync, STARCLI.GeoHotSpots.AddDependencyAsync, STARCLI.GeoHotSpots.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "inventoryitem":
-                                    await ShowSubCommandAsync<InventoryItem>(inputArgs, "inventoryitem", "inventoryitem", STARCLI.InventoryItems.CreateAsync, STARCLI.InventoryItems.EditAsync, STARCLI.InventoryItems.DeleteAsync, STARCLI.InventoryItems.DownloadAndInstallAsync, STARCLI.InventoryItems.UninstallAsync, STARCLI.InventoryItems.PublishAsync, STARCLI.InventoryItems.UnpublishAsync, STARCLI.InventoryItems.RepublishAsync, STARCLI.InventoryItems.ActivateAsync, STARCLI.InventoryItems.DeactivateAsync, STARCLI.InventoryItems.ShowAsync, STARCLI.InventoryItems.ListAllCreatedByBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllAsync, STARCLI.InventoryItems.ListAllInstalledForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.InventoryItems.SearchAsync, STARCLI.InventoryItems.AddDependencyAsync, STARCLI.InventoryItems.RemoveDependencyAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<InventoryItem>(inputArgs, "inventoryitem", "inventoryitem", STARCLI.InventoryItems.CreateAsync, STARCLI.InventoryItems.EditAsync, STARCLI.InventoryItems.DeleteAsync, STARCLI.InventoryItems.DownloadAndInstallAsync, STARCLI.InventoryItems.UninstallAsync, STARCLI.InventoryItems.PublishAsync, STARCLI.InventoryItems.UnpublishAsync, STARCLI.InventoryItems.RepublishAsync, STARCLI.InventoryItems.ActivateAsync, STARCLI.InventoryItems.DeactivateAsync, STARCLI.InventoryItems.ShowAsync, STARCLI.InventoryItems.ListAllCreatedByBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllAsync, STARCLI.InventoryItems.ListAllInstalledForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.InventoryItems.SearchAsync, STARCLI.InventoryItems.AddDependencyAsync, STARCLI.InventoryItems.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "plugin":
-                                    await ShowSubCommandAsync<Plugin>(inputArgs, "plugin", "plugin", STARCLI.Plugins.CreateAsync, STARCLI.Plugins.EditAsync, STARCLI.Plugins.DeleteAsync, STARCLI.Plugins.DownloadAndInstallAsync, STARCLI.Plugins.UninstallAsync, STARCLI.Plugins.PublishAsync, STARCLI.Plugins.UnpublishAsync, STARCLI.Plugins.RepublishAsync, STARCLI.Plugins.ActivateAsync, STARCLI.Plugins.DeactivateAsync, STARCLI.Plugins.ShowAsync, STARCLI.Plugins.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Plugins.ListAllAsync, STARCLI.Plugins.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Plugins.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Plugins.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Plugins.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Plugins.SearchAsync, STARCLI.Plugins.AddDependencyAsync, STARCLI.Plugins.RemoveDependencyAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Plugin>(inputArgs, "plugin", "plugin", STARCLI.Plugins.CreateAsync, STARCLI.Plugins.EditAsync, STARCLI.Plugins.DeleteAsync, STARCLI.Plugins.DownloadAndInstallAsync, STARCLI.Plugins.UninstallAsync, STARCLI.Plugins.PublishAsync, STARCLI.Plugins.UnpublishAsync, STARCLI.Plugins.RepublishAsync, STARCLI.Plugins.ActivateAsync, STARCLI.Plugins.DeactivateAsync, STARCLI.Plugins.ShowAsync, STARCLI.Plugins.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Plugins.ListAllAsync, STARCLI.Plugins.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Plugins.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Plugins.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Plugins.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Plugins.SearchAsync, STARCLI.Plugins.AddDependencyAsync, STARCLI.Plugins.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "avatar":
@@ -845,8 +845,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static async Task ShowSubCommandAsync<T>(string[] inputArgs, 
             string subCommand = "",
             string subCommandPlural = "",
-            Func<ISTARNETCreateOptions<T, STARNETDNA>, object, bool, ProviderType, Task> createPredicate = null, 
-            Func<string, object, ProviderType, Task> updatePredicate = null, 
+            Func<ISTARNETCreateOptions<T, STARNETDNA>, object, bool, ProviderType, Task> createPredicate = null,  //WEB5 Commands
+            Func<string, object, bool, ProviderType, Task> updatePredicate = null, 
             Func<string, bool, ProviderType, Task> deletePredicate = null,
             Func<string, InstallMode, ProviderType, Task> downloadAndInstallPredicate = null,
             Func<string, ProviderType, Task> uninstallPredicate = null,
@@ -866,38 +866,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<string, bool, bool, ProviderType, Task> searchPredicate = null,
             Func<string, string, string, ISTARNETDNA, ProviderType, Task> addDependencyPredicate = null,
             Func<string, string, string, ProviderType, Task> removeDependencyPredicate = null,
-            Func<object, Task> mintPredicate = null,
+            Func<object, Task> clonePredicate = null,
+            Func<object, Task> mintPredicate = null, //WEB4 Commands
             Func<object, Task> burnPredicate = null,
             Func<object, Task> importPredicate = null,
             Func<object, Task> exportPredicate = null,
-            Func<object, Task> clonePredicate = null,
+            //Func<object, Task> clonePredicate = null,
             Func<object, Task> convertPredicate = null,
-            Func<ProviderType, Task> listAllWeb4NFTsPredicate = null,
-            Func<ProviderType, Task> listWeb4NFTsForBeamedInAvatarPredicate = null,
-            Func<string, ProviderType, Task> showWeb4NFTPredicate = null,
-            Func<string, bool, ProviderType, Task> searchWeb4NFTPredicate = null,
-            //Func<ProviderType, Task> listAllWeb4GeoNFTsPredicate = null,
-            //Func<ProviderType, Task> listWeb4GeoNFTsForBeamedInAvatarPredicate = null,
-            //Func<string, ProviderType, Task> showWeb4GeoNFTPredicate = null,
-            //Func<string, bool, ProviderType, Task> searchWeb4GeoNFTPredicate = null,
-            Func<object, ProviderType, Task> createWeb4NFTCollectionPredicate = null,
-            Func<string, ProviderType, Task> updateWeb4NFTCollectionPredicate = null,
+            Func<object, ProviderType, Task> createWeb4Predicate = null,
+            Func<string, ProviderType, Task> updateWeb4Predicate = null,
+            Func<string, bool, ProviderType, Task> deleteWeb4Predicate = null,
+            Func<string, ProviderType, Task> showWeb4Predicate = null,
+            Func<string, bool, ProviderType, Task> searchWeb4Predicate = null,
+            Func<ProviderType, Task> listAllWeb4Predicate = null,
+            Func<ProviderType, Task> listWeb4ForBeamedInAvatarPredicate = null,
             Func<string, string, ProviderType, Task> addWeb4NFTToCollectionPredicate = null,
             Func<string, string, ProviderType, Task> removeWeb4NFTFromCollectionPredicate = null,
-            Func<string, bool, ProviderType, Task> deleteWeb4NFTCollectionPredicate = null,
-            //Func<ProviderType, Task> listAllWeb4NFTCollectionsPredicate = null,
-            //Func<ProviderType, Task> listWeb4NFTCollectionsForBeamedInAvatarPredicate = null,
-            //Func<string, ProviderType, Task> showWeb4NFTCollectionPredicate = null,
-            //Func<string, bool, ProviderType, Task> searchWeb4NFTCollectionPredicate = null,
-            //Func<object, ProviderType, Task> createWeb4GeoNFTCollectionPredicate = null,
-            //Func<string, ProviderType, Task> updateWeb4GeoNFTCollectionPredicate = null,
-            //Func<string, string, ProviderType, Task> addWeb4GeoNFTToCollectionPredicate = null,
-            //Func<string, string, ProviderType, Task> removeWeb4GeoNFTFromCollectionPredicate = null,
-            //Func<string, bool, ProviderType, Task> deleteWeb4GeoNFTCollectionPredicate = null,
-            //Func<ProviderType, Task> listAllWeb4GeoNFTCollectionsPredicate = null,
-            //Func<ProviderType, Task> listWeb4GeoNFTCollectionsForBeamedInAvatarPredicate = null,
-            //Func<string, ProviderType, Task> showWeb4GeoNFTCollectionPredicate = null,
-            //Func<string, bool, ProviderType, Task> searchWeb4GeoNFTCollectionPredicate = null,
             bool showCreate = true,
             bool showUpdate = true,
             bool showDelete = true,
@@ -910,11 +894,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             bool showAllVersions = false;
             bool showForAllAvatars = false;
             bool showDetailed = false;
+            bool web3 = false;
+            bool web4 = false;
+            string id = "";
 
             if (string.IsNullOrEmpty(subCommand))
                 subCommand = inputArgs[0];
-
-            string id = "";
 
             //if ((inputArgs.Length > 1 && inputArgs[1] != "template" && inputArgs[1] != "metadata") || (inputArgs.Length > 2 && (inputArgs[1] == "template" || inputArgs[1] == "metadata")))
             if ((inputArgs.Length > 1 && inputArgs[1] != "template" && inputArgs[1] != "metadata" && inputArgs[1] != "collection") || (inputArgs.Length > 2 && (inputArgs[1] == "template" || inputArgs[1] == "metadata" || inputArgs[1] == "collection")))
@@ -962,8 +947,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 if (subCommandParam == "detailed" || subCommandParam2 == "detailed" || subCommandParam3 == "detailed")
                     showDetailed = true;
 
-                bool web3 = subCommandParam == "web3" || subCommandParam2 == "web3" || subCommandParam3 == "web3" || subCommandParam4 == "web3" ? true : false;
-                bool web4 = subCommandParam == "web4" || subCommandParam2 == "web4" || subCommandParam3 == "web4" || subCommandParam4 == "web4" ? true : false;
+                web3 = subCommandParam == "web3" || subCommandParam2 == "web3" || subCommandParam3 == "web3" || subCommandParam4 == "web3" ? true : false;
+                web4 = subCommandParam == "web4" || subCommandParam2 == "web4" || subCommandParam3 == "web4" || subCommandParam4 == "web4" ? true : false;
 
                 switch (subCommandParam)
                 {
@@ -973,8 +958,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             {
                                 if (web4)
                                 {
-                                    if (createWeb4NFTCollectionPredicate != null)
-                                        await createWeb4NFTCollectionPredicate(null, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                    if (createWeb4Predicate != null)
+                                        await createWeb4Predicate(null, providerType); //TODO: Pass in params in a object or dynamic obj.
                                     else
                                         CLIEngine.ShowMessage("Coming Soon...");
                                 }
@@ -1058,10 +1043,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         {
                             if (showUpdate)
                             {
-                                if (updatePredicate != null)
-                                    await updatePredicate(id, null, providerType);
+                                if (web4)
+                                {
+                                    if (updateWeb4Predicate != null)
+                                        await updateWeb4Predicate(null, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                    else
+                                        CLIEngine.ShowMessage("Coming Soon...");
+                                }
                                 else
-                                    CLIEngine.ShowMessage("Coming Soon...");
+                                {
+                                    if (updatePredicate != null)
+                                        await updatePredicate(id, null, true, providerType);
+                                    else
+                                        CLIEngine.ShowMessage("Coming Soon...");
+                                }
                             }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported.");
@@ -1077,10 +1072,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 if (inputArgs.Length > 3)
                                     bool.TryParse(inputArgs[3], out softDelete);
 
-                                if (deletePredicate != null)
-                                    await deletePredicate(id, softDelete, providerType);
+                                if (web4)
+                                {
+                                    if (deleteWeb4Predicate != null)
+                                        await deleteWeb4Predicate(id, softDelete, providerType);
+                                    else
+                                        CLIEngine.ShowMessage("Coming Soon...");
+                                }
                                 else
-                                    CLIEngine.ShowMessage("Coming Soon...");
+                                {
+                                    if (deletePredicate != null)
+                                        await deletePredicate(id, softDelete, providerType);
+                                    else
+                                        CLIEngine.ShowMessage("Coming Soon...");
+                                }
                             }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported.");
@@ -1202,8 +1207,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             {
                                 id = subCommandParam3;
 
-                                if (showWeb4NFTPredicate != null)
-                                    await showWeb4NFTPredicate(id, providerType);
+                                if (showWeb4Predicate != null)
+                                    await showWeb4Predicate(id, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -1312,8 +1317,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         {
                                             if (web4)
                                             {
-                                                if (listAllWeb4NFTsPredicate != null)
-                                                    await listAllWeb4NFTsPredicate(providerType);
+                                                if (listAllWeb4Predicate != null)
+                                                    await listAllWeb4Predicate(providerType);
                                                 else
                                                     CLIEngine.ShowMessage("Coming Soon...");
                                             }
@@ -1329,8 +1334,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         {
                                             if (web4)
                                             {
-                                                if (listWeb4NFTsForBeamedInAvatarPredicate != null)
-                                                    await listWeb4NFTsForBeamedInAvatarPredicate(providerType);
+                                                if (listWeb4ForBeamedInAvatarPredicate != null)
+                                                    await listWeb4ForBeamedInAvatarPredicate(providerType);
                                                 else
                                                     CLIEngine.ShowMessage("Coming Soon...");
                                             }
@@ -1352,8 +1357,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         {
                             if (web4)
                             {
-                                if (showWeb4NFTPredicate != null)
-                                    await searchWeb4NFTPredicate(subCommandParam3, showForAllAvatars, providerType);
+                                if (showWeb4Predicate != null)
+                                    await searchWeb4Predicate(subCommandParam3, showForAllAvatars, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -1385,6 +1390,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 int commandSpace = 22;
                 int paramSpace = 22;
                 string paramDivider = "  ";
+                string web4Param = "";
+
+                if (subCommand.ToUpper() == "NFT" || subCommand.ToUpper() == "GEO-NFT" || subCommand.ToUpper() == "NFT" || subCommand.ToUpper() == "GEO-NFT")
+                    web4Param = " [web4]";
 
                 if (showCreate)
                 {
@@ -1413,10 +1422,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 }
 
                 if (showUpdate)
-                    CLIEngine.ShowMessage(string.Concat("    update".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Update an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    update".PadRight(commandSpace), string.Concat("{id/name}", web4Param).PadRight(paramSpace), paramDivider, "Update an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
 
                 if (showDelete)
-                    CLIEngine.ShowMessage(string.Concat("    delete".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Delete an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                    CLIEngine.ShowMessage(string.Concat("    delete".PadRight(commandSpace), string.Concat("{id/name}", web4Param).PadRight(paramSpace), paramDivider, "Delete an existing ", subCommand, " for the given {id} or {name}."), ConsoleColor.Green, false);
 
                 if (subCommand.ToUpper() == "NFT" || subCommand.ToUpper() == "GEO-NFT")
                 {
@@ -1457,12 +1466,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage(string.Concat("    republish".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Republish a ", subCommand, " to STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    activate".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Activate (show) a ", subCommand, " on the STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
                 CLIEngine.ShowMessage(string.Concat("    deactivate".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Deactivate (hide) a ", subCommand, " on the STARNET for the given {id} or {name}."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), "".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " that have been created."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    list installed".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " installed for the currently beamed in avatar."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    list uninstalled".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " uninstalled for the currently beamed in avatar (allows reinstalling)."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    list unpublished".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " unpublished for the currently beamed in avatar (allows republishing)."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    list deactivated".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " deactivated for the currently beamed in avatar (allows reactivating)."), ConsoleColor.Green, false);
-                CLIEngine.ShowMessage(string.Concat("    search".PadRight(commandSpace), "{id/name}".PadRight(paramSpace), paramDivider, "Searches the ", subCommandPlural, " for the given search critera."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    list".PadRight(commandSpace), string.Concat("[allVersions] [forAllAvatars] [detailed]", web4Param).PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " that have been created."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    list installed".PadRight(commandSpace), "".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " installed for the currently beamed in avatar."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    list uninstalled".PadRight(commandSpace), "".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " uninstalled for the currently beamed in avatar (allows reinstalling)."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    list unpublished".PadRight(commandSpace), "".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " unpublished for the currently beamed in avatar (allows republishing)."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    list deactivated".PadRight(commandSpace), "".PadRight(paramSpace), paramDivider, "List all ", subCommandPlural, " deactivated for the currently beamed in avatar (allows reactivating)."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    show".PadRight(commandSpace), string.Concat("{id/name}", web4Param).PadRight(paramSpace), paramDivider, "Shows the ", subCommandPlural, " for the given {id} or {name}."), ConsoleColor.Green, false);
+                CLIEngine.ShowMessage(string.Concat("    search".PadRight(commandSpace), string.Concat("{id/name}", web4Param).PadRight(paramSpace), paramDivider, "Searches the ", subCommandPlural, " for the given search critera."), ConsoleColor.Green, false);
                 
                 if (subCommand.ToUpper() == "OAPP")
                     CLIEngine.ShowMessage(string.Concat("    template".PadRight(commandSpace), "".PadRight(paramSpace), paramDivider, "Shows the OAPP Template Subcommand menu."), ConsoleColor.Green, false);
@@ -1497,16 +1507,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage($"For the list command, if [detailed] is included it will list detailed stats also such as all dependenices installed.", ConsoleColor.Green);
 
                 if (subCommand.ToUpper() == "GEO-NFT")
-                    CLIEngine.ShowMessage($"For the list, show or search command, if [web4] is included it will list/show/search WEB4 OASIS Geo-NFT's, otherwise it will list/show/search WEB5 STAR Geo-NFT's.", ConsoleColor.Green);
+                    CLIEngine.ShowMessage($"For the update, delete, list, show or search command, if [web4] is included it will update/delete/list/show/search WEB4 OASIS Geo-NFT's, otherwise it will update/delete/list/show/search WEB5 STAR Geo-NFT's.", ConsoleColor.Green);
 
                 if (subCommand.ToUpper() == "NFT")
-                    CLIEngine.ShowMessage($"For the list, show or search command, if [web4] is included it will list/show/search WEB4 OASIS NFT's, otherwise it will list/show/searchs WEB5 STAR NFT's.", ConsoleColor.Green);
+                    CLIEngine.ShowMessage($"For the update, delete, list, show or search command, if [web4] is included it will update/delete/list/show/search WEB4 OASIS NFT's, otherwise it will update/delete/list/show/search WEB5 STAR NFT's.", ConsoleColor.Green);
 
                 if (subCommand.ToUpper() == "GEO-NFT COLLECTION")
-                    CLIEngine.ShowMessage($"For the create, list, show or search command, if [web4] is included it will create/list/show/search WEB4 OASIS Geo-NFT's, otherwise it will create/list/show/search WEB5 STAR Geo-NFT's.", ConsoleColor.Green);
+                    CLIEngine.ShowMessage($"For the create, update, delete, list, show or search command, if [web4] is included it will create/update/delete/list/show/search WEB4 OASIS Geo-NFT Collection's, otherwise it will create/update/delete/list/show/search WEB5 STAR Geo-NFT Collection's.", ConsoleColor.Green);
 
                 if (subCommand.ToUpper() == "NFT COLLECTION")
-                    CLIEngine.ShowMessage($"For the create, list, show or search command, if [web4] is included it will create/list/show/search WEB4 OASIS NFT's, otherwise it will create/list/show/search WEB5 STAR NFT's.", ConsoleColor.Green);
+                    CLIEngine.ShowMessage($"For the create, update, delete, list, show or search command, if [web4] is included it will create/update/delete/list/show/search WEB4 OASIS NFT Collection's, otherwise it will create/update/delete/list/show/search WEB5 STAR NFT Collection's.", ConsoleColor.Green);
 
 
                 CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
@@ -2842,7 +2852,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplayCommand("nft collection add", "{colid/colname} {nftid/nftname}", "Adds a nft to the nft collection.");
                 DisplayCommand("nft collection remove", "{colid/colname} {nftid/nftname}", "Remove's a nft from the nft collection.");
                 //DisplaySTARNETHolonCommands("nft collection", showParams: "{id/name} [detailed] [web4]", showDesc: "Shows a nft collection for the given {id} or {name}. If [web4] is included it will show a WEB4 OASIS NFT Collection, otherwise it will show a WEB5 STAR NFT Collection.", listParams: "[allVersions] [forAllAvatars] [detailed] [web4]", listDesc: "List all that have been generated.", searchParams: "", searchDesc: "");
-                DisplaySTARNETHolonCommands("nft collection", showParams: "{id/name} [detailed] [web4]", listParams: "[allVersions] [forAllAvatars] [detailed] [web4]", searchParams: "[allVersions] [forAllAvatars] [web4]");
+                //DisplaySTARNETHolonCommands("nft collection", showParams: "{id/name} [detailed] [web4]", listParams: "[allVersions] [forAllAvatars] [detailed] [web4]", searchParams: "[allVersions] [forAllAvatars] [web4]");
+                DisplaySTARNETHolonCommands("nft collection");
                 DisplayCommand("geonft mint", "{id/name}", "Mints a OASIS GeoNFT and places in Our World for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS GeoNFT.");
                 DisplayCommand("geonft burn", "{id/name}", "Burn's a GeoNFT for the given {id} or {name}.");
                 DisplayCommand("geonft place", "{id/name}", "Places an existing OASIS NFT for the given {id} or {name} in Our World for the currently beamed in avatar.");
@@ -2852,7 +2863,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplaySTARNETHolonCommands("geonft");
                 DisplayCommand("geonft collection add", "{colid/colname} {nftid/nftname}", "Adds a geo-nft to the geo-nft collection.");
                 DisplayCommand("geonft collection remove", "{colid/colname} {nftid/nftname}", "Remove's a geo-nft from the geo-nft collection.");
-                DisplaySTARNETHolonCommands("geonft collection", showParams: "{id/name} [detailed] [web4]", listParams: "[allVersions] [forAllAvatars] [detailed] [web4]", searchParams: "[allVersions] [forAllAvatars] [web4]");
+                //DisplaySTARNETHolonCommands("geonft collection", showParams: "{id/name} [detailed] [web4]", listParams: "[allVersions] [forAllAvatars] [detailed] [web4]", searchParams: "[allVersions] [forAllAvatars] [web4]");
+                DisplaySTARNETHolonCommands("geonft collection");
                 DisplaySTARNETHolonCommands("geohotspot");
                 DisplaySTARNETHolonCommands("inventoryitem");
                 DisplaySTARNETHolonCommands("plugin");
@@ -3407,7 +3419,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("        In some cases, sub-commands may only list {id} as a param to save space but these also accept the {name}.");
                 Console.WriteLine("        When invoking any sub-commands that have an optional [all] argument/flag, if it is omitted it will search only your items, otherwise it will search all published items as well as yours.");
                 Console.WriteLine("        When invoking any sub-commands that have an optional [detailed] argument/flag, if it is included it will show detailed information for that item (such as show and list).");
-                Console.WriteLine("        If you invoke the list, show or search sub-command with [web4] param it will list/show/search WEB4 OASIS Geo-NFT's/NFT's otherwise it will list/show/search WEB5 STAR Geo-NFT's/NFT's..");
+                Console.WriteLine("        If you invoke the update, delete, list, show or search sub-command with [web4] param it will update/delete/list/show/search WEB4 OASIS Geo-NFT's/NFT's otherwise it will update/delete/list/show/search WEB5 STAR Geo-NFT's/NFT's.");
+                Console.WriteLine("        If you invoke the create, update, delete, list, show or search sub-command with [web4] param it will create/update/delete/list/show/search WEB4 OASIS Geo-NFT/NFT Collection's otherwise it will create/update/delete/list/show/search WEB5 STAR Geo-NFT/NFT Collection's.");
                 Console.WriteLine("        If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to lanuch any wizards to help guide you.");
             }
             else
@@ -3729,12 +3742,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void DisplaySTARNETHolonCommands(string holonType, string createParams = "", string createDesc = "", string updateParams = "", string updateDesc = "", string cloneParams = "", string cloneDesc = "", string addDependencyParams = "", string addDependencyDesc = "", string removeDependencyParams = "", string removeDependencyDesc = "", string deleteParams = "", string deleteDesc = "", string publishParams = "", string publishDesc = "", string unpublishParams = "", string unpublishDesc = "", string republishParams = "", string republishDesc = "", string activateParams = "", string activateDesc = "", string deactivateParams = "", string deactivateDesc = "", string downloadParams = "", string downloadDesc = "", string installParams = "", string installDesc = "", string uninstallParams = "", string uninstallDesc = "", string reinstallParams = "", string reinstallDesc = "", string showParams = "", string showDesc = "", string listParams = "", string listDesc = "", string listInstalledParams = "", string listInstalledDesc = "", string listUninstalledParams = "", string listUninstalledDesc = "", string listUnpublishedParams = "", string listUnpublishedDesc = "", string listDeactivatedParams = "", string listDeactivatedDesc = "", string searchParams = "", string searchDesc = "")
         {
-            DisplayCommand(string.Concat(holonType, " create"), !string.IsNullOrEmpty(createParams) ? createParams : "", !string.IsNullOrEmpty(createDesc) ? createDesc : $"Create a new {holonType}.");
-            DisplayCommand(string.Concat(holonType, " update"), !string.IsNullOrEmpty(updateParams) ? updateParams : "{id/name}", !string.IsNullOrEmpty(updateDesc) ? updateDesc : string.Concat("Updates an existing ", holonType, " for the given {id} or {name}."));
+            string web4Param = "";
+
+            if (holonType == "nft collection" || holonType == "geonft collection")
+                web4Param = " [web4]";
+
+            DisplayCommand(string.Concat(holonType, " create"), !string.IsNullOrEmpty(createParams) ? createParams : web4Param, !string.IsNullOrEmpty(createDesc) ? createDesc : $"Create a new {holonType}.");
+            DisplayCommand(string.Concat(holonType, " update"), !string.IsNullOrEmpty(updateParams) ? updateParams : string.Concat("{id/name}", web4Param), !string.IsNullOrEmpty(updateDesc) ? updateDesc : string.Concat("Updates an existing ", holonType, " for the given {id} or {name}."));
             DisplayCommand(string.Concat(holonType, " clone"), !string.IsNullOrEmpty(cloneParams) ? cloneParams : "{id/name}", !string.IsNullOrEmpty(cloneDesc) ? cloneDesc : string.Concat("Clones an existing ", holonType, " for the given {id} or {name}."));
             DisplayCommand(string.Concat(holonType, " adddependency"), !string.IsNullOrEmpty(addDependencyDesc) ? addDependencyDesc : "{id/name}", !string.IsNullOrEmpty(addDependencyDesc) ? addDependencyDesc : string.Concat("Adds a dependency to an existing ", holonType, " for the given {id} or {name}."));
             DisplayCommand(string.Concat(holonType, " removedependency"), !string.IsNullOrEmpty(removeDependencyParams) ? removeDependencyParams : "{id/name}", !string.IsNullOrEmpty(removeDependencyDesc) ? removeDependencyDesc : string.Concat("Removes a dependency from an existing ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " delete"), !string.IsNullOrEmpty(addDependencyParams) ? addDependencyParams : "{id/name}", !string.IsNullOrEmpty(addDependencyDesc) ? addDependencyDesc : !string.IsNullOrEmpty(deleteDesc) ? deleteDesc : string.Concat("Deletes a ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " delete"), !string.IsNullOrEmpty(deleteParams) ? deleteParams : string.Concat("{id/name}", web4Param), !string.IsNullOrEmpty(deleteDesc) ? deleteDesc : !string.IsNullOrEmpty(deleteDesc) ? deleteDesc : string.Concat("Deletes a ", holonType, " for the given {id} or {name}."));
             DisplayCommand(string.Concat(holonType, " publish"), !string.IsNullOrEmpty(publishParams) ? publishParams : "{id/name}", !string.IsNullOrEmpty(publishDesc) ? publishDesc : string.Concat("Publishes a ", holonType, " for the given {id} or {name}."));
             DisplayCommand(string.Concat(holonType, " unpublish"), !string.IsNullOrEmpty(unpublishParams) ? unpublishParams : "{id/name}", !string.IsNullOrEmpty(unpublishDesc) ? unpublishDesc : string.Concat("Unpublishes a ", holonType, " for the given {id} or {name}."));
             DisplayCommand(string.Concat(holonType, " republish"), !string.IsNullOrEmpty(republishParams) ? republishParams : "{id/name}", !string.IsNullOrEmpty(republishDesc) ? republishDesc : string.Concat("Republish a ", holonType, " for the given {id} or {name}."));
@@ -3744,13 +3762,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             DisplayCommand(string.Concat(holonType, " install"), !string.IsNullOrEmpty(installParams) ? installParams : "{id/name}", !string.IsNullOrEmpty(installDesc) ? installDesc : string.Concat("Install/Download a ", holonType, " for the given {id} or {name}."));
             DisplayCommand(string.Concat(holonType, " uninstall"), !string.IsNullOrEmpty(uninstallParams) ? uninstallParams : "{id/name}", !string.IsNullOrEmpty(uninstallDesc) ? uninstallDesc : string.Concat("Uninstall a ", holonType, " for the given {id} or {name}."));
             DisplayCommand(string.Concat(holonType, " reinstall"), !string.IsNullOrEmpty(reinstallParams) ? reinstallParams : "{id/name}", !string.IsNullOrEmpty(reinstallDesc) ? reinstallDesc : string.Concat("Reinstall a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " show"), !string.IsNullOrEmpty(showParams) ? showParams : "{id/name} [detailed]", !string.IsNullOrEmpty(showDesc) ? showDesc : string.Concat("Shows a  ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " list"), !string.IsNullOrEmpty(listParams) ? listParams : "[allVersions] [forAllAvatars] [detailed]", !string.IsNullOrEmpty(listDesc) ? listDesc : string.Concat("List all  ", holonType, " that have been generated."));
+            DisplayCommand(string.Concat(holonType, " show"), !string.IsNullOrEmpty(showParams) ? showParams : string.Concat("{id/name} [detailed]", web4Param), !string.IsNullOrEmpty(showDesc) ? showDesc : string.Concat("Shows a  ", holonType, " for the given {id} or {name}."));
+            DisplayCommand(string.Concat(holonType, " list"), !string.IsNullOrEmpty(listParams) ? listParams : string.Concat("[allVersions] [forAllAvatars] [detailed]", web4Param), !string.IsNullOrEmpty(listDesc) ? listDesc : string.Concat("List all  ", holonType, " that have been generated."));
             DisplayCommand(string.Concat(holonType, " list installed"), !string.IsNullOrEmpty(listInstalledParams) ? listInstalledParams : "", !string.IsNullOrEmpty(listInstalledDesc) ? listInstalledDesc : string.Concat("List all ", holonType, "'s installed for the currently beamed in avatar."));
             DisplayCommand(string.Concat(holonType, " list uninstalled"), !string.IsNullOrEmpty(listUninstalledParams) ? listUninstalledParams : "", !string.IsNullOrEmpty(listUninstalledDesc) ? listUninstalledDesc : string.Concat("List all ", holonType, "'s uninstalled for the currently beamed in avatar (and allow re-install)."));
             DisplayCommand(string.Concat(holonType, " list unpublished"), !string.IsNullOrEmpty(listUnpublishedParams) ? listUnpublishedParams : "", !string.IsNullOrEmpty(listUnpublishedDesc) ? listUnpublishedDesc : string.Concat("List all ", holonType, "'s unpublished for the currently beamed in avatar (and allow republish)."));
             DisplayCommand(string.Concat(holonType, " list deactivated"), !string.IsNullOrEmpty(listDeactivatedParams) ? listDeactivatedParams : "", !string.IsNullOrEmpty(listDeactivatedDesc) ? listDeactivatedDesc : string.Concat("List all ", holonType, "'s deactivated for the currently beamed in avatar (and allow reactivate)."));
-            DisplayCommand(string.Concat(holonType, " search"), !string.IsNullOrEmpty(searchParams) ? searchParams : "[allVersions] [forAllAvatars]", !string.IsNullOrEmpty(searchDesc) ? searchDesc : string.Concat("Searches the ", holonType, "'s for the given search criteria."));
+            DisplayCommand(string.Concat(holonType, " search"), !string.IsNullOrEmpty(searchParams) ? searchParams : string.Concat("[allVersions] [forAllAvatars]", web4Param), !string.IsNullOrEmpty(searchDesc) ? searchDesc : string.Concat("Searches the ", holonType, "'s for the given search criteria."));
         }
 
         private static void DisplaySTARNETHolonCommandSummaries(string holonType)

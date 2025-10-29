@@ -254,11 +254,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IOASISGeoSpatialNFT>> CloneGeoNFTAsync(object mintParams = null)
-        {
-            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
-            return result;
-        }
+        //public async Task<OASISResult<IOASISGeoSpatialNFT>> CloneGeoNFTAsync(object mintParams = null)
+        //{
+        //    OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+        //    return result;
+        //}
 
         public async Task<OASISResult<IOASISGeoSpatialNFT>> ConvertGeoNFTAsync(object mintParams = null)
         {
@@ -296,6 +296,203 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading WEB4 Geo-NFT's...");
             return ListWeb4GeoNFTs(NFTCommon.NFTManager.LoadAllGeoNFTsForAvatar(STAR.BeamedInAvatar.Id, providerType));
+        }
+
+        public async Task<OASISResult<IOASISGeoSpatialNFT>> UpdateWeb4GeoNFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            UpdateGeoNFTRequest request = new UpdateGeoNFTRequest();
+
+            OASISResult<IOASISGeoSpatialNFT> collectionResult = await FindWeb4GeoNFTAsync("update", idOrName, providerType: providerType);
+
+            if (collectionResult != null && collectionResult.Result != null && !collectionResult.IsError)
+            {
+                // Prefill request with existing values so unchanged fields are preserved
+                var existing = collectionResult.Result;
+
+                request.Id = existing.Id;
+                request.Title = existing.Title;
+                request.Description = existing.Description;
+                request.Image = existing.Image;
+                request.ImageUrl = existing.ImageUrl;
+                request.Thumbnail = existing.Thumbnail;
+                request.ThumbnailUrl = existing.ThumbnailUrl;
+                request.Price = existing.Price;
+                request.Discount = existing.Discount;
+                request.Tags = existing.Tags != null ? new List<string>(existing.Tags) : null;
+                request.MetaData = existing.MetaData != null ? new Dictionary<string, object>(existing.MetaData) : new Dictionary<string, object>();
+
+                // Geo specific
+                request.Lat = existing.Lat;
+                request.Long = existing.Long;
+                request.AllowOtherPlayersToAlsoCollect = existing.AllowOtherPlayersToAlsoCollect;
+                request.PermSpawn = existing.PermSpawn;
+                request.GlobalSpawnQuantity = existing.GlobalSpawnQuantity;
+                request.PlayerSpawnQuantity = existing.PlayerSpawnQuantity;
+                request.RespawnDurationInSeconds = existing.RespawnDurationInSeconds;
+                request.Nft3DObject = existing.Nft3DObject;
+                request.Nft3DObjectURI = existing.Nft3DObjectURI;
+                request.Nft2DSprite = existing.Nft2DSprite;
+                request.Nft2DSpriteURI = existing.Nft2DSpriteURI;
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Title?"))
+                    request.Title = CLIEngine.GetValidInput("Please enter the new title for the Geo-NFT: ");
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Description?"))
+                    request.Description = CLIEngine.GetValidInput("Please enter the new description for the Geo-NFT: ");
+
+                request.ModifiedByAvatarId = STAR.BeamedInAvatar.Id;
+
+                if (CLIEngine.GetConfirmation("Do you wish to update the Image and Thumbnail?"))
+                {
+                    OASISResult<ImageAndThumbnail> imageAndThumbnailResult = NFTCommon.ProcessImageAndThumbnail("Geo-NFT");
+
+                    if (imageAndThumbnailResult != null && imageAndThumbnailResult.Result != null && !imageAndThumbnailResult.IsError)
+                    {
+                        request.Image = imageAndThumbnailResult.Result.Image;
+                        request.ImageUrl = imageAndThumbnailResult.Result.ImageUrl;
+                        request.Thumbnail = imageAndThumbnailResult.Result.Thumbnail;
+                        request.ThumbnailUrl = imageAndThumbnailResult.Result.ThumbnailUrl;
+                    }
+                    else
+                    {
+                        string msg = imageAndThumbnailResult != null ? imageAndThumbnailResult.Message : "";
+                        OASISErrorHandling.HandleError(ref result, $"Error Occured Processing Image and Thumbnail for Geo-NFT: {msg}");
+                        return result;
+                    }
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Price?"))
+                    request.Price = CLIEngine.GetValidInputForDecimal("Please enter the new Price for the Geo-NFT: ");
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Discount?"))
+                    request.Discount = CLIEngine.GetValidInputForDecimal("Please enter the new Discount for the Geo-NFT: ");
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Royalty Percentage?"))
+                    request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false);
+
+                if (CLIEngine.GetConfirmation("Do you wish to change the sale status (Is For Sale)?"))
+                    request.IsForSale = CLIEngine.GetConfirmation("Is the NFT for sale? Press 'Y' for Yes or 'N' for No.");
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit Sale Start Date?"))
+                {
+                    string input = CLIEngine.GetValidInput("Please enter the Sale Start Date (YYYY-MM-DD) or 'none' to clear:");
+                    if (!string.IsNullOrEmpty(input) && input.ToLower() != "none" && DateTime.TryParse(input, out DateTime startDate))
+                        request.SaleStartDate = startDate;
+                    else
+                        request.SaleStartDate = null;
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit Sale End Date?"))
+                {
+                    string input = CLIEngine.GetValidInput("Please enter the Sale End Date (YYYY-MM-DD) or 'none' to clear:");
+                    if (!string.IsNullOrEmpty(input) && input.ToLower() != "none" && DateTime.TryParse(input, out DateTime endDate))
+                        request.SaleEndDate = endDate;
+                    else
+                        request.SaleEndDate = null;
+                }
+
+                // Geo specific edits
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Lat/Long location?"))
+                {
+                    request.Lat = CLIEngine.GetValidInputForLong("Please enter the new Lat location:");
+                    request.Long = CLIEngine.GetValidInputForLong("Please enter the new Long location:");
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit spawn settings (PermSpawn / AllowOtherPlayersToAlsoCollect)?"))
+                {
+                    request.PermSpawn = CLIEngine.GetConfirmation("Will the NFT be permanently spawned? Press 'Y' for Yes or 'N' for No.");
+
+                    if (!request.PermSpawn)
+                    {
+                        request.AllowOtherPlayersToAlsoCollect = CLIEngine.GetConfirmation("Once the NFT has been collected by a given player/avatar, do you want it to also still be collectable by other players/avatars? (Press Y for Yes or N for No)");
+
+                        if (request.AllowOtherPlayersToAlsoCollect)
+                        {
+                            Console.WriteLine("");
+                            request.GlobalSpawnQuantity = CLIEngine.GetValidInputForInt("How many times can the NFT re-spawn once it has been collected?");
+                            request.RespawnDurationInSeconds = CLIEngine.GetValidInputForInt("How long will it take (in seconds) for the NFT to re-spawn once it has been collected?");
+                            request.PlayerSpawnQuantity = CLIEngine.GetValidInputForInt("How many times can the NFT re-spawn once it has been collected for a given player/avatar? (If you want to enforce that players/avatars can only collect each NFT once then set this to 0.)");
+                        }
+                    }
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish to update the 2D sprite or 3D object assets?"))
+                {
+                    OASISResult<ImageObjectResult> imageObjectResult = await ProcessImageOrObjectAsync("Geo-NFT");
+
+                    if (imageObjectResult != null && imageObjectResult.Result != null && !imageObjectResult.IsError)
+                    {
+                        request.Nft3DObject = imageObjectResult.Result.Object3D;
+                        request.Nft3DObjectURI = imageObjectResult.Result.Object3DURI != null ? imageObjectResult.Result.Object3DURI.AbsoluteUri : request.Nft3DObjectURI;
+                        request.Nft2DSprite = imageObjectResult.Result.Image2D;
+                        request.Nft2DSpriteURI = imageObjectResult.Result.Image2DURI != null ? imageObjectResult.Result.Image2DURI.AbsoluteUri : request.Nft2DSpriteURI;
+                    }
+                    else
+                    {
+                        string msg = imageObjectResult != null ? imageObjectResult.Message : "";
+                        OASISErrorHandling.HandleError(ref result, $"Error Occured Processing 2D/3D assets for Geo-NFT: {msg}");
+                        return result;
+                    }
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Tags?"))
+                {
+                    List<string> tags = new List<string>();
+                    string tag = "";
+                    Console.WriteLine("Enter each tag followed by enter. When you are finished enter 'done' and press enter.");
+                    while (tag.ToLower() != "done")
+                    {
+                        tag = CLIEngine.GetValidInput("Enter Tag: ");
+                        if (tag.ToLower() != "done")
+                            tags.Add(tag);
+                    }
+                    request.Tags = tags;
+                }
+
+                // Manage metadata (add/edit/delete)
+                request.MetaData = NFTCommon.ManageMetaData(collectionResult.Result.MetaData, "Geo-NFT");
+
+                result = await NFTCommon.NFTManager.UpdateOASISGeoNFTAsync(request, providerType);
+
+                if (result != null && result.Result != null && !result.IsError)
+                    CLIEngine.ShowSuccessMessage("OASIS Geo-NFT Successfully Updated.");
+                else
+                {
+                    string msg = result != null ? result.Message : "";
+                    CLIEngine.ShowErrorMessage($"Error Occured Updating Geo-NFT: {msg}");
+                }
+            }
+            else
+            {
+                string msg = collectionResult != null ? collectionResult.Message : "";
+                OASISErrorHandling.HandleError(ref result, $"Error Occured Finding Geo-NFT to update: {msg}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISGeoSpatialNFT>> DeleteWeb4GeoNFTAsync(string collectionIdOrName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISGeoSpatialNFT> geoNFT = await FindWeb4GeoNFTAsync("delete", collectionIdOrName, true);
+
+            if (geoNFT == null || geoNFT.Result == null || geoNFT.IsError)
+            {
+                OASISErrorHandling.HandleError(ref geoNFT, $"Error occured finding Geo-NFT to delete. Reason: {geoNFT.Message}");
+                return geoNFT;
+            }
+
+            OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteOASISGeoNFTAsync(STAR.BeamedInAvatar.Id, geoNFT.Result.Id, softDelete, providerType: providerType);
+
+            if (deleteResult != null && deleteResult.Result && !deleteResult.IsError)
+                CLIEngine.ShowSuccessMessage("OASIS Geo-NFT Successfully Deleted.");
+            else
+            {
+                string msg = deleteResult != null ? deleteResult.Message : "";
+                OASISErrorHandling.HandleError(ref geoNFT, $"Error occured deleting Geo-NFT. Reason: {msg}");
+            }
+
+            return geoNFT;
         }
 
         public virtual async Task<OASISResult<IOASISGeoSpatialNFT>> ShowWeb4GeoNFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)

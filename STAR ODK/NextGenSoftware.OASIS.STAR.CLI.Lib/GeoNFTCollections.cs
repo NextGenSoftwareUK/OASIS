@@ -147,7 +147,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<IOASISGeoNFTCollection>> CreateWeb4GeoNFTCollectionAsync(object createOptions = null, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOASISGeoNFTCollection> result = new OASISResult<IOASISGeoNFTCollection>();
-            CreateOASISGeoNFTCollectionRequest request = new CreateOASISGeoNFTCollectionRequest();
+            CreateGeoNFTCollectionRequest request = new CreateGeoNFTCollectionRequest();
 
             request.Title = CLIEngine.GetValidInput("Please enter a title for the GeoNFT Collection: ");
             request.Description = CLIEngine.GetValidInput("Please enter a description for the GeoNFT Collection: ");
@@ -227,7 +227,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<IOASISGeoNFTCollection>> UpdateWeb4GeoNFTCollectionAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IOASISGeoNFTCollection> result = new OASISResult<IOASISGeoNFTCollection>();
-            UpdateOASISGeoNFTCollectionRequest request = new UpdateOASISGeoNFTCollectionRequest();
+            UpdateGeoNFTCollectionRequest request = new UpdateGeoNFTCollectionRequest();
 
             OASISResult<IOASISGeoNFTCollection> collectionResult = await FindWeb4GeoNFTCollectionAsync("update", idOrName, providerType: providerType);
 

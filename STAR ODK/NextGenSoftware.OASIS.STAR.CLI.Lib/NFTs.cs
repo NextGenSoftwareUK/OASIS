@@ -314,22 +314,193 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        //public async Task<OASISResult<IOASISNFT>> ExportNFTAsync(object mintParams = null)
-        //{
-        //    OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
-        //    return result;
-        //}
-
-        public async Task<OASISResult<IOASISNFT>> CloneNFTAsync(object mintParams = null)
+        public async Task<OASISResult<IOASISNFT>> ExportNFTAsync(object mintParams = null)
         {
             OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
             return result;
         }
 
+        //public async Task<OASISResult<IOASISNFT>> CloneNFTAsync(object mintParams = null)
+        //{
+        //    OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+        //    return result;
+        //}
+
         public async Task<OASISResult<IOASISNFT>> ConvertNFTAsync(object mintParams = null)
         {
             OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
             return result;
+        }
+
+        public async Task<OASISResult<IOASISNFT>> UpdateWeb4NFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISNFT> result = new OASISResult<IOASISNFT>();
+            UpdateNFTRequest request = new UpdateNFTRequest();
+
+            OASISResult<IOASISNFT> collectionResult = await FindWeb4NFTAsync("update", idOrName, providerType: providerType);
+
+            if (collectionResult != null && collectionResult.Result != null && !collectionResult.IsError)
+            {
+                // Ensure we set the Id of the NFT we're updating
+                request.Id = collectionResult.Result.Id;
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Title?"))
+                    request.Title = CLIEngine.GetValidInput("Please enter the new title for the NFT: ");
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Description?"))
+                    request.Description = CLIEngine.GetValidInput("Please enter the new description for the NFT: ");
+
+                request.ModifiedByAvatarId = STAR.BeamedInAvatar.Id;
+
+                if (CLIEngine.GetConfirmation("Do you wish to update the Image and Thumbnail?"))
+                {
+                    OASISResult<ImageAndThumbnail> imageAndThumbnailResult = NFTCommon.ProcessImageAndThumbnail("NFT");
+
+                    if (imageAndThumbnailResult != null && imageAndThumbnailResult.Result != null && !imageAndThumbnailResult.IsError)
+                    {
+                        request.Image = imageAndThumbnailResult.Result.Image;
+                        request.ImageUrl = imageAndThumbnailResult.Result.ImageUrl;
+                        request.Thumbnail = imageAndThumbnailResult.Result.Thumbnail;
+                        request.ThumbnailUrl = imageAndThumbnailResult.Result.ThumbnailUrl;
+                    }
+                    else
+                    {
+                        string msg = imageAndThumbnailResult != null ? imageAndThumbnailResult.Message : "";
+                        OASISErrorHandling.HandleError(ref result, $"Error Occured Processing Image and Thumbnail for NFT: {msg}");
+                        return result;
+                    }
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Price?"))
+                    request.Price = CLIEngine.GetValidInputForDecimal("Please enter the new Price for the NFT: ");
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Discount?"))
+                    request.Discount = CLIEngine.GetValidInputForDecimal("Please enter the new Discount for the NFT: ");
+
+                // Allow editing additional NFT-specific fields
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Royalty Percentage?"))
+                    request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false);
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit the Previous Owner Avatar Id?"))
+                //    request.PreviousOwnerAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Previous Owner Avatar Id (GUID): ");
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit the Current Owner Avatar Id?"))
+                //    request.CurrentOwnerAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Current Owner Avatar Id (GUID): ");
+
+                if (CLIEngine.GetConfirmation("Do you wish to change the sale status (Is For Sale)?"))
+                    request.IsForSale = CLIEngine.GetConfirmation("Is the NFT for sale? Press 'Y' for Yes or 'N' for No.");
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit Sale Start Date?"))
+                {
+                    string input = CLIEngine.GetValidInput("Please enter the Sale Start Date (YYYY-MM-DD) or 'none' to clear:");
+                    if (!string.IsNullOrEmpty(input) && input.ToLower() != "none" && DateTime.TryParse(input, out DateTime startDate))
+                        request.SaleStartDate = startDate;
+                    else
+                        request.SaleStartDate = null;
+                }
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit Sale End Date?"))
+                {
+                    string input = CLIEngine.GetValidInput("Please enter the Sale End Date (YYYY-MM-DD) or 'none' to clear:");
+                    if (!string.IsNullOrEmpty(input) && input.ToLower() != "none" && DateTime.TryParse(input, out DateTime endDate))
+                        request.SaleEndDate = endDate;
+                    else
+                        request.SaleEndDate = null;
+                }
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit Total Number Of Sales?"))
+                //    request.TotalNumberOfSales = CLIEngine.GetValidInputForInt("Please enter the total number of sales:", false);
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Transaction Hash?"))
+                //    request.LastSaleTransactionHash = CLIEngine.GetValidInput("Please enter the last sale transaction hash:");
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sold By Avatar Id?"))
+                //    request.LastSoldByAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Last Sold By Avatar Id (GUID): ");
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit Last Purchased By Avatar Id?"))
+                //    request.LastPurchasedByAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Last Purchased By Avatar Id (GUID): ");
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Quantity?"))
+                //    request.LastSaleQuantity = CLIEngine.GetValidInputForInt("Please enter the last sale quantity:", false);
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Discount?"))
+                //    request.LastSaleDiscount = CLIEngine.GetValidInputForDecimal("Please enter the last sale discount:");
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Tax?"))
+                //    request.LastSaleTax = CLIEngine.GetValidInputForDecimal("Please enter the last sale tax:");
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit Sales History?"))
+                //    request.SalesHistory = CLIEngine.GetValidInput("Please enter the sales history string:");
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Price?"))
+                //    request.LastSalePrice = CLIEngine.GetValidInputForDecimal("Please enter the last sale price:");
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Amount?"))
+                //    request.LastSaleAmount = CLIEngine.GetValidInputForDecimal("Please enter the last sale amount:");
+
+                //if (CLIEngine.GetConfirmation("Do you wish to edit Last Sale Date?"))
+                //{
+                //    string input = CLIEngine.GetValidInput("Please enter the Last Sale Date (YYYY-MM-DD) or 'none' to clear:");
+                //    if (!string.IsNullOrEmpty(input) && input.ToLower() != "none" && DateTime.TryParse(input, out DateTime lastSaleDate))
+                //        request.LastSaleDate = lastSaleDate;
+                //    // Note: UpdateNFTRequest.LastSaleDate is non-nullable; if user doesn't set it will remain default(DateTime)
+                //}
+
+                if (CLIEngine.GetConfirmation("Do you wish to edit the Tags?"))
+                {
+                    List<string> tags = new List<string>();
+                    string tag = "";
+                    Console.WriteLine("Enter each tag followed by enter. When you are finished enter 'done' and press enter.");
+                    while (tag.ToLower() != "done")
+                    {
+                        tag = CLIEngine.GetValidInput("Enter Tag: ");
+                        if (tag.ToLower() != "done")
+                            tags.Add(tag);
+                    }
+                    request.Tags = tags;
+                }
+
+                request.MetaData = NFTCommon.ManageMetaData(collectionResult.Result.MetaData, "NFT");
+                result = await NFTCommon.NFTManager.UpdateOASISNFTAsync(request, providerType);
+
+                if (result != null && result.Result != null && !result.IsError)
+                    CLIEngine.ShowSuccessMessage("OASIS NFT Successfully Updated.");
+                else
+                {
+                    string msg = result != null ? result.Message : "";
+                    CLIEngine.ShowErrorMessage($"Error Occured Updating NFT: {msg}");
+                }
+            }
+            else
+            {
+                string msg = collectionResult != null ? collectionResult.Message : "";
+                OASISErrorHandling.HandleError(ref result, $"Error Occured Finding NFT to update: {msg}");
+            }
+
+            return result;
+        }
+
+        public async Task<OASISResult<IOASISNFT>> DeleteWeb4NFTAsync(string collectionIdOrName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        {
+            OASISResult<IOASISNFT> nft = await FindWeb4NFTAsync("delete", collectionIdOrName, true);
+
+            if (nft == null || nft.Result == null || nft.IsError)
+            {
+                OASISErrorHandling.HandleError(ref nft, $"Error occured finding NFT to delete. Reason: {nft.Message}");
+                return nft;
+            }
+
+            OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteOASISNFTAsync(STAR.BeamedInAvatar.Id, nft.Result.Id, softDelete, providerType: providerType);
+
+            if (deleteResult != null && deleteResult.Result && !deleteResult.IsError)
+                CLIEngine.ShowSuccessMessage("OASIS NFT Successfully Deleted.");
+            else
+            {
+                string msg = deleteResult != null ? deleteResult.Message : "";
+                OASISErrorHandling.HandleError(ref nft, $"Error occured deleting NFT. Reason: {msg}");
+            }
+
+            return nft;
         }
 
         //public virtual async Task<OASISResult<IEnumerable<IOASISNFT>>> ListAllWeb4NFTsAsync(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
