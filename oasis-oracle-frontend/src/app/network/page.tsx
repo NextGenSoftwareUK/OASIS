@@ -319,80 +319,80 @@ export default function NetworkPage() {
             const availableAssets = collateral.assets.filter(a => !a.encumbered);
             
             return (
-              <div className="absolute bottom-4 left-4 bg-black/95 backdrop-blur-md border border-cyan-400/40 rounded-xl p-6 text-white max-w-3xl shadow-2xl overflow-y-auto max-h-[80vh]">
+              <div className="absolute bottom-4 left-4 bg-[rgba(8,11,26,0.95)] backdrop-blur-xl border border-[var(--color-card-border)] rounded-2xl p-6 text-[var(--color-foreground)] max-w-3xl shadow-[0_20px_60px_rgba(13,148,136,0.4)] overflow-y-auto max-h-[80vh]">
                 <button 
                   onClick={() => setSelectedChain(null)}
-                  className="absolute top-3 right-3 text-white/50 hover:text-white text-lg"
+                  className="absolute top-3 right-3 text-[var(--muted)] hover:text-[var(--color-foreground)] text-lg transition-colors"
                 >
                   ✕
                 </button>
                 
                 {/* Chain Header */}
-                <div className="mb-4 pb-4 border-b border-cyan-400/20">
-                  <h3 className="text-2xl font-bold text-cyan-400 mb-1">{selectedChain.name} Collateral Position</h3>
-                  <div className="grid grid-cols-3 gap-3 text-sm mt-2">
-                    <div>
-                      <span className="text-white/50 text-xs">Total Value</span>
-                      <div className="text-cyan-400 font-mono font-bold">${(collateral.totalValue / 1e9).toFixed(2)}B</div>
+                <div className="mb-4 pb-4 border-b border-[var(--color-card-border)]">
+                  <h3 className="text-2xl font-bold text-[var(--accent)] mb-1">{selectedChain.name} Collateral Position</h3>
+                  <div className="grid grid-cols-3 gap-3 text-sm mt-3">
+                    <div className="bg-[rgba(34,211,238,0.08)] rounded-lg p-2 border border-[var(--color-card-border)]">
+                      <span className="text-[var(--muted)] text-xs block mb-1">Total Value</span>
+                      <div className="text-[var(--accent)] font-mono font-bold text-lg">${(collateral.totalValue / 1e9).toFixed(2)}B</div>
                     </div>
-                    <div>
-                      <span className="text-white/50 text-xs">Available</span>
-                      <div className="text-green-400 font-mono font-bold">${(collateral.availableValue / 1e9).toFixed(2)}B</div>
+                    <div className="bg-[rgba(34,197,94,0.08)] rounded-lg p-2 border border-[rgba(34,197,94,0.2)]">
+                      <span className="text-[var(--muted)] text-xs block mb-1">Available</span>
+                      <div className="text-[var(--positive)] font-mono font-bold text-lg">${(collateral.availableValue / 1e9).toFixed(2)}B</div>
                     </div>
-                    <div>
-                      <span className="text-white/50 text-xs">Encumbered</span>
-                      <div className="text-yellow-400 font-mono font-bold">${(collateral.encumberedValue / 1e9).toFixed(2)}B</div>
+                    <div className="bg-[rgba(250,204,21,0.08)] rounded-lg p-2 border border-[rgba(250,204,21,0.2)]">
+                      <span className="text-[var(--muted)] text-xs block mb-1">Encumbered</span>
+                      <div className="text-[var(--warning)] font-mono font-bold text-lg">${(collateral.encumberedValue / 1e9).toFixed(2)}B</div>
                     </div>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   {/* Encumbered Assets (Left Column) */}
-                  <div className="bg-yellow-400/5 border border-yellow-400/20 rounded-lg p-3">
-                    <h4 className="text-xs font-semibold text-yellow-400 mb-3 uppercase tracking-wide flex items-center gap-2">
-                      <span>🔒</span> Encumbered Assets ({encumberedAssets.length})
+                  <div className="bg-[rgba(250,204,21,0.05)] border border-[rgba(250,204,21,0.15)] rounded-xl p-3 backdrop-blur-sm">
+                    <h4 className="text-xs font-semibold text-[var(--warning)] mb-3 uppercase tracking-wide flex items-center gap-2">
+                      <span className="text-base">🔒</span> Encumbered Assets ({encumberedAssets.length})
                     </h4>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
                       {encumberedAssets.map((asset, i) => (
-                        <div key={i} className="bg-yellow-400/10 rounded px-2 py-2 text-xs border border-yellow-400/20">
-                          <div className="flex justify-between items-start mb-1">
-                            <span className="font-semibold text-white">{asset.symbol}</span>
-                            <span className="text-yellow-400 font-mono">${(asset.valueUSD / 1e6).toFixed(0)}M</span>
+                        <div key={i} className="bg-[rgba(5,5,16,0.6)] rounded-lg px-3 py-2 text-xs border border-[var(--color-card-border)] hover:border-[var(--accent)] transition-colors">
+                          <div className="flex justify-between items-start mb-1.5">
+                            <span className="font-semibold text-[var(--color-foreground)]">{asset.symbol}</span>
+                            <span className="text-[var(--warning)] font-mono font-bold">${(asset.valueUSD / 1e6).toFixed(0)}M</span>
                           </div>
-                          <div className="text-white/60 text-[10px] space-y-0.5">
-                            <div>{asset.assetType}</div>
-                            <div className="text-red-400">{asset.encumbranceType} • {asset.counterparty}</div>
-                            <div className="text-cyan-400">Matures: {formatTimeToMaturity(asset.maturityTime!)}</div>
-                            {asset.haircut && <div>Haircut: {(asset.haircut * 100).toFixed(0)}%</div>}
+                          <div className="text-[var(--muted)] text-[10px] space-y-0.5 leading-relaxed">
+                            <div className="text-[var(--color-foreground)]">{asset.assetType}</div>
+                            <div className="text-[var(--negative)]">{asset.encumbranceType} • {asset.counterparty}</div>
+                            <div className="text-[var(--accent)]">Matures: {formatTimeToMaturity(asset.maturityTime!)}</div>
+                            {asset.haircut && <div className="text-[var(--muted)]">Haircut: {(asset.haircut * 100).toFixed(0)}%</div>}
                           </div>
                         </div>
                       ))}
                       {encumberedAssets.length === 0 && (
-                        <div className="text-white/30 text-center py-4 text-xs">No encumbered assets</div>
+                        <div className="text-[var(--muted)] text-center py-6 text-xs">No encumbered assets</div>
                       )}
                     </div>
                   </div>
                   
                   {/* Available Assets (Right Column) */}
-                  <div className="bg-green-400/5 border border-green-400/20 rounded-lg p-3">
-                    <h4 className="text-xs font-semibold text-green-400 mb-3 uppercase tracking-wide flex items-center gap-2">
-                      <span>✅</span> Available Assets ({availableAssets.length})
+                  <div className="bg-[rgba(34,197,94,0.05)] border border-[rgba(34,197,94,0.15)] rounded-xl p-3 backdrop-blur-sm">
+                    <h4 className="text-xs font-semibold text-[var(--positive)] mb-3 uppercase tracking-wide flex items-center gap-2">
+                      <span className="text-base">✅</span> Available Assets ({availableAssets.length})
                     </h4>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
                       {availableAssets.map((asset, i) => (
-                        <div key={i} className="bg-green-400/10 rounded px-2 py-2 text-xs border border-green-400/20">
-                          <div className="flex justify-between items-start mb-1">
-                            <span className="font-semibold text-white">{asset.symbol}</span>
-                            <span className="text-green-400 font-mono">${(asset.valueUSD / 1e6).toFixed(0)}M</span>
+                        <div key={i} className="bg-[rgba(5,5,16,0.6)] rounded-lg px-3 py-2 text-xs border border-[var(--color-card-border)] hover:border-[var(--positive)] transition-colors">
+                          <div className="flex justify-between items-start mb-1.5">
+                            <span className="font-semibold text-[var(--color-foreground)]">{asset.symbol}</span>
+                            <span className="text-[var(--positive)] font-mono font-bold">${(asset.valueUSD / 1e6).toFixed(0)}M</span>
                           </div>
-                          <div className="text-white/60 text-[10px] space-y-0.5">
-                            <div>{asset.assetType}</div>
-                            {asset.yieldRate && <div className="text-green-400">Yield: {asset.yieldRate.toFixed(2)}%</div>}
+                          <div className="text-[var(--muted)] text-[10px] space-y-0.5 leading-relaxed">
+                            <div className="text-[var(--color-foreground)]">{asset.assetType}</div>
+                            {asset.yieldRate && <div className="text-[var(--positive)]">Yield: {asset.yieldRate.toFixed(2)}%</div>}
                           </div>
                         </div>
                       ))}
                       {availableAssets.length === 0 && (
-                        <div className="text-white/30 text-center py-4 text-xs">No available assets</div>
+                        <div className="text-[var(--muted)] text-center py-6 text-xs">No available assets</div>
                       )}
                     </div>
                   </div>
@@ -400,24 +400,26 @@ export default function NetworkPage() {
                 
                 {/* Active Transfers */}
                 {collateral.activeTransfers.length > 0 && (
-                  <div className="mt-4 bg-purple-400/5 border border-purple-400/20 rounded-lg p-3">
-                    <h4 className="text-xs font-semibold text-purple-400 mb-2 uppercase tracking-wide">
-                      ⚡ Active Transfers ({collateral.activeTransfers.length})
+                  <div className="mt-4 bg-[rgba(34,211,238,0.05)] border border-[var(--color-card-border)] rounded-xl p-3 backdrop-blur-sm">
+                    <h4 className="text-xs font-semibold text-[var(--accent)] mb-3 uppercase tracking-wide flex items-center gap-2">
+                      <span className="text-base">⚡</span> Active Transfers ({collateral.activeTransfers.length})
                     </h4>
                     <div className="space-y-2">
                       {collateral.activeTransfers.map((transfer, i) => (
-                        <div key={i} className={`flex items-center gap-2 rounded px-2 py-2 text-xs ${
-                          transfer.direction === 'incoming' ? 'bg-green-400/10 border border-green-400/20' : 'bg-orange-400/10 border border-orange-400/20'
+                        <div key={i} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs border backdrop-blur-sm ${
+                          transfer.direction === 'incoming' 
+                            ? 'bg-[rgba(34,197,94,0.08)] border-[rgba(34,197,94,0.2)]' 
+                            : 'bg-[rgba(251,146,60,0.08)] border-[rgba(251,146,60,0.2)]'
                         }`}>
-                          <span className={transfer.direction === 'incoming' ? 'text-green-400 text-lg' : 'text-orange-400 text-lg'}>
+                          <span className={`text-lg ${transfer.direction === 'incoming' ? 'text-[var(--positive)]' : 'text-[rgba(251,146,60,0.9)]'}`}>
                             {transfer.direction === 'incoming' ? '←' : '→'}
                           </span>
                           <div className="flex-1">
-                            <div className="text-white font-semibold">{transfer.assetType} • ${(transfer.amountUSD / 1e6).toFixed(0)}M</div>
-                            <div className="text-white/60 text-[10px]">
+                            <div className="text-[var(--color-foreground)] font-semibold">{transfer.assetType} • ${(transfer.amountUSD / 1e6).toFixed(0)}M</div>
+                            <div className="text-[var(--muted)] text-[10px] mt-0.5">
                               {transfer.purpose} • {transfer.counterparty}
                             </div>
-                            <div className="text-cyan-400 text-[10px]">
+                            <div className="text-[var(--accent)] text-[10px] mt-0.5">
                               ETA: {formatTimeToMaturity(transfer.expectedCompletion)} • {transfer.status}
                             </div>
                           </div>
@@ -428,15 +430,15 @@ export default function NetworkPage() {
                 )}
                 
                 {/* Real-time Oracle Stats */}
-                <div className="mt-4 pt-4 border-t border-cyan-400/20">
+                <div className="mt-4 pt-4 border-t border-[var(--color-card-border)]">
                   <div className="flex justify-between items-center text-xs">
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                      <span className="text-white/60">Last Update:</span>
-                      <span className="text-cyan-400 font-mono">{new Date().toLocaleTimeString()}</span>
+                      <span className="w-2 h-2 rounded-full bg-[var(--positive)] animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                      <span className="text-[var(--muted)]">Last Update:</span>
+                      <span className="text-[var(--accent)] font-mono">{new Date().toLocaleTimeString()}</span>
                     </div>
-                    <div className="text-white/40">
-                      Oracle Consensus: <span className="text-cyan-400">99.8%</span>
+                    <div className="text-[var(--muted)]">
+                      Oracle Consensus: <span className="text-[var(--accent)] font-mono">99.8%</span>
                     </div>
                   </div>
                 </div>
