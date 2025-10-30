@@ -128,9 +128,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public override Task EditAsync(string idOrName = "", object editParams = null, bool editLaunchTarget = true, ProviderType providerType = ProviderType.Default)
+        public override Task UpdateAsync(string idOrName = "", object editParams = null, bool editLaunchTarget = true, ProviderType providerType = ProviderType.Default)
         {
-            return base.EditAsync(idOrName, editParams, false, providerType);
+            return base.UpdateAsync(idOrName, editParams, false, providerType);
         }
 
         public override void Show<T>(T starHolon, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 35, object customData = null)
@@ -245,6 +245,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (collectionResult != null && collectionResult.Result != null && !collectionResult.IsError)
             {
+                request.Id = collectionResult.Result.Id;
+
                 if (CLIEngine.GetConfirmation("Do you wish to edit the Title?"))
                     request.Title = CLIEngine.GetValidInput("Please enter the new title for the NFT Collection: ");
 

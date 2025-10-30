@@ -403,11 +403,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     request.PermSpawn = CLIEngine.GetConfirmation("Will the NFT be permanently spawned? Press 'Y' for Yes or 'N' for No.");
 
-                    if (!request.PermSpawn)
+                    if (!request.PermSpawn.Value)
                     {
                         request.AllowOtherPlayersToAlsoCollect = CLIEngine.GetConfirmation("Once the NFT has been collected by a given player/avatar, do you want it to also still be collectable by other players/avatars? (Press Y for Yes or N for No)");
 
-                        if (request.AllowOtherPlayersToAlsoCollect)
+                        if (request.AllowOtherPlayersToAlsoCollect.Value)
                         {
                             Console.WriteLine("");
                             request.GlobalSpawnQuantity = CLIEngine.GetValidInputForInt("How many times can the NFT re-spawn once it has been collected?");

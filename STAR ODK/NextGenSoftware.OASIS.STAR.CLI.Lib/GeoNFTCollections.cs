@@ -233,9 +233,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (collectionResult != null && collectionResult.Result != null && !collectionResult.IsError)
             {
-               //request.OASISGeoNFTs.AddRange(collectionResult.Result.OASISGeoNFTs);
+                request.Id = collectionResult.Result.Id;
+                //request.OASISGeoNFTs.AddRange(collectionResult.Result.OASISGeoNFTs);
 
-                if (CLIEngine.GetConfirmation("Do you wish to edit the Title?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to edit the Title? (currently is: {collectionResult.Result.Name})"))
                     request.Title = CLIEngine.GetValidInput("Please enter the new title for the GeoNFT Collection: ");
 
                 if (CLIEngine.GetConfirmation("Do you wish to edit the Description?"))
