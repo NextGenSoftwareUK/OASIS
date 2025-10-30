@@ -344,10 +344,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 // Ensure we set the Id of the NFT we're updating
                 request.Id = collectionResult.Result.Id;
 
-                if (CLIEngine.GetConfirmation("Do you wish to edit the Title?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to edit the Title? (currently is: {collectionResult.Result.Title})"))
                     request.Title = CLIEngine.GetValidInput("Please enter the new title for the NFT: ");
 
-                if (CLIEngine.GetConfirmation("Do you wish to edit the Description?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to edit the Description? (currently is: {collectionResult.Result.Description})"))
+                { 
                     request.Description = CLIEngine.GetValidInput("Please enter the new description for the NFT: ");
 
                 request.ModifiedByAvatarId = STAR.BeamedInAvatar.Id;
@@ -371,14 +372,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
 
-                if (CLIEngine.GetConfirmation("Do you wish to edit the Price?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to edit the Price? (currently is: {collectionResult.Result.Price}.)"))
                     request.Price = CLIEngine.GetValidInputForDecimal("Please enter the new Price for the NFT: ");
 
-                if (CLIEngine.GetConfirmation("Do you wish to edit the Discount?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to edit the Discount? (currently is: {collectionResult.Result.Discount}.)"))
                     request.Discount = CLIEngine.GetValidInputForDecimal("Please enter the new Discount for the NFT: ");
 
                 // Allow editing additional NFT-specific fields
-                if (CLIEngine.GetConfirmation("Do you wish to edit the Royalty Percentage?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to edit the Royalty Percentage? (currently is: {collectionResult.Result.RoyaltyPercentage}.)"))
                     request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false);
 
                 //if (CLIEngine.GetConfirmation("Do you wish to edit the Previous Owner Avatar Id?"))
@@ -387,10 +388,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 //if (CLIEngine.GetConfirmation("Do you wish to edit the Current Owner Avatar Id?"))
                 //    request.CurrentOwnerAvatarId = CLIEngine.GetValidInputForGuid("Please enter the Current Owner Avatar Id (GUID): ");
 
-                if (CLIEngine.GetConfirmation("Do you wish to change the sale status (Is For Sale)?"))
+                if (CLIEngine.GetConfirmation($"Do you wish to change the sale status (Is For Sale)? (currently is: {collectionResult.Result.IsForSale}.)"))
                     request.IsForSale = CLIEngine.GetConfirmation("Is the NFT for sale? Press 'Y' for Yes or 'N' for No.");
 
-                if (CLIEngine.GetConfirmation("Do you wish to edit Sale Start Date?"))
+                string existingSaleStartDate = collectionResult.Result.SaleStartDate.HasValue ? collectionResult.Result.SaleStartDate.Value.ToShortDateString() : "None";
+                if (CLIEngine.GetConfirmation($"Do you wish to edit Sale Start Date? (currently is: {existingSaleStartDate}.)"))
                 {
                     string input = CLIEngine.GetValidInput("Please enter the Sale Start Date (YYYY-MM-DD) or 'none' to clear:");
                     if (!string.IsNullOrEmpty(input) && input.ToLower() != "none" && DateTime.TryParse(input, out DateTime startDate))
@@ -399,7 +401,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         request.SaleStartDate = null;
                 }
 
-                if (CLIEngine.GetConfirmation("Do you wish to edit Sale End Date?"))
+                string existingSaleEndDate = collectionResult.Result.SaleEndDate.HasValue ? collectionResult.Result.SaleEndDate.Value.ToShortDateString() : "None";
+                if (CLIEngine.GetConfirmation($"Do you wish to edit Sale End Date? (currently is: {existingSaleEndDate}.)"))
                 {
                     string input = CLIEngine.GetValidInput("Please enter the Sale End Date (YYYY-MM-DD) or 'none' to clear:");
                     if (!string.IsNullOrEmpty(input) && input.ToLower() != "none" && DateTime.TryParse(input, out DateTime endDate))
