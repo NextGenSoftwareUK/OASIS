@@ -3690,6 +3690,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             holonNFT.MetaData["NFT.SellerFeeBasisPoints"] = nftMetaData.SellerFeeBasisPoints;
             holonNFT.MetaData["NFT.UpdateAuthority"] = nftMetaData.UpdateAuthority;
             holonNFT.MetaData["NFT.MetaData"] = System.Text.Json.JsonSerializer.Serialize(nftMetaData.MetaData);
+            //holonNFT.MetaData["NFT.MetaData"] = nftMetaData.MetaData; //TODO: Currently the line above works fine for normal metaData but for objects such as file uploads then it causes issues displaying the meta because it is displayed/stored as a string so there is no way to know if its a binary file.
             holonNFT.ParentHolonId = nftMetaData.MintedByAvatarId;
 
             return holonNFT;
