@@ -1,5 +1,6 @@
 ﻿using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
@@ -14,35 +15,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
     public class NFTCommon
     {
         public NFTManager NFTManager { get; set; } = new NFTManager(STAR.BeamedInAvatar.Id);
-
-        
-
-        private Dictionary<string, object> AddMetaDataToNFT(Dictionary<string, object> metaData)
-        {
-            Console.WriteLine("");
-            string key = CLIEngine.GetValidInput("What is the key?");
-            string value = "";
-            byte[] metaFile = null;
-
-            if (CLIEngine.GetConfirmation("Is the value a file?"))
-            {
-                Console.WriteLine("");
-                string metaPath = CLIEngine.GetValidFile("What is the full path to the file?");
-                metaFile = File.ReadAllBytes(metaPath);
-            }
-            else
-            {
-                Console.WriteLine("");
-                value = CLIEngine.GetValidInput("What is the value?");
-            }
-
-            if (metaFile != null)
-                metaData[key] = metaFile;
-            else
-                metaData[key] = value;
-
-            return metaData;
-        }
 
         public async Task<IMintNFTTransactionRequest> GenerateNFTRequestAsync(string web3JSONMetaDataFile = "")
         {
@@ -145,22 +117,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
             }
 
-            if (CLIEngine.GetConfirmation("Do you wish to add any metadata to this NFT?"))
-            {
-                request.MetaData = new Dictionary<string, object>();
-                request.MetaData = AddMetaDataToNFT(request.MetaData);
-                bool metaDataDone = false;
 
-                do
-                {
-                    if (CLIEngine.GetConfirmation("Do you wish to add more metadata?"))
-                        request.MetaData = AddMetaDataToNFT(request.MetaData);
-                    else
-                        metaDataDone = true;
-                }
-                while (!metaDataDone);
-            }
 
+            //if (CLIEngine.GetConfirmation("Do you wish to add any metadata to this NFT?"))
+            //{
+            //    request.MetaData = new Dictionary<string, object>();
+            //    request.MetaData = AddMe(request.MetaData);
+            //    bool metaDataDone = false;
+
+            //    do
+            //    {
+            //        if (CLIEngine.GetConfirmation("Do you wish to add more metadata?"))
+            //            request.MetaData = AddMetaDataToNFT(request.MetaData);
+            //        else
+            //            metaDataDone = true;
+            //    }
+            //    while (!metaDataDone);
+            //}
+
+            MetaDataHelper.ManageMetaData(request.MetaData, "NFT");
             Console.WriteLine("");
             request.NumberToMint = CLIEngine.GetValidInputForInt("How many NFT's do you wish to mint?");
 
@@ -305,7 +280,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             } while (!validStandard);
 
 
-            request.MetaData = AddMetaData("NFT");
+            request.MetaData = MetaDataHelper.AddMetaData("NFT");
             return request;
         }
 
@@ -340,140 +315,5 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             return result;
         }
-
-        public Dictionary<string, object> AddMetaData(string itemName)
-        {
-            Dictionary<string, object> metaData = new Dictionary<string, object>();
-
-            if (CLIEngine.GetConfirmation($"Do you wish to add any metadata to this {itemName}?"))
-            {
-                metaData = AddMetaDataToNFT(metaData);
-                bool metaDataDone = false;
-
-                do
-                {
-                    if (CLIEngine.GetConfirmation("Do you wish to add more metadata?"))
-                        metaData = AddMetaDataToNFT(metaData);
-                    else
-                        metaDataDone = true;
-                }
-                while (!metaDataDone);
-            }
-
-            return metaData;
-        }
-
-        public Dictionary<string, object> ManageMetaData(Dictionary<string, object> metaData, string itemName)
-        {
-            if (metaData == null)
-                metaData = new Dictionary<string, object>();
-
-            bool done = false;
-
-            while (!done)
-            {
-                Console.WriteLine("");
-                CLIEngine.ShowMessage($"Current {itemName} metadata:", false);
-
-                if (metaData.Count == 0)
-                    CLIEngine.ShowMessage("  None", false);
-                else
-                {
-                    int i = 1;
-                    foreach (var kv in metaData)
-                    {
-                        string displayValue = kv.Value is byte[]? "<binary>" : kv.Value?.ToString();
-                        CLIEngine.ShowMessage($"  {i}. {kv.Key} = {displayValue}", false);
-                        i++;
-                    }
-                }
-
-                Console.WriteLine("");
-                CLIEngine.ShowMessage("Choose an action: (A)dd, (E)dit, (D)elete, (Q)uit", false);
-                string choice = CLIEngine.GetValidInput("Enter A, E, D or Q:").ToUpper();
-
-                switch (choice)
-                {
-                    case "A":
-                        metaData = AddMetaDataToNFT(metaData);
-                        break;
-
-                    case "E":
-                        if (metaData.Count == 0)
-                        {
-                            CLIEngine.ShowErrorMessage("No metadata to edit.");
-                            break;
-                        }
-
-                        int editIndex = CLIEngine.GetValidInputForInt("Enter the number of the metadata entry to edit:", false, 1, metaData.Count);
-                        string editKey = metaData.Keys.ElementAt(editIndex - 1);
-                        object currentValue = metaData[editKey];
-
-                        if (currentValue is byte[])
-                        {
-                            if (CLIEngine.GetConfirmation("This value is binary. Do you want to replace it with a file? (Y) or replace with text (N)?"))
-                            {
-                                string metaPath = CLIEngine.GetValidFile("What is the full path to the file?");
-                                metaData[editKey] = File.ReadAllBytes(metaPath);
-                            }
-                            else
-                            {
-                                string newValue = CLIEngine.GetValidInput("Enter the new text value (or type 'clear' to remove):");
-                                if (newValue.ToLower() == "clear")
-                                    metaData.Remove(editKey);
-                                else
-                                    metaData[editKey] = newValue;
-                            }
-                        }
-                        else
-                        {
-                            if (CLIEngine.GetConfirmation("Do you want to set this value from a file? (Y) or enter text value (N)?"))
-                            {
-                                string metaPath = CLIEngine.GetValidFile("What is the full path to the file?");
-                                metaData[editKey] = File.ReadAllBytes(metaPath);
-                            }
-                            else
-                            {
-                                string newValue = CLIEngine.GetValidInput("Enter the new text value (or type 'clear' to remove):");
-                                if (newValue.ToLower() == "clear")
-                                    metaData.Remove(editKey);
-                                else
-                                    metaData[editKey] = newValue;
-                            }
-                        }
-
-                        break;
-
-                    case "D":
-                        if (metaData.Count == 0)
-                        {
-                            CLIEngine.ShowErrorMessage("No metadata to delete.");
-                            break;
-                        }
-
-                        int delIndex = CLIEngine.GetValidInputForInt("Enter the number of the metadata entry to delete:", false, 1, metaData.Count);
-                        string delKey = metaData.Keys.ElementAt(delIndex - 1);
-
-                        if (CLIEngine.GetConfirmation($"Are you sure you want to delete metadata '{delKey}'?"))
-                        {
-                            metaData.Remove(delKey);
-                            CLIEngine.ShowSuccessMessage($"Metadata '{delKey}' deleted.");
-                        }
-                        break;
-
-                    case "Q":
-                        done = true;
-                        break;
-
-                    default:
-                        CLIEngine.ShowErrorMessage("Invalid choice. Please enter A, E, D or Q.");
-                        break;
-                }
-            }
-
-            return metaData;
-        }
-
-
     }
 }

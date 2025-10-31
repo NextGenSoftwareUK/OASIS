@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Request;
@@ -111,16 +112,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         OASISResult<STARGeoNFT> saveResult = await result.Result.SaveAsync<STARGeoNFT>();
 
                         if (!(saveResult != null && saveResult.Result != null && !saveResult.IsError))
-                            OASISErrorHandling.HandleError(ref result, $"Error occured saving STARGeoNFT after creation in CreateAsync method. Reason: {saveResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"Error occured saving WEB STAR Geo-NFT after creation in CreateAsync method. Reason: {saveResult.Message}");
                     }
                 }
             }
             else
             {
                 if (mint)
-                    OASISErrorHandling.HandleError(ref result, $"Error occured minting GeoNFT in MintGeoNFTAsync method. Reason: {geoNFTResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error occured minting WEB4 GeoNFT in MintGeoNFTAsync method. Reason: {geoNFTResult.Message}");
                 else
-                    OASISErrorHandling.HandleError(ref result, $"Error occured loading GeoNFT in LoadGeoNftAsync method. Reason: {geoNFTResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error occured loading WEB4 GeoNFT in LoadGeoNftAsync method. Reason: {geoNFTResult.Message}");
             }
 
             return result;
@@ -131,7 +132,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             IMintNFTTransactionRequest request = await NFTCommon.GenerateNFTRequestAsync();
             IPlaceGeoSpatialNFTRequest geoRequest = await GenerateGeoNFTRequestAsync(false);
 
-            CLIEngine.ShowWorkingMessage("Minting OASIS Geo-NFT...");
+            CLIEngine.ShowWorkingMessage("Minting WEB4 OASIS Geo-NFT...");
             OASISResult<IOASISGeoSpatialNFT> nftResult = await STAR.OASISAPI.NFTs.MintAndPlaceGeoNFTAsync(new MintAndPlaceGeoSpatialNFTRequest()
             {
                 Title = request.Title,
@@ -194,7 +195,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task PlaceGeoNFTAsync()
         {
             IPlaceGeoSpatialNFTRequest geoRequest = await GenerateGeoNFTRequestAsync(true);
-            CLIEngine.ShowWorkingMessage("Creating OASIS Geo-NFT...");
+            CLIEngine.ShowWorkingMessage("Creating WEB4 OASIS Geo-NFT...");
             OASISResult<IOASISGeoSpatialNFT> nftResult = await STAR.OASISAPI.NFTs.PlaceGeoNFTAsync(geoRequest);
 
             if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
@@ -216,7 +217,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             string memoText = CLIEngine.GetValidInput("What is the memo text?");
             //decimal amount = CLIEngine.GetValidInputForDecimal("What is the amount?");
 
-            CLIEngine.ShowWorkingMessage("Sending GeoNFT...");
+            CLIEngine.ShowWorkingMessage("Sending WEB4 GeoNFT...");
 
             OASISResult<INFTTransactionRespone> response = await STAR.OASISAPI.NFTs.SendNFTAsync(new NFTWalletTransactionRequest()
             {
@@ -336,16 +337,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 request.Nft2DSpriteURI = existing.Nft2DSpriteURI;
 
                 if (CLIEngine.GetConfirmation("Do you wish to edit the Title?"))
-                    request.Title = CLIEngine.GetValidInput("Please enter the new title for the Geo-NFT: ");
+                    request.Title = CLIEngine.GetValidInput("Please enter the new title for the WEB4 Geo-NFT: ");
 
                 if (CLIEngine.GetConfirmation("Do you wish to edit the Description?"))
-                    request.Description = CLIEngine.GetValidInput("Please enter the new description for the Geo-NFT: ");
+                    request.Description = CLIEngine.GetValidInput("Please enter the new description for the WEB4 Geo-NFT: ");
 
                 request.ModifiedByAvatarId = STAR.BeamedInAvatar.Id;
 
                 if (CLIEngine.GetConfirmation("Do you wish to update the Image and Thumbnail?"))
                 {
-                    OASISResult<ImageAndThumbnail> imageAndThumbnailResult = NFTCommon.ProcessImageAndThumbnail("Geo-NFT");
+                    OASISResult<ImageAndThumbnail> imageAndThumbnailResult = NFTCommon.ProcessImageAndThumbnail("WEB4 Geo-NFT");
 
                     if (imageAndThumbnailResult != null && imageAndThumbnailResult.Result != null && !imageAndThumbnailResult.IsError)
                     {
@@ -357,16 +358,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     else
                     {
                         string msg = imageAndThumbnailResult != null ? imageAndThumbnailResult.Message : "";
-                        OASISErrorHandling.HandleError(ref result, $"Error Occured Processing Image and Thumbnail for Geo-NFT: {msg}");
+                        OASISErrorHandling.HandleError(ref result, $"Error Occured Processing Image and Thumbnail for WEB4 Geo-NFT: {msg}");
                         return result;
                     }
                 }
 
                 if (CLIEngine.GetConfirmation("Do you wish to edit the Price?"))
-                    request.Price = CLIEngine.GetValidInputForDecimal("Please enter the new Price for the Geo-NFT: ");
+                    request.Price = CLIEngine.GetValidInputForDecimal("Please enter the new Price for the WEB4 Geo-NFT: ");
 
                 if (CLIEngine.GetConfirmation("Do you wish to edit the Discount?"))
-                    request.Discount = CLIEngine.GetValidInputForDecimal("Please enter the new Discount for the Geo-NFT: ");
+                    request.Discount = CLIEngine.GetValidInputForDecimal("Please enter the new Discount for the WEB4 Geo-NFT: ");
 
                 if (CLIEngine.GetConfirmation("Do you wish to edit the Royalty Percentage?"))
                     request.RoyaltyPercentage = CLIEngine.GetValidInputForInt("Please enter the Royalty Percentage (integer): ", false);
@@ -419,7 +420,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (CLIEngine.GetConfirmation("Do you wish to update the 2D sprite or 3D object assets?"))
                 {
-                    OASISResult<ImageObjectResult> imageObjectResult = await ProcessImageOrObjectAsync("Geo-NFT");
+                    OASISResult<ImageObjectResult> imageObjectResult = await ProcessImageOrObjectAsync("WEB4 Geo-NFT");
 
                     if (imageObjectResult != null && imageObjectResult.Result != null && !imageObjectResult.IsError)
                     {
@@ -431,7 +432,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     else
                     {
                         string msg = imageObjectResult != null ? imageObjectResult.Message : "";
-                        OASISErrorHandling.HandleError(ref result, $"Error Occured Processing 2D/3D assets for Geo-NFT: {msg}");
+                        OASISErrorHandling.HandleError(ref result, $"Error Occured Processing 2D/3D assets for WEB4 Geo-NFT: {msg}");
                         return result;
                     }
                 }
@@ -451,22 +452,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
 
                 // Manage metadata (add/edit/delete)
-                request.MetaData = NFTCommon.ManageMetaData(collectionResult.Result.MetaData, "Geo-NFT");
+                request.MetaData = MetaDataHelper.ManageMetaData(collectionResult.Result.MetaData, "WEB4 Geo-NFT");
 
+                CLIEngine.ShowWorkingMessage("Saving WEB4 Geo-NFT...");
                 result = await NFTCommon.NFTManager.UpdateOASISGeoNFTAsync(request, providerType);
 
                 if (result != null && result.Result != null && !result.IsError)
-                    CLIEngine.ShowSuccessMessage("OASIS Geo-NFT Successfully Updated.");
+                    CLIEngine.ShowSuccessMessage("WEB4 OASIS Geo-NFT Successfully Updated.");
                 else
                 {
                     string msg = result != null ? result.Message : "";
-                    CLIEngine.ShowErrorMessage($"Error Occured Updating Geo-NFT: {msg}");
+                    CLIEngine.ShowErrorMessage($"Error Occured Updating WEB4 Geo-NFT: {msg}");
                 }
             }
             else
             {
                 string msg = collectionResult != null ? collectionResult.Message : "";
-                OASISErrorHandling.HandleError(ref result, $"Error Occured Finding Geo-NFT to update: {msg}");
+                OASISErrorHandling.HandleError(ref result, $"Error Occured Finding WEB4 Geo-NFT to update: {msg}");
             }
 
             return result;
@@ -478,18 +480,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (geoNFT == null || geoNFT.Result == null || geoNFT.IsError)
             {
-                OASISErrorHandling.HandleError(ref geoNFT, $"Error occured finding Geo-NFT to delete. Reason: {geoNFT.Message}");
+                OASISErrorHandling.HandleError(ref geoNFT, $"Error occured finding WEB4 Geo-NFT to delete. Reason: {geoNFT.Message}");
                 return geoNFT;
             }
 
             OASISResult<bool> deleteResult = await NFTCommon.NFTManager.DeleteOASISGeoNFTAsync(STAR.BeamedInAvatar.Id, geoNFT.Result.Id, softDelete, providerType: providerType);
 
             if (deleteResult != null && deleteResult.Result && !deleteResult.IsError)
-                CLIEngine.ShowSuccessMessage("OASIS Geo-NFT Successfully Deleted.");
+                CLIEngine.ShowSuccessMessage("WEB4 OASIS Geo-NFT Successfully Deleted.");
             else
             {
                 string msg = deleteResult != null ? deleteResult.Message : "";
-                OASISErrorHandling.HandleError(ref geoNFT, $"Error occured deleting Geo-NFT. Reason: {msg}");
+                OASISErrorHandling.HandleError(ref geoNFT, $"Error occured deleting WEB4 Geo-NFT. Reason: {msg}");
             }
 
             return geoNFT;
@@ -527,7 +529,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (geoNFT != null)
                 {
                     Console.WriteLine("");
-                    DisplayProperty("GEO-NFT DETAILS", "", displayFieldLength, false);
+                    DisplayProperty("WEB4 GEO-NFT DETAILS", "", displayFieldLength, false);
                     ShowGeoNFT(geoNFT, showHeader: false, showFooter: false);
                 }
             }
@@ -802,7 +804,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             DisplayProperty("3D Object", geoNFT.Nft2DSprite != null ? "Yes" : "None", displayFieldLength);
             DisplayProperty("3D Object URL", !string.IsNullOrEmpty(geoNFT.Nft3DObjectURI) ? geoNFT.Nft3DObjectURI : "None", displayFieldLength);
 
-            ShowMetaData(geoNFT.MetaData);
+            MetaDataHelper.ShowMetaData(geoNFT.MetaData);
 
             if (showFooter)
                 CLIEngine.ShowDivider();
