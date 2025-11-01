@@ -5,6 +5,8 @@ import { AssetDraft } from "@/components/assets/asset-upload-panel";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useOasisApi } from "@/hooks/use-oasis-api";
+import type { X402Config } from "@/types/x402";
+import { ManualDistributionPanel } from "@/components/x402/manual-distribution-panel";
 import React from "react";
 
 const SOLANA_ONCHAIN = { value: 3, name: "SolanaOASIS" } as const;
@@ -20,9 +22,10 @@ export type MintReviewPanelProps = {
   baseUrl: string;
   token?: string;
   avatarId?: string;
+  x402Config?: X402Config;
 };
 
-export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMintSuccess, baseUrl, token, avatarId }: MintReviewPanelProps) {
+export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMintSuccess, baseUrl, token, avatarId, x402Config }: MintReviewPanelProps) {
   const [waitSeconds, setWaitSeconds] = useState(60);
   const [retrySeconds, setRetrySeconds] = useState(5);
   const [waitTillSent, setWaitTillSent] = useState(true);
@@ -33,6 +36,7 @@ export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMin
   const [mintResult, setMintResult] = useState<unknown>(null);
   const [mintError, setMintError] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [mintedNFTAddress, setMintedNFTAddress] = useState<string | null>(null);
 
   const { call } = useOasisApi({ baseUrl, token });
 
@@ -70,8 +74,18 @@ export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMin
       basePayload.NFTOffChainMetaType = { value: 1, name: "OASIS" };
     }
 
+    // Include x402 configuration if enabled
+    if (x402Config?.enabled) {
+      basePayload.x402Config = {
+        enabled: true,
+        paymentEndpoint: x402Config.paymentEndpoint,
+        revenueModel: x402Config.revenueModel,
+        metadata: x402Config.metadata,
+      };
+    }
+
     return basePayload;
-  }, [assetDraft, avatarId, numberToMint, price, retrySeconds, storeOnChain, waitSeconds, waitTillSent]);
+  }, [assetDraft, avatarId, numberToMint, price, retrySeconds, storeOnChain, waitSeconds, waitTillSent, x402Config]);
 
   const mintDisabled = useMemo(() => {
     const hasJson = Boolean(assetDraft.jsonUrl);
@@ -118,8 +132,70 @@ export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMin
           <SummaryField label="Metadata URL" value={assetDraft.jsonUrl || "Will be generated"} />
           <SummaryField label="Image Source" value={renderSource(assetDraft.imageUrl, assetDraft.imageData)} />
           <SummaryField label="Thumbnail Source" value={renderSource(assetDraft.thumbnailUrl, assetDraft.thumbnailData)} />
+          {x402Config?.enabled && (
+            <>
+              <SummaryField 
+                label="x402 Revenue Sharing" 
+                value={`${x402Config.revenueModel} distribution`} 
+              />
+              <SummaryField 
+                label="Treasury Wallet" 
+                value={x402Config.treasuryWallet 
+                  ? `${x402Config.treasuryWallet.slice(0, 8)}...${x402Config.treasuryWallet.slice(-8)}`
+                  : 'OASIS Web4 Platform'
+                } 
+              />
+            </>
+          )}
         </div>
       </div>
+      
+      {x402Config?.enabled && (
+        <div className="rounded-2xl border border-[var(--accent)]/60 bg-[rgba(34,211,238,0.08)] p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <svg 
+              className="w-6 h-6 text-[var(--accent)]" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2"
+            >
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+            </svg>
+            <p className="text-sm font-semibold text-[var(--color-foreground)]">
+              x402 Revenue Sharing Enabled
+            </p>
+          </div>
+          <p className="text-xs text-[var(--muted)] leading-relaxed">
+            This NFT will automatically distribute payments to all holders when revenue is generated. 
+            Payments sent to <code className="text-[var(--accent)] text-[10px]">{x402Config.paymentEndpoint}</code> will 
+            trigger automatic distribution using the <strong>{x402Config.revenueModel}</strong> model.
+          </p>
+          {x402Config.treasuryWallet && (
+            <div className="mt-3 pt-3 border-t border-[var(--color-card-border)]/30">
+              <div className="flex items-start gap-2">
+                <svg 
+                  className="w-4 h-4 text-[var(--accent)] mt-0.5 flex-shrink-0" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                >
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                  <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+                </svg>
+                <p className="text-xs text-[var(--muted)] leading-relaxed">
+                  <strong className="text-[var(--accent)]">Treasury Wallet:</strong> {x402Config.treasuryWallet.slice(0, 8)}...{x402Config.treasuryWallet.slice(-8)}
+                  <br/>
+                  {x402Config.preAuthorizeDistributions 
+                    ? "Pre-authorized for automatic distributions" 
+                    : "Will require Phantom approval for each distribution"}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-col gap-3 border-t border-[var(--color-card-border)]/30 pt-4">
         <p className="text-sm text-[var(--muted)]">
@@ -141,7 +217,11 @@ export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMin
                 setMinting(true);
                 setMintError(null);
                 setMintResult(null);
-                const response = await call("/api/nft/mint-nft", {
+                
+                // Use x402 endpoint if enabled, otherwise use standard endpoint
+                const endpoint = x402Config?.enabled ? "/api/x402/mint-nft-x402" : "/api/nft/mint-nft";
+                
+                const response = await call(endpoint, {
                   method: "POST",
                   body: JSON.stringify(payload),
                 });
@@ -185,6 +265,12 @@ export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMin
                   throw new Error(fullError);
                 }
 
+                // Extract NFT mint address from response (reuse existing responseObj and result)
+                const mintAccount = result?.MintAccount || result?.mintAccount;
+                if (mintAccount) {
+                  setMintedNFTAddress(String(mintAccount));
+                }
+
                 onStatusChange?.("ready");
                 onMintSuccess?.(response);
                 setShowSuccessModal(true);
@@ -209,8 +295,15 @@ export function MintReviewPanel({ assetDraft, onStatusChange, onMintStart, onMin
       </div>
       {showSuccessModal ? (
         <MintSuccessModal
-          onClose={() => setShowSuccessModal(false)}
+          onClose={() => {
+            setShowSuccessModal(false);
+            setMintedNFTAddress(null);
+          }}
           response={mintResult}
+          nftMintAddress={mintedNFTAddress}
+          x402Enabled={x402Config?.enabled || false}
+          baseUrl={baseUrl}
+          token={token}
         />
       ) : null}
     </div>
@@ -256,7 +349,23 @@ function renderSource(url?: string, data?: string) {
   return url || "—";
 }
 
-function MintSuccessModal({ onClose }: { onClose: () => void; response: unknown }) {
+function MintSuccessModal({ 
+  onClose, 
+  response, 
+  nftMintAddress,
+  x402Enabled,
+  baseUrl,
+  token
+}: { 
+  onClose: () => void; 
+  response: unknown;
+  nftMintAddress: string | null;
+  x402Enabled: boolean;
+  baseUrl: string;
+  token?: string;
+}) {
+  const [showDistribution, setShowDistribution] = useState(x402Enabled);
+  
   React.useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -266,12 +375,56 @@ function MintSuccessModal({ onClose }: { onClose: () => void; response: unknown 
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-3xl border border-[var(--color-card-border)]/60 bg-[rgba(6,11,26,0.95)] p-8 text-center">
-        <h3 className="text-2xl font-semibold text-[var(--color-foreground)]">Mint successful!</h3>
-        <p className="mt-3 text-sm text-[var(--muted)]">Check wallet for NFT</p>
-        <div className="mt-6 flex flex-col gap-3">
-          <Button variant="primary" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-[var(--color-card-border)]/60 bg-[rgba(6,11,26,0.95)] p-8">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-semibold text-[var(--color-foreground)]">
+            🎉 NFT Minted Successfully!
+          </h3>
+          <p className="mt-3 text-sm text-[var(--muted)]">
+            Check your wallet for the NFT
+          </p>
+          
+          {nftMintAddress && (
+            <div className="mt-4 p-3 rounded-lg border border-[var(--color-card-border)]/40 bg-[rgba(6,10,24,0.7)]">
+              <p className="text-xs text-[var(--muted)]">Mint Address:</p>
+              <p className="text-xs text-[var(--accent)] font-mono mt-1 break-all">
+                {nftMintAddress}
+              </p>
+            </div>
+          )}
+        </div>
+        
+        {x402Enabled && nftMintAddress && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold text-[var(--color-foreground)]">
+                💰 x402 Revenue Distribution
+              </h4>
+              <Button
+                variant="secondary"
+                onClick={() => setShowDistribution(!showDistribution)}
+                className="text-xs"
+              >
+                {showDistribution ? 'Hide' : 'Show'} Distribution Panel
+              </Button>
+            </div>
+            
+            {showDistribution && (
+              <ManualDistributionPanel
+                nftMintAddress={nftMintAddress}
+                baseUrl={baseUrl}
+                token={token}
+                onDistributionComplete={(result) => {
+                  console.log('Distribution complete:', result);
+                }}
+              />
+            )}
+          </div>
+        )}
+        
+        <div className="flex flex-col gap-3">
+          <Button variant="primary" onClick={onClose} className="w-full">
             Close
           </Button>
         </div>
