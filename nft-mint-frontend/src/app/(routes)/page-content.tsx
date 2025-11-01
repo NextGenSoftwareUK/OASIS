@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { MintReviewPanel } from "@/components/mint/mint-review-panel";
 import { useOasisApi } from "@/hooks/use-oasis-api";
+import { X402ConfigPanel } from "@/components/x402/x402-config-panel";
+import type { X402Config } from "@/types/x402";
 
 const DEVNET_URL = "http://devnet.oasisweb4.one";
 const LOCAL_URL = "https://localhost:5004";
@@ -31,6 +33,11 @@ const WIZARD_STEPS = [
     id: "assets",
     title: "Assets & Metadata",
     description: "Upload artwork, thumbnails, and JSON metadata placeholders.",
+  },
+  {
+    id: "x402-revenue",
+    title: "x402 Revenue Sharing",
+    description: "Enable automatic payment distribution to NFT holders via x402 protocol.",
   },
   {
     id: "mint",
@@ -75,6 +82,11 @@ export default function PageContent() {
   const [avatarId, setAvatarId] = useState<string | null>(null);
   const [providerLoading, setProviderLoading] = useState<string[]>([]);
   const [useLocalApi, setUseLocalApi] = useState(false);
+  const [x402Config, setX402Config] = useState<X402Config>({
+    enabled: false,
+    paymentEndpoint: "",
+    revenueModel: "equal",
+  });
 
   const baseUrl = useLocalApi ? LOCAL_URL : DEVNET_URL;
 
@@ -90,6 +102,9 @@ export default function PageContent() {
         return Boolean(authToken && providerActive);
       case "assets":
         return Boolean(assetDraft.imageUrl && assetDraft.jsonUrl && assetDraft.sendToAddress);
+      case "x402-revenue":
+        // x402 is optional, always allow proceeding
+        return true;
       default:
         return false;
     }
@@ -109,6 +124,12 @@ export default function PageContent() {
       <div className="flex items-center gap-3">
         <span className="text-[var(--accent)] text-xs font-semibold">Off-chain</span>
         <span>{`${SOLANA_CHAIN.providerMapping.offChain.name} (${SOLANA_CHAIN.providerMapping.offChain.value})`}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-[var(--accent)] text-xs font-semibold">x402</span>
+        <span className={x402Config.enabled ? "text-[var(--color-positive)]" : ""}>
+          {x402Config.enabled ? "Enabled ✓" : "Disabled"}
+        </span>
       </div>
       <div className="flex items-center gap-3">
         <span className="text-[var(--accent)] text-xs font-semibold">Checklist</span>
@@ -285,6 +306,12 @@ export default function PageContent() {
           {activeStep === "assets" ? (
             <AssetUploadPanel value={assetDraft} onChange={setAssetDraft} token={authToken ?? undefined} />
           ) : null}
+          {activeStep === "x402-revenue" ? (
+            <X402ConfigPanel
+              config={x402Config}
+              onChange={setX402Config}
+            />
+          ) : null}
           {activeStep === "mint" ? (
             <div className="space-y-8">
               <div className="rounded-2xl border border-[var(--color-card-border)]/60 bg-[rgba(8,12,28,0.85)] p-6">
@@ -295,6 +322,7 @@ export default function PageContent() {
                 <MintReviewPanel
                   assetDraft={assetDraft}
                   avatarId={avatarId ?? undefined}
+                  x402Config={x402Config}
                   onStatusChange={(state) => {
                     setMintReady(state === "ready");
                   }}
