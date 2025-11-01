@@ -7,7 +7,6 @@
 
 const { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } = require('@solana/web3.js');
 const { TOKEN_PROGRAM_ID } = require('@solana/spl-token');
-const axios = require('axios');
 const crypto = require('crypto');
 
 class X402PaymentDistributor {
