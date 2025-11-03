@@ -53,7 +53,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public override async Task<OASISResult<STARGeoNFT>> CreateAsync(ISTARNETCreateOptions<STARGeoNFT, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<STARGeoNFT> result = new OASISResult<STARGeoNFT>();
-            OASISResult<IOASISGeoSpatialNFT> geoNFTResult = null;
+            OASISResult<IWeb4OASISGeoSpatialNFT> geoNFTResult = null;
             bool mint = false;
 
             ShowHeader();
@@ -83,7 +83,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (geoNFTResult != null && geoNFTResult.Result != null && !geoNFTResult.IsError)
             {
-                IOASISGeoSpatialNFT geoNFT = geoNFTResult.Result;
+                IWeb4OASISGeoSpatialNFT geoNFT = geoNFTResult.Result;
 
                 if (!mint || (mint && CLIEngine.GetConfirmation("Would you like to submit the WEB4 OASIS Geo-NFT to WEB5 STARNET which will create a WEB5 STAR GeoNFT that wraps around the WEB4 GeoNFT allowing you to version control, publish, share, use in Our World, Quests, etc? (recommended). Selecting 'Y' will also create a WEB3 JSONMetaData and a WEB4 OASIS GeoNFT json file in the WEB5 STAR GeoNFT folder.")))
                 {
@@ -127,13 +127,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IOASISGeoSpatialNFT>> MintGeoNFTAsync(object mintParams = null)
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> MintGeoNFTAsync(object mintParams = null)
         {
-            IMintNFTTransactionRequest request = await NFTCommon.GenerateNFTRequestAsync();
-            IPlaceGeoSpatialNFTRequest geoRequest = await GenerateGeoNFTRequestAsync(false);
+            IMintWeb4NFTTRequest request = await NFTCommon.GenerateNFTRequestAsync();
+            IPlaceWeb4GeoSpatialNFTRequest geoRequest = await GenerateGeoNFTRequestAsync(false);
 
             CLIEngine.ShowWorkingMessage("Minting WEB4 OASIS Geo-NFT...");
-            OASISResult<IOASISGeoSpatialNFT> nftResult = await STAR.OASISAPI.NFTs.MintAndPlaceGeoNFTAsync(new MintAndPlaceGeoSpatialNFTRequest()
+            OASISResult<IWeb4OASISGeoSpatialNFT> nftResult = await STAR.OASISAPI.NFTs.MintAndPlaceGeoNFTAsync(new MintAndPlaceWeb4GeoSpatialNFTRequest()
             {
                 Title = request.Title,
                 Description = request.Description,
@@ -194,9 +194,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public async Task PlaceGeoNFTAsync()
         {
-            IPlaceGeoSpatialNFTRequest geoRequest = await GenerateGeoNFTRequestAsync(true);
+            IPlaceWeb4GeoSpatialNFTRequest geoRequest = await GenerateGeoNFTRequestAsync(true);
             CLIEngine.ShowWorkingMessage("Creating WEB4 OASIS Geo-NFT...");
-            OASISResult<IOASISGeoSpatialNFT> nftResult = await STAR.OASISAPI.NFTs.PlaceGeoNFTAsync(geoRequest);
+            OASISResult<IWeb4OASISGeoSpatialNFT> nftResult = await STAR.OASISAPI.NFTs.PlaceGeoNFTAsync(geoRequest);
 
             if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
                 //CLIEngine.ShowSuccessMessage($"OASIS Geo-NFT Successfully Created. {nftResult.Message} OriginalOASISNFTId: {nftResult.Result.OriginalOASISNFTId}, Id: {nftResult.Result.Id}, Hash: {nftResult.Result.Hash} Minted On: {nftResult.Result.MintedOn}, Minted By Avatar Id: {nftResult.Result.MintedByAvatarId}, Minted Wallet Address: {nftResult.Result.MintedByAddress}.");
@@ -219,7 +219,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             CLIEngine.ShowWorkingMessage("Sending WEB4 GeoNFT...");
 
-            OASISResult<INFTTransactionRespone> response = await STAR.OASISAPI.NFTs.SendNFTAsync(new NFTWalletTransactionRequest()
+            OASISResult<IWeb4NFTTransactionRespone> response = await STAR.OASISAPI.NFTs.SendNFTAsync(new Web4NFTWalletTransactionRequest()
             {
                 FromWalletAddress = fromWalletAddress,
                 ToWalletAddress = toWalletAddress,
@@ -237,21 +237,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
-        public async Task<OASISResult<IOASISGeoSpatialNFT>> BurnGeoNFTAsync(object mintParams = null)
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> BurnGeoNFTAsync(object mintParams = null)
         {
-            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            OASISResult<IWeb4OASISGeoSpatialNFT> result = new OASISResult<IWeb4OASISGeoSpatialNFT>();
             return result;
         }
 
-        public async Task<OASISResult<IOASISGeoSpatialNFT>> ImportGeoNFTAsync(object mintParams = null)
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> ImportGeoNFTAsync(object mintParams = null)
         {
-            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            OASISResult<IWeb4OASISGeoSpatialNFT> result = new OASISResult<IWeb4OASISGeoSpatialNFT>();
             return result;
         }
 
-        public async Task<OASISResult<IOASISGeoSpatialNFT>> ExportGeoNFTAsync(object mintParams = null)
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> ExportGeoNFTAsync(object mintParams = null)
         {
-            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            OASISResult<IWeb4OASISGeoSpatialNFT> result = new OASISResult<IWeb4OASISGeoSpatialNFT>();
             return result;
         }
 
@@ -261,14 +261,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         //    return result;
         //}
 
-        public async Task<OASISResult<IOASISGeoSpatialNFT>> ConvertGeoNFTAsync(object mintParams = null)
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> ConvertGeoNFTAsync(object mintParams = null)
         {
-            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            OASISResult<IWeb4OASISGeoSpatialNFT> result = new OASISResult<IWeb4OASISGeoSpatialNFT>();
             return result;
         }
 
         //public virtual async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> ListAllWeb4GeoNFTsAsync(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
-        public virtual async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> ListAllWeb4GeoNFTsAsync(ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>>> ListAllWeb4GeoNFTsAsync(ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading WEB4 Geo-NFT's...");
@@ -276,7 +276,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
         //public virtual OASISResult<IEnumerable<IOASISGeoSpatialNFT>> ListAllWeb4GeoNFTs(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
-        public virtual OASISResult<IEnumerable<IOASISGeoSpatialNFT>> ListAllWeb4GeoNFTs(ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>> ListAllWeb4GeoNFTs(ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading WEB4 Geo-NFT's...");
@@ -284,7 +284,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
         //public virtual async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> ListAllWeb4GeoNFTForAvatarsAsync(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
-        public virtual async Task<OASISResult<IEnumerable<IOASISGeoSpatialNFT>>> ListAllWeb4GeoNFTForAvatarsAsync(ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>>> ListAllWeb4GeoNFTForAvatarsAsync(ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading WEB4 Geo-NFT's...");
@@ -292,19 +292,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
         //public virtual OASISResult<IEnumerable<IOASISGeoSpatialNFT>> ListAllWeb4GeoNFTsForAvatar(bool showAllVersions = false, bool showDetailedInfo = false, int version = 0, ProviderType providerType = ProviderType.Default)
-        public virtual OASISResult<IEnumerable<IOASISGeoSpatialNFT>> ListAllWeb4GeoNFTsForAvatar(ProviderType providerType = ProviderType.Default)
+        public virtual OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>> ListAllWeb4GeoNFTsForAvatar(ProviderType providerType = ProviderType.Default)
         {
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading WEB4 Geo-NFT's...");
             return ListWeb4GeoNFTs(NFTCommon.NFTManager.LoadAllGeoNFTsForAvatar(STAR.BeamedInAvatar.Id, providerType));
         }
 
-        public async Task<OASISResult<IOASISGeoSpatialNFT>> UpdateWeb4GeoNFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> UpdateWeb4GeoNFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
-            UpdateGeoNFTRequest request = new UpdateGeoNFTRequest();
+            OASISResult<IWeb4OASISGeoSpatialNFT> result = new OASISResult<IWeb4OASISGeoSpatialNFT>();
+            UpdateWeb4GeoNFTRequest request = new UpdateWeb4GeoNFTRequest();
 
-            OASISResult<IOASISGeoSpatialNFT> collectionResult = await FindWeb4GeoNFTAsync("update", idOrName, providerType: providerType);
+            OASISResult<IWeb4OASISGeoSpatialNFT> collectionResult = await FindWeb4GeoNFTAsync("update", idOrName, providerType: providerType);
 
             if (collectionResult != null && collectionResult.Result != null && !collectionResult.IsError)
             {
@@ -474,9 +474,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public async Task<OASISResult<IOASISGeoSpatialNFT>> DeleteWeb4GeoNFTAsync(string collectionIdOrName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> DeleteWeb4GeoNFTAsync(string collectionIdOrName, bool softDelete = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOASISGeoSpatialNFT> geoNFT = await FindWeb4GeoNFTAsync("delete", collectionIdOrName, true);
+            OASISResult<IWeb4OASISGeoSpatialNFT> geoNFT = await FindWeb4GeoNFTAsync("delete", collectionIdOrName, true);
 
             if (geoNFT == null || geoNFT.Result == null || geoNFT.IsError)
             {
@@ -497,9 +497,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return geoNFT;
         }
 
-        public virtual async Task<OASISResult<IOASISGeoSpatialNFT>> ShowWeb4GeoNFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
+        public virtual async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> ShowWeb4GeoNFTAsync(string idOrName = "", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            OASISResult<IWeb4OASISGeoSpatialNFT> result = new OASISResult<IWeb4OASISGeoSpatialNFT>();
 
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Loading WEB4 Geo-NFT's...");
@@ -521,10 +521,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (starHolon.STARNETDNA != null && starHolon.STARNETDNA.MetaData != null && starHolon.STARNETDNA.MetaData.ContainsKey("GeoNFT") && starHolon.STARNETDNA.MetaData["GeoNFT"] != null)
             {
-                IOASISGeoSpatialNFT geoNFT = starHolon.STARNETDNA.MetaData["GeoNFT"] as IOASISGeoSpatialNFT;
+                IWeb4OASISGeoSpatialNFT geoNFT = starHolon.STARNETDNA.MetaData["GeoNFT"] as IWeb4OASISGeoSpatialNFT;
 
                 if (geoNFT == null)
-                    geoNFT = JsonConvert.DeserializeObject<OASISGeoSpatialNFT>(starHolon.STARNETDNA.MetaData["GeoNFT"].ToString());
+                    geoNFT = JsonConvert.DeserializeObject<Web4OASISGeoSpatialNFT>(starHolon.STARNETDNA.MetaData["GeoNFT"].ToString());
 
                 if (geoNFT != null)
                 {
@@ -547,9 +547,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             ListWeb4GeoNFTs(await NFTCommon.NFTManager.SearchGeoNFTsAsync(searchTerm, STAR.BeamedInAvatar.Id, !showForAllAvatars, providerType: providerType));
         }
 
-        public async Task<OASISResult<IOASISGeoSpatialNFT>> FindWeb4GeoNFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "WEB4 GeoNFT", ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4OASISGeoSpatialNFT>> FindWeb4GeoNFTAsync(string operationName, string idOrName = "", bool showOnlyForCurrentAvatar = false, bool addSpace = true, string UIName = "WEB4 GeoNFT", ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<IOASISGeoSpatialNFT> result = new OASISResult<IOASISGeoSpatialNFT>();
+            OASISResult<IWeb4OASISGeoSpatialNFT> result = new OASISResult<IWeb4OASISGeoSpatialNFT>();
             Guid id = Guid.Empty;
 
             if (idOrName == Guid.Empty.ToString())
@@ -560,7 +560,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (string.IsNullOrEmpty(idOrName))
                 {
                     bool cont = true;
-                    OASISResult<IEnumerable<IOASISGeoSpatialNFT>> starHolonsResult = null;
+                    OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>> starHolonsResult = null;
 
                     if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the {UIName} you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
                     {
@@ -609,7 +609,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                 {
                     CLIEngine.ShowWorkingMessage($"Searching {UIName}s...");
-                    OASISResult<IEnumerable<IOASISGeoSpatialNFT>> searchResults = await NFTCommon.NFTManager.SearchGeoNFTsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
+                    OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>> searchResults = await NFTCommon.NFTManager.SearchGeoNFTsAsync(idOrName, STAR.BeamedInAvatar.Id, showOnlyForCurrentAvatar, providerType: providerType);
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -697,7 +697,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
 
-        private OASISResult<IEnumerable<IOASISGeoSpatialNFT>> ListWeb4GeoNFTs(OASISResult<IEnumerable<IOASISGeoSpatialNFT>> geoNFTs, bool showNumbers = false, bool showDetailedInfo = false)
+        private OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>> ListWeb4GeoNFTs(OASISResult<IEnumerable<IWeb4OASISGeoSpatialNFT>> geoNFTs, bool showNumbers = false, bool showDetailedInfo = false)
         {
             if (geoNFTs != null)
             {
@@ -727,7 +727,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return geoNFTs;
         }
 
-        private void ShowGeoNFT(IOASISGeoSpatialNFT geoNFT, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 39)
+        private void ShowGeoNFT(IWeb4OASISGeoSpatialNFT geoNFT, bool showHeader = true, bool showFooter = true, bool showNumbers = false, int number = 0, bool showDetailedInfo = false, int displayFieldLength = 39)
         {
             if (DisplayFieldLength > displayFieldLength)
                 displayFieldLength = DisplayFieldLength;
@@ -743,7 +743,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //DisplayProperty("GEO-NFT DETAILS", "", displayFieldLength, false);
             //Console.WriteLine("");
             DisplayProperty("Geo-NFT Id", geoNFT.Id.ToString(), displayFieldLength);
-            DisplayProperty("NFT Id", geoNFT.OriginalOASISNFTId.ToString(), displayFieldLength);
+            DisplayProperty("NFT Id", geoNFT.OriginalWeb4OASISNFTId.ToString(), displayFieldLength);
             DisplayProperty("Title", geoNFT.Title, displayFieldLength);
             DisplayProperty("Description", geoNFT.Description, displayFieldLength);
             DisplayProperty("Price", geoNFT.Price.ToString(), displayFieldLength);
@@ -810,15 +810,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowDivider();
         }
 
-        private async Task<IPlaceGeoSpatialNFTRequest> GenerateGeoNFTRequestAsync(bool isExistingNFT)
+        private async Task<IPlaceWeb4GeoSpatialNFTRequest> GenerateGeoNFTRequestAsync(bool isExistingNFT)
         {
-            PlaceGeoSpatialNFTRequest request = new PlaceGeoSpatialNFTRequest();
+            PlaceWeb4GeoSpatialNFTRequest request = new PlaceWeb4GeoSpatialNFTRequest();
             request.PlacedByAvatarId = STAR.BeamedInAvatar.Id;
 
             if (isExistingNFT)
             {
-                request.OriginalOASISNFTId = CLIEngine.GetValidInputForGuid("What is the original WEB4 OASIS NFT ID?");
-                request.OriginalOASISNFTOffChainProvider = new Utilities.EnumValue<ProviderType>((ProviderType)CLIEngine.GetValidInputForEnum("What provider did you choose to store the off-chain metadata for the original OASIS NFT? (if you cannot remember, then enter 'All' and the OASIS HyperDrive will attempt to find it through auto-replication).", typeof(ProviderType)));
+                request.OriginalWeb4OASISNFTId = CLIEngine.GetValidInputForGuid("What is the original WEB4 OASIS NFT ID?");
+                request.OriginalWeb4OASISNFTOffChainProvider = new Utilities.EnumValue<ProviderType>((ProviderType)CLIEngine.GetValidInputForEnum("What provider did you choose to store the off-chain metadata for the original OASIS NFT? (if you cannot remember, then enter 'All' and the OASIS HyperDrive will attempt to find it through auto-replication).", typeof(ProviderType)));
             }
 
             request.GeoNFTMetaDataProvider = new Utilities.EnumValue<ProviderType>((ProviderType)CLIEngine.GetValidInputForEnum("What provider would you like to store the Geo-NFT metadata on? (NOTE: It will automatically auto-replicate to other providers across the OASIS through the auto-replication feature in the OASIS HyperDrive)", typeof(ProviderType)));

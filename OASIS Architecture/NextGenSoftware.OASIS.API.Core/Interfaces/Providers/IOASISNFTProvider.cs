@@ -9,15 +9,15 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
     public interface IOASISNFTProvider : IOASISProvider
     {
         //TODO: More to come soon... ;-)
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation);
-        public Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation);
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation);
-        public Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation);
+        public OASISResult<IWeb4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transation);
+        public Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transation);
+        public OASISResult<IWeb4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation);
+        public Task<OASISResult<IWeb4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transation);
 
         //TODO: Implement ASAP!
-        //public OASISResult<INFTTransactionRespone> BurnNFT(IMintNFTTransactionRequest transation);
-        //public Task<OASISResult<INFTTransactionRespone>> BurnNFTAsync(IMintNFTTransactionRequest transation);
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress);
-        public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress);
+        //public OASISResult<IWeb4NFTTransactionRespone> BurnNFT(IMintNFTTransactionRequest transation);
+        //public Task<OASISResult<IWeb4NFTTransactionRespone>> BurnNFTAsync(IMintNFTTransactionRequest transation);
+        public OASISResult<IWeb4OASISNFT> LoadOnChainNFTData(string nftTokenAddress);
+        public Task<OASISResult<IWeb4OASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress);
     }
 }

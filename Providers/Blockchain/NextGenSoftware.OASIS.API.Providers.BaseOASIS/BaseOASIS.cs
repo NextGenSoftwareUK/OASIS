@@ -2396,13 +2396,13 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
-    public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transaction)
+    public OASISResult<IWeb4Web4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transaction)
         => SendNFTAsync(transaction).Result;
 
 
-    public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transaction)
+    public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transaction)
     {
-        OASISResult<INFTTransactionRespone> result = new();
+        OASISResult<IWeb4Web4NFTTransactionRespone> result = new();
         string errorMessage = "Error in SendNFTAsync method in BaseOASIS while sending nft. Reason: ";
 
         try
@@ -2443,9 +2443,9 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            INFTTransactionRespone response = new NFTTransactionRespone
+            IWeb4Web4NFTTransactionRespone response = new Web4NFTTransactionRespone
             {
-                OASISNFT = new OASISNFT()
+                OASISNFT = new Web4OASISNFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2473,12 +2473,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
-    public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+    public OASISResult<IWeb4Web4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
         => MintNFTAsync(transation).Result;
 
-    public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transaction)
+    public async Task<OASISResult<IWeb4Web4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transaction)
     {
-        OASISResult<INFTTransactionRespone> result = new();
+        OASISResult<IWeb4Web4NFTTransactionRespone> result = new();
         string errorMessage = "Error in MintNFTAsync method in BaseOASIS while minting nft. Reason: ";
 
         try
@@ -2513,9 +2513,9 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 return result;
             }
 
-            INFTTransactionRespone response = new NFTTransactionRespone
+            IWeb4Web4NFTTransactionRespone response = new Web4NFTTransactionRespone
             {
-                OASISNFT = new OASISNFT()
+                OASISNFT = new Web4OASISNFT()
                 {
                     MemoText = transaction.MemoText,
                     MintTransactionHash = txReceipt.TransactionHash
@@ -2806,7 +2806,7 @@ file static class BaseContractHelper
         {
             var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
             
-            return new OASISNFT
+            return new Web4OASISNFT
             {
                 Id = Guid.NewGuid(),
                 TokenId = jsonElement.TryGetProperty("tokenId", out var tokenIdElement) ? tokenIdElement.GetString() : "",
@@ -2851,7 +2851,7 @@ file static class BaseContractHelper
         catch (Exception ex)
         {
             Console.WriteLine($"Error parsing Base NFT: {ex.Message}");
-            return new OASISNFT
+            return new Web4OASISNFT
             {
                 Id = Guid.NewGuid(),
                 TokenId = "",

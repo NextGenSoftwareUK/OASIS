@@ -2368,14 +2368,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         #region IOASISNFTProvider
 
-        public OASISResult<INFTTransactionRespone> SendNFT(INFTWalletTransactionRequest transation)
+        public OASISResult<IWeb4NFTTransactionRespone> SendNFT(IWeb4NFTWalletTransactionRequest transation)
         {
             return SendNFTAsync(transation).Result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> SendNFTAsync(INFTWalletTransactionRequest transation)
+        public async Task<OASISResult<IWeb4NFTTransactionRespone>> SendNFTAsync(IWeb4NFTWalletTransactionRequest transation)
         {
-            OASISResult<INFTTransactionRespone> result = new OASISResult<INFTTransactionRespone>();
+            OASISResult<IWeb4NFTTransactionRespone> result = new OASISResult<IWeb4NFTTransactionRespone>();
 
             OASISResult<ITransactionRespone> transferResult = await _transferRepository.TransferEosNft(
                 transation.FromWalletAddress,
@@ -2383,10 +2383,10 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 transation.Amount,
                 "SYS");
 
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ITransactionRespone, INFTTransactionRespone>(transferResult, result);
-            //OASISResultHelper.CopyResult<ITransactionRespone, INFTTransactionRespone>(transferResult, result);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ITransactionRespone, IWeb4NFTTransactionRespone>(transferResult, result);
+            //OASISResultHelper.CopyResult<ITransactionRespone, IWeb4NFTTransactionRespone>(transferResult, result);
             result.Result.TransactionResult = transferResult.Result.TransactionResult;
-            result.Result.OASISNFT = null; //TODO: We may want to look up/pass the NFT MetaData in future...
+            result.Result.Web4OASISNFT = null; //TODO: We may want to look up/pass the NFT MetaData in future...
 
             return result;
 
@@ -2397,9 +2397,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             //    "SYS");
         }
 
-        public OASISResult<INFTTransactionRespone> MintNFT(IMintNFTTransactionRequest transation)
+        public OASISResult<IWeb4NFTTransactionRespone> MintNFT(IMintWeb4NFTTRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4NFTTransactionRespone>();
             string errorMessage = "Error in MintNFT method in EOSIOOASIS Provider. Reason: ";
 
             try
@@ -2435,7 +2435,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 //if (transactionResult != null)
                 //{
-                //    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone
+                //    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web4NFTTransactionRespone
                 //    {
                 //        TransactionResult = transactionResult.
                 //        OASISNFT = null // Will be populated after NFT creation
@@ -2456,9 +2456,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public async Task<OASISResult<INFTTransactionRespone>> MintNFTAsync(IMintNFTTransactionRequest transation)
+        public async Task<OASISResult<IWeb4NFTTransactionRespone>> MintNFTAsync(IMintWeb4NFTTRequest transation)
         {
-            var result = new OASISResult<INFTTransactionRespone>();
+            var result = new OASISResult<IWeb4NFTTransactionRespone>();
             string errorMessage = "Error in MintNFTAsync method in EOSIOOASIS Provider. Reason: ";
 
             try
@@ -2494,7 +2494,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 //if (transactionResult != null)
                 //{
-                //    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.NFTTransactionRespone
+                //    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web4NFTTransactionRespone
                 //    {
                 //        TransactionResult = transactionResult.TransactionResult,
                 //        OASISNFT = null // Will be populated after NFT creation
@@ -2872,12 +2872,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public OASISResult<IOASISNFT> LoadOnChainNFTData(string nftTokenAddress)
+        public OASISResult<IWeb4OASISNFT> LoadOnChainNFTData(string nftTokenAddress)
         {
             throw new NotImplementedException();
         }
 
-        public Task<OASISResult<IOASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+        public Task<OASISResult<IWeb4OASISNFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
             throw new NotImplementedException();
         }

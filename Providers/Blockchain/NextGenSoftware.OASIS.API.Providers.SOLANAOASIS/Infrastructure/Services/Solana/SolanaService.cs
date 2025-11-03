@@ -26,7 +26,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     ];
 
 
-    public async Task<OASISResult<MintNftResult>> MintNftAsync(MintNFTTransactionRequest mintNftRequest)
+    public async Task<OASISResult<MintNftResult>> MintNftAsync(MintWeb4NFTRequest mintNftRequest)
     {
         try
         {
@@ -175,7 +175,7 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         return response;
     }
 
-    public async Task<OASISResult<SendTransactionResult>> SendNftAsync(NFTWalletTransactionRequest mintNftRequest)
+    public async Task<OASISResult<SendTransactionResult>> SendNftAsync(Web4NFTWalletTransactionRequest mintNftRequest)
     {
         OASISResult<SendTransactionResult> response = new OASISResult<SendTransactionResult>();
 
