@@ -1,0 +1,43 @@
+{
+  "name": "com.nextgensoftware.oasis.web4",
+  "version": "1.0.0",
+  "displayName": "OASIS Web4 SDK",
+  "description": "Unity SDK for the OASIS Web4 API - Connect your Unity games to the decentralized OASIS ecosystem with support for 80+ blockchains and storage providers.",
+  "unity": "2020.3",
+  "keywords": [
+    "oasis",
+    "web3",
+    "blockchain",
+    "decentralized",
+    "avatar",
+    "karma",
+    "metaverse",
+    "unity"
+  ],
+  "author": {
+    "name": "NextGen Software",
+    "email": "support@oasis.earth",
+    "url": "https://oasis.earth"
+  },
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.0.2"
+  },
+  "samples": [
+    {
+      "displayName": "Avatar Authentication",
+      "description": "Example scenes showing avatar login, registration, and profile management",
+      "path": "Samples~/AvatarAuth"
+    },
+    {
+      "displayName": "Data Management",
+      "description": "Working with Holons, Zomes, and OASIS data objects",
+      "path": "Samples~/DataManagement"
+    },
+    {
+      "displayName": "Karma System",
+      "description": "Integrating the OASIS karma system into your game",
+      "path": "Samples~/KarmaSystem"
+    }
+  ]
+}
+

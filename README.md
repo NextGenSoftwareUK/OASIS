@@ -1,201 +1,1607 @@
 
 
 
-# WEB4 OASIS API / WEB5 STAR ODK OMNIVERSE INTEROPERABLE METAVERSE LOW CODE GENERATOR
+# OASIS - The Universal Web4/Web5 Infrastructure
 
-## Contents
-- [Introduction](#introduction)
-- [Overview](#overview)
-  - [Best Of All Worlds](#best-of-all-worlds)
-  - [Maximum Interopability/Aggregation](#maximum-interopabilityaggregation)
-  - [HOT Swappable Plugin Architecture](#hot-swappable-plugin-architecture)
-  - [Full Redundancy/Zero Downtime/Impossible To Shutdown!](#full-redundancyzero-downtimeimpossible-to-shutdown)
-  - [HTTP REST/gRPC/GraphQL/CLI/Native Endpoints](#http-restgrpcgraphqlclinative-endpoints)
-  - [Javascript, Unity & C# Packages](#javascript-unity--c-packages)
-  - [Avatar API](#avatar-api)
-  - [Karma API](#karma-api)
-  - [Full Accountability/Zero Crime/Dark Net Prove](#full-accountabilityzero-crimedark-net-prove)
-  - [Data API](#data-api)
-  - [Future Prove! Never Need To Learn A New Tech Stack/Language Again!](#future-prove-never-need-to-learn-a-new-tech-stacklanguage-again)
-  - [SEEDS API](#seeds-api)
-  - [Keys/Wallet API](#keyswallet-api)
-  - [Works Offline/Local Networks (LAN, Bluetooth, Mesh Networks)](#works-offlinelocal-networks-lan-bluetooth-mesh-networks)
-  - [One API To Rule Them All - The GOD Protocol/API](#one-api-to-rule-them-all---the-god-protocolapi)
-  - [Full Smart Contract Interoperability](#full-smart-contract-interoperability)
-  - [Powerful Pick n Mix & Plug n Play UI Components](#powerful-pick-n-mix--plug-n-play-ui-components)
-  - [WEB/2D/3D/AR/VR/IR/Map/Meta Visusalization](#web2d3darvrirmapmeta-visusalization)
-  - [Our World Geo-Location/AR/IR/Map UI (Game Of Games Engine)](#our-world-geo-locationarirmap-ui-game-of-games-engine)
-  - [IR (Infinite Reality) Ready](#ir-infinite-reality-ready)
-  - [One World Open World MMO (VR) (Game Of Games Engine)](#one-world-open-world-mmo-vr-game-of-games-engine)
-  - [XR/IR Unified Interface To The World](#xrir-unified-interface-to-the-world)
-  - [WEB 5 STAR OASIS Omniverse Interoperable Metaverse Low Code Generator](#web-5-star-oasis-omniverse-interoperable-metaverse-low-code-generator)
-  - [AI/Machine Learning Over All Of World's Aggregated Data](#aimachine-learning-over-all-of-worlds-aggregated-data)
-  - [Summary](#summary)
-- [Benefits Of Building On The WEB4 OASIS API](#web4-oasisapi-benefits)
-- [WEB4 OASIS API Packages](#web4-oasisapi-packages)
-  * [Javascript](#javascript)
-  * [Unity](#unity)
-  * [C#](#csharp)
-- [Do You Want To Get Involved?](#get-involved)
-- [Project Structure](#project-structure)
-- [The OASIS API & Karma System](#the-oasis-api---karma-system)
-  * [Your Karma Level Effects Your Real Life Too!](#your-karma-level-effects-your-real-life-too-)
-  * [Gain Karma When You Earn HoloFuel For Sharing Your Nodes Resources To Power Our World](#gain-karma-when-you-earn-holofuel-for-sharing-your-nodes-resources-to-power-our-world)
-  * [The OASIS API Will Use The Reputation Interchange From Sacred Capital](#the-oasis-api-will-use-the-reputation-interchange-from-sacred-capital)
-  * [Open Karma Committee/Community Concensors](#open-karma-committee-community-concensors)
-  * [The OASIS API Enables You To Earn Karma Anywhere](#the-oasis-api-enables-you-to-earn-karma-anywhere)
-  * [Machine Learning Algorithms, Models & AI](#machine-learning-algorithms--models---ai)
-  * [The Universal API To Connect Everything To Everything (No More Silos/Walled Gardens)](#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-)
-  * [OAPPS - Write Once, Deploy Everywhere](#oapps---write-once--deploy-everywhere)
-  * [OAPPS - Full Cross-API Support Across All Networks/Platforms/APIs/Protocols](#oapps---full-cross-api-support-across-all-networks-platforms-apis-protocols)
-  * [OAPPS - Full support (create/deploy/consume) for Smart Contracts (SOLIDITY) across ANY supported Provider (Network/platform/API/protocol)](#oapps---full-support--create-deploy-consume--for-smart-contracts--solidity--across-any-supported-provider--network-platform-api-protocol-)
-  * [One API To Rule Them All - Abstraction Layer Over The New Distributed Decentralised Internet (IoT)](#one-api-to-rule-them-all---abstraction-layer-over-the-new-distributed-decentralised-internet--iot-)
-  * [OASIS API Can Manage All Of Your Tokens/Exchanges/Wallets All In One Place](#oasis-api-can-manage-all-of-your-tokens-exchanges-wallets-all-in-one-place)
-  * [One Single Login For All Your Apps/Games/Websites/Services/Everything!](#one-single-login-for-all-your-apps-games-websites-services-everything-)
-  * [Our World Is The XR/IR Unified Interface To The Holochain Ecosystem](#our-world-is-the-xr-ir-unified-interface-to-the-holochain-ecosystem)
-  * [Satellite Apps/Games/Websites/Services (Consumers)](#satellite-apps-games-websites-services--consumers-)
-  * [Protocols/Platforms/Networks Supported (Providers)](#protocols-platforms-networks-supported--providers-)
-  * [Holochain Zomes/Services Used](#holochain-zomes-services-used)
-  * [Calling The OASIS API](#calling-the-oasis-api)
-  * [OASIS Open Standards](#oasis-open-standards)
-  * [OASIS API Redundancy (Can Store Copies Of Your Data On Any Decentralised Network/Platform You Choose)](#oasis-api-redundancy--can-store-copies-of-your-data-on-any-decentralised-network-platform-you-choose-)
-  * [User Has FULL Control Of Their Data](#user-has-full-control-of-their-data)
-- [The OASIS Network (ONET)](#the-oasis-network--onet-)
-  * [REST API, GraphQL & WebSockets Supported](#rest-api--graphql---websockets-supported)
-  * [Can Run On The Holo Network](#can-run-on-the-holo-network)
-  * [Earn Karma & HoloFuel For Running a ONODE](#earn-karma---holofuel-for-running-a-onode)
-  * [ONODE Setup](#onode-setup)
-  * [Detailed Management Console](#detailed-management-console)
-  * [ONODE CORE & ONODE Providers](#onode-core---onode-providers)
-  * [Encourages People To Self-Organise, Co-operate, Co-ordinate & Promotes A Decentralised Distributed Mindset.](#encourages-people-to-self-organise--co-operate--co-ordinate---promotes-a-decentralised-distributed-mindset)
-  * [Sharing & Storing Your Data](#sharing---storing-your-data)
-- [OAPP Web UI Components](#oapp-web-ui-components)
-- [.NET HDK](#net-hdk)
-- [WEB5 STAR ODK Omniverse Interoperable Metaverse Low Code Generator](#web5-star-odk)
-- [The Power Of Holochain, .NET, Unity & NodeJS Combined!](#the-power-of-holochain--net--unity---nodejs-combined-)
-- [Node.JS Integration](#nodejs-integration)
-- [Turbocharge the Holochain ecosystem!](#turbocharge-the-holochain-ecosystem-)
-- [The OASIS Architecture](#the-oasis-architecture)
-  * [Open Modular Design](#open-modular-design)
-  * [General](#general)
-  * [OASISWEBPORTAL/ NOOMAP INTERFACE](#oasiswebportal--noomap-interface)
-  * [IOAPP (OAPP)](#ioapp--oapp-)
-  * [Our World](#our-world)
-  * [OAPI (OASIS API)](#oapi--oasis-api-)
-  * [ONET (OASIS Network)](#onet--oasis-network-)
-  * [OAPP (Legacy Apps/websites)](#oapp--legacy-apps-websites-)
-  * [OAPP/DAPP](#oapp-dapp)
-  * [OAPP/hAPP](#oapp-happ)
-  * [OAPP/HAPP](#oapp-happ)
-  * [Business OAPP](#business-oapp)
-  * [WEB4 OASIS API Arcitecture Overview](#oasisapi-overview)
-- [Our World/OASIS Will Act As The Bridge For All (Legasy, IPFS, Holochain, Ethereum, SOLID, Fediverse, Mastodon, Diaspora, WebFinger, ActivityPub, XMPP & More!)](#our-world-oasis-will-act-as-the-bridge-for-all--legasy--ipfs--holochain--ethereum--solid--fediverse--mastodon--diaspora--webfinger--activitypub--xmpp---more--)
-  * [Implement Your Own Storage/Network/Renderer Provider](#implement-your-own-storage-network-renderer-provider)
-  * [Switch To A Different Provider In RealTime](#switch-to-a-different-provider-in-realtime)
-- [Fully Integrated Unified Interface](#fully-integrated-unified-interface)
-  * [NextGen Social Network](#nextgen-social-network)
-    + [OASIS Avatar/Profile/Karma Integration](#oasis-avatar-profile-karma-integration)
-    + [Our World/OASIS API/Social Network Website](#our-world-oasis-api-social-network-website)
-    + [Noomap Integration](#noomap-integration)
-    + [Deep Integration Into Other Networks/Protocols/Platforms (Such as Gab, Mastodon, Diaspora, WebFinger, SOLID, Ethereum, Fediverse, ActivityPub, XMPP & More!)](#deep-integration-into-other-networks-protocols-platforms--such-as-gab--mastodon--diaspora--webfinger--solid--ethereum--fediverse--activitypub--xmpp---more--)
-- [Platforms](#platforms)
-    + [PC/Console Version](#pc-console-version)
-    + [Smartphone Version](#smartphone-version)
-- [NextGen Hardware](#nextgen-hardware)
-- [Our World Overview](#our-world-overview)
-  * [Introduction](#introduction-1)
-  * [XR/IR Gamification Layer Of The New Interplanetary Operating System & The New Internet (Web 3.0)](#xr-ir-gamification-layer-of-the-new-interplanetary-operating-system---the-new-internet--web-30-)
-  * [Open World/New Ecosystm/Asset Store/Internet/Operating System/Social Network](#open-world-new-ecosystm-asset-store-internet-operating-system-social-network)
-  * [Infinite Alternate Reality Game (IARG)](#infinite-alternate-reality-game--iarg-)
-  * [Our World Integrates The Commons Engine & Mutual Crypto Currency](#our-world-integrates-the-commons-engine---mutual-crypto-currency)
-  * [Synergy Engine](#synergy-engine)
-  * [Resource Based Economy](#resource-based-economy)
-  * [First AAA MMO Game To Run On Holochain](#first-aaa-mmo-game-to-run-on-holochain)
-  * [Smartphone Version](#smartphone-version-1)
-  * [Console Version](#console-version)
-  * [Engrossing Storyline](#engrossing-storyline)
-  * [OASIS Asset Store](#oasis-asset-store)
-  * [Virtual E-commerce](#virtual-e-commerce)
-  * [We Accept Karma, Your Money Is No Good Here!](#we-accept-karma--your-money-is-no-good-here-)
-  * [Our World Is Only The Beginning...](#our-world-is-only-the-beginning)
-  * [The Tech Industry Have A Morale & Social Responsibility](#the-tech-industry-have-a-morale---social-responsibility)
-  * [Teach Kids The Right Life Lessons](#teach-kids-the-right-life-lessons)
-  * [Remember How Powerful YOU Are!](#remember-how-powerful-you-are-)
-  * [Bringing People Together](#bringing-people-together)
-  * [We are Building The Evolved Benevolent Version Of The OASIS](#we-are-building-the-evolved-benevolent-version-of-the-oasis)
-  * [Ascension/God Training & Mirror Of Reality Technology](#ascension-god-training---mirror-of-reality-technology)
-  * [7 Years Of Planning & R&D](#7-years-of-planning---r-d)
-  * [Early Prototype](#early-prototype)
-  * [We Are What You Have All Been Waiting For...](#we-are-what-you-have-all-been-waiting-for)
-  * [Large Social Media Following](#large-social-media-following)
-  * [UN Contacts](#un-contacts)
-  * [Buckminster's World Peace Game](#buckminster-s-world-peace-game)
-  * [The NextGen Office](#the-nextgen-office)
-  * [Golden Investment Opportunity](#golden-investment-opportunity)
-  * [Help Cocreate A Better World...](#help-cocreate-a-better-world)
-- [NextGen Developer Training Programmes For EVERYONE! (Including Special Needs & Disadvantaged People)](#nextgen-developer-training-programmes-for-everyone---including-special-needs---disadvantaged-people-)
-- [The Power Of Autism](#the-power-of-autism)
-- [Better Than A Fornite Clone! ;-)](#better-than-a-fornite-clone-----)
-- [HoloNET](#holonet)
-- [HoloUnity](#holounity)
-- [HoloOASIS](#holooasis)
-  * [Using HoloOASIS](#using-holooasis)
-  * [Events](#events-1)
-    + [OnInitialized](#oninitialized)
-    + [OnPlayerProfileSaved](#onplayerprofilesaved)
-    + [OnPlayerProfileLoaded](#onplayerprofileloaded)
-    + [OnHoloOASISError](#onholooasiserror)
-  * [Methods](#methods-1)
-  * [Properties](#properties-1)
-- [OASIS API Core](#oasis-api-core)
-    + [Using The OASIS API Core](#using-the-oasis-api-core)
-  * [Interfaces](#interfaces)
-    + [IOASISStorage](#ioasisstorage)
-    + [IOASISNET](#ioasisnet)
-  * [Events](#events-2)
-  * [Methods](#methods-2)
-  * [Properties](#properties-2)
-- [Road Map](#road-map)
-- [Next Steps](#next-steps)
-- [Donations Welcome! :)](#donations-welcome----)
-- [Devs/Contributions Welcome! :)](#devs-contributions-welcome----)
-- [Other Ways To Get Involved](#other-ways-to-get-involved)
-- [HoloSource Licence](#holosource-licence)
-- [Links](#links)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/NextGenSoftwareUK/OASIS)
+[![Documentation](https://img.shields.io/badge/docs-complete-blue.svg)](./Docs/)
+
+## 🚀 What is The OASIS?
+
+The OASIS (Open Advanced Secure Interoperable System) is a revolutionary Web4/Web5 infrastructure that unifies all Web2 and Web3 technologies into a single, intelligent, auto-failover system. It's the first universal API that connects everything to everything, eliminating silos and walled gardens.
+
+## 📋 Table of Contents
+
+- [Quick Start](#-quick-start)
+- [Current Implementation Status](#-current-implementation-status)
+- [Architecture Overview](#-architecture-overview)
+- [Unique Selling Propositions](#-unique-selling-propositions)
+- [Core Features](#-core-features)
+- [Revolutionary Systems](#-revolutionary-systems)
+- [Documentation](#-documentation)
+- [OASIS Web4 Site & Subscription Plans](#-oasis-web4-site--subscription-plans)
+- [Getting Started](#-getting-started)
+- [Project Structure](#-project-structure)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Support](#-support)
+
+## 🌐 Supported Providers
+
+OASIS supports 50+ providers across multiple categories, providing universal compatibility and seamless integration:
+
+### **Blockchain Providers**
+- **Bitcoin** - Original cryptocurrency blockchain
+- **Ethereum** - Smart contract platform
+- **Solana** - High-performance blockchain
+- **Polygon** - Ethereum scaling solution
+- **Arbitrum** - Layer 2 scaling solution
+- **Avalanche** - High-throughput blockchain
+- **BNB Chain** - Binance Smart Chain
+- **Cardano** - Research-driven blockchain
+- **NEAR** - Developer-friendly blockchain
+- **Polkadot** - Multi-chain interoperability
+- **Cosmos** - Internet of blockchains
+- **Fantom** - Fast and scalable blockchain
+- **Optimism** - Ethereum Layer 2
+- **Rootstock** - Bitcoin smart contracts
+- **TRON** - High-performance blockchain
+- **Telos** - EOSIO-based blockchain
+- **Sui** - Next-generation blockchain
+- **Aptos** - Move-based blockchain
+- **Elrond** - High-performance blockchain
+- **Hashgraph** - Distributed ledger technology
+- **EOSIO** - Enterprise blockchain platform
+- **BlockStack** - Decentralized internet
+- **ChainLink** - Oracle network
+- **Moralis** - Web3 development platform
+- **Web3Core** - Universal Web3 integration
+
+### **Cloud Providers**
+- **AWS** - Amazon Web Services
+- **Azure** - Microsoft Cloud Platform
+- **Google Cloud** - Google Cloud Platform
+- **Azure Cosmos DB** - Multi-model database
+
+### **Storage Providers**
+- **MongoDB** - Document database
+- **Neo4j** - Graph database
+- **Neo4j Aura** - Managed graph database
+- **SQLite** - Embedded database
+- **Local File** - Local file system storage
+
+### **Network Providers**
+- **Holochain** - Distributed peer-to-peer network
+- **IPFS** - InterPlanetary File System
+- **ActivityPub** - Decentralized social networking
+- **Scuttlebutt** - Secure gossip protocol
+- **SOLID** - Decentralized web platform
+- **ThreeFold** - Decentralized internet grid
+- **Pinata** - IPFS pinning service
+
+### **Map Providers**
+- **Mapbox** - Location data platform
+- **WRLD3D** - 3D mapping platform
+- **GO Map** - OpenStreetMap integration
+
+### **Specialized Providers**
+- **Cargo** - NFT marketplace protocol
+- **ONION Protocol** - Decentralized communication
+- **Orion Protocol** - Cross-chain liquidity
+- **PLAN** - Project management protocol
+- **SEEDS** - Regenerative economy platform
+- **Apollo Server** - GraphQL server
+- **ARC Membrane** - Advanced membrane technology
 
 
-## Introduction
+## 🔑 Core WEB4 APIs (from existing oasisweb4.com)
 
-**NOTE: This documentation & code is a WIP and is still currently being written so please make sure you check back often...**
+### **Authentication & Identity**
+- **AVATAR**: Complete user management system with 80+ endpoints
+  - Registration, authentication, password management
+  - Avatar CRUD operations, portraits, sessions
+  - Provider-specific authentication flows
+  - Session management and security
 
-**We would love to hear from you regarding feedback on any of the vision, docs, code or would like to submit ideas. Even better, if you would like to get actively involved by coding, spreading the word, finding funding or any other role then please get in touch right NOW! :) Contact us on our Telegram group https://t.me/ourworldthegamechat Thank you.**
+### **Reputation & Social**
+- **KARMA**: Digital reputation system with 20+ endpoints
+  - Karma weighting and voting systems
+  - Akashic records and statistics
+  - Positive/negative karma management
+  - Historical tracking and analytics
 
-## Overview
+### **Data Management**
+- **DATA**: Comprehensive data operations with 30+ endpoints
+  - Holon CRUD operations with advanced parameters
+  - File upload/download with provider support
+  - Data storage with auto-replication and failover
+  - Cross-provider data synchronization
 
-The WEB4 OASIS API enables you to integrate your project with everything else (WEB2 & WEB3) such as all blockchains, holochain & much more. It also provides SSO, load balancing, auto failover, auto replication, zero downtime, zero lag, infinite players and much more!
+### **Financial Services**
+- **WALLET**: Complete wallet management with 25+ endpoints
+  - Multi-chain wallet support
+  - Portfolio management and analytics
+  - Transfer operations and transaction history
+  - Import/export functionality
 
-Various OASIS API functions and services can be accessed with this API such as Authentication, Karma, Avatars, Data, SEEDS, Wallets/Keys & more...
+### **Security & Keys**
+- **KEYS**: Cryptographic key management with 40+ endpoints
+  - Key generation and linking
+  - Provider-specific key operations
+  - WiFi and signature operations
+  - Complete key lifecycle management
 
-http://api.oasisplatform.world
+### **Network & Discovery**
+- **ONET**: Decentralized network with 10+ endpoints
+  - Network status and topology
+  - Node connection and management
+  - Broadcasting and statistics
+- **ONODE**: Node management with 12+ endpoints
+  - Node configuration and monitoring
+  - Peer management and metrics
+  - System control and logging
 
-This allows you to bridge between all of WEB2 & WEB3 Holochain, IPFS, MongoDB, SQLLite, Neo4j, Solana, Ethereum, EOS & ThreeFold with many more coming soon such as COSMOS, Polkadot, Polygon, SOLID, ActivityPub, Near, Nexus, HIVE, CEPTR Pluggable Protocol, Fediverse, XMPP & many more! :) The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. If you wish to get involved and help build out any of these providers or any other you would like to see integrated please get in touch here: https://t.me/ourworldthegamechat. 
+### **Content & Media**
+- **FILES**: File management with 6+ endpoints
+  - Upload, download, and metadata management
+  - File sharing and organization
+- **NFT**: NFT operations with 20+ endpoints
+  - Cross-chain NFT management
+  - Creation, trading, and analytics
 
-WEB 4 OASIS API is a fully distributed decentralised fault tolerant load balanced integrated API that runs across the full Internet acting as an abstraction layer over everything and serves as a network of networks. It is unity consciousnes expressed within the technical sphere. [The OASIS API is a global universal API that aims to connect anything to everything](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-) to eliminate walled gardens/silos.
+### **Communication**
+- **CHAT**: Real-time communication with 3+ endpoints
+  - Session management and messaging
+  - Message history and persistence
+- **MESSAGING**: Advanced messaging with 6+ endpoints
+  - Avatar-to-avatar messaging
+  - Conversation management
+  - Notification system
 
-The core OASIS (Open Advanced Sensory Immersion System) API that powers Our World/One World and manages the central profile/avatar/karma system that other satellite apps/games/sites/services plug into it and share. This allows karma to be earnt in the satellite apps/games by doing good deeds or progressing self help apps for example.
+### **Gamification**
+- **COMPETITION**: Gaming system with 9+ endpoints
+  - Leaderboards and tournaments
+  - League management and rankings
+  - Statistics and analytics
+- **GIFTS**: Gift system with 6+ endpoints
+  - Gift sending and receiving
+  - History and statistics
+
+### **Location & Mapping**
+- **MAP**: Advanced mapping with 15+ endpoints
+  - Route creation and navigation
+  - 3D object placement
+  - Location services and analytics
+
+### **Provider Management**
+- **PROVIDER**: Provider system with 25+ endpoints
+  - Provider registration and configuration
+  - Auto-replication and failover settings
+  - Provider monitoring and management
+
+### **Search & Analytics**
+- **SEARCH**: Universal search with 2+ endpoints
+  - Cross-provider search capabilities
+- **STATS**: Analytics with 8+ endpoints
+  - Comprehensive statistics and reporting
+  - Performance metrics and insights
+
+### **Blockchain Integration**
+- **EOSIO**: EOSIO integration with 9+ endpoints
+- **HOLOCHAIN**: Holochain integration with 7+ endpoints
+- **TELOS**: Telos integration with 9+ endpoints
+- **SEEDS**: Seeds integration with 15+ endpoints
+- **SOLANA**: Solana integration with 2+ endpoints
+
+### **System Management**
+- **SETTINGS**: Configuration with 12+ endpoints
+- **SUBSCRIPTION**: Billing with 8+ endpoints
+- **VIDEO**: Video calling with 3+ endpoints
+- **EGGS**: Egg system with 3+ endpoints
+
+## ⭐ Core WEB5 STAR APIs (from STAR ODK)
+
+### **Metaverse Development**
+- **MISSIONS**: Complete mission system with 27+ endpoints
+  - Mission CRUD operations and lifecycle management
+  - Publishing, versioning, and distribution
+  - Leaderboards, rewards, and analytics
+  - Clone and template functionality
+
+### **Virtual Worlds**
+- **CELESTIALBODIES**: 3D world objects with 25+ endpoints
+  - Space object creation and management
+  - Type-based filtering and organization
+  - Publishing and version control
+- **CELESTIALSPACES**: Virtual environments with 25+ endpoints
+  - Space hierarchy and management
+  - Parent-child relationships
+  - Advanced space operations
+
+### **Content Management**
+- **HOLONS**: Core content objects with 25+ endpoints
+  - Hierarchical content management
+  - Metadata and status tracking
+  - Advanced search and filtering
+- **CHAPTERS**: Content organization with 20+ endpoints
+  - Content structure and navigation
+  - Publishing and distribution
+
+### **Asset Management**
+- **NFTs**: NFT system with 25+ endpoints
+  - Cross-chain NFT operations
+  - Publishing and trading
+  - Version control and management
+- **INVENTORYITEMS**: Item management with 25+ endpoints
+  - Avatar inventory systems
+  - Item tracking and analytics
+
+### **Development Tools**
+- **TEMPLATES**: Template system with 25+ endpoints
+  - Pre-built component library
+  - Template sharing and distribution
+  - Version control and management
+- **LIBRARIES**: Code libraries with 25+ endpoints
+  - Shared code repositories
+  - Category-based organization
+  - Publishing and collaboration
+- **RUNTIMES**: Runtime management with 25+ endpoints
+  - Runtime lifecycle control
+  - Status monitoring and management
+  - Start/stop operations
+- **PLUGINS**: Plugin system with 25+ endpoints
+  - Plugin installation and management
+  - Type-based organization
+  - Lifecycle control
+
+### **Gamification**
+- **QUESTS**: Quest system with 25+ endpoints
+  - Quest creation and management
+  - Completion tracking and rewards
+  - Leaderboards and statistics
+- **EGGS**: Discovery system with 8+ endpoints
+  - Egg discovery and hatching
+  - Quest integration
+  - Statistics and leaderboards
+
+### **Location Services**
+- **GEOHOTSPOTS**: Location-based features with 25+ endpoints
+  - Hotspot creation and management
+  - Nearby location services
+  - Publishing and distribution
+- **GEONFTS**: Location-based NFTs with 25+ endpoints
+  - Geo-tagged NFT creation
+  - Location-based trading
+  - Avatar-specific collections
+
+### **Social Features**
+- **PARKS**: Social spaces with 25+ endpoints
+  - Virtual park creation
+  - Type-based organization
+  - Social interaction features
+
+### **System Management**
+- **STAR**: Core system with 4+ endpoints
+  - System status and control
+  - Ignition and shutdown
+  - Beam-in operations
+
+## 🏆 Grants & Case Studies (from existing oasisweb4.com)
+
+- Radix DLT: Native bridge work between Radix and Solana tokens
+- Arbitrum (Grant Ships): Endangered Tokens NFTs integrated into AR World treasure hunt
+- Arbitrum (Thrive): HoloNET API connected to Stellar Gate (browser-based, Arbitrum-enabled space game)
+- Solana Superteam UK: AR World Phygital mobile game with geo-cached Solana NFTs
 
 
-### Best Of All Worlds
+Once the Subscription API is implemented, the Plans page will redirect to a hosted checkout (e.g., Stripe) via the backend’s response URL.
 
-Just like a team of people, different tech has various strengths and weaknesses, by integrating them together so they work as one unified co-ordinated team, you eliminate all weaknesses and then have the best of all worlds, the whole is greater than the sum of the parts. It harnesses the best of each provider so the OASIS uses the strengths of each provider to the maximum and removes all weaknesses, it automatically uses the most appropriate provider or providers for any given use case.
 
-### Maximum Interopability/Aggregation
+## 📊 Current Implementation Status
 
-One of the core design goals of the OASIS is maximum interoperability (to remove all silos and walled gardens) to the point everything merges into one (the singularity) and also to be super powerful but super easy and intuitive to use.
+- **WEB4 OASIS API**: Complete data aggregation and identity layer
+- **WEB5 STAR API**: Complete gamification and business layer
+- **ONET Network**: Revolutionary decentralized networking
+- **OASIS HyperDrive**: 100% uptime auto-failover, auto-replication, auto-loadbalancing system
+- **STAR CLI**: Complete command-line development tools
 
-The WEB4 OASIS API connects & Integrates everything (all of WEB 2 & WEB 3) including all blockchains, holochain, IPFS, databases, cloud etc into one fully unified API that is an abstraction layer over everything.
 
-The whole point of the OASIS API is to allow everything to be fully interoperable so data can be shared between any provider, the architecture opens the doors for many more use cases like importing and exporting your data between providers, aggregating all your data to remove all silos so better sense making and AI machine learning can be made to analyse and to make predictions, smart contract interoperability, etc
+## ⚡ Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/NextGenSoftwareUK/OASIS.git
+
+# Navigate to the project
+cd OASIS
+
+# Start the development environment
+./Start-Development.bat
+```
+
+## 🏗️ Architecture Overview
+
+The OASIS consists of two main layers:
+
+### WEB4 OASIS API - Data Aggregation & Identity Layer
+- **Purpose**: Universal data aggregation and identity management
+- **Innovation**: OASIS HyperDrive with intelligent auto-failover
+- **Location**: `ONODE/` namespace
+- **Key Features**:
+  - Auto-failover between Web2/Web3 providers
+  - Universal data aggregation
+  - Identity & authentication system
+  - Karma & reputation management
+
+### WEB5 STAR API - Gamification & Business Layer
+- **Purpose**: Gamification, metaverse, and business use cases
+- **Innovation**: STAR ODK (Omniverse Interoperable Metaverse Low Code Generator)
+- **Location**: `STAR ODK/` namespace
+- **Key Features**:
+  - Low-code metaverse development with drag-and-drop OAPP builder
+  - Missions, NFTs, GeoNFTs, and inventory management
+  - Templates, libraries, runtimes, and plugins
+  - OAPPs (OASIS Applications) framework
+  - Celestial Bodies, Spaces, Zomes, and Holons management
+  - Advanced metadata system with DNA management
+  - Comprehensive STARNET Web UI with Dashboard and MetaData pages
+  - STARNET integration for publishing, downloading, and versioning
+  - **STAR CLI**: Revolutionary Interoperable Low/No Code Generator for all metaverses, games, apps, sites, and platforms - unifying them into one powerful OASIS Omniverse platform
+  - **STARNETHolons Linking**: Any STARNETHolon can be linked to any other STARNETHolon as dependencies
+  - **Our World**: Groundbreaking geo-location AR game that gets people back into nature, connecting with real people through real-world quests, collecting GeoNFTs, and earning karma for good deeds
+
+## 🛠️ STAR CLI - Revolutionary Interoperable Low/No Code Generator
+
+The **STAR CLI** is not just a command-line interface - it's a revolutionary **Interoperable Low/No Code Generator** that unifies all metaverses, games, apps, sites, and platforms into one powerful OASIS Omniverse platform. It's also the backend to the OASIS and Our World systems.
+
+### Revolutionary Capabilities of STAR CLI:
+- **Interoperable Low/No Code Generator**: Create entire metaverses, games, apps, and platforms with minimal coding
+- **Universal Platform Unification**: Unify all digital experiences into one powerful OASIS Omniverse
+- **Asset/App Store Backend**: Powers the STARNET store for publishing and distributing digital assets
+- **DNA File Generation**: Creates structured DNA files that define STARNETHolons and their dependencies
+- **STARNETHolons Management**: Create, edit, delete, publish, and manage all types of STARNETHolons
+- **Dependency Linking**: Link any STARNETHolon to any other STARNETHolon as dependencies
+- **Template System**: Built-in templates for OAPPs, NFTs, Quests, and more
+- **Version Control**: Built-in versioning and publishing system
+- **STARNET Integration**: Direct integration with STARNET for publishing and distribution
+- **Our World Backend**: Powers the geo-location AR game system
+
+### Available STARNETHolons:
+- **OAPPs** (OASIS Applications)
+- **NFTs** (Non-Fungible Tokens)
+- **GeoNFTs** (Geospatial NFTs)
+- **Quests** (Interactive quests and missions)
+- **Missions** (Specific mission objectives)
+- **Chapters** (Story chapters and content)
+- **Inventory Items** (Game items and rewards)
+- **Celestial Spaces** (Virtual spaces and environments)
+- **Celestial Bodies** (Planets, moons, and celestial objects)
+- **Zomes** (Holochain zomes)
+- **Holons** (Basic data structures)
+- **Templates** (Reusable templates)
+- **Libraries** (Code libraries)
+- **Runtimes** (Execution environments)
+- **Plugins** (Extensible plugins)
+
+## 🚀 OASIS HyperDrive (v1 vs v2)
+
+HyperDrive intelligently routes all data operations across providers (Web2/Web3) for uptime, performance, and cost.
+
+- Legacy (v1)
+  - Auto-Replication
+  - Auto-Failover
+
+- OASIS HyperDrive 2 (v2)
+  - Auto-Load Balancing (round-robin, weighted, least-connections, latency-first)
+  - Enhanced Auto-Replication (provider/data-type/schedule/cost/permissions)
+  - Predictive Failover + escalation rules
+  - AI Optimization & smart recommendations
+  - Advanced analytics (performance, cost, predictive)
+  - Subscription-aware quotas, alerts, notifications
+  - Full WebAPI + STAR WebUI configuration
+  - Mode switch with safe fallback (v2 → v1)
+
+Mode Switch
+- DNA: `OASIS.HyperDriveMode` = `Legacy` | `OASISHyperDrive2`
+- WebAPI: GET `api/hyperdrive/mode`, PUT `api/hyperdrive/mode`
+
+Key New/Updated Endpoints (selection)
+- Replication rules/triggers/provider-rules/data-type-rules/schedule-rules/cost-optimization
+- Failover rules/triggers/provider-rules/escalation-rules
+- Costs: current/history/projections/limits
+- Recommendations: smart/security
+
+Provider Management Refactor
+- `ProviderRegistry` (instances) · `ProviderSelector` (algorithms) · `ProviderSwitcher` (switching) · `ProviderConfigurator` (lists/flags) · `ProviderManagerNew` (facade)
+- Legacy `ProviderManager` remains with [Obsolete] note and facade helpers for gradual migration.
+
+UI
+- STAR WebUI HyperDrive page includes a Legacy vs v2 toggle and a comparison panel.
+
+## 🌍 Our World - The Benevolent Pokemon Go and Beyond!
+
+**Our World** is a groundbreaking AR geo-location educational game built on top of the WEB4 OASIS API and WEB5 STAR API. It's designed to teach individuals how to care for themselves, others, and the planet using cutting-edge technology, emphasizing real-life connections and encouraging engagement with nature through Augmented Reality.
+
+### Revolutionary Features of Our World:
+- **AR Geo-Location Game**: Next-generation Augmented Reality educational platform
+- **Real-World Quests**: Complete quests in nature, helping the environment and community
+- **GeoNFT Collection**: Collect unique GeoNFTs placed in real-world locations
+- **Karma System**: Earn karma for good deeds (picking up litter, helping people/animals) and lose karma for negative actions
+- **Avatar Progression**: Level up your avatar through karma, unlocking new abilities and superpowers
+- **Superhero Training Platform**: Unlock abilities like flight, teleportation, telekinesis, and more!
+- **Real-World Rewards**: Redeem karma for real-world goods and services
+- **Environmental Impact**: Help improve the environment while having fun
+- **Social Connection**: Connect with real people doing real-world activities
+- **AR Integration**: Augmented reality experiences in natural settings
+- **Educational Value**: Learn about nature, sustainability, and community service
+- **Resource-Based Economy**: Integrates concepts from The Venus Project, promoting a system where resources are freely available
+
+### Our World Gameplay:
+- **Nature Exploration**: Discover hidden locations and natural wonders
+- **Community Service**: Participate in real-world environmental and community projects
+- **Karma Rewards**: Earn positive karma for helping others and the environment
+- **Superpower Unlocks**: Gain incredible abilities as you progress
+- **GeoNFT Trading**: Trade and collect unique location-based NFTs
+- **Real-World Impact**: Make a tangible difference in your community
+- **Educational Missions**: Learn vital life lessons and implement them in the real world
+- **Global Unity**: Foster a sense of unity and collective action worldwide
+
+### Technical Innovation:
+- **HoloNET Integration**: World-first connection between Holochain and Unity/.NET ecosystems
+- **HoloNET ORM**: Revolutionary ORM making Holochain development simple with one-line commands (.Load(), .Save(), .Delete())
+- **OASIS API Backend**: Robust infrastructure supporting all game functionalities
+- **Holochain Integration**: Decentralized, peer-to-peer architecture - the future of the internet
+- **Unity 3D Engine**: Advanced 3D graphics and immersive experiences
+- **Cross-Platform Support**: Works across multiple devices and platforms
+- **World-First Achievement**: First AR geo-location game built on Holochain powered by HoloNET
+
+## 🌍 One World - The Benevolent MMORPG
+
+**One World** is the sister game to Our World - a groundbreaking MMORPG with optional VR that's similar to Minecraft and Pax Dei where you can build anything you can imagine, but with a benevolent focus. Built on the WEB4 OASIS API and WEB5 STAR API, it shares ALL STARNETHolons (OAPPs, Runtimes, Libraries, Templates, NFTs, GeoNFTs, GeoHotSpots, Quests, Missions, Chapters, InventoryItems, CelestialSpaces, CelestialBodies, Zomes, Holons, and all MetaDataDNA) with Our World and any other OAPPs built on the OASIS/STAR APIs.
+
+### Revolutionary Features of One World:
+- **MMORPG with Optional VR**: Massive multiplayer online role-playing game with virtual reality support
+- **Infinite Building**: Build anything you can imagine, similar to Minecraft and Pax Dei
+- **Benevolent Focus**: Encourages positive actions and environmental stewardship
+- **Cross-Platform Assets**: Share ALL STARNETHolons (OAPPs, Runtimes, Libraries, Templates, NFTs, GeoNFTs, GeoHotSpots, Quests, Missions, Chapters, InventoryItems, CelestialSpaces, CelestialBodies, Zomes, Holons, and all MetaDataDNA) with Our World
+- **Unified OAPP Ecosystem**: Same STARNETHolons work across all OASIS/STAR powered OAPPs (apps, games, sites, services, platforms, etc.)
+- **Avatar Progression**: Level up your avatar through positive actions and building
+- **Community Building**: Work together with other players to create amazing structures
+- **Educational Value**: Learn about sustainability, cooperation, and creativity
+- **Real-World Impact**: Connect virtual achievements with real-world environmental actions
+
+## 🎮 OASIS/STAR Cross-Platform Universal System
+
+**Revolutionary Innovation**: The world's first truly interoperable system where ALL STARNETHolons (OAPPs, Runtimes, Libraries, Templates, NFTs, GeoNFTs, GeoHotSpots, Quests, Missions, Chapters, InventoryItems, CelestialSpaces, CelestialBodies, Zomes, Holons, and all MetaDataDNA) can be shared and re-used across ANY OAPP (apps, games, sites, services, platforms, etc.) built on the OASIS API and STAR API, regardless of platform or engine.
+
+### Revolutionary Cross-Platform Features:
+- **Universal STARNETHolon Sharing**: ALL STARNETHolons work across JavaScript, Unity, Unreal, and any other platform
+- **Cross-OAPP Compatibility**: Quests, missions, NFTs, and all STARNETHolons work in different OAPPs with different UIs
+- **Platform Agnostic**: STARNETHolons work seamlessly across web, mobile, desktop, and VR platforms
+- **Engine Independent**: Same STARNETHolons work in Unity, Unreal, JavaScript, and any other engine
+- **Unified OAPP Ecosystem**: Create once, use everywhere across all OASIS/STAR OAPPs (apps, games, sites, services, platforms, etc.)
+- **Cross-Platform Progression**: Your progress and achievements carry over between OAPPs
+- **Universal Inventory**: Items and STARNETHolons work across all OAPPs in the ecosystem
+- **Shared STARNETHolons**: Use the same STARNETHolons in different OAPPs with different experiences
+- **Cross-OAPP Trading**: Trade STARNETHolons between different OAPPs and platforms
+- **Unified Avatar System**: Your avatar and progression work across all OAPPs
+- **Infinite Use Cases**: Games, businesses, shops, e-commerce, finance, education, healthcare, and everything else!
+
+### Technical Innovation:
+- **OASIS API Backend**: Universal backend supporting all OAPP types and platforms
+- **STAR API Integration**: Gamification layer that works across all platforms
+- **STARNETHolon Standardization**: Universal STARNETHolon format that works across all engines
+- **Cross-Platform Sync**: Real-time synchronization across all OAPPs and platforms
+- **Universal Authentication**: Single login works across all OAPPs in the ecosystem
+- **Shared Database**: All OAPPs share the same underlying data and STARNETHolons
+
+## 🚀 HoloNET - Revolutionary Holochain Integration
+
+**HoloNET** is the world's first .NET and Unity client for Holochain, opening up the massive .NET and Unity ecosystems to Holochain's powerful peer-to-peer architecture. This revolutionary integration brings Holochain to the mainstream, as most of the world runs on .NET and most games use Unity.
+
+### Revolutionary HoloNET Features:
+- **World-First Integration**: First .NET and Unity client for Holochain
+- **HoloNET ORM**: Revolutionary ORM making Holochain development simple with one-line commands
+- **Massive Ecosystem Access**: Opens Holochain to .NET and Unity developers worldwide
+- **Simplified Development**: Replace complex Holochain setup with simple .Load(), .Save(), .Delete() commands
+- **Enterprise Ready**: Brings Holochain to enterprise .NET applications
+- **Game Development**: Powers Unity games with decentralized P2P architecture
+- **Future of Internet**: Holochain's P2P network is the future of the internet
+- **Mainstream Adoption**: Makes Holochain accessible to millions of .NET and Unity developers
+
+### HoloNET ORM Benefits:
+- **One-Line Commands**: Simple .Load(), .Save(), .Delete() operations
+- **No Complex Setup**: Eliminates messy complex Holochain initialization code
+- **Familiar Syntax**: .NET developers can use familiar patterns
+- **Rapid Development**: Much quicker and easier than Rust and JS clients
+- **Enterprise Integration**: Seamless integration with existing .NET applications
+- **Unity Integration**: Perfect for game development with C# and Unity
+
+### Holochain - The Future of Internet:
+- **Peer-to-Peer Architecture**: No central servers, truly decentralized
+- **Scalable Network**: Scales with demand, no server bottlenecks
+- **Enhanced Security**: Cryptographically secure P2P network
+- **Privacy First**: User data stays with users, not centralized servers
+- **Consensus-Free**: No mining, no energy waste, no transaction fees
+- **Distributed Applications**: Build truly distributed apps
+- **Future-Proof**: Architecture designed for the future of the internet
+
+### Available STARNETHolons:
+The revolutionary linking system allows any STARNETHolon to be connected to any other STARNETHolon as dependencies. This creates infinite possibilities for unique combinations:
+
+- **Quest + GeoNFT**: Create location-based quests
+- **OAPP + NFT**: Link NFTs as rewards in applications
+- **Mission + Inventory Items**: Use items as mission rewards
+- **GeoHotSpot + Quest**: Create location-specific challenges
+- **Any combination**: The system is completely flexible
+
+## 🏛️ Visual Architecture
+
+```mermaid
+graph TB
+    subgraph "OASIS Ecosystem"
+        subgraph "WEB5 STAR Web API - Gamification & Business Layer"
+            STAR[STAR ODK<br/>Omniverse Interoperable<br/>Metaverse Low Code Generator]
+            MISSIONS[Missions System]
+            NFTS[NFT Management]
+            INVENTORY[Inventory System]
+            CELESTIAL[Celestial Bodies]
+            TEMPLATES[Templates]
+            LIBRARIES[Libraries]
+            RUNTIMES[Runtimes]
+            PLUGINS[Plugins]
+            OAPPS[OAPPs Framework]
+        end
+        
+        subgraph "WEB4 OASIS API - Data Aggregation & Identity Layer"
+            HYPERDRIVE[OASIS HyperDrive<br/>Auto-Failover System]
+            AVATAR[Avatar API]
+            KARMA[Karma System]
+            DATA[Data API]
+            PROVIDER[Provider API]
+            IDENTITY[Identity Management]
+        end
+        
+        subgraph "Provider Layer - Web2 & Web3 Integration"
+            subgraph "Web3 Providers"
+                ETH[Ethereum]
+                SOL[Solana]
+                HOLO[Holochain]
+                IPFS[IPFS]
+                POLYGON[Polygon]
+            end
+            
+            subgraph "Web2 Providers"
+                AWS[AWS]
+                AZURE[Azure]
+                GCP[Google Cloud]
+                MONGO[MongoDB]
+                POSTGRES[PostgreSQL]
+            end
+        end
+        
+        subgraph "ONODE Network"
+            NODE1[ONODE 1]
+            NODE2[ONODE 2]
+            NODE3[ONODE 3]
+            NODEN[ONODE N...]
+        end
+    end
+    
+    STAR --> HYPERDRIVE
+    MISSIONS --> HYPERDRIVE
+    NFTS --> HYPERDRIVE
+    INVENTORY --> HYPERDRIVE
+    CELESTIAL --> HYPERDRIVE
+    TEMPLATES --> HYPERDRIVE
+    LIBRARIES --> HYPERDRIVE
+    RUNTIMES --> HYPERDRIVE
+    PLUGINS --> HYPERDRIVE
+    OAPPS --> HYPERDRIVE
+    
+    HYPERDRIVE --> AVATAR
+    HYPERDRIVE --> KARMA
+    HYPERDRIVE --> DATA
+    HYPERDRIVE --> PROVIDER
+    HYPERDRIVE --> IDENTITY
+    
+    HYPERDRIVE --> ETH
+    HYPERDRIVE --> SOL
+    HYPERDRIVE --> HOLO
+    HYPERDRIVE --> IPFS
+    HYPERDRIVE --> POLYGON
+    HYPERDRIVE --> AWS
+    HYPERDRIVE --> AZURE
+    HYPERDRIVE --> GCP
+    HYPERDRIVE --> MONGO
+    HYPERDRIVE --> POSTGRES
+    
+    NODE1 --> HYPERDRIVE
+    NODE2 --> HYPERDRIVE
+    NODE3 --> HYPERDRIVE
+    NODEN --> HYPERDRIVE
+```
+
+*For detailed architecture diagrams, see [Architecture Diagrams](./Docs/OASIS_ARCHITECTURE_DIAGRAMS.md)*
+
+### OASIS Torus Architecture
+
+```mermaid
+graph TB
+    subgraph "OASIS Torus Architecture"
+        subgraph "Top of Torus - Web Dev Kits & SDKs"
+            subgraph "WEB4 OASIS Web Kits"
+                WEB4_ANGULAR[Angular Web Kit]
+                WEB4_REACT[React Web Kit]
+                WEB4_VUE[Vue Web Kit]
+                WEB4_NEXTJS[Next.js Web Kit]
+                WEB4_SVELTE[Svelte Web Kit]
+                WEB4_VANILLA[Vanilla JS Web Kit]
+            end
+            
+            subgraph "WEB5 STAR Web Kits"
+                WEB5_ANGULAR[Angular STAR Web Kit]
+                WEB5_REACT[React STAR Web Kit]
+                WEB5_VUE[Vue STAR Web Kit]
+                WEB5_NEXTJS[Next.js STAR Web Kit]
+                WEB5_SVELTE[Svelte STAR Web Kit]
+                WEB5_VANILLA[Vanilla JS STAR Web Kit]
+            end
+            
+            subgraph "Avatar SSO Kits"
+                SSO_ANGULAR[Angular SSO Kit]
+                SSO_REACT[React SSO Kit]
+                SSO_VUE[Vue SSO Kit]
+                SSO_NEXTJS[Next.js SSO Kit]
+                SSO_SVELTE[Svelte SSO Kit]
+                SSO_VANILLA[Vanilla JS SSO Kit]
+            end
+            
+            subgraph "SDKs for Major Frameworks"
+                SDK_PYTHON[Python SDK]
+                SDK_RUST[Rust SDK]
+                SDK_UNITY[Unity SDK]
+                SDK_UNREAL[Unreal SDK]
+                SDK_JAVA[Java SDK]
+                SDK_PHP[PHP SDK]
+                SDK_GO[Go SDK]
+                SDK_DOTNET[.NET SDK]
+            end
+        end
+        
+        subgraph "Center of Torus - OASIS API Core"
+            OASIS_API[OASIS API<br/>Data Aggregation & Identity Layer]
+            HYPERDRIVE[OASIS HyperDrive<br/>Auto-Failover System]
+            AVATAR[Avatar Management]
+            KARMA[Karma System]
+            DATA[Universal Data Storage]
+            IDENTITY[Identity Management]
+        end
+        
+        subgraph "Bottom of Torus - Provider Layer"
+            subgraph "Web3 Providers"
+                ETH[Ethereum]
+                SOL[Solana]
+                HOLO[Holochain]
+                IPFS[IPFS]
+                POLYGON[Polygon]
+                ARBITRUM[Arbitrum]
+                OPTIMISM[Optimism]
+                BASE[Base]
+                AVALANCHE[Avalanche]
+                BNB[BNB Chain]
+                FANTOM[Fantom]
+                CARDANO[Cardano]
+                POLKADOT[Polkadot]
+                BITCOIN[Bitcoin]
+                NEAR[NEAR]
+                SUI[Sui]
+                APTOS[Aptos]
+                COSMOS[Cosmos]
+                EOSIO[EOSIO]
+                TELOS[Telos]
+                SEEDS[SEEDS]
+            end
+            
+            subgraph "Web2 Providers"
+                AWS[AWS]
+                AZURE[Azure]
+                GCP[Google Cloud]
+                MONGO[MongoDB]
+                POSTGRES[PostgreSQL]
+                MYSQL[MySQL]
+                REDIS[Redis]
+                ELASTICSEARCH[Elasticsearch]
+                PINATA[Pinata]
+                THREE_FOLD[ThreeFold]
+                SOLID[SOLID]
+                ACTIVITY_PUB[ActivityPub]
+            end
+        end
+    end
+    
+    %% Connections from top to center
+    WEB4_ANGULAR --> OASIS_API
+    WEB4_REACT --> OASIS_API
+    WEB4_VUE --> OASIS_API
+    WEB4_NEXTJS --> OASIS_API
+    WEB4_SVELTE --> OASIS_API
+    WEB4_VANILLA --> OASIS_API
+    
+    WEB5_ANGULAR --> OASIS_API
+    WEB5_REACT --> OASIS_API
+    WEB5_VUE --> OASIS_API
+    WEB5_NEXTJS --> OASIS_API
+    WEB5_SVELTE --> OASIS_API
+    WEB5_VANILLA --> OASIS_API
+    
+    SSO_ANGULAR --> OASIS_API
+    SSO_REACT --> OASIS_API
+    SSO_VUE --> OASIS_API
+    SSO_NEXTJS --> OASIS_API
+    SSO_SVELTE --> OASIS_API
+    SSO_VANILLA --> OASIS_API
+    
+    SDK_PYTHON --> OASIS_API
+    SDK_RUST --> OASIS_API
+    SDK_UNITY --> OASIS_API
+    SDK_UNREAL --> OASIS_API
+    SDK_JAVA --> OASIS_API
+    SDK_PHP --> OASIS_API
+    SDK_GO --> OASIS_API
+    SDK_DOTNET --> OASIS_API
+    
+    %% Connections from center to bottom
+    OASIS_API --> HYPERDRIVE
+    HYPERDRIVE --> AVATAR
+    HYPERDRIVE --> KARMA
+    HYPERDRIVE --> DATA
+    HYPERDRIVE --> IDENTITY
+    
+    %% Provider connections
+    HYPERDRIVE --> ETH
+    HYPERDRIVE --> SOL
+    HYPERDRIVE --> HOLO
+    HYPERDRIVE --> IPFS
+    HYPERDRIVE --> POLYGON
+    HYPERDRIVE --> ARBITRUM
+    HYPERDRIVE --> OPTIMISM
+    HYPERDRIVE --> BASE
+    HYPERDRIVE --> AVALANCHE
+    HYPERDRIVE --> BNB
+    HYPERDRIVE --> FANTOM
+    HYPERDRIVE --> CARDANO
+    HYPERDRIVE --> POLKADOT
+    HYPERDRIVE --> BITCOIN
+    HYPERDRIVE --> NEAR
+    HYPERDRIVE --> SUI
+    HYPERDRIVE --> APTOS
+    HYPERDRIVE --> COSMOS
+    HYPERDRIVE --> EOSIO
+    HYPERDRIVE --> TELOS
+    HYPERDRIVE --> SEEDS
+    
+    HYPERDRIVE --> AWS
+    HYPERDRIVE --> AZURE
+    HYPERDRIVE --> GCP
+    HYPERDRIVE --> MONGO
+    HYPERDRIVE --> POSTGRES
+    HYPERDRIVE --> MYSQL
+    HYPERDRIVE --> REDIS
+    HYPERDRIVE --> ELASTICSEARCH
+    HYPERDRIVE --> PINATA
+    HYPERDRIVE --> THREE_FOLD
+    HYPERDRIVE --> SOLID
+    HYPERDRIVE --> ACTIVITY_PUB
+```
+
+### OASIS HyperDrive Architecture ✅ COMPLETED
+
+```mermaid
+graph TB
+    subgraph "OASIS HyperDrive - 100% Uptime System ✅ COMPLETED"
+        subgraph "Application Layer"
+            APP[Your Application]
+            API[OASIS API]
+        end
+        
+        subgraph "HyperDrive Core Engine ✅ COMPLETED"
+            ROUTING[Intelligent Routing Engine ✅]
+            FAILOVER[Auto-Failover System ✅]
+            LOADBAL[Auto-Load Balancing ✅]
+            AI[AI-Powered Optimization ✅]
+            PREDICT[Predictive Failover ✅]
+            ANALYTICS[Advanced Analytics ✅]
+            REPLICATION[Auto-Replication]
+            MONITORING[Performance Monitoring]
+        end
+        
+        subgraph "Provider Network - Global Distribution"
+            subgraph "Web2 Providers"
+                MONGODB[MongoDB]
+                POSTGRES[PostgreSQL]
+                REDIS[Redis]
+                AZURE[Azure]
+                AWS[AWS]
+                GCP[Google Cloud]
+            end
+            
+            subgraph "Web3 Providers"
+                ETHEREUM[Ethereum]
+                SOLANA[Solana]
+                IPFS[IPFS]
+                HOLOCHAIN[Holochain]
+                ARBITRUM[Arbitrum]
+                POLYGON[Polygon]
+            end
+            
+            subgraph "Local Providers"
+                SQLITE[SQLite]
+                LOCALFILE[Local File]
+                HOLOCHAIN_LOCAL[Holochain Local]
+            end
+        end
+        
+        subgraph "Geographic Distribution"
+            US[United States<br/>• AWS Regions<br/>• Azure Regions<br/>• Ethereum Nodes<br/>• IPFS Nodes]
+            EU[Europe<br/>• AWS Regions<br/>• Azure Regions<br/>• Ethereum Nodes<br/>• IPFS Nodes]
+            ASIA[Asia<br/>• AWS Regions<br/>• Azure Regions<br/>• Ethereum Nodes<br/>• IPFS Nodes]
+            AFRICA[Africa<br/>• AWS Regions<br/>• Local Providers<br/>• Mobile Networks]
+            OCEANIA[Oceania<br/>• AWS Regions<br/>• Azure Regions<br/>• Local Providers]
+        end
+        
+        subgraph "Network Adaptation"
+            ONLINE[Online Mode<br/>• Full Provider Access<br/>• Real-time Sync<br/>• Global Routing]
+            OFFLINE[Offline Mode<br/>• Local Storage<br/>• SQLite Database<br/>• Local Files]
+            SLOW[Slow Network<br/>• Local Caching<br/>• Batch Operations<br/>• Progressive Loading]
+        end
+    end
+    
+    APP --> API
+    API --> ROUTING
+    ROUTING --> FAILOVER
+    ROUTING --> LOADBAL
+    ROUTING --> REPLICATION
+    ROUTING --> MONITORING
+    
+    FAILOVER --> MONGODB
+    FAILOVER --> POSTGRES
+    FAILOVER --> REDIS
+    FAILOVER --> ETHEREUM
+    FAILOVER --> SOLANA
+    FAILOVER --> IPFS
+    FAILOVER --> SQLITE
+    FAILOVER --> LOCALFILE
+    
+    LOADBAL --> US
+    LOADBAL --> EU
+    LOADBAL --> ASIA
+    LOADBAL --> AFRICA
+    LOADBAL --> OCEANIA
+    
+    REPLICATION --> MONGODB
+    REPLICATION --> ETHEREUM
+    REPLICATION --> IPFS
+    REPLICATION --> HOLOCHAIN
+    
+    MONITORING --> ONLINE
+    MONITORING --> OFFLINE
+    MONITORING --> SLOW
+```
+
+### OASIS COSMIC ORM Architecture
+
+```mermaid
+graph TB
+    subgraph "OASIS COSMIC ORM - Universal Data Abstraction"
+        subgraph "Application Layer"
+            APP[Your Application]
+            API[OASIS API]
+        end
+        
+        subgraph "COSMIC ORM Layer"
+            HOLONMANAGER[HolonManager<br/>• Universal CRUD<br/>• Provider Abstraction<br/>• Transaction Management]
+            HOLONBASE[HolonBase<br/>• Data Objects<br/>• Event System<br/>• Version Control]
+            COSMICMANAGER[COSMICManagerBase<br/>• Batch Operations<br/>• Data Migration<br/>• Conflict Resolution]
+        end
+        
+        subgraph "HyperDrive Foundation"
+            HYPERDRIVE[OASIS HyperDrive<br/>• Auto-Failover<br/>• Auto-Load Balancing<br/>• Auto-Replication<br/>• 100% Uptime]
+        end
+        
+        subgraph "Provider Abstraction Layer"
+            PROVIDERMANAGER[ProviderManager<br/>• Provider Selection<br/>• Performance Monitoring<br/>• Cost Optimization]
+            PROVIDERINTERFACE[IOASISStorageProvider<br/>• Universal Interface<br/>• Data Translation<br/>• Cross-Platform Support]
+        end
+        
+        subgraph "Storage Providers"
+            subgraph "Web2 Providers"
+                MONGODB[MongoDB]
+                POSTGRES[PostgreSQL]
+                MYSQL[MySQL]
+                REDIS[Redis]
+                AZURE[Azure Cosmos DB]
+                AWS[AWS DynamoDB]
+            end
+            
+            subgraph "Web3 Providers"
+                ETHEREUM[Ethereum]
+                SOLANA[Solana]
+                IPFS[IPFS]
+                HOLOCHAIN[Holochain]
+                ARBITRUM[Arbitrum]
+                POLYGON[Polygon]
+            end
+        end
+    end
+    
+    APP --> API
+    API --> HOLONMANAGER
+    HOLONMANAGER --> HOLONBASE
+    HOLONMANAGER --> COSMICMANAGER
+    HOLONMANAGER --> HYPERDRIVE
+    HYPERDRIVE --> PROVIDERMANAGER
+    PROVIDERMANAGER --> PROVIDERINTERFACE
+    
+    PROVIDERINTERFACE --> MONGODB
+    PROVIDERINTERFACE --> POSTGRES
+    PROVIDERINTERFACE --> MYSQL
+    PROVIDERINTERFACE --> REDIS
+    PROVIDERINTERFACE --> AZURE
+    PROVIDERINTERFACE --> AWS
+    
+    PROVIDERINTERFACE --> ETHEREUM
+    PROVIDERINTERFACE --> SOLANA
+    PROVIDERINTERFACE --> IPFS
+    PROVIDERINTERFACE --> HOLOCHAIN
+    PROVIDERINTERFACE --> ARBITRUM
+    PROVIDERINTERFACE --> POLYGON
+```
+
+### OASIS NFT System Architecture
+
+```mermaid
+graph TB
+    subgraph "OASIS NFT System Architecture"
+        subgraph "WEB5 STAR NFT Layer"
+            STAR_NFT[WEB5 STAR NFT]
+            STAR_GEONFT[WEB5 STAR Geo-NFT]
+            STARNET_FEATURES[STARNET Features<br/>• Version Control<br/>• Change Tracking<br/>• Publishing<br/>• Search & Discovery<br/>• Download & Install]
+        end
+        
+        subgraph "WEB4 OASIS NFT Layer"
+            OASIS_NFT[WEB4 OASIS NFT]
+            OASIS_GEONFT[WEB4 OASIS Geo-NFT]
+            CROSS_CHAIN[Cross-Chain Support<br/>• Multiple WEB3 NFTs<br/>• Shared Metadata<br/>• Simultaneous Minting]
+        end
+        
+        subgraph "WEB3 NFT Layer"
+            ETH_NFT[Ethereum NFT]
+            SOL_NFT[Solana NFT]
+            POLYGON_NFT[Polygon NFT]
+            ARBITRUM_NFT[Arbitrum NFT]
+            OPTIMISM_NFT[Optimism NFT]
+            BASE_NFT[Base NFT]
+            AVALANCHE_NFT[Avalanche NFT]
+            BNB_NFT[BNB Chain NFT]
+            FANTOM_NFT[Fantom NFT]
+            CARDANO_NFT[Cardano NFT]
+            POLKADOT_NFT[Polkadot NFT]
+            BITCOIN_NFT[Bitcoin NFT]
+            NEAR_NFT[NEAR NFT]
+            SUI_NFT[Sui NFT]
+            APTOS_NFT[Aptos NFT]
+            COSMOS_NFT[Cosmos NFT]
+            EOSIO_NFT[EOSIO NFT]
+            TELOS_NFT[Telos NFT]
+            SEEDS_NFT[SEEDS NFT]
+        end
+        
+        subgraph "Geospatial Integration"
+            OUR_WORLD[Our World<br/>Geolocation Game]
+            GEO_APPS[Other Geo Apps<br/>• Pokemon GO<br/>• Ingress<br/>• Geocaching Apps]
+            AR_APPS[AR/VR Apps<br/>• Unity Apps<br/>• Unreal Apps<br/>• WebXR Apps]
+        end
+        
+        subgraph "OASIS NFT Features"
+            UNIFIED_STANDARD[Unified NFT Standard<br/>• Universal Format<br/>• Cross-Chain Compatibility<br/>• One-Click Conversion]
+            AUTO_REPLICATION[Auto-Replication<br/>• Multi-Chain Deployment<br/>• Metadata Synchronization<br/>• Conflict Resolution]
+            INTELLIGENT_ROUTING[Intelligent Routing<br/>• Cost Optimization<br/>• Speed Optimization<br/>• Geographic Optimization]
+        end
+    end
+    
+    %% WEB5 to WEB4 connections
+    STAR_NFT --> OASIS_NFT
+    STAR_GEONFT --> OASIS_GEONFT
+    STARNET_FEATURES --> STAR_NFT
+    STARNET_FEATURES --> STAR_GEONFT
+    
+    %% WEB4 to WEB3 connections
+    OASIS_NFT --> ETH_NFT
+    OASIS_NFT --> SOL_NFT
+    OASIS_NFT --> POLYGON_NFT
+    OASIS_NFT --> ARBITRUM_NFT
+    OASIS_NFT --> OPTIMISM_NFT
+    OASIS_NFT --> BASE_NFT
+    OASIS_NFT --> AVALANCHE_NFT
+    OASIS_NFT --> BNB_NFT
+    OASIS_NFT --> FANTOM_NFT
+    OASIS_NFT --> CARDANO_NFT
+    OASIS_NFT --> POLKADOT_NFT
+    OASIS_NFT --> BITCOIN_NFT
+    OASIS_NFT --> NEAR_NFT
+    OASIS_NFT --> SUI_NFT
+    OASIS_NFT --> APTOS_NFT
+    OASIS_NFT --> COSMOS_NFT
+    OASIS_NFT --> EOSIO_NFT
+    OASIS_NFT --> TELOS_NFT
+    OASIS_NFT --> SEEDS_NFT
+    
+    %% Geo-NFT connections
+    OASIS_GEONFT --> OUR_WORLD
+    OASIS_GEONFT --> GEO_APPS
+    OASIS_GEONFT --> AR_APPS
+    
+    %% Feature connections
+    UNIFIED_STANDARD --> OASIS_NFT
+    AUTO_REPLICATION --> OASIS_NFT
+    INTELLIGENT_ROUTING --> OASIS_NFT
+    
+    %% Cross-chain connections
+    ETH_NFT -.-> SOL_NFT
+    SOL_NFT -.-> POLYGON_NFT
+    POLYGON_NFT -.-> ARBITRUM_NFT
+    ARBITRUM_NFT -.-> OPTIMISM_NFT
+    OPTIMISM_NFT -.-> BASE_NFT
+    BASE_NFT -.-> AVALANCHE_NFT
+    AVALANCHE_NFT -.-> BNB_NFT
+    BNB_NFT -.-> FANTOM_NFT
+    FANTOM_NFT -.-> CARDANO_NFT
+    CARDANO_NFT -.-> POLKADOT_NFT
+    POLKADOT_NFT -.-> BITCOIN_NFT
+    BITCOIN_NFT -.-> NEAR_NFT
+    NEAR_NFT -.-> SUI_NFT
+    SUI_NFT -.-> APTOS_NFT
+    APTOS_NFT -.-> COSMOS_NFT
+    COSMOS_NFT -.-> EOSIO_NFT
+    EOSIO_NFT -.-> TELOS_NFT
+    TELOS_NFT -.-> SEEDS_NFT
+```
+
+## 🎯 Unique Selling Propositions
+
+### 1. **Intelligent Auto-Failover System ✅ COMPLETED**
+Revolutionary OASIS HyperDrive automatically switches between Web2 and Web3 providers based on:
+- **Lag/Ping Priority** (40% weight) - Primary selection criteria
+- Network speed and reliability (25% weight)
+- Gas fees and transaction costs (15% weight)
+- Geographic proximity (10% weight)
+- System availability (10% weight)
+- **AI-Powered Optimization** with machine learning
+- **Predictive Failover** with failure prevention
+- **Advanced Analytics** with real-time monitoring
+- Real-time performance metrics
+
+**Example**: If Solana is slow, automatically routes to MongoDB, then replicates to Solana when conditions improve.
+
+### 2. **Revolutionary OASIS NFT System**
+The world's first universal NFT system that unifies all Web2 and Web3 NFTs:
+
+- **WEB4 OASIS NFTs**: Wrap multiple WEB3 NFTs from different chains in one OASIS NFT
+- **Cross-Chain Collections**: Create collections containing NFTs from different blockchains
+- **Shared Metadata**: Same metadata shared across all chains for instant minting
+- **WEB5 STAR NFTs**: Enhanced NFTs with version control, publishing, and STARNET features
+- **Geo-NFTs**: Place NFTs in real-world locations for AR/VR experiences
+- **Universal Standard**: Convert between any NFT standard with one click
+- **Auto-Replication**: Automatically deploy to all chains simultaneously
+
+### 3. **Universal Data Aggregation**
+Single API that aggregates data from all Web2 and Web3 sources into a unified format, enabling:
+- Cross-platform analytics
+- Unified data schema
+- Real-time synchronization
+- Protocol-agnostic access
+
+### 4. **OASIS COSMIC ORM - Universal Data Abstraction**
+The world's first universal data abstraction layer built on OASIS HyperDrive:
+
+- **Universal API**: Single API for all data operations across Web2 and Web3
+- **100% Uptime**: Built on HyperDrive foundation with auto-failover
+- **Auto-Load Balancing**: Intelligent load distribution across providers
+- **Auto-Replication**: Automatic data replication when conditions improve
+- **Geographic Optimization**: Routes to nearest available nodes
+- **Network Adaptation**: Works offline, on slow networks, and in no-network areas
+- **Easy Migration**: Simple data migration between any providers
+
+### 5. **OASIS Universal Wallet System**
+The world's first unified wallet system for managing all Web2 and Web3 assets:
+
+- **Unified Interface**: Single dashboard for all digital assets across 50+ blockchain networks
+- **Cross-Chain Support**: Native support for Ethereum, Bitcoin, Solana, Polygon, BSC, Avalanche, and 40+ more chains
+- **Portfolio Aggregation**: Real-time portfolio value across all wallets and chains
+- **One-Click Transfers**: Easy transfers between any supported wallets and chains
+- **Enhanced Security**: OASIS Avatar integration with multi-layer security
+- **DeFi Integration**: Native support for 100+ DeFi protocols and yield farming
+- **Fiat Support**: Seamless integration with traditional banking and payment systems
+- **100% Uptime**: Built on OASIS HyperDrive foundation with auto-failover
+- **Analytics & Reporting**: Comprehensive portfolio analytics and tax reporting
+- **Mobile & Desktop**: Full support across all devices and platforms
+
+### 6. **Zero-Downtime Architecture**
+Impossible to shutdown due to:
+- Full redundancy across multiple networks
+- Hot-swappable provider architecture
+- Distributed node network (ONET)
+- Works offline and on local networks
+
+### 7. **Future-Proof Technology Stack**
+Never need to learn new tech stacks again:
+- Universal API abstraction layer
+- HOT swappable plugin architecture
+- Write once, deploy everywhere (OAPPs)
+- Free upgrades for life as new chains and providers are added no need to change any OAPP code.
+- Backward compatibility guarantees
+
+### 5. **Comprehensive Karma & Reputation System**
+Universal reputation system that:
+- Tracks contributions across all platforms
+- Enables earning through resource sharing
+- Provides accountability and trust metrics
+- Integrates with real-world benefits
+
+### 6. **Enterprise-Grade Security & Privacy**
+- User controls data storage location
+- Configurable replication strategies
+- End-to-end encryption
+- Zero-knowledge proof capabilities
+- GDPR and compliance ready
+
+### 7. **Low-Code Metaverse Generator**
+Visual development tools for metaverse creation:
+- Drag-and-drop OAPP builder with component mixing
+- Pre-built UI components library
+- Automated deployment pipelines
+- Cross-platform compatibility
+- STAR CLI Low/No code generator wizards and templating system
+- Web-based OAPP builder with zomes, holons, and metadata integration
+- Real-time preview and testing capabilities
+
+### 8. **Complete Smart Contract Interoperability**
+- Deploy contracts on any supported network
+- Cross-chain asset management
+- Universal wallet and token management
+- Protocol-agnostic development
+
+### 9. **Advanced AI/ML Capabilities**
+Machine learning over aggregated world data:
+- Cross-platform data analysis
+- Predictive analytics across networks
+- Intelligent automation and optimization
+- Privacy-preserving AI training
+
+### 10. **Multi-Token Economy**
+Sophisticated tokenomics with:
+- HERZ (utility token)
+- CASA (governance token)
+- HoloFuel integration
+- Karma-based rewards
+
+### 11. **HOT Swappable Plugin Architecture**
+- Deploy providers at runtime without recompilation
+- Switch between any Web2/Web3 provider instantly
+- Zero-downtime provider updates
+- Dynamic provider configuration
+
+### 12. **Works Offline & Local Networks**
+- Functions without internet connection
+- LAN, Bluetooth, and mesh network support
+- Automatic sync when back online
+- Local-first architecture
+
+### 13. **Full Accountability & Zero Crime**
+- All actions are publicly visible through karma system
+- Impossible to hide malicious behavior
+- Transparent reputation system
+- Eliminates dark net and criminal activities
+
+### 14. **Universal Avatar System**
+- Single sign-on across all platforms
+- Full control over personal data
+- Digital twin with real-world benefits
+- Cross-platform identity management
+
+### 15. **SEEDS Integration**
+- Earn karma for environmental actions
+- Support regenerative economy
+- Planet-positive currency integration
+- Sustainable development focus
+
+
+## ✨ Core Features
+
+### 🔄 Auto-Failover & Load Balancing
+- Intelligent provider selection
+- Automatic failover between networks
+- Real-time performance monitoring
+- Cost optimization algorithms
+
+### 🌐 Universal Connectivity
+- 50+ supported providers
+- Web2 and Web3 integration
+- Cross-platform compatibility
+- Protocol translation
+
+### 🔐 Security & Privacy
+- Multi-layer security architecture
+- Privacy-preserving design
+- User data control
+- Compliance ready
+
+### 🎮 Gamification & Metaverse
+- Low-code development tools with drag-and-drop OAPP builder
+- Pre-built components and metadata system
+- Cross-platform deployment
+- Real-time collaboration
+- Advanced metadata management with DNA system
+- Comprehensive STARNET Web UI with Dashboard and MetaData pages
+- STARNET integration for publishing and versioning
+
+### 🤖 AI & Machine Learning
+- Cross-platform data analysis
+- Predictive analytics
+- Intelligent automation
+- Federated learning
+
+## 🛠️ Web Development Kits & SDKs
+
+### WEB4 OASIS Web Kits
+- **Angular**: [Download Angular Web Kit](https://oasisweb4.one/downloads/oasis-webui-devkit-angular.zip)
+- **React**: [Download React Web Kit](https://oasisweb4.one/downloads/oasis-webui-devkit-react.zip)
+- **Vue**: [Download Vue Web Kit](https://oasisweb4.one/downloads/oasis-webui-devkit-vue.zip)
+- **Next.js**: [Download Next.js Web Kit](https://oasisweb4.one/downloads/oasis-webui-devkit-nextjs.zip)
+- **Svelte**: [Download Svelte Web Kit](https://oasisweb4.one/downloads/oasis-webui-devkit-svelte.zip)
+- **Vanilla JS**: [Download Vanilla JS Web Kit](https://oasisweb4.one/downloads/oasis-webui-devkit-vanilla.zip)
+
+### WEB5 STAR Web Kits
+- **Angular**: [Download Angular STAR Web Kit](https://oasisweb4.one/downloads/oasis-web5-star-webkit-angular.zip)
+- **React**: [Download React STAR Web Kit](https://oasisweb4.one/downloads/oasis-web5-star-webkit-react.zip)
+- **Vue**: [Download Vue STAR Web Kit](https://oasisweb4.one/downloads/oasis-web5-star-webkit-vue.zip)
+- **Next.js**: [Download Next.js STAR Web Kit](https://oasisweb4.one/downloads/oasis-web5-star-webkit-nextjs.zip)
+- **Svelte**: [Download Svelte STAR Web Kit](https://oasisweb4.one/downloads/oasis-web5-star-webkit-svelte.zip)
+- **Vanilla JS**: [Download Vanilla JS STAR Web Kit](https://oasisweb4.one/downloads/oasis-web5-star-webkit-vanilla.zip)
+
+### NPM Packages
+- **WEB4 OASIS API**: [@nextgensoftware/oasis-web4-api-client](https://www.npmjs.com/package/@nextgensoftware/oasis-web4-api-client)
+- **WEB5 STAR API**: [@nextgensoftware/oasis-web5-star-api-client](https://www.npmjs.com/package/@nextgensoftware/oasis-web5-star-api-client)
+
+### SDKs for Major Frameworks
+
+#### WEB4 OASIS API SDKs
+- **Python**: [Download Python SDK](https://oasisweb4.one/downloads/oasis-web4-python-sdk.zip)
+- **Rust**: [Download Rust SDK](https://oasisweb4.one/downloads/oasis-web4-rust-sdk.zip)
+- **Unity**: [Download Unity SDK](https://oasisweb4.one/downloads/oasis-web4-unity-sdk.zip)
+- **Unreal Engine**: [Download Unreal SDK](https://oasisweb4.one/downloads/oasis-web4-unreal-sdk.zip)
+- **Java**: [Download Java SDK](https://oasisweb4.one/downloads/oasis-web4-java-sdk.zip)
+- **PHP**: [Download PHP SDK](https://oasisweb4.one/downloads/oasis-web4-php-sdk.zip)
+- **Go**: [Download Go SDK](https://oasisweb4.one/downloads/oasis-web4-go-sdk.zip)
+- **.NET**: [Download .NET SDK](https://oasisweb4.one/downloads/oasis-web4-dotnet-sdk.zip)
+
+#### WEB5 STAR API SDKs
+- **Python**: [Download Python STAR SDK](https://oasisweb4.one/downloads/oasis-web5-star-python-sdk.zip)
+- **Rust**: [Download Rust STAR SDK](https://oasisweb4.one/downloads/oasis-web5-star-rust-sdk.zip)
+- **Unity**: [Download Unity STAR SDK](https://oasisweb4.one/downloads/oasis-web5-star-unity-sdk.zip)
+- **Unreal Engine**: [Download Unreal STAR SDK](https://oasisweb4.one/downloads/oasis-web5-star-unreal-sdk.zip)
+- **Java**: [Download Java STAR SDK](https://oasisweb4.one/downloads/oasis-web5-star-java-sdk.zip)
+- **PHP**: [Download PHP STAR SDK](https://oasisweb4.one/downloads/oasis-web5-star-php-sdk.zip)
+- **Go**: [Download Go STAR SDK](https://oasisweb4.one/downloads/oasis-web5-star-go-sdk.zip)
+- **.NET**: [Download .NET STAR SDK](https://oasisweb4.one/downloads/oasis-web5-star-dotnet-sdk.zip)
+
+### OASIS Avatar SSO Kits
+- **Angular**: [Download Angular SSO Kit](https://oasisweb4.one/downloads/oasis-avatar-sso-sdk-angular.zip)
+- **React**: [Download React SSO Kit](https://oasisweb4.one/downloads/oasis-avatar-sso-sdk-react.zip)
+- **Vue**: [Download Vue SSO Kit](https://oasisweb4.one/downloads/oasis-avatar-sso-sdk-vue.zip)
+- **Next.js**: [Download Next.js SSO Kit](https://oasisweb4.one/downloads/oasis-avatar-sso-sdk-nextjs.zip)
+- **Svelte**: [Download Svelte SSO Kit](https://oasisweb4.one/downloads/oasis-avatar-sso-sdk-svelte.zip)
+- **Vanilla JS**: [Download Vanilla JS SSO Kit](https://oasisweb4.one/downloads/oasis-avatar-sso-sdk-vanilla.zip)
+- **Universal Pack**: [Download Universal SSO Pack](https://oasisweb4.one/downloads/oasis-avatar-sso-sdk-pack.zip)
+
+## 📚 Documentation
+
+### 🚀 **Quick Start Guides**
+- **[Developer Documentation Index](./Docs/Devs/DEVELOPER_DOCUMENTATION_INDEX.md)** - Complete documentation guide
+- **[OASIS Quick Start Guide](./Docs/Devs/OASIS_Quick_Start_Guide.md)** - Get started with OASIS in 10 minutes
+- **[STARNET Web UI Quick Start](./Docs/Devs/STARNET_QUICK_START_GUIDE.md)** - Get started with STARNET Web UI in 5 minutes
+- **[STAR CLI Quick Start](./Docs/Devs/STAR_CLI_QUICK_START_GUIDE.md)** - Get started with STAR CLI in 5 minutes
+- **[Development Environment Setup](./Docs/Devs/DEVELOPMENT_ENVIRONMENT_SETUP.md)** - Complete development setup guide
+
+### 📖 **Core Documentation**
+- **[Investor Evaluation Guide](./Docs/INVESTOR_EVALUATION_GUIDE.md)** - Comprehensive investment analysis and market opportunities
+
+### 🏗️ **OASIS Managers & Systems**
+- **[OASIS Managers Complete Guide](./Docs/Devs/OASIS-Managers-Complete-Guide.md)** - Core managers (AvatarManager, WalletManager, KeyManager)
+- **[OASIS Managers Part 2](./Docs/Devs/OASIS-Managers-Part2.md)** - Additional managers (HolonManager, NFTManager, SearchManager, CacheManager, EmailManager)
+- **[OASIS Managers Part 3](./Docs/Devs/OASIS-Managers-Part3.md)** - Advanced managers & OASISHyperDrive
+- **[Wallet Management System](./Docs/Devs/Wallet-Management-System.md)** - Comprehensive wallet management guide
+- **[OASIS Architecture Overview](./Docs/Devs/OASIS_ARCHITECTURE_OVERVIEW.md)** - Detailed technical architecture and system design
+- **[Unique Selling Propositions](./Docs/OASIS_UNIQUE_SELLING_PROPOSITIONS.md)** - Complete USP analysis and competitive advantages
+- **[STARNET Web UI Overview](./Docs/STARNET_WEB_UI_OVERVIEW.md)** - Complete STARNET Web UI guide
+- **[The OASIS Comprehensive Whitepaper](./Docs/THE_OASIS_COMPREHENSIVE_WHITEPAPER.md)** - Complete OASIS ecosystem whitepaper
+
+### 🌍 **Revolutionary Systems Documentation**
+- **[Our World Documentation](./Docs/OUR_WORLD_DOCUMENTATION.md)** - Revolutionary AR geo-location game documentation
+- **[Our World Whitepaper](./Docs/OUR_WORLD_WHITEPAPER.md)** - Complete Our World business and technical whitepaper
+- **[One World Documentation](./Docs/ONE_WORLD_DOCUMENTATION.md)** - Revolutionary benevolent MMORPG documentation
+- **[One World Whitepaper](./Docs/ONE_WORLD_WHITEPAPER.md)** - Complete One World business and technical whitepaper
+- **[HoloNET Documentation](./Docs/HOLONET_DOCUMENTATION.md)** - Revolutionary Holochain integration documentation
+- **[HoloNET Whitepaper](./Docs/HOLONET_WHITEPAPER.md)** - Complete HoloNET business and technical whitepaper
+
+### 🔧 **Developer Documentation**
+- **[API Documentation](./Docs/Devs/API%20Documentation/)** - Complete API reference for WEB4 OASIS and WEB5 STAR APIs
+- **[WEB4 OASIS API](./Docs/Devs/API%20Documentation/WEB4%20OASIS%20API/README.md)** - Core data aggregation layer APIs
+- **[WEB5 STAR API](./Docs/Devs/API%20Documentation/WEB5%20STAR%20API/README.md)** - Gamification and metaverse APIs
+- **[STAR CLI Documentation](./Docs/Devs/STAR_CLI_DOCUMENTATION.md)** - Complete CLI reference for developers
+- **[DNA System Guide](./Docs/Devs/DNA_SYSTEM_GUIDE.md)** - STARNETHolon dependency management
+- **[Tutorials](./Docs/Devs/TUTORIALS/)** - Step-by-step tutorials and guides
+- **[OASIS Best Practices](./Docs/Devs/OASIS-BEST-PRACTICES.md)** - Development guidelines and best practices
+- **[Provider Development Guide](./Docs/Devs/OASIS_Provider_Development_Guide.md)** - Guide for creating custom providers
+- **[Contributing Guide](./Docs/Devs/CONTRIBUTING.md)** - How to contribute to the project
+- **[Quick Start Guide](./Docs/Devs/OASIS_Quick_Start_Guide.md)** - Getting started with OASIS development
+
+### 📚 **API Documentation**
+- **[WEB4 OASIS API](./Docs/Devs/API%20Documentation/WEB4%20OASIS%20API/README.md)** - Core infrastructure APIs (500+ endpoints)
+- **[WEB5 STAR API](./Docs/Devs/API%20Documentation/WEB5%20STAR%20API/README.md)** - Gamification and metaverse APIs (200+ endpoints)
+- **[Avatar API](./Docs/Devs/API%20Documentation/WEB4%20OASIS%20API/Avatar-API.md)** - User management (80+ endpoints)
+- **[Missions API](./Docs/Devs/API%20Documentation/WEB5%20STAR%20API/Missions-API.md)** - Quest system (15+ endpoints)
+- **[Data API](./Docs/Devs/API%20Documentation/WEB4%20OASIS%20API/Data-API.md)** - Universal data operations (30+ endpoints)
+- **[NFT API](./Docs/Devs/API%20Documentation/WEB4%20OASIS%20API/NFT-API.md)** - Cross-chain NFTs (20+ endpoints)
+
+### Testing & Quality
+- **[Test Coverage Summary](./Docs/Devs/TEST-COVERAGE-SUMMARY.md)** - Testing coverage and quality metrics
+- **[Test Harnesses Guide](./Docs/Devs/OASIS_Test_Harnesses_Guide.md)** - Testing tools and methodologies
+- **[Final Implementation Summary](./Docs/Devs/FINAL-IMPLEMENTATION-SUMMARY.md)** - Implementation status and roadmap
+
+### Community & Contribution
+- **[Contributing Guide](./Docs/Devs/CONTRIBUTING.md)** - How to contribute to OASIS
+- **[Code of Conduct](./Docs/Devs/CODE_OF_CONDUCT.md)** - Community guidelines and standards
+- **[Alpha Tester Documentation](./Docs/Devs/OASIS_Alpha_Tester_Documentation.md)** - Information for alpha testers
+
+### Wiki & Additional Resources
+- **[GitHub Wiki](https://github.com/NextGenSoftwareUK/OASIS/wiki)** - Comprehensive Wiki documentation
+- **[Wiki Documentation Index](./Docs/Devs/WIKI_DOCUMENTATION_INDEX.md)** - Complete index of all Wiki resources
+- **[Architecture Diagrams](./Docs/Devs/OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual architecture diagrams and system overviews
+
+### Historical Documentation
+- **[Original README](./README_OLD.md)** - Historical documentation showing the evolution of OASIS from its early vision to current implementation. This comprehensive document contains the original vision, detailed feature descriptions, and the complete journey of OASIS development. Perfect for understanding the history, philosophy, and evolution of the OASIS project.
+
+## 🚀 The OASIS Journey
+
+OASIS represents the culmination of years of research, development, and vision. From its early conceptualization as a universal API to connect everything to everything, OASIS has evolved into a comprehensive Web4/Web5 infrastructure that revolutionizes how we interact with the internet.
+
+### Key Milestones
+- **2017-2020**: Initial vision and architecture design
+- **2019-2022**: Core API development and provider integration
+- **2020-2023**: WEB4 OASIS API implementation and testing
+- **2021-2025**: WEB5 STAR ODK development and metaverse integration
+- **2021-Present**: Full ecosystem deployment and community building
+
+### Evolution Highlights
+- **From Concept to Reality**: What started as a vision for universal connectivity has become a working system
+- **Technology Integration**: Successfully integrated 50+ Web2 and Web3 providers
+- **Community Growth**: Built a global community of developers, users, and contributors
+- **Innovation Leadership**: Pioneered auto-failover technology and universal data aggregation
+
+*For the complete story of OASIS development, philosophy, and vision, see the [Original README](./README_OLD.md).*
+
+## 🚀 Getting Started
+
+### Prerequisites
+- .NET 6.0 or later
+- Node.js 16+ (for Web UI)
+- Docker (optional, for containerized deployment)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/NextGenSoftwareUK/OASIS.git
+   cd OASIS
+   ```
+
+2. **Start the development environment**
+   ```bash
+   # Windows
+   ./Start-Development.bat
+   
+   # Linux/Mac
+   ./start-development.sh
+   ```
+
+3. **Access the Web UI**
+   - Open your browser to `http://localhost:3000`
+   - API available at `http://localhost:5000/api`
+
+### Quick API Example
+
+```csharp
+// Initialize OASIS API
+var oasisAPI = new OASISAPI();
+
+// Load avatar
+var avatarResult = await oasisAPI.Avatar.LoadAvatarAsync(avatarId);
+
+// Create mission
+var mission = new Mission
+{
+    Name = "Explore the Metaverse",
+    Description = "Discover new worlds and earn karma"
+};
+var missionResult = await oasisAPI.Missions.SaveMissionAsync(mission);
+```
+
+## 🌟 STARNET Web UI & OAPP Builder
+
+### **Revolutionary Web Interface**
+The STARNET Web UI provides a comprehensive, modern web interface for managing the entire OASIS ecosystem:
+
+#### **Dashboard**
+- **Real-time Analytics**: Live charts and graphs showing system performance
+- **Summary Information**: Overview of all OASIS components (OAPPs, Templates, Runtimes, etc.)
+- **Quick Actions**: Direct access to create, manage, and deploy applications
+- **Interactive Navigation**: Click-through to detailed pages for each component
+
+#### **OAPP Builder**
+- **Drag-and-Drop Interface**: Visual component mixing for creating unique OAPPs
+- **Component Library**: Access to Runtimes, Libraries, NFTs, GeoNFTs, Celestial Bodies, Spaces, Inventory Items
+- **Metadata Integration**: Seamless integration with Celestial Bodies, Zomes, and Holons metadata
+- **Real-time Preview**: Live preview of OAPP components and functionality
+- **Version Control**: Built-in versioning and rollback capabilities
+
+#### **MetaData Management**
+- **Celestial Bodies MetaData**: Manage metadata for stars, planets, moons, and other celestial objects
+- **Zomes MetaData**: Configure code module metadata and properties
+- **Holons MetaData**: Manage data object metadata and relationships
+- **Key-Value Pairs**: Flexible metadata system supporting strings, integers, booleans, and datetimes
+- **DNA Management**: Advanced metadata DNA system for complex configurations
+
+#### **Enhanced Pages**
+- **OAPPs Page**: Complete OAPP lifecycle management
+- **Templates Page**: Template management with drag-and-drop builder integration
+- **Runtimes Page**: Runtime configuration and deployment management
+- **Libraries Page**: Library management and dependency tracking
+- **NFTs/GeoNFTs Pages**: NFT creation, management, and marketplace integration
+- **Celestial Bodies Page**: Universe management and celestial object creation
+- **Spaces Page**: Virtual space creation and management
+- **Inventory Page**: Item management and trading system
+
+### **STARNET Integration**
+- **Publishing**: One-click publishing to STARNET with version control
+- **Downloading**: Easy download and installation of published components
+- **Versioning**: Complete version history and rollback capabilities
+- **Search**: Advanced search across all published components
+- **Sharing**: Community sharing and collaboration features
+
+## 📁 Project Structure
+
+```
+OASIS/
+├── OASIS Architecture/          # Core OASIS API components
+│   ├── NextGenSoftware.OASIS.API.Core/
+│   ├── NextGenSoftware.OASIS.API.DNA/
+│   └── NextGenSoftware.OASIS.Common/
+├── ONODE/                      # WEB4 OASIS API (Data & Identity Layer)
+│   ├── Controllers/            # API controllers
+│   ├── Services/              # Business logic
+│   └── Models/                # Data models
+├── STAR ODK/                   # WEB5 STAR Web API (Gamification Layer)
+│   ├── NextGenSoftware.OASIS.STAR.WebAPI/
+│   │   ├── Controllers/        # API controllers including new metadata controllers
+│   │   │   ├── CelestialBodiesMetaDataController.cs
+│   │   │   ├── ZomesMetaDataController.cs
+│   │   │   └── HolonsMetaDataController.cs
+│   │   └── Models/             # Request/response models
+│   └── NextGenSoftware.OASIS.STAR.WebUI/
+│       ├── ClientApp/          # React-based Web UI
+│       │   ├── src/pages/      # Dashboard, OAPP Builder, MetaData pages
+│       │   ├── src/components/ # Reusable UI components
+│       │   └── src/services/   # API integration services
+│       └── wwwroot/           # Static assets
+├── Providers/                  # Provider implementations
+│   ├── Blockchain/            # Blockchain providers
+│   ├── Database/              # Database providers
+│   └── Storage/               # Storage providers
+├── Docs/                      # Documentation
+└── lumina-j5-bootstrap/       # AI governance system
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](./Docs/CONTRIBUTING.md) for details.
+
+### Ways to Contribute
+- 🐛 Report bugs
+- 💡 Suggest new features
+- 🔧 Submit pull requests
+- 📖 Improve documentation
+- 🧪 Test new features
+
+### Development Setup
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](./Docs/LICENSE) file for details.
+
+## 🆘 Support
+
+### Community Support
+- **Telegram**: [Join our community](https://t.me/ourworldthegamechat)
+- **Discord**: [Discord Server](https://discord.gg/oasis)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/NextGenSoftwareUk/OASIS/issues)
+
+### Enterprise Support
+For enterprise support and consulting services, please contact us at:
+- **Email**: enterprise@oasisplatform.world
+- **Website**: [https://oasisplatform.world](https://oasisplatform.world)
+
+## 🌟 Key Benefits
+
+### For Developers
+- **Write Once, Deploy Everywhere**: Build applications that work across all platforms
+- **Future-Proof**: Never need to learn new tech stacks again
+- **Reduced Complexity**: Single API for all Web2/Web3 integration
+- **Hot-Swappable**: Switch providers without code changes
+
+### For Enterprises
+- **Zero Downtime**: Impossible to shutdown architecture
+- **Cost Optimization**: Intelligent provider selection reduces costs
+- **Compliance Ready**: Built-in privacy and security features
+- **Scalable**: Auto-scaling and load balancing
+
+### For Users
+- **Universal Identity**: Single login for all services
+- **Data Control**: Full control over your data and privacy
+- **Karma System**: Earn rewards for positive contributions
+- **Cross-Platform**: Seamless experience across all devices
+
+## 🎯 Market Opportunities
+
+- **Enterprise Data Integration**: $50B+ market
+- **Web3 Infrastructure**: $100B+ market  
+- **Metaverse Development**: $800B+ market by 2030
+- **AI/ML Data Services**: $200B+ market
+
+## 🔮 Roadmap
+
+### Phase 1: Core Infrastructure (Current)
+- ✅ WEB4 OASIS API implementation
+- ✅ WEB5 STAR Web API development
+- ✅ Auto-failover system
+- ✅ Basic provider integration
+
+### Phase 2: Advanced Features (Q2 2024)
+- 🔄 AI/ML integration
+- 🔄 Advanced analytics
+- 🔄 Enterprise features
+- 🔄 Mobile applications
+
+### Phase 3: Ecosystem Expansion (Q3-Q4 2024)
+- 📋 Additional providers
+- 📋 Advanced metaverse tools
+- 📋 Enterprise partnerships
+- 📋 Global deployment
+
+---
+
+**Ready to revolutionize the internet? Join the OASIS community today!**
+
+[![Join Telegram](https://img.shields.io/badge/Join-Telegram-blue.svg)](https://t.me/ourworldthegamechat)
+[![Star on GitHub](https://img.shields.io/badge/Star-GitHub-yellow.svg)](https://github.com/NextGenSoftwareUK/OASIS)
+[![Follow on Twitter](https://img.shields.io/badge/Follow-Twitter-blue.svg)](https://twitter.com/oasisplatform)
 
 
 ### HOT Swappable Plugin Architecture
@@ -290,7 +1696,7 @@ Each OAPP can have a Web, 2D, 3D AR, 3D VR, 3D Map, 3D IR ([Infinite Reality](ht
 
 [Our World](http://www.ourworldthegame.com) is the first world in the infinite Omniverse (what comes after Metaverse). Our World also acts as the UI to the OASIS API allowing the various OAPP’s to have a 3D object/2D sprite representation on the 3D map of the world. They can then view meta data about the app as well as launch the app from within Our World (phase 1 of The OASIS you see in Ready Player One). Through the OASIS API people have a full geo-location API allowing them to fully control the 3D map, add quests, routes, sub-games, AR hotspots, and so much more. One possible use case would be Smart Cities amongst many more. 
 
-[Our World](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#our-world-overview) is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...
+[Our World](https://github.com/NextGenSoftwareUK/OASIS#our-world-overview) is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...
 
 It is the XR/IR Gamification layer of the new interplanetary operating system & the new internet (Web 3.0), which is being built by the elite technical wizards stationed around the world. This will one day replace the current tech giants such as Google, FaceBook, etc and act as the technical layer of the New Earth, which is birthing now.  Unlike the current tech giants who's only aim is to ruthlessly maximize profits at the expense of people and the planet (as well as spying, exploitation, censorship & social engineering), our technology is based on true love & unity consciousness where money and profits are not our aim or intention, our aim and intention is to heal the entire planet & human race so we can all live in harmony with each other. It is a 5th dimensional and ascension training platform, teaching people vital life lessons as well as acting as a real-time simulation of the real world.
 
@@ -323,7 +1729,7 @@ Both One World (desktop/console) & Our World (smartphone) players can interact i
 
 ### WEB 5 STAR OASIS Omniverse Interoperable Metaverse Low Code Generator
 
-[The WEB 5 STAR OASIS Omniverse Interoperable Metaverse Low Code Generator](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#web5-star-odk) is built on top of the OASIS API and aggregates all the worlds data and expresses it within a cyberspace ontology using a cutting edge custom built ORM (Object Relational Mapper) called COSMIC. The STAR Omniverse is both a simulation & game of life and aggregates all metaverses into one fully integrated unified platform. It is also a fully integrated immersive interoperable metaverse Low Code Generator and soooooo much more.... ;-)
+[The WEB 5 STAR OASIS Omniverse Interoperable Metaverse Low Code Generator](https://github.com/NextGenSoftwareUK/OASIS#web5-star-odk) is built on top of the OASIS API and aggregates all the worlds data and expresses it within a cyberspace ontology using a cutting edge custom built ORM (Object Relational Mapper) called COSMIC. The STAR Omniverse is both a simulation & game of life and aggregates all metaverses into one fully integrated unified platform. It is also a fully integrated immersive interoperable metaverse Low Code Generator and soooooo much more.... ;-)
 
 It connects and integrates all metaverses together through the SSO Avatar/Karma system (part of the OASIS API). It is also a fully interoperable Metaverse Low Code Generator (connecting all WEB 2 and WEB 3 together) through the WEB 4 OASIS API.
 
@@ -435,7 +1841,7 @@ https://github.com/NextGenSoftwareUK/OASIS-API-Unity-Package
 <a name="csharp"></a>
 ### C#
 
-https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK
+https://github.com/NextGenSoftwareUK/OASIS
 
 
 
@@ -463,13 +1869,13 @@ Thank you and we hope we find interest from people to join us on this exciting i
 
 **Ready to be a hero?**
 
-If the answer is YES, then please [proceed to here](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/So-You-Want-To-Get-Involved%3F-Ready-To-Be-A-Hero%3F)...
+If the answer is YES, then please [proceed to here](https://github.com/NextGenSoftwareUK/OASIS/wiki/So-You-Want-To-Get-Involved%3F-Ready-To-Be-A-Hero%3F)...
 
 <a href="https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view">Dev Requirements To Join The Our World Tribe</a><br>
 <a href="https://drive.google.com/file/d/12pCk20iLw_uA1yIfojcP6WwvyOT4WRiO/view?usp=sharing">The Our World Mission (Summary)</a><br>
 http://www.ourworldthegame.com<br>
 http://oasisplatform.world/swagger<br>
-https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK<br>
+https://github.com/NextGenSoftwareUK/OASIS<br>
 http://www.gofundme.com/ourworldthegame<br>
 
 http://www.nextgensoftware.co.uk<br>
@@ -537,11 +1943,11 @@ The projects within this repo should be pretty self explanatory from their names
 
 Our World is much more than just a free open world game where you can build and create anything you can imagine and at the same time be immersed in an epic storyline. it is an entirely new ecosystem/asset store/internet, it is the future way we will be interacting with each other and the world through the use of technology. Smaller satellite apps/game will plug into it and share your central profile/avatar where you gain karma for doing good deeds such as helping your local communities, etc and lose karma for being selfish and not helping others since it mirrors the real world where you have free will. The karma unlocks certain abilities, special powers & items you can purchase in the game as well as quests and new areas to explore. 
 
-We believe that the OASIS API & Karama System should be baked into the core of the new internet (Web 3.0+) that we are co-creating and will allow [Everything to talk to Everything](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#bridge) else and will act as the worlds universal API/protocol. At the center of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satellite apps/games that use the OASIS API.
+We believe that the OASIS API & Karama System should be baked into the core of the new internet (Web 3.0+) that we are co-creating and will allow [Everything to talk to Everything](https://github.com/NextGenSoftwareUK/OASIS#bridge) else and will act as the worlds universal API/protocol. At the center of this is the central profile/avatar where the user's data will be stored. Part of this data will include the karma they have earnt in Our World as well as the karma they have earnt in any of the inter-connected satellite apps/games that use the OASIS API.
 
 This will increase peoples awareness of the good or bad karma they are collecting and will help them become more conscious of their moment by moment actions. This will help them strive to become a better person and to reach their full potential doing as much good as they can in the world. This will help manifest a better world for us all that much faster, when everyone is doing all they can to help co-create it.
 
-Check out the latest <a href="https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS%20API%20RELEASE%20HISTORY.md">WEB 4 OASIS API RELEASE HISTORY</a>.
+Check out the latest <a href="https://github.com/NextGenSoftwareUK/OASIS/blob/master/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS%20API%20RELEASE%20HISTORY.md">WEB 4 OASIS API RELEASE HISTORY</a>.
 
 **The OASIS API & Our World are expressions of true Unity Consciousness manifested within the technical sphere.**
 
@@ -699,19 +2105,19 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 
 |Protocol/Platform/Network| Description | Support Implemented  | Provider Name |
 |--|--|--|--|
-| [MongoDB](https://www.mongodb.com/) | World's leading Document NoSQL DB | Yes | [MongoDBOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.MongoOASIS)
-| [Neo4j](https://neo4j.com/) | World's leading Graph DB | Yes | [Neo4jOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS)
-| [SQLLite](http://www.sqlite.org/) | World's leading Compact Relational DB | Yes | [SQLLiteDBOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS)
-| [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes | [HoloOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core)
+| [MongoDB](https://www.mongodb.com/) | World's leading Document NoSQL DB | Yes | [MongoDBOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.MongoOASIS)
+| [Neo4j](https://neo4j.com/) | World's leading Graph DB | Yes | [Neo4jOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS)
+| [SQLLite](http://www.sqlite.org/) | World's leading Compact Relational DB | Yes | [SQLLiteDBOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS)
+| [Holochain](https://holochain.org/) | Leading the way for the new decentralised distributed internet | Yes | [HoloOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core)
 | [ThreeFold](https://threefold.io//) | A true peer-to-peer internet. Empowering equality, autonomy and sustainability with game-changing technology built with a collaborative ecosystem. Live and distributed in 21 countries and expanding.| In Dev | ThreeFoldOASIS
 | [Chainlink](https://chain.link/) | The Chainlink network provides reliable tamper-proof inputs and outputs for complex smart contracts on any blockchain.| In Dev | ChainlinkOASIS
 | [SOLID](https://solid.inrupt.com/) | Inventor of the Internet, Sir Tim Berners-Lee new protocol for Web 3.0 to give users control of their data as well as remove silos/walled gardens using Pods & Linked Data. | In Dev | SOLIDOASIS
-| [Solana](https://solana.com/) | One of the leading fastest Blockchain implementations that is very popular. | Yes | [SolanaOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS)
-| [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | Yes | [EthereumOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.EthereumOASIS)
-| [EOSIO](https://eos.io//) | EOSIO is a next-generation, open-source blockchain protocol with industry-leading transaction speed and flexible utility. | Yes | [EOSIOOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS)
-| [Telos](https://telosnetwork.io/) | The Telos Blockchain was launched in December of 2018 in response to what the founders saw as an opportunity to build, and improve upon the EOSIO software. | Yes | [TelosOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.TelosOASIS)
-| [SEEDS](https://www.joinseeds.com/) | A payment platform and financial ecosystem to empower humanity and heal our planet. | Yes | [SEEDSOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS)
-| [IPFS](https://ipfs.io) | The InterPlanetary File System is a protocol and peer-to-peer network for storing and sharing data in a distributed file system. IPFS uses content-addressing to uniquely identify each file in a global namespace connecting all computing devices.| Yes | [IPFSOASIS](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Providers.IPFSOASIS)
+| [Solana](https://solana.com/) | One of the leading fastest Blockchain implementations that is very popular. | Yes | [SolanaOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS)
+| [Ethereum](https://www.ethereum.org/) | One of the leading Blockchain implementations that is very popular. | Yes | [EthereumOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.EthereumOASIS)
+| [EOSIO](https://eos.io//) | EOSIO is a next-generation, open-source blockchain protocol with industry-leading transaction speed and flexible utility. | Yes | [EOSIOOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS)
+| [Telos](https://telosnetwork.io/) | The Telos Blockchain was launched in December of 2018 in response to what the founders saw as an opportunity to build, and improve upon the EOSIO software. | Yes | [TelosOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.TelosOASIS)
+| [SEEDS](https://www.joinseeds.com/) | A payment platform and financial ecosystem to empower humanity and heal our planet. | Yes | [SEEDSOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS)
+| [IPFS](https://ipfs.io) | The InterPlanetary File System is a protocol and peer-to-peer network for storing and sharing data in a distributed file system. IPFS uses content-addressing to uniquely identify each file in a global namespace connecting all computing devices.| Yes | [IPFSOASIS](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Providers.IPFSOASIS)
 | [Elrond](https://elrond.com/) |A highly scalable, fast and secure blockchain platform for distributed apps, enterprise use cases and the new internet economy. | In Dev  | ElrondOASIS
 | [HIVE](https://www.hiveblockchain.com/) |First publicly listed blockchain infrastructure company that bridges blockchain and cryptocurrencies to traditional capital markets. | In Dev  | HIVEOASIS
 | [Orion Protocol](https://www.orionprotocol.io/) |Trade with the liquidity of the entire crypto market in one place - without ever giving up your private keys. | In Dev  | OrionProtocolOASIS
@@ -1015,7 +2421,7 @@ Because the OASIS Architecture makes use of .NET, Unity, NodeJS & Holochain we h
 
 The Architecture diagram can be found below or on our website (http://www.ourworldthegame.com) but it is also in the images folder of the repo cunningly named OASIS Architecture Diagram.png
 
-![alt text](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/Images/OASIS%20Arcitecture.png "OASIS Architecture Diagram")
+![alt text](https://github.com/NextGenSoftwareUK/OASIS/blob/master/Images/OASIS%20Arcitecture.png "OASIS Architecture Diagram")
 
 Our World will run on our own propriety game engine called OASIS 2.0 (Open Advanced Sensory Immersion System).
 
@@ -1130,15 +2536,15 @@ Businesses can also implement OAPP's if they qualify as a benevolent organisatio
 <a name="oasisapi-overview"></a>
 ### WEB4 OASIS API Architectue Overview
 
-This project is built on the principle of multilayer architecture. Where one of the first Presentation layer's is the REST API Service - [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) ([http://api.oasisplatform.world/](http://api.oasisplatform.world/)). 
+This project is built on the principle of multilayer architecture. Where one of the first Presentation layer's is the REST API Service - [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) ([http://api.oasisplatform.world/](http://api.oasisplatform.world/)). 
 
-We plan to also add a gRPC and GraphQL endpoint soon. There is also the [WEB 5 STAR ODK](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#web5-star-odk) CLI endpoint: [NextGenSoftware.OASIS.STAR.CLI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.STAR.CLI) that is built on top of the OASIS API and is a Interoperable Metaverse Low Code Generator amongst many more things...
+We plan to also add a gRPC and GraphQL endpoint soon. There is also the [WEB 5 STAR ODK](https://github.com/NextGenSoftwareUK/OASIS#web5-star-odk) CLI endpoint: [NextGenSoftware.OASIS.STAR.CLI](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.STAR.CLI) that is built on top of the OASIS API and is a Interoperable Metaverse Low Code Generator amongst many more things...
 	
-Other projects in the solution are providers or tests that plug into it. There is also the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Core) project that contains the main OASIS Engine/Architecture and is where the Managers that control the API are, containing all the Business Logic (BLL). 
+Other projects in the solution are providers or tests that plug into it. There is also the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Core) project that contains the main OASIS Engine/Architecture and is where the Managers that control the API are, containing all the Business Logic (BLL). 
 
-Providers in various technologies and APIs are integrated, each of them is a library project (modules) that connects (links) with the [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) project (main Presentation layer). Each of the providers (projects) has a class that implements the [IOASISStorageProvider](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASIStorageProvider.cs) & [IOASISNET](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASISNETProvider.cs) interfaces and which inherits from the abstract class [OASISStorageBase](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/blob/master/NextGenSoftware.OASIS.API.Core/OASISStorageProviderBase.cs). 
+Providers in various technologies and APIs are integrated, each of them is a library project (modules) that connects (links) with the [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) project (main Presentation layer). Each of the providers (projects) has a class that implements the [IOASISStorageProvider](https://github.com/NextGenSoftwareUK/OASIS/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASIStorageProvider.cs) & [IOASISNET](https://github.com/NextGenSoftwareUK/OASIS/blob/master/NextGenSoftware.OASIS.API.Core/Interfaces/Providers/IOASISNETProvider.cs) interfaces and which inherits from the abstract class [OASISStorageBase](https://github.com/NextGenSoftwareUK/OASIS/blob/master/NextGenSoftware.OASIS.API.Core/OASISStorageProviderBase.cs). 
 
-For more info check out the [WIKI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Introduction-to-the-OASIS-API) pages.
+For more info check out the [WIKI](https://github.com/NextGenSoftwareUK/OASIS/wiki/Introduction-to-the-OASIS-API) pages.
 
 **NOTE: This is still a WIP, so the above is likely to evolve and change as we progress...**
 
@@ -1593,7 +2999,7 @@ Check out the [full documentation here](https://github.com/holochain-open-dev/ho
 	
 ## HoloOASIS
 
-`HoloOASIS` uses the [HoloNETClient](#holonet) to implement a Storage Provider ([IOASISStorage](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#ioasisstorage)) for the OASIS System. It will soon also implement a Network Provider ([IOASISNET](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#ioasisnet))
+`HoloOASIS` uses the [HoloNETClient](#holonet) to implement a Storage Provider ([IOASISStorage](https://github.com/NextGenSoftwareUK/OASIS#ioasisstorage)) for the OASIS System. It will soon also implement a Network Provider ([IOASISNET](https://github.com/NextGenSoftwareUK/OASIS#ioasisnet))
  for the OASIS System that will leverage Holochain to create it's own private de-centralised distributed network called `ONET` (as seen on the [OASIS Architecture Diagram](#the-oasis-architecture)).
 
 This is a good example to see how to use [HoloNETClient](#holonet) in a real world game/platform (OASIS/Our World).
@@ -1660,7 +3066,7 @@ HoloOASIS contains the following events:
 | OnAvatarSaved|Fired when the users Avatar has finished saving. |
 | OnAvatarLoaded|Fired when the users Avatar has finished loading. |
 | OnHoloOASISError|Fired when an error occurs within the provider. 
-| OnStorageProviderError|This implements part of the [IOASISStorage](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#ioasisstorage) interface. This is a way for the OASIS Providers to bubble up any errors to the AvatarManager contained in the [NextGenSoftware.OASIS.API.Core](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#oasisapi) |
+| OnStorageProviderError|This implements part of the [IOASISStorage](https://github.com/NextGenSoftwareUK/OASIS#ioasisstorage) interface. This is a way for the OASIS Providers to bubble up any errors to the AvatarManager contained in the [NextGenSoftware.OASIS.API.Core](https://github.com/NextGenSoftwareUK/OASIS#oasisapi) |
 
 #### OnInitialized 
 
@@ -1783,9 +3189,9 @@ It is located in the `NextGenSoftware.OASIS.API.Core` project.
 
 The API is constantly evolving so keeping the documentation in sync with the code is hard so please bare with us, in the meantime please check the codebase directly for latest changes. Thank you.
 
-You can now use the OASIS API either through the [REST API](https://api.oasisplatform.world) or through the [fully integrated native endpoint](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/releases).
+You can now use the OASIS API either through the [REST API](https://api.oasisplatform.world) or through the [fully integrated native endpoint](https://github.com/NextGenSoftwareUK/OASIS/releases).
 
-You can alternatively use the various OASIS API Managers contained in the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Core) project directly.
+You can alternatively use the various OASIS API Managers contained in the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Core) project directly.
 
 You start by instantiating the `AvatarManager` class:
 
@@ -1825,7 +3231,7 @@ The OASIS API currently has the following interfaces defined:
 
 |Interface|Description  |
 |--|--|
-|[IOASISStorage](#ioasisstorage)  | This is what a Storage Provider implements so the OASIS API can read & write the users profile/avatar to the storage medium/network. Check out the [full list](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#protocols-platforms-networks-supported--providers-) of providers that have implemented this interface.  |
+|[IOASISStorage](#ioasisstorage)  | This is what a Storage Provider implements so the OASIS API can read & write the users profile/avatar to the storage medium/network. Check out the [full list](https://github.com/NextGenSoftwareUK/OASIS#protocols-platforms-networks-supported--providers-) of providers that have implemented this interface.  |
 |[IOASISNET](#ioasisnet)| This is what a Network Provider implements so the OASIS API can share the users profile/avatar as well as fine Holons and players near them. 
 
 **NOTE: The interfaces are evolving all the time so it is hard to keep the documentation up to date, so best to check in the codebase itself...  Additional interfaces will also be added such as the IOASISRenderer interface. There are now many more interfaces that need documenting but as we said best to check the codebase directly...**

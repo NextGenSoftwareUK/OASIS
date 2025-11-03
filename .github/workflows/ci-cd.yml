@@ -1,0 +1,265 @@
+name: OASIS CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  NODE_VERSION: '18.x'
+
+jobs:
+  # Build and Test OASIS Architecture Projects
+  test-oasis-architecture:
+    name: Test OASIS Architecture
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [
+          'NextGenSoftware.OASIS.API.Core',
+          'NextGenSoftware.OASIS.API.DNA',
+          'NextGenSoftware.OASIS.Common',
+          'NextGenSoftware.OASIS.OASISBootLoader'
+        ]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore "OASIS Architecture/${{ matrix.project }}/${{ matrix.project }}.csproj"
+    
+    - name: Build
+      run: dotnet build "OASIS Architecture/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
+    
+    - name: Test
+      run: dotnet test "OASIS Architecture/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
+
+  # Build and Test ONODE Projects
+  test-onode:
+    name: Test ONODE
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [
+          'NextGenSoftware.OASIS.API.ONODE.Core',
+          'NextGenSoftware.OASIS.API.ONODE.WebAPI',
+          'NextGenSoftware.OASIS.API.ONODE.OPORTAL'
+        ]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore "ONODE/${{ matrix.project }}/${{ matrix.project }}.csproj"
+    
+    - name: Build
+      run: dotnet build "ONODE/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
+    
+    - name: Test
+      run: dotnet test "ONODE/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
+
+  # Build and Test STAR ODK Projects
+  test-star-odk:
+    name: Test STAR ODK
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [
+          'NextGenSoftware.OASIS.STAR',
+          'NextGenSoftware.OASIS.STAR.CLI',
+          'NextGenSoftware.OASIS.STAR.CLI.Lib',
+          'NextGenSoftware.OASIS.STAR.STARDNA',
+          'NextGenSoftware.OASIS.STAR.WebAPI',
+          'NextGenSoftware.OASIS.STAR.WebUI'
+        ]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore "STAR ODK/${{ matrix.project }}/${{ matrix.project }}.csproj"
+    
+    - name: Build
+      run: dotnet build "STAR ODK/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
+    
+    - name: Test
+      run: dotnet test "STAR ODK/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
+
+  # Integration Tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [test-oasis-architecture, test-onode, test-star-odk]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: |
+        dotnet restore "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj"
+        dotnet restore "ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests.csproj"
+        dotnet restore "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj"
+        dotnet restore "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj"
+    
+    - name: Build
+      run: |
+        dotnet build "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-restore
+        dotnet build "ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests.csproj" --no-restore
+        dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-restore
+        dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-restore
+    
+    - name: Run Integration Tests
+      run: |
+        dotnet test "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
+        dotnet test "ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests/NextGenSoftware.OASIS.API.ONODE.OPORTAL.IntegrationTests.csproj" --no-build --verbosity normal
+        dotnet test "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
+        dotnet test "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-build --verbosity normal
+
+  # Unity Tests (if Unity is available)
+  unity-tests:
+    name: Unity Tests
+    runs-on: ubuntu-latest
+    if: false  # Disabled for now as Unity requires special setup
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Run Unity Tests
+      run: |
+        echo "Unity tests would run here when Unity is properly configured"
+        # dotnet test "STAR ODK/Unity-OASIS-Omniverse-UI/Tests/Editor/"
+
+  # Build and Package
+  build-and-package:
+    name: Build and Package
+    runs-on: ubuntu-latest
+    needs: [test-oasis-architecture, test-onode, test-star-odk, integration-tests]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build all projects
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: Pack NuGet packages
+      run: |
+        dotnet pack "OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj" --configuration Release --no-build --output ./packages
+        dotnet pack "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware.OASIS.Common.csproj" --configuration Release --no-build --output ./packages
+        dotnet pack "OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj" --configuration Release --no-build --output ./packages
+        dotnet pack "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj" --configuration Release --no-build --output ./packages
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: oasispackages
+        path: ./packages/
+        retention-days: 30
+
+  # Security and Quality Checks
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Security scan
+      run: |
+        dotnet list package --vulnerable --include-transitive
+        echo "Security scan completed"
+
+  # Code Quality
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Code analysis
+      run: |
+        dotnet build --configuration Release --no-restore
+        echo "Code quality analysis completed"
+
+  # Test Coverage Report
+  coverage:
+    name: Test Coverage
+    runs-on: ubuntu-latest
+    needs: [test-oasis-architecture, test-onode, test-star-odk]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Install ReportGenerator
+      run: dotnet tool install -g dotnet-reportgenerator-globaltool
+    
+    - name: Run tests with coverage
+      run: |
+        dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
+    
+    - name: Generate coverage report
+      run: reportgenerator -reports:"./coverage/**/coverage.cobertura.xml" -targetdir:"./coverage/report" -reporttypes:"Html"
+    
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: ./coverage/report/
+        retention-days: 30

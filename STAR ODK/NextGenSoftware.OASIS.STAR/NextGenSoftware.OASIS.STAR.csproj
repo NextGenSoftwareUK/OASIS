@@ -34,10 +34,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
-    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj" />
-    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
-    <ProjectReference Include="..\..\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <ProjectReference Include="..\..\Native EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint\NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.STAR.STARDNA\NextGenSoftware.OASIS.STAR.DNA.csproj" />
     <!--<ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS\NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" />-->
@@ -97,6 +97,12 @@
     <PackageReference Include="MappingGenerator" Version="1.22.3" />
     <PackageReference Include="Mapster" Version="7.2.0" />
     <!--<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.8" />-->
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="NextGenSoftware.OASIS.STAR.IntegrationTests\**" />
+    <EmbeddedResource Remove="NextGenSoftware.OASIS.STAR.IntegrationTests\**" />
+    <None Remove="NextGenSoftware.OASIS.STAR.IntegrationTests\**" />
   </ItemGroup>
 
 </Project>

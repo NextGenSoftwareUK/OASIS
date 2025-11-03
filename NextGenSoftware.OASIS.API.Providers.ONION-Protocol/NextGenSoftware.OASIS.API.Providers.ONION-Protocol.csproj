@@ -1,8 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>NextGenSoftware.OASIS.API.Providers.ONION_Protocol</RootNamespace>
-  </PropertyGroup>
-
-</Project>

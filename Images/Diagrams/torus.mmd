@@ -1,0 +1,127 @@
+graph TB
+    subgraph "OASIS Torus Architecture"
+        subgraph "Top of Torus - Web Dev Kits & SDKs"
+            subgraph "WEB4 OASIS Web Kits"
+                WEB4_ANGULAR[Angular Web Kit]
+                WEB4_REACT[React Web Kit]
+                WEB4_VUE[Vue Web Kit]
+                WEB4_NEXTJS[Next.js Web Kit]
+                WEB4_SVELTE[Svelte Web Kit]
+                WEB4_VANILLA[Vanilla JS Web Kit]
+            end
+            
+            subgraph "WEB5 STAR Web Kits"
+                WEB5_ANGULAR[Angular STAR Web Kit]
+                WEB5_REACT[React STAR Web Kit]
+                WEB5_VUE[Vue STAR Web Kit]
+                WEB5_NEXTJS[Next.js STAR Web Kit]
+                WEB5_SVELTE[Svelte STAR Web Kit]
+                WEB5_VANILLA[Vanilla JS STAR Web Kit]
+            end
+            
+            subgraph "Avatar SSO Kits"
+                SSO_ANGULAR[Angular SSO Kit]
+                SSO_REACT[React SSO Kit]
+                SSO_VUE[Vue SSO Kit]
+                SSO_NEXTJS[Next.js SSO Kit]
+                SSO_SVELTE[Svelte SSO Kit]
+                SSO_VANILLA[Vanilla JS SSO Kit]
+            end
+            
+            subgraph "SDKs for Major Frameworks"
+                SDK_PYTHON[Python SDK]
+                SDK_RUST[Rust SDK]
+                SDK_UNITY[Unity SDK]
+                SDK_UNREAL[Unreal SDK]
+                SDK_JAVA[Java SDK]
+                SDK_PHP[PHP SDK]
+                SDK_GO[Go SDK]
+                SDK_DOTNET[.NET SDK]
+            end
+        end
+        
+        subgraph "Center of Torus - OASIS API Core"
+            OASIS_API[OASIS API\nData Aggregation & Identity Layer]
+            HYPERDRIVE[OASIS HyperDrive\nAuto-Failover System]
+            AVATAR[Avatar Management]
+            KARMA[Karma System]
+            DATA[Universal Data Storage]
+            IDENTITY[Identity Management]
+        end
+        
+        subgraph "Bottom of Torus - Provider Layer"
+            subgraph "Web3 Providers"
+                ETH[Ethereum]
+                SOL[Solana]
+                HOLO[Holochain]
+                IPFS[IPFS]
+                POLYGON[Polygon]
+                ARBITRUM[Arbitrum]
+                OPTIMISM[Optimism]
+                BASE[Base]
+                AVALANCHE[Avalanche]
+                BNB[BNB Chain]
+                FANTOM[Fantom]
+                CARDANO[Cardano]
+                POLKADOT[Polkadot]
+                BITCOIN[Bitcoin]
+                NEAR[NEAR]
+                SUI[Sui]
+                APTOS[Aptos]
+                COSMOS[Cosmos]
+                EOSIO[EOSIO]
+                TELOS[Telos]
+                SEEDS[SEEDS]
+            end
+            
+            subgraph "Web2 Providers"
+                AWS[AWS]
+                AZURE[Azure]
+                GCP[Google Cloud]
+                MONGO[MongoDB]
+                POSTGRES[PostgreSQL]
+                MYSQL[MySQL]
+                REDIS[Redis]
+                ELASTICSEARCH[Elasticsearch]
+                PINATA[Pinata]
+            end
+        end
+    end
+    
+    OASIS_API --> HYPERDRIVE
+    HYPERDRIVE --> AVATAR
+    HYPERDRIVE --> KARMA
+    HYPERDRIVE --> DATA
+    HYPERDRIVE --> IDENTITY
+    
+    HYPERDRIVE --> ETH
+    HYPERDRIVE --> SOL
+    HYPERDRIVE --> HOLO
+    HYPERDRIVE --> IPFS
+    HYPERDRIVE --> POLYGON
+    HYPERDRIVE --> ARBITRUM
+    HYPERDRIVE --> OPTIMISM
+    HYPERDRIVE --> BASE
+    HYPERDRIVE --> AVALANCHE
+    HYPERDRIVE --> BNB
+    HYPERDRIVE --> FANTOM
+    HYPERDRIVE --> CARDANO
+    HYPERDRIVE --> POLKADOT
+    HYPERDRIVE --> BITCOIN
+    HYPERDRIVE --> NEAR
+    HYPERDRIVE --> SUI
+    HYPERDRIVE --> APTOS
+    HYPERDRIVE --> COSMOS
+    HYPERDRIVE --> EOSIO
+    HYPERDRIVE --> TELOS
+    HYPERDRIVE --> SEEDS
+    
+    HYPERDRIVE --> AWS
+    HYPERDRIVE --> AZURE
+    HYPERDRIVE --> GCP
+    HYPERDRIVE --> MONGO
+    HYPERDRIVE --> POSTGRES
+    HYPERDRIVE --> MYSQL
+    HYPERDRIVE --> REDIS
+    HYPERDRIVE --> ELASTICSEARCH
+    HYPERDRIVE --> PINATA
